@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import M from "@/components/Math";
-import DrawPad, { type Stroke } from "@/components/DrawPad";
+import type { Stroke } from "@/components/DrawPad";
+import PadSection from "@/components/PadSection";
+import ReadAs from "@/components/ReadAs";
 import { Button, Eyebrow } from "@/components/ui";
 import { DifficultyTag, SubskillChip } from "@/components/Tag";
 import { ASSIGNMENT } from "@/data/assignment";
@@ -100,41 +102,10 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
         </div>
       </aside>
 
-      <section className="flex min-h-0 flex-col px-6 py-6">
-        <div className="flex items-center justify-between">
-          <Eyebrow>Your working</Eyebrow>
-          <div className="flex gap-1.5">
-            <Button variant="ghost" onClick={undo} disabled={strokes.length === 0}>
-              Undo
-            </Button>
-            <Button variant="ghost" onClick={clear} disabled={strokes.length === 0}>
-              Clear
-            </Button>
-          </div>
-        </div>
-        <div className="mt-3 min-h-0 flex-1 overflow-hidden rounded-2xl border border-line bg-paper shadow-card">
-          <DrawPad strokes={strokes} onStrokesChange={setStrokes} onBurstEnd={onBurstEnd} onPenDown={() => setRecognising(true)} />
-        </div>
-      </section>
+      <PadSection strokes={strokes} onStrokesChange={setStrokes} onBurstEnd={onBurstEnd} onPenDown={() => setRecognising(true)} onUndo={undo} onClear={clear} />
 
       <aside className="flex min-h-0 flex-col border-l border-line px-6 py-6">
-        <div className="flex items-center justify-between">
-          <Eyebrow>Read as</Eyebrow>
-          <span className="text-[11.5px] text-ink-muted">line by line</span>
-        </div>
-        <ol className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto">
-          {lines.map((l, i) => (
-            <li key={i} className="rounded-xl border border-line bg-paper px-3.5 py-2.5 text-[16px] text-ink">
-              <M tex={l.tex} />
-            </li>
-          ))}
-          {recognising && <li className="shimmer h-11 rounded-xl" aria-label="Recognising" />}
-          {lines.length === 0 && !recognising && (
-            <li className="rounded-xl border border-dashed border-line-strong px-3.5 py-3 text-[12.5px] leading-snug text-ink-muted">
-              Write each line of working on the pad. It's read as you go, so you can check it was understood.
-            </li>
-          )}
-        </ol>
+        <ReadAs lines={lines} recognising={recognising} empty="Write each line of working on the pad. It's read as you go, so you can check it was understood." className="flex-1" />
         <div className="mt-4 flex items-center justify-between gap-2 border-t border-line pt-4">
           <Button variant="ghost" onClick={() => go(session.problemIndex - 1)} className={session.problemIndex === 0 ? "invisible" : ""}>
             ← {problems[session.problemIndex - 1]?.label ?? ""}

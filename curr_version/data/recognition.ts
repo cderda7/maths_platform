@@ -10,3 +10,13 @@ export const RECOGNITION: Record<string, string[]> = {
   q3: ["(x - 3)(x + 2) = 6", "x - 3 = 6 \\;\\text{or}\\; x + 2 = 6", "x = 9 \\;\\text{or}\\; x = 4"],
   q4: ["a = 3,\\; b = -5,\\; c = -1", "b^2 - 4ac = 25 + 12 = 37", "x = \\dfrac{5 \\pm \\sqrt{37}}{6}"],
 };
+
+/**
+ * What the pad "reads" during the independent rework, one line per burst: the corrected path
+ * for each problem that had a slip. Q4 held, so it has no rework script.
+ */
+export const RECOGNITION_REWORK: Record<string, string[]> = {
+  q1: ["(x - 2)(x - 3) = 0", "x = 2 \\;\\text{or}\\; x = 3"],
+  q2: ["ac = -8,\\quad 8 + (-1) = 7", "2x^2 + 8x - x - 4 = 0", "2x(x+4) - 1(x+4) = 0", "(2x - 1)(x + 4) = 0", "x = \\tfrac{1}{2} \\;\\text{or}\\; x = -4"],
+  q3: ["x^2 - x - 6 = 6", "x^2 - x - 12 = 0", "(x - 4)(x + 3) = 0", "x = 4 \\;\\text{or}\\; x = -3"],
+};

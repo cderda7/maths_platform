@@ -96,3 +96,29 @@ describe("escalation inside the session", () => {
     expect(s.escalation.caution).toEqual(["factoring"]);
   });
 });
+
+describe("independent rework", () => {
+  it("keeps the original version untouched while a second version builds up", () => {
+    let s = sessionAt("rework");
+    const original = s.lines.q1.map((l) => l.tex);
+    s = sessionReducer(s, { type: "rework/reveal", problem: "q1", line: { tex: "(x - 2)(x - 3) = 0", strokeCount: 4 } });
+    s = sessionReducer(s, { type: "rework/reveal", problem: "q1", line: { tex: "x = 2", strokeCount: 8 } });
+    expect(s.rework.q1.map((l) => l.tex)).toEqual(["(x - 2)(x - 3) = 0", "x = 2"]);
+    expect(s.lines.q1.map((l) => l.tex)).toEqual(original);
+    s = sessionReducer(s, { type: "rework/undo", problem: "q1", strokeCount: 7 });
+    expect(s.rework.q1.map((l) => l.tex)).toEqual(["(x - 2)(x - 3) = 0"]);
+    expect(s.escalation).toEqual(sessionAt("rework").escalation);
+  });
+
+  it("finishing the rework hands off to the group stage", () => {
+    const s = sessionReducer(sessionAt("rework"), { type: "rework/done" });
+    expect(s.stage).toBe("group-pass");
+  });
+
+  it("deep links past the rework carry both versions", () => {
+    const s = sessionAt("group-pass");
+    expect(Object.keys(s.rework).sort()).toEqual(["q1", "q2", "q3"]);
+    expect(s.lines.q1.length).toBe(3);
+    expect(s.stars).toEqual(["q4"]);
+  });
+});

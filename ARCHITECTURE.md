@@ -20,6 +20,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │                                  ├▶ "Read as" column             │
  │                                  └▶ PromptModal · PracticeOverlay · HelpPicker
  │               ▶ Feedback (red / blue / clue / star)             │
+ │               ▶ Rework (clue only; second version on the pad)   │
  └───────────────┬──────────────────┘                               │
                  │ dispatch(action)                                 │
                  ▼                                                  ▼
@@ -39,7 +40,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │   types.ts        SubskillId · SubskillStatus · Problem · Assignment · Confidence · Stage │
  │   subskills.ts    SUBSKILLS · SUBSKILL_MAP · PREREQ_IDS · TARGET_ID                │
  │   assignment.ts   ASSIGNMENT (4 problems, labelled solutions) · PRACTICE · DEMO_STUDENT │
- │   recognition.ts  RECOGNITION[problemId]: the lines the pad will "read", in order      │
+ │   recognition.ts  RECOGNITION[problemId] (scripted run) · RECOGNITION_REWORK (corrected) │
  │   evaluation.ts   EVALUATION[problemId][tex] → LineVerdict (ok/wrong, subskill, clue)    │
  │                   STANDOUT[problemId][tex] → { when: strong|weak|both, why }              │
  │   practice.ts     PRACTICES[subskill]: one isolated practice problem each · PRACTICE     │
@@ -52,6 +53,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │   Tag.tsx DifficultyTag SubskillChip StatusDot STATUS_WORD                         │
  │   Brand.tsx Brand BrandMark                   IpadStage.tsx  bezel + scale-to-fit  │
  │   DrawPad.tsx  pointer events → ink; reports pen-down and burst-end(strokeCount)   │
+ │   PadSection.tsx  pad + Undo/Clear      ReadAs.tsx  transcription column + shimmer  │
  │   PracticeCard.tsx  one practice problem, steps revealed one at a time              │
  │   ResetDemo.tsx     restart the shared session in every tab                         │
  └────────────────────────────────────────────────────────────────────────────────────┘
@@ -72,7 +74,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 03 | Drawpad with simulated line-by-line recognition | `/student?stage=working` | `bcca326` | [curr_version/architecture/03-drawpad-simulated-recognition.md](curr_version/architecture/03-drawpad-simulated-recognition.md) |
 | 04 | Scripted evaluation, escalation counter, practice prompt, "I need help" | `/student?stage=working` | `db5cbb1` | [curr_version/architecture/04-scripted-evaluation-and-escalation.md](curr_version/architecture/04-scripted-evaluation-and-escalation.md) |
 | 05 | Teacher live subskill status and caution flag | `/teacher`, `/student` | `a816258` | [curr_version/architecture/05-teacher-live-status-and-caution-flag.md](curr_version/architecture/05-teacher-live-status-and-caution-flag.md) |
-| 06 | Feedback layers on submission | `/student?stage=feedback` | _this commit_ | [curr_version/architecture/06-feedback-layers.md](curr_version/architecture/06-feedback-layers.md) |
+| 06 | Feedback layers on submission | `/student?stage=feedback` | `c09798e` | [curr_version/architecture/06-feedback-layers.md](curr_version/architecture/06-feedback-layers.md) |
+| 07 | Independent rework stage | `/student?stage=rework` | _this commit_ | [curr_version/architecture/07-independent-rework.md](curr_version/architecture/07-independent-rework.md) |
 
 ## Conventions
 

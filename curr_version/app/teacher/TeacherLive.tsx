@@ -36,6 +36,13 @@ function stageWord(s: StudentSession): string {
       return `On ${ASSIGNMENT.problems[s.problemIndex].label}`;
     case "feedback":
       return "Handed in";
+    case "rework":
+      return "Reworking on their own";
+    case "group-pass":
+    case "group-discuss":
+      return "In group review";
+    case "report":
+      return "Reading their report";
     default:
       return s.stage;
   }

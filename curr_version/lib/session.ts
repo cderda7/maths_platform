@@ -2,7 +2,7 @@ import type { Confidence, Stage, SubskillId } from "@/data/types";
 import { afterUndo, type RevealedLine } from "./recognition";
 import { evaluateLine } from "./evaluate";
 import { INITIAL_ESCALATION, recordMistake, requestHelp, type EscalationState } from "./escalation";
-import { RECOGNITION } from "@/data/recognition";
+import { RECOGNITION, RECOGNITION_REWORK } from "@/data/recognition";
 
 /**
  * The student's session: everything the closed loop needs to remember about one run. Pure data
@@ -40,6 +40,13 @@ export interface StudentSession {
   practices: PracticeEntry[];
   /** Problems the student got right but wasn't sure about. */
   stars: string[];
+  /**
+   * The independent rework: a second version of the working per problem. `lines` is the
+   * original and is never changed after hand-in, so both versions are preserved.
+   */
+  rework: Record<string, RevealedLine[]>;
+  /** Index into the problems being reworked (those with a slip). */
+  reworkIndex: number;
 }
 
 export type SessionAction =
@@ -56,6 +63,11 @@ export type SessionAction =
   | { type: "prompt/decline"; problem: string }
   | { type: "overlay/done" }
   | { type: "star/toggle"; problem: string }
+  | { type: "rework/goto"; index: number }
+  | { type: "rework/reveal"; problem: string; line: RevealedLine }
+  | { type: "rework/undo"; problem: string; strokeCount: number }
+  | { type: "rework/clear"; problem: string }
+  | { type: "rework/done" }
   | { type: "goto"; stage: Stage }
   | { type: "reset" };
 
@@ -71,6 +83,8 @@ export const INITIAL_SESSION: StudentSession = {
   overlay: null,
   practices: [],
   stars: [],
+  rework: {},
+  reworkIndex: 0,
 };
 
 export function sessionReducer(s: StudentSession, a: SessionAction): StudentSession {
@@ -115,6 +129,16 @@ export function sessionReducer(s: StudentSession, a: SessionAction): StudentSess
       return { ...s, prompt: null, practices: [...s.practices, { ...s.prompt, accepted: false, problem: a.problem }] };
     case "overlay/done":
       return { ...s, overlay: null };
+    case "rework/goto":
+      return { ...s, reworkIndex: a.index };
+    case "rework/reveal":
+      return { ...s, rework: { ...s.rework, [a.problem]: [...(s.rework[a.problem] ?? []), a.line] } };
+    case "rework/undo":
+      return { ...s, rework: { ...s.rework, [a.problem]: afterUndo(s.rework[a.problem] ?? [], a.strokeCount) } };
+    case "rework/clear":
+      return { ...s, rework: { ...s.rework, [a.problem]: [] } };
+    case "rework/done":
+      return { ...s, stage: "group-pass" };
     case "star/toggle":
       return { ...s, stars: s.stars.includes(a.problem) ? s.stars.filter((p) => p !== a.problem) : [...s.stars, a.problem] };
     case "goto":
@@ -146,10 +170,22 @@ export function scriptedSession(): StudentSession {
   return s;
 }
 
+/** The scripted run plus the corrected rework of every problem that slipped, Q4 starred. */
+export function reworkedSession(): StudentSession {
+  let s = { ...scriptedSession(), stage: "rework" as Stage, stars: ["q4"] };
+  for (const [pid, lines] of Object.entries(RECOGNITION_REWORK)) {
+    lines.forEach((tex, n) => {
+      s = sessionReducer(s, { type: "rework/reveal", problem: pid, line: { tex, strokeCount: (n + 1) * 5 } });
+    });
+  }
+  return s;
+}
+
 /** Builds a session already at `stage`, for deep links, with plausible earlier answers filled in. */
 export function sessionAt(stage: Stage): StudentSession {
   const i = ORDER.indexOf(stage);
   if (i < 0) return INITIAL_SESSION;
+  if (i >= ORDER.indexOf("group-pass")) return { ...reworkedSession(), stage };
   if (i >= ORDER.indexOf("feedback")) return { ...scriptedSession(), stage };
   return {
     ...INITIAL_SESSION,
