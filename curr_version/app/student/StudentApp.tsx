@@ -1,13 +1,12 @@
 "use client";
 
-import { useReducer } from "react";
 import IpadStage from "@/components/IpadStage";
 import StudentChrome from "./StudentChrome";
 import OverviewScreen from "./screens/OverviewScreen";
 import PracticeScreen from "./screens/PracticeScreen";
 import ConfidenceScreen from "./screens/ConfidenceScreen";
 import WorkingScreen from "./screens/WorkingScreen";
-import { sessionAt, sessionReducer } from "@/lib/session";
+import { dispatch, useStudentSession } from "@/lib/store";
 import { ASSIGNMENT } from "@/data/assignment";
 import type { Stage } from "@/data/types";
 
@@ -18,9 +17,12 @@ const CRUMB: Partial<Record<Stage, string>> = {
   feedback: ASSIGNMENT.title,
 };
 
-/** The whole student side: one client component, one reducer, one screen per stage. */
-export default function StudentApp({ initStage }: { initStage: Stage }) {
-  const [session, dispatch] = useReducer(sessionReducer, initStage, sessionAt);
+/**
+ * The whole student side: one screen per stage, state in the shared demo session store so the
+ * teacher tab sees the same run. `explicit` means the URL named a stage, which resets the run.
+ */
+export default function StudentApp({ initStage, explicit }: { initStage: Stage; explicit: boolean }) {
+  const session = useStudentSession(initStage, explicit);
   return (
     <IpadStage>
       <StudentChrome crumb={CRUMB[session.stage] ?? ASSIGNMENT.className}>

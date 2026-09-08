@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Brand from "@/components/Brand";
 import { Card, Eyebrow, H1 } from "@/components/ui";
+import ResetDemo from "@/components/ResetDemo";
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 
 export default function Home() {
@@ -40,9 +41,10 @@ export default function Home() {
           </Link>
         </div>
 
-        <p className="mt-10 text-[12.5px] text-ink-muted">
-          Design demo. Recognition, evaluation and groupmates are simulated with fixture data; nothing is stored.
-        </p>
+        <div className="mt-10 flex items-center justify-between text-[12.5px] text-ink-muted">
+          <span>Design demo. Recognition, evaluation and groupmates are simulated with fixture data; nothing leaves this browser.</span>
+          <ResetDemo />
+        </div>
       </main>
     </div>
   );

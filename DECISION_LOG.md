@@ -86,3 +86,26 @@ frames it as a fact for the teacher, not a mark against the student.
 **Defence.** The demo path shows the whole loop in four problems: a detected practice on Q2, then
 one help request, then red on the teacher side. And undo-then-redraw can't inflate the count
 because counted mistakes are keyed by problem and line index.
+
+## 2026-09-08 · Cross-tab session: localStorage snapshot + BroadcastChannel, no backend
+
+**Decision.** The one student session lives in a small external store. Every change is written
+to localStorage and posted on a BroadcastChannel; the teacher tab reads the store on a 3-second
+batch. A named `?stage=` deep link starts a fresh run; a plain `/student` continues the stored
+one; Reset writes a fresh session so every tab restarts together.
+
+**Context.** The demo runs on one laptop with the iPad tab and the teacher tab side by side or
+alt-tabbed. The spec calls the teacher view "live (batched)" and the brief is design-only, no
+persistence.
+
+**Alternatives considered.** A local dev API with server-sent events (real "sync", but a
+server to keep alive during the demo and nothing the audience can see). Rendering both sides in
+one window (robust, but hides the two-device story the loop is about). Pure in-memory state
+(a reload or a late-opened teacher tab would show nothing).
+
+**Tradeoffs.** Works only across tabs of one browser profile; a second machine would need the
+API. localStorage can be cleared by the browser. The 3-second batch is a design choice made
+visible in the legend, not a limitation.
+
+**Defence.** Zero infrastructure, survives reloads, and the batched cadence is exactly the
+product behaviour the spec describes for the teacher side.

@@ -8,24 +8,30 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 ## System diagram
 
 ```
- browser tab A · student iPad                       browser tab B · teacher
- ┌──────────────────────────────────┐               ┌──────────────────────────────────┐
- │ /student?stage=  page.tsx (server)│              │ /teacher   page.tsx (server)     │
- │   └▶ StudentApp (client)         │               │   "Where the class is" table     │
- │       useReducer(sessionReducer) │               │   one row: DEMO_STUDENT          │
- │       └▶ IpadStage ▶ StudentChrome│              │   StatusDot per subskill         │
- │            └▶ screens/            │              └───────────────┬──────────────────┘
- │               Overview ▶ Practice │                              │
+ browser tab A · student iPad                        browser tab B · teacher
+ ┌──────────────────────────────────┐                ┌──────────────────────────────────┐
+ │ /student?stage=  page.tsx (server)│               │ /teacher  page.tsx ▶ TeacherLive │
+ │   └▶ StudentApp (client)         │                │   useBatchedSession(3 s)         │
+ │       useStudentSession()        │                │   subskillStatuses · caution     │
+ │       └▶ IpadStage ▶ StudentChrome│               │   classmates (static fixture)    │
+ │            └▶ screens/            │               └──────────────┬───────────────────┘
+ │               Overview ▶ Practice │                              │ reads every 3 s
  │               ▶ Confidence ▶ Working ─▶ DrawPad (canvas ink)     │
  │                                  ├▶ "Read as" column             │
  │                                  └▶ PromptModal · PracticeOverlay · HelpPicker
  └───────────────┬──────────────────┘                               │
-                 │  lib/session.ts      StudentSession · sessionReducer · sessionAt  (pure, vitest)
-                 │  lib/recognition.ts  nextLine · afterUndo  (burst of strokes → scripted line)
-                 │  lib/evaluate.ts     evaluateLine(problem, tex) → ok | wrong | unclear
-                 │  lib/escalation.ts   recordMistake · requestHelp → { trigger, cautioned }
-                 │  (no shared state across tabs yet — ticket 05 adds the session store)
-                 ▼ reads                                            ▼ reads
+                 │ dispatch(action)                                 │
+                 ▼                                                  ▼
+ ┌────────────────────────────────────────────────────────────────────────────────────┐
+ │ lib/store.ts   one StudentSession · localStorage snapshot · BroadcastChannel        │
+ │                useStudentSession · useBatchedSession · useNow · resetSession        │
+ │ lib/session.ts      StudentSession · sessionReducer · sessionAt  (pure, vitest)     │
+ │ lib/recognition.ts  nextLine · afterUndo  (burst of strokes → scripted line)        │
+ │ lib/evaluate.ts     evaluateLine(problem, tex) → ok | wrong | unclear               │
+ │ lib/escalation.ts   recordMistake · requestHelp → { trigger, cautioned }            │
+ │ lib/status.ts       subskillStatuses · problemsStarted  (teacher-side derivation)   │
+ └───────────────────────────────────────┬────────────────────────────────────────────┘
+                                         ▼ reads
  ┌────────────────────────────────────────────────────────────────────────────────────┐
  │ data/  (static TypeScript, no fetching)                                            │
  │   types.ts        SubskillId · SubskillStatus · Problem · Assignment · Confidence · Stage │
@@ -34,6 +40,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │   recognition.ts  RECOGNITION[problemId]: the lines the pad will "read", in order      │
  │   evaluation.ts   EVALUATION[problemId][tex] → LineVerdict (ok/wrong, subskill, clue)    │
  │   practice.ts     PRACTICES[subskill]: one isolated practice problem each · PRACTICE     │
+ │   classmates.ts   CLASSMATES (static rows) · GROUPMATE_IDS (mock review group)           │
  └────────────────────────────────────────────────────────────────────────────────────┘
                  ▲ reads (a chip needs only an id)
  ┌───────────────┴────────────────────────────────────────────────────────────────────┐
@@ -43,6 +50,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │   Brand.tsx Brand BrandMark                   IpadStage.tsx  bezel + scale-to-fit  │
  │   DrawPad.tsx  pointer events → ink; reports pen-down and burst-end(strokeCount)   │
  │   PracticeCard.tsx  one practice problem, steps revealed one at a time              │
+ │   ResetDemo.tsx     restart the shared session in every tab                         │
  └────────────────────────────────────────────────────────────────────────────────────┘
  ┌────────────────────────────────────────────────────────────────────────────────────┐
  │ app/layout.tsx  fonts · katex.css · globals.css (@theme tokens, .ipad-bezel/.screen)│
@@ -59,7 +67,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 01 | Scaffold, iPad stage, demo assignment fixture | `/`, `/student`, `/teacher` | `bc49ffa` | [curr_version/architecture/01-scaffold.md](curr_version/architecture/01-scaffold.md) |
 | 02 | Pre-assignment skill list, practice offer, confidence survey | `/student?stage=…` | `5ce1673` | [curr_version/architecture/02-pre-assignment-and-confidence.md](curr_version/architecture/02-pre-assignment-and-confidence.md) |
 | 03 | Drawpad with simulated line-by-line recognition | `/student?stage=working` | `bcca326` | [curr_version/architecture/03-drawpad-simulated-recognition.md](curr_version/architecture/03-drawpad-simulated-recognition.md) |
-| 04 | Scripted evaluation, escalation counter, practice prompt, "I need help" | `/student?stage=working` | _this commit_ | [curr_version/architecture/04-scripted-evaluation-and-escalation.md](curr_version/architecture/04-scripted-evaluation-and-escalation.md) |
+| 04 | Scripted evaluation, escalation counter, practice prompt, "I need help" | `/student?stage=working` | `db5cbb1` | [curr_version/architecture/04-scripted-evaluation-and-escalation.md](curr_version/architecture/04-scripted-evaluation-and-escalation.md) |
+| 05 | Teacher live subskill status and caution flag | `/teacher`, `/student` | _this commit_ | [curr_version/architecture/05-teacher-live-status-and-caution-flag.md](curr_version/architecture/05-teacher-live-status-and-caution-flag.md) |
 
 ## Conventions
 
