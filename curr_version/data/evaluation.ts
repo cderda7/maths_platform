@@ -73,3 +73,27 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
     "x = \\dfrac{5 \\pm \\sqrt{37}}{6}": ok("fractions", "Quadratic formula"),
   },
 };
+
+/**
+ * Curated standout-correct steps (highlighted blue). Not "everything right": for a strong run
+ * the genuinely novel moves, for a weaker run the harder steps that still held. Keyed by
+ * problem then line, with the run kind it applies to and the one-line reason shown.
+ */
+export interface Standout {
+  when: "strong" | "weak" | "both";
+  why: string;
+}
+
+export const STANDOUT: Record<string, Record<string, Standout>> = {
+  q2: {
+    "ac = -8,\\quad 8 + (-1) = 7": { when: "strong", why: "You wrote the split down instead of guessing a pair. That's the move most people skip." },
+    "2x + 4 = 0 \\;\\text{or}\\; x - 1 = 0": { when: "weak", why: "The null factor law applied cleanly to your factors. The method held even where the factors didn't." },
+  },
+  q3: {
+    "x^2 - x - 6 = 6": { when: "strong", why: "You expanded first instead of taking the bait of a product that isn't zero." },
+  },
+  q4: {
+    "b^2 - 4ac = 25 + 12 = 37": { when: "both", why: "Two negatives handled cleanly: −4 × 3 × (−1) came out as +12." },
+    "x = \\dfrac{5 \\pm \\sqrt{37}}{6}": { when: "weak", why: "Left √37 exact rather than rounding. That's what \"exact values\" asks for." },
+  },
+};

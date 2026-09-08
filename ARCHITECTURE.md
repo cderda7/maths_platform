@@ -19,6 +19,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │               ▶ Confidence ▶ Working ─▶ DrawPad (canvas ink)     │
  │                                  ├▶ "Read as" column             │
  │                                  └▶ PromptModal · PracticeOverlay · HelpPicker
+ │               ▶ Feedback (red / blue / clue / star)             │
  └───────────────┬──────────────────┘                               │
                  │ dispatch(action)                                 │
                  ▼                                                  ▼
@@ -30,6 +31,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │ lib/evaluate.ts     evaluateLine(problem, tex) → ok | wrong | unclear               │
  │ lib/escalation.ts   recordMistake · requestHelp → { trigger, cautioned }            │
  │ lib/status.ts       subskillStatuses · problemsStarted  (teacher-side derivation)   │
+ │ lib/feedback.ts     runKind · feedbackFor → lines, standouts, slips, clue, clean     │
  └───────────────────────────────────────┬────────────────────────────────────────────┘
                                          ▼ reads
  ┌────────────────────────────────────────────────────────────────────────────────────┐
@@ -39,6 +41,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │   assignment.ts   ASSIGNMENT (4 problems, labelled solutions) · PRACTICE · DEMO_STUDENT │
  │   recognition.ts  RECOGNITION[problemId]: the lines the pad will "read", in order      │
  │   evaluation.ts   EVALUATION[problemId][tex] → LineVerdict (ok/wrong, subskill, clue)    │
+ │                   STANDOUT[problemId][tex] → { when: strong|weak|both, why }              │
  │   practice.ts     PRACTICES[subskill]: one isolated practice problem each · PRACTICE     │
  │   classmates.ts   CLASSMATES (static rows) · GROUPMATE_IDS (mock review group)           │
  └────────────────────────────────────────────────────────────────────────────────────┘
@@ -68,7 +71,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 02 | Pre-assignment skill list, practice offer, confidence survey | `/student?stage=…` | `5ce1673` | [curr_version/architecture/02-pre-assignment-and-confidence.md](curr_version/architecture/02-pre-assignment-and-confidence.md) |
 | 03 | Drawpad with simulated line-by-line recognition | `/student?stage=working` | `bcca326` | [curr_version/architecture/03-drawpad-simulated-recognition.md](curr_version/architecture/03-drawpad-simulated-recognition.md) |
 | 04 | Scripted evaluation, escalation counter, practice prompt, "I need help" | `/student?stage=working` | `db5cbb1` | [curr_version/architecture/04-scripted-evaluation-and-escalation.md](curr_version/architecture/04-scripted-evaluation-and-escalation.md) |
-| 05 | Teacher live subskill status and caution flag | `/teacher`, `/student` | _this commit_ | [curr_version/architecture/05-teacher-live-status-and-caution-flag.md](curr_version/architecture/05-teacher-live-status-and-caution-flag.md) |
+| 05 | Teacher live subskill status and caution flag | `/teacher`, `/student` | `a816258` | [curr_version/architecture/05-teacher-live-status-and-caution-flag.md](curr_version/architecture/05-teacher-live-status-and-caution-flag.md) |
+| 06 | Feedback layers on submission | `/student?stage=feedback` | _this commit_ | [curr_version/architecture/06-feedback-layers.md](curr_version/architecture/06-feedback-layers.md) |
 
 ## Conventions
 

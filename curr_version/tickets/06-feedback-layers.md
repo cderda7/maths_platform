@@ -4,11 +4,11 @@
 
 **Blocked by:** 04 (Scripted evaluation, subskill escalation, isolated practice prompt, "I need help").
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Submit action ends the assignment and opens the feedback view inside the frame
-- [ ] Red highlight on every incorrect step; blue highlight on the scripted standout-correct set
-- [ ] Standout set differs between a strong and a weak scripted run, and the copy explains why a step is blue
-- [ ] Detective-work clue per problem with a wrong step; never names the line
-- [ ] Star control on correct problems; starred set held in session
-- [ ] Architecture note written and folded into `ARCHITECTURE.md`
+- [x] Submit action ends the assignment and opens the feedback view inside the frame
+- [x] Red highlight on every incorrect step; blue highlight on the scripted standout-correct set
+- [x] Standout set differs between a strong and a weak scripted run, and the copy explains why a step is blue
+- [x] Detective-work clue per problem with a wrong step; never names the line
+- [x] Star control on correct problems; starred set held in session
+- [x] Architecture note written and folded into `ARCHITECTURE.md`

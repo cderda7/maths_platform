@@ -109,3 +109,22 @@ visible in the legend, not a limitation.
 
 **Defence.** Zero infrastructure, survives reloads, and the batched cadence is exactly the
 product behaviour the spec describes for the teacher side.
+
+## 2026-09-08 · Blue "standout" steps are curated per run kind, not derived
+
+**Decision.** The blue layer is a hand-authored table: for each problem, which correct lines
+stand out and whether that applies to a strong run, a weak run, or both. The run kind is the
+only thing derived (any step that didn't hold makes it a weak run).
+
+**Context.** The spec wants blue to mean "worth noticing", not "correct": novel moves for a
+strong run, the harder steps that still held for a weaker one. Judging novelty or difficulty
+needs a model of the student and the problem; the demo has fixture data.
+
+**Alternatives considered.** Highlight every correct step (blue becomes noise and the
+philosophy is lost). Mark the last correct step before a slip (arbitrary and often trivial).
+
+**Tradeoffs.** New problems need their standouts authored. Two run kinds is coarse.
+
+**Defence.** It shows exactly the feedback philosophy the demo is selling, and it lives in the
+same table as the verdicts, so the real build swaps the table for a model call behind the same
+`feedbackFor` shape.

@@ -2,6 +2,7 @@ import type { Confidence, Stage, SubskillId } from "@/data/types";
 import { afterUndo, type RevealedLine } from "./recognition";
 import { evaluateLine } from "./evaluate";
 import { INITIAL_ESCALATION, recordMistake, requestHelp, type EscalationState } from "./escalation";
+import { RECOGNITION } from "@/data/recognition";
 
 /**
  * The student's session: everything the closed loop needs to remember about one run. Pure data
@@ -37,6 +38,8 @@ export interface StudentSession {
   overlay: SubskillId | null;
   /** Every prompt and how it was answered, oldest first. */
   practices: PracticeEntry[];
+  /** Problems the student got right but wasn't sure about. */
+  stars: string[];
 }
 
 export type SessionAction =
@@ -52,6 +55,7 @@ export type SessionAction =
   | { type: "prompt/accept"; problem: string }
   | { type: "prompt/decline"; problem: string }
   | { type: "overlay/done" }
+  | { type: "star/toggle"; problem: string }
   | { type: "goto"; stage: Stage }
   | { type: "reset" };
 
@@ -66,6 +70,7 @@ export const INITIAL_SESSION: StudentSession = {
   prompt: null,
   overlay: null,
   practices: [],
+  stars: [],
 };
 
 export function sessionReducer(s: StudentSession, a: SessionAction): StudentSession {
@@ -110,6 +115,8 @@ export function sessionReducer(s: StudentSession, a: SessionAction): StudentSess
       return { ...s, prompt: null, practices: [...s.practices, { ...s.prompt, accepted: false, problem: a.problem }] };
     case "overlay/done":
       return { ...s, overlay: null };
+    case "star/toggle":
+      return { ...s, stars: s.stars.includes(a.problem) ? s.stars.filter((p) => p !== a.problem) : [...s.stars, a.problem] };
     case "goto":
       return { ...s, stage: a.stage };
     case "reset":
@@ -119,10 +126,31 @@ export function sessionReducer(s: StudentSession, a: SessionAction): StudentSess
 
 const ORDER: Stage[] = ["overview", "practice", "confidence", "working", "feedback", "rework", "group-pass", "group-discuss", "report"];
 
+/**
+ * The scripted run, played through the reducer so escalation state is exactly what a live run
+ * produces: every recognised line for every problem, the Q2 prompt taken, no help asked.
+ */
+export function scriptedSession(): StudentSession {
+  let s: StudentSession = { ...INITIAL_SESSION, stage: "working", practice: "declined", confidence: { level: "low-when", subskill: "factoring" } };
+  for (const [i, p] of Object.entries(RECOGNITION)) {
+    const index = Object.keys(RECOGNITION).indexOf(i);
+    s = sessionReducer(s, { type: "problem/goto", index });
+    p.forEach((tex, n) => {
+      s = sessionReducer(s, { type: "line/reveal", problem: i, line: { tex, strokeCount: (n + 1) * 5 } });
+      if (s.prompt) {
+        s = sessionReducer(s, { type: "prompt/accept", problem: i });
+        s = sessionReducer(s, { type: "overlay/done" });
+      }
+    });
+  }
+  return s;
+}
+
 /** Builds a session already at `stage`, for deep links, with plausible earlier answers filled in. */
 export function sessionAt(stage: Stage): StudentSession {
   const i = ORDER.indexOf(stage);
   if (i < 0) return INITIAL_SESSION;
+  if (i >= ORDER.indexOf("feedback")) return { ...scriptedSession(), stage };
   return {
     ...INITIAL_SESSION,
     stage,
