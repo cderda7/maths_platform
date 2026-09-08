@@ -1,0 +1,93 @@
+import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
+import { CLASSMATE_MAP, GROUPMATE_IDS, OTHER_GROUPS } from "@/data/classmates";
+import { SUBSKILL_MAP } from "@/data/subskills";
+import { EVALUATION } from "@/data/evaluation";
+import type { SubskillId } from "@/data/types";
+import { computePhases, groupPlan } from "./group";
+import type { StudentSession } from "./session";
+
+/**
+ * The teacher's "during review groups" view: each group, one line per student, and a single
+ * shared note saying why the group formed. The demo student's group is computed from the
+ * session with the same phase logic the student sees; the other groups are static fixture.
+ */
+export interface GroupMemberLine {
+  id: string;
+  name: string;
+  initials: string;
+  live: boolean;
+  status: string;
+}
+
+export interface ReviewGroup {
+  id: string;
+  members: GroupMemberLine[];
+  /** Why the group formed, one shared sentence. */
+  note: string;
+  discussing: string[];
+}
+
+function liveStatus(session: StudentSession, discussion: string[]): string {
+  switch (session.stage) {
+    case "group-pass":
+      return "In the quick pass";
+    case "group-discuss": {
+      const done = discussion.filter((id) => session.talked.includes(id)).length;
+      const next = discussion.find((id) => !session.talked.includes(id));
+      return next ? `Discussing ${ASSIGNMENT.problems.find((p) => p.id === next)?.label} · ${done} of ${discussion.length} talked through` : "All talked through";
+    }
+    case "report":
+    case "peers":
+    case "history":
+      return "Finished the group review";
+    default:
+      return "Not in the group yet";
+  }
+}
+
+/** Subskills behind the discussion set, from the first wrong pattern per problem. */
+function subskillsBehind(problemIds: string[]): SubskillId[] {
+  const out: SubskillId[] = [];
+  for (const id of problemIds) {
+    const v = Object.values(EVALUATION[id] ?? {}).find((x) => x.verdict === "wrong");
+    if (v && !out.includes(v.subskill)) out.push(v.subskill);
+  }
+  return out;
+}
+
+function noteFor(discussion: string[], memberCount: number): string {
+  if (discussion.length === 0) return `Every one of the ${memberCount} got every problem. A quick pass, then they're done.`;
+  const labels = discussion.map((id) => ASSIGNMENT.problems.find((p) => p.id === id)?.label ?? id);
+  const skills = subskillsBehind(discussion).map((id) => SUBSKILL_MAP[id].short.toLowerCase());
+  return `Formed around ${labels.join(", ")}: between them the ${memberCount} slipped on ${skills.join(" and ")}. Their slips overlap more with each other than with the rest of the class.`;
+}
+
+export function reviewGroups(session: StudentSession | null): ReviewGroup[] {
+  const groups: ReviewGroup[] = [];
+  const ids = ASSIGNMENT.problems.map((p) => p.id);
+
+  // The demo student's group, from the session.
+  const mates = GROUPMATE_IDS.map((id) => CLASSMATE_MAP[id]);
+  const discussion = session ? groupPlan(session).discussion.problems.map((p) => p.id) : computePhases(ids, mates.map((m) => m.wrong)).discussion;
+  groups.push({
+    id: "g1",
+    members: [
+      { id: DEMO_STUDENT.id, name: DEMO_STUDENT.name, initials: DEMO_STUDENT.initials, live: true, status: session ? liveStatus(session, discussion) : "Not started" },
+      ...mates.map((m) => ({ id: m.id, name: m.name, initials: m.initials, live: false, status: m.groupStatus })),
+    ],
+    note: noteFor(discussion, mates.length + 1),
+    discussing: discussion,
+  });
+
+  for (const [i, memberIds] of OTHER_GROUPS.entries()) {
+    const members = memberIds.map((id) => CLASSMATE_MAP[id]);
+    const { discussion: d } = computePhases(ids, members.map((m) => m.wrong));
+    groups.push({
+      id: `g${i + 2}`,
+      members: members.map((m) => ({ id: m.id, name: m.name, initials: m.initials, live: false, status: m.groupStatus })),
+      note: noteFor(d, members.length),
+      discussing: d,
+    });
+  }
+  return groups;
+}

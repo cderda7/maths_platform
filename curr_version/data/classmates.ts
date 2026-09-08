@@ -20,6 +20,8 @@ export interface Classmate {
   note?: string;
   /** Their recognised working on the problems they got wrong, for the teacher's mistake view. */
   attempts: Record<string, string[]>;
+  /** One line for the teacher's "during review groups" view. Static; the demo student's is live. */
+  groupStatus: string;
 }
 
 const Q2_GUESSED = ["2x^2 + 7x - 4 = 0", "(2x + 4)(x - 1) = 0", "x = -2 \\;\\text{or}\\; x = 1"];
@@ -36,15 +38,18 @@ const st = (a: SubskillStatus, f: SubskillStatus, fa: SubskillStatus, e: Subskil
 });
 
 export const CLASSMATES: Classmate[] = [
-  { id: "priya", name: "Priya Raman", initials: "PR", statuses: st("secure", "secure", "secure", "secure", "unseen", "secure"), confidence: "confident", done: 4, when: "4:12 pm", wrong: [], attempts: {} },
-  { id: "jordan", name: "Jordan Whitlock", initials: "JW", statuses: st("secure", "unseen", "developing", "secure", "unseen", "developing"), confidence: "confident", done: 3, when: "3:48 pm", wrong: ["q2"], note: "Non-monic factorising: factors not checked by expanding.", attempts: { q2: Q2_GUESSED } },
-  { id: "amelia", name: "Amelia Chen", initials: "AC", statuses: st("secure", "secure", "secure", "secure", "unseen", "secure"), confidence: "low", done: 4, when: "2:30 pm", wrong: [], attempts: {} },
-  { id: "tomas", name: "Tomas Reyes", initials: "TR", statuses: st("developing", "gap", "secure", "secure", "unseen", "developing"), confidence: "low: fractions", done: 3, when: "Yesterday", wrong: ["q3", "q4"], note: "Divided by a instead of 2a in the quadratic formula.", attempts: { q3: Q3_NFL, q4: Q4_OVER_A } },
-  { id: "zara", name: "Zara Haddad", initials: "ZH", statuses: st("secure", "developing", "secure", "secure", "unseen", "developing"), confidence: "confident", done: 4, when: "1:05 pm", wrong: ["q3"], note: "Applied the null factor law to (x − 3)(x + 2) = 6 without rearranging.", attempts: { q3: Q3_NFL } },
-  { id: "liam", name: "Liam O'Connell", initials: "LO", statuses: st("gap", "developing", "developing", "gap", "unseen", "developing"), confidence: "confident", done: 2, when: "9:40 am", wrong: ["q2", "q3"], note: "Guessed a factor pair without expanding back.", attempts: { q2: Q2_GUESSED, q3: Q3_NFL } },
+  { id: "priya", name: "Priya Raman", initials: "PR", statuses: st("secure", "secure", "secure", "secure", "unseen", "secure"), confidence: "confident", done: 4, when: "4:12 pm", wrong: [], attempts: {}, groupStatus: "Quick pass done · nothing to discuss" },
+  { id: "jordan", name: "Jordan Whitlock", initials: "JW", statuses: st("secure", "unseen", "developing", "secure", "unseen", "developing"), confidence: "confident", done: 3, when: "3:48 pm", wrong: ["q2"], note: "Non-monic factorising: factors not checked by expanding.", attempts: { q2: Q2_GUESSED }, groupStatus: "Discussing Q2 · expanding back" },
+  { id: "amelia", name: "Amelia Chen", initials: "AC", statuses: st("secure", "secure", "secure", "secure", "unseen", "secure"), confidence: "low", done: 4, when: "2:30 pm", wrong: [], attempts: {}, groupStatus: "Quick pass done · comparing Q4 methods" },
+  { id: "tomas", name: "Tomas Reyes", initials: "TR", statuses: st("developing", "gap", "secure", "secure", "unseen", "developing"), confidence: "low: fractions", done: 3, when: "Yesterday", wrong: ["q3", "q4"], note: "Divided by a instead of 2a in the quadratic formula.", attempts: { q3: Q3_NFL, q4: Q4_OVER_A }, groupStatus: "Discussing Q4 · the 2a" },
+  { id: "zara", name: "Zara Haddad", initials: "ZH", statuses: st("secure", "developing", "secure", "secure", "unseen", "developing"), confidence: "confident", done: 4, when: "1:05 pm", wrong: ["q3"], note: "Applied the null factor law to (x − 3)(x + 2) = 6 without rearranging.", attempts: { q3: Q3_NFL }, groupStatus: "Discussing Q3 · when the null factor law applies" },
+  { id: "liam", name: "Liam O'Connell", initials: "LO", statuses: st("gap", "developing", "developing", "gap", "unseen", "developing"), confidence: "confident", done: 2, when: "9:40 am", wrong: ["q2", "q3"], note: "Guessed a factor pair without expanding back.", attempts: { q2: Q2_GUESSED, q3: Q3_NFL }, groupStatus: "Discussing Q2 · listening" },
 ];
 
 export const CLASSMATE_MAP = Object.fromEntries(CLASSMATES.map((c) => [c.id, c])) as Record<string, Classmate>;
 
 /** The demo student's mock review group (ticket 08). */
 export const GROUPMATE_IDS = ["jordan", "zara", "liam"];
+
+/** The other review groups in the class (ticket 14), static. */
+export const OTHER_GROUPS: string[][] = [["priya", "amelia", "tomas"]];
