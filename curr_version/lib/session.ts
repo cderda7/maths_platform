@@ -47,6 +47,8 @@ export interface StudentSession {
   rework: Record<string, RevealedLine[]>;
   /** Index into the problems being reworked (those with a slip). */
   reworkIndex: number;
+  /** Discussion problems the group has talked through. */
+  talked: string[];
 }
 
 export type SessionAction =
@@ -68,6 +70,9 @@ export type SessionAction =
   | { type: "rework/undo"; problem: string; strokeCount: number }
   | { type: "rework/clear"; problem: string }
   | { type: "rework/done" }
+  | { type: "group/discuss" }
+  | { type: "group/talked"; problem: string }
+  | { type: "group/done" }
   | { type: "goto"; stage: Stage }
   | { type: "reset" };
 
@@ -85,6 +90,7 @@ export const INITIAL_SESSION: StudentSession = {
   stars: [],
   rework: {},
   reworkIndex: 0,
+  talked: [],
 };
 
 export function sessionReducer(s: StudentSession, a: SessionAction): StudentSession {
@@ -139,6 +145,12 @@ export function sessionReducer(s: StudentSession, a: SessionAction): StudentSess
       return { ...s, rework: { ...s.rework, [a.problem]: [] } };
     case "rework/done":
       return { ...s, stage: "group-pass" };
+    case "group/discuss":
+      return { ...s, stage: "group-discuss" };
+    case "group/talked":
+      return { ...s, talked: s.talked.includes(a.problem) ? s.talked.filter((p) => p !== a.problem) : [...s.talked, a.problem] };
+    case "group/done":
+      return { ...s, stage: "report" };
     case "star/toggle":
       return { ...s, stars: s.stars.includes(a.problem) ? s.stars.filter((p) => p !== a.problem) : [...s.stars, a.problem] };
     case "goto":

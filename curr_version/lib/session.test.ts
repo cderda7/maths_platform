@@ -122,3 +122,15 @@ describe("independent rework", () => {
     expect(s.stars).toEqual(["q4"]);
   });
 });
+
+describe("group review stages", () => {
+  it("quick pass → discussion → report, remembering what was talked through", () => {
+    let s = sessionAt("group-pass");
+    s = sessionReducer(s, { type: "group/discuss" });
+    expect(s.stage).toBe("group-discuss");
+    s = sessionReducer(s, { type: "group/talked", problem: "q2" });
+    expect(s.talked).toEqual(["q2"]);
+    s = sessionReducer(s, { type: "group/done" });
+    expect(s.stage).toBe("report");
+  });
+});

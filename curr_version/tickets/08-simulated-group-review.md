@@ -4,11 +4,11 @@
 
 **Blocked by:** 07 (Independent rework stage).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Mock groupmate fixture: three names and their wrong-problem sets, chosen so intersection and union are both non-empty and distinct
-- [ ] Pure group-phase computation with vitest: intersection (quick pass), union (discussion), shared count
-- [ ] Test asserting the discussion view model exposes no correctness markers or per-student wrong flags
-- [ ] Phase one screen: quick pass with a brief per-problem acknowledgement
-- [ ] Phase two screen: union list, no markers, shared count, discussion prompts, "finish group review"
-- [ ] Architecture note written and folded into `ARCHITECTURE.md`
+- [x] Mock groupmate fixture: three names and their wrong-problem sets, chosen so intersection and union are both non-empty and distinct
+- [x] Pure group-phase computation with vitest: intersection (quick pass), union (discussion), shared count
+- [x] Test asserting the discussion view model exposes no correctness markers or per-student wrong flags
+- [x] Phase one screen: quick pass with a brief per-problem acknowledgement
+- [x] Phase two screen: union list, no markers, shared count, discussion prompts, "finish group review"
+- [x] Architecture note written and folded into `ARCHITECTURE.md`

@@ -21,6 +21,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │                                  └▶ PromptModal · PracticeOverlay · HelpPicker
  │               ▶ Feedback (red / blue / clue / star)             │
  │               ▶ Rework (clue only; second version on the pad)   │
+ │               ▶ GroupPass (all-correct) ▶ GroupDiscuss (no marks)│
  └───────────────┬──────────────────┘                               │
                  │ dispatch(action)                                 │
                  ▼                                                  ▼
@@ -33,6 +34,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │ lib/escalation.ts   recordMistake · requestHelp → { trigger, cautioned }            │
  │ lib/status.ts       subskillStatuses · problemsStarted  (teacher-side derivation)   │
  │ lib/feedback.ts     runKind · feedbackFor → lines, standouts, slips, clue, clean     │
+ │ lib/group.ts        computePhases (∩ correct / ∪ wrong) · groupPlan → DiscussionView │
  └───────────────────────────────────────┬────────────────────────────────────────────┘
                                          ▼ reads
  ┌────────────────────────────────────────────────────────────────────────────────────┐
@@ -75,7 +77,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 04 | Scripted evaluation, escalation counter, practice prompt, "I need help" | `/student?stage=working` | `db5cbb1` | [curr_version/architecture/04-scripted-evaluation-and-escalation.md](curr_version/architecture/04-scripted-evaluation-and-escalation.md) |
 | 05 | Teacher live subskill status and caution flag | `/teacher`, `/student` | `a816258` | [curr_version/architecture/05-teacher-live-status-and-caution-flag.md](curr_version/architecture/05-teacher-live-status-and-caution-flag.md) |
 | 06 | Feedback layers on submission | `/student?stage=feedback` | `c09798e` | [curr_version/architecture/06-feedback-layers.md](curr_version/architecture/06-feedback-layers.md) |
-| 07 | Independent rework stage | `/student?stage=rework` | _this commit_ | [curr_version/architecture/07-independent-rework.md](curr_version/architecture/07-independent-rework.md) |
+| 07 | Independent rework stage | `/student?stage=rework` | `6dbf08f` | [curr_version/architecture/07-independent-rework.md](curr_version/architecture/07-independent-rework.md) |
+| 08 | Simulated group review, two phases | `/student?stage=group-pass`, `…=group-discuss` | _this commit_ | [curr_version/architecture/08-simulated-group-review.md](curr_version/architecture/08-simulated-group-review.md) |
 
 ## Conventions
 
