@@ -4,9 +4,9 @@
 
 **Blocked by:** 05 (Teacher live subskill status and caution flag).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Teacher control with a fixture question, recorded/unrecorded toggle, and a "push" action
-- [ ] Student tab is interrupted by a modal question over whatever they were doing and returns them there after answering
-- [ ] Teacher sees the response, labelled recorded or unrecorded
-- [ ] Architecture note written and folded into `ARCHITECTURE.md`
+- [x] Teacher control with a fixture question, recorded/unrecorded toggle, and a "push" action
+- [x] Student tab is interrupted by a modal question over whatever they were doing and returns them there after answering
+- [x] Teacher sees the response, labelled recorded or unrecorded
+- [x] Architecture note written and folded into `ARCHITECTURE.md`

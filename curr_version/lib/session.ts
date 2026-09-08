@@ -57,6 +57,10 @@ export interface StudentSession {
   /** When the set was handed in and when the rework finished (ms since epoch; 0 = unknown). */
   handedInAt: number;
   reworkedAt: number;
+  /** A diagnostic the teacher has pushed and the student hasn't answered yet. */
+  diagnostic: { questionId: string; recorded: boolean } | null;
+  /** Answered diagnostics, oldest first. */
+  diagnosticAnswers: { questionId: string; option: string; recorded: boolean }[];
 }
 
 export type SessionAction =
@@ -88,6 +92,9 @@ export type SessionAction =
   | { type: "goto"; stage: Stage; at?: number }
   | { type: "history/open" }
   | { type: "history/close" }
+  | { type: "diagnostic/push"; questionId: string; recorded: boolean }
+  | { type: "diagnostic/answer"; option: string }
+  | { type: "diagnostic/withdraw" }
   | { type: "reset" };
 
 export const INITIAL_SESSION: StudentSession = {
@@ -109,6 +116,8 @@ export const INITIAL_SESSION: StudentSession = {
   reportSent: false,
   handedInAt: 0,
   reworkedAt: 0,
+  diagnostic: null,
+  diagnosticAnswers: [],
 };
 
 export function sessionReducer(s: StudentSession, a: SessionAction): StudentSession {
@@ -181,6 +190,13 @@ export function sessionReducer(s: StudentSession, a: SessionAction): StudentSess
       return { ...s, stars: s.stars.includes(a.problem) ? s.stars.filter((p) => p !== a.problem) : [...s.stars, a.problem] };
     case "goto":
       return { ...s, stage: a.stage, handedInAt: a.stage === "feedback" && a.at ? a.at : s.handedInAt };
+    case "diagnostic/push":
+      return { ...s, diagnostic: { questionId: a.questionId, recorded: a.recorded } };
+    case "diagnostic/answer":
+      if (!s.diagnostic) return s;
+      return { ...s, diagnostic: null, diagnosticAnswers: [...s.diagnosticAnswers, { ...s.diagnostic, option: a.option }] };
+    case "diagnostic/withdraw":
+      return { ...s, diagnostic: null };
     case "history/open":
       return { ...s, stage: "history" };
     case "history/close":

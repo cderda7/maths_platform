@@ -16,6 +16,7 @@ import type { Stage } from "@/data/types";
 import type { RunKindParam } from "@/lib/session";
 import PeerScreen from "./screens/PeerScreen";
 import HistoryScreen from "./screens/HistoryScreen";
+import DiagnosticModal from "./screens/DiagnosticModal";
 
 const CRUMB: Partial<Record<Stage, string>> = {
   practice: "Warm-up",
@@ -54,6 +55,9 @@ export default function StudentApp({ initStage, explicit, run = "weak" }: { init
         {session.stage === "report" && <ReportScreen session={session} dispatch={dispatch} />}
         {session.stage === "peers" && <PeerScreen onBack={() => dispatch({ type: "peers/close" })} />}
         {session.stage === "history" && <HistoryScreen session={session} onBack={() => dispatch({ type: "history/close" })} />}
+        {session.diagnostic && (
+          <DiagnosticModal questionId={session.diagnostic.questionId} recorded={session.diagnostic.recorded} onAnswer={(option) => dispatch({ type: "diagnostic/answer", option })} />
+        )}
       </StudentChrome>
     </IpadStage>
   );

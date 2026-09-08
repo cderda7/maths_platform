@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import TeacherChrome from "./TeacherChrome";
+import DiagnosticPush from "./DiagnosticPush";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { StatusDot, STATUS_WORD } from "@/components/Tag";
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
@@ -203,6 +204,8 @@ export default function TeacherLive() {
               </ul>
             )}
           </Card>
+
+          <DiagnosticPush session={live} />
 
           <Card className="p-6">
             <Eyebrow>{DEMO_STUDENT.name} so far</Eyebrow>

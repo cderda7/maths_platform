@@ -146,3 +146,25 @@ describe("final report", () => {
     expect(s.stars).toEqual(["q4"]);
   });
 });
+
+describe("diagnostic push", () => {
+  it("interrupts, is answered once, and is logged with its recorded flag; the stage is untouched", () => {
+    let s = sessionAt("working");
+    s = sessionReducer(s, { type: "diagnostic/push", questionId: "d-factor-check", recorded: false });
+    expect(s.diagnostic).toEqual({ questionId: "d-factor-check", recorded: false });
+    expect(s.stage).toBe("working");
+    s = sessionReducer(s, { type: "diagnostic/answer", option: "b" });
+    expect(s.diagnostic).toBeNull();
+    expect(s.diagnosticAnswers).toEqual([{ questionId: "d-factor-check", recorded: false, option: "b" }]);
+    expect(s.stage).toBe("working");
+    // A second answer with nothing pending is ignored.
+    expect(sessionReducer(s, { type: "diagnostic/answer", option: "a" }).diagnosticAnswers.length).toBe(1);
+  });
+
+  it("can be withdrawn before it's answered", () => {
+    let s = sessionReducer(sessionAt("working"), { type: "diagnostic/push", questionId: "d-factor-check", recorded: true });
+    s = sessionReducer(s, { type: "diagnostic/withdraw" });
+    expect(s.diagnostic).toBeNull();
+    expect(s.diagnosticAnswers).toEqual([]);
+  });
+});

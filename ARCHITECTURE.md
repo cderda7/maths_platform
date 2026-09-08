@@ -25,6 +25,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │               ▶ Report (teacher's colours + reflection → sent)   │
  │               ▶ Peers (mastery only: class struggles, counts)    │
  │               ▶ History (final only; compare scroll-synced)      │
+ │               DiagnosticModal over any stage while a push is pending
  └───────────────┬──────────────────┘                               │
                  │ dispatch(action)                                 │
                  ▼                                                  ▼
@@ -43,6 +44,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │ lib/peers.ts        peerStruggles (counts only) · isMastery                          │
  │ lib/versions.ts     versionsOf (handed in / after rework) · alignVersions            │
  │ lib/groups.ts       reviewGroups → per group: member lines + one shared note         │
+ │ lib/diagnostic.ts   isCorrect                                                       │
  └───────────────────────────────────────┬────────────────────────────────────────────┘
                                          ▼ reads
  ┌────────────────────────────────────────────────────────────────────────────────────┐
@@ -54,7 +56,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │   evaluation.ts   EVALUATION[problemId][tex] → LineVerdict (ok/wrong, subskill, clue)    │
  │                   STANDOUT[problemId][tex] → { when: strong|weak|both, why }              │
  │   practice.ts     PRACTICES[subskill]: one isolated practice problem each · PRACTICE     │
- │   classmates.ts   CLASSMATES (rows, wrong sets, attempts) · GROUPMATE_IDS (review group)  │
+ │   classmates.ts   CLASSMATES (rows, wrong sets, attempts, group lines) · groups          │
+ │   diagnostic.ts   DIAGNOSTICS: the live multiple-choice question the teacher can push    │
  └────────────────────────────────────────────────────────────────────────────────────┘
                  ▲ reads (a chip needs only an id)
  ┌───────────────┴────────────────────────────────────────────────────────────────────┐
@@ -93,7 +96,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 12 | Peer-struggle screen (Tier 2) | `/student?stage=report&run=strong` → peers | `a53863a` | [curr_version/architecture/12-peer-struggle-screen.md](curr_version/architecture/12-peer-struggle-screen.md) |
 | 13 | Submission history (Tier 2) | `/student?stage=history` | `67db35d` | [curr_version/architecture/13-submission-history.md](curr_version/architecture/13-submission-history.md) |
 | 14 | Teacher review-groups view (Tier 2) | `/teacher/groups` | `0c268b0` | [curr_version/architecture/14-teacher-review-groups-view.md](curr_version/architecture/14-teacher-review-groups-view.md) |
-| 15 | Teacher original vs final (Tier 2) | `/teacher/compare` | _this commit_ | [curr_version/architecture/15-teacher-original-vs-final.md](curr_version/architecture/15-teacher-original-vs-final.md) |
+| 15 | Teacher original vs final (Tier 2) | `/teacher/compare` | `3fb499b` | [curr_version/architecture/15-teacher-original-vs-final.md](curr_version/architecture/15-teacher-original-vs-final.md) |
+| 16 | Diagnostic MCQ push (Tier 2) | `/teacher` → `/student` interrupt | _this commit_ | [curr_version/architecture/16-diagnostic-mcq-push.md](curr_version/architecture/16-diagnostic-mcq-push.md) |
 
 ## Conventions
 
