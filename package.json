@@ -1,0 +1,13 @@
+{
+  "name": "maths_platform",
+  "private": true,
+  "description": "Edexia \u00b7 Maths. The Sept 7 design mockup lives in roughdraft_sept7/; these scripts delegate into it.",
+  "scripts": {
+    "dev": "npm --prefix roughdraft_sept7 run dev",
+    "build": "npm --prefix roughdraft_sept7 run build",
+    "start": "npm --prefix roughdraft_sept7 run start",
+    "lint": "npm --prefix roughdraft_sept7 run lint",
+    "test": "npm --prefix roughdraft_sept7 run test",
+    "install:mockup": "npm --prefix roughdraft_sept7 install"
+  }
+}

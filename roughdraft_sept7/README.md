@@ -4,7 +4,10 @@ Design-only mockup of step-aware maths feedback for QCE Year 11 Mathematical Met
 one topic: finding the roots of a quadratic. No backend, no auth, no real grading — everything is
 static data under `/data`.
 
+This folder is the whole mockup. From the repo root the scripts delegate here (`npm run dev`), or:
+
 ```bash
+cd roughdraft_sept7
 npm install
 npm run dev
 ```

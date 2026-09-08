@@ -1,7 +1,8 @@
 # Architecture — Edexia · Maths (QCE Methods mockup)
 
 Running architecture record. One section per completed screen, in build order; per-screen detail
-lives in `architecture/<nn>-<slug>.md`. This is a design-only mockup: Next.js 16 App Router,
+lives in `architecture/<nn>-<slug>.md`. All paths below are relative to `roughdraft_sept7/`, where
+the mockup was moved on 8 Sep 2026. This is a design-only mockup: Next.js 16 App Router,
 React 19, Tailwind 4, KaTeX, no backend, all data static under `data/`.
 
 ## System diagram
