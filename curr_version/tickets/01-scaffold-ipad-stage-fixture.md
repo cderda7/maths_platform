@@ -4,12 +4,12 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `npm run dev` from `curr_version/` serves the app; build, lint and tsc pass
-- [ ] Root route offers "Student (iPad)" and "Teacher" entry points
-- [ ] Student route renders inside a fixed landscape iPad frame (1180×820 logical px or similar), centred, with a device bezel so it reads as an iPad at a glance
-- [ ] Demo assignment fixture: one assignment, five prerequisite subskills (rearranging & standard form, fractions, factorising, expansion, reading the graph), four problems each with a worked solution
-- [ ] All maths is typeset with KaTeX; nothing renders as raw `x^2`
-- [ ] Design tokens (colours, fonts, shadows) live in one place and match the roughdraft's palette plus a blue "standout correct" colour
-- [ ] Architecture note written for the ticket and folded into `ARCHITECTURE.md`
+- [x] `npm run dev` from `curr_version/` serves the app; build, lint and tsc pass
+- [x] Root route offers "Student (iPad)" and "Teacher" entry points
+- [x] Student route renders inside a fixed landscape iPad frame (1180×820 logical px or similar), centred, with a device bezel so it reads as an iPad at a glance
+- [x] Demo assignment fixture: one assignment, five prerequisite subskills (rearranging & standard form, fractions, factorising, expansion, reading the graph), four problems each with a worked solution
+- [x] All maths is typeset with KaTeX; nothing renders as raw `x^2`
+- [x] Design tokens (colours, fonts, shadows) live in one place and match the roughdraft's palette plus a blue "standout correct" colour
+- [x] Architecture note written for the ticket and folded into `ARCHITECTURE.md`

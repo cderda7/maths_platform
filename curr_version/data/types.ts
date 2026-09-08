@@ -1,0 +1,56 @@
+/**
+ * Vocabulary for the closed-loop demo. Everything here is static fixture data; there is no
+ * backend. Rationale for the words lives in DECISION_LOG.md at the repo root.
+ */
+
+/** QCE degree-of-difficulty categories. */
+export type Difficulty =
+  | "simple familiar"
+  | "simple unfamiliar"
+  | "complex familiar"
+  | "complex unfamiliar";
+
+/** The one skill the assignment targets plus the five prerequisite subskills it leans on. */
+export type SubskillId = "algebra" | "fractions" | "factoring" | "expansion" | "graphing" | "roots";
+
+export interface Subskill {
+  id: SubskillId;
+  name: string;
+  short: string;
+  description: string;
+}
+
+/** Status the teacher (and, symmetrically, the student's final report) sees per subskill. */
+export type SubskillStatus = "secure" | "developing" | "gap" | "unseen";
+
+export interface SolutionStep {
+  tex: string;
+  /** What the step does, in the student's terms. */
+  label: string;
+  subskill: SubskillId;
+}
+
+export interface Problem {
+  id: string;
+  label: string;
+  /** The skill this problem is really about. */
+  subskill: SubskillId;
+  /** Prerequisite subskills the working will lean on. */
+  prereqs: SubskillId[];
+  difficulty: Difficulty;
+  stem: string;
+  tex: string;
+  solution: SolutionStep[];
+}
+
+export interface Assignment {
+  id: string;
+  title: string;
+  className: string;
+  teacher: string;
+  due: string;
+  unit: string;
+  intro: string;
+  /** Ordered set of core problems. */
+  problems: Problem[];
+}

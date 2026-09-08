@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. Ported from the Sept 7 roughdraft so the demo reads as the same product as
+ * edexia.ai: serif display over a sans body, navy ink, indigo accent, warm off-white ground.
+ * Marker colours: red for an incorrect step, blue for a curated standout-correct step, plus the
+ * teacher-side status trio (secure / developing / gap).
+ */
+@theme {
+  --color-cream: #faf8f4;
+  --color-cream-deep: #f2efe8;
+  --color-paper: #ffffff;
+  --color-ink: #14123a;
+  --color-ink-soft: #3d3b66;
+  --color-ink-muted: #7b7997;
+  --color-line: #e7e4f1;
+  --color-line-strong: #d3cfe6;
+
+  --color-accent: #5b4ae8;
+  --color-accent-deep: #4535c8;
+  --color-accent-soft: #eeebfc;
+  --color-accent-line: #d6d0f7;
+
+  --color-secure: #2f8a5b;
+  --color-secure-soft: #e6f5ec;
+  --color-secure-line: #bfe4cf;
+  --color-developing: #b7791f;
+  --color-developing-soft: #fbf3dc;
+  --color-developing-line: #efdba3;
+  --color-gap: #c4453c;
+  --color-gap-soft: #fbe9e7;
+  --color-gap-line: #f2c4bf;
+
+  --color-wrong: #c4453c;
+  --color-wrong-soft: #fbe9e7;
+  --color-wrong-line: #f2c4bf;
+  --color-standout: #2f6fb3;
+  --color-standout-soft: #e8f0fa;
+  --color-standout-line: #c3d7ee;
+
+  --font-display: var(--font-playfair), "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter), Inter, system-ui, -apple-system, sans-serif;
+
+  --shadow-card: 0 1px 2px rgba(20, 18, 58, 0.04), 0 8px 24px -12px rgba(20, 18, 58, 0.12);
+  --shadow-lift: 0 2px 4px rgba(20, 18, 58, 0.05), 0 18px 40px -16px rgba(20, 18, 58, 0.22);
+  --shadow-device: 0 30px 80px -30px rgba(20, 18, 58, 0.45), 0 2px 6px rgba(20, 18, 58, 0.12);
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01", "kern";
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+.katex {
+  font-size: 1.06em;
+}
+.katex-display {
+  margin: 0;
+}
+.math-lg .katex {
+  font-size: 1.35em;
+}
+
+.hero-glow {
+  background:
+    radial-gradient(60% 60% at 20% 0%, rgba(91, 74, 232, 0.1), transparent 70%),
+    radial-gradient(50% 50% at 90% 10%, rgba(232, 200, 140, 0.16), transparent 70%);
+}
+
+/* The iPad: a 1180 × 820 logical-point landscape screen inside a bezel. */
+.ipad-bezel {
+  background: #1b1a2e;
+  border-radius: 38px;
+  padding: 22px;
+  box-shadow: var(--shadow-device);
+}
+.ipad-screen {
+  width: 1180px;
+  height: 820px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--color-cream);
+  position: relative;
+}
