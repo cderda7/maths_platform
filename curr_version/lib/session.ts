@@ -3,6 +3,7 @@ import { afterUndo, type RevealedLine } from "./recognition";
 import { evaluateLine } from "./evaluate";
 import { INITIAL_ESCALATION, recordMistake, requestHelp, type EscalationState } from "./escalation";
 import { RECOGNITION, RECOGNITION_REWORK } from "@/data/recognition";
+import { ASSIGNMENT } from "@/data/assignment";
 
 /**
  * The student's session: everything the closed loop needs to remember about one run. Pure data
@@ -79,6 +80,8 @@ export type SessionAction =
   | { type: "group/done" }
   | { type: "reflection/set"; text: string }
   | { type: "report/send" }
+  | { type: "peers/open" }
+  | { type: "peers/close" }
   | { type: "goto"; stage: Stage }
   | { type: "reset" };
 
@@ -163,6 +166,10 @@ export function sessionReducer(s: StudentSession, a: SessionAction): StudentSess
       return { ...s, reflection: a.text };
     case "report/send":
       return { ...s, reportSent: true };
+    case "peers/open":
+      return { ...s, stage: "peers" };
+    case "peers/close":
+      return { ...s, stage: "report" };
     case "star/toggle":
       return { ...s, stars: s.stars.includes(a.problem) ? s.stars.filter((p) => p !== a.problem) : [...s.stars, a.problem] };
     case "goto":
@@ -172,7 +179,22 @@ export function sessionReducer(s: StudentSession, a: SessionAction): StudentSess
   }
 }
 
-const ORDER: Stage[] = ["overview", "practice", "confidence", "working", "feedback", "rework", "group-pass", "group-discuss", "report"];
+const ORDER: Stage[] = ["overview", "practice", "confidence", "working", "feedback", "rework", "group-pass", "group-discuss", "report", "peers"];
+
+/** Which scripted run a deep link plays: the default weak run, or a strong one (every step held). */
+export type RunKindParam = "weak" | "strong";
+
+/** A strong run: the model solution for every problem, confident, nothing to rework. */
+export function strongSession(): StudentSession {
+  let s: StudentSession = { ...INITIAL_SESSION, stage: "working", practice: "declined", confidence: { level: "confident" } };
+  ASSIGNMENT.problems.forEach((p, index) => {
+    s = sessionReducer(s, { type: "problem/goto", index });
+    p.solution.forEach((st, n) => {
+      s = sessionReducer(s, { type: "line/reveal", problem: p.id, line: { tex: st.tex, strokeCount: (n + 1) * 5 } });
+    });
+  });
+  return s;
+}
 
 /**
  * The scripted run, played through the reducer so escalation state is exactly what a live run
@@ -206,9 +228,10 @@ export function reworkedSession(): StudentSession {
 }
 
 /** Builds a session already at `stage`, for deep links, with plausible earlier answers filled in. */
-export function sessionAt(stage: Stage): StudentSession {
+export function sessionAt(stage: Stage, run: RunKindParam = "weak"): StudentSession {
   const i = ORDER.indexOf(stage);
   if (i < 0) return INITIAL_SESSION;
+  if (run === "strong" && i >= ORDER.indexOf("feedback")) return { ...strongSession(), stage, stars: [] };
   if (i >= ORDER.indexOf("group-pass")) return { ...reworkedSession(), stage };
   if (i >= ORDER.indexOf("feedback")) return { ...scriptedSession(), stage };
   return {

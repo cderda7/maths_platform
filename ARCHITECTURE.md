@@ -23,6 +23,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │               ▶ Rework (clue only; second version on the pad)   │
  │               ▶ GroupPass (all-correct) ▶ GroupDiscuss (no marks)│
  │               ▶ Report (teacher's colours + reflection → sent)   │
+ │               ▶ Peers (mastery only: class struggles, counts)    │
  └───────────────┬──────────────────┘                               │
                  │ dispatch(action)                                 │
                  ▼                                                  ▼
@@ -38,6 +39,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │ lib/group.ts        computePhases (∩ correct / ∪ wrong) · groupPlan → DiscussionView │
  │ lib/report.ts       reportFacts · confidenceSentence  (same text on both sides)      │
  │ lib/mistakes.ts     mistakesByProblem → problem → rows (live student + classmates)   │
+ │ lib/peers.ts        peerStruggles (counts only) · isMastery                          │
  └───────────────────────────────────────┬────────────────────────────────────────────┘
                                          ▼ reads
  ┌────────────────────────────────────────────────────────────────────────────────────┐
@@ -84,7 +86,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 08 | Simulated group review, two phases | `/student?stage=group-pass`, `…=group-discuss` | `8b2f174` | [curr_version/architecture/08-simulated-group-review.md](curr_version/architecture/08-simulated-group-review.md) |
 | 09 | Student final report and reflection | `/student?stage=report` | `7c66e0a` | [curr_version/architecture/09-student-final-report.md](curr_version/architecture/09-student-final-report.md) |
 | 10 | Teacher final report | `/teacher/report` | `d3fb1c9` | [curr_version/architecture/10-teacher-final-report.md](curr_version/architecture/10-teacher-final-report.md) |
-| 11 | Teacher mistake view | `/teacher/mistakes` | _this commit_ | [curr_version/architecture/11-teacher-mistake-view.md](curr_version/architecture/11-teacher-mistake-view.md) |
+| 11 | Teacher mistake view | `/teacher/mistakes` | `5ac30a1` | [curr_version/architecture/11-teacher-mistake-view.md](curr_version/architecture/11-teacher-mistake-view.md) |
+| 12 | Peer-struggle screen (Tier 2) | `/student?stage=report&run=strong` → peers | _this commit_ | [curr_version/architecture/12-peer-struggle-screen.md](curr_version/architecture/12-peer-struggle-screen.md) |
 
 ## Conventions
 

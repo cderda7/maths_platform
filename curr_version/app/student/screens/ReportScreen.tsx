@@ -7,6 +7,7 @@ import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
 import { PREREQ_IDS, SUBSKILL_MAP, TARGET_ID } from "@/data/subskills";
 import type { SubskillStatus } from "@/data/types";
 import { reportFacts } from "@/lib/report";
+import { isMastery } from "@/lib/peers";
 import type { SessionAction, StudentSession } from "@/lib/session";
 import { subskillStatuses } from "@/lib/status";
 
@@ -28,6 +29,7 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
   const facts = reportFacts(session);
   const n = sentences(session.reflection);
   const sent = session.reportSent;
+  const mastery = isMastery(session);
 
   return (
     <div className="grid h-full min-h-0 grid-cols-[1fr_440px]">
@@ -44,7 +46,7 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
               const s = SUBSKILL_MAP[id];
               const v = st[id];
               return (
-                <li key={id} className="flex items-center gap-4 px-5 py-3">
+                <li key={id} className="flex items-center gap-4 px-5 py-2.5">
                   <StatusDot status={v} size="h-3 w-3" />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-3">
@@ -55,13 +57,13 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
                         {STATUS_WORD[v]}
                       </span>
                     </div>
-                    <div className="text-[12px] text-ink-muted">{STATUS_LINE[v]}</div>
+                    <div className="text-[11.5px] text-ink-muted">{STATUS_LINE[v]}</div>
                   </div>
                 </li>
               );
             })}
           </ul>
-          <div className="flex items-center gap-4 border-t border-line px-5 py-2.5 text-[11.5px] text-ink-muted">
+          <div className="flex items-center gap-4 border-t border-line px-5 py-2 text-[11.5px] text-ink-muted">
             {(["secure", "developing", "gap", "unseen"] as const).map((s) => (
               <span key={s} className="flex items-center gap-1.5">
                 <StatusDot status={s} /> {STATUS_WORD[s]}
@@ -70,7 +72,19 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
           </div>
         </Card>
 
-        <div className="mt-4 grid grid-cols-2 gap-3">
+        {mastery && (
+          <Card tone="soft" className="mt-3 flex items-center justify-between gap-4 px-4 py-3" data-mastery>
+            <div>
+              <div className="text-[14.5px] font-medium text-ink">Every step held. Want to see where the class is finding it hard?</div>
+              <p className="mt-0.5 text-[12.5px] text-ink-soft">Counts only, nobody's work. Useful if {ASSIGNMENT.teacher} asks you to help with a mini-lesson.</p>
+            </div>
+            <Button variant="secondary" className="whitespace-nowrap" onClick={() => dispatch({ type: "peers/open" })}>
+              Show me →
+            </Button>
+          </Card>
+        )}
+
+        <div className="mt-3 grid grid-cols-2 gap-3">
           <Card className="p-4">
             <Eyebrow>Starred</Eyebrow>
             {session.stars.length === 0 ? (

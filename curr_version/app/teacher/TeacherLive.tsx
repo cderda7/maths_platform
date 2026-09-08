@@ -44,6 +44,8 @@ function stageWord(s: StudentSession): string {
       return "In group review";
     case "report":
       return s.reportSent ? "Report sent" : "Writing their reflection";
+    case "peers":
+      return "Reading class patterns";
     default:
       return s.stage;
   }

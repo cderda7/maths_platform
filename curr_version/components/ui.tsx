@@ -1,9 +1,18 @@
 import type { ReactNode } from "react";
 
-export function Card({ children, className = "", tone = "paper" }: { children: ReactNode; className?: string; tone?: "paper" | "soft" | "plain" }) {
+export function Card({
+  children,
+  className = "",
+  tone = "paper",
+  ...rest
+}: React.HTMLAttributes<HTMLDivElement> & { children: ReactNode; className?: string; tone?: "paper" | "soft" | "plain" }) {
   const base =
     tone === "soft" ? "bg-accent-soft/60 border-accent-line" : tone === "plain" ? "bg-transparent border-line" : "bg-paper border-line shadow-card";
-  return <div className={`rounded-2xl border ${base} ${className}`}>{children}</div>;
+  return (
+    <div className={`rounded-2xl border ${base} ${className}`} {...rest}>
+      {children}
+    </div>
+  );
 }
 
 export function Eyebrow({ children, className = "" }: { children: ReactNode; className?: string }) {

@@ -13,6 +13,8 @@ import ReportScreen from "./screens/ReportScreen";
 import { dispatch, useStudentSession } from "@/lib/store";
 import { ASSIGNMENT } from "@/data/assignment";
 import type { Stage } from "@/data/types";
+import type { RunKindParam } from "@/lib/session";
+import PeerScreen from "./screens/PeerScreen";
 
 const CRUMB: Partial<Record<Stage, string>> = {
   practice: "Warm-up",
@@ -23,14 +25,15 @@ const CRUMB: Partial<Record<Stage, string>> = {
   "group-pass": "Group review",
   "group-discuss": "Group review",
   report: "Your report",
+  peers: "Where the class is finding it hard",
 };
 
 /**
  * The whole student side: one screen per stage, state in the shared demo session store so the
  * teacher tab sees the same run. `explicit` means the URL named a stage, which resets the run.
  */
-export default function StudentApp({ initStage, explicit }: { initStage: Stage; explicit: boolean }) {
-  const session = useStudentSession(initStage, explicit);
+export default function StudentApp({ initStage, explicit, run = "weak" }: { initStage: Stage; explicit: boolean; run?: RunKindParam }) {
+  const session = useStudentSession(initStage, explicit, run);
   return (
     <IpadStage>
       <StudentChrome crumb={CRUMB[session.stage] ?? ASSIGNMENT.className}>
@@ -47,6 +50,7 @@ export default function StudentApp({ initStage, explicit }: { initStage: Stage; 
         {session.stage === "group-pass" && <GroupPassScreen session={session} dispatch={dispatch} />}
         {session.stage === "group-discuss" && <GroupDiscussScreen session={session} dispatch={dispatch} />}
         {session.stage === "report" && <ReportScreen session={session} dispatch={dispatch} />}
+        {session.stage === "peers" && <PeerScreen onBack={() => dispatch({ type: "peers/close" })} />}
       </StudentChrome>
     </IpadStage>
   );

@@ -2,7 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import type { Stage } from "@/data/types";
-import { INITIAL_SESSION, sessionAt, sessionReducer, type SessionAction, type StudentSession } from "./session";
+import { INITIAL_SESSION, sessionAt, sessionReducer, type RunKindParam, type SessionAction, type StudentSession } from "./session";
 
 /**
  * The demo session store: one student session, shared between browser tabs on the same machine.
@@ -88,15 +88,15 @@ const serverSnapshot = () => null;
  * The student tab. An explicit `?stage=` deep link wins over whatever is stored; otherwise the
  * stored run continues. With nothing stored the session starts fresh.
  */
-export function useStudentSession(initStage: Stage, explicit: boolean): StudentSession {
+export function useStudentSession(initStage: Stage, explicit: boolean, run: RunKindParam = "weak"): StudentSession {
   const snap = useSyncExternalStore(subscribe, getSnapshot, serverSnapshot);
   useEffect(() => {
-    if (explicit) setSession(sessionAt(initStage));
+    if (explicit) setSession(sessionAt(initStage, run));
     else if (getSnapshot() === null) setSession(INITIAL_SESSION);
     // Runs once per mount by design: the URL is read on arrival, not on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  return snap ?? sessionAt(initStage);
+  return snap ?? sessionAt(initStage, run);
 }
 
 /**

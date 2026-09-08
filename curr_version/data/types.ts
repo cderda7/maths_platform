@@ -71,7 +71,8 @@ export type Stage =
   | "rework"
   | "group-pass"
   | "group-discuss"
-  | "report";
+  | "report"
+  | "peers";
 
 /** A short warm-up offered before the set, one per prerequisite subskill it makes sense for. */
 export interface PracticeProblem {
