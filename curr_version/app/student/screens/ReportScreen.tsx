@@ -6,7 +6,7 @@ import { StatusDot, STATUS_WORD } from "@/components/Tag";
 import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
 import { PREREQ_IDS, SUBSKILL_MAP, TARGET_ID } from "@/data/subskills";
 import type { SubskillStatus } from "@/data/types";
-import { feedbackFor } from "@/lib/feedback";
+import { reportFacts } from "@/lib/report";
 import type { SessionAction, StudentSession } from "@/lib/session";
 import { subskillStatuses } from "@/lib/status";
 
@@ -25,8 +25,7 @@ const sentences = (t: string) => t.split(/[.!?]+/).map((x) => x.trim()).filter(B
  */
 export default function ReportScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
   const st = subskillStatuses(session);
-  const fb = feedbackFor(session);
-  const reworked = Object.keys(session.rework).filter((id) => (session.rework[id]?.length ?? 0) > 0);
+  const facts = reportFacts(session);
   const n = sentences(session.reflection);
   const sent = session.reportSent;
 
@@ -93,12 +92,12 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
           <Card className="p-4">
             <Eyebrow>What happened</Eyebrow>
             <ul className="mt-2 space-y-1 text-[13px] text-ink-soft">
-              <li>{fb.filter((p) => p.slips.length > 0).length} of {fb.length} problems had a step that didn't hold.</li>
-              <li>{reworked.length > 0 ? `Reworked ${reworked.map((id) => PROBLEM_MAP[id].label).join(", ")} on your own.` : "No rework."}</li>
-              {session.practices.map((p, i) => (
-                <li key={i}>
-                  {p.reason === "help" ? "Asked for help with" : "Offered practice on"} {SUBSKILL_MAP[p.subskill].short.toLowerCase()} · {p.accepted ? "took it" : "not now"}
-                </li>
+              <li>
+                {facts.slipped} of {facts.total} problems had a step that didn't hold.
+              </li>
+              <li>{facts.reworked.length > 0 ? `Reworked ${facts.reworked.join(", ")} on your own.` : "No rework."}</li>
+              {facts.practices.map((p, i) => (
+                <li key={i}>{p}</li>
               ))}
             </ul>
           </Card>

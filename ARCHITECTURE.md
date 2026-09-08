@@ -36,6 +36,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │ lib/status.ts       subskillStatuses · problemsStarted  (teacher-side derivation)   │
  │ lib/feedback.ts     runKind · feedbackFor → lines, standouts, slips, clue, clean     │
  │ lib/group.ts        computePhases (∩ correct / ∪ wrong) · groupPlan → DiscussionView │
+ │ lib/report.ts       reportFacts · confidenceSentence  (same text on both sides)      │
  └───────────────────────────────────────┬────────────────────────────────────────────┘
                                          ▼ reads
  ┌────────────────────────────────────────────────────────────────────────────────────┐
@@ -80,7 +81,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 06 | Feedback layers on submission | `/student?stage=feedback` | `c09798e` | [curr_version/architecture/06-feedback-layers.md](curr_version/architecture/06-feedback-layers.md) |
 | 07 | Independent rework stage | `/student?stage=rework` | `6dbf08f` | [curr_version/architecture/07-independent-rework.md](curr_version/architecture/07-independent-rework.md) |
 | 08 | Simulated group review, two phases | `/student?stage=group-pass`, `…=group-discuss` | `8b2f174` | [curr_version/architecture/08-simulated-group-review.md](curr_version/architecture/08-simulated-group-review.md) |
-| 09 | Student final report and reflection | `/student?stage=report` | _this commit_ | [curr_version/architecture/09-student-final-report.md](curr_version/architecture/09-student-final-report.md) |
+| 09 | Student final report and reflection | `/student?stage=report` | `7c66e0a` | [curr_version/architecture/09-student-final-report.md](curr_version/architecture/09-student-final-report.md) |
+| 10 | Teacher final report | `/teacher/report` | _this commit_ | [curr_version/architecture/10-teacher-final-report.md](curr_version/architecture/10-teacher-final-report.md) |
 
 ## Conventions
 

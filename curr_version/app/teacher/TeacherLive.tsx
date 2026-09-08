@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import TeacherChrome from "./TeacherChrome";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { StatusDot, STATUS_WORD } from "@/components/Tag";
@@ -116,6 +117,11 @@ export default function TeacherLive() {
                           </span>
                         )}
                         {live ? stageWord(live) : "Not started"}
+                        {live?.reportSent && (
+                          <Link href="/teacher/report" className="text-accent-deep hover:underline" data-report-link>
+                            Open report →
+                          </Link>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -128,7 +134,7 @@ export default function TeacherLive() {
                 <td className={`whitespace-nowrap px-3 py-4 text-[13px] ${conf.tone}`}>{conf.text}</td>
                 <td className="whitespace-nowrap px-3 py-4 text-ink-soft">
                   {started}/{ASSIGNMENT.problems.length}
-                  <div className="text-[12px] text-ink-muted">{live?.stage === "feedback" ? "handed in" : started > 0 ? "in progress" : ""}</div>
+                  <div className="text-[12px] text-ink-muted">{live && !["overview", "practice", "confidence", "working"].includes(live.stage) ? "handed in" : started > 0 ? "in progress" : ""}</div>
                 </td>
               </tr>
               {CLASSMATES.map((c) => (
