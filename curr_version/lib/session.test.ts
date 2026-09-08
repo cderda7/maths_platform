@@ -134,3 +134,15 @@ describe("group review stages", () => {
     expect(s.stage).toBe("report");
   });
 });
+
+describe("final report", () => {
+  it("keeps the reflection and marks the report sent", () => {
+    let s = sessionAt("report");
+    expect(s.reportSent).toBe(false);
+    s = sessionReducer(s, { type: "reflection/set", text: "I guessed factor pairs. Expanding back would have caught both." });
+    s = sessionReducer(s, { type: "report/send" });
+    expect(s.reflection).toMatch(/Expanding back/);
+    expect(s.reportSent).toBe(true);
+    expect(s.stars).toEqual(["q4"]);
+  });
+});

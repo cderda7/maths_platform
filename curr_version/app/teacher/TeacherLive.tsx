@@ -42,7 +42,7 @@ function stageWord(s: StudentSession): string {
     case "group-discuss":
       return "In group review";
     case "report":
-      return "Reading their report";
+      return s.reportSent ? "Report sent" : "Writing their reflection";
     default:
       return s.stage;
   }

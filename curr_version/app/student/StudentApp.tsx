@@ -9,6 +9,7 @@ import WorkingScreen from "./screens/WorkingScreen";
 import FeedbackScreen from "./screens/FeedbackScreen";
 import ReworkScreen from "./screens/ReworkScreen";
 import { GroupDiscussScreen, GroupPassScreen } from "./screens/GroupScreens";
+import ReportScreen from "./screens/ReportScreen";
 import { dispatch, useStudentSession } from "@/lib/store";
 import { ASSIGNMENT } from "@/data/assignment";
 import type { Stage } from "@/data/types";
@@ -45,14 +46,7 @@ export default function StudentApp({ initStage, explicit }: { initStage: Stage; 
         {session.stage === "rework" && <ReworkScreen session={session} dispatch={dispatch} />}
         {session.stage === "group-pass" && <GroupPassScreen session={session} dispatch={dispatch} />}
         {session.stage === "group-discuss" && <GroupDiscussScreen session={session} dispatch={dispatch} />}
-        {session.stage === "report" && (
-          <div className="grid h-full place-items-center px-9">
-            <div className="max-w-md text-center">
-              <div className="font-display text-[30px] text-ink">Your report</div>
-              <p className="mt-3 text-[14.5px] text-ink-soft">Opens here next.</p>
-            </div>
-          </div>
-        )}
+        {session.stage === "report" && <ReportScreen session={session} dispatch={dispatch} />}
       </StudentChrome>
     </IpadStage>
   );

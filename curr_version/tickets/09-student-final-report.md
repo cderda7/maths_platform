@@ -4,10 +4,10 @@
 
 **Blocked by:** 08 (Simulated group review, two phases).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Report screen with subskill status colour-coding drawn from the same source the teacher view reads
-- [ ] Starred problems listed
-- [ ] Reflection text area with a gentle length guide (2 to 3 sentences), saved to session on submit
-- [ ] Copy states plainly that this is what the teacher sees
-- [ ] Architecture note written and folded into `ARCHITECTURE.md`
+- [x] Report screen with subskill status colour-coding drawn from the same source the teacher view reads
+- [x] Starred problems listed
+- [x] Reflection text area with a gentle length guide (2 to 3 sentences), saved to session on submit
+- [x] Copy states plainly that this is what the teacher sees
+- [x] Architecture note written and folded into `ARCHITECTURE.md`

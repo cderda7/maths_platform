@@ -22,6 +22,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │               ▶ Feedback (red / blue / clue / star)             │
  │               ▶ Rework (clue only; second version on the pad)   │
  │               ▶ GroupPass (all-correct) ▶ GroupDiscuss (no marks)│
+ │               ▶ Report (teacher's colours + reflection → sent)   │
  └───────────────┬──────────────────┘                               │
                  │ dispatch(action)                                 │
                  ▼                                                  ▼
@@ -78,7 +79,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 05 | Teacher live subskill status and caution flag | `/teacher`, `/student` | `a816258` | [curr_version/architecture/05-teacher-live-status-and-caution-flag.md](curr_version/architecture/05-teacher-live-status-and-caution-flag.md) |
 | 06 | Feedback layers on submission | `/student?stage=feedback` | `c09798e` | [curr_version/architecture/06-feedback-layers.md](curr_version/architecture/06-feedback-layers.md) |
 | 07 | Independent rework stage | `/student?stage=rework` | `6dbf08f` | [curr_version/architecture/07-independent-rework.md](curr_version/architecture/07-independent-rework.md) |
-| 08 | Simulated group review, two phases | `/student?stage=group-pass`, `…=group-discuss` | _this commit_ | [curr_version/architecture/08-simulated-group-review.md](curr_version/architecture/08-simulated-group-review.md) |
+| 08 | Simulated group review, two phases | `/student?stage=group-pass`, `…=group-discuss` | `8b2f174` | [curr_version/architecture/08-simulated-group-review.md](curr_version/architecture/08-simulated-group-review.md) |
+| 09 | Student final report and reflection | `/student?stage=report` | _this commit_ | [curr_version/architecture/09-student-final-report.md](curr_version/architecture/09-student-final-report.md) |
 
 ## Conventions
 

@@ -49,6 +49,10 @@ export interface StudentSession {
   reworkIndex: number;
   /** Discussion problems the group has talked through. */
   talked: string[];
+  /** The 2–3 sentence reflection on the final report. */
+  reflection: string;
+  /** True once the reflection has been sent to the teacher. */
+  reportSent: boolean;
 }
 
 export type SessionAction =
@@ -73,6 +77,8 @@ export type SessionAction =
   | { type: "group/discuss" }
   | { type: "group/talked"; problem: string }
   | { type: "group/done" }
+  | { type: "reflection/set"; text: string }
+  | { type: "report/send" }
   | { type: "goto"; stage: Stage }
   | { type: "reset" };
 
@@ -91,6 +97,8 @@ export const INITIAL_SESSION: StudentSession = {
   rework: {},
   reworkIndex: 0,
   talked: [],
+  reflection: "",
+  reportSent: false,
 };
 
 export function sessionReducer(s: StudentSession, a: SessionAction): StudentSession {
@@ -151,6 +159,10 @@ export function sessionReducer(s: StudentSession, a: SessionAction): StudentSess
       return { ...s, talked: s.talked.includes(a.problem) ? s.talked.filter((p) => p !== a.problem) : [...s.talked, a.problem] };
     case "group/done":
       return { ...s, stage: "report" };
+    case "reflection/set":
+      return { ...s, reflection: a.text };
+    case "report/send":
+      return { ...s, reportSent: true };
     case "star/toggle":
       return { ...s, stars: s.stars.includes(a.problem) ? s.stars.filter((p) => p !== a.problem) : [...s.stars, a.problem] };
     case "goto":
