@@ -4,9 +4,9 @@
 
 **Blocked by:** 05 (Teacher live subskill status and caution flag), 06 (Feedback layers on submission).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Problems listed in set order; under each, the students who made a mistake on it, demo student included when applicable
-- [ ] Click-to-expand inline transcription with red highlight on the wrong step; only one expanded at a time
-- [ ] Demo student's rows are live from session; mock rows are fixture
-- [ ] Architecture note written and folded into `ARCHITECTURE.md`
+- [x] Problems listed in set order; under each, the students who made a mistake on it, demo student included when applicable
+- [x] Click-to-expand inline transcription with red highlight on the wrong step; only one expanded at a time
+- [x] Demo student's rows are live from session; mock rows are fixture
+- [x] Architecture note written and folded into `ARCHITECTURE.md`

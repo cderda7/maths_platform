@@ -71,6 +71,12 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
     "a = 3,\\; b = -5,\\; c = -1": ok("algebra", "Identified a, b, c"),
     "b^2 - 4ac = 25 + 12 = 37": ok("roots", "Discriminant"),
     "x = \\dfrac{5 \\pm \\sqrt{37}}{6}": ok("fractions", "Quadratic formula"),
+    "x = \\dfrac{5 \\pm \\sqrt{37}}{3}": wrong(
+      "fractions",
+      "Quadratic formula",
+      "The formula has a denominator with two parts. Something in it got halved, or didn't.",
+      "The denominator of the quadratic formula is 2a. With a = 3, what is it?",
+    ),
   },
 };
 

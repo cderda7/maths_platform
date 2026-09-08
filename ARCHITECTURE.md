@@ -37,6 +37,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │ lib/feedback.ts     runKind · feedbackFor → lines, standouts, slips, clue, clean     │
  │ lib/group.ts        computePhases (∩ correct / ∪ wrong) · groupPlan → DiscussionView │
  │ lib/report.ts       reportFacts · confidenceSentence  (same text on both sides)      │
+ │ lib/mistakes.ts     mistakesByProblem → problem → rows (live student + classmates)   │
  └───────────────────────────────────────┬────────────────────────────────────────────┘
                                          ▼ reads
  ┌────────────────────────────────────────────────────────────────────────────────────┐
@@ -48,7 +49,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │   evaluation.ts   EVALUATION[problemId][tex] → LineVerdict (ok/wrong, subskill, clue)    │
  │                   STANDOUT[problemId][tex] → { when: strong|weak|both, why }              │
  │   practice.ts     PRACTICES[subskill]: one isolated practice problem each · PRACTICE     │
- │   classmates.ts   CLASSMATES (static rows) · GROUPMATE_IDS (mock review group)           │
+ │   classmates.ts   CLASSMATES (rows, wrong sets, attempts) · GROUPMATE_IDS (review group)  │
  └────────────────────────────────────────────────────────────────────────────────────┘
                  ▲ reads (a chip needs only an id)
  ┌───────────────┴────────────────────────────────────────────────────────────────────┐
@@ -82,7 +83,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 07 | Independent rework stage | `/student?stage=rework` | `6dbf08f` | [curr_version/architecture/07-independent-rework.md](curr_version/architecture/07-independent-rework.md) |
 | 08 | Simulated group review, two phases | `/student?stage=group-pass`, `…=group-discuss` | `8b2f174` | [curr_version/architecture/08-simulated-group-review.md](curr_version/architecture/08-simulated-group-review.md) |
 | 09 | Student final report and reflection | `/student?stage=report` | `7c66e0a` | [curr_version/architecture/09-student-final-report.md](curr_version/architecture/09-student-final-report.md) |
-| 10 | Teacher final report | `/teacher/report` | _this commit_ | [curr_version/architecture/10-teacher-final-report.md](curr_version/architecture/10-teacher-final-report.md) |
+| 10 | Teacher final report | `/teacher/report` | `d3fb1c9` | [curr_version/architecture/10-teacher-final-report.md](curr_version/architecture/10-teacher-final-report.md) |
+| 11 | Teacher mistake view | `/teacher/mistakes` | _this commit_ | [curr_version/architecture/11-teacher-mistake-view.md](curr_version/architecture/11-teacher-mistake-view.md) |
 
 ## Conventions
 

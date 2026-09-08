@@ -10,6 +10,7 @@ import { ASSIGNMENT } from "@/data/assignment";
 
 export const TEACHER_TABS: { href: string; label: string }[] = [
   { href: "/teacher", label: "Class" },
+  { href: "/teacher/mistakes", label: "Mistakes" },
   { href: "/teacher/report", label: "Report" },
 ];
 
