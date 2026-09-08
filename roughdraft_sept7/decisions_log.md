@@ -107,3 +107,51 @@ messages carry no co-author trailer, per the user's global instruction.
 
 **Verified by:** `npm run build`, `npm run lint`, `tsc --noEmit`, and headless-Chrome screenshots of
 every route (including the deep-linked mid-flow states) at 1440px.
+
+## 2026-09-08 · A student who hasn't started: live attempt with a simulated step evaluator
+
+**Decision.** Add a third sample student, Sam Okonkwo (0 of 10 done, every subskill "not seen
+yet"), whose "Working through" screen starts blank. Working is typed one line per move, typeset
+live, and checked by a small simulated evaluator in `lib/evaluate.ts`. The next step is planned
+from that evaluation with the same rules Jordan's scripted path follows (slip on a subskill that
+has a warm-up → offer it as preparation; three clean core problems → offer the stretch; declinable
+either way).
+
+**Context.** Reviewers landing on Jordan's evaluated Q2 saw fixed working and could not tell what
+the moment *before* feedback feels like: the blank page, the confidence check, the first "check my
+working". The user asked for a student who hasn't submitted yet.
+
+**Alternatives considered.**
+- *A scripted "blank" student whose lines appear on a button press.* Cheapest, but it is still
+  fixed working and doesn't let a reviewer try a wrong line and see what happens.
+- *A real evaluator (call a model).* Out of scope for a design-only mockup and would make the
+  screen non-deterministic for review.
+- *Free-text answer box with right/wrong on the final answer.* Contradicts the whole step-trace
+  pattern.
+
+**How the simulated evaluator works.** Each typed line is normalised (spacing, `x^2` vs `x²`,
+`1/2` vs `\tfrac{1}{2}`, `+-` vs `\pm`, order of "or" alternatives) and compared with the
+problem's known solution steps and a new `missteps` list per problem. A solution match is
+*sound*; a misstep match is *slip* or *shaky* with the note written for it; lines that follow a
+slip and are listed as its consequences are *sound* with the "built on the line above" note; a
+correct line whose justifying step was skipped is *shaky*; anything else is *unclear* and the note
+asks the student what they did. Summary, exercised subskills and next step are derived from the
+markers. Every solution step now carries the same `label` and `subskill` the scripted traces use,
+so a live trace reads identically to a scripted one.
+
+**Tradeoffs.** The evaluator only recognises lines it has been told about; an unusual but valid
+route is marked "unclear" rather than sound. That is acceptable here because "unclear" is the
+honest state for an evaluator that can't follow a line, and it is the behaviour the real product
+should have too. Typed-only input; the photo path is described in copy, not built. Class-pattern
+counts stay "of 12" because they describe students who attempted the item; Sam is a 13th roster
+row who hasn't.
+
+**Defence.** The reviewer can now type a plausible attempt (or prefill one from the design-note
+links), pick a confidence, check it, revise it and continue through the set, and every screen of
+that loop uses the same components and vocabulary as the scripted students. The evaluator is a
+pure function with unit tests (`lib/evaluate.test.ts`, vitest), so the real build can replace it
+with a model call behind the same `Evaluation` type.
+
+**Verified by:** vitest (11 tests), `tsc --noEmit`, `npm run lint`, `npm run build`, and
+headless-Chrome screenshots of `/student/work?who=sam` blank, typing, evaluated (slip, unclear),
+plus Jordan's original deep link as a regression check and `/teacher` for Sam's roster row.

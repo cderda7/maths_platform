@@ -20,7 +20,7 @@ React 19, Tailwind 4, KaTeX, no backend, all data static under `data/`.
         ▼ student routes                               ▼ /  (02 role picker)                   ▼ teacher routes
 ┌───────────────────────────────┐                                              ┌────────────────────────────────────┐
 │ /student            (03) page │                                              │ /teacher              (08) page    │
-│ /student/work       (04) page─┼─▶ WorkFlow.tsx        (client, ?who&stage)  │ /teacher/assignments/new (09) page─┼─▶ NewAssignment.tsx
+│ /student/work    (04,11) page─┼─▶ WorkFlow.tsx ──▶ WorkingEditor.tsx (11) │ /teacher/assignments/new (09) page─┼─▶ NewAssignment.tsx
 │ /student/tutor      (05) page─┼─▶ TutorScreen.tsx     (client, ?turn&help)  │ /teacher/students/[id]   (10) page─┼─▶ StudentDetail.tsx
 │ /student/check-in   (06) page─┼─▶ CheckInScreen.tsx   (client)              └──────────────────┬─────────────────┘
 │ /student/teacher-view (07) page┼─▶ TeacherViewScreen.tsx (client)                               │
@@ -43,7 +43,14 @@ React 19, Tailwind 4, KaTeX, no backend, all data static under `data/`.
 │  Brand.tsx     Brand BrandMark           │                  │                JORDAN_{REPORT,HIGHLIGHTS,CHECKINS}│
 └──────────────────────────────────────────┘                  └────────────────────────────────────────────────┘
 
-Dependency rule: app ──▶ components ──▶ data ──▶ types.  Nothing points the other way.
+                                 ┌────────────────────────────────────────────────┐
+                                 │ lib/  (pure logic, unit-tested)                │
+                                 │  evaluate.ts  normalize · toTex · toPlain      │
+                                 │               evaluateAttempt · planNext       │──▶ reads data/problems, data/subskills
+                                 │  evaluate.test.ts (vitest)                     │
+                                 └────────────────────────────────────────────────┘
+
+Dependency rule: app ──▶ components ──▶ data ──▶ types, and app ──▶ lib ──▶ data.  Nothing points the other way.
 ```
 
 ## Key data flows
@@ -63,8 +70,13 @@ Dependency rule: app ──▶ components ──▶ data ──▶ types.  Nothi
  Chat drives the trace
    chat.ts CHAT_SCRIPT[turn].trace ──▶ TutorScreen right column (05)
 
+ Live attempt (Sam, who hasn't started)
+   WorkingEditor lines[] ──▶ lib/evaluate.ts evaluateAttempt ──▶ Evaluation ──▶ same StepTrace / NextStepCard
+   data/problems.ts solution[] (labelled) + missteps[] are what the evaluator recognises
+
  Deep links
    /student/work?who=jordan&stage=1&phase=evaluated ──▶ work/page.tsx ──▶ WorkFlow init
+   /student/work?who=sam&problem=q2&lines=a|b|c&confidence=certain&phase=evaluated ──▶ live attempt, checked
    /student/tutor?turn=5&help=example               ──▶ tutor/page.tsx ──▶ TutorScreen init
 ```
 
@@ -82,6 +94,7 @@ Dependency rule: app ──▶ components ──▶ data ──▶ types.  Nothi
 | 08 | Class dashboard | `/teacher` | `cf7f5f2` | [architecture/08-class-dashboard.md](architecture/08-class-dashboard.md) |
 | 09 | Assignment creation | `/teacher/assignments/new` | `a05e9ec` | [architecture/09-assignment-builder.md](architecture/09-assignment-builder.md) |
 | 10 | Student detail + cleanup | `/teacher/students/[id]` | `29b8656` | [architecture/10-student-detail.md](architecture/10-student-detail.md) |
+| 11 | Live attempt: a student who hasn't started | `/student/work` (Sam) | — | [architecture/11-live-attempt.md](architecture/11-live-attempt.md) |
 
 ## Conventions worth carrying into the real build
 
@@ -93,5 +106,8 @@ Dependency rule: app ──▶ components ──▶ data ──▶ types.  Nothi
 - **Vocabulary lives in `data/types.ts`.** Marker kinds (sound / shaky / slip / unclear),
   subskill statuses (secure / developing / gap / unseen), QCE difficulty tags, confidence levels.
   Rationale for each is in `decisions_log.md`.
-- **No `lib/`.** The directory exists but is empty; nothing has needed a helper beyond the
-  `M` maths renderer.
+- **`lib/` is for pure, testable logic.** The simulated step evaluator lives there with its
+  vitest suite. Components and pages stay presentational; the real build swaps the evaluator for
+  a model call behind the same `Evaluation` type.
+- **Server components must not import values from `"use client"` modules.** They arrive as client
+  references. Keep shared constants in `data/` or inline them.

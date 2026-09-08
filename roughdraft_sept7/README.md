@@ -15,7 +15,8 @@ Then open http://localhost:3000.
 
 Student
 - `/student` — practice landing: the set, tagged by difficulty, with warm-ups mixed in
-- `/student/work` — working through: the differentiated-pacing flow, toggle between two sample students
+- `/student/work` — working through: the differentiated-pacing flow. Toggle between Priya and Jordan
+  (scripted) and Sam, who hasn't started — type working line by line, check it, revise, continue
 - `/student/tutor` — tutor chat beside a live step-by-step evaluation, with the example / hint / video picker
 - `/student/check-in` — confidence check-in before and after a problem
 - `/student/teacher-view` — what your teacher sees, with a student comment field
@@ -26,6 +27,11 @@ Teacher
 - `/teacher/students/jordan` — student detail, classwide hint, and suggested hints
 
 Deep links for review: `/student/work?who=jordan&stage=1&phase=evaluated`,
-`/student/tutor?turn=5&help=example`.
+`/student/tutor?turn=5&help=example`, `/student/work?who=sam` (blank attempt), and
+`/student/work?who=sam&problem=q2&lines=2x^2+7x-4=0|(2x+4)(x-1)=0&confidence=certain&phase=evaluated`
+(a typed attempt already checked; separate lines with `|`).
 
-See `decisions_log.md` for assumptions and design decisions.
+Tests: `npx vitest run` covers the simulated step evaluator in `lib/evaluate.ts`.
+
+See `decisions_log.md` for assumptions and design decisions, and `ARCHITECTURE.md` for how the
+files fit together.

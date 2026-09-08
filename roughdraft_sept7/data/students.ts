@@ -23,6 +23,16 @@ export const STUDENTS: Student[] = [
     flag: "Non-monic factorising: factors not checked by expanding.",
   },
   {
+    id: "sam",
+    name: "Sam Okonkwo",
+    initials: "SO",
+    subskills: { algebra: "unseen", fractions: "unseen", factoring: "unseen", expansion: "unseen", graphing: "unseen", roots: "unseen" },
+    confidenceSignal: "mixed",
+    confidenceNote: "Nothing submitted yet.",
+    lastActive: "Not started",
+    progress: { done: 0, total: 10 },
+  },
+  {
     id: "amelia",
     name: "Amelia Chen",
     initials: "AC",
