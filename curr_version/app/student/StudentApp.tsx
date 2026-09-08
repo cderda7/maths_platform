@@ -15,6 +15,7 @@ const CRUMB: Partial<Record<Stage, string>> = {
   practice: "Warm-up",
   confidence: "Before you start",
   working: ASSIGNMENT.title,
+  feedback: ASSIGNMENT.title,
 };
 
 /** The whole student side: one client component, one reducer, one screen per stage. */
@@ -31,6 +32,14 @@ export default function StudentApp({ initStage }: { initStage: Stage }) {
           <ConfidenceScreen practice={session.practice} onSubmit={(confidence) => dispatch({ type: "confidence/set", confidence })} />
         )}
         {session.stage === "working" && <WorkingScreen session={session} dispatch={dispatch} />}
+        {session.stage === "feedback" && (
+          <div className="grid h-full place-items-center px-9">
+            <div className="max-w-md text-center">
+              <div className="font-display text-[30px] text-ink">Set handed in</div>
+              <p className="mt-3 text-[14.5px] text-ink-soft">Your working is being read through. Feedback opens here next.</p>
+            </div>
+          </div>
+        )}
       </StudentChrome>
     </IpadStage>
   );

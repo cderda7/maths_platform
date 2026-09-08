@@ -1,7 +1,8 @@
 import M from "@/components/Math";
 import { Button, Card, Eyebrow } from "@/components/ui";
 import { DifficultyTag, SubskillChip } from "@/components/Tag";
-import { ASSIGNMENT, PRACTICE } from "@/data/assignment";
+import { ASSIGNMENT } from "@/data/assignment";
+import { PRACTICE } from "@/data/practice";
 import { PREREQ_IDS, SUBSKILL_MAP, TARGET_ID } from "@/data/subskills";
 
 export default function OverviewScreen({ onPractice, onStart }: { onPractice: () => void; onStart: () => void }) {

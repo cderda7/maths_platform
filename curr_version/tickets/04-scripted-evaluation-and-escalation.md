@@ -12,12 +12,12 @@ Counter rule from the spec, kept here because it is the decision-rich part:
 
 **Blocked by:** 03 (Drawpad with simulated line-by-line recognition).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Scripted evaluation fixture per problem: expected lines, known wrong patterns, the subskill each exercises
-- [ ] Escalation counter implemented as a pure function/reducer with vitest coverage of 1st, 2nd, and repeat-2nd-after-reset cases
-- [ ] The demo path contains a scripted second-instance mistake so the prompt is reliably reachable
-- [ ] Isolated practice prompt appears in-frame, is declinable, and returns to the same problem and line
-- [ ] "I need help" button visible on every problem and runs the same prompt flow
-- [ ] Caution state recorded in session for the teacher view
-- [ ] Architecture note written and folded into `ARCHITECTURE.md`
+- [x] Scripted evaluation fixture per problem: expected lines, known wrong patterns, the subskill each exercises
+- [x] Escalation counter implemented as a pure function/reducer with vitest coverage of 1st, 2nd, and repeat-2nd-after-reset cases
+- [x] The demo path contains a scripted second-instance mistake so the prompt is reliably reachable
+- [x] Isolated practice prompt appears in-frame, is declinable, and returns to the same problem and line
+- [x] "I need help" button visible on every problem and runs the same prompt flow
+- [x] Caution state recorded in session for the teacher view
+- [x] Architecture note written and folded into `ARCHITECTURE.md`

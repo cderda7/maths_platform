@@ -62,3 +62,27 @@ presenter controls the pacing.
 
 **Defence.** Visually indistinguishable from recognition at demo distance, zero integration
 risk, and the bookkeeping is unit-tested so undo can't desynchronise ink from transcription.
+
+## 2026-09-08 · Caution flag = second practice entry on a subskill, whatever triggered it
+
+**Decision.** The escalation counter tracks, per subskill, mistakes since the last practice and
+how many times practice has been triggered. A second mistake triggers practice and resets the
+count. A second *practice entry* on the same subskill raises the caution flag. "I need help"
+runs the identical trigger path, so a self-identified practice counts as an entry.
+
+**Context.** The spec says "1st = no-op, 2nd = trigger + reset, repeat-2nd-after-reset = caution"
+and separately that the help button "runs the identical flow a system-detected trigger would".
+Read together, the flag is about entering practice twice, not about a particular count.
+
+**Alternatives considered.** Count only detected mistakes toward caution (then help would be a
+free action and the demo would need four factorising slips in four problems to show the flag).
+Raise caution on the first mistake after a reset ("about to enter" read literally; too eager and
+the teacher would see red before anything has actually looped).
+
+**Tradeoffs.** A student who asks for help twice on one skill flags the teacher, which is the
+intended reading of self-identification but could feel punitive if the copy were wrong; the copy
+frames it as a fact for the teacher, not a mark against the student.
+
+**Defence.** The demo path shows the whole loop in four problems: a detected practice on Q2, then
+one help request, then red on the teacher side. And undo-then-redraw can't inflate the count
+because counted mistakes are keyed by problem and line index.

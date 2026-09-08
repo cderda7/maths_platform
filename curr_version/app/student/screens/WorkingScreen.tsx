@@ -9,6 +9,7 @@ import { ASSIGNMENT } from "@/data/assignment";
 import { RECOGNITION } from "@/data/recognition";
 import { SUBSKILL_MAP } from "@/data/subskills";
 import { nextLine } from "@/lib/recognition";
+import { HelpPicker, PracticeOverlay, PromptModal } from "./PracticePrompt";
 import type { SessionAction, StudentSession } from "@/lib/session";
 
 /**
@@ -22,6 +23,7 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
   const lines = session.lines[p.id] ?? [];
   const [strokesByProblem, setStrokesByProblem] = useState<Record<string, Stroke[]>>({});
   const [recognising, setRecognising] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const strokes = strokesByProblem[p.id] ?? [];
   const setStrokes = (next: Stroke[]) => setStrokesByProblem((m) => ({ ...m, [p.id]: next }));
   const c = session.confidence;
@@ -71,6 +73,9 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
           </div>
         )}
         <div className="mt-auto pt-6">
+          <Button variant="secondary" className="mb-6 w-full" onClick={() => setHelpOpen(true)}>
+            I need help
+          </Button>
           <Eyebrow>The set</Eyebrow>
           <ol className="mt-2.5 flex gap-1.5">
             {problems.map((q, i) => {
@@ -137,10 +142,32 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
           {session.problemIndex < problems.length - 1 ? (
             <Button onClick={() => go(session.problemIndex + 1)}>Next: {problems[session.problemIndex + 1].label} →</Button>
           ) : (
-            <Button variant="accent">Finish the set</Button>
+            <Button variant="accent" onClick={() => dispatch({ type: "goto", stage: "feedback" })}>
+              Finish the set
+            </Button>
           )}
         </div>
       </aside>
+
+      {helpOpen && (
+        <HelpPicker
+          problem={p}
+          onClose={() => setHelpOpen(false)}
+          onPick={(subskill) => {
+            setHelpOpen(false);
+            dispatch({ type: "help/request", subskill, problem: p.id });
+          }}
+        />
+      )}
+      {session.prompt && !helpOpen && (
+        <PromptModal
+          prompt={session.prompt}
+          problem={p}
+          onAccept={() => dispatch({ type: "prompt/accept", problem: p.id })}
+          onDecline={() => dispatch({ type: "prompt/decline", problem: p.id })}
+        />
+      )}
+      {session.overlay && <PracticeOverlay subskill={session.overlay} problem={p} onDone={() => dispatch({ type: "overlay/done" })} />}
     </div>
   );
 }

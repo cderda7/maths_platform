@@ -42,3 +42,57 @@ describe("student session flow", () => {
     expect(s.problemIndex).toBe(1);
   });
 });
+
+describe("escalation inside the session", () => {
+  const reveal = (s: ReturnType<typeof sessionAt>, problem: string, tex: string, strokeCount: number) =>
+    sessionReducer(s, { type: "line/reveal", problem, line: { tex, strokeCount } });
+
+  it("the scripted run: Q1's factorising slip passes, Q2's triggers the prompt", () => {
+    let s = sessionAt("working");
+    s = reveal(s, "q1", "x^2 - 5x + 6 = 0", 5);
+    s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 12);
+    expect(s.prompt).toBeNull();
+    expect(s.escalation.counts.factoring).toBe(1);
+    s = sessionReducer(s, { type: "problem/goto", index: 1 });
+    s = reveal(s, "q2", "2x^2 + 7x - 4 = 0", 6);
+    s = reveal(s, "q2", "(2x + 4)(x - 1) = 0", 14);
+    expect(s.prompt).toEqual({ subskill: "factoring", reason: "detected" });
+    expect(s.escalation.counts.factoring).toBe(0);
+    expect(s.escalation.caution).toEqual([]);
+  });
+
+  it("undo and re-reveal of the same wrong line is counted once", () => {
+    let s = sessionAt("working");
+    s = reveal(s, "q1", "x^2 - 5x + 6 = 0", 5);
+    s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 12);
+    s = sessionReducer(s, { type: "lines/undo", problem: "q1", strokeCount: 11 });
+    s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 12);
+    expect(s.escalation.counts.factoring).toBe(1);
+    expect(s.prompt).toBeNull();
+  });
+
+  it("accepting the prompt opens the practice overlay; finishing it returns to the same problem", () => {
+    let s = sessionAt("working");
+    s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 3);
+    s = sessionReducer(s, { type: "problem/goto", index: 1 });
+    s = reveal(s, "q2", "(2x + 4)(x - 1) = 0", 3);
+    s = sessionReducer(s, { type: "prompt/accept", problem: "q2" });
+    expect(s.prompt).toBeNull();
+    expect(s.overlay).toBe("factoring");
+    s = sessionReducer(s, { type: "overlay/done" });
+    expect(s.overlay).toBeNull();
+    expect(s.problemIndex).toBe(1);
+    expect(s.practices).toEqual([{ subskill: "factoring", reason: "detected", accepted: true, problem: "q2" }]);
+  });
+
+  it("'I need help' after a detected practice raises the caution flag", () => {
+    let s = sessionAt("working");
+    s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 3);
+    s = reveal(s, "q2", "(2x + 4)(x - 1) = 0", 3);
+    s = sessionReducer(s, { type: "prompt/decline", problem: "q2" });
+    expect(s.escalation.caution).toEqual([]);
+    s = sessionReducer(s, { type: "help/request", subskill: "factoring", problem: "q3" });
+    expect(s.prompt).toEqual({ subskill: "factoring", reason: "help" });
+    expect(s.escalation.caution).toEqual(["factoring"]);
+  });
+});

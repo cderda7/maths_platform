@@ -1,10 +1,24 @@
-import type { Confidence, Stage } from "@/data/types";
+import type { Confidence, Stage, SubskillId } from "@/data/types";
 import { afterUndo, type RevealedLine } from "./recognition";
+import { evaluateLine } from "./evaluate";
+import { INITIAL_ESCALATION, recordMistake, requestHelp, type EscalationState } from "./escalation";
 
 /**
  * The student's session: everything the closed loop needs to remember about one run. Pure data
  * plus a reducer, so the flow can be unit-tested and, from ticket 05, mirrored to the teacher tab.
  */
+export interface PracticePrompt {
+  subskill: SubskillId;
+  /** detected: the counter triggered it. help: the student asked. */
+  reason: "detected" | "help";
+}
+
+export interface PracticeEntry extends PracticePrompt {
+  accepted: boolean;
+  /** Problem the student was on. */
+  problem: string;
+}
+
 export interface StudentSession {
   stage: Stage;
   /** null until the offer is answered. */
@@ -14,6 +28,15 @@ export interface StudentSession {
   problemIndex: number;
   /** Recognised lines per problem id, in the order they appeared. */
   lines: Record<string, RevealedLine[]>;
+  escalation: EscalationState;
+  /** Keys (`problem#lineIndex`) of wrong lines already counted, so undo + re-reveal can't double count. */
+  counted: string[];
+  /** The isolated-practice prompt currently showing, if any. */
+  prompt: PracticePrompt | null;
+  /** The isolated practice the student is in, if any. */
+  overlay: SubskillId | null;
+  /** Every prompt and how it was answered, oldest first. */
+  practices: PracticeEntry[];
 }
 
 export type SessionAction =
@@ -25,10 +48,25 @@ export type SessionAction =
   | { type: "line/reveal"; problem: string; line: RevealedLine }
   | { type: "lines/undo"; problem: string; strokeCount: number }
   | { type: "lines/clear"; problem: string }
+  | { type: "help/request"; subskill: SubskillId; problem: string }
+  | { type: "prompt/accept"; problem: string }
+  | { type: "prompt/decline"; problem: string }
+  | { type: "overlay/done" }
   | { type: "goto"; stage: Stage }
   | { type: "reset" };
 
-export const INITIAL_SESSION: StudentSession = { stage: "overview", practice: null, confidence: null, problemIndex: 0, lines: {} };
+export const INITIAL_SESSION: StudentSession = {
+  stage: "overview",
+  practice: null,
+  confidence: null,
+  problemIndex: 0,
+  lines: {},
+  escalation: INITIAL_ESCALATION,
+  counted: [],
+  prompt: null,
+  overlay: null,
+  practices: [],
+};
 
 export function sessionReducer(s: StudentSession, a: SessionAction): StudentSession {
   switch (a.type) {
@@ -42,12 +80,36 @@ export function sessionReducer(s: StudentSession, a: SessionAction): StudentSess
       return { ...s, confidence: a.confidence, stage: "working" };
     case "problem/goto":
       return { ...s, problemIndex: a.index };
-    case "line/reveal":
-      return { ...s, lines: { ...s.lines, [a.problem]: [...(s.lines[a.problem] ?? []), a.line] } };
+    case "line/reveal": {
+      const prev = s.lines[a.problem] ?? [];
+      const next: StudentSession = { ...s, lines: { ...s.lines, [a.problem]: [...prev, a.line] } };
+      const v = evaluateLine(a.problem, a.line.tex);
+      const key = `${a.problem}#${prev.length}`;
+      if (v.verdict !== "wrong" || s.counted.includes(key)) return next;
+      const r = recordMistake(s.escalation, v.subskill);
+      return {
+        ...next,
+        escalation: r.state,
+        counted: [...s.counted, key],
+        prompt: r.trigger ? { subskill: v.subskill, reason: "detected" } : s.prompt,
+      };
+    }
     case "lines/undo":
       return { ...s, lines: { ...s.lines, [a.problem]: afterUndo(s.lines[a.problem] ?? [], a.strokeCount) } };
     case "lines/clear":
       return { ...s, lines: { ...s.lines, [a.problem]: [] } };
+    case "help/request": {
+      const r = requestHelp(s.escalation, a.subskill);
+      return { ...s, escalation: r.state, prompt: { subskill: a.subskill, reason: "help" } };
+    }
+    case "prompt/accept":
+      if (!s.prompt) return s;
+      return { ...s, prompt: null, overlay: s.prompt.subskill, practices: [...s.practices, { ...s.prompt, accepted: true, problem: a.problem }] };
+    case "prompt/decline":
+      if (!s.prompt) return s;
+      return { ...s, prompt: null, practices: [...s.practices, { ...s.prompt, accepted: false, problem: a.problem }] };
+    case "overlay/done":
+      return { ...s, overlay: null };
     case "goto":
       return { ...s, stage: a.stage };
     case "reset":
@@ -55,15 +117,16 @@ export function sessionReducer(s: StudentSession, a: SessionAction): StudentSess
   }
 }
 
+const ORDER: Stage[] = ["overview", "practice", "confidence", "working", "feedback", "rework", "group-pass", "group-discuss", "report"];
+
 /** Builds a session already at `stage`, for deep links, with plausible earlier answers filled in. */
 export function sessionAt(stage: Stage): StudentSession {
-  const order: Stage[] = ["overview", "practice", "confidence", "working", "feedback", "rework", "group-pass", "group-discuss", "report"];
-  const i = order.indexOf(stage);
+  const i = ORDER.indexOf(stage);
   if (i < 0) return INITIAL_SESSION;
   return {
     ...INITIAL_SESSION,
     stage,
-    practice: i >= order.indexOf("confidence") ? "declined" : i === order.indexOf("practice") ? "taken" : null,
-    confidence: i >= order.indexOf("working") ? { level: "low-when", subskill: "factoring" } : null,
+    practice: i >= ORDER.indexOf("confidence") ? "declined" : i === ORDER.indexOf("practice") ? "taken" : null,
+    confidence: i >= ORDER.indexOf("working") ? { level: "low-when", subskill: "factoring" } : null,
   };
 }
