@@ -15,6 +15,7 @@ import { ASSIGNMENT } from "@/data/assignment";
 import type { Stage } from "@/data/types";
 import type { RunKindParam } from "@/lib/session";
 import PeerScreen from "./screens/PeerScreen";
+import HistoryScreen from "./screens/HistoryScreen";
 
 const CRUMB: Partial<Record<Stage, string>> = {
   practice: "Warm-up",
@@ -26,6 +27,7 @@ const CRUMB: Partial<Record<Stage, string>> = {
   "group-discuss": "Group review",
   report: "Your report",
   peers: "Where the class is finding it hard",
+  history: "Your working",
 };
 
 /**
@@ -51,6 +53,7 @@ export default function StudentApp({ initStage, explicit, run = "weak" }: { init
         {session.stage === "group-discuss" && <GroupDiscussScreen session={session} dispatch={dispatch} />}
         {session.stage === "report" && <ReportScreen session={session} dispatch={dispatch} />}
         {session.stage === "peers" && <PeerScreen onBack={() => dispatch({ type: "peers/close" })} />}
+        {session.stage === "history" && <HistoryScreen session={session} onBack={() => dispatch({ type: "history/close" })} />}
       </StudentChrome>
     </IpadStage>
   );

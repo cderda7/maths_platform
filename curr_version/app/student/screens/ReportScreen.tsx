@@ -36,9 +36,14 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
       <section className="flex min-h-0 flex-col overflow-y-auto px-9 py-7">
         <Eyebrow>{ASSIGNMENT.title}</Eyebrow>
         <h1 className="font-display mt-2 text-[30px] leading-tight text-ink">Your report</h1>
-        <p className="mt-2 text-[13.5px] leading-snug text-ink-soft">
-          Exactly what {ASSIGNMENT.teacher} sees: how each skill held up, step by step. No marks, no percentages.
-        </p>
+        <div className="mt-2 flex items-center justify-between gap-4">
+          <p className="text-[13.5px] leading-snug text-ink-soft">
+            Exactly what {ASSIGNMENT.teacher} sees: how each skill held up, step by step. No marks, no percentages.
+          </p>
+          <Button variant="ghost" className="whitespace-nowrap" onClick={() => dispatch({ type: "history/open" })}>
+            Your working →
+          </Button>
+        </div>
 
         <Card className="mt-5 overflow-hidden">
           <ul className="divide-y divide-line" data-statuses>

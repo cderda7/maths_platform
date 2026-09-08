@@ -54,6 +54,9 @@ export interface StudentSession {
   reflection: string;
   /** True once the reflection has been sent to the teacher. */
   reportSent: boolean;
+  /** When the set was handed in and when the rework finished (ms since epoch; 0 = unknown). */
+  handedInAt: number;
+  reworkedAt: number;
 }
 
 export type SessionAction =
@@ -74,7 +77,7 @@ export type SessionAction =
   | { type: "rework/reveal"; problem: string; line: RevealedLine }
   | { type: "rework/undo"; problem: string; strokeCount: number }
   | { type: "rework/clear"; problem: string }
-  | { type: "rework/done" }
+  | { type: "rework/done"; at?: number }
   | { type: "group/discuss" }
   | { type: "group/talked"; problem: string }
   | { type: "group/done" }
@@ -82,7 +85,9 @@ export type SessionAction =
   | { type: "report/send" }
   | { type: "peers/open" }
   | { type: "peers/close" }
-  | { type: "goto"; stage: Stage }
+  | { type: "goto"; stage: Stage; at?: number }
+  | { type: "history/open" }
+  | { type: "history/close" }
   | { type: "reset" };
 
 export const INITIAL_SESSION: StudentSession = {
@@ -102,6 +107,8 @@ export const INITIAL_SESSION: StudentSession = {
   talked: [],
   reflection: "",
   reportSent: false,
+  handedInAt: 0,
+  reworkedAt: 0,
 };
 
 export function sessionReducer(s: StudentSession, a: SessionAction): StudentSession {
@@ -155,7 +162,7 @@ export function sessionReducer(s: StudentSession, a: SessionAction): StudentSess
     case "rework/clear":
       return { ...s, rework: { ...s.rework, [a.problem]: [] } };
     case "rework/done":
-      return { ...s, stage: "group-pass" };
+      return { ...s, stage: "group-pass", reworkedAt: a.at ?? s.reworkedAt };
     case "group/discuss":
       return { ...s, stage: "group-discuss" };
     case "group/talked":
@@ -173,13 +180,24 @@ export function sessionReducer(s: StudentSession, a: SessionAction): StudentSess
     case "star/toggle":
       return { ...s, stars: s.stars.includes(a.problem) ? s.stars.filter((p) => p !== a.problem) : [...s.stars, a.problem] };
     case "goto":
-      return { ...s, stage: a.stage };
+      return { ...s, stage: a.stage, handedInAt: a.stage === "feedback" && a.at ? a.at : s.handedInAt };
+    case "history/open":
+      return { ...s, stage: "history" };
+    case "history/close":
+      return { ...s, stage: "report" };
     case "reset":
       return INITIAL_SESSION;
   }
 }
 
-const ORDER: Stage[] = ["overview", "practice", "confidence", "working", "feedback", "rework", "group-pass", "group-discuss", "report", "peers"];
+const ORDER: Stage[] = ["overview", "practice", "confidence", "working", "feedback", "rework", "group-pass", "group-discuss", "report", "peers", "history"];
+
+/** Fixed times for deep-linked runs: handed in at 3:48 pm, rework done at 4:07 pm, today. */
+const todayAt = (h: number, m: number) => {
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d.getTime();
+};
 
 /** Which scripted run a deep link plays: the default weak run, or a strong one (every step held). */
 export type RunKindParam = "weak" | "strong";
@@ -213,7 +231,7 @@ export function scriptedSession(): StudentSession {
       }
     });
   }
-  return s;
+  return { ...s, handedInAt: todayAt(15, 48) };
 }
 
 /** The scripted run plus the corrected rework of every problem that slipped, Q4 starred. */
@@ -224,14 +242,14 @@ export function reworkedSession(): StudentSession {
       s = sessionReducer(s, { type: "rework/reveal", problem: pid, line: { tex, strokeCount: (n + 1) * 5 } });
     });
   }
-  return s;
+  return { ...s, reworkedAt: todayAt(16, 7) };
 }
 
 /** Builds a session already at `stage`, for deep links, with plausible earlier answers filled in. */
 export function sessionAt(stage: Stage, run: RunKindParam = "weak"): StudentSession {
   const i = ORDER.indexOf(stage);
   if (i < 0) return INITIAL_SESSION;
-  if (run === "strong" && i >= ORDER.indexOf("feedback")) return { ...strongSession(), stage, stars: [] };
+  if (run === "strong" && i >= ORDER.indexOf("feedback")) return { ...strongSession(), stage, stars: [], handedInAt: todayAt(15, 48) };
   if (i >= ORDER.indexOf("group-pass")) return { ...reworkedSession(), stage };
   if (i >= ORDER.indexOf("feedback")) return { ...scriptedSession(), stage };
   return {

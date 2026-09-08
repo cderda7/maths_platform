@@ -73,8 +73,11 @@ export function setSession(next: StudentSession | null) {
   emit();
 }
 
+/** Dispatches an action, stamping the time on the two transitions that are worth dating. */
 export function dispatch(action: SessionAction) {
-  setSession(sessionReducer(getSnapshot() ?? INITIAL_SESSION, action));
+  const stamped: SessionAction =
+    (action.type === "goto" && action.stage === "feedback") || action.type === "rework/done" ? { ...action, at: Date.now() } : action;
+  setSession(sessionReducer(getSnapshot() ?? INITIAL_SESSION, stamped));
 }
 
 /** Back to the start in every tab (a fresh session, not an empty one, so deep-linked tabs move too). */

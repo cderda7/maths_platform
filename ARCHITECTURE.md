@@ -24,6 +24,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │               ▶ GroupPass (all-correct) ▶ GroupDiscuss (no marks)│
  │               ▶ Report (teacher's colours + reflection → sent)   │
  │               ▶ Peers (mastery only: class struggles, counts)    │
+ │               ▶ History (final only; compare scroll-synced)      │
  └───────────────┬──────────────────┘                               │
                  │ dispatch(action)                                 │
                  ▼                                                  ▼
@@ -40,6 +41,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │ lib/report.ts       reportFacts · confidenceSentence  (same text on both sides)      │
  │ lib/mistakes.ts     mistakesByProblem → problem → rows (live student + classmates)   │
  │ lib/peers.ts        peerStruggles (counts only) · isMastery                          │
+ │ lib/versions.ts     versionsOf (handed in / after rework) · alignVersions            │
  └───────────────────────────────────────┬────────────────────────────────────────────┘
                                          ▼ reads
  ┌────────────────────────────────────────────────────────────────────────────────────┐
@@ -87,7 +89,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 09 | Student final report and reflection | `/student?stage=report` | `7c66e0a` | [curr_version/architecture/09-student-final-report.md](curr_version/architecture/09-student-final-report.md) |
 | 10 | Teacher final report | `/teacher/report` | `d3fb1c9` | [curr_version/architecture/10-teacher-final-report.md](curr_version/architecture/10-teacher-final-report.md) |
 | 11 | Teacher mistake view | `/teacher/mistakes` | `5ac30a1` | [curr_version/architecture/11-teacher-mistake-view.md](curr_version/architecture/11-teacher-mistake-view.md) |
-| 12 | Peer-struggle screen (Tier 2) | `/student?stage=report&run=strong` → peers | _this commit_ | [curr_version/architecture/12-peer-struggle-screen.md](curr_version/architecture/12-peer-struggle-screen.md) |
+| 12 | Peer-struggle screen (Tier 2) | `/student?stage=report&run=strong` → peers | `a53863a` | [curr_version/architecture/12-peer-struggle-screen.md](curr_version/architecture/12-peer-struggle-screen.md) |
+| 13 | Submission history (Tier 2) | `/student?stage=history` | _this commit_ | [curr_version/architecture/13-submission-history.md](curr_version/architecture/13-submission-history.md) |
 
 ## Conventions
 

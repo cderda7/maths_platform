@@ -4,9 +4,9 @@
 
 **Blocked by:** 07 (Independent rework stage), 09 (Student final report and reflection).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Reviewed-assignment view defaults to the final version alone
-- [ ] Version dropdown lists original and rework with timestamps
-- [ ] Selecting a version opens a scroll-synced side panel; closing it returns to the single view
-- [ ] Architecture note written and folded into `ARCHITECTURE.md`
+- [x] Reviewed-assignment view defaults to the final version alone
+- [x] Version dropdown lists original and rework with timestamps
+- [x] Selecting a version opens a scroll-synced side panel; closing it returns to the single view
+- [x] Architecture note written and folded into `ARCHITECTURE.md`

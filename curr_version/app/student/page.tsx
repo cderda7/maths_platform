@@ -1,7 +1,7 @@
 import StudentApp from "./StudentApp";
 import type { Stage } from "@/data/types";
 
-const STAGES: Stage[] = ["overview", "practice", "confidence", "working", "feedback", "rework", "group-pass", "group-discuss", "report", "peers"];
+const STAGES: Stage[] = ["overview", "practice", "confidence", "working", "feedback", "rework", "group-pass", "group-discuss", "report", "peers", "history"];
 
 /**
  * Deep links land a reviewer on a specific moment: /student?stage=confidence, /student?stage=working.
