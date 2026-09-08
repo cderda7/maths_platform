@@ -94,3 +94,14 @@ body {
   background: var(--color-cream);
   position: relative;
 }
+
+/* "Recognising…" placeholder in the transcription column. */
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, var(--color-cream-deep) 0%, var(--color-line) 50%, var(--color-cream-deep) 100%);
+  background-size: 400px 100%;
+  animation: shimmer 1.1s linear infinite;
+}

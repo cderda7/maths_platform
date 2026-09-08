@@ -30,7 +30,7 @@ export default function StudentApp({ initStage }: { initStage: Stage }) {
         {session.stage === "confidence" && (
           <ConfidenceScreen practice={session.practice} onSubmit={(confidence) => dispatch({ type: "confidence/set", confidence })} />
         )}
-        {session.stage === "working" && <WorkingScreen session={session} />}
+        {session.stage === "working" && <WorkingScreen session={session} dispatch={dispatch} />}
       </StudentChrome>
     </IpadStage>
   );

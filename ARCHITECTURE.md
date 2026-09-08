@@ -16,9 +16,11 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │       └▶ IpadStage ▶ StudentChrome│              │   StatusDot per subskill         │
  │            └▶ screens/            │              └───────────────┬──────────────────┘
  │               Overview ▶ Practice │                              │
- │               ▶ Confidence ▶ Working                             │
+ │               ▶ Confidence ▶ Working ─▶ DrawPad (canvas ink)     │
+ │                                  └▶ "Read as" column             │
  └───────────────┬──────────────────┘                               │
-                 │  lib/session.ts  StudentSession · sessionReducer · sessionAt  (pure, vitest)
+                 │  lib/session.ts      StudentSession · sessionReducer · sessionAt  (pure, vitest)
+                 │  lib/recognition.ts  nextLine · afterUndo  (burst of strokes → scripted line)
                  │  (no shared state across tabs yet — ticket 05 adds the session store)
                  ▼ reads                                            ▼ reads
  ┌────────────────────────────────────────────────────────────────────────────────────┐
@@ -26,6 +28,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │   types.ts        SubskillId · SubskillStatus · Problem · Assignment · Confidence · Stage │
  │   subskills.ts    SUBSKILLS · SUBSKILL_MAP · PREREQ_IDS · TARGET_ID                │
  │   assignment.ts   ASSIGNMENT (4 problems, labelled solutions) · PRACTICE · DEMO_STUDENT │
+ │   recognition.ts  RECOGNITION[problemId]: the lines the pad will "read", in order      │
  └────────────────────────────────────────────────────────────────────────────────────┘
                  ▲ reads (a chip needs only an id)
  ┌───────────────┴────────────────────────────────────────────────────────────────────┐
@@ -33,6 +36,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │   ui.tsx  Card Eyebrow H1 H2 Button Avatar    Math.tsx  M (katex.renderToString)   │
  │   Tag.tsx DifficultyTag SubskillChip StatusDot STATUS_WORD                         │
  │   Brand.tsx Brand BrandMark                   IpadStage.tsx  bezel + scale-to-fit  │
+ │   DrawPad.tsx  pointer events → ink; reports pen-down and burst-end(strokeCount)   │
  └────────────────────────────────────────────────────────────────────────────────────┘
  ┌────────────────────────────────────────────────────────────────────────────────────┐
  │ app/layout.tsx  fonts · katex.css · globals.css (@theme tokens, .ipad-bezel/.screen)│
@@ -47,7 +51,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | # | Ticket | Routes | Commit | Note |
 |---|---|---|---|---|
 | 01 | Scaffold, iPad stage, demo assignment fixture | `/`, `/student`, `/teacher` | `bc49ffa` | [curr_version/architecture/01-scaffold.md](curr_version/architecture/01-scaffold.md) |
-| 02 | Pre-assignment skill list, practice offer, confidence survey | `/student?stage=…` | _this commit_ | [curr_version/architecture/02-pre-assignment-and-confidence.md](curr_version/architecture/02-pre-assignment-and-confidence.md) |
+| 02 | Pre-assignment skill list, practice offer, confidence survey | `/student?stage=…` | `5ce1673` | [curr_version/architecture/02-pre-assignment-and-confidence.md](curr_version/architecture/02-pre-assignment-and-confidence.md) |
+| 03 | Drawpad with simulated line-by-line recognition | `/student?stage=working` | _this commit_ | [curr_version/architecture/03-drawpad-simulated-recognition.md](curr_version/architecture/03-drawpad-simulated-recognition.md) |
 
 ## Conventions
 

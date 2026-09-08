@@ -1,0 +1,12 @@
+/**
+ * Simulated recognition. For each problem, the ordered lines the drawpad will "recognise" as the
+ * demo student writes: one line per burst of strokes. The demo student's scripted run slips on
+ * factorising in Q1 and Q2, applies the null factor law to a product that isn't zero in Q3, and
+ * gets Q4 right. Evaluation of these lines is ticket 04's job; here they are just what appears.
+ */
+export const RECOGNITION: Record<string, string[]> = {
+  q1: ["x^2 - 5x + 6 = 0", "(x + 2)(x + 3) = 0", "x = -2 \\;\\text{or}\\; x = -3"],
+  q2: ["2x^2 + 7x - 4 = 0", "(2x + 4)(x - 1) = 0", "2x + 4 = 0 \\;\\text{or}\\; x - 1 = 0", "x = -2 \\;\\text{or}\\; x = 1"],
+  q3: ["(x - 3)(x + 2) = 6", "x - 3 = 6 \\;\\text{or}\\; x + 2 = 6", "x = 9 \\;\\text{or}\\; x = 4"],
+  q4: ["a = 3,\\; b = -5,\\; c = -1", "b^2 - 4ac = 25 + 12 = 37", "x = \\dfrac{5 \\pm \\sqrt{37}}{6}"],
+};

@@ -4,11 +4,11 @@
 
 **Blocked by:** 01 (Scaffold, iPad stage, demo assignment fixture).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Pointer-event drawpad (mouse, trackpad and touch) with smooth ink, no scroll-jank inside the frame
-- [ ] Recognised lines appear progressively, timed to stroke completion, in a transcription column with a subtle "recognising…" state between strokes
-- [ ] Recognition script per problem: an ordered list of lines the demo will "recognise", including the scripted wrong lines
-- [ ] Undo and clear behave as described; per-problem canvas state survives moving between problems
-- [ ] Problem navigation within the set (next / previous) inside the frame
-- [ ] Architecture note written and folded into `ARCHITECTURE.md`
+- [x] Pointer-event drawpad (mouse, trackpad and touch) with smooth ink, no scroll-jank inside the frame
+- [x] Recognised lines appear progressively, timed to stroke completion, in a transcription column with a subtle "recognising…" state between strokes
+- [x] Recognition script per problem: an ordered list of lines the demo will "recognise", including the scripted wrong lines
+- [x] Undo and clear behave as described; per-problem canvas state survives moving between problems
+- [x] Problem navigation within the set (next / previous) inside the frame
+- [x] Architecture note written and folded into `ARCHITECTURE.md`
