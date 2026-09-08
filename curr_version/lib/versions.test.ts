@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { sessionAt } from "./session";
-import { alignVersions, versionsOf } from "./versions";
+import { alignVersions, changedRowCount, rowChanged, versionsOf } from "./versions";
 
 describe("submission history", () => {
   it("the final version is the rework where there is one, otherwise the handed-in lines", () => {
@@ -23,5 +23,15 @@ describe("submission history", () => {
     const q4 = aligned.find((a) => a.problem.id === "q4")!;
     expect(q4.changed).toBe(false);
     expect(q4.rows.every((r) => r.left && r.right)).toBe(true);
+  });
+});
+
+describe("before / after", () => {
+  it("counts the lines that changed between handed-in and final", () => {
+    const [original, final] = versionsOf(sessionAt("history"));
+    const aligned = alignVersions(original, final);
+    // Q1: 3 rows all differ; Q2: 5 rows all differ; Q3: 4 rows all differ; Q4: unchanged.
+    expect(changedRowCount(aligned)).toBe(12);
+    expect(aligned.find((a) => a.problem.id === "q4")!.rows.some(rowChanged)).toBe(false);
   });
 });

@@ -44,3 +44,11 @@ export function alignVersions(left: Version, right: Version): AlignedProblem[] {
     return { problem, rows, changed };
   });
 }
+
+/** A row where the two versions differ (a line changed, appeared or disappeared). */
+export const rowChanged = (r: AlignedProblem["rows"][number]) => (r.left?.tex ?? null) !== (r.right?.tex ?? null);
+
+/** How many lines changed between the two versions, across the set. */
+export function changedRowCount(aligned: AlignedProblem[]): number {
+  return aligned.reduce((n, a) => n + a.rows.filter(rowChanged).length, 0);
+}

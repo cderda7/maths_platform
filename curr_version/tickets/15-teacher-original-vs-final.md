@@ -4,8 +4,8 @@
 
 **Blocked by:** 07 (Independent rework stage), 11 (Teacher mistake view).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Link from an expanded mistake row to the side-by-side view
-- [ ] Original left, final right, both typeset, with changed lines called out
-- [ ] Architecture note written and folded into `ARCHITECTURE.md`
+- [x] Link from an expanded mistake row to the side-by-side view
+- [x] Original left, final right, both typeset, with changed lines called out
+- [x] Architecture note written and folded into `ARCHITECTURE.md`

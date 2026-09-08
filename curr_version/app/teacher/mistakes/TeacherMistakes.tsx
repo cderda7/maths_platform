@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import TeacherChrome from "../TeacherChrome";
 import M from "@/components/Math";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
@@ -82,8 +83,16 @@ export default function TeacherMistakes() {
                           </span>
                         </span>
                       </button>
+                      {isOpen && r.live && (
+                        <div className="flex items-center justify-between border-t border-line bg-cream/60 px-6 pt-3 text-[12.5px] text-ink-muted">
+                          <span>As handed in. The rework is kept separately.</span>
+                          <Link href="/teacher/compare" className="text-accent-deep hover:underline" data-compare-link>
+                            Original vs final →
+                          </Link>
+                        </div>
+                      )}
                       {isOpen && (
-                        <ol className="space-y-2 border-t border-line bg-cream/60 px-6 py-4" data-expanded>
+                        <ol className={`space-y-2 bg-cream/60 px-6 py-4 ${r.live ? "" : "border-t border-line"}`} data-expanded>
                           {r.lines.map((l, i) => {
                             const v = l.verdict;
                             const wrong = v.verdict === "wrong";
