@@ -54,3 +54,32 @@ export interface Assignment {
   /** Ordered set of core problems. */
   problems: Problem[];
 }
+
+/** The three confidence-survey answers from the spec. */
+export type Confidence =
+  | { level: "confident" }
+  | { level: "low-when"; subskill: SubskillId }
+  | { level: "low" };
+
+/** Where the student is in the closed loop. Each stage is one screen on the iPad. */
+export type Stage =
+  | "overview"
+  | "practice"
+  | "confidence"
+  | "working"
+  | "feedback"
+  | "rework"
+  | "group-pass"
+  | "group-discuss"
+  | "report";
+
+/** A short warm-up offered before the set, one per prerequisite subskill it makes sense for. */
+export interface PracticeProblem {
+  id: string;
+  subskill: SubskillId;
+  stem: string;
+  tex: string;
+  steps: SolutionStep[];
+  /** One friendly line about why this warm-up is worth two minutes. */
+  why: string;
+}

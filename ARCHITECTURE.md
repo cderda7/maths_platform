@@ -10,20 +10,22 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 ```
  browser tab A · student iPad                       browser tab B · teacher
  ┌──────────────────────────────────┐               ┌──────────────────────────────────┐
- │ /student   page.tsx (server)     │               │ /teacher   page.tsx (server)     │
- │   └▶ IpadStage (client, 1180×820)│               │   "Where the class is" table     │
- │        └▶ StudentChrome          │               │   one row: DEMO_STUDENT          │
- │             └▶ assignment overview│              │   StatusDot per subskill         │
- └───────────────┬──────────────────┘               └───────────────┬──────────────────┘
-                 │                                                  │
-                 │  (no shared state yet — ticket 05 adds the       │
-                 │   cross-tab session store)                       │
+ │ /student?stage=  page.tsx (server)│              │ /teacher   page.tsx (server)     │
+ │   └▶ StudentApp (client)         │               │   "Where the class is" table     │
+ │       useReducer(sessionReducer) │               │   one row: DEMO_STUDENT          │
+ │       └▶ IpadStage ▶ StudentChrome│              │   StatusDot per subskill         │
+ │            └▶ screens/            │              └───────────────┬──────────────────┘
+ │               Overview ▶ Practice │                              │
+ │               ▶ Confidence ▶ Working                             │
+ └───────────────┬──────────────────┘                               │
+                 │  lib/session.ts  StudentSession · sessionReducer · sessionAt  (pure, vitest)
+                 │  (no shared state across tabs yet — ticket 05 adds the session store)
                  ▼ reads                                            ▼ reads
  ┌────────────────────────────────────────────────────────────────────────────────────┐
  │ data/  (static TypeScript, no fetching)                                            │
- │   types.ts        SubskillId · SubskillStatus · Problem · Assignment               │
+ │   types.ts        SubskillId · SubskillStatus · Problem · Assignment · Confidence · Stage │
  │   subskills.ts    SUBSKILLS · SUBSKILL_MAP · PREREQ_IDS · TARGET_ID                │
- │   assignment.ts   ASSIGNMENT (4 problems, labelled solutions) · DEMO_STUDENT       │
+ │   assignment.ts   ASSIGNMENT (4 problems, labelled solutions) · PRACTICE · DEMO_STUDENT │
  └────────────────────────────────────────────────────────────────────────────────────┘
                  ▲ reads (a chip needs only an id)
  ┌───────────────┴────────────────────────────────────────────────────────────────────┐
@@ -38,14 +40,14 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  └────────────────────────────────────────────────────────────────────────────────────┘
 
  Dependency rule: app ──▶ components ──▶ data ──▶ types. Nothing points the other way.
- lib/ (pure, unit-tested logic) is empty until ticket 04.
 ```
 
 ## Tickets, in build order
 
 | # | Ticket | Routes | Commit | Note |
 |---|---|---|---|---|
-| 01 | Scaffold, iPad stage, demo assignment fixture | `/`, `/student`, `/teacher` | _this commit_ | [curr_version/architecture/01-scaffold.md](curr_version/architecture/01-scaffold.md) |
+| 01 | Scaffold, iPad stage, demo assignment fixture | `/`, `/student`, `/teacher` | `bc49ffa` | [curr_version/architecture/01-scaffold.md](curr_version/architecture/01-scaffold.md) |
+| 02 | Pre-assignment skill list, practice offer, confidence survey | `/student?stage=…` | _this commit_ | [curr_version/architecture/02-pre-assignment-and-confidence.md](curr_version/architecture/02-pre-assignment-and-confidence.md) |
 
 ## Conventions
 

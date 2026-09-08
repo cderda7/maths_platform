@@ -1,4 +1,4 @@
-import type { Assignment, Problem } from "./types";
+import type { Assignment, PracticeProblem, Problem } from "./types";
 
 /**
  * The demo assignment: four problems on the roots of a quadratic, hand-checked. The set is
@@ -83,3 +83,18 @@ export const ASSIGNMENT: Assignment = {
 
 /** The one student the demo follows. */
 export const DEMO_STUDENT = { id: "sam", name: "Sam Okonkwo", initials: "SO" };
+
+/** The warm-up offered before the set starts. Factorising is what Q1–Q3 all lean on. */
+export const PRACTICE: PracticeProblem = {
+  id: "w-factoring",
+  subskill: "factoring",
+  stem: "Factorise, then solve.",
+  tex: "x^2 + 7x + 12 = 0",
+  steps: [
+    { tex: "3 \\times 4 = 12,\\quad 3 + 4 = 7", label: "Found the pair", subskill: "factoring" },
+    { tex: "(x + 3)(x + 4) = 0", label: "Factorised", subskill: "factoring" },
+    { tex: "x^2 + 4x + 3x + 12 \\;\\checkmark", label: "Expanded back to check", subskill: "expansion" },
+    { tex: "x = -3 \\;\\text{or}\\; x = -4", label: "Null factor law", subskill: "roots" },
+  ],
+  why: "Three of the four problems lean on factorising. Two minutes here makes them quicker.",
+};

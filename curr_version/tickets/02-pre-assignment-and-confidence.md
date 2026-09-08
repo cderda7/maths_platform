@@ -4,11 +4,11 @@
 
 **Blocked by:** 01 (Scaffold, iPad stage, demo assignment fixture).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Skill/subskill list screen with a clear "Practice first" / "Start the assignment" choice
-- [ ] Accepting practice shows one fixture practice problem and returns to the flow; declining goes straight on
-- [ ] Confidence survey with the three spec'd options; the middle option requires picking a subskill
-- [ ] Confidence choice is held in session state and readable by later screens
-- [ ] Copy is non-punitive: practice is framed as an offer, never remediation
-- [ ] Architecture note written and folded into `ARCHITECTURE.md`
+- [x] Skill/subskill list screen with a clear "Practice first" / "Start the assignment" choice
+- [x] Accepting practice shows one fixture practice problem and returns to the flow; declining goes straight on
+- [x] Confidence survey with the three spec'd options; the middle option requires picking a subskill
+- [x] Confidence choice is held in session state and readable by later screens
+- [x] Copy is non-punitive: practice is framed as an offer, never remediation
+- [x] Architecture note written and folded into `ARCHITECTURE.md`
