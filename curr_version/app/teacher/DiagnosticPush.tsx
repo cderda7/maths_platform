@@ -34,7 +34,7 @@ export default function DiagnosticPush({ session }: { session: StudentSession | 
   return (
     <Card className="p-6" data-diagnostic-push>
       <div className="flex items-center justify-between">
-        <Eyebrow>Live diagnostic</Eyebrow>
+        <Eyebrow className="inline-block rounded-md bg-accent px-2 py-1 text-white">Live diagnostic</Eyebrow>
         <label className="flex cursor-pointer items-center gap-2 text-[12.5px] text-ink-soft">
           <span>{recorded ? "recorded" : "not recorded"}</span>
           <button
@@ -59,7 +59,7 @@ export default function DiagnosticPush({ session }: { session: StudentSession | 
             role="tab"
             aria-selected={tab === t}
             onClick={() => setTab(t)}
-            className={`rounded-full px-3 py-1.5 font-medium transition-colors ${tab === t ? "bg-ink text-white" : "text-ink-soft hover:text-ink"}`}
+            className={`rounded-full px-3 py-1.5 font-medium transition-colors ${tab === t ? "bg-standout-soft text-standout" : "text-ink-soft hover:text-ink"}`}
             data-diag-tab={t}
           >
             {t === "example" ? "example" : "make your own"}
@@ -132,12 +132,12 @@ export default function DiagnosticPush({ session }: { session: StudentSession | 
             </button>
           </div>
         ) : tab === "example" ? (
-          <Button variant="accent" onClick={() => push(example)} data-push>
+          <Button variant="sky" onClick={() => push(example)} data-push>
             send to class
           </Button>
         ) : (
-          <Button variant="accent" disabled={!own} onClick={() => own && push(customQuestion(stem, tex, options, correct)!)} data-push-own>
-            Push
+          <Button variant="sky" disabled={!own} onClick={() => own && push(customQuestion(stem, tex, options, correct)!)} data-push-own>
+            send to class
           </Button>
         )}
       </div>

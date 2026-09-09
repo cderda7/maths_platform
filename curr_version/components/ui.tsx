@@ -33,11 +33,13 @@ export function Button({
   size = "md",
   className = "",
   ...rest
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" | "ghost" | "accent"; size?: "md" | "lg" }) {
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" | "ghost" | "accent" | "sky"; size?: "md" | "lg" }) {
   const v =
     variant === "primary"
       ? "bg-ink text-white hover:bg-ink-soft"
-      : variant === "accent"
+      : variant === "sky"
+        ? "bg-standout-soft text-standout border border-standout-line hover:bg-standout-line/60"
+        : variant === "accent"
         ? "bg-accent text-white hover:bg-accent-deep"
         : variant === "secondary"
           ? "bg-paper text-ink border border-line-strong hover:border-ink-muted"

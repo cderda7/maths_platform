@@ -186,7 +186,7 @@ export default function TeacherLive() {
                     onDoubleClick={() => headerDouble(c)}
                     title="Double-click to open this category for every student; click to close"
                   >
-                    {categoryName(c).short}
+                    <span className="inline-block rounded-md bg-standout-soft px-2 py-1 text-standout">{categoryName(c).short}</span>
                   </th>
                 ))}
                 <th className="px-3 py-4 text-center font-semibold">Confidence</th>
@@ -313,8 +313,8 @@ export default function TeacherLive() {
 
         <div className="space-y-6">
           <Card className="p-6" data-pathway-card>
-            <Eyebrow>Pathway</Eyebrow>
-            <ol className="mt-2 font-display text-[22px] leading-snug text-ink" data-pathway-chip>
+            <Eyebrow className="inline-block rounded-md bg-accent px-2 py-1 text-white">Pathway</Eyebrow>
+            <ol className="mt-3 rounded-xl bg-standout-soft px-4 py-3 font-display text-[22px] leading-snug text-ink" data-pathway-chip>
               {pathwayChip(pathwayOf(classroom))
                 .split(" → ")
                 .map((stage, i) => (
