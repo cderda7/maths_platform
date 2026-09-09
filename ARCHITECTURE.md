@@ -97,7 +97,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 13 | Submission history (Tier 2) | `/student?stage=history` | `67db35d` | [curr_version/architecture/13-submission-history.md](curr_version/architecture/13-submission-history.md) |
 | 14 | Teacher review-groups view (Tier 2) | `/teacher/groups` | `0c268b0` | [curr_version/architecture/14-teacher-review-groups-view.md](curr_version/architecture/14-teacher-review-groups-view.md) |
 | 15 | Teacher original vs final (Tier 2) | `/teacher/compare` | `3fb499b` | [curr_version/architecture/15-teacher-original-vs-final.md](curr_version/architecture/15-teacher-original-vs-final.md) |
-| 16 | Diagnostic MCQ push (Tier 2) | `/teacher` → `/student` interrupt | _this commit_ | [curr_version/architecture/16-diagnostic-mcq-push.md](curr_version/architecture/16-diagnostic-mcq-push.md) |
+| 16 | Diagnostic MCQ push (Tier 2) | `/teacher` → `/student` interrupt | `7b3d49c` | [curr_version/architecture/16-diagnostic-mcq-push.md](curr_version/architecture/16-diagnostic-mcq-push.md) |
+| 17 | Copy sweep to the rule (spec v3) | every route | _this commit_ | [curr_version/architecture/17-copy-sweep.md](curr_version/architecture/17-copy-sweep.md) |
 
 ## Conventions
 
@@ -106,5 +107,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 - **Components read data, never pages.** A chip needs only a subskill id.
 - **Vocabulary lives in `data/types.ts`.** Rationale in `DECISION_LOG.md`.
 - **`lib/` is for pure, testable logic** (escalation counter, group-phase computation).
+- **Copy follows the rule in `curr_version/specs/spec2.md`**: headlines two to four words, no
+  explanatory sentence that doesn't change what the user does next, labels over sentences, at
+  most one helper line per screen, no legends. The detective sentence is the one exception.
 - **Student screens are designed at true iPad size** (1180×820) inside `IpadStage`; the stage
   scales, layouts never reflow.

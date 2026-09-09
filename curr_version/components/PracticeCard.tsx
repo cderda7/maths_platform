@@ -40,7 +40,7 @@ export default function PracticeCard({ practice, onAllShown }: { practice: Pract
         {!all && (
           <li>
             <Button variant="secondary" onClick={reveal}>
-              {shown === 0 ? "Show the first step" : "Show the next step"}
+              {shown === 0 ? "First step" : "Next step"}
             </Button>
           </li>
         )}

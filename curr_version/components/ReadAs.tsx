@@ -6,10 +6,7 @@ import type { RevealedLine } from "@/lib/recognition";
 export default function ReadAs({ lines, recognising, empty, className = "" }: { lines: RevealedLine[]; recognising: boolean; empty: string; className?: string }) {
   return (
     <div className={`flex min-h-0 flex-col ${className}`}>
-      <div className="flex items-center justify-between">
-        <Eyebrow>Read as</Eyebrow>
-        <span className="text-[11.5px] text-ink-muted">line by line</span>
-      </div>
+      <Eyebrow>Read as</Eyebrow>
       <ol className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto">
         {lines.map((l, i) => (
           <li key={i} className="rounded-xl border border-line bg-paper px-3.5 py-2.5 text-[16px] text-ink">

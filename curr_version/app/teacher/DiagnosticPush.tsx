@@ -38,7 +38,6 @@ export default function DiagnosticPush({ session }: { session: StudentSession | 
       <p className="mt-2 text-[14px] text-ink">
         {d.stem} <M tex={d.tex} />?
       </p>
-      <p className="mt-1 text-[12px] text-ink-muted">{d.why}</p>
       <div className="mt-3 flex flex-wrap gap-1.5 text-[12.5px] text-ink-soft">
         {d.options.map((o) => (
           <span key={o.id} className={`rounded-lg border px-2 py-1 ${o.id === d.correct ? "border-secure-line bg-secure-soft" : "border-line bg-paper"}`}>
@@ -52,7 +51,7 @@ export default function DiagnosticPush({ session }: { session: StudentSession | 
           <div className="flex items-center justify-between rounded-xl border border-accent-line bg-accent-soft/50 px-4 py-3 text-[13px] text-ink" data-pending>
             <span className="flex items-center gap-2">
               <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
-              On every screen now · waiting for {DEMO_STUDENT.name.split(" ")[0]}
+              Waiting for {DEMO_STUDENT.name.split(" ")[0]}
             </span>
             <button type="button" className="text-accent-deep hover:underline" onClick={() => dispatch({ type: "diagnostic/withdraw" })}>
               Withdraw
@@ -60,15 +59,15 @@ export default function DiagnosticPush({ session }: { session: StudentSession | 
           </div>
         ) : (
           <Button variant="accent" onClick={() => dispatch({ type: "diagnostic/push", questionId: d.id, recorded })} data-push>
-            Push to the class
+            Push
           </Button>
         )}
       </div>
       {last && !pending && (
         <div className={`mt-3 rounded-xl border px-4 py-3 text-[13px] ${isCorrect(d.id, last.option) ? "border-secure-line bg-secure-soft" : "border-wrong-line bg-wrong-soft"}`} data-response>
-          <span className="font-medium text-ink">{DEMO_STUDENT.name}</span> answered <span className="font-semibold uppercase">{last.option}</span>,{" "}
-          {isCorrect(d.id, last.option) ? "the right one" : "not the right one"} · {last.recorded ? "recorded" : "not recorded"}
-          {answers.length > 1 && <span className="text-ink-muted"> · {answers.length} pushes so far</span>}
+          <span className="font-medium text-ink">{DEMO_STUDENT.name.split(" ")[0]}</span> · <span className="font-semibold uppercase">{last.option}</span> ·{" "}
+          {isCorrect(d.id, last.option) ? "right" : "wrong"} · {last.recorded ? "recorded" : "not recorded"}
+          {answers.length > 1 && <span className="text-ink-muted"> · {answers.length} pushes</span>}
         </div>
       )}
     </Card>

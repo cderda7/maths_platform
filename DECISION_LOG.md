@@ -128,3 +128,27 @@ philosophy is lost). Mark the last correct step before a slip (arbitrary and oft
 **Defence.** It shows exactly the feedback philosophy the demo is selling, and it lives in the
 same table as the verdicts, so the real build swaps the table for a model call behind the same
 `feedbackFor` shape.
+
+## 2026-09-09 · Copy rule: labels over sentences, no legends, one helper line per screen
+
+**Decision.** Every screen on both sides is cut to a fixed copy rule (spec v3): headlines of two
+to four words; any explanatory sentence that does not change what the user does next is removed;
+labels over sentences; at most one line of helper text per screen; no legends or "what this
+means" panels unless they are the content of the screen. The detective feedback sentence is the
+one deliberate exception and stays a full sentence.
+
+**Context.** The v2 build explained itself on every screen: intros, legends, "not marked" footers,
+per-status explanation lines. The user's verdict was that it was far too much text and that
+descriptions are easier to add back than to weed out.
+
+**Alternatives considered.** Keep the copy and add a "less text" toggle (two copies to maintain,
+and the default is still the wordy one). Trim only the student side (the teacher views were the
+wordiest). Trim per screen by taste (no rule means the next screen drifts back).
+
+**Tradeoffs.** A first-time user loses some hand-holding: the status dots have no legend, the
+confidence options have no blurbs, the warm-up has no pitch. Some product stance ("no marks
+anywhere") is no longer stated on screen and lives only in the docs.
+
+**Defence.** The rule is short enough to apply to every future screen and to check in review,
+the demo audience is shown the product rather than told about it, and `FUTURE_FEATURES.md`
+records where a line of explanation might earn its way back.

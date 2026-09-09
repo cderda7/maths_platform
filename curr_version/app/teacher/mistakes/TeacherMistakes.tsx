@@ -24,9 +24,6 @@ export default function TeacherMistakes() {
         {ASSIGNMENT.className} · {ASSIGNMENT.title}
       </Eyebrow>
       <H1 className="mt-3">Where it went wrong</H1>
-      <p className="mt-4 max-w-2xl text-[16px] leading-relaxed text-ink-soft">
-        Problem by problem, who slipped and on which step. Click a name to open their working right here. Steps that didn't hold are red; everything else is left alone.
-      </p>
 
       <div className="mt-10 space-y-6">
         {groups.map(({ problem, rows }) => {
@@ -85,7 +82,7 @@ export default function TeacherMistakes() {
                       </button>
                       {isOpen && r.live && (
                         <div className="flex items-center justify-between border-t border-line bg-cream/60 px-6 pt-3 text-[12.5px] text-ink-muted">
-                          <span>As handed in. The rework is kept separately.</span>
+                          <span>As handed in</span>
                           <Link href="/teacher/compare" className="text-accent-deep hover:underline" data-compare-link>
                             Original vs final →
                           </Link>
@@ -110,7 +107,6 @@ export default function TeacherMistakes() {
                                   )}
                                 </div>
                                 {wrong && v.verdict === "wrong" && <p className="mt-1 text-[13px] text-wrong">{v.note}</p>}
-                                {v.verdict === "ok" && v.builtOn && <p className="mt-1 text-[12.5px] text-ink-muted">Sound, given the line above.</p>}
                               </li>
                             );
                           })}
@@ -123,7 +119,7 @@ export default function TeacherMistakes() {
             </Card>
           );
         })}
-        {groups.length === 0 && <Card className="p-6 text-[14px] text-ink-soft">No slips yet.</Card>}
+        {groups.length === 0 && <Card className="p-6 text-[14px] text-ink-muted">No slips yet</Card>}
       </div>
     </TeacherChrome>
   );

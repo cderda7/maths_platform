@@ -40,7 +40,7 @@ export default function HistoryScreen({ session, onBack }: { session: StudentSes
         </div>
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-2 text-[13px] text-ink-soft">
-            Compare with
+            Compare
             <select
               value={compare}
               onChange={(e) => setCompare(e.target.value as Version["id"] | "none")}
@@ -62,9 +62,6 @@ export default function HistoryScreen({ session, onBack }: { session: StudentSes
           </Button>
         </div>
       </div>
-      <p className="mt-1.5 text-[12.5px] text-ink-muted">
-        {other ? "Both versions scroll together, line for line. Padded rows mean one version had fewer lines there." : "Only your final working shows by default. Earlier versions are kept, not lost."}
-      </p>
       <div className={`mt-4 grid min-h-0 flex-1 gap-4 ${other ? "grid-cols-2" : "grid-cols-1"}`}>
         {other && <Column version={other} side="left" aligned={aligned} refEl={leftRef} onScroll={() => sync(leftRef.current, rightRef.current)} comparing />}
         <Column version={final} side="right" aligned={aligned} refEl={rightRef} onScroll={() => sync(rightRef.current, leftRef.current)} comparing={!!other} />

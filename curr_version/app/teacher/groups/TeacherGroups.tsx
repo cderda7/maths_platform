@@ -15,10 +15,7 @@ export default function TeacherGroups() {
       <Eyebrow>
         {ASSIGNMENT.className} · {ASSIGNMENT.title}
       </Eyebrow>
-      <H1 className="mt-3">Review groups, right now</H1>
-      <p className="mt-4 max-w-2xl text-[16px] leading-relaxed text-ink-soft">
-        Groups form around overlapping slips. One line per student on where they are, and one note per group on why it formed. Nothing here is marked.
-      </p>
+      <H1 className="mt-3">Review groups</H1>
 
       <div className="mt-10 grid grid-cols-2 gap-6">
         {groups.map((g, i) => (
@@ -27,7 +24,7 @@ export default function TeacherGroups() {
               <div className="font-display text-[22px] text-ink">Group {i + 1}</div>
               <div className="flex gap-1.5 text-[12px] text-ink-muted">
                 {g.discussing.length === 0
-                  ? "nothing to discuss"
+                  ? "all correct"
                   : g.discussing.map((id) => (
                       <span key={id} className="rounded-full border border-line bg-paper px-2 py-0.5">
                         {ASSIGNMENT.problems.find((p) => p.id === id)?.label}
@@ -54,7 +51,7 @@ export default function TeacherGroups() {
               ))}
             </ul>
             <div className="border-t border-line bg-cream/70 px-6 py-4">
-              <Eyebrow>Why this group</Eyebrow>
+              <Eyebrow>Formed around</Eyebrow>
               <p className="mt-1.5 text-[13.5px] leading-snug text-ink-soft" data-note>
                 {g.note}
               </p>

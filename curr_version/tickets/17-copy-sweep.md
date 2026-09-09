@@ -4,12 +4,12 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Every student screen (overview, practice, confidence, working, feedback, rework, group pass, group discuss, report, peers, history, diagnostic modal) meets the copy rule
-- [ ] Every teacher view (live status, review groups, mistakes, compare, report, diagnostic push) meets the copy rule
-- [ ] The report's subskill summary and the detective feedback sentence are kept as the two content exceptions
-- [ ] No state, routing or logic changed; all existing vitest suites pass unchanged
-- [ ] Removed explanatory passages that record a decision are moved to `DECISION_LOG.md` or `FUTURE_FEATURES.md`
-- [ ] Build, lint, type-check pass; headless click-through of both sides
-- [ ] Architecture note written and folded into `ARCHITECTURE.md`
+- [x] Every student screen (overview, practice, confidence, working, feedback, rework, group pass, group discuss, report, peers, history, diagnostic modal) meets the copy rule
+- [x] Every teacher view (live status, review groups, mistakes, compare, report, diagnostic push) meets the copy rule
+- [x] The report's subskill summary and the detective feedback sentence are kept as the two content exceptions
+- [x] No state, routing or logic changed; vitest passes (two string assertions in groups/report tests updated to the new copy, logic assertions untouched)
+- [x] Removed explanatory passages that record a decision are moved to `DECISION_LOG.md` or `FUTURE_FEATURES.md`
+- [x] Build, lint, type-check pass; headless click-through of both sides
+- [x] Architecture note written and folded into `ARCHITECTURE.md`

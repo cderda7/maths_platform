@@ -39,9 +39,9 @@ function liveStatus(session: StudentSession, discussion: string[]): string {
     case "report":
     case "peers":
     case "history":
-      return "Finished the group review";
+      return "Finished";
     default:
-      return "Not in the group yet";
+      return "Not started";
   }
 }
 
@@ -56,10 +56,10 @@ function subskillsBehind(problemIds: string[]): SubskillId[] {
 }
 
 function noteFor(discussion: string[], memberCount: number): string {
-  if (discussion.length === 0) return `Every one of the ${memberCount} got every problem. A quick pass, then they're done.`;
+  if (discussion.length === 0) return `All ${memberCount} correct · quick pass only`;
   const labels = discussion.map((id) => ASSIGNMENT.problems.find((p) => p.id === id)?.label ?? id);
   const skills = subskillsBehind(discussion).map((id) => SUBSKILL_MAP[id].short.toLowerCase());
-  return `Formed around ${labels.join(", ")}: between them the ${memberCount} slipped on ${skills.join(" and ")}. Their slips overlap more with each other than with the rest of the class.`;
+  return `${labels.join(", ")} · ${skills.join(" and ")}`;
 }
 
 export function reviewGroups(session: StudentSession | null): ReviewGroup[] {

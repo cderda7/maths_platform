@@ -12,13 +12,6 @@ import { reportFacts } from "@/lib/report";
 import { subskillStatuses } from "@/lib/status";
 import { useBatchedSession } from "@/lib/store";
 
-const STATUS_LINE: Record<SubskillStatus, string> = {
-  secure: "Every step that leaned on this held.",
-  developing: "Some steps held, some didn't.",
-  gap: "The steps that leaned on this didn't hold, or practice came up twice.",
-  unseen: "Nothing in this set leaned on it.",
-};
-
 /** The demo student's report as the teacher sees it: subskill summary left, reflection right. */
 export default function TeacherReport() {
   const { session } = useBatchedSession(2000);
@@ -42,15 +35,12 @@ export default function TeacherReport() {
           ← Where the class is
         </Link>
       </div>
-      <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-ink-soft">
-        The same report the student sees, beside their own words. How each skill held up step by step, what they did about it, and what they'd check next time. No marks.
-      </p>
 
       <div className="mt-8 grid grid-cols-[1fr_440px] gap-6">
         <div className="space-y-5">
           <Card className="overflow-hidden">
             <div className="border-b border-line px-5 py-3">
-              <Eyebrow>Skills, step by step</Eyebrow>
+              <Eyebrow>Skills</Eyebrow>
             </div>
             <ul className="divide-y divide-line" data-statuses>
               {[TARGET_ID, ...PREREQ_IDS].map((id) => {
@@ -59,14 +49,11 @@ export default function TeacherReport() {
                 return (
                   <li key={id} className="flex items-center gap-4 px-5 py-3">
                     <StatusDot status={v} size="h-3 w-3" />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-baseline justify-between gap-3">
-                        <span className="text-[14.5px] font-medium text-ink">{s.name}</span>
-                        <span className={`text-[12px] font-medium ${v === "secure" ? "text-secure" : v === "developing" ? "text-developing" : v === "gap" ? "text-gap" : "text-ink-muted"}`}>
-                          {STATUS_WORD[v]}
-                        </span>
-                      </div>
-                      <div className="text-[12px] text-ink-muted">{STATUS_LINE[v]}</div>
+                    <div className="flex min-w-0 flex-1 items-baseline justify-between gap-3">
+                      <span className="text-[14.5px] font-medium text-ink">{s.name}</span>
+                      <span className={`text-[12px] font-medium ${v === "secure" ? "text-secure" : v === "developing" ? "text-developing" : v === "gap" ? "text-gap" : "text-ink-muted"}`}>
+                        {STATUS_WORD[v]}
+                      </span>
                     </div>
                   </li>
                 );
@@ -81,24 +68,24 @@ export default function TeacherReport() {
                 <ul className="mt-2 space-y-1.5 text-[13.5px] text-ink-soft">
                   <li>{facts.confidence}</li>
                   <li>
-                    {facts.slipped} of {facts.total} problems had a step that didn't hold.
+                    {facts.slipped} of {facts.total} problems with a slip
                   </li>
-                  <li>{facts.reworked.length ? `Reworked ${facts.reworked.join(", ")} independently.` : "No rework yet."}</li>
+                  <li>{facts.reworked.length ? `Reworked ${facts.reworked.join(", ")}` : "No rework yet"}</li>
                   {facts.practices.map((p, i) => (
                     <li key={i}>{p}</li>
                   ))}
                   {facts.caution.length > 0 && (
                     <li className="text-gap" data-caution>
-                      Caution was raised on {facts.caution.map((id) => SUBSKILL_MAP[id].short.toLowerCase()).join(", ")}: practice came up twice.
+                      Caution · {facts.caution.map((id) => SUBSKILL_MAP[id].short.toLowerCase()).join(", ")} · practice twice
                     </li>
                   )}
                 </ul>
               ) : (
-                <p className="mt-2 text-[13.5px] text-ink-muted">Nothing yet.</p>
+                <p className="mt-2 text-[13.5px] text-ink-muted">Nothing yet</p>
               )}
             </Card>
             <Card className="p-5">
-              <Eyebrow>Starred by {DEMO_STUDENT.name.split(" ")[0]}</Eyebrow>
+              <Eyebrow>Starred</Eyebrow>
               {facts && facts.stars.length > 0 ? (
                 <ul className="mt-2 space-y-1.5">
                   {facts.stars.map((label) => {
@@ -114,9 +101,8 @@ export default function TeacherReport() {
                   })}
                 </ul>
               ) : (
-                <p className="mt-2 text-[13.5px] text-ink-muted">Nothing starred.</p>
+                <p className="mt-2 text-[13.5px] text-ink-muted">None</p>
               )}
-              <p className="mt-2 text-[12px] text-ink-muted">Right, but they weren't sure why. Worth a question.</p>
             </Card>
           </div>
         </div>
@@ -128,12 +114,9 @@ export default function TeacherReport() {
               <blockquote className="font-display mt-3 text-[21px] leading-snug text-ink" data-reflection>
                 {session?.reflection.trim() ? `“${session.reflection.trim()}”` : "Sent without a reflection."}
               </blockquote>
-              <p className="mt-4 text-[12.5px] text-ink-muted">Written after the group review, sent with the report.</p>
             </>
           ) : (
-            <p className="mt-3 text-[14px] leading-relaxed text-ink-soft">
-              {DEMO_STUDENT.name.split(" ")[0]} hasn't sent their reflection yet. It appears here, in their words, beside the skills on the left.
-            </p>
+            <p className="mt-3 text-[14px] text-ink-muted">Not sent yet</p>
           )}
         </Card>
       </div>

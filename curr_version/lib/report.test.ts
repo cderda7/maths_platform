@@ -8,7 +8,7 @@ describe("report facts", () => {
     expect(f.slipped).toBe(3);
     expect(f.total).toBe(4);
     expect(f.reworked).toEqual(["Q1", "Q2", "Q3"]);
-    expect(f.practices).toEqual(["Offered practice on factorising during Q2 · took it"]);
+    expect(f.practices).toEqual(["Practice · factorising · Q2 · taken"]);
     expect(f.caution).toEqual([]);
     expect(f.confidence).toMatch(/low when factorising quadratics/);
     expect(f.stars).toEqual(["Q4"]);

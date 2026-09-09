@@ -15,35 +15,22 @@ export default function OverviewScreen({ onPractice, onStart }: { onPractice: ()
         <p className="mt-3 text-[13px] text-ink-muted">
           {ASSIGNMENT.teacher} · due {ASSIGNMENT.due}
         </p>
-        <p className="mt-4 text-[14.5px] leading-relaxed text-ink-soft">{ASSIGNMENT.intro}</p>
-
-        <Eyebrow className="mt-6">This set is about</Eyebrow>
+        <Eyebrow className="mt-6">About</Eyebrow>
         <div className="mt-3 rounded-xl border border-accent-line bg-accent-soft/60 px-4 py-2.5 text-[14.5px] font-medium text-ink">{target.name}</div>
 
-        <Eyebrow className="mt-5">It leans on</Eyebrow>
+        <Eyebrow className="mt-5">Leans on</Eyebrow>
         <ul className="mt-3 space-y-1.5">
-          {PREREQ_IDS.map((id) => {
-            const s = SUBSKILL_MAP[id];
-            return (
-              <li key={id} className="flex gap-3">
-                <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
-                <div>
-                  <div className="text-[14px] font-medium text-ink">{s.name}</div>
-                  <div className="text-[12px] leading-snug text-ink-muted">{s.description}</div>
-                </div>
-              </li>
-            );
-          })}
+          {PREREQ_IDS.map((id) => (
+            <li key={id} className="flex items-center gap-3 text-[14px] font-medium text-ink">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
+              {SUBSKILL_MAP[id].name}
+            </li>
+          ))}
         </ul>
       </aside>
 
       <section className="flex min-h-0 flex-col px-9 py-8">
-        <div className="flex items-end justify-between">
-          <div>
-            <Eyebrow>The problems</Eyebrow>
-            <p className="mt-2 text-[14px] text-ink-soft">Four problems. Show every line of working as you go.</p>
-          </div>
-        </div>
+        <Eyebrow>Problems</Eyebrow>
         <ol className="mt-5 grid grid-cols-2 gap-4">
           {ASSIGNMENT.problems.map((p) => (
             <li key={p.id}>
@@ -68,17 +55,15 @@ export default function OverviewScreen({ onPractice, onStart }: { onPractice: ()
 
         <Card tone="soft" className="mt-auto flex items-center justify-between gap-6 p-5">
           <div>
-            <div className="text-[15px] font-medium text-ink">Want a two-minute warm-up first?</div>
-            <p className="mt-1 text-[13px] leading-snug text-ink-soft">
-              {PRACTICE.why} It isn't marked and your teacher sees only that you took it.
-            </p>
+            <div className="text-[15px] font-medium text-ink">Two-minute warm-up?</div>
+            <p className="mt-1 text-[13px] text-ink-muted">{SUBSKILL_MAP[PRACTICE.subskill].name} · not marked</p>
           </div>
           <div className="flex shrink-0 gap-2">
             <Button variant="secondary" size="lg" onClick={onPractice}>
-              Warm up first
+              Warm up
             </Button>
             <Button size="lg" onClick={onStart}>
-              Start the set
+              Start
             </Button>
           </div>
         </Card>

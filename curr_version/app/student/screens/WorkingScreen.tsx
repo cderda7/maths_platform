@@ -9,7 +9,6 @@ import { Button, Eyebrow } from "@/components/ui";
 import { DifficultyTag, SubskillChip } from "@/components/Tag";
 import { ASSIGNMENT } from "@/data/assignment";
 import { RECOGNITION } from "@/data/recognition";
-import { SUBSKILL_MAP } from "@/data/subskills";
 import { nextLine } from "@/lib/recognition";
 import { HelpPicker, PracticeOverlay, PromptModal } from "./PracticePrompt";
 import type { SessionAction, StudentSession } from "@/lib/session";
@@ -28,7 +27,6 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
   const [helpOpen, setHelpOpen] = useState(false);
   const strokes = strokesByProblem[p.id] ?? [];
   const setStrokes = (next: Stroke[]) => setStrokesByProblem((m) => ({ ...m, [p.id]: next }));
-  const c = session.confidence;
 
   const onBurstEnd = (strokeCount: number) => {
     setRecognising(false);
@@ -67,18 +65,11 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
             <SubskillChip key={id} id={id} />
           ))}
         </div>
-        {c && (
-          <div className="mt-7 rounded-xl border border-line bg-cream-deep/60 px-4 py-3 text-[12.5px] leading-snug text-ink-soft">
-            You said you were{" "}
-            {c.level === "confident" ? "confident" : c.level === "low" ? "not so sure about this topic" : `less sure when ${SUBSKILL_MAP[c.subskill].name.toLowerCase()} comes up`}
-            . We'll keep an eye on that together.
-          </div>
-        )}
         <div className="mt-auto pt-6">
           <Button variant="secondary" className="mb-6 w-full" onClick={() => setHelpOpen(true)}>
             I need help
           </Button>
-          <Eyebrow>The set</Eyebrow>
+          <Eyebrow>Problems</Eyebrow>
           <ol className="mt-2.5 flex gap-1.5">
             {problems.map((q, i) => {
               const active = i === session.problemIndex;
@@ -105,7 +96,7 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
       <PadSection strokes={strokes} onStrokesChange={setStrokes} onBurstEnd={onBurstEnd} onPenDown={() => setRecognising(true)} onUndo={undo} onClear={clear} />
 
       <aside className="flex min-h-0 flex-col border-l border-line px-6 py-6">
-        <ReadAs lines={lines} recognising={recognising} empty="Write each line of working on the pad. It's read as you go, so you can check it was understood." className="flex-1" />
+        <ReadAs lines={lines} recognising={recognising} empty="Lines appear here as you write." className="flex-1" />
         <div className="mt-4 flex items-center justify-between gap-2 border-t border-line pt-4">
           <Button variant="ghost" onClick={() => go(session.problemIndex - 1)} className={session.problemIndex === 0 ? "invisible" : ""}>
             ← {problems[session.problemIndex - 1]?.label ?? ""}
@@ -114,7 +105,7 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
             <Button onClick={() => go(session.problemIndex + 1)}>Next: {problems[session.problemIndex + 1].label} →</Button>
           ) : (
             <Button variant="accent" onClick={() => dispatch({ type: "goto", stage: "feedback" })}>
-              Finish the set
+              Hand in
             </Button>
           )}
         </div>

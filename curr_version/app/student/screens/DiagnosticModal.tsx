@@ -5,7 +5,6 @@ import M from "@/components/Math";
 import { Button, Eyebrow } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
 import { DIAGNOSTIC_MAP } from "@/data/diagnostic";
-import { SUBSKILL_MAP } from "@/data/subskills";
 
 /** A diagnostic pushed by the teacher, over whatever the student was doing. Answer, then straight back. */
 export default function DiagnosticModal({ questionId, recorded, onAnswer }: { questionId: string; recorded: boolean; onAnswer: (option: string) => void }) {
@@ -27,9 +26,6 @@ export default function DiagnosticModal({ questionId, recorded, onAnswer }: { qu
             <M tex={d.tex} />?
           </span>
         </h2>
-        <p className="mt-1.5 text-[12.5px] text-ink-muted">
-          {SUBSKILL_MAP[d.subskill].name}. Pick one; you'll go straight back to where you were.
-        </p>
         <ul className="mt-5 grid grid-cols-2 gap-2.5">
           {d.options.map((o) => {
             const on = pick === o.id;
@@ -51,7 +47,7 @@ export default function DiagnosticModal({ questionId, recorded, onAnswer }: { qu
         </ul>
         <div className="mt-6 flex justify-end">
           <Button size="lg" disabled={!pick} onClick={() => pick && onAnswer(pick)}>
-            Send answer
+            Send
           </Button>
         </div>
       </div>

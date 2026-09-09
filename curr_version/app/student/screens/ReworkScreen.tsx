@@ -66,7 +66,7 @@ export default function ReworkScreen({ session, dispatch }: { session: StudentSe
           <p className="mt-1.5 text-[13.5px] leading-snug text-ink">{cur.clue}</p>
         </Card>
 
-        <Eyebrow className="mt-5">Your first attempt</Eyebrow>
+        <Eyebrow className="mt-5">First attempt</Eyebrow>
         <ol className="mt-2 space-y-1.5" data-original>
           {cur.lines.map((l, n) => (
             <li key={n} className="rounded-lg border border-line bg-paper/70 px-3 py-1.5 text-[14px] text-ink-soft">
@@ -74,7 +74,6 @@ export default function ReworkScreen({ session, dispatch }: { session: StudentSe
             </li>
           ))}
         </ol>
-        <p className="mt-2 text-[11.5px] leading-snug text-ink-muted">Nothing is marked here. Find it, then write the corrected working on the pad.</p>
 
         <div className="mt-auto pt-5">
           <Eyebrow>To rework</Eyebrow>
@@ -98,19 +97,18 @@ export default function ReworkScreen({ session, dispatch }: { session: StudentSe
               );
             })}
             {held.map((q) => (
-              <li key={q.problem.id} className="grid h-9 w-11 place-items-center rounded-lg border border-dashed border-line text-[13px] text-ink-muted" title="Held. Nothing to rework.">
+              <li key={q.problem.id} className="grid h-9 w-11 place-items-center rounded-lg border border-dashed border-line text-[13px] text-ink-muted" title="Held">
                 {q.problem.label}
               </li>
             ))}
           </ol>
-          {held.length > 0 && <p className="mt-2 text-[11.5px] text-ink-muted">{held.map((q) => q.problem.label).join(", ")} held. Nothing to rework there.</p>}
         </div>
       </aside>
 
       <PadSection title="Reworked" strokes={strokes} onStrokesChange={setStrokes} onBurstEnd={onBurstEnd} onPenDown={() => setRecognising(true)} onUndo={undo} onClear={clear} />
 
       <aside className="flex min-h-0 flex-col border-l border-line px-6 py-6">
-        <ReadAs lines={lines} recognising={recognising} empty="Your reworked lines appear here as they're read. Still no marks: this version is yours to judge." className="flex-1" />
+        <ReadAs lines={lines} recognising={recognising} empty="Reworked lines appear here." className="flex-1" />
         <div className="mt-4 flex items-center justify-between gap-2 border-t border-line pt-4">
           <Button variant="ghost" onClick={() => go(i - 1)} className={i === 0 ? "invisible" : ""}>
             ← {todo[i - 1]?.problem.label ?? ""}
@@ -119,7 +117,7 @@ export default function ReworkScreen({ session, dispatch }: { session: StudentSe
             <Button onClick={() => go(i + 1)}>Next: {todo[i + 1].problem.label} →</Button>
           ) : (
             <Button variant="accent" onClick={() => dispatch({ type: "rework/done" })}>
-              Done reworking
+              Done
             </Button>
           )}
         </div>

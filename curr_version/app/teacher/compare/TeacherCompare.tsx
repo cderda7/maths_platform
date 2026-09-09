@@ -28,19 +28,16 @@ export default function TeacherCompare() {
       <div className="mt-3 flex items-end justify-between">
         <div className="flex items-center gap-4">
           <Avatar initials={DEMO_STUDENT.initials} size="h-12 w-12 text-[15px]" />
-          <H1>{DEMO_STUDENT.name.split(" ")[0]}, before and after</H1>
+          <H1>Before and after</H1>
         </div>
         <Link href="/teacher/mistakes" className="text-[13.5px] text-accent-deep hover:underline">
           ← Where it went wrong
         </Link>
       </div>
-      <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-ink-soft">
-        What was handed in on the left, the working after the independent rework on the right. Steps that didn't hold are red on the left; lines that changed are marked on the right. The original is kept as it was.
-      </p>
 
       {!session || reworked === 0 ? (
         <Card className="mt-8 border-dashed p-6 text-[14px] text-ink-soft">
-          {session ? "No rework yet. The right-hand side fills in once the independent rework is done." : "Nothing to show yet."}
+          {session ? "No rework yet" : "Nothing yet"}
         </Card>
       ) : (
         <>
@@ -112,7 +109,7 @@ export default function TeacherCompare() {
             ))}
           </div>
           <p className="mt-4 text-[12.5px] text-ink-muted">
-            {changed} lines changed across the set · {reworked} of {ASSIGNMENT.problems.length} problems reworked.
+            {changed} lines changed · {reworked} of {ASSIGNMENT.problems.length} problems reworked
           </p>
         </>
       )}

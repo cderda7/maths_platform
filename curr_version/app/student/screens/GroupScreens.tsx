@@ -25,12 +25,8 @@ export function GroupPassScreen({ session, dispatch }: { session: StudentSession
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col px-9 py-8">
       <Eyebrow>Group review · quick pass</Eyebrow>
-      <h1 className="font-display mt-2 text-[30px] leading-tight text-ink">
-        {g.quickPass.length === 0 ? "Nothing to pass over quickly" : `Everyone got ${g.quickPass.map((p) => p.label).join(" and ")}`}
-      </h1>
-      <p className="mt-2 text-[14px] leading-relaxed text-ink-soft">
-        Your group is the three people whose slips overlap with yours most. First, the problems all four of you got right: a quick look at the last line each, then on to what's worth talking about.
-      </p>
+      <h1 className="font-display mt-2 text-[30px] leading-tight text-ink">Quick pass</h1>
+      <p className="mt-2 text-[13px] text-ink-muted">{g.quickPass.length === 0 ? "Nothing everyone got" : `Everyone got ${g.quickPass.map((p) => p.label).join(", ")}`}</p>
       <div className="mt-4">
         <Members members={g.members} me="sam" />
       </div>
@@ -48,25 +44,24 @@ export function GroupPassScreen({ session, dispatch }: { session: StudentSession
               </span>
             </div>
             <div className="mt-4 flex items-center justify-between rounded-xl border border-secure-line bg-secure-soft px-4 py-3">
-              <span className="text-[13px] text-ink-soft">All four of you landed on</span>
+              <span className="text-[13px] text-ink-soft">Everyone reached</span>
               <span className="text-[17px] text-ink">
                 <M tex={p.solution[p.solution.length - 1].tex} />
               </span>
             </div>
-            <p className="mt-3 text-[12.5px] text-ink-muted">Anything one of you did differently on the way there is worth thirty seconds. Then move on.</p>
           </Card>
         ))}
         {g.quickPass.length === 0 && (
-          <Card className="p-5 text-[14px] text-ink-soft">No problem was right for all four of you, so everything goes to the discussion.</Card>
+          <Card className="p-5 text-[14px] text-ink-soft">Everything goes to discussion.</Card>
         )}
       </div>
 
       <div className="mt-auto flex items-center justify-between pt-6">
         <span className="text-[12.5px] text-ink-muted">
-          {g.discussion.problems.length} {g.discussion.problems.length === 1 ? "problem" : "problems"} to talk through next.
+          {g.discussion.problems.length} to discuss
         </span>
         <Button size="lg" onClick={() => dispatch({ type: "group/discuss" })}>
-          On to the discussion →
+          Discussion →
         </Button>
       </div>
     </div>
@@ -87,9 +82,9 @@ export function GroupDiscussScreen({ session, dispatch }: { session: StudentSess
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col px-9 py-8">
       <Eyebrow>Group review · discussion</Eyebrow>
-      <h1 className="font-display mt-2 text-[30px] leading-tight text-ink">Between the four of you, these went wrong</h1>
-      <p className="mt-2 text-[14px] leading-relaxed text-ink-soft">
-        Nobody's work is marked here. Across the group that's {d.totalWrong} slips over {d.problems.length} problems: you've each gotten about {d.perMember} of these wrong. Talk each one through and tick it off.
+      <h1 className="font-display mt-2 text-[30px] leading-tight text-ink">Discussion</h1>
+      <p className="mt-2 text-[13px] text-ink-muted">
+        {d.totalWrong} slips · {d.problems.length} {d.problems.length === 1 ? "problem" : "problems"} · about {d.perMember} each
       </p>
       <div className="mt-3">
         <Members members={g.members} me="sam" />
@@ -110,7 +105,7 @@ export function GroupDiscussScreen({ session, dispatch }: { session: StudentSess
                     </span>
                   </div>
                   <Button variant={talked ? "accent" : "secondary"} className="whitespace-nowrap" onClick={() => dispatch({ type: "group/talked", problem: p.id })} aria-pressed={talked}>
-                    {talked ? "✓ Talked through" : "Talked through"}
+                    {talked ? "✓ Talked" : "Talked"}
                   </Button>
                 </div>
                 <ul className="mt-2.5 grid grid-cols-3 gap-2">
@@ -127,9 +122,9 @@ export function GroupDiscussScreen({ session, dispatch }: { session: StudentSess
       </ol>
 
       <div className="mt-auto flex items-center justify-between pt-6">
-        <span className="text-[12.5px] text-ink-muted">Your report is next, with the same colours your teacher sees.</span>
+        <span />
         <Button size="lg" variant={allTalked ? "accent" : "primary"} onClick={() => dispatch({ type: "group/done" })}>
-          Finish group review →
+          Finish →
         </Button>
       </div>
     </div>

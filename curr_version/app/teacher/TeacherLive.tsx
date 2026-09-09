@@ -4,7 +4,7 @@ import Link from "next/link";
 import TeacherChrome from "./TeacherChrome";
 import DiagnosticPush from "./DiagnosticPush";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
-import { StatusDot, STATUS_WORD } from "@/components/Tag";
+import { StatusDot } from "@/components/Tag";
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
 import { PREREQ_IDS, SUBSKILL_MAP, TARGET_ID } from "@/data/subskills";
@@ -76,8 +76,8 @@ export default function TeacherLive() {
         {ASSIGNMENT.className} · {ASSIGNMENT.unit}
       </Eyebrow>
       <H1 className="mt-3">Where the class is</H1>
-      <p className="mt-4 max-w-2xl text-[16px] leading-relaxed text-ink-soft">
-        {ASSIGNMENT.title}, due {ASSIGNMENT.due}. Dots show which prerequisite skills each student's working has leaned on and how those steps held up. There are no marks here.
+      <p className="mt-3 text-[14px] text-ink-muted">
+        {ASSIGNMENT.title} · due {ASSIGNMENT.due}
       </p>
 
       <div className="mt-10 grid grid-cols-[1fr_300px] gap-6">
@@ -124,7 +124,7 @@ export default function TeacherLive() {
                         {live ? stageWord(live) : "Not started"}
                         {live?.reportSent && (
                           <Link href="/teacher/report" className="text-accent-deep hover:underline" data-report-link>
-                            Open report →
+                            Report →
                           </Link>
                         )}
                       </div>
@@ -167,16 +167,9 @@ export default function TeacherLive() {
               ))}
             </tbody>
           </table>
-          <div className="flex items-center justify-between border-t border-line px-5 py-3 text-[12.5px] text-ink-muted">
-            <span className="flex items-center gap-4">
-              {(["secure", "developing", "gap", "unseen"] as const).map((s) => (
-                <span key={s} className="flex items-center gap-1.5">
-                  <StatusDot status={s} /> {STATUS_WORD[s]}
-                </span>
-              ))}
-            </span>
+          <div className="flex items-center justify-end border-t border-line px-5 py-2.5 text-[12px] text-ink-muted">
             <span>
-              Live row refreshes every {Math.round(everyMs / 1000)}s · updated {ago(updatedAt, now)}
+              every {Math.round(everyMs / 1000)}s · updated {ago(updatedAt, now)}
             </span>
           </div>
         </Card>
@@ -185,9 +178,7 @@ export default function TeacherLive() {
           <Card className={`p-6 ${caution.length ? "border-gap-line" : ""}`}>
             <Eyebrow className={caution.length ? "text-gap" : ""}>Worth a look</Eyebrow>
             {caution.length === 0 ? (
-              <p className="mt-3 text-[13.5px] leading-relaxed text-ink-soft">
-                Nothing flagged. A red caution appears here if a student is about to go into practice on the same skill a second time.
-              </p>
+              <p className="mt-3 text-[13.5px] text-ink-muted">Nothing flagged</p>
             ) : (
               <ul className="mt-3 space-y-3">
                 {caution.map((id) => (
@@ -196,9 +187,7 @@ export default function TeacherLive() {
                       <span className="h-2 w-2 rounded-full bg-gap" aria-hidden />
                       {DEMO_STUDENT.name} · {SUBSKILL_MAP[id].name}
                     </div>
-                    <p className="mt-1 text-[12.5px] leading-snug text-ink-soft">
-                      Practice on {SUBSKILL_MAP[id].short.toLowerCase()} has come up twice. Worth a word before the next problem.
-                    </p>
+                    <p className="mt-1 text-[12.5px] text-ink-soft">Practice twice</p>
                   </li>
                 ))}
               </ul>
@@ -208,19 +197,16 @@ export default function TeacherLive() {
           <DiagnosticPush session={live} />
 
           <Card className="p-6">
-            <Eyebrow>{DEMO_STUDENT.name} so far</Eyebrow>
-            {!live || live.practices.length === 0 ? (
-              <p className="mt-3 text-[13.5px] leading-relaxed text-ink-soft">
-                {live?.practice === "taken" ? "Took the warm-up before starting. " : ""}
-                Practice offers and help requests will be listed here as facts, not flags.
-              </p>
+            <Eyebrow>{DEMO_STUDENT.name}</Eyebrow>
+            {!live || (live.practices.length === 0 && live.practice !== "taken") ? (
+              <p className="mt-3 text-[13.5px] text-ink-muted">Nothing yet</p>
             ) : (
               <ul className="mt-3 space-y-2 text-[13.5px] text-ink-soft">
-                {live.practice === "taken" && <li>Took the warm-up before starting.</li>}
+                {live.practice === "taken" && <li>Warm-up taken</li>}
                 {live.practices.map((p, i) => (
                   <li key={i}>
-                    {p.reason === "help" ? "Asked for help with" : "Offered practice on"} {SUBSKILL_MAP[p.subskill].short.toLowerCase()} during{" "}
-                    {ASSIGNMENT.problems.find((q) => q.id === p.problem)?.label ?? p.problem} · {p.accepted ? "took it" : "not now"}
+                    {p.reason === "help" ? "Help" : "Practice"} · {SUBSKILL_MAP[p.subskill].short.toLowerCase()} · {ASSIGNMENT.problems.find((q) => q.id === p.problem)?.label ?? p.problem} ·{" "}
+                    {p.accepted ? "taken" : "declined"}
                   </li>
                 ))}
               </ul>

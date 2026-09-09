@@ -7,7 +7,7 @@ import { Button } from "./ui";
 export default function ResetDemo({ className = "" }: { className?: string }) {
   return (
     <Button variant="ghost" className={className} onClick={() => resetSession()}>
-      Reset the demo
+      Reset
     </Button>
   );
 }

@@ -11,15 +11,12 @@ export default function PeerScreen({ onBack }: { onBack: () => void }) {
   const p = peerStruggles();
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col px-9 py-8">
-      <Eyebrow>Where the class is finding it hard</Eyebrow>
-      <h1 className="font-display mt-2 text-[30px] leading-tight text-ink">Every step of yours held. Here's where others are stuck.</h1>
-      <p className="mt-2 text-[14px] leading-relaxed text-ink-soft">
-        Counts only, nobody's work. If your teacher asks you to help in a mini-lesson, this is what to have ready.
-      </p>
+      <Eyebrow>Class</Eyebrow>
+      <h1 className="font-display mt-2 text-[30px] leading-tight text-ink">Where the class is stuck</h1>
 
       <div className="mt-6 grid grid-cols-[300px_1fr] gap-4">
         <Card className="p-5">
-          <Eyebrow>Skills, by how many find them hard</Eyebrow>
+          <Eyebrow>Skills</Eyebrow>
           <ul className="mt-3 space-y-2.5" data-peer-skills>
             {p.subskills.map((s) => (
               <li key={s.id}>
@@ -51,19 +48,15 @@ export default function PeerScreen({ onBack }: { onBack: () => void }) {
               <div className="mt-1.5 text-[18px] text-ink">
                 <M tex={x.problem.tex} />
               </div>
-              <p className="mt-2.5 text-[13.5px] leading-snug text-ink-soft">
-                <span className="font-medium text-ink">What tends to go wrong: </span>
-                {x.pattern}
-              </p>
+              <p className="mt-2.5 text-[13.5px] leading-snug text-ink-soft">{x.pattern}</p>
             </Card>
           ))}
         </div>
       </div>
 
-      <div className="mt-auto flex items-center justify-between pt-6">
-        <span className="text-[12.5px] text-ink-muted">A good mini-lesson shows the check, not the answer.</span>
+      <div className="mt-auto flex items-center justify-end pt-6">
         <Button size="lg" variant="secondary" onClick={onBack}>
-          ← Back to your report
+          ← Report
         </Button>
       </div>
     </div>
