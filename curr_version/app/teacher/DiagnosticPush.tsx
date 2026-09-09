@@ -133,7 +133,7 @@ export default function DiagnosticPush({ session }: { session: StudentSession | 
           </div>
         ) : tab === "example" ? (
           <Button variant="accent" onClick={() => push(example)} data-push>
-            Push
+            send to class
           </Button>
         ) : (
           <Button variant="accent" disabled={!own} onClick={() => own && push(customQuestion(stem, tex, options, correct)!)} data-push-own>
