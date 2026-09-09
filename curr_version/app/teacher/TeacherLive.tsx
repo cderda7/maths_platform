@@ -12,7 +12,7 @@ import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { StatusDot, STATUS_WORD } from "@/components/Tag";
 import { ASSIGNMENT, DEMO_STUDENT, unitLabel } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
-import { categoryLabel, categoryName, categoryOf, groupName, isFlat, leafName, type CategoryId, type LeafId } from "@/data/taxonomy";
+import { categoryLabel, categoryName, categoryOf, groupName, isFlat, type CategoryId, type LeafId } from "@/data/taxonomy";
 import type { Confidence } from "@/data/types";
 import { pathwayOf } from "@/lib/classroom";
 import { useAssignment, useClassroom } from "@/lib/classroom-store";
@@ -371,23 +371,6 @@ export default function TeacherLive() {
           </Card>
 
           <DiagnosticPush session={live} />
-
-          <Card className="p-6">
-            <Eyebrow>{DEMO_STUDENT.name}</Eyebrow>
-            {!live || (live.practices.length === 0 && live.practice !== "taken") ? (
-              <p className="mt-3 text-[13.5px] text-ink-muted">Nothing yet</p>
-            ) : (
-              <ul className="mt-3 space-y-2 text-[13.5px] text-ink-soft">
-                {live.practice === "taken" && <li>Warm-up taken</li>}
-                {live.practices.map((p, i) => (
-                  <li key={i}>
-                    {p.reason === "help" ? "Help" : "Practice"} · {leafName(p.leaf).short} · {ASSIGNMENT.problems.find((q) => q.id === p.problem)?.label ?? p.problem} ·{" "}
-                    {p.accepted ? "taken" : "declined"}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
 
           <Card className="p-6">
             <Eyebrow>Key</Eyebrow>
