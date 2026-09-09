@@ -50,3 +50,15 @@ describe("names tell groups and skills apart", () => {
     }
   });
 });
+
+describe("flat categories", () => {
+  it("Unit Focus is drawn with two layers and named after the confirmed unit", async () => {
+    const { FLAT_CATEGORIES, categoryLabel, isFlat } = await import("./taxonomy");
+    expect(FLAT_CATEGORIES).toEqual(["unit"]);
+    expect(isFlat("unit")).toBe(true);
+    expect(isFlat("algebra")).toBe(false);
+    expect(categoryLabel("unit", 1)).toEqual({ name: "Unit 1", short: "Unit 1" });
+    expect(categoryLabel("unit", 3).short).toBe("Unit 3");
+    expect(categoryLabel("algebra", 1).name).toBe("Algebra");
+  });
+});

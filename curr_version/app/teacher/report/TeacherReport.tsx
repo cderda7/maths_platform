@@ -16,7 +16,7 @@ import { useAssignment } from "@/lib/classroom-store";
 /** The demo student's report as the teacher sees it: subskill summary left, reflection right. */
 export default function TeacherReport() {
   const { session } = useBatchedSession(2000);
-  const { problems } = useAssignment();
+  const { problems, unit } = useAssignment();
   const facts = session ? reportFacts(session) : null;
   const sent = !!session?.reportSent;
 
@@ -42,7 +42,7 @@ export default function TeacherReport() {
           <Card className="p-5" data-hierarchy>
             <Eyebrow>Skills</Eyebrow>
             <div className="mt-3">
-              {session ? <HierarchyDrill result={sessionHierarchy(session, problems)} lines={sessionEvidence(session).lines} problems={problems} /> : <p className="text-[13.5px] text-ink-muted">Nothing yet</p>}
+              {session ? <HierarchyDrill result={sessionHierarchy(session, problems)} lines={sessionEvidence(session).lines} problems={problems} unit={unit} /> : <p className="text-[13.5px] text-ink-muted">Nothing yet</p>}
             </div>
             <StatusKey className="mt-4 max-w-xs border-t border-line pt-3" />
           </Card>

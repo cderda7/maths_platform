@@ -33,7 +33,7 @@ describe("active assignment", () => {
     expect(a.problems.map((p) => p.id)).toEqual(["q2", "q4"]);
     const empty = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: "", problemIds: [], pathway: [] });
     expect(activeAssignment(empty).problems).toHaveLength(10);
-    expect(activeAssignment(empty).title).toBe("Roots of a quadratic — Set 3");
+    expect(activeAssignment(empty).title).toBe("ROOTS OF A QUADRATIC — SET 3");
   });
 });
 

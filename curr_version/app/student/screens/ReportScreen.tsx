@@ -17,7 +17,7 @@ const sentences = (t: string) => t.split(/[.!?]+/).map((x) => x.trim()).filter(B
  * practices taken, and a short reflection sent to the teacher. No scores anywhere.
  */
 export default function ReportScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
-  const { problems } = useAssignment();
+  const { problems, unit } = useAssignment();
   const hierarchy = sessionHierarchy(session, problems);
   const facts = reportFacts(session);
   const n = sentences(session.reflection);
@@ -37,7 +37,7 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
         </div>
 
         <Card className="mt-5 p-5" data-hierarchy>
-          <HierarchyDrill result={hierarchy} lines={sessionEvidence(session).lines} problems={problems} />
+          <HierarchyDrill result={hierarchy} lines={sessionEvidence(session).lines} problems={problems} unit={unit} />
         </Card>
 
         {mastery && (

@@ -12,7 +12,7 @@ import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { StatusDot, STATUS_WORD } from "@/components/Tag";
 import { ASSIGNMENT, DEMO_STUDENT, unitLabel } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
-import { categoryName, categoryOf, groupName, leafName, type CategoryId, type LeafId } from "@/data/taxonomy";
+import { categoryLabel, categoryOf, groupName, isFlat, leafName, type CategoryId, type LeafId } from "@/data/taxonomy";
 import type { Confidence } from "@/data/types";
 import { pathwayOf } from "@/lib/classroom";
 import { useAssignment, useClassroom } from "@/lib/classroom-store";
@@ -20,11 +20,11 @@ import { classmateEvidence, hierarchyFor, leavesBehind, problemsStarted, restric
 import { pathwayChip } from "@/lib/pathway";
 import { useBatchedSession, useNow } from "@/lib/store";
 
-function confidenceWord(c: Confidence | null): { text: string; tone: string } {
+function confidenceWord(c: Confidence | null, unit: 1 | 2 | 3 | 4): { text: string; tone: string } {
   if (!c) return { text: "—", tone: "text-ink-muted" };
   if (c.level === "confident") return { text: "confident", tone: "text-secure" };
   if (c.level === "low") return { text: "low", tone: "text-standout" };
-  return { text: `low: ${categoryName(c.category).short.toLowerCase()}`, tone: "text-standout" };
+  return { text: `low: ${categoryLabel(c.category, unit).short.toLowerCase()}`, tone: "text-standout" };
 }
 
 function ago(ms: number | null, now: number): string {
@@ -45,7 +45,7 @@ export default function TeacherLive() {
   const { session, updatedAt, everyMs } = useBatchedSession(3000);
   const live = session ?? null;
   const now = useNow();
-  const { title, problems } = useAssignment();
+  const { title, problems, unit } = useAssignment();
   const classroom = useClassroom();
   const wc = classroom.wholeClass;
   const status = wc?.status === "active" ? " · in whole-class review" : wc?.status === "ended" ? " · complete" : "";
@@ -94,7 +94,7 @@ export default function TeacherLive() {
   const headerDouble = (c: CategoryId) => {
     setOpen(null);
     setColumn((cur) => {
-      if (cur?.category === c && cur.level === "expanded") return null;
+      if (cur?.category === c && (cur.level === "expanded" || isFlat(c))) return null; // a two-layer category has no skills view to open
       const level = cur?.category === c ? "expanded" : "groups";
       const boxes = Object.fromEntries(rows.map((r) => [r.id, columnBoxes(r.id)]));
       return { category: c, level, boxes, nonce: ++nonce.current };
@@ -130,7 +130,7 @@ export default function TeacherLive() {
       evidence: live ? sessionEvidence(live) : { lines: {}, submitted: false, caution: [] },
       sub: "",
       notes: [] as { text: string; problems: string[] }[],
-      confidence: confidenceWord(live?.confidence ?? null),
+      confidence: confidenceWord(live?.confidence ?? null, unit),
       set: `${live ? problemsStarted(live) : 0}/${problems.length}`,
       setSub: live && !HANDED_IN.includes(live.stage) ? "handed in" : live && problemsStarted(live) > 0 ? "in progress" : "",
     },
@@ -186,7 +186,7 @@ export default function TeacherLive() {
                     onDoubleClick={() => headerDouble(c)}
                     title="Double-click to open this category for every student; click to close"
                   >
-                    <span className="inline-block rounded-md bg-standout-soft px-2 py-1 text-standout">{categoryName(c).short}</span>
+                    <span className="inline-block rounded-md bg-standout-soft px-2 py-1 text-standout">{categoryLabel(c, unit).short}</span>
                   </th>
                 ))}
                 <th className="px-3 py-4 text-center font-semibold">Confidence</th>
@@ -263,7 +263,7 @@ export default function TeacherLive() {
                               type="button"
                               onClick={() => (on && !column ? setOpen(null) : openRow(r.id, "category", c))}
                               onDoubleClick={() => openRow(r.id, "category", c, undefined, true)}
-                              aria-label={`${categoryName(c).name}: ${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}
+                              aria-label={`${categoryLabel(c, unit).name}: ${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}
                               aria-expanded={on}
                               className={`inline-grid h-7 w-7 place-items-center rounded-full transition-colors hover:bg-cream-deep ${on ? "bg-cream-deep ring-1 ring-ink" : ""} ${blanked ? "invisible" : ""}`}
                               data-dot={c}
@@ -273,7 +273,7 @@ export default function TeacherLive() {
                             </button>
                             {column?.category === c && (
                               <span className="pointer-events-none absolute top-1/2 right-[calc(50%+12px)] -translate-y-1/2 whitespace-nowrap text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink-muted" data-column-label>
-                                {categoryName(c).name}
+                                {categoryLabel(c, unit).name}
                               </span>
                             )}
                           </td>

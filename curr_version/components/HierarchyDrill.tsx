@@ -4,7 +4,7 @@ import { forwardRef, useLayoutEffect, useMemo, useRef, useState } from "react";
 import M from "@/components/Math";
 import { Eyebrow } from "@/components/ui";
 import { DifficultyTag, StatusDot, STATUS_TEXT, STATUS_WORD } from "@/components/Tag";
-import { categoryName, categoryOf, groupName, groupOf, groupsOf, leafName, leavesOf, type CategoryId, type GroupId, type LeafId } from "@/data/taxonomy";
+import { categoryLabel, categoryOf, groupName, groupOf, groupsOf, isFlat, leafName, leavesOf, type CategoryId, type GroupId, type LeafId } from "@/data/taxonomy";
 import type { Problem, Status } from "@/data/types";
 import { evaluateLine } from "@/lib/evaluate";
 import { lineMarks } from "@/lib/examples";
@@ -100,11 +100,25 @@ interface TreeProps {
 export const SkillTree = forwardRef<HTMLUListElement, TreeProps>(function SkillTree({ category, result, openGroups, leaf, onGroup, onLeaf, width, marginLeft }, ref) {
   const groups = worst(groupsOf(category).filter((g) => result.groups[g] !== undefined), (g) => result.groups[g]!);
   const leavesIn = (g: GroupId) => worst(leavesOf(g).filter((l) => result.leaves[l] !== undefined), (l) => result.leaves[l]!);
-  const labels = groups.flatMap((g) => [{ text: groupName(g).name, depth: 0 }, ...(openGroups.includes(g) ? leavesIn(g).map((l) => ({ text: leafName(l).name, depth: 1 })) : [])]);
+  const flat = isFlat(category);
+  const flatLeaves = flat ? worst(groups.flatMap(leavesIn), (l) => result.leaves[l]!) : [];
+  const labels = flat ? flatLeaves.map((l) => ({ text: leafName(l).name, depth: 0 })) : groups.flatMap((g) => [{ text: groupName(g).name, depth: 0 }, ...(openGroups.includes(g) ? leavesIn(g).map((l) => ({ text: leafName(l).name, depth: 1 })) : [])]);
   const fit = fitLabels(labels, width);
   const centre = (FULL.dot - fit.dot) / 2; // a smaller dot still sits centred on the category dot's line
+  const style = { width, marginLeft: marginLeft === undefined ? undefined : marginLeft + centre, paddingLeft: marginLeft === undefined ? centre : undefined };
+  if (flat) {
+    return (
+      <ul ref={ref} className="space-y-0.5 self-start" style={style} data-col="tree" data-category={category} data-fit={fit.size} data-flat>
+        {flatLeaves.map((l) => (
+          <li key={l}>
+            <Node label={leafName(l).name} status={result.leaves[l]!} half={result.half.leaves.includes(l)} open={l === leaf} fit={fit} onClick={() => onLeaf(l)} node={l} />
+          </li>
+        ))}
+      </ul>
+    );
+  }
   return (
-    <ul ref={ref} className="space-y-0.5 self-start" style={{ width, marginLeft: marginLeft === undefined ? undefined : marginLeft + centre, paddingLeft: marginLeft === undefined ? centre : undefined }} data-col="tree" data-category={category} data-fit={fit.size}>
+    <ul ref={ref} className="space-y-0.5 self-start" style={style} data-col="tree" data-category={category} data-fit={fit.size}>
       {groups.map((g) => (
         <li key={g}>
           <Node label={groupName(g).name} status={result.groups[g]!} half={result.half.groups.includes(g)} open={openGroups.includes(g)} fit={fit} onClick={() => onGroup(g)} node={g} />
@@ -295,7 +309,7 @@ export function RowDrill({
 /* ---------- the reports' browse drill ---------- */
 
 /** Categories at the top level, groups nested, skills nested; work to the right, or beneath when it won't fit. */
-export default function HierarchyDrill({ result, lines, problems }: { result: HierarchyResult; lines: Record<string, string[]>; problems: Problem[] }) {
+export default function HierarchyDrill({ result, lines, problems, unit = 1 }: { result: HierarchyResult; lines: Record<string, string[]>; problems: Problem[]; unit?: 1 | 2 | 3 | 4 }) {
   const [category, setCategory] = useState<CategoryId | null>(null);
   const [group, setGroup] = useState<GroupId | null>(null);
   const [leaf, setLeaf] = useState<LeafId | null>(null);
@@ -324,8 +338,17 @@ export default function HierarchyDrill({ result, lines, problems }: { result: Hi
       <ul ref={treeRef} className="shrink-0 space-y-1 self-start" data-col="tree">
         {result.columns.map((c) => (
           <li key={c}>
-            <Node label={categoryName(c).name} status={result.categories[c] ?? "unseen"} half={result.half.categories.includes(c)} open={c === category} fit={FULL} onClick={() => { setCategory(category === c ? null : c); setGroup(null); setLeaf(null); }} node={c} />
-            {c === category && (
+            <Node label={categoryLabel(c, unit).name} status={result.categories[c] ?? "unseen"} half={result.half.categories.includes(c)} open={c === category} fit={FULL} onClick={() => { setCategory(category === c ? null : c); setGroup(null); setLeaf(null); }} node={c} />
+            {c === category && isFlat(c) && (
+              <ul className="mt-1 space-y-1 pl-7" data-col="leaves">
+                {worst(groupsOf(c).flatMap((g) => leavesIn(g)), (l) => result.leaves[l]!).map((l) => (
+                  <li key={l}>
+                    <Node label={leafName(l).name} status={result.leaves[l]!} half={result.half.leaves.includes(l)} open={l === leaf} fit={FULL} onClick={() => setLeaf(leaf === l ? null : l)} node={l} />
+                  </li>
+                ))}
+              </ul>
+            )}
+            {c === category && !isFlat(c) && (
               <ul className="mt-1 space-y-1 pl-7" data-col="groups">
                 {worst(groupsOf(c).filter((g) => result.groups[g] !== undefined), (g) => result.groups[g]!).map((g) => (
                   <li key={g}>

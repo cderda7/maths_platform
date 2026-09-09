@@ -241,3 +241,16 @@ export function resolveLeaf(s: string): LeafId | null {
 
 /** The QCAA unit a Unit Focus leaf belongs to (1–4), or null. */
 export const unitOf = (l: LeafId): 1 | 2 | 3 | 4 | null => (categoryOf(l) === "unit" ? (Number(l.split(".")[1].slice(1)) as 1 | 2 | 3 | 4) : null);
+
+/**
+ * Categories shown with two layers instead of three: their skills hang straight off the category
+ * and the group level is not drawn. Unit Focus is one: the confirmed unit names the category and
+ * its named facts are the things to scan.
+ */
+export const FLAT_CATEGORIES: readonly CategoryId[] = ["unit"];
+export const isFlat = (c: CategoryId) => FLAT_CATEGORIES.includes(c);
+
+/** The category's display name, with Unit Focus named after the assignment's confirmed unit. */
+export function categoryLabel(c: CategoryId, unit: 1 | 2 | 3 | 4): { name: string; short: string } {
+  return c === "unit" ? { name: `Unit ${unit}`, short: `Unit ${unit}` } : categoryName(c);
+}
