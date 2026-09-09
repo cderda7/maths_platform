@@ -1,7 +1,9 @@
 import { STANDOUT } from "@/data/evaluation";
 import { ASSIGNMENT } from "@/data/assignment";
+import { SUBSKILL_MAP } from "@/data/subskills";
 import type { Problem, SubskillId } from "@/data/types";
 import { evaluateLine, type Verdict } from "./evaluate";
+import type { RevealedLine } from "./recognition";
 import type { StudentSession } from "./session";
 
 /**
@@ -57,4 +59,53 @@ export function feedbackFor(session: StudentSession): ProblemFeedback[] {
       clean: lines.length > 0 && wrong.length === 0,
     };
   });
+}
+
+/**
+ * Detective feedback: one conversational sentence, never a location. How many problems contain
+ * at least one mistake and, whenever that is one or more, which subskills to double-check (first
+ * occurrence order, at most three). `final` reads the rework where there is one.
+ */
+export interface FeedbackSummary {
+  count: number;
+  total: number;
+  subskills: SubskillId[];
+  sentence: string;
+}
+
+export type FeedbackVersion = "original" | "final";
+
+export const HINT_CAP = 3;
+
+function linesFor(session: StudentSession, problemId: string, version: FeedbackVersion): RevealedLine[] {
+  if (version === "final") {
+    const rw = session.rework[problemId] ?? [];
+    if (rw.length > 0) return rw;
+  }
+  return session.lines[problemId] ?? [];
+}
+
+export function feedbackSummary(session: StudentSession, version: FeedbackVersion = "original", problems: Problem[] = ASSIGNMENT.problems): FeedbackSummary {
+  let count = 0;
+  const subskills: SubskillId[] = [];
+  for (const p of problems) {
+    const wrong = linesFor(session, p.id, version).map((l) => evaluateLine(p.id, l.tex)).filter((v) => v.verdict === "wrong");
+    if (wrong.length === 0) continue;
+    count++;
+    for (const v of wrong) if (v.verdict === "wrong" && !subskills.includes(v.subskill)) subskills.push(v.subskill);
+  }
+  return { count, total: problems.length, subskills, sentence: summarySentence(count, subskills, version) };
+}
+
+function joinWords(words: string[]): string {
+  if (words.length <= 1) return words.join("");
+  return `${words.slice(0, -1).join(", ")} and ${words[words.length - 1]}`;
+}
+
+export function summarySentence(count: number, subskills: SubskillId[], version: FeedbackVersion = "original"): string {
+  const still = version === "final" ? "still " : "";
+  if (count === 0) return version === "final" ? "Every problem holds now." : "Every problem held.";
+  const head = count === 1 ? `1 of your problems ${still}contains a mistake.` : `${count} of your problems ${still}contain a mistake.`;
+  const names = subskills.slice(0, HINT_CAP).map((id) => SUBSKILL_MAP[id].short.toLowerCase());
+  return names.length ? `${head} Double-check ${joinWords(names)}.` : head;
 }

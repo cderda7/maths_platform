@@ -1,5 +1,7 @@
 import type { Confidence, Pathway, Stage, Stroke, SubskillId } from "@/data/types";
 import { DEFAULT_PATHWAY, nextStage } from "./pathway";
+import { guardFor, trippedProblems } from "./guard";
+import { feedbackSummary } from "./feedback";
 import { afterUndo, type RevealedLine } from "./recognition";
 import { evaluateLine } from "./evaluate";
 import { INITIAL_ESCALATION, recordMistake, requestHelp, type EscalationState } from "./escalation";
@@ -62,6 +64,8 @@ export interface StudentSession {
   /** When the set was handed in and when the rework finished (ms since epoch; 0 = unknown). */
   handedInAt: number;
   reworkedAt: number;
+  /** A one-line notice shown over the next screen until dismissed (post-rework sentence, teacher advances). */
+  notice: string | null;
   /** A diagnostic the teacher has pushed and the student hasn't answered yet. */
   diagnostic: { questionId: string; recorded: boolean } | null;
   /** Answered diagnostics, oldest first. */
@@ -90,7 +94,9 @@ export type SessionAction =
   | { type: "rework/stroke"; problem: string; stroke: Stroke }
   | { type: "rework/undo"; problem: string; strokeCount?: number }
   | { type: "rework/clear"; problem: string }
-  | { type: "rework/done"; at?: number }
+  /** Refused while the guard is tripped on any problem, unless `force` (a teacher advance). */
+  | { type: "rework/done"; at?: number; force?: boolean }
+  | { type: "notice/dismiss" }
   | { type: "group/discuss" }
   | { type: "group/talked"; problem: string }
   | { type: "group/done" }
@@ -127,6 +133,7 @@ export const INITIAL_SESSION: StudentSession = {
   reportSent: false,
   handedInAt: 0,
   reworkedAt: 0,
+  notice: null,
   diagnostic: null,
   diagnosticAnswers: [],
 };
@@ -207,8 +214,12 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     }
     case "rework/clear":
       return { ...s, reworkInk: { ...s.reworkInk, [a.problem]: [] }, rework: { ...s.rework, [a.problem]: [] } };
-    case "rework/done":
-      return { ...s, stage: nextStage(env.pathway, "reworked"), reworkedAt: a.at ?? s.reworkedAt };
+    case "rework/done": {
+      if (!a.force && trippedProblems(s).length > 0) return s;
+      return { ...s, stage: nextStage(env.pathway, "reworked"), reworkedAt: a.at ?? s.reworkedAt, notice: feedbackSummary(s, "final").sentence };
+    }
+    case "notice/dismiss":
+      return { ...s, notice: null };
     case "group/discuss":
       return { ...s, stage: "group-discuss" };
     case "group/talked":
@@ -292,10 +303,11 @@ export function scriptedSession(): StudentSession {
   return { ...s, handedInAt: todayAt(15, 48) };
 }
 
-/** The scripted run plus the corrected rework of every problem that slipped, Q4 starred. */
+/** The scripted run plus the corrected rework of every problem that slipped (Q4 held, so it is left alone), Q4 starred. */
 export function reworkedSession(): StudentSession {
   let s = { ...scriptedSession(), stage: "rework" as Stage, stars: ["q4"] };
   for (const [pid, lines] of Object.entries(RECOGNITION_REWORK)) {
+    if (guardFor(s, pid).originalCorrect) continue;
     lines.forEach((tex, n) => {
       s = sessionReducer(s, { type: "rework/reveal", problem: pid, line: { tex, strokeCount: (n + 1) * 5 } });
     });

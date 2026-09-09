@@ -21,8 +21,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │               ▶ Confidence ▶ Working ─▶ DrawPad (canvas ink)     │
  │                                  ├▶ "Read as" column             │
  │                                  └▶ PromptModal · PracticeOverlay · HelpPicker
- │               ▶ Feedback (red / blue / clue / star) · Waiting   │
- │               ▶ Rework (clue only; second version on the pad)   │
+ │               ▶ Feedback (one detective sentence · star) · Waiting│
+ │               ▶ Rework (every problem · guard banner · hand-in blocked while tripped)│
  │               ▶ GroupPass (all-correct) ▶ GroupDiscuss (no marks)│
  │               ▶ Report (teacher's colours + reflection → sent)   │
  │               ▶ Peers (mastery only: class struggles, counts)    │
@@ -46,7 +46,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │ lib/evaluate.ts     evaluateLine(problem, tex) → ok | wrong | unclear               │
  │ lib/escalation.ts   recordMistake · requestHelp → { trigger, cautioned }            │
  │ lib/status.ts       subskillStatuses · problemsStarted  (teacher-side derivation)   │
- │ lib/feedback.ts     runKind · feedbackFor → lines, standouts, slips, clue, clean     │
+ │ lib/feedback.ts     runKind · feedbackFor (teacher views) · feedbackSummary (student) │
+ │ lib/guard.ts        guardFor · trippedProblems  (originally-correct problem broken)  │
  │ lib/group.ts        computePhases (∩ correct / ∪ wrong) · groupPlan → DiscussionView │
  │ lib/report.ts       reportFacts · confidenceSentence  (same text on both sides)      │
  │ lib/mistakes.ts     mistakesByProblem → problem → rows (live student + classmates)   │
@@ -111,7 +112,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 17 | Copy sweep to the rule (spec v3) | every route | `cabb007` | [curr_version/architecture/17-copy-sweep.md](curr_version/architecture/17-copy-sweep.md) |
 | 18 | Pathway model and routing | `/student?pathway=…`, `/teacher` chip | `dc5ee2a` | [curr_version/architecture/18-pathway-model-and-routing.md](curr_version/architecture/18-pathway-model-and-routing.md) |
 | 19 | Assignment creation with the pathway map | `/teacher/assignments/new` | `2af6872` | [curr_version/architecture/19-assignment-creation-with-pathway-map.md](curr_version/architecture/19-assignment-creation-with-pathway-map.md) |
-| 20 | Persisted ink | `/student` working, rework, history | _this commit_ | [curr_version/architecture/20-persisted-ink.md](curr_version/architecture/20-persisted-ink.md) |
+| 20 | Persisted ink | `/student` working, rework, history | `67aec66` | [curr_version/architecture/20-persisted-ink.md](curr_version/architecture/20-persisted-ink.md) |
+| 21 | Detective feedback and the guard | `/student?stage=feedback`, rework | _this commit_ | [curr_version/architecture/21-detective-feedback-and-guard.md](curr_version/architecture/21-detective-feedback-and-guard.md) |
 
 ## Conventions
 

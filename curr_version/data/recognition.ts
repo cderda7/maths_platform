@@ -13,10 +13,12 @@ export const RECOGNITION: Record<string, string[]> = {
 
 /**
  * What the pad "reads" during the independent rework, one line per burst: the corrected path
- * for each problem that had a slip. Q4 held, so it has no rework script.
+ * for each problem that had a slip. Q4 held; reworking it anyway "reads" the classic slip of
+ * dividing by a instead of 2a, which is what trips the guard in the demo (spec v3).
  */
 export const RECOGNITION_REWORK: Record<string, string[]> = {
   q1: ["(x - 2)(x - 3) = 0", "x = 2 \\;\\text{or}\\; x = 3"],
   q2: ["ac = -8,\\quad 8 + (-1) = 7", "2x^2 + 8x - x - 4 = 0", "2x(x+4) - 1(x+4) = 0", "(2x - 1)(x + 4) = 0", "x = \\tfrac{1}{2} \\;\\text{or}\\; x = -4"],
   q3: ["x^2 - x - 6 = 6", "x^2 - x - 12 = 0", "(x - 4)(x + 3) = 0", "x = 4 \\;\\text{or}\\; x = -3"],
+  q4: ["a = 3,\\; b = -5,\\; c = -1", "x = \\dfrac{5 \\pm \\sqrt{37}}{3}"],
 };

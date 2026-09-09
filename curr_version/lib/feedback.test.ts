@@ -47,3 +47,43 @@ describe("feedback layers", () => {
     expect(s.stars).toEqual([]);
   });
 });
+
+describe("detective feedback summary", () => {
+  it("zero mistakes: every problem held, no hint", async () => {
+    const { feedbackSummary } = await import("./feedback");
+    const s = feedbackSummary(modelRun());
+    expect(s).toMatchObject({ count: 0, total: 4, subskills: [] });
+    expect(s.sentence).toBe("Every problem held.");
+  });
+
+  it("one mistake still gets a hint naming its subskill", async () => {
+    const { summarySentence } = await import("./feedback");
+    expect(summarySentence(1, ["fractions"])).toBe("1 of your problems contains a mistake. Double-check fractions.");
+  });
+
+  it("the scripted run: three problems, subskills in first-occurrence order", async () => {
+    const { feedbackSummary } = await import("./feedback");
+    const s = feedbackSummary(scriptedSession());
+    expect(s.count).toBe(3);
+    expect(s.subskills).toEqual(["factoring", "algebra"]);
+    expect(s.sentence).toBe("3 of your problems contain a mistake. Double-check factorising and algebra.");
+  });
+
+  it("caps the hint at three subskills", async () => {
+    const { summarySentence } = await import("./feedback");
+    expect(summarySentence(4, ["algebra", "fractions", "factoring", "expansion"])).toBe("4 of your problems contain a mistake. Double-check algebra, fractions and factorising.");
+  });
+
+  it("the final version reads the rework and says 'still'", async () => {
+    const { feedbackSummary } = await import("./feedback");
+    const reworked = sessionAt("group-pass"); // scripted run with every slipped problem corrected
+    expect(feedbackSummary(reworked, "final").sentence).toBe("Every problem holds now.");
+    expect(feedbackSummary(reworked, "original").count).toBe(3);
+    let partial = sessionAt("rework");
+    partial = sessionReducer(partial, { type: "rework/reveal", problem: "q1", line: { tex: "(x - 2)(x - 3) = 0", strokeCount: 1 } });
+    partial = sessionReducer(partial, { type: "rework/reveal", problem: "q1", line: { tex: "x = 2 \\text{ or } x = 3", strokeCount: 2 } });
+    const f = feedbackSummary(partial, "final");
+    expect(f.count).toBe(2);
+    expect(f.sentence).toMatch(/^2 of your problems still contain a mistake\./);
+  });
+});

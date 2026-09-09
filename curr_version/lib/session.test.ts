@@ -258,3 +258,34 @@ describe("persisted ink", () => {
     expect(s.reworkInk.q1).toEqual([]);
   });
 });
+
+describe("rework hand-in and the guard", () => {
+  const WRONG_Q4 = "x = \\dfrac{5 \\pm \\sqrt{37}}{3}";
+
+  it("is refused while a correct problem is broken, and goes through once restored", () => {
+    let s = sessionAt("rework");
+    s = sessionReducer(s, { type: "rework/reveal", problem: "q4", line: { tex: WRONG_Q4, strokeCount: 1 } });
+    const refused = sessionReducer(s, { type: "rework/done", at: 9 });
+    expect(refused.stage).toBe("rework");
+    expect(refused.reworkedAt).toBe(s.reworkedAt);
+    s = sessionReducer(s, { type: "rework/clear", problem: "q4" });
+    s = sessionReducer(s, { type: "rework/done", at: 9 });
+    expect(s.stage).toBe("group-pass");
+    expect(s.reworkedAt).toBe(9);
+  });
+
+  it("a forced hand-in goes through with the broken problem counted in the notice", () => {
+    let s = sessionAt("rework");
+    s = sessionReducer(s, { type: "rework/reveal", problem: "q4", line: { tex: WRONG_Q4, strokeCount: 1 } });
+    s = sessionReducer(s, { type: "rework/done", force: true });
+    expect(s.stage).toBe("group-pass");
+    expect(s.notice).toMatch(/^4 of your problems still contain a mistake\./);
+  });
+
+  it("the post-rework notice reads the final version and can be dismissed", () => {
+    let s = sessionAt("group-pass"); // fully corrected rework
+    s = sessionReducer({ ...s, stage: "rework" }, { type: "rework/done" });
+    expect(s.notice).toBe("Every problem holds now.");
+    expect(sessionReducer(s, { type: "notice/dismiss" }).notice).toBeNull();
+  });
+});

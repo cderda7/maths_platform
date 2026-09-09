@@ -221,3 +221,30 @@ session on load.
 **Defence.** One source of truth means undo can never desynchronise handwriting from
 transcription (unit-tested), a reload or second tab redraws the same ink, and the frozen screen
 and history render from the same vector data through one component.
+
+## 2026-09-09 · Detective feedback: one sentence, one exception
+
+**Decision.** After hand-in the student reads one conversational sentence (how many problems
+contain a mistake, which subskills to double-check, hint whenever at least one problem is wrong,
+at most three subskills) and an unmarked transcription. Rework opens every problem. The only
+per-problem feedback in the product is the guard: a rework that makes an originally-correct
+problem wrong gets an immediate banner, a one-tap restore, and blocks hand-in until fixed.
+
+**Context.** v2 marked every wrong step red and counted slips per problem, which the user judged
+too direct: it removed the detective work the individual stage exists for. The guard came from
+the question of what happens when a student "fixes" a problem that was right.
+
+**Alternatives considered.** Keep per-problem slip counts but hide the line (still says where to
+look). Hint only from two wrong problems (the user chose to hint at one as well). Let the broken
+rework through and count it (would make history and compare truthful but sends worse work
+forward; the user chose to block, with the force-submit grace as the escape). Silently keep the
+original as final (history would lie).
+
+**Tradeoffs.** A student with one wrong problem is told the subskill, which points fairly
+precisely at the problem. Blocking hand-in needs the teacher's force-submit (ticket 22) as the
+release valve. The guard needs a scripted "wrong rework" line for a correct problem to be
+demonstrable, added for Q4.
+
+**Defence.** The sentence keeps discovery conversational rather than prescriptive; the guard is
+narrow by construction (it cannot fire on an originally-wrong problem, so it cannot leak where
+real mistakes are) and its copy is fixed. Both are pure functions with tests.

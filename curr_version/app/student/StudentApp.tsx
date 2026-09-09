@@ -64,6 +64,16 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
         {session.stage === "report" && <ReportScreen session={session} dispatch={dispatch} />}
         {session.stage === "peers" && <PeerScreen onBack={() => dispatch({ type: "peers/close" })} />}
         {session.stage === "history" && <HistoryScreen session={session} onBack={() => dispatch({ type: "history/close" })} />}
+        {session.notice && (
+          <div className="absolute inset-x-0 bottom-6 z-20 flex justify-center px-8" data-notice>
+            <div className="flex items-center gap-4 rounded-full border border-accent-line bg-paper px-5 py-2.5 text-[14px] text-ink shadow-lift">
+              <span>{session.notice}</span>
+              <button type="button" className="text-ink-muted hover:text-ink" onClick={() => dispatch({ type: "notice/dismiss" })} aria-label="Dismiss" data-notice-dismiss>
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
         {session.diagnostic && (
           <DiagnosticModal questionId={session.diagnostic.questionId} recorded={session.diagnostic.recorded} onAnswer={(option) => dispatch({ type: "diagnostic/answer", option })} />
         )}
