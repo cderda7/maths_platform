@@ -8,10 +8,9 @@ import PracticeCard from "@/components/PracticeCard";
 import ReadAs from "@/components/ReadAs";
 import { Button, Card, Eyebrow } from "@/components/ui";
 import { LeafChip } from "@/components/Tag";
-import { PRACTICE } from "@/data/practice";
-import { RECOGNITION_WARMUP } from "@/data/recognition";
 import { nextLine } from "@/lib/recognition";
-import { warmupProblem, type SessionAction, type StudentSession } from "@/lib/session";
+import { warmupFocus, warmupProblem, type SessionAction, type StudentSession } from "@/lib/session";
+import { chooseWarmup, practiceCovers, warmupScript } from "@/lib/warmup";
 import { Scrim } from "./PracticePrompt";
 
 /**
@@ -21,6 +20,8 @@ import { Scrim } from "./PracticePrompt";
  */
 export default function PracticeScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
   const w = session.warmup;
+  const focus = warmupFocus(session);
+  const first = chooseWarmup(focus);
   const p = warmupProblem(session);
   const second = w.problem === "second";
   const lines = w.lines[p.id] ?? [];
@@ -33,7 +34,7 @@ export default function PracticeScreen({ session, dispatch }: { session: Student
   const addStroke = (next: Stroke[]) => dispatch({ type: "warmup/stroke", problem: p.id, stroke: next[next.length - 1] });
   const onBurstEnd = (strokeCount: number) => {
     setRecognising(false);
-    const line = nextLine(RECOGNITION_WARMUP[p.id] ?? [], w.lines[p.id] ?? [], strokeCount);
+    const line = nextLine(warmupScript(p), w.lines[p.id] ?? [], strokeCount);
     if (line) dispatch({ type: "warmup/reveal", problem: p.id, line });
   };
   const undo = () => {
@@ -53,7 +54,7 @@ export default function PracticeScreen({ session, dispatch }: { session: Student
           <div className="mb-6 border-b border-line pb-6" data-worked-example>
             <Eyebrow>Worked example</Eyebrow>
             <div className="mt-3">
-              <PracticeCard practice={PRACTICE} shown={PRACTICE.steps.length} compact />
+              <PracticeCard practice={first} shown={first.steps.length} compact />
             </div>
           </div>
         )}
@@ -66,7 +67,9 @@ export default function PracticeScreen({ session, dispatch }: { session: Student
           <M tex={p.tex} display />
         </div>
         <div className="mt-4 flex flex-wrap gap-1.5">
-          <LeafChip id={p.leaf} />
+          {practiceCovers(p).map((id) => (
+            <LeafChip key={id} id={id} className={focus.includes(id) ? "!border-standout-line !bg-standout-soft !text-standout" : ""} />
+          ))}
         </div>
         {hinted && (
           <Card tone="soft" className="mt-5 p-4" data-hint>
@@ -92,7 +95,7 @@ export default function PracticeScreen({ session, dispatch }: { session: Student
           </div>
           {exampled && (
             <div className="mt-6 flex justify-end">
-              {!second && PRACTICE.followUp ? (
+              {!second && first.followUp ? (
                 <Button size="lg" onClick={() => dispatch({ type: "warmup/next" })}>
                   Try one more →
                 </Button>

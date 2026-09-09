@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { INITIAL_SESSION, sessionAt, sessionReducer, warmupProblem } from "./session";
-import { PRACTICE } from "@/data/practice";
-import { RECOGNITION_WARMUP } from "@/data/recognition";
+import { INITIAL_SESSION, INITIAL_WARMUP, sessionAt, sessionReducer, warmupProblem } from "./session";
+import { PRACTICE, WARMUP_BANK } from "@/data/practice";
+import { warmupScript } from "./warmup";
 import { allPathways } from "./pathway";
 import type { Pathway } from "@/data/types";
 
@@ -15,14 +15,31 @@ describe("student session flow", () => {
     expect(s.confidence).toEqual({ level: "low-when", category: "algebra" });
   });
 
-  it("accepting practice asks about confidence first, then visits the warm-up, then the set", () => {
+  it("accepting practice asks about confidence first, then opens the chooser, then the warm-up, then the set", () => {
     let s = sessionReducer(INITIAL_SESSION, { type: "practice/accept" });
     expect(s.stage).toBe("confidence");
     expect(s.practice).toBe("taken");
     s = sessionReducer(s, { type: "confidence/set", confidence: { level: "confident" } });
+    expect(s.stage).toBe("warmup-pick");
+    expect(sessionReducer(s, { type: "warmup/begin" })).toBe(s);
+    s = sessionReducer(s, { type: "warmup/select", problem: "q2" });
+    s = sessionReducer(s, { type: "warmup/begin" });
     expect(s.stage).toBe("practice");
     s = sessionReducer(s, { type: "practice/finish" });
     expect(s.stage).toBe("working");
+  });
+
+  it("the chooser keeps the selection and the chat, and the tutor answers each message", () => {
+    let s = sessionAt("warmup-pick");
+    s = sessionReducer(s, { type: "warmup/select", problem: "q1" });
+    s = sessionReducer(s, { type: "warmup/select", problem: "q4" });
+    s = sessionReducer(s, { type: "warmup/select", problem: "q1" });
+    expect(s.warmup.selected).toEqual(["q4"]);
+    expect(sessionReducer(s, { type: "warmup/say", text: "   " })).toBe(s);
+    s = sessionReducer(s, { type: "warmup/say", text: "fractions, and Q2" });
+    expect(s.warmup.messages.map((m) => m.from)).toEqual(["student", "tutor"]);
+    expect(s.warmup.messages[1].text).toMatch(/^Got it\. Warming up on /);
+    expect(warmupProblem(s).id).toBe("w-fraction-nonmonic");
   });
 
   it("deep-linking past the survey fills in earlier answers", () => {
@@ -30,6 +47,9 @@ describe("student session flow", () => {
     expect(sessionAt("working").practice).toBe("declined");
     expect(sessionAt("practice").confidence).not.toBeNull();
     expect(sessionAt("practice").practice).toBe("taken");
+    expect(sessionAt("warmup-pick").practice).toBe("taken");
+    expect(sessionAt("warmup-pick").warmup.selected).toEqual([]);
+    expect(warmupProblem(sessionAt("practice")).id).toBe("w-fraction-nonmonic");
     expect(sessionAt("confidence").confidence).toBeNull();
     expect(sessionAt("overview")).toEqual(INITIAL_SESSION);
   });
@@ -51,7 +71,9 @@ describe("student session flow", () => {
 });
 
 describe("the warm-up on the pad", () => {
-  const start = sessionAt("practice");
+  // The default warm-up (monic) on the pad: a chooser run that named factorising only.
+  const start = sessionReducer({ ...sessionAt("practice"), warmup: INITIAL_WARMUP }, { type: "warmup/say", text: "monic factorising" });
+  it("that run's warm-up is the monic problem", () => expect(warmupProblem(start).id).toBe("w-monic"));
   const reveal = (s: ReturnType<typeof sessionAt>, problem: string, tex: string, strokeCount: number) =>
     sessionReducer(s, { type: "warmup/reveal", problem, line: { tex, strokeCount } });
 
@@ -111,10 +133,15 @@ describe("the warm-up on the pad", () => {
     expect(sessionReducer(s, { type: "practice/finish" }).stage).toBe("working");
   });
 
-  it("the warm-up and its follow-up each have a recognition script that the pad can read line by line", () => {
-    expect(RECOGNITION_WARMUP[PRACTICE.id]).toHaveLength(PRACTICE.steps.length - 1);
-    expect(RECOGNITION_WARMUP[PRACTICE.followUp!.id]).toHaveLength(PRACTICE.followUp!.steps.length);
-    expect(PRACTICE.followUp!.leaf).toBe(PRACTICE.leaf);
+  it("every warm-up problem and follow-up has a recognition script the pad can read line by line", () => {
+    for (const p of WARMUP_BANK) {
+      expect(warmupScript(p).length).toBeGreaterThan(0);
+      if (p.followUp) {
+        expect(warmupScript(p.followUp).length).toBeGreaterThan(0);
+        expect(p.followUp.leaf).toBe(p.leaf);
+      }
+    }
+    expect(warmupProblem(start).id).toBe(PRACTICE.id);
   });
 });
 

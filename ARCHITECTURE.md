@@ -21,6 +21,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │       └▶ IpadStage ▶ StudentChrome│               │   classmates (static fixture)    │
  │            └▶ screens/            │               └──────────────┬───────────────────┘
  │               Overview ▶ Confidence│                              │ reads every 3 s
+ │               ▶ WarmupPick (select problems · skills by category · chat → focus → chooseWarmup)│
  │               ▶ Practice (pad · HelpMenu: hint · worked example · video · follow-up split pane)│
  │               ▶ Working ─▶ DrawPad (canvas ink)                  │
  │                                  ├▶ "Read as" column             │
@@ -132,7 +133,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 24 | Student freeze, marked view and session end | `/student` frozen, `/teacher/board` marks, `/teacher` End | `9acced2` | [curr_version/architecture/24-student-freeze-marked-view-and-session-end.md](curr_version/architecture/24-student-freeze-marked-view-and-session-end.md) |
 | 25 | Documentation compile | — | `4e7b2a1` | [curr_version/architecture/25-documentation-compile.md](curr_version/architecture/25-documentation-compile.md) |
 | 26 | Hierarchical skill category dashboard | `/teacher` grid + drill, reports, creation Unit Focus | `b7f5a71` | [curr_version/architecture/26-hierarchical-skill-dashboard.md](curr_version/architecture/26-hierarchical-skill-dashboard.md) |
-| 27 | Warm-up on the pad, confidence first, multimodal help | `/student?stage=confidence`, `…=practice` | _this commit_ | [curr_version/architecture/27-warm-up-on-the-pad.md](curr_version/architecture/27-warm-up-on-the-pad.md) |
+| 27 | Warm-up on the pad, confidence first, multimodal help | `/student?stage=confidence`, `…=practice` | `9f311a5` | [curr_version/architecture/27-warm-up-on-the-pad.md](curr_version/architecture/27-warm-up-on-the-pad.md) |
+| 28 | Warm-up chooser: problems, words, one composite warm-up | `/student?stage=warmup-pick`, `…=practice` | _this commit_ | [curr_version/architecture/28-warm-up-chooser.md](curr_version/architecture/28-warm-up-chooser.md) |
 
 ## Conventions
 

@@ -76,8 +76,10 @@ export type Stroke = Point[];
 /** Where the student is in the closed loop. Each stage is one screen on the iPad. */
 export type Stage =
   | "overview"
-  | "practice"
   | "confidence"
+  /** The warm-up chooser: pick problems, say it in words, get one warm-up problem. */
+  | "warmup-pick"
+  | "practice"
   | "working"
   | "feedback"
   | "waiting"

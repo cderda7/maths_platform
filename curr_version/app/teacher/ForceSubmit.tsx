@@ -8,7 +8,7 @@ import { dispatchClassroom, useAssignment, useClassroom } from "@/lib/classroom-
 import type { StudentSession } from "@/lib/session";
 import { useNow } from "@/lib/store";
 
-const WORKING = ["overview", "confidence", "practice", "working"];
+const WORKING = ["overview", "confidence", "warmup-pick", "practice", "working"];
 const mmss = (ms: number) => {
   const s = Math.max(0, Math.ceil(ms / 1000));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;

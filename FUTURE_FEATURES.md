@@ -180,3 +180,29 @@ appends it here (see `CLAUDE.md`).
   "warmed up · asked for a hint" note on the student row is cheap once wanted.
 - **Hints as a hint ladder.** One sentence per problem today. A second, more specific hint, or a
   hint that names the step the student is on, once tagging is live.
+
+## Warm-up chooser (from ticket 28, 2026-09-10)
+
+- **Problem bank as the source of warm-ups.** The composite warm-up is simulated: three
+  hand-written problems in `COMPOSITE_WARMUPS`, scored by how many focus skills they cover. The
+  real thing draws (or generates) one problem from a bank tagged by leaf; `chooseWarmup` is the
+  seam.
+- **Atomising the warm-up.** "ok let's warm up strictly on fractions for a second" is not
+  supported: the chooser always serves one composite problem for the whole focus. The user wants
+  to think about how a student narrows to one skill mid-warm-up and what "one problem on just
+  that" means when the skill only appears inside bigger problems (2026-09-10).
+- **Content tree in the chooser.** The chooser shows the assignment's skills by category. The user
+  wants a content tree soon: the taxonomy (or the unit's content) browsable as a tree, so a
+  student can point at something the set does not name.
+- **A real interpreter for the chat.** `interpret` is a regex table over English skill words and
+  "Qn" references. Replace with a model call that returns leaf ids and problem ids; keep the
+  honest reply ("one problem covers … ; … can come in the set").
+- **More composites, and composites per unit.** Three composites all live in Unit 1 algebra. Each
+  unit needs its own so the chooser can serve a Unit 3 focus.
+- **Several warm-up problems when one cannot cover the focus.** Today the reply says what is
+  left for the set. Offer a second problem for the remainder.
+- **Selection also from the skills list.** Chips in the skills panel are display only; tapping a
+  chip could add it to the focus directly, as a third input beside problems and words.
+- **Difficulty tags elsewhere.** Removed from the overview and the chooser at the user's request;
+  still shown on the working screen, the reports and the teacher views. Decide whether the
+  student should ever see them.

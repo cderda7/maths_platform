@@ -1,6 +1,7 @@
 import type { Confidence, Pathway, Stage, Stroke } from "@/data/types";
 import { groupOf, type LeafId } from "@/data/taxonomy";
-import { PRACTICE, PRACTICES } from "@/data/practice";
+import { PRACTICES } from "@/data/practice";
+import { chooseWarmup, focusLeaves, tutorReply, type WarmupMessage } from "./warmup";
 import type { AdvanceKind } from "./classroom";
 import type { Diagnostic } from "@/data/diagnostic";
 import { DEFAULT_PATHWAY, nextStage } from "./pathway";
@@ -33,6 +34,10 @@ export interface PracticeEntry extends PracticePrompt {
  * written here is evaluated, counted or shown to the teacher as work on the set.
  */
 export interface WarmupState {
+  /** Problems the student marked as ones they don't feel confident in. */
+  selected: string[];
+  /** The chooser's chat, oldest first: the student's words and the tutor's replies. */
+  messages: WarmupMessage[];
   /** "first": the warm-up problem. "second": its follow-up, with the first's worked example in view. */
   problem: "first" | "second";
   /** True while the worked example for the current problem is playing in place of the pad. */
@@ -48,7 +53,7 @@ export interface WarmupState {
   ink: Record<string, Stroke[]>;
 }
 
-export const INITIAL_WARMUP: WarmupState = { problem: "first", example: false, exampleShown: 0, hinted: [], exampled: [], lines: {}, ink: {} };
+export const INITIAL_WARMUP: WarmupState = { selected: [], messages: [], problem: "first", example: false, exampleShown: 0, hinted: [], exampled: [], lines: {}, ink: {} };
 
 export interface StudentSession {
   stage: Stage;
@@ -111,6 +116,10 @@ export type SessionAction =
   | { type: "practice/decline" }
   | { type: "practice/finish" }
   | { type: "confidence/set"; confidence: Confidence }
+  /** The chooser: toggle a problem, send a message (the tutor answers at once), begin the warm-up. */
+  | { type: "warmup/select"; problem: string }
+  | { type: "warmup/say"; text: string }
+  | { type: "warmup/begin" }
   | { type: "warmup/reveal"; problem: string; line: RevealedLine }
   | { type: "warmup/stroke"; problem: string; stroke: Stroke }
   | { type: "warmup/undo"; problem: string; strokeCount?: number }
@@ -222,9 +231,22 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     case "practice/decline":
       return { ...s, practice: "declined", stage: "confidence" };
     case "confidence/set":
-      return { ...s, confidence: a.confidence, stage: s.practice === "taken" ? "practice" : "working" };
+      return { ...s, confidence: a.confidence, stage: s.practice === "taken" ? "warmup-pick" : "working" };
     case "practice/finish":
       return { ...s, stage: "working" };
+    case "warmup/select": {
+      const on = s.warmup.selected.includes(a.problem);
+      return warm(s, { selected: on ? s.warmup.selected.filter((p) => p !== a.problem) : [...s.warmup.selected, a.problem] });
+    }
+    case "warmup/say": {
+      const text = a.text.trim();
+      if (!text) return s;
+      const messages: WarmupMessage[] = [...s.warmup.messages, { from: "student", text }];
+      const reply = tutorReply(text, focusLeaves(s.warmup.selected, messages));
+      return warm(s, { messages: [...messages, { from: "tutor", text: reply }] });
+    }
+    case "warmup/begin":
+      return warmupFocus(s).length === 0 ? s : { ...s, stage: "practice" };
     case "warmup/reveal":
       return warm(s, { lines: { ...s.warmup.lines, [a.problem]: [...(s.warmup.lines[a.problem] ?? []), a.line] } });
     case "warmup/stroke":
@@ -253,7 +275,8 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       return warm(s, { exampleShown: shown, exampled: done ? [...s.warmup.exampled, p.id] : s.warmup.exampled });
     }
     case "warmup/next": {
-      if (s.warmup.problem !== "first" || !PRACTICE.followUp || !s.warmup.exampled.includes(PRACTICE.id)) return s;
+      const first = chooseWarmup(warmupFocus(s));
+      if (s.warmup.problem !== "first" || !first.followUp || !s.warmup.exampled.includes(first.id)) return s;
       return warm(s, { problem: "second", example: false, exampleShown: 0 });
     }
     case "problem/goto":
@@ -360,7 +383,7 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
   }
 }
 
-const BEFORE_HAND_IN: Stage[] = ["overview", "confidence", "practice", "working"];
+const BEFORE_HAND_IN: Stage[] = ["overview", "confidence", "warmup-pick", "practice", "working"];
 
 /** The leaf to practise for a mistake: its own practice, else another leaf in the same group that has one. */
 export function practiceLeaf(leaf: LeafId): LeafId | null {
@@ -373,9 +396,13 @@ export const FORCED_HAND_IN_TEXT = "Your teacher handed in the class's work.";
 
 const warm = (s: StudentSession, patch: Partial<WarmupState>): StudentSession => ({ ...s, warmup: { ...s.warmup, ...patch } });
 
-/** The warm-up problem the student is on: the warm-up itself, or its follow-up. */
+/** The leaves the chooser has settled on so far. */
+export const warmupFocus = (s: StudentSession): LeafId[] => focusLeaves(s.warmup.selected, s.warmup.messages);
+
+/** The warm-up problem the student is on: the bank's best fit for the focus, or its follow-up. */
 export function warmupProblem(s: StudentSession) {
-  return s.warmup.problem === "second" && PRACTICE.followUp ? PRACTICE.followUp : PRACTICE;
+  const first = chooseWarmup(warmupFocus(s));
+  return s.warmup.problem === "second" && first.followUp ? first.followUp : first;
 }
 
 /** Stored to a tenth of a pad pixel: indistinguishable on screen, a third of the bytes. */
@@ -383,7 +410,7 @@ function roundStroke(s: Stroke): Stroke {
   return s.map((p) => ({ x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10 }));
 }
 
-const ORDER: Stage[] = ["overview", "confidence", "practice", "working", "feedback", "waiting", "frozen", "rework", "group-pass", "group-discuss", "report", "peers", "history"];
+const ORDER: Stage[] = ["overview", "confidence", "warmup-pick", "practice", "working", "feedback", "waiting", "frozen", "rework", "group-pass", "group-discuss", "report", "peers", "history"];
 
 /** Fixed times for deep-linked runs: handed in at 3:48 pm, rework done at 4:07 pm, today. */
 const todayAt = (h: number, m: number) => {
@@ -449,7 +476,9 @@ export function sessionAt(stage: Stage, run: RunKindParam = "weak"): StudentSess
   return {
     ...INITIAL_SESSION,
     stage,
-    practice: i === ORDER.indexOf("practice") ? "taken" : i >= ORDER.indexOf("confidence") ? "declined" : null,
-    confidence: i >= ORDER.indexOf("practice") ? { level: "low-when", category: "algebra" } : null,
+    practice: i === ORDER.indexOf("warmup-pick") || i === ORDER.indexOf("practice") ? "taken" : i >= ORDER.indexOf("confidence") ? "declined" : null,
+    confidence: i >= ORDER.indexOf("warmup-pick") ? { level: "low-when", category: "algebra" } : null,
+    // A deep link straight to the pad needs something to warm up on: Q2 and fractions, the demo's own worry.
+    warmup: i === ORDER.indexOf("practice") ? { ...INITIAL_WARMUP, selected: ["q2"], messages: [{ from: "student", text: "fractions" }] } : INITIAL_WARMUP,
   };
 }

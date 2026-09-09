@@ -4,6 +4,7 @@ import IpadStage from "@/components/IpadStage";
 import StudentChrome from "./StudentChrome";
 import OverviewScreen from "./screens/OverviewScreen";
 import PracticeScreen from "./screens/PracticeScreen";
+import WarmupPickScreen from "./screens/WarmupPickScreen";
 import ConfidenceScreen from "./screens/ConfidenceScreen";
 import WorkingScreen from "./screens/WorkingScreen";
 import FeedbackScreen from "./screens/FeedbackScreen";
@@ -30,6 +31,7 @@ const mmss = (ms: number) => {
 };
 
 const CRUMB: Partial<Record<Stage, string>> = {
+  "warmup-pick": "Warm-up",
   practice: "Warm-up",
   confidence: "Before you start",
   rework: "Rework on your own",
@@ -75,6 +77,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
         {session.stage === "overview" && (
           <OverviewScreen onPractice={() => dispatch({ type: "practice/accept" })} onStart={() => dispatch({ type: "practice/decline" })} />
         )}
+        {session.stage === "warmup-pick" && <WarmupPickScreen session={session} dispatch={dispatch} />}
         {session.stage === "practice" && <PracticeScreen session={session} dispatch={dispatch} />}
         {session.stage === "confidence" && (
           <ConfidenceScreen practice={session.practice} onSubmit={(confidence) => dispatch({ type: "confidence/set", confidence })} />

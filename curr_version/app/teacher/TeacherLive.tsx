@@ -39,7 +39,7 @@ function ago(ms: number | null, now: number): string {
   return s <= 1 ? "just now" : `${s}s ago`;
 }
 
-const HANDED_IN = ["overview", "confidence", "practice", "working"];
+const HANDED_IN = ["overview", "confidence", "warmup-pick", "practice", "working"];
 
 /**
  * "Where the class is": one row per student, one column per category the assignment touches

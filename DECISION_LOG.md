@@ -422,3 +422,27 @@ button ("Warm up") makes the sequence legible.
 
 **Defence.** Smallest change to the flow that meets the requirement, and it leaves the
 confidence-driven warm-up as a clean follow-on rather than a rewrite.
+
+## 2026-09-10 · The warm-up chooser is a pure function of selection and words
+
+**Decision.** The chooser stores only what the student did (`selected` problem ids and the chat
+`messages`). The focus, the light-blue chips, the tutor's reply and the served problem are all
+derived by pure functions in `lib/warmup.ts`: a regex table from skill words to leaves, a union
+rule, and a coverage score over a small bank of composite and single-leaf problems.
+
+**Context.** The user wants the student to point at problems and say in words what worries them,
+and get one problem that tests those skills. A language model and a problem bank are the real
+implementation; neither exists in the demo.
+
+**Alternatives considered.** Storing the derived focus and chosen problem in the session (two
+sources that can drift, and no way to re-score when the bank grows). A free-form "tutor" that
+composes prose (unpredictable in a demo). Serving one practice per focus leaf (three worries →
+three problems, which is what the user explicitly did not want).
+
+**Tradeoffs.** The regex table is English-only, order-sensitive and will misread some phrasing;
+the reply is honest about what it matched and what one problem leaves for the set, so a miss is
+visible rather than silent. Composite problems are hand-authored (three today).
+
+**Defence.** Every rule is unit-tested against the user's own example sentence, the seam for the
+real interpreter is one function (`interpret`), and the seam for the bank is one array
+(`WARMUP_BANK`) plus one scorer (`chooseWarmup`).
