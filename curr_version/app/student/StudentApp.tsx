@@ -12,7 +12,9 @@ import { GroupDiscussScreen, GroupPassScreen } from "./screens/GroupScreens";
 import ReportScreen from "./screens/ReportScreen";
 import { useEffect } from "react";
 import { dispatch, useStudentSession } from "@/lib/store";
-import { dispatchClassroom, useAssignment } from "@/lib/classroom-store";
+import { dispatchClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
+import { isDue, isPending } from "@/lib/classroom";
+import { useNow } from "@/lib/store";
 import { ASSIGNMENT } from "@/data/assignment";
 import type { Pathway, Stage } from "@/data/types";
 import type { RunKindParam } from "@/lib/session";
@@ -20,6 +22,11 @@ import WaitingScreen from "./screens/WaitingScreen";
 import PeerScreen from "./screens/PeerScreen";
 import HistoryScreen from "./screens/HistoryScreen";
 import DiagnosticModal from "./screens/DiagnosticModal";
+
+const mmss = (ms: number) => {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+};
 
 const CRUMB: Partial<Record<Stage, string>> = {
   practice: "Warm-up",
@@ -44,6 +51,15 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
   }, []);
   const session = useStudentSession(initStage, explicit, run);
   const { title } = useAssignment();
+  const classroom = useClassroom();
+  const now = useNow();
+  const advance = classroom.advance;
+  const counting = isPending(classroom, now);
+  const due = isDue(classroom, now) && advance && !session.appliedAdvances.includes(advance.id);
+  useEffect(() => {
+    // The grace ran out: apply the teacher's advance once (the reducer ignores repeats by id).
+    if (due && advance) dispatch({ type: "advance/apply", id: advance.id, kind: advance.kind, at: now });
+  }, [due, advance, now]);
   const crumb = CRUMB[session.stage] ?? (["working", "feedback", "waiting"].includes(session.stage) ? title : ASSIGNMENT.className);
   return (
     <IpadStage>
@@ -64,6 +80,14 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
         {session.stage === "report" && <ReportScreen session={session} dispatch={dispatch} />}
         {session.stage === "peers" && <PeerScreen onBack={() => dispatch({ type: "peers/close" })} />}
         {session.stage === "history" && <HistoryScreen session={session} onBack={() => dispatch({ type: "history/close" })} />}
+        {counting && advance && (
+          <div className="pointer-events-none absolute inset-x-0 top-[33px] z-20 flex justify-center px-8" data-countdown>
+            <div className="flex items-center gap-3 rounded-full border border-accent-line bg-accent-soft px-4 py-1.5 text-[13.5px] text-ink shadow-card">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
+              Your teacher is moving the class on in {mmss(advance.deadline - now)}
+            </div>
+          </div>
+        )}
         {session.notice && (
           <div className="absolute inset-x-0 bottom-6 z-20 flex justify-center px-8" data-notice>
             <div className="flex items-center gap-4 rounded-full border border-accent-line bg-paper px-5 py-2.5 text-[14px] text-ink shadow-lift">

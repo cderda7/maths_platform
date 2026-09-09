@@ -3,6 +3,7 @@
 import Link from "next/link";
 import TeacherChrome from "./TeacherChrome";
 import DiagnosticPush from "./DiagnosticPush";
+import ForceSubmit from "./ForceSubmit";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { StatusDot } from "@/components/Tag";
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
@@ -179,6 +180,7 @@ export default function TeacherLive() {
         </Card>
 
         <div className="space-y-6">
+          <ForceSubmit session={live} />
           <Card className={`p-6 ${caution.length ? "border-gap-line" : ""}`}>
             <Eyebrow className={caution.length ? "text-gap" : ""}>Worth a look</Eyebrow>
             {caution.length === 0 ? (

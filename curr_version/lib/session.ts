@@ -1,4 +1,5 @@
 import type { Confidence, Pathway, Stage, Stroke, SubskillId } from "@/data/types";
+import type { AdvanceKind } from "./classroom";
 import { DEFAULT_PATHWAY, nextStage } from "./pathway";
 import { guardFor, trippedProblems } from "./guard";
 import { feedbackSummary } from "./feedback";
@@ -66,6 +67,10 @@ export interface StudentSession {
   reworkedAt: number;
   /** A one-line notice shown over the next screen until dismissed (post-rework sentence, teacher advances). */
   notice: string | null;
+  /** Problems with no lines when the teacher handed in for the class. */
+  notAttempted: string[];
+  /** Ids of teacher advances this session has already applied, so tabs and reloads converge. */
+  appliedAdvances: string[];
   /** A diagnostic the teacher has pushed and the student hasn't answered yet. */
   diagnostic: { questionId: string; recorded: boolean } | null;
   /** Answered diagnostics, oldest first. */
@@ -74,6 +79,8 @@ export interface StudentSession {
 
 export type SessionAction =
   | { type: "hand-in"; at?: number }
+  /** A teacher advance whose grace has run out. Idempotent by id. */
+  | { type: "advance/apply"; id: string; kind: AdvanceKind; at?: number }
   | { type: "practice/accept" }
   | { type: "practice/decline" }
   | { type: "practice/finish" }
@@ -134,6 +141,8 @@ export const INITIAL_SESSION: StudentSession = {
   handedInAt: 0,
   reworkedAt: 0,
   notice: null,
+  notAttempted: [],
+  appliedAdvances: [],
   diagnostic: null,
   diagnosticAnswers: [],
 };
@@ -148,6 +157,24 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
   switch (a.type) {
     case "hand-in":
       return { ...s, stage: nextStage(env.pathway, "handed-in"), handedInAt: a.at ?? s.handedInAt };
+    case "advance/apply": {
+      if (s.appliedAdvances.includes(a.id)) return s;
+      const applied = { ...s, appliedAdvances: [...s.appliedAdvances, a.id] };
+      if (a.kind === "force-submit") {
+        if (!BEFORE_HAND_IN.includes(s.stage)) return applied;
+        const notAttempted = ASSIGNMENT.problems.map((p) => p.id).filter((id) => (s.lines[id]?.length ?? 0) === 0);
+        return {
+          ...applied,
+          stage: nextStage(env.pathway, "handed-in"),
+          handedInAt: a.at ?? s.handedInAt,
+          notAttempted,
+          prompt: null,
+          overlay: null,
+          notice: FORCED_HAND_IN_TEXT,
+        };
+      }
+      return applied;
+    }
     case "practice/accept":
       return { ...s, practice: "taken", stage: "practice" };
     case "practice/decline":
@@ -253,6 +280,9 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       return INITIAL_SESSION;
   }
 }
+
+const BEFORE_HAND_IN: Stage[] = ["overview", "practice", "confidence", "working"];
+export const FORCED_HAND_IN_TEXT = "Your teacher handed in the class's work.";
 
 /** Stored to a tenth of a pad pixel: indistinguishable on screen, a third of the bytes. */
 function roundStroke(s: Stroke): Stroke {

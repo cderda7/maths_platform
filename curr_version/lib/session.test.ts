@@ -289,3 +289,37 @@ describe("rework hand-in and the guard", () => {
     expect(sessionReducer(s, { type: "notice/dismiss" }).notice).toBeNull();
   });
 });
+
+describe("teacher force submit", () => {
+  it("hands in as it stands, records unattempted problems, shows the notice, and follows the pathway", () => {
+    let s = sessionAt("working");
+    s = sessionReducer(s, { type: "line/reveal", problem: "q1", line: { tex: "x^2 - 5x + 6 = 0", strokeCount: 1 } });
+    s = sessionReducer(s, { type: "advance/apply", id: "force-submit@1", kind: "force-submit", at: 77 }, { pathway: ["whole-class"] });
+    expect(s.stage).toBe("waiting");
+    expect(s.handedInAt).toBe(77);
+    expect(s.notAttempted).toEqual(["q2", "q3", "q4"]);
+    expect(s.notice).toBe("Your teacher handed in the class's work.");
+    expect(s.appliedAdvances).toEqual(["force-submit@1"]);
+  });
+
+  it("is idempotent by id and leaves a student who already handed in alone", () => {
+    let s = sessionAt("working");
+    s = sessionReducer(s, { type: "advance/apply", id: "a", kind: "force-submit", at: 5 });
+    const again = sessionReducer({ ...s, stage: "rework" }, { type: "advance/apply", id: "a", kind: "force-submit", at: 9 });
+    expect(again.stage).toBe("rework");
+    expect(again.handedInAt).toBe(5);
+    const later = sessionReducer(sessionAt("rework"), { type: "advance/apply", id: "b", kind: "force-submit", at: 9 });
+    expect(later.stage).toBe("rework");
+    expect(later.appliedAdvances).toEqual(["b"]);
+    expect(later.notice).toBeNull();
+  });
+
+  it("dismisses an open practice prompt or overlay on the way out", () => {
+    let s = sessionAt("working");
+    s = sessionReducer(s, { type: "help/request", subskill: "fractions", problem: "q1" });
+    expect(s.prompt).not.toBeNull();
+    s = sessionReducer(s, { type: "advance/apply", id: "c", kind: "force-submit" });
+    expect(s.prompt).toBeNull();
+    expect(s.stage).toBe("feedback");
+  });
+});

@@ -4,13 +4,13 @@
 
 **Blocked by:** 21 (Detective feedback and the guard).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Classroom reducer: pending advance (kind, deadline); tested
-- [ ] Live view action with confirmation dialog showing how many students are still working; disabled once every student is past working
-- [ ] Student countdown banner driven by the deadline; ticks every second; universal, not only for students with a tripped guard
-- [ ] On deadline the student reducer applies a forced hand-in: not-attempted problems recorded, one-time notice, routing by pathway; idempotent
-- [ ] Forced hand-in bypasses the guard block; the guard banner and restore stay available during the grace
-- [ ] Session tests: forced hand-in, not-attempted recording, idempotence
-- [ ] Build, lint, type-check, vitest pass; headless two-tab: force, watch countdown, student lands on the next stage
-- [ ] Architecture note written and folded into `ARCHITECTURE.md`
+- [x] Classroom reducer: pending advance (kind, deadline); tested
+- [x] Live view action with confirmation dialog showing how many students are still working; disabled once every student is past working
+- [x] Student countdown banner driven by the deadline; ticks every second; universal, not only for students with a tripped guard
+- [x] On deadline the student reducer applies a forced hand-in: not-attempted problems recorded, one-time notice, routing by pathway; idempotent
+- [x] Forced hand-in bypasses the guard block; the guard banner and restore stay available during the grace
+- [x] Session tests: forced hand-in, not-attempted recording, idempotence
+- [x] Build, lint, type-check, vitest pass; headless two-tab: force, watch countdown, student lands on the next stage
+- [x] Architecture note written and folded into `ARCHITECTURE.md`

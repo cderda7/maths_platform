@@ -14,6 +14,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │ /teacher/assignments/new         │
  │   NewAssignment ▶ PathwayMap     │
  │   └▶ StudentApp (client)         │                │   useBatchedSession(3 s)         │
+ │   ForceSubmit → advance/start    │
  │       useStudentSession()        │                │   subskillStatuses · caution     │
  │       └▶ IpadStage ▶ StudentChrome│               │   classmates (static fixture)    │
  │            └▶ screens/            │               └──────────────┬───────────────────┘
@@ -38,6 +39,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │ lib/classroom-store.ts  ClassroomState (teacher-owned, own key + channel)           │
  │                useClassroom · dispatchClassroom · resetClassroom                    │
  │ lib/classroom.ts    CreatedAssignment { title, problemIds, pathway } · pathwayOf    │
+ │                     PendingAdvance { id, kind, deadline } · GRACE_MS · isPending/isDue│
  │ lib/assignment.ts   activeAssignment(classroom) → created title + problems, or fixture│
  │ lib/pathway.ts      REVIEW_ORDER · successors · nextStage · pathwaySentence/Chip    │
  │ lib/session.ts      StudentSession · sessionReducer(s, a, env) · sessionAt (pure)   │
@@ -113,7 +115,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 18 | Pathway model and routing | `/student?pathway=…`, `/teacher` chip | `dc5ee2a` | [curr_version/architecture/18-pathway-model-and-routing.md](curr_version/architecture/18-pathway-model-and-routing.md) |
 | 19 | Assignment creation with the pathway map | `/teacher/assignments/new` | `2af6872` | [curr_version/architecture/19-assignment-creation-with-pathway-map.md](curr_version/architecture/19-assignment-creation-with-pathway-map.md) |
 | 20 | Persisted ink | `/student` working, rework, history | `67aec66` | [curr_version/architecture/20-persisted-ink.md](curr_version/architecture/20-persisted-ink.md) |
-| 21 | Detective feedback and the guard | `/student?stage=feedback`, rework | _this commit_ | [curr_version/architecture/21-detective-feedback-and-guard.md](curr_version/architecture/21-detective-feedback-and-guard.md) |
+| 21 | Detective feedback and the guard | `/student?stage=feedback`, rework | `3479206` | [curr_version/architecture/21-detective-feedback-and-guard.md](curr_version/architecture/21-detective-feedback-and-guard.md) |
+| 22 | Teacher force submit with one-minute grace | `/teacher` Class card → `/student` pill | _this commit_ | [curr_version/architecture/22-teacher-force-submit-with-grace.md](curr_version/architecture/22-teacher-force-submit-with-grace.md) |
 
 ## Conventions
 

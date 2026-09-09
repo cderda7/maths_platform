@@ -36,3 +36,18 @@ describe("active assignment", () => {
     expect(activeAssignment(empty).title).toBe("Roots of a quadratic — Set 3");
   });
 });
+
+describe("class advances", () => {
+  it("starting an advance sets a one-minute deadline; pending until then, due for a minute after", async () => {
+    const { GRACE_MS, isDue, isPending } = await import("./classroom");
+    const c = classroomReducer(INITIAL_CLASSROOM, { type: "advance/start", kind: "force-submit", at: 1000 });
+    expect(c.advance).toEqual({ id: "force-submit@1000", kind: "force-submit", deadline: 1000 + GRACE_MS });
+    expect(isPending(c, 1000)).toBe(true);
+    expect(isPending(c, 1000 + GRACE_MS)).toBe(false);
+    expect(isDue(c, 1000 + GRACE_MS - 1)).toBe(false);
+    expect(isDue(c, 1000 + GRACE_MS)).toBe(true);
+    expect(isDue(c, 1000 + GRACE_MS * 2)).toBe(false);
+    expect(classroomReducer(c, { type: "advance/clear" }).advance).toBeNull();
+    expect(isPending(INITIAL_CLASSROOM, 5)).toBe(false);
+  });
+});

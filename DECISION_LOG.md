@@ -248,3 +248,28 @@ demonstrable, added for Q4.
 **Defence.** The sentence keeps discovery conversational rather than prescriptive; the guard is
 narrow by construction (it cannot fire on an originally-wrong problem, so it cannot leak where
 real mistakes are) and its copy is fixed. Both are pure functions with tests.
+
+## 2026-09-09 · Teacher advances are a deadline in the classroom store, applied by each student tab
+
+**Decision.** A teacher advance (force submit now; whole-class start next) is written to the
+classroom store as `{ id, kind, deadline = now + 60 s }`. Every student tab shows the countdown
+from the same deadline and, when it passes, applies the advance to its own session through an
+idempotent reducer action keyed by the advance id. Nothing on the teacher side touches the
+student session directly.
+
+**Context.** Spec v3 gives every teacher-driven move a universal one-minute grace, and the guard's
+hand-in block relies on that minute as the student's chance to restore. The demo has one student
+today and many tomorrow.
+
+**Alternatives considered.** The teacher tab writes the hand-in into the student session after a
+timer (works for one student, breaks for many, and fails if the teacher tab closes). A timer in
+the reducer (reducers are pure; a deadline is data). Apply on the teacher's side without a grace
+(the user chose a visible minute so students can finish a line or restore a broken problem).
+
+**Tradeoffs.** A student tab must be open at the deadline to apply the advance; one opened later
+applies it if the deadline passed within the last minute, otherwise ignores it as stale. Clocks
+across machines would need to agree; in the one-laptop demo they do.
+
+**Defence.** The same mechanism carries the whole-class freeze in ticket 24 with a different
+`kind`, the countdown is one component on each side, and idempotence by id means reloads and
+extra tabs converge on one hand-in.
