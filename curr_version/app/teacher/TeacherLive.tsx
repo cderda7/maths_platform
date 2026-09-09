@@ -12,7 +12,7 @@ import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { StatusDot, STATUS_WORD } from "@/components/Tag";
 import { ASSIGNMENT, DEMO_STUDENT, unitLabel } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
-import { categoryName, groupName, leafName, type CategoryId } from "@/data/taxonomy";
+import { categoryName, categoryOf, groupName, leafName, type CategoryId, type LeafId } from "@/data/taxonomy";
 import type { Confidence } from "@/data/types";
 import { pathwayOf } from "@/lib/classroom";
 import { useAssignment, useClassroom } from "@/lib/classroom-store";
@@ -84,7 +84,7 @@ export default function TeacherLive() {
   const classroom = useClassroom();
   const wc = classroom.wholeClass;
   const status = wc?.status === "active" ? " · in whole-class review" : wc?.status === "ended" ? " · complete" : "";
-  const [open, setOpen] = useState<{ student: string; category: CategoryId; left: number } | null>(null);
+  const [open, setOpen] = useState<{ student: string; category: CategoryId; left: number; leaf?: LeafId } | null>(null);
   const tableRef = useRef<HTMLTableElement>(null);
   /** Where the tree's dots go: the clicked dot's left edge, relative to the drill cell's content edge (td px-5 = 20px). */
   const dotOffset = (btn: HTMLButtonElement) => {
@@ -94,6 +94,12 @@ export default function TeacherLive() {
     if (!table || !dot || !dotEl) return 0;
     const scale = dot.width / (dotEl.offsetWidth || dot.width); // the teacher pages render under a CSS zoom
     return (dot.left - table.left) / scale - 20;
+  };
+  /** A blamed line asks for another category: re-open this student's drill there, on that skill. */
+  const jump = (student: string, leaf: LeafId) => {
+    const c = categoryOf(leaf);
+    const btn = tableRef.current?.querySelector<HTMLButtonElement>(`[data-row="${student}"] [data-dot="${c}"]`);
+    setOpen({ student, category: c, left: btn ? dotOffset(btn) : 0, leaf });
   };
 
   const rows: { id: string; name: string; initials: string; live: boolean; evidence: Evidence; sub: string; confidence: { text: string; tone: string }; set: string; setSub: string }[] = [
@@ -221,7 +227,7 @@ export default function TeacherLive() {
                     {expanded && (
                       <tr className="border-b border-line bg-cream/60" data-drill-row={r.id}>
                         <td colSpan={columns.length + 3} className="px-5 py-4">
-                          <HierarchyDrill key={`${r.id}-${expanded}`} result={h} lines={r.evidence.lines} problems={problems} lockCategory={expanded} offsetLeft={open?.left ?? 0} />
+                          <HierarchyDrill key={`${r.id}-${expanded}-${open?.leaf ?? ""}`} result={h} lines={r.evidence.lines} problems={problems} lockCategory={expanded} offsetLeft={open?.left ?? 0} initialLeaf={open?.leaf ?? null} onNavigate={(leaf) => jump(r.id, leaf)} />
                         </td>
                       </tr>
                     )}
@@ -240,9 +246,20 @@ export default function TeacherLive() {
         <div className="space-y-6">
           <Card className="p-6" data-pathway-card>
             <Eyebrow>Pathway</Eyebrow>
-            <p className="mt-2 font-display text-[22px] leading-snug text-ink" data-pathway-chip>
-              {pathwayChip(pathwayOf(classroom))}
-            </p>
+            <ol className="mt-2 font-display text-[22px] leading-snug text-ink" data-pathway-chip>
+              {pathwayChip(pathwayOf(classroom))
+                .split(" → ")
+                .map((stage, i) => (
+                  <li key={stage} className="flex flex-col items-start">
+                    {i > 0 && (
+                      <span className="pl-3 text-[18px] text-ink-muted" aria-hidden>
+                        ↓
+                      </span>
+                    )}
+                    <span>{stage}</span>
+                  </li>
+                ))}
+            </ol>
           </Card>
           <ForceSubmit session={live} />
           <WholeClassCard />

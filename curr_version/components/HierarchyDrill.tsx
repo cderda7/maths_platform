@@ -4,7 +4,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import M from "@/components/Math";
 import { Eyebrow } from "@/components/ui";
 import { DifficultyTag, StatusDot, STATUS_TEXT, STATUS_WORD } from "@/components/Tag";
-import { categoryName, groupName, groupsOf, leafName, leavesOf, type CategoryId, type GroupId, type LeafId } from "@/data/taxonomy";
+import { categoryName, categoryOf, groupName, groupOf, groupsOf, leafName, leavesOf, type CategoryId, type GroupId, type LeafId } from "@/data/taxonomy";
 import type { Problem, Status } from "@/data/types";
 import { evaluateLine } from "@/lib/evaluate";
 import { lineMarks } from "@/lib/examples";
@@ -24,6 +24,8 @@ export default function HierarchyDrill({
   problems,
   lockCategory,
   offsetLeft = 0,
+  initialLeaf = null,
+  onNavigate,
 }: {
   result: HierarchyResult;
   lines: Record<string, string[]>;
@@ -31,10 +33,24 @@ export default function HierarchyDrill({
   lockCategory?: CategoryId;
   /** Pixels from the container's left edge to where the tree's dots should sit (under the category dot). */
   offsetLeft?: number;
+  /** Open straight onto this skill (its group expanded, its work shown). */
+  initialLeaf?: LeafId | null;
+  /** In locked mode, asked to open a skill in another category: the owner re-opens the drill there. */
+  onNavigate?: (leaf: LeafId) => void;
 }) {
-  const [category, setCategory] = useState<CategoryId | null>(lockCategory ?? null);
-  const [group, setGroup] = useState<GroupId | null>(null);
-  const [leaf, setLeaf] = useState<LeafId | null>(null);
+  const [category, setCategory] = useState<CategoryId | null>(lockCategory ?? (initialLeaf ? categoryOf(initialLeaf) : null));
+  const [group, setGroup] = useState<GroupId | null>(initialLeaf ? groupOf(initialLeaf) : null);
+  const [leaf, setLeaf] = useState<LeafId | null>(initialLeaf);
+  /** Jump to a skill's own view: same category → expand in place; another category → hand over to the owner. */
+  const goTo = (target: LeafId) => {
+    if (lockCategory && categoryOf(target) !== lockCategory) {
+      onNavigate?.(target);
+      return;
+    }
+    setCategory(categoryOf(target));
+    setGroup(groupOf(target));
+    setLeaf(target);
+  };
   const rootRef = useRef<HTMLDivElement>(null);
   const treeRef = useRef<HTMLUListElement>(null);
   const [below, setBelow] = useState(false);
@@ -94,7 +110,7 @@ export default function HierarchyDrill({
               </li>
             ))}
       </ul>
-      {leaf && <WorkPanel leaf={leaf} lines={lines} problems={problems} status={result.leaves[leaf]!} wide={below} />}
+      {leaf && <WorkPanel leaf={leaf} lines={lines} problems={problems} status={result.leaves[leaf]!} wide={below} onGoTo={goTo} />}
     </div>
   );
 }
@@ -119,7 +135,7 @@ function Node({ label, status, half, open, onClick, ...rest }: { label: string; 
 }
 
 /** The student's work on the problems that invoke a leaf: marked lines, with a left rule on the lines tagged to that leaf. */
-function WorkPanel({ leaf, lines, problems, status, wide }: { leaf: LeafId; lines: Record<string, string[]>; problems: Problem[]; status: Status; wide: boolean }) {
+function WorkPanel({ leaf, lines, problems, status, wide, onGoTo }: { leaf: LeafId; lines: Record<string, string[]>; problems: Problem[]; status: Status; wide: boolean; onGoTo: (l: LeafId) => void }) {
   const invoking = problemsForLeaf(leaf, problems);
   return (
     <div className={wide ? "w-full" : "min-w-0 flex-1"} data-col="work" data-leaf={leaf}>
@@ -150,16 +166,32 @@ function WorkPanel({ leaf, lines, problems, status, wide }: { leaf: LeafId; line
                     const v = evaluateLine(p.id, tex);
                     const tagged = v.verdict !== "unclear" && v.tags.some((t) => t.leaf === leaf);
                     const mark = marks[i];
+                    const blamed = v.verdict === "wrong" ? v.tags[0].leaf : null;
                     return (
                       <li
                         key={i}
                         data-mark={mark ?? undefined}
                         data-tagged={tagged || undefined}
-                        className={`rounded-lg border px-3 py-1.5 text-[14.5px] text-ink ${tagged ? "border-l-[3px] border-l-ink" : ""} ${
+                        className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-1.5 text-[14.5px] text-ink ${tagged ? "border-l-[3px] border-l-ink" : ""} ${
                           mark === "wrong" ? "border-wrong-line bg-wrong-soft" : mark === "standout" ? "border-standout-line bg-standout-soft" : "border-line bg-cream/40"
                         }`}
                       >
                         <M tex={tex} />
+                        {blamed && (
+                          <button
+                            type="button"
+                            onClick={() => onGoTo(blamed)}
+                            className="flex shrink-0 items-center gap-1.5 rounded-full border border-wrong-line bg-paper px-2 py-0.5 text-[11.5px] text-wrong hover:bg-wrong-soft"
+                            title={`Identified as ${leafName(blamed).short}. Open that skill.`}
+                            data-blame={blamed}
+                          >
+                            <svg viewBox="0 0 16 16" className="h-3 w-3" aria-hidden>
+                              <path d="M8 1.5 15 14H1z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+                              <path d="M8 6v4M8 11.6v.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                            </svg>
+                            {leafName(blamed).short}
+                          </button>
+                        )}
                       </li>
                     );
                   })}
