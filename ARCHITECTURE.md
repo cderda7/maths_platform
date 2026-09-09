@@ -13,6 +13,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │ /student?stage=  page.tsx (server)│               │ /teacher  page.tsx ▶ TeacherLive │
  │ /teacher/assignments/new         │
  │   NewAssignment ▶ PathwayMap     │
+ │ /teacher/whole-class ▶ setup     │
+ │ /teacher/board ▶ Board (projected)│
  │   └▶ StudentApp (client)         │                │   useBatchedSession(3 s)         │
  │   ForceSubmit → advance/start    │
  │       useStudentSession()        │                │   subskillStatuses · caution     │
@@ -40,6 +42,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │                useClassroom · dispatchClassroom · resetClassroom                    │
  │ lib/classroom.ts    CreatedAssignment { title, problemIds, pathway } · pathwayOf    │
  │                     PendingAdvance { id, kind, deadline } · GRACE_MS · isPending/isDue│
+ │                     WholeClassSession { problems, examples, slide, view, status }     │
+ │ lib/examples.ts     candidatesFor · bucketOf · suggestExamples · boardExamples (no names)│
  │ lib/assignment.ts   activeAssignment(classroom) → created title + problems, or fixture│
  │ lib/pathway.ts      REVIEW_ORDER · successors · nextStage · pathwaySentence/Chip    │
  │ lib/session.ts      StudentSession · sessionReducer(s, a, env) · sessionAt (pure)   │
@@ -116,7 +120,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 19 | Assignment creation with the pathway map | `/teacher/assignments/new` | `2af6872` | [curr_version/architecture/19-assignment-creation-with-pathway-map.md](curr_version/architecture/19-assignment-creation-with-pathway-map.md) |
 | 20 | Persisted ink | `/student` working, rework, history | `67aec66` | [curr_version/architecture/20-persisted-ink.md](curr_version/architecture/20-persisted-ink.md) |
 | 21 | Detective feedback and the guard | `/student?stage=feedback`, rework | `3479206` | [curr_version/architecture/21-detective-feedback-and-guard.md](curr_version/architecture/21-detective-feedback-and-guard.md) |
-| 22 | Teacher force submit with one-minute grace | `/teacher` Class card → `/student` pill | _this commit_ | [curr_version/architecture/22-teacher-force-submit-with-grace.md](curr_version/architecture/22-teacher-force-submit-with-grace.md) |
+| 22 | Teacher force submit with one-minute grace | `/teacher` Class card → `/student` pill | `bd16a06` | [curr_version/architecture/22-teacher-force-submit-with-grace.md](curr_version/architecture/22-teacher-force-submit-with-grace.md) |
+| 23 | Whole-class setup and the unmarked board | `/teacher/whole-class`, `/teacher/board` | _this commit_ | [curr_version/architecture/23-whole-class-setup-and-unmarked-board.md](curr_version/architecture/23-whole-class-setup-and-unmarked-board.md) |
 
 ## Conventions
 

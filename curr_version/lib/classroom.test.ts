@@ -51,3 +51,47 @@ describe("class advances", () => {
     expect(isPending(INITIAL_CLASSROOM, 5)).toBe(false);
   });
 });
+
+describe("whole-class session", () => {
+  const setup = () => classroomReducer(INITIAL_CLASSROOM, { type: "wc/setup", problems: ["q3", "q2", "q1"], examples: { q3: [], q2: [], q1: [] } });
+
+  it("is set up, then projected from the first slide unmarked", async () => {
+    const { currentSlide, isProjecting } = await import("./classroom");
+    let c = setup();
+    expect(c.wholeClass?.status).toBe("setup");
+    expect(isProjecting(c)).toBe(false);
+    expect(currentSlide(c)).toBeNull();
+    c = classroomReducer(c, { type: "wc/project" });
+    expect(isProjecting(c)).toBe(true);
+    expect(currentSlide(c)).toEqual({ problemId: "q3", view: "unmarked", index: 0, total: 3 });
+  });
+
+  it("show marks flips the view; next opens the next problem unmarked; previous steps back one view", () => {
+    let c = classroomReducer(setup(), { type: "wc/project" });
+    c = classroomReducer(c, { type: "wc/marks", on: true });
+    expect(c.wholeClass).toMatchObject({ slide: 0, view: "marked" });
+    c = classroomReducer(c, { type: "wc/next" });
+    expect(c.wholeClass).toMatchObject({ slide: 1, view: "unmarked" });
+    c = classroomReducer(c, { type: "wc/prev" });
+    expect(c.wholeClass).toMatchObject({ slide: 0, view: "marked" });
+    c = classroomReducer(c, { type: "wc/prev" });
+    expect(c.wholeClass).toMatchObject({ slide: 0, view: "unmarked" });
+    c = classroomReducer(c, { type: "wc/prev" });
+    expect(c.wholeClass).toMatchObject({ slide: 0, view: "unmarked" });
+    c = classroomReducer(c, { type: "wc/next" });
+    c = classroomReducer(c, { type: "wc/next" });
+    c = classroomReducer(c, { type: "wc/next" });
+    expect(c.wholeClass).toMatchObject({ slide: 2, view: "unmarked" });
+  });
+
+  it("ending keeps the record but stops projecting, and clears any pending advance", async () => {
+    const { isProjecting } = await import("./classroom");
+    let c = classroomReducer(setup(), { type: "wc/project" });
+    c = classroomReducer(c, { type: "advance/start", kind: "whole-class-start", at: 1 });
+    c = classroomReducer(c, { type: "wc/end" });
+    expect(c.wholeClass?.status).toBe("ended");
+    expect(isProjecting(c)).toBe(false);
+    expect(c.advance).toBeNull();
+    expect(classroomReducer(c, { type: "reset" }).wholeClass).toBeNull();
+  });
+});

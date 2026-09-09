@@ -273,3 +273,27 @@ across machines would need to agree; in the one-laptop demo they do.
 **Defence.** The same mechanism carries the whole-class freeze in ticket 24 with a different
 `kind`, the countdown is one component on each side, and idempotence by id means reloads and
 extra tabs converge on one hand-in.
+
+## 2026-09-09 · The board sees letters, lines and counts; names stop at the setup view
+
+**Decision.** The examples module returns two shapes: candidates (with names and buckets) for the
+private setup view, and a board view model of `{ letter, lines, count, denominator }` for the
+projected route. The board route imports nothing that carries a student name, avatar, ink or
+verdict, and a unit test asserts the view model's keys and that no name or verdict word appears
+in its JSON.
+
+**Context.** Spec v3 projects the board on the class smartboard: anonymity is a hard requirement,
+and "which one is right?" only works if the board doesn't answer it. Buckets are coarse (correct,
+or the first wrong step's subskill) because the user asked for "similar error type, even if not
+exact".
+
+**Alternatives considered.** One shape with names and a `hideNames` flag on the board (one missed
+flag leaks a name to the projector). Exact-line buckets (too fine: two students with the same
+misconception and different arithmetic would count separately).
+
+**Tradeoffs.** The denominator is students who handed in that problem, not the roster, so a
+student who matches none of the shown examples is simply not represented. Classmates' correct
+work is the model solution, since the fixtures only script their mistakes.
+
+**Defence.** Anonymity is enforced by the type at the seam rather than by discipline in the
+screen, and the same candidates feed the private setup and the public board without duplication.
