@@ -144,7 +144,7 @@ export const unitLabel = (u: UnitRef) => `Unit ${u.number} · ${u.topic} · ${u.
 
 export const ASSIGNMENT: Assignment = {
   id: "set-3",
-  title: "Roots of a quadratic — Set 3",
+  title: "ROOTS OF A QUADRATIC — SET 3",
   className: "11 Methods B",
   teacher: "Ms Okafor",
   due: "Thu 10 Sep",

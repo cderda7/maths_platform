@@ -191,7 +191,7 @@ export default function TeacherLive() {
       <Eyebrow>
         {ASSIGNMENT.className} · {unitLabel(ASSIGNMENT.unit)}
       </Eyebrow>
-      <H1 className="mt-3">Where the class is</H1>
+      <H1 className="mt-3">Class View</H1>
       <p className="mt-3 text-[14px] text-ink-muted">
         {title} · due {ASSIGNMENT.due}
         <span data-assignment-status>{status}</span>
@@ -247,15 +247,13 @@ export default function TeacherLive() {
                         <div className="flex items-center gap-3">
                           <Avatar initials={r.initials} />
                           <div className="min-w-0">
-                            <div className="flex items-center gap-2 whitespace-nowrap font-medium text-ink">
-                              {r.name}
-                              {r.live && (
-                                <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-accent-line bg-paper px-2 py-0.5 text-[11px] font-medium text-accent-deep" data-live-pill>
-                                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" aria-hidden />
-                                  {!live ? "not started" : live.stage === "working" ? `${ASSIGNMENT.problems[live.problemIndex]?.label ?? "Q1"} in progress` : "live"}
-                                </span>
-                              )}
-                            </div>
+                            <div className="whitespace-nowrap font-medium text-ink">{r.name}</div>
+                            {r.live && (
+                              <span className="mt-1 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-accent-line bg-paper px-2 py-0.5 text-[11px] font-medium text-accent-deep" data-live-pill>
+                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" aria-hidden />
+                                {!live ? "not started" : live.stage === "working" ? `${ASSIGNMENT.problems[live.problemIndex]?.label ?? "Q1"} in progress` : "live"}
+                              </span>
+                            )}
                             <div className={`flex items-start gap-2 text-[12.5px] leading-snug text-ink-muted ${!column && (r.sub || r.notes.length > 0 || (r.live && (caution.length > 0 || live?.reportSent))) ? "" : "hidden"}`} data-commentary>
                               {r.live && caution.length > 0 && (
                                 <span className="inline-flex items-center gap-1 rounded-full border border-gap-line bg-gap-soft px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gap" data-caution>
