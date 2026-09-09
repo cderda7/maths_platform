@@ -37,7 +37,7 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
         </div>
 
         <Card className="mt-5 p-5" data-hierarchy>
-          <HierarchyDrill compact result={hierarchy} lines={sessionEvidence(session).lines} problems={problems} />
+          <HierarchyDrill result={hierarchy} lines={sessionEvidence(session).lines} problems={problems} />
         </Card>
 
         {mastery && (

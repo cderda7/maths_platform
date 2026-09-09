@@ -21,7 +21,8 @@ changed vocabulary: leaves instead of subskills.
 | `lib/feedback.ts`, `report.ts`, `peers.ts`, `groups.ts`, `mistakes.ts`, `examples.ts` | Slips, buckets, notes and facts in leaf ids and leaf short names; peers aggregate leaf statuses across classmates |
 | `lib/unit.ts` (+ test) | `inferUnitFromProblems` (most-tagged Unit Focus unit, else 1), `inferUnitFromText` (keywords), `UNIT_TITLES` |
 | `lib/classroom.ts` | `CreatedAssignment.unit` |
-| `components/HierarchyDrill.tsx` | Categories → groups → leaves → work, columns flowing right, worst-first, work panel with marked lines and a left rule on the chosen leaf's lines; `lockCategory` for the grid (the category becomes a heading so groups, skills and work get the width), `compact` collapses visited columns to a breadcrumb at depth four |
+| `components/HierarchyDrill.tsx` | An outline, not columns (follow-up 2026-09-09): groups stacked with their dots on one vertical line, positioned under the clicked category dot (`offsetLeft` measured from the grid), the open group's skills indented 28 px beneath it, text to the right of the dot, never truncated, no status words and no headings; the work panel for the chosen skill sits to the right (min 600 px) with each problem's difficulty tag beside its label, and the whole drill scrolls sideways when a right-hand category pushes it past the edge. Browse mode (the reports) nests categories → groups → skills the same way |
+| `components/StatusKey.tsx` | The dot key: colour · word · what it means (100 % · 80–99 % · 60–79 % · under 60 % · not seen yet) plus a grey half dot for "incomplete, problems skipped"; under the grid and on the teacher report |
 | `components/Tag.tsx` | `LeafChip`; `StatusDot` with `half` and the new `solid` token; `STATUS_WORD`, `STATUS_TEXT` |
 | `components/Figure.tsx` | Inline SVG parabola for Q8 |
 | `app/teacher/TeacherLive.tsx` | Columns = categories the assignment touches; 15 px dot buttons with accessible names; one expanded row at a time; classmates through the same evidence path |
@@ -60,7 +61,8 @@ solid, Stats absent); caution forcing a group's leaves to gap; half dots only af
 only where problems were skipped; every classmate line evaluable; every wrong-verdict leaf has a
 practice; unit inference by tags and by keyword. `tsc --noEmit`, `eslint`, `next build`. CDP:
 six category columns; Sam's dots algebra=developing, communication=solid, reasoning=gap; Liam's
-half dots; 15 px dots with names like "Algebra: developing"; the drill opens under the row with
-groups and leaves worst-first and the work panel showing Q1 red and Q5 tagged lines; one row open
-at a time; the student report collapses to a breadcrumb at depth four; the Unit Focus card infers
+half dots; 15 px dots with names like "Algebra: developing"; the drill opens under the row as an outline whose
+first group dot sits under the clicked category dot, skills indent beneath the open group, no name is
+truncated, the work cards carry difficulty tags, and a Unit Focus drill scrolls sideways; one row open
+at a time; the student report nests categories → groups → skills the same way; the Unit Focus card infers
 Unit 1, reassesses to Unit 3 from "mostly the chain rule", and Create waits for Confirm.

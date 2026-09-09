@@ -148,3 +148,6 @@ appends it here (see `CLAUDE.md`).
 - **No prepractice of subskills**; student self-identifies as 'lacking confidence in {}', &
   for unconfident student, first error triggers 'additional practice' ; for confident student,
   this happens upon second error with {}.
+
+-**Goal** at beginning -- for now, script from teacher.
+  -Later: student self-identification of goal.

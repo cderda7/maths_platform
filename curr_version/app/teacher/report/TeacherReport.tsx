@@ -5,6 +5,7 @@ import TeacherChrome from "../TeacherChrome";
 import M from "@/components/Math";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import HierarchyDrill from "@/components/HierarchyDrill";
+import StatusKey from "@/components/StatusKey";
 import { ASSIGNMENT, DEMO_STUDENT, PROBLEMS } from "@/data/assignment";
 import { groupName } from "@/data/taxonomy";
 import { reportFacts } from "@/lib/report";
@@ -43,6 +44,7 @@ export default function TeacherReport() {
             <div className="mt-3">
               {session ? <HierarchyDrill result={sessionHierarchy(session, problems)} lines={sessionEvidence(session).lines} problems={problems} /> : <p className="text-[13.5px] text-ink-muted">Nothing yet</p>}
             </div>
+            <StatusKey className="mt-4 border-t border-line pt-3" />
           </Card>
 
           <div className="grid grid-cols-2 gap-5">

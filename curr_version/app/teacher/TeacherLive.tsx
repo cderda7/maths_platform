@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import TeacherChrome from "./TeacherChrome";
 import DiagnosticPush from "./DiagnosticPush";
 import ForceSubmit from "./ForceSubmit";
 import WholeClassCard from "./WholeClassCard";
 import HierarchyDrill from "@/components/HierarchyDrill";
+import StatusKey from "@/components/StatusKey";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { StatusDot, STATUS_WORD } from "@/components/Tag";
 import { ASSIGNMENT, DEMO_STUDENT, unitLabel } from "@/data/assignment";
@@ -83,7 +84,14 @@ export default function TeacherLive() {
   const classroom = useClassroom();
   const wc = classroom.wholeClass;
   const status = wc?.status === "active" ? " · in whole-class review" : wc?.status === "ended" ? " · complete" : "";
-  const [open, setOpen] = useState<{ student: string; category: CategoryId } | null>(null);
+  const [open, setOpen] = useState<{ student: string; category: CategoryId; left: number } | null>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
+  /** Where the tree's dots go: the clicked dot's left edge, relative to the drill cell's content edge (td px-5 = 20px). */
+  const dotOffset = (btn: HTMLButtonElement) => {
+    const table = tableRef.current?.getBoundingClientRect();
+    const dot = btn.querySelector("[data-status]")?.getBoundingClientRect();
+    return table && dot ? dot.left - table.left - 20 : 0;
+  };
 
   const rows: { id: string; name: string; initials: string; live: boolean; evidence: Evidence; sub: string; confidence: { text: string; tone: string }; set: string; setSub: string }[] = [
     {
@@ -131,7 +139,7 @@ export default function TeacherLive() {
 
       <div className="mt-10 grid grid-cols-[1fr_300px] gap-6">
         <Card className="overflow-hidden">
-          <table className="w-full table-fixed text-left text-[14px]" data-grid>
+          <table ref={tableRef} className="w-full table-fixed text-left text-[14px]" data-grid>
             <colgroup>
               <col className="w-[230px]" />
               {columns.map((c) => (
@@ -195,7 +203,7 @@ export default function TeacherLive() {
                           <td key={c} className="px-1 py-3.5 text-center">
                             <button
                               type="button"
-                              onClick={() => setOpen(on ? null : { student: r.id, category: c })}
+                              onClick={(e) => setOpen(on ? null : { student: r.id, category: c, left: dotOffset(e.currentTarget) })}
                               aria-label={`${categoryName(c).name}: ${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}
                               aria-expanded={on}
                               className={`inline-grid h-7 w-7 place-items-center rounded-full transition-colors hover:bg-cream-deep ${on ? "bg-cream-deep ring-1 ring-ink" : ""}`}
@@ -215,7 +223,7 @@ export default function TeacherLive() {
                     {expanded && (
                       <tr className="border-b border-line bg-cream/60" data-drill-row={r.id}>
                         <td colSpan={columns.length + 3} className="px-5 py-4">
-                          <HierarchyDrill key={`${r.id}-${expanded}`} result={h} lines={r.evidence.lines} problems={problems} lockCategory={expanded} />
+                          <HierarchyDrill key={`${r.id}-${expanded}`} result={h} lines={r.evidence.lines} problems={problems} lockCategory={expanded} offsetLeft={open?.left ?? 0} />
                         </td>
                       </tr>
                     )}
@@ -224,8 +232,9 @@ export default function TeacherLive() {
               })}
             </tbody>
           </table>
-          <div className="flex items-center justify-end border-t border-line px-5 py-2.5 text-[12px] text-ink-muted">
-            <span>
+          <div className="flex items-center justify-between gap-6 border-t border-line px-5 py-2.5 text-[12px] text-ink-muted">
+            <StatusKey />
+            <span className="shrink-0">
               every {Math.round(everyMs / 1000)}s · updated {ago(updatedAt, now)}
             </span>
           </div>
