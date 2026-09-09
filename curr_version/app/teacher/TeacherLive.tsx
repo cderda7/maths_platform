@@ -252,9 +252,9 @@ export default function TeacherLive() {
                 .map((stage, i) => (
                   <li key={stage} className="flex flex-col items-start">
                     {i > 0 && (
-                      <span className="pl-3 text-[18px] text-ink-muted" aria-hidden>
-                        ↓
-                      </span>
+                      <svg viewBox="0 0 16 22" className="my-0.5 ml-3 h-[22px] w-4 text-ink-muted" aria-hidden>
+                        <path d="M8 1v18M3 14l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
                     )}
                     <span>{stage}</span>
                   </li>
