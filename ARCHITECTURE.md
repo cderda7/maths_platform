@@ -23,6 +23,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │               Overview ▶ Confidence│                              │ reads every 3 s
  │               ▶ WarmupPick (select problems · skills by category · chat → focus → warmupSequence, easiest first)│
  │               ▶ Practice (pad · HelpMenu: hint · worked example · video · follow-up split pane)│
+ │                   HintCard: linked hint words light the expression (termTex) — practices only│
  │               ▶ Working ─▶ DrawPad (canvas ink)                  │
  │                                  ├▶ "Read as" column             │
  │                                  └▶ PromptModal · HelpPicker (this problem's moves) · PracticeOverlay = PracticePad (shared with the warm-up)
@@ -53,6 +54,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │ lib/pathway.ts      REVIEW_ORDER · successors · nextStage · pathwaySentence/Chip    │
  │ lib/session.ts      StudentSession · sessionReducer(s, a, env) · sessionAt (pure)   │
  │ lib/recognition.ts  nextLine · afterUndo  (burst of strokes → scripted line)        │
+ │ lib/hint.ts         hintSegments · findFragment · termTex (\htmlClass wraps, no layout change)│
  │   session.ink / reworkInk: strokes per problem, popped with lines on undo/clear      │
  │ lib/evaluate.ts     evaluateLine(problem, tex) → ok | wrong | unclear               │
  │ lib/escalation.ts   recordMistake · requestHelp → { trigger, cautioned }            │
@@ -93,6 +95,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │   InkView.tsx  read-only SVG of stored strokes, cropped and fitted to its box       │
  │   PadSection.tsx  pad + Undo/Clear      ReadAs.tsx  transcription column + shimmer  │
  │   PracticeCard.tsx  one practice problem, steps revealed one at a time              │
+ │   PracticePad.tsx   practice on the pad (warm-up + mid-set): hint, example, follow-up│
+ │   HintCard.tsx      a practice hint with linked words; reports the hovered term      │
  │   ResetDemo.tsx     restart the shared session in every tab                         │
  └────────────────────────────────────────────────────────────────────────────────────┘
  ┌────────────────────────────────────────────────────────────────────────────────────┐
@@ -135,7 +139,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 26 | Hierarchical skill category dashboard | `/teacher` grid + drill, reports, creation Unit Focus | `b7f5a71` | [curr_version/architecture/26-hierarchical-skill-dashboard.md](curr_version/architecture/26-hierarchical-skill-dashboard.md) |
 | 27 | Warm-up on the pad, confidence first, multimodal help | `/student?stage=confidence`, `…=practice` | `9f311a5` | [curr_version/architecture/27-warm-up-on-the-pad.md](curr_version/architecture/27-warm-up-on-the-pad.md) |
 | 28 | Warm-up chooser: problems, words, one skill at a time | `/student?stage=warmup-pick`, `…=practice` | `c614ed5` | [curr_version/architecture/28-warm-up-chooser.md](curr_version/architecture/28-warm-up-chooser.md) |
-| 29 | Mid-set isolated practice on the pad | `/student?stage=working` overlay | _this commit_ | [curr_version/architecture/29-isolated-practice-on-the-pad.md](curr_version/architecture/29-isolated-practice-on-the-pad.md) |
+| 29 | Mid-set isolated practice on the pad | `/student?stage=working` overlay | `2022a51` | [curr_version/architecture/29-isolated-practice-on-the-pad.md](curr_version/architecture/29-isolated-practice-on-the-pad.md) |
+| 30 | Hint words that light the problem | `/student?stage=practice`, `…=working` overlay | _this commit_ | [curr_version/architecture/30-hint-links.md](curr_version/architecture/30-hint-links.md) |
 
 ## Conventions
 

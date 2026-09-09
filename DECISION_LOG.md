@@ -504,3 +504,36 @@ into a mid-set practice and back).
 
 **Defence.** The pad's behaviour is one component and one reducer; a change to help lands in
 both places at once, and each run keeps its own ink.
+
+## 2026-09-10 · Hint words point at the problem through phrase → TeX-fragment pairs
+
+**Decision.** A practice problem may carry `hintTerms: { phrase, tex[] }[]`: a word as written in
+the hint, and the fragments of the problem's TeX it stands for. The hint is split at every whole-
+word occurrence of a phrase (`hintSegments`), and every fragment is wrapped in a KaTeX
+`\htmlClass{hint-term}` group at all times, with `hint-term-lit` added to the hovered term's
+fragments (`termTex`). Fragments are found as whole tokens (`findFragment`), never a superscript,
+part of a longer number or a command name, and nest when one lies inside another. The links render
+only in `PracticePad` (warm-up and mid-set practice); a set problem never carries them.
+
+**Context.** The user wants "constant" and "middle coefficient" to read as pointers and, on hover,
+to light the 12 and the 7, and the same for "a", "b", "c" and "ac" on every warm-up hint. The
+hint and the expression are plain strings, so something had to say which word means which part.
+
+**Alternatives considered.** Markup inside the hint string (`[constant](12)`): mixes content and
+wiring, and one phrase used twice would need writing twice. Positional indices into the TeX:
+brittle under any edit of the expression. A structured expression tree with addressable terms:
+the right long-term answer but a rewrite of every fixture and the renderer for one feature.
+Re-typesetting only the lit fragment on hover: measured, and a wrapped group changes no KaTeX
+spacing, but wrapping everything always is simpler and provably layout-stable (a test compares the
+spacing of every problem with every term lit against the plain expression).
+
+**Tradeoffs.** Fragment matching is textual: a fragment must appear verbatim in the TeX, and the
+first whole occurrence is taken, so an author must pick a fragment that is unambiguous (the follow-
+up's "middle term" is `- 7x`, sign included, because KaTeX keeps binary spacing inside the group).
+Every occurrence of a phrase links, so a hint that uses "constant" in two senses would need
+rewording. Hover has no meaning on the iPad's touch input (deferred).
+
+**Defence.** The data stays two readable strings plus a small list per problem; the invariants
+(every phrase found whole in its hint, every fragment found as a token in its TeX, spacing
+unchanged lit or not) are enforced by tests over every practice, so a broken link fails the suite
+rather than silently not lighting.

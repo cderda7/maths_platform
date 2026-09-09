@@ -19,6 +19,10 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     ],
     why: "Most of this set leans on factorising. Two minutes here makes it quicker.",
     hint: "Look for two numbers that multiply to the constant and add to the middle coefficient.",
+    hintTerms: [
+      { phrase: "constant", tex: ["12"] },
+      { phrase: "middle coefficient", tex: ["7"] },
+    ],
     followUp: {
       id: "w-monic-2",
       leaf: "algebra.expand-factor.monic",
@@ -31,6 +35,10 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       ],
       why: "Same move, negative pair: both numbers negative when the constant is positive and the middle term negative.",
       hint: "The constant is positive and the middle term negative, so both numbers are negative.",
+      hintTerms: [
+        { phrase: "constant", tex: ["10"] },
+        { phrase: "middle term", tex: ["- 7x"] },
+      ],
     },
   },
   "algebra.expand-factor.nonmonic": {
@@ -46,6 +54,13 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     ],
     why: "When the x² term has a coefficient, the split is the move that replaces guessing.",
     hint: "Multiply a by c, then split the middle term into two parts that add to b and multiply to ac.",
+    hintTerms: [
+      { phrase: "a", tex: ["3"] },
+      { phrase: "b", tex: ["10"] },
+      { phrase: "c", tex: ["8"] },
+      { phrase: "ac", tex: ["3", "8"] },
+      { phrase: "middle term", tex: ["10x"] },
+    ],
   },
   "algebra.expand-factor.expand": {
     id: "w-expand",
@@ -58,6 +73,10 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     ],
     why: "Expanding back is the quickest check on a factorisation. It takes one line.",
     hint: "Every term in the first bracket meets every term in the second: four products.",
+    hintTerms: [
+      { phrase: "first bracket", tex: ["(x - 4)"] },
+      { phrase: "second", tex: ["(x + 1)"] },
+    ],
   },
   "algebra.equations.linear": {
     id: "w-linear",
@@ -70,6 +89,10 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     ],
     why: "A product only tells you about its factors when it equals zero. Getting to standard form first is the habit.",
     hint: "Get everything onto one side first, so the other side is zero.",
+    hintTerms: [
+      { phrase: "one side", tex: ["x(x + 3)"] },
+      { phrase: "other side", tex: ["10"] },
+    ],
   },
   "algebra.number.fractions": {
     id: "w-fractions",
@@ -82,6 +105,10 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     ],
     why: "Whatever you do to one term you do to every term, on both sides.",
     hint: "Whatever you do to one side, do to the whole of the other side.",
+    hintTerms: [
+      { phrase: "one side", tex: ["\\dfrac{x^2}{3}"] },
+      { phrase: "other side", tex: ["12"] },
+    ],
   },
   "unit.u1.nfl": {
     id: "w-nfl",
@@ -94,6 +121,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     ],
     why: "The null factor law only works when the product equals zero. That is the whole rule.",
     hint: "A product is zero only when one of its factors is zero.",
+    hintTerms: [{ phrase: "factors", tex: ["(x - 2)", "(x + 5)"] }],
   },
   "unit.u1.discriminant": {
     id: "w-discriminant",
@@ -106,6 +134,10 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     ],
     why: "Positive: two roots. Zero: one. Negative: none. The sign is the whole story.",
     hint: "Work out b² − 4ac and look only at its sign.",
+    hintTerms: [
+      { phrase: "b", tex: ["2"] },
+      { phrase: "ac", tex: ["5"] },
+    ],
   },
   "graphing.quadratics.features": {
     id: "w-features",
@@ -143,6 +175,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     ],
     why: "Finish the sentence: say what the algebra means for the picture.",
     hint: "Say what the number means for the picture, in a sentence.",
+    hintTerms: [{ phrase: "number", tex: ["-11"] }],
   },
   "graphing.quadratics.sketch": {
     id: "w-sketch",
@@ -157,6 +190,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     ],
     why: "A sketch is four facts placed on the axes: two intercepts, the y-intercept and the turning point.",
     hint: "Intercepts first, then the turning point halfway between them, then join with a smooth curve.",
+    hintTerms: [{ phrase: "intercepts", tex: ["(x - 1)", "(x - 3)"] }],
   },
   "functions.notation.evaluate": {
     id: "w-evaluate",
@@ -169,6 +203,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     ],
     why: "The brackets around a negative input are the whole skill.",
     hint: "Put brackets around the value before you substitute, especially a negative one.",
+    hintTerms: [{ phrase: "value", tex: ["-2"] }],
   },
   "reasoning.interpret.worded": {
     id: "w-worded",
@@ -183,6 +218,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     ],
     why: "The words hide an equation. Find it, solve it, then answer the question that was asked.",
     hint: "Landing means the height is zero. Write that as an equation before anything else.",
+    hintTerms: [{ phrase: "height", tex: ["h"] }],
   },
   "functions.zeros.zero-finding": {
     id: "w-zeros",
@@ -197,6 +233,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     ],
     why: "A zero of a function and an x-intercept of its graph are the same fact, seen twice.",
     hint: "Set the rule equal to zero and solve. Each answer is where the graph crosses the x-axis.",
+    hintTerms: [{ phrase: "rule", tex: ["x^2 - 9"] }],
   },
   "unit.u1.binomial": {
     id: "w-binomial",
@@ -209,6 +246,10 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     ],
     why: "Square the first, double the product, square the last.",
     hint: "Square the first term, double the product of the two, square the last term.",
+    hintTerms: [
+      { phrase: "first term", tex: ["x"] },
+      { phrase: "last term", tex: ["5"] },
+    ],
   },
 };
 

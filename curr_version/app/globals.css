@@ -76,6 +76,20 @@ body {
   font-size: 1.35em;
 }
 
+/* A fragment of a problem linked from its hint (lib/hint.ts). Lit while its word is hovered. */
+.katex .hint-term {
+  border-radius: 3px;
+  transition:
+    color 120ms,
+    background-color 120ms,
+    box-shadow 120ms;
+}
+.katex .hint-term-lit {
+  color: #fff;
+  background: var(--color-standout);
+  box-shadow: 0 0 0 2px var(--color-standout);
+}
+
 .hero-glow {
   background:
     radial-gradient(60% 60% at 20% 0%, rgba(91, 74, 232, 0.1), transparent 70%),

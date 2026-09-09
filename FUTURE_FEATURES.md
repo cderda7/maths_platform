@@ -210,3 +210,22 @@ appends it here (see `CLAUDE.md`).
 - **Quadratic equations as a warm-up.** Excluded from the warm-up focus (`NOT_WARMED`): it is the
   whole of this set, and isolating it made the warm-up as hard as the set (2026-09-10). Other sets
   will have their own "whole-set" leaf; make the exclusion per assignment.
+
+## Hint links (from ticket 30, 2026-09-10)
+
+- **Click for clarity.** The user described the light-blue words as a signal that the student "can
+  click on it for clarity"; only hover was specified, so click does nothing yet. A tap or click
+  could open a one-line definition ("the constant is the term with no x") or pin the lighting.
+- **Touch.** Hover does not exist on the iPad. Tap-to-toggle (tap the word to light, tap again or
+  tap elsewhere to clear), or light while the finger is down.
+- **Words that name nothing in the expression.** "Axis of symmetry", "turning point", "the pair",
+  "the picture" have no fragment to light. Either light the relevant part of a figure, or show a
+  tiny inline sketch, or leave them plain (today).
+- **Fragment addressing.** Links find a fragment by its text (first whole occurrence). A
+  structured expression with addressable terms would remove the ambiguity and let the same
+  mechanism light a term in the "Read as" lines and the worked-example steps.
+- **Authoring at scale.** Fourteen practices have hand-written terms. A real problem bank needs
+  the interpreter (or the model that writes the hint) to emit the pairs, then a check like the
+  current test that every phrase and fragment resolves.
+- **Lighting in the worked example.** The example's steps ("Found the pair: 3 × 4 = 12") could
+  light the same 12 when hovered, tying the hint, the step and the problem together.

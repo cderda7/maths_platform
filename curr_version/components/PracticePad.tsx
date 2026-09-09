@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import HintCard from "@/components/HintCard";
 import M from "@/components/Math";
-import type { PracticeProblem, Stroke } from "@/data/types";
+import type { HintTerm, PracticeProblem, Stroke } from "@/data/types";
 import PadSection from "@/components/PadSection";
 import PracticeCard from "@/components/PracticeCard";
 import ReadAs from "@/components/ReadAs";
-import { Button, Card, Eyebrow } from "@/components/ui";
+import { Button, Eyebrow } from "@/components/ui";
 import { LeafChip } from "@/components/Tag";
+import { termTex } from "@/lib/hint";
 import { nextLine } from "@/lib/recognition";
 import type { PracticeRun, RunKey, SessionAction } from "@/lib/session";
 import { warmupScript } from "@/lib/warmup";
@@ -48,6 +50,9 @@ export default function PracticePad({
   const [helpOpen, setHelpOpen] = useState(false);
   const hinted = run.hinted.includes(p.id);
   const exampled = run.exampled.includes(p.id);
+  /** The hint word under the pointer; lights its fragments of the problem while it stays there. */
+  const [lit, setLit] = useState<HintTerm | null>(null);
+  const litTerm = hinted ? p.hintTerms?.find((t) => t.phrase === lit?.phrase) : undefined;
 
   const addStroke = (next: Stroke[]) => dispatch({ type: "run/stroke", run: runKey, problem: p.id, stroke: next[next.length - 1] });
   const onBurstEnd = (strokeCount: number) => {
@@ -82,19 +87,14 @@ export default function PracticePad({
         {!second && header}
         <p className="mt-3 text-[14px] text-ink-soft">{p.stem}</p>
         <div className="math-lg mt-3 text-ink">
-          <M tex={p.tex} display />
+          <M tex={termTex(p.tex, p.hintTerms, litTerm)} display />
         </div>
         {second && (
           <div className="mt-4 flex flex-wrap justify-center gap-1.5">
             <LeafChip id={p.leaf} />
           </div>
         )}
-        {hinted && (
-          <Card tone="soft" className="mt-5 p-4" data-hint>
-            <Eyebrow>Hint</Eyebrow>
-            <p className="mt-1.5 text-[14px] leading-snug text-ink">{p.hint}</p>
-          </Card>
-        )}
+        {hinted && <HintCard problem={p} lit={litTerm ?? null} onLit={setLit} className="mt-5" />}
         <div className="mt-auto pt-6">
           <Button variant="secondary" className="w-full" onClick={() => setHelpOpen(true)} disabled={run.example}>
             I need help

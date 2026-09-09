@@ -98,6 +98,14 @@ export type Stage =
 export type ReviewStage = "individual" | "group" | "whole-class";
 export type Pathway = ReviewStage[];
 
+/** A word in a hint linked to parts of the problem; see `PracticeProblem.hintTerms`. */
+export interface HintTerm {
+  /** Matched whole-word in the hint, case-insensitively, every occurrence. */
+  phrase: string;
+  /** Fragments of the problem's TeX that light while the word is hovered, each as written there. */
+  tex: string[];
+}
+
 /** A short isolated problem on one leaf: the pre-set warm-up and the mid-set practices. */
 export interface PracticeProblem {
   id: string;
@@ -109,6 +117,11 @@ export interface PracticeProblem {
   why: string;
   /** One sentence of help that names the move, never the answer. */
   hint: string;
+  /**
+   * Words in the hint that point at parts of the problem: hovering "constant" lights the 12.
+   * Warm-up only; the mid-set practice card shows the hint plain.
+   */
+  hintTerms?: HintTerm[];
   /** A fresh problem on the same leaf, offered once this one's worked example has been seen. */
   followUp?: PracticeProblem;
 }
