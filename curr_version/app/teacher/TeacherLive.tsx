@@ -86,7 +86,7 @@ export default function TeacherLive() {
   const status = wc?.status === "active" ? " · in whole-class review" : wc?.status === "ended" ? " · complete" : "";
   const [open, setOpen] = useState<{ student: string; mode: RowMode; category?: CategoryId; leaf?: LeafId; columns: ColumnBox[]; nonce: number } | null>(null);
   const tableRef = useRef<HTMLTableElement>(null);
-  const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastClick = useRef<{ student: string; at: number } | null>(null);
   const nonce = useRef(0);
   /**
    * Where each category's dots sit, relative to the drill cell's content edge (td px-5 = 20px),
@@ -109,20 +109,22 @@ export default function TeacherLive() {
   const openRow = (student: string, mode: RowMode, category?: CategoryId, leaf?: LeafId) => setOpen({ student, mode, category, leaf, columns: columnBoxes(student), nonce: ++nonce.current });
   /** A blamed line asks for another category: re-open this student's drill there, on that skill. */
   const jump = (student: string, leaf: LeafId) => openRow(student, "category", categoryOf(leaf), leaf);
-  /** A tap on the row (not a dot): close if open, else every category's groups. A double tap: everything. */
+  /**
+   * A tap on the row (not a dot) acts at once: close if open, else every category's groups. The
+   * second tap of a double-tap is ignored so the row doesn't flicker shut before the double-tap
+   * opens everything.
+   */
   const rowClick = (student: string, e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest("button, a")) return;
-    if (clickTimer.current) clearTimeout(clickTimer.current);
-    clickTimer.current = setTimeout(() => {
-      clickTimer.current = null;
-      if (open?.student === student) setOpen(null);
-      else openRow(student, "groups");
-    }, 220);
+    const now = e.timeStamp;
+    const again = lastClick.current?.student === student && now - lastClick.current.at < 350;
+    lastClick.current = { student, at: now };
+    if (again) return;
+    if (open?.student === student) setOpen(null);
+    else openRow(student, "groups");
   };
   const rowDouble = (student: string, e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest("button, a")) return;
-    if (clickTimer.current) clearTimeout(clickTimer.current);
-    clickTimer.current = null;
     openRow(student, "expanded");
   };
 
@@ -181,7 +183,7 @@ export default function TeacherLive() {
                 <th className="px-5 py-4 font-semibold">Student</th>
                 {columns.map((c) => (
                   <th key={c} className="py-4 pl-2 pr-1 text-left font-semibold leading-tight" data-column={c}>
-                    {c === "communication" ? "Comm." : categoryName(c).short}
+                    {categoryName(c).short}
                   </th>
                 ))}
                 <th className="px-3 py-4 font-semibold">Confidence</th>
