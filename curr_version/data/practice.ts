@@ -45,7 +45,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "(3x + 4)(x + 2)", label: "Factorised", tags: [tag("algebra.expand-factor.nonmonic")] },
     ],
     why: "When the x² term has a coefficient, the split is the move that replaces guessing.",
-    hint: "Multiply a by c, then split the middle term into two parts that add to b.",
+    hint: "Multiply a by c, then split the middle term into two parts that add to b and multiply to ac.",
   },
   "algebra.expand-factor.expand": {
     id: "w-expand",
