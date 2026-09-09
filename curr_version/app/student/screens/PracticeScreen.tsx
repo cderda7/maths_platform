@@ -171,7 +171,7 @@ function HelpMenu({ hinted, exampled, onHint, onExample, onClose }: { hinted: bo
     { key: "example", title: "worked example", onPick: exampled ? undefined : onExample, note: exampled ? "Seen" : undefined },
     { key: "video", title: "video", note: "Not available yet" },
   ];
-  const row = "flex w-full items-center justify-between rounded-xl border border-line bg-paper px-4 py-3 text-left";
+  const row = "relative block w-full rounded-xl border border-line bg-paper px-4 py-3 text-center";
   return (
     <Scrim onDismiss={onClose}>
       <div className="w-[480px] rounded-3xl bg-paper p-8 shadow-lift" data-help-menu>
@@ -182,14 +182,14 @@ function HelpMenu({ hinted, exampled, onHint, onExample, onClose }: { hinted: bo
               <li key={o.key}>
                 <a href="#" aria-disabled onClick={(e) => e.preventDefault()} className={`${row} opacity-60`} data-help-option={o.key}>
                   <span className="text-[15px] font-medium text-ink">{o.title}</span>
-                  <span className="ml-4 shrink-0 text-[13px] text-ink-muted">{o.note}</span>
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[13px] text-ink-muted">{o.note}</span>
                 </a>
               </li>
             ) : (
               <li key={o.key}>
                 <button type="button" onClick={o.onPick} disabled={!o.onPick} className={`${row} transition-colors enabled:hover:border-ink-muted disabled:opacity-60`} data-help-option={o.key}>
                   <span className="text-[15px] font-medium text-ink">{o.title}</span>
-                  <span className={`ml-4 shrink-0 text-[13px] ${o.onPick ? "text-accent-deep" : "text-ink-muted"}`}>{o.note ?? "Show →"}</span>
+                  <span className={`absolute right-4 top-1/2 -translate-y-1/2 text-[13px] ${o.onPick ? "text-accent-deep" : "text-ink-muted"}`}>{o.note ?? "Show →"}</span>
                 </button>
               </li>
             ),
