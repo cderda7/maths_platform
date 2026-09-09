@@ -256,7 +256,7 @@ export default function TeacherLive() {
                                 </span>
                               )}
                             </div>
-                            <div className={`flex items-start gap-2 text-[12.5px] leading-snug text-ink-muted ${r.sub || r.notes.length > 0 || (r.live && (caution.length > 0 || live?.reportSent)) ? "" : "hidden"}`}>
+                            <div className={`flex items-start gap-2 text-[12.5px] leading-snug text-ink-muted ${!column && (r.sub || r.notes.length > 0 || (r.live && (caution.length > 0 || live?.reportSent))) ? "" : "hidden"}`} data-commentary>
                               {r.live && caution.length > 0 && (
                                 <span className="inline-flex items-center gap-1 rounded-full border border-gap-line bg-gap-soft px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gap" data-caution>
                                   <span className="h-1.5 w-1.5 rounded-full bg-gap" aria-hidden /> caution
@@ -309,7 +309,7 @@ export default function TeacherLive() {
                               <StatusDot status={st} half={half} size="h-[15px] w-[15px]" />
                             </button>
                             {column?.category === c && (
-                              <span className="pointer-events-none absolute top-1/2 left-[calc(50%+12px)] -translate-y-1/2 whitespace-nowrap text-[12.5px] text-ink" data-column-label>
+                              <span className="pointer-events-none absolute top-1/2 left-[calc(50%+12px)] -translate-y-1/2 whitespace-nowrap text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink-muted" data-column-label>
                                 {categoryName(c).name}
                               </span>
                             )}
