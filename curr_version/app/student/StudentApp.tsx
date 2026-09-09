@@ -13,7 +13,8 @@ import ReportScreen from "./screens/ReportScreen";
 import { useEffect } from "react";
 import { dispatch, useStudentSession } from "@/lib/store";
 import { dispatchClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
-import { isDue, isPending } from "@/lib/classroom";
+import { isDue, isPending, isProjecting } from "@/lib/classroom";
+import FrozenScreen from "./screens/FrozenScreen";
 import { useNow } from "@/lib/store";
 import { ASSIGNMENT } from "@/data/assignment";
 import type { Pathway, Stage } from "@/data/types";
@@ -60,10 +61,17 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
     // The grace ran out: apply the teacher's advance once (the reducer ignores repeats by id).
     if (due && advance) dispatch({ type: "advance/apply", id: advance.id, kind: advance.kind, at: now });
   }, [due, advance, now]);
-  const crumb = CRUMB[session.stage] ?? (["working", "feedback", "waiting"].includes(session.stage) ? title : ASSIGNMENT.className);
+  const projecting = isProjecting(classroom);
+  const frozen = session.stage === "frozen";
+  useEffect(() => {
+    // Whole-class review: once the grace is over, every student tab is frozen (a late-opened tab too); ending releases to the report.
+    if (projecting && !counting && !frozen) dispatch({ type: "freeze" });
+    if (!projecting && frozen) dispatch({ type: "release" });
+  }, [projecting, counting, frozen]);
+  const crumb = CRUMB[session.stage] ?? (["working", "feedback", "waiting", "frozen"].includes(session.stage) ? title : ASSIGNMENT.className);
   return (
     <IpadStage>
-      <StudentChrome crumb={crumb}>
+      <StudentChrome crumb={crumb} frozen={frozen}>
         {session.stage === "overview" && (
           <OverviewScreen onPractice={() => dispatch({ type: "practice/accept" })} onStart={() => dispatch({ type: "practice/decline" })} />
         )}
@@ -74,6 +82,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
         {session.stage === "working" && <WorkingScreen session={session} dispatch={dispatch} />}
         {session.stage === "feedback" && <FeedbackScreen session={session} dispatch={dispatch} />}
         {session.stage === "waiting" && <WaitingScreen />}
+        {session.stage === "frozen" && <FrozenScreen session={session} />}
         {session.stage === "rework" && <ReworkScreen session={session} dispatch={dispatch} />}
         {session.stage === "group-pass" && <GroupPassScreen session={session} dispatch={dispatch} />}
         {session.stage === "group-discuss" && <GroupDiscussScreen session={session} dispatch={dispatch} />}
@@ -88,7 +97,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
             </div>
           </div>
         )}
-        {session.notice && (
+        {session.notice && !frozen && (
           <div className="absolute inset-x-0 bottom-6 z-20 flex justify-center px-8" data-notice>
             <div className="flex items-center gap-4 rounded-full border border-accent-line bg-paper px-5 py-2.5 text-[14px] text-ink shadow-lift">
               <span>{session.notice}</span>
@@ -98,7 +107,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
             </div>
           </div>
         )}
-        {session.diagnostic && (
+        {session.diagnostic && !frozen && (
           <DiagnosticModal questionId={session.diagnostic.questionId} recorded={session.diagnostic.recorded} onAnswer={(option) => dispatch({ type: "diagnostic/answer", option })} />
         )}
       </StudentChrome>

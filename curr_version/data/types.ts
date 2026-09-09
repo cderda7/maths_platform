@@ -73,6 +73,7 @@ export type Stage =
   | "working"
   | "feedback"
   | "waiting"
+  | "frozen"
   | "rework"
   | "group-pass"
   | "group-discuss"

@@ -61,9 +61,11 @@ describe("whole-class session", () => {
     expect(c.wholeClass?.status).toBe("setup");
     expect(isProjecting(c)).toBe(false);
     expect(currentSlide(c)).toBeNull();
-    c = classroomReducer(c, { type: "wc/project" });
+    c = classroomReducer(c, { type: "wc/project", at: 500 });
     expect(isProjecting(c)).toBe(true);
     expect(currentSlide(c)).toEqual({ problemId: "q3", view: "unmarked", index: 0, total: 3 });
+    // projecting and the grace start in the same state, so no tab can freeze before the countdown
+    expect(c.advance).toMatchObject({ kind: "whole-class-start", deadline: 500 + 60_000 });
   });
 
   it("show marks flips the view; next opens the next problem unmarked; previous steps back one view", () => {
@@ -86,8 +88,8 @@ describe("whole-class session", () => {
 
   it("ending keeps the record but stops projecting, and clears any pending advance", async () => {
     const { isProjecting } = await import("./classroom");
-    let c = classroomReducer(setup(), { type: "wc/project" });
-    c = classroomReducer(c, { type: "advance/start", kind: "whole-class-start", at: 1 });
+    let c = classroomReducer(setup(), { type: "wc/project", at: 1 });
+    expect(c.advance).not.toBeNull();
     c = classroomReducer(c, { type: "wc/end" });
     expect(c.wholeClass?.status).toBe("ended");
     expect(isProjecting(c)).toBe(false);

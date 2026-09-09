@@ -7,7 +7,7 @@ import { BrandMark } from "@/components/Brand";
 import { PROBLEM_MAP } from "@/data/assignment";
 import { currentSlide } from "@/lib/classroom";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
-import { boardExamples } from "@/lib/examples";
+import { boardExamples, lineMarks } from "@/lib/examples";
 import { useBatchedSession } from "@/lib/store";
 
 /**
@@ -64,11 +64,18 @@ export default function Board() {
               </span>
             </div>
             <ol className="mt-6 space-y-3">
-              {e.lines.map((tex, i) => (
-                <li key={i} className="rounded-2xl border border-line bg-cream/50 px-5 py-4 text-[26px] text-ink">
-                  <M tex={tex} />
-                </li>
-              ))}
+              {e.lines.map((tex, i) => {
+                const mark = slide.view === "marked" ? lineMarks(slide.problemId, e.lines)[i] : null;
+                return (
+                  <li
+                    key={i}
+                    data-mark={mark ?? undefined}
+                    className={`rounded-2xl border px-5 py-4 text-[26px] text-ink ${mark === "wrong" ? "border-wrong-line bg-wrong-soft" : mark === "standout" ? "border-standout-line bg-standout-soft" : "border-line bg-cream/50"}`}
+                  >
+                    <M tex={tex} />
+                  </li>
+                );
+              })}
             </ol>
           </section>
         ))}
@@ -82,6 +89,15 @@ export default function Board() {
           problem {slide.index + 1} of {slide.total}
         </span>
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className={`rounded-full border px-5 py-2.5 text-[16px] transition-colors ${slide.view === "marked" ? "border-ink bg-ink text-white" : "border-line bg-paper text-ink hover:border-ink-muted"}`}
+            onClick={() => dispatchClassroom({ type: "wc/marks", on: slide.view !== "marked" })}
+            aria-pressed={slide.view === "marked"}
+            data-marks
+          >
+            {slide.view === "marked" ? "Hide marks" : "Show marks"}
+          </button>
           <button type="button" className="rounded-full border border-line bg-paper px-5 py-2.5 text-[16px] text-ink hover:border-ink-muted" onClick={end} data-end>
             End
           </button>

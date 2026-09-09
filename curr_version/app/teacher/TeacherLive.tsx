@@ -12,7 +12,7 @@ import { CLASSMATES } from "@/data/classmates";
 import { PREREQ_IDS, SUBSKILL_MAP, TARGET_ID } from "@/data/subskills";
 import type { Confidence, SubskillId, SubskillStatus } from "@/data/types";
 import { useBatchedSession, useNow } from "@/lib/store";
-import { useAssignment } from "@/lib/classroom-store";
+import { useAssignment, useClassroom } from "@/lib/classroom-store";
 import { problemsStarted, subskillStatuses } from "@/lib/status";
 import type { StudentSession } from "@/lib/session";
 
@@ -43,6 +43,8 @@ function stageWord(s: StudentSession): string {
       return "Handed in";
     case "waiting":
       return "Handed in · waiting";
+    case "frozen":
+      return "Frozen · whole-class review";
     case "rework":
       return "Reworking on their own";
     case "group-pass":
@@ -75,6 +77,8 @@ export default function TeacherLive() {
   const conf = confidenceWord(live?.confidence ?? null);
   const now = useNow();
   const { title } = useAssignment();
+  const wc = useClassroom().wholeClass;
+  const status = wc?.status === "active" ? " · in whole-class review" : wc?.status === "ended" ? " · complete" : "";
 
   return (
     <TeacherChrome>
@@ -84,6 +88,7 @@ export default function TeacherLive() {
       <H1 className="mt-3">Where the class is</H1>
       <p className="mt-3 text-[14px] text-ink-muted">
         {title} · due {ASSIGNMENT.due}
+        <span data-assignment-status>{status}</span>
       </p>
 
       <div className="mt-10 grid grid-cols-[1fr_300px] gap-6">

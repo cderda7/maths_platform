@@ -25,6 +25,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │                                  ├▶ "Read as" column             │
  │                                  └▶ PromptModal · PracticeOverlay · HelpPicker
  │               ▶ Feedback (one detective sentence · star) · Waiting│
+ │               ▶ Frozen (own ink + lines on the board's problem; marks follow the board)  │
  │               ▶ Rework (every problem · guard banner · hand-in blocked while tripped)│
  │               ▶ GroupPass (all-correct) ▶ GroupDiscuss (no marks)│
  │               ▶ Report (teacher's colours + reflection → sent)   │
@@ -44,6 +45,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │                     PendingAdvance { id, kind, deadline } · GRACE_MS · isPending/isDue│
  │                     WholeClassSession { problems, examples, slide, view, status }     │
  │ lib/examples.ts     candidatesFor · bucketOf · suggestExamples · boardExamples (no names)│
+ │                     lineMarks (red / blue for the marked view, board and student alike)  │
+ │ lib/frozen.ts       frozenView(session, classroom) → the student's own work on the slide │
  │ lib/assignment.ts   activeAssignment(classroom) → created title + problems, or fixture│
  │ lib/pathway.ts      REVIEW_ORDER · successors · nextStage · pathwaySentence/Chip    │
  │ lib/session.ts      StudentSession · sessionReducer(s, a, env) · sessionAt (pure)   │
@@ -121,7 +124,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 20 | Persisted ink | `/student` working, rework, history | `67aec66` | [curr_version/architecture/20-persisted-ink.md](curr_version/architecture/20-persisted-ink.md) |
 | 21 | Detective feedback and the guard | `/student?stage=feedback`, rework | `3479206` | [curr_version/architecture/21-detective-feedback-and-guard.md](curr_version/architecture/21-detective-feedback-and-guard.md) |
 | 22 | Teacher force submit with one-minute grace | `/teacher` Class card → `/student` pill | `bd16a06` | [curr_version/architecture/22-teacher-force-submit-with-grace.md](curr_version/architecture/22-teacher-force-submit-with-grace.md) |
-| 23 | Whole-class setup and the unmarked board | `/teacher/whole-class`, `/teacher/board` | _this commit_ | [curr_version/architecture/23-whole-class-setup-and-unmarked-board.md](curr_version/architecture/23-whole-class-setup-and-unmarked-board.md) |
+| 23 | Whole-class setup and the unmarked board | `/teacher/whole-class`, `/teacher/board` | `bb83c90` | [curr_version/architecture/23-whole-class-setup-and-unmarked-board.md](curr_version/architecture/23-whole-class-setup-and-unmarked-board.md) |
+| 24 | Student freeze, marked view and session end | `/student` frozen, `/teacher/board` marks, `/teacher` End | _this commit_ | [curr_version/architecture/24-student-freeze-marked-view-and-session-end.md](curr_version/architecture/24-student-freeze-marked-view-and-session-end.md) |
 
 ## Conventions
 

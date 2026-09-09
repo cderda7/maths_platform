@@ -323,3 +323,25 @@ describe("teacher force submit", () => {
     expect(s.stage).toBe("feedback");
   });
 });
+
+describe("whole-class freeze", () => {
+  it("freezes wherever the student is, dismissing prompts, and releases to the report", () => {
+    let s = sessionAt("working");
+    s = sessionReducer(s, { type: "help/request", subskill: "fractions", problem: "q1" });
+    s = sessionReducer(s, { type: "advance/apply", id: "wc@1", kind: "whole-class-start" });
+    expect(s.stage).toBe("frozen");
+    expect(s.prompt).toBeNull();
+    expect(sessionReducer(s, { type: "freeze" })).toBe(s);
+    const released = sessionReducer(s, { type: "release" });
+    expect(released.stage).toBe("report");
+    expect(sessionReducer(released, { type: "release" })).toBe(released);
+  });
+
+  it("a student mid-rework keeps their broken rework as it stands when frozen", () => {
+    let s = sessionAt("rework");
+    s = sessionReducer(s, { type: "rework/reveal", problem: "q4", line: { tex: "x = \\dfrac{5 \\pm \\sqrt{37}}{3}", strokeCount: 1 } });
+    s = sessionReducer(s, { type: "freeze" });
+    expect(s.stage).toBe("frozen");
+    expect(s.rework.q4).toHaveLength(1);
+  });
+});

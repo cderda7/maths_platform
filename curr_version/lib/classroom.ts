@@ -51,7 +51,8 @@ export type ClassroomAction =
   | { type: "advance/start"; kind: AdvanceKind; at?: number }
   | { type: "advance/clear" }
   | { type: "wc/setup"; problems: string[]; examples: Record<string, ExampleRef[]> }
-  | { type: "wc/project" }
+  /** Activates the session and starts the whole-class-start grace in one step, so no tab can see one without the other. */
+  | { type: "wc/project"; at?: number }
   | { type: "wc/next" }
   | { type: "wc/prev" }
   | { type: "wc/marks"; on: boolean }
@@ -72,8 +73,11 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
       return { ...c, advance: null };
     case "wc/setup":
       return { ...c, wholeClass: { problems: [...a.problems], examples: a.examples, slide: 0, view: "unmarked", status: "setup" } };
-    case "wc/project":
-      return c.wholeClass ? { ...c, wholeClass: { ...c.wholeClass, status: "active", slide: 0, view: "unmarked" } } : c;
+    case "wc/project": {
+      if (!c.wholeClass) return c;
+      const at = a.at ?? 0;
+      return { ...c, wholeClass: { ...c.wholeClass, status: "active", slide: 0, view: "unmarked" }, advance: { id: `whole-class-start@${at}`, kind: "whole-class-start", deadline: at + GRACE_MS } };
+    }
     case "wc/next": {
       const w = c.wholeClass;
       if (!w) return c;

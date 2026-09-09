@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button, Card, Eyebrow } from "@/components/ui";
 import { CLASSMATES } from "@/data/classmates";
-import { GRACE_MS, isPending } from "@/lib/classroom";
+import { GRACE_MS, isPending, isProjecting } from "@/lib/classroom";
 import { dispatchClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
 import type { StudentSession } from "@/lib/session";
 import { useNow } from "@/lib/store";
@@ -24,7 +24,8 @@ export default function ForceSubmit({ session }: { session: StudentSession | nul
   const { problems } = useAssignment();
   const [confirming, setConfirming] = useState(false);
   const advance = classroom.advance;
-  const pending = isPending(classroom, now);
+  const pending = isPending(classroom, now) && advance?.kind === "force-submit";
+  const projecting = isProjecting(classroom);
   const liveWorking = !session || WORKING.includes(session.stage);
   const stillWorking = (liveWorking ? 1 : 0) + CLASSMATES.filter((c) => c.done < problems.length).length;
 
@@ -64,7 +65,7 @@ export default function ForceSubmit({ session }: { session: StudentSession | nul
         </div>
       ) : (
         <div className="mt-3">
-          <Button variant="secondary" disabled={!liveWorking} onClick={() => setConfirming(true)} data-force>
+          <Button variant="secondary" disabled={!liveWorking || projecting} onClick={() => setConfirming(true)} data-force>
             Hand in for everyone
           </Button>
         </div>

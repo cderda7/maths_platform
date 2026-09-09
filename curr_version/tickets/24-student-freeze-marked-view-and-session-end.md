@@ -4,14 +4,14 @@
 
 **Blocked by:** 23 (Whole-class setup and the unmarked board).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Project writes a whole-class-start pending advance; on deadline the student reducer enters `frozen`; idempotent
-- [ ] Session position is (slide, view) with view `unmarked | marked`; Show marks, next and previous step it as specified; classroom reducer tested
-- [ ] Board marked view adds red and blue layers to examples, marks only; standout entries authored for classmate examples where a step deserves one
-- [ ] Pure frozen view model: follows the current slide; version stacking; not-attempted case; marks only while the board is marked; tested
-- [ ] Frozen screen renders no interactive elements; diagnostics are not delivered while frozen; in-progress work kept as-is
-- [ ] End releases students to `report`; live view banner with End while active; freeze survives a closed board tab
-- [ ] Assignment status "in whole-class review" then "complete" on the teacher side
-- [ ] Build, lint, type-check, vitest pass; headless two-tab: project, countdown, freeze, follow slides, show marks, end
-- [ ] Architecture note written and folded into `ARCHITECTURE.md`
+- [x] Project writes a whole-class-start pending advance; on deadline the student reducer enters `frozen`; idempotent
+- [x] Session position is (slide, view) with view `unmarked | marked`; Show marks, next and previous step it as specified; classroom reducer tested
+- [x] Board marked view adds red and blue layers to examples, marks only; standout entries authored for classmate examples where a step deserves one
+- [x] Pure frozen view model: follows the current slide; version stacking; not-attempted case; marks only while the board is marked; tested
+- [x] Frozen screen renders no interactive elements; diagnostics are not delivered while frozen; in-progress work kept as-is
+- [x] End releases students to `report`; live view banner with End while active; freeze survives a closed board tab
+- [x] Assignment status "in whole-class review" then "complete" on the teacher side
+- [x] Build, lint, type-check, vitest pass; headless two-tab: project, countdown, freeze, follow slides, show marks, end
+- [x] Architecture note written and folded into `ARCHITECTURE.md`

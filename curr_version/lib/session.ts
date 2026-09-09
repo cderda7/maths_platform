@@ -104,6 +104,9 @@ export type SessionAction =
   /** Refused while the guard is tripped on any problem, unless `force` (a teacher advance). */
   | { type: "rework/done"; at?: number; force?: boolean }
   | { type: "notice/dismiss" }
+  /** Whole-class review: everyone is frozen on the board's problem; released to the report when it ends. */
+  | { type: "freeze" }
+  | { type: "release" }
   | { type: "group/discuss" }
   | { type: "group/talked"; problem: string }
   | { type: "group/done" }
@@ -160,6 +163,7 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     case "advance/apply": {
       if (s.appliedAdvances.includes(a.id)) return s;
       const applied = { ...s, appliedAdvances: [...s.appliedAdvances, a.id] };
+      if (a.kind === "whole-class-start") return applied.stage === "frozen" ? applied : { ...applied, stage: "frozen", prompt: null, overlay: null };
       if (a.kind === "force-submit") {
         if (!BEFORE_HAND_IN.includes(s.stage)) return applied;
         const notAttempted = ASSIGNMENT.problems.map((p) => p.id).filter((id) => (s.lines[id]?.length ?? 0) === 0);
@@ -247,6 +251,10 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     }
     case "notice/dismiss":
       return { ...s, notice: null };
+    case "freeze":
+      return s.stage === "frozen" ? s : { ...s, stage: "frozen", prompt: null, overlay: null };
+    case "release":
+      return s.stage === "frozen" ? { ...s, stage: "report" } : s;
     case "group/discuss":
       return { ...s, stage: "group-discuss" };
     case "group/talked":
@@ -289,7 +297,7 @@ function roundStroke(s: Stroke): Stroke {
   return s.map((p) => ({ x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10 }));
 }
 
-const ORDER: Stage[] = ["overview", "practice", "confidence", "working", "feedback", "waiting", "rework", "group-pass", "group-discuss", "report", "peers", "history"];
+const ORDER: Stage[] = ["overview", "practice", "confidence", "working", "feedback", "waiting", "frozen", "rework", "group-pass", "group-discuss", "report", "peers", "history"];
 
 /** Fixed times for deep-linked runs: handed in at 3:48 pm, rework done at 4:07 pm, today. */
 const todayAt = (h: number, m: number) => {

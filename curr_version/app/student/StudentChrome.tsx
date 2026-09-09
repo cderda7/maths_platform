@@ -7,7 +7,7 @@ import { DEMO_STUDENT } from "@/data/assignment";
  * The persistent frame inside the iPad screen: a thin iPadOS-style status strip and the
  * product's top bar. Everything a student screen renders sits below it.
  */
-export default function StudentChrome({ children, crumb }: { children: ReactNode; crumb?: string }) {
+export default function StudentChrome({ children, crumb, frozen = false }: { children: ReactNode; crumb?: string; frozen?: boolean }) {
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-6 items-center justify-between px-6 text-[11px] font-medium text-ink-soft select-none">
@@ -30,7 +30,7 @@ export default function StudentChrome({ children, crumb }: { children: ReactNode
           </span>
         </span>
       </div>
-      <header className="flex h-14 items-center justify-between border-b border-line bg-paper/70 px-7 backdrop-blur">
+      <header className={`flex h-14 items-center justify-between border-b border-line bg-paper/70 px-7 backdrop-blur ${frozen ? "pointer-events-none" : ""}`} aria-disabled={frozen || undefined}>
         <div className="flex items-center gap-5">
           <Brand href="/student" />
           {crumb && <span className="text-[13px] text-ink-muted">{crumb}</span>}

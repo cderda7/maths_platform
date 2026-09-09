@@ -1,5 +1,6 @@
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATES, type Classmate } from "@/data/classmates";
+import { STANDOUT } from "@/data/evaluation";
 import type { Problem, SubskillId } from "@/data/types";
 import { evaluateLine } from "./evaluate";
 import type { StudentSession } from "./session";
@@ -130,4 +131,18 @@ export function problemsByStruggle(session: StudentSession | null): { problem: P
   return ASSIGNMENT.problems
     .map((problem) => ({ problem, struggled: struggleCount(problem.id, session), handedIn: candidatesFor(problem.id, session).length }))
     .sort((a, b) => b.struggled - a.struggled);
+}
+
+/** The marked view's two layers: red on a step that didn't hold, blue on a curated standout that did. */
+export type LineMark = "wrong" | "standout" | null;
+
+export function lineMarks(problemId: string, lines: string[]): LineMark[] {
+  const verdicts = lines.map((tex) => evaluateLine(problemId, tex));
+  const kind = verdicts.some((v) => v.verdict === "wrong") ? "weak" : "strong";
+  return lines.map((tex, i) => {
+    const v = verdicts[i];
+    if (v.verdict === "wrong") return "wrong";
+    const so = STANDOUT[problemId]?.[tex];
+    return v.verdict === "ok" && so && (so.when === "both" || so.when === kind) ? "standout" : null;
+  });
 }

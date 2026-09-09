@@ -297,3 +297,28 @@ work is the model solution, since the fixtures only script their mistakes.
 
 **Defence.** Anonymity is enforced by the type at the seam rather than by discipline in the
 screen, and the same candidates feed the private setup and the public board without duplication.
+
+## 2026-09-09 · The freeze is derived from the classroom, and Project is one atomic action
+
+**Decision.** A student tab freezes when the classroom says a whole-class session is active and
+no grace is counting down, and releases when it stops being active. Project is a single
+classroom action that both activates the session and starts the grace. The frozen screen renders
+from a pure view model that reads the board's current slide and view.
+
+**Context.** Spec v3: everyone freezes after a one-minute grace, follows the board, sees marks on
+their own work only while the board shows marks, and is released to the report when the teacher
+ends the session, which must work even if the board tab was closed.
+
+**Alternatives considered.** Freezing only through the timed advance (a tab opened late would
+never freeze). Two messages, "project" then "start the grace" (the first run did exactly this and
+students froze in the millisecond between them). The board pushing each slide into every student
+session (writes fan out per student; the classroom already holds the slide).
+
+**Tradeoffs.** A student tab must be open to freeze, and its own clock decides when the grace has
+run out. Marks on the student's own work are computed on the student side from the same tables
+the board uses, so the two can only disagree if the tables do.
+
+**Defence.** One source of truth (the classroom) drives the board, the escape hatch and every
+student, so closing the board tab changes nothing and End works from anywhere; the atomic Project
+removed a real race found in the click-through; and the first time a student sees red on their own
+line is the moment the class has just seen the same mistake on an anonymous example.

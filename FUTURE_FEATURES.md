@@ -43,6 +43,9 @@ appends it here (see `CLAUDE.md`).
   denominator = students who handed in that problem.
 - **Aggregate on the frozen student screen** (e.g. how many classmates share my approach).
 - **Board slide for not-attempted students** or a prompt for them to attempt live.
+- **Background-tab clocks.** The countdown and the freeze use each tab's own 1 s clock; a browser
+  may throttle timers in a hidden tab, so a teacher's backgrounded live view can lag the true
+  deadline. Fine on the smartboard and the iPad, worth a server clock later.
 - **Auto-record which examples were discussed** into the teacher's report for the lesson.
 
 ## Feedback and review design
