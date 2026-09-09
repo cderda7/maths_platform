@@ -3,7 +3,7 @@
 import M from "@/components/Math";
 import { Button, Card, Eyebrow } from "@/components/ui";
 import { DifficultyTag } from "@/components/Tag";
-import { leafName } from "@/data/taxonomy";
+import { studentLeafName } from "@/data/taxonomy";
 import { peerStruggles } from "@/lib/peers";
 
 /** For a student whose every step held: where the class is finding it hard, in counts only. */
@@ -21,7 +21,7 @@ export default function PeerScreen({ onBack }: { onBack: () => void }) {
             {p.leaves.slice(0, 6).map((s) => (
               <li key={s.id}>
                 <div className="flex items-baseline justify-between text-[13.5px]">
-                  <span className="font-medium text-ink">{leafName(s.id).name}</span>
+                  <span className="font-medium text-ink">{studentLeafName(s.id).name}</span>
                   <span className="text-ink-muted">
                     {s.struggling} of {p.classSize}
                   </span>

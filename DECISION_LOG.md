@@ -537,3 +537,26 @@ rewording. Hover has no meaning on the iPad's touch input (deferred).
 (every phrase found whole in its hint, every fragment found as a token in its TeX, spacing
 unchanged lit or not) are enforced by tests over every practice, so a broken link fails the suite
 rather than silently not lighting.
+
+## 2026-09-10 · Confidence sets the practice threshold; the demo student stays confident
+
+**Decision.** A student who answered "not confident" (overall, or in this category) is offered
+practice on the first mistake there; everyone else on the second. The practice goes to the most
+fundamental leaf slipped on in the group since its last practice. The deep-link and scripted
+fixtures are a confident student.
+
+**Context.** The user's rule (FUTURE_FEATURES, 2026-09-09; built 2026-09-10): acknowledge the
+confidence answer by intervening earlier. The demo's scripted run was "not confident when
+algebra", which under the new rule would prompt at Q1, practise twice, and raise the teacher's
+caution flag on factorising, changing the teacher grid the last two days of work were built on.
+
+**Alternatives considered.** Keep the scripted run not-confident and accept the new grid (Sam's
+Algebra reads as a gap, caution up). Count confidence-triggered practices as half an entry toward
+caution (a second rule to explain).
+
+**Tradeoffs.** The report's confidence line for deep-linked runs now reads "Confident before
+starting". The confidence rule is exercised in tests and in a live click-through, not in the
+fixtures.
+
+**Defence.** One threshold parameter and one predicate; the polished teacher demo is untouched;
+the feature is one confidence answer away in any live run.

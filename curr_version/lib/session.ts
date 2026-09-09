@@ -1,7 +1,7 @@
 import type { Confidence, Pathway, Stage, Stroke } from "@/data/types";
-import { groupOf, type LeafId } from "@/data/taxonomy";
+import { categoryOf, groupOf, type LeafId } from "@/data/taxonomy";
 import { PRACTICES } from "@/data/practice";
-import { focusLeaves, practiceFor, tutorReply, warmupSequence, type WarmupMessage } from "./warmup";
+import { byEase, focusLeaves, practiceFor, tutorReply, warmupSequence, type WarmupMessage } from "./warmup";
 import type { AdvanceKind } from "./classroom";
 import type { Diagnostic } from "@/data/diagnostic";
 import { DEFAULT_PATHWAY, nextStage } from "./pathway";
@@ -19,8 +19,8 @@ import { ASSIGNMENT } from "@/data/assignment";
  */
 export interface PracticePrompt {
   leaf: LeafId;
-  /** detected: the counter triggered it. help: the student asked. */
-  reason: "detected" | "help";
+  /** detected: a second mistake. confidence: a first mistake where the student said they are not confident. help: the student asked. */
+  reason: "detected" | "confidence" | "help";
 }
 
 export interface PracticeEntry extends PracticePrompt {
@@ -306,13 +306,15 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       const v = evaluateLine(a.problem, a.line.tex);
       const key = `${a.problem}#${prev.length}`;
       if (v.verdict !== "wrong" || s.counted.includes(key)) return next;
-      const leaf = practiceLeaf(v.tags[0].leaf);
-      const r = recordMistake(s.escalation, groupOf(v.tags[0].leaf));
+      const slipped = v.tags[0].leaf;
+      const unsure = notConfidentIn(s.confidence, slipped);
+      const r = recordMistake(s.escalation, groupOf(slipped), slipped, unsure ? 1 : 2);
+      const leaf = r.trigger ? fundamentalLeaf(r.slipped) : null;
       return {
         ...next,
         escalation: r.state,
         counted: [...s.counted, key],
-        prompt: r.trigger && leaf ? { leaf, reason: "detected" } : s.prompt,
+        prompt: leaf ? { leaf, reason: unsure ? "confidence" : "detected" } : s.prompt,
       };
     }
     case "ink/stroke":
@@ -409,6 +411,25 @@ const BEFORE_HAND_IN: Stage[] = ["overview", "confidence", "warmup-pick", "pract
 /** The leaf to practise for a mistake: its own practice, else another leaf in the same group that has one; never a whole-task leaf. */
 export function practiceLeaf(leaf: LeafId): LeafId | null {
   return practiceFor(leaf)?.leaf ?? null;
+}
+
+/**
+ * Of the leaves slipped on in a group, the most fundamental that can be practised: a monic slip
+ * then a non-monic slip sends the student to monic, the skill the second one leans on.
+ */
+export function fundamentalLeaf(slipped: LeafId[]): LeafId | null {
+  for (const l of byEase(slipped)) {
+    const p = practiceLeaf(l);
+    if (p) return p;
+  }
+  return null;
+}
+
+/** True when the student said they are not confident overall, or not confident in this leaf's category. */
+export function notConfidentIn(c: Confidence | null, leaf: LeafId): boolean {
+  if (!c) return false;
+  if (c.level === "low") return true;
+  return c.level === "low-when" && c.category === categoryOf(leaf);
 }
 export const FORCED_HAND_IN_TEXT = "Your teacher handed in the class's work.";
 
@@ -512,7 +533,7 @@ export function strongSession(): StudentSession {
  * produces: every recognised line for every problem, the Q2 prompt taken, no help asked.
  */
 export function scriptedSession(): StudentSession {
-  let s: StudentSession = { ...INITIAL_SESSION, stage: "working", practice: "declined", confidence: { level: "low-when", category: "algebra" } };
+  let s: StudentSession = { ...INITIAL_SESSION, stage: "working", practice: "declined", confidence: { level: "confident" } };
   for (const [i, p] of Object.entries(RECOGNITION)) {
     const index = Object.keys(RECOGNITION).indexOf(i);
     s = sessionReducer(s, { type: "problem/goto", index });
@@ -550,7 +571,7 @@ export function sessionAt(stage: Stage, run: RunKindParam = "weak"): StudentSess
     ...INITIAL_SESSION,
     stage,
     practice: i === ORDER.indexOf("warmup-pick") || i === ORDER.indexOf("practice") ? "taken" : i >= ORDER.indexOf("confidence") ? "declined" : null,
-    confidence: i >= ORDER.indexOf("warmup-pick") ? { level: "low-when", category: "algebra" } : null,
+    confidence: i >= ORDER.indexOf("warmup-pick") ? { level: "confident" } : null,
     // A deep link straight to the pad needs something to warm up on: Q2, monic factorising and fractions, the demo's own worries.
     warmup: i === ORDER.indexOf("practice") ? { ...INITIAL_WARMUP, selected: ["q2"], messages: [{ from: "student", text: "monic factorising and fractions" }] } : INITIAL_WARMUP,
   };

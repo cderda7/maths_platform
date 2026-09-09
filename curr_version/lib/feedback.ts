@@ -1,6 +1,6 @@
 import { STANDOUT } from "@/data/evaluation";
 import { ASSIGNMENT } from "@/data/assignment";
-import { leafName, type LeafId } from "@/data/taxonomy";
+import { studentLeafName, type LeafId } from "@/data/taxonomy";
 import type { Problem } from "@/data/types";
 import { evaluateLine, type Verdict } from "./evaluate";
 import type { RevealedLine } from "./recognition";
@@ -107,6 +107,6 @@ export function summarySentence(count: number, subskills: LeafId[], version: Fee
   const still = version === "final" ? "still " : "";
   if (count === 0) return version === "final" ? "Every problem holds now." : "Every problem held.";
   const head = count === 1 ? `1 of your problems ${still}contains a mistake.` : `${count} of your problems ${still}contain a mistake.`;
-  const names = subskills.slice(0, HINT_CAP).map((id) => leafName(id).short);
+  const names = subskills.slice(0, HINT_CAP).map((id) => studentLeafName(id).short);
   return names.length ? `${head} Double-check ${joinWords(names)}.` : head;
 }

@@ -91,7 +91,7 @@ export default function PracticePad({
         </div>
         {second && (
           <div className="mt-4 flex flex-wrap justify-center gap-1.5">
-            <LeafChip id={p.leaf} />
+            <LeafChip student id={p.leaf} />
           </div>
         )}
         {hinted && <HintCard problem={p} lit={litTerm ?? null} onLit={setLit} className="mt-5" />}

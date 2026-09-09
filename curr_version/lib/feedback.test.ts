@@ -68,12 +68,12 @@ describe("detective feedback summary", () => {
     const s = feedbackSummary(scriptedSession());
     expect(s.count).toBe(5);
     expect(s.subskills).toEqual(["algebra.expand-factor.monic", "algebra.expand-factor.nonmonic", "unit.u1.nfl", "algebra.number.fractions", "reasoning.justify.formal"]);
-    expect(s.sentence).toBe("5 of your problems contain a mistake. Double-check monic factorising, non-monic factorising and null factor law.");
+    expect(s.sentence).toBe("5 of your problems contain a mistake. Double-check factorising, non-monic factorising and null factor law.");
   });
 
   it("caps the hint at three subskills", async () => {
     const { summarySentence } = await import("./feedback");
-    expect(summarySentence(4, ["algebra.equations.linear", "algebra.number.fractions", "algebra.expand-factor.monic", "algebra.expand-factor.expand"])).toBe("4 of your problems contain a mistake. Double-check linear equations, fractions and monic factorising.");
+    expect(summarySentence(4, ["algebra.equations.linear", "algebra.number.fractions", "algebra.expand-factor.monic", "algebra.expand-factor.expand"])).toBe("4 of your problems contain a mistake. Double-check linear equations, fractions and factorising.");
   });
 
   it("the final version reads the rework and says 'still'", async () => {

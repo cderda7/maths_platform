@@ -8,9 +8,9 @@ describe("report facts", () => {
     expect(f.slipped).toBe(5);
     expect(f.total).toBe(10);
     expect(f.reworked).toEqual(["Q1", "Q2", "Q3", "Q7", "Q10"]);
-    expect(f.practices).toEqual(["Practice · non-monic factorising · Q2 · taken"]);
+    expect(f.practices).toEqual(["Practice · monic factorising · Q2 · taken"]);
     expect(f.caution).toEqual([]);
-    expect(f.confidence).toMatch(/low when algebra/);
+    expect(f.confidence).toMatch(/^Confident/);
     expect(f.stars).toEqual(["Q4"]);
   });
 });

@@ -32,7 +32,7 @@ export default function PracticeScreen({ session, dispatch }: { session: Student
           {sequence.map((q, i) => {
             const state = i < w.step ? "done" : i === w.step ? "current" : "todo";
             return (
-              <LeafChip
+              <LeafChip student
                 key={q.id}
                 id={q.leaf}
                 data-state={state}

@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import PracticePad from "@/components/PracticePad";
 import { Button, Eyebrow } from "@/components/ui";
-import { leafName, type LeafId } from "@/data/taxonomy";
+import { groupOf, groupWord, studentLeafName, type LeafId } from "@/data/taxonomy";
 import type { Problem } from "@/data/types";
 import { problemLeaves } from "@/lib/hierarchy";
 import { runFirst, type PracticePrompt as Prompt, type SessionAction, type StudentSession } from "@/lib/session";
@@ -29,16 +29,21 @@ export function Scrim({ children, onDismiss }: { children: React.ReactNode; onDi
   );
 }
 
-/** The isolated-practice prompt, for a detected trigger only (asking for help goes straight to the pad). */
-export function PromptModal({ prompt, problem, onAccept, onDecline }: { prompt: Prompt; problem: Problem; onAccept: () => void; onDecline: () => void }) {
-  const s = leafName(prompt.leaf);
+/**
+ * The isolated-practice prompt, for a trigger the program raised (asking for help goes straight to
+ * the pad): a second mistake in a group, or a first one where the student said they are not confident.
+ */
+export function PromptModal({ prompt, onAccept, onDecline }: { prompt: Prompt; problem: Problem; onAccept: () => void; onDecline: () => void }) {
+  const s = studentLeafName(prompt.leaf);
+  const word = groupWord(groupOf(prompt.leaf));
   return (
     <Scrim>
-      <div className="w-[560px] rounded-3xl bg-paper p-8 shadow-lift">
-        <Eyebrow>A natural next step</Eyebrow>
-        <h2 className="font-display mt-2 text-[28px] leading-tight text-ink">Two minutes on {s.short}?</h2>
+      <div className="w-[560px] rounded-3xl bg-paper p-8 shadow-lift" data-prompt={prompt.reason}>
+        <h2 className="font-display text-[28px] leading-tight text-ink">two minutes on {s.short}?</h2>
         <p className="mt-3 text-[14px] text-ink-soft">
-          Something in {problem.label} leaned on {s.short}. One short problem, then back.
+          {prompt.reason === "confidence"
+            ? `you've made a mistake with ${word}. you told me you don't feel confident with this skill, so let's do a short problem to review.`
+            : `this is your second mistake on ${word}. let's do a short problem to review.`}
         </p>
         <div className="mt-6 flex justify-end gap-2">
           <Button variant="secondary" size="lg" onClick={onDecline}>
@@ -69,7 +74,7 @@ export function PracticeOverlay({ session, problem, dispatch }: { session: Stude
         header={
           <div className="mt-3 flex flex-wrap justify-center gap-1.5">
             <span className="rounded-full border border-standout bg-standout px-2.5 py-0.5 text-[11.5px] text-white" data-leaf={first.leaf}>
-              {leafName(first.leaf).short}
+              {studentLeafName(first.leaf).short}
             </span>
           </div>
         }
@@ -98,7 +103,7 @@ export function HelpPicker({ problem, onPick, onClose }: { problem: Problem; onP
         <h2 className="font-display mt-2 text-[28px] leading-tight text-ink">Which skill?</h2>
         <ul className="mt-5 space-y-2">
           {own.map((id) => {
-            const s = leafName(id);
+            const s = studentLeafName(id);
             return (
               <li key={id}>
                 <button

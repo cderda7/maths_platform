@@ -3,7 +3,7 @@
 import ProblemCard from "@/components/ProblemCard";
 import { Button, Eyebrow } from "@/components/ui";
 import { ASSIGNMENT, unitLabel } from "@/data/assignment";
-import { categoryName, leafName } from "@/data/taxonomy";
+import { categoryName, studentLeafName } from "@/data/taxonomy";
 import { useAssignment } from "@/lib/classroom-store";
 import { categoriesTouched, leavesTouched } from "@/lib/hierarchy";
 
@@ -32,7 +32,7 @@ export default function OverviewScreen({ onPractice, onStart }: { onPractice: ()
         <ul className="mt-3 flex flex-wrap justify-center gap-1.5">
           {leaves.map((id) => (
             <li key={id} className="rounded-full border border-line bg-paper px-2.5 py-1 text-[12.5px] text-ink-soft">
-              {leafName(id).name}
+              {studentLeafName(id).name}
             </li>
           ))}
         </ul>

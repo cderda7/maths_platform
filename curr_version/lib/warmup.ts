@@ -1,7 +1,7 @@
 import type { PracticeProblem, Problem } from "@/data/types";
 import { ASSIGNMENT } from "@/data/assignment";
 import { isolatable, PRACTICE, PRACTICES } from "@/data/practice";
-import { groupOf, leafName, type LeafId } from "@/data/taxonomy";
+import { groupOf, studentLeafName, type LeafId } from "@/data/taxonomy";
 import { problemLeaves } from "./hierarchy";
 
 /**
@@ -117,7 +117,7 @@ export function warmupSequence(focus: LeafId[]): PracticeProblem[] {
   return out.length > 0 ? out : [PRACTICE];
 }
 
-const names = (ls: LeafId[]) => ls.map((l) => leafName(l).short);
+const names = (ls: LeafId[]) => ls.map((l) => studentLeafName(l).short);
 const list = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
 
 /** The tutor's reply to a student message, given the whole focus after it. */

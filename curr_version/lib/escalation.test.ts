@@ -61,6 +61,19 @@ describe("subskill-instance counter", () => {
     expect(r.state.counts["algebra.equations"]).toBe(0);
   });
 
+  it("a threshold of 1 triggers on the first instance; the slipped leaves come back with the trigger and reset", () => {
+    const r = recordMistake(INITIAL_ESCALATION, "algebra.expand-factor", "algebra.expand-factor.monic", 1);
+    expect(r.trigger).toBe(true);
+    expect(r.slipped).toEqual(["algebra.expand-factor.monic"]);
+    expect(r.state.slips["algebra.expand-factor"]).toEqual([]);
+    let s = recordMistake(INITIAL_ESCALATION, "algebra.expand-factor", "algebra.expand-factor.monic").state;
+    expect(s.slips["algebra.expand-factor"]).toEqual(["algebra.expand-factor.monic"]);
+    const second = recordMistake(s, "algebra.expand-factor", "algebra.expand-factor.nonmonic");
+    expect(second.slipped).toEqual(["algebra.expand-factor.monic", "algebra.expand-factor.nonmonic"]);
+    s = second.state;
+    expect(s.slips["algebra.expand-factor"]).toEqual([]);
+  });
+
   it("subskills are counted independently", () => {
     let s = recordMistake(INITIAL_ESCALATION, "algebra.expand-factor").state;
     const r = recordMistake(s, "algebra.equations");

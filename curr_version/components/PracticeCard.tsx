@@ -38,7 +38,7 @@ export default function PracticeCard({
     <Card className={compact ? "p-5" : "p-7"}>
       <div className="flex items-center justify-between gap-3">
         <span className="text-[14px] text-ink-soft">{practice.stem}</span>
-        <LeafChip id={practice.leaf} />
+        <LeafChip student id={practice.leaf} />
       </div>
       <div className={`${compact ? "mt-2 text-[20px]" : "math-lg mt-3"} text-ink`}>
         <M tex={practice.tex} display />

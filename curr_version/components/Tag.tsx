@@ -1,5 +1,5 @@
 import type { Difficulty, Status } from "@/data/types";
-import { leafName, type LeafId } from "@/data/taxonomy";
+import { leafName, studentLeafName, type LeafId } from "@/data/taxonomy";
 
 const DIFF_STYLES: Record<Difficulty, string> = {
   "simple familiar": "bg-cream-deep text-ink-soft border-line-strong",
@@ -17,11 +17,11 @@ export function DifficultyTag({ d, className = "" }: { d: Difficulty; className?
 }
 
 /** A taxonomy leaf by its short name. */
-export function LeafChip({ id, status, after, className = "", ...rest }: { id: LeafId; status?: Status; after?: React.ReactNode; className?: string } & React.HTMLAttributes<HTMLSpanElement>) {
+export function LeafChip({ id, status, after, student = false, className = "", ...rest }: { id: LeafId; status?: Status; after?: React.ReactNode; /** Student-facing name ("factorising" for monic). */ student?: boolean; className?: string } & React.HTMLAttributes<HTMLSpanElement>) {
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full border border-line bg-paper px-2.5 py-0.5 text-[11.5px] text-ink-soft ${className}`} data-leaf={id} {...rest}>
       {status && <StatusDot status={status} size="h-2 w-2" />}
-      {leafName(id).short}
+      {(student ? studentLeafName(id) : leafName(id)).short}
       {after}
     </span>
   );

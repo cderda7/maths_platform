@@ -254,3 +254,30 @@ export const isFlat = (c: CategoryId) => FLAT_CATEGORIES.includes(c);
 export function categoryLabel(c: CategoryId, unit: 1 | 2 | 3 | 4): { name: string; short: string } {
   return c === "unit" ? { name: `Unit ${unit}`, short: `Unit ${unit}` } : categoryName(c);
 }
+
+/**
+ * How a leaf is named to the student. Stored and shown to the teacher as "monic factorising";
+ * the student just sees "factorising" (non-monic keeps its qualifier, so the contrast is clear
+ * when they meet it).
+ */
+const STUDENT_NAMES: Partial<Record<LeafId, { name: string; short: string }>> = {
+  "algebra.expand-factor.monic": { name: "Factorising", short: "factorising" },
+};
+export function studentLeafName(l: LeafId): { name: string; short: string } {
+  return STUDENT_NAMES[l] ?? leafName(l);
+}
+
+/** The plain word for a group in a sentence to the student ("this is your second mistake on factorising"). */
+const GROUP_WORDS: Partial<Record<GroupId, string>> = {
+  "algebra.equations": "solving equations",
+  "algebra.expand-factor": "factorising",
+  "algebra.number": "fractions",
+  "functions.notation": "function notation",
+  "functions.zeros": "finding zeros",
+  "graphing.quadratics": "parabolas",
+  "graphing.lines": "straight lines",
+  "reasoning.justify": "justifying",
+  "reasoning.interpret": "interpreting the question",
+  "unit.u1": "the unit's rules",
+};
+export const groupWord = (g: GroupId): string => GROUP_WORDS[g] ?? groupName(g).short.toLowerCase();

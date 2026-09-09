@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import ProblemCard from "@/components/ProblemCard";
 import { Button, Eyebrow } from "@/components/ui";
-import { categoryName, categoryOf, leafName, type CategoryId, type LeafId } from "@/data/taxonomy";
+import { categoryName, categoryOf, studentLeafName, type CategoryId, type LeafId } from "@/data/taxonomy";
 import { useAssignment } from "@/lib/classroom-store";
 import { categoriesTouched, leavesTouched } from "@/lib/hierarchy";
 import { warmupFocus, type SessionAction, type StudentSession } from "@/lib/session";
@@ -69,7 +69,7 @@ function SkillRow({ category, leaves, focus }: { category: CategoryId; leaves: L
           const on = focus.includes(id);
           return (
             <li key={id} data-skill={id} data-focus={on || undefined} className={`rounded-full border px-2.5 py-[3px] text-[12px] transition-colors ${on ? "border-standout-line bg-standout-soft text-standout" : "border-line bg-paper text-ink-soft"}`}>
-              {leafName(id).name}
+              {studentLeafName(id).name}
             </li>
           );
         })}
