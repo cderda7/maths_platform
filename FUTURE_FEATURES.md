@@ -94,6 +94,20 @@ appends it here (see `CLAUDE.md`).
 - **Ink rendering in the history compare view** and in the teacher's original-vs-final view
   (with the student's consent setting), now that strokes are persisted.
 
+## Whole-class review (from the build, 2026-09-09)
+
+- **Setup view state is local.** Swapped examples and toggled problems live in the setup page's
+  component state until Project; a reload before Project loses them. Persist a draft session in
+  the classroom store if setup gets longer.
+- **Frozen screen layout toggle**: versions are side by side on the landscape iPad; the spec said
+  stacked. Offer stacked as an option if the ink blocks get tall.
+- **Star semantics under detective mode.** The star now reads "not sure about this one" on the
+  feedback screen while the report still calls starred problems "right, but worth coming back to"
+  for the teacher; decide whether a star on a wrong problem should be shown differently.
+- **Group review after a forced hand-in** uses whatever lines exist; a student handed in with
+  nothing on a problem counts as "not attempted" in feedback but as correct-by-absence in the
+  group's quick-pass set. Decide how not-attempted should count.
+
 ## UI copy
 
 - **Add descriptions back selectively.** v3 strips every screen to the copy rule in spec2. Once

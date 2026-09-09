@@ -4,10 +4,10 @@
 
 **Blocked by:** 24 (Student freeze, marked view and session end).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `ARCHITECTURE.md` system diagram and per-ticket sections updated for 17–24
-- [ ] `DECISION_LOG.md` entries written in the existing format (decision, context, alternatives, tradeoffs, defence)
-- [ ] `FUTURE_FEATURES.md` final pass
-- [ ] Root `README.md` and `curr_version/README.md` recompiled with the new demo script and deep links
-- [ ] Project `CLAUDE.md` still accurate
+- [x] `ARCHITECTURE.md` system diagram and per-ticket sections updated for 17–24
+- [x] `DECISION_LOG.md` entries written in the existing format (decision, context, alternatives, tradeoffs, defence)
+- [x] `FUTURE_FEATURES.md` final pass
+- [x] Root `README.md` and `curr_version/README.md` recompiled with the new demo script and deep links
+- [x] Project `CLAUDE.md` still accurate

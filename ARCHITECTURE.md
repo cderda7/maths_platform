@@ -1,7 +1,7 @@
 # Architecture — Edexia · Maths (current build, `curr_version/`)
 
-Running architecture record for the closed-loop demo. One section per completed ticket, in build
-order; per-ticket detail lives in `curr_version/architecture/<nn>-<slug>.md`. Paths below are
+Running architecture record for the closed-loop demo. One row per completed ticket, in build
+order (01–16 spec v2, 17–25 spec v3); per-ticket detail lives in `curr_version/architecture/<nn>-<slug>.md`. Paths below are
 relative to `curr_version/`. Next.js 16 App Router, React 19, Tailwind 4, KaTeX; no backend, all
 data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/ARCHITECTURE.md`.
 
@@ -125,7 +125,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 21 | Detective feedback and the guard | `/student?stage=feedback`, rework | `3479206` | [curr_version/architecture/21-detective-feedback-and-guard.md](curr_version/architecture/21-detective-feedback-and-guard.md) |
 | 22 | Teacher force submit with one-minute grace | `/teacher` Class card → `/student` pill | `bd16a06` | [curr_version/architecture/22-teacher-force-submit-with-grace.md](curr_version/architecture/22-teacher-force-submit-with-grace.md) |
 | 23 | Whole-class setup and the unmarked board | `/teacher/whole-class`, `/teacher/board` | `bb83c90` | [curr_version/architecture/23-whole-class-setup-and-unmarked-board.md](curr_version/architecture/23-whole-class-setup-and-unmarked-board.md) |
-| 24 | Student freeze, marked view and session end | `/student` frozen, `/teacher/board` marks, `/teacher` End | _this commit_ | [curr_version/architecture/24-student-freeze-marked-view-and-session-end.md](curr_version/architecture/24-student-freeze-marked-view-and-session-end.md) |
+| 24 | Student freeze, marked view and session end | `/student` frozen, `/teacher/board` marks, `/teacher` End | `9acced2` | [curr_version/architecture/24-student-freeze-marked-view-and-session-end.md](curr_version/architecture/24-student-freeze-marked-view-and-session-end.md) |
+| 25 | Documentation compile | — | _this commit_ | [curr_version/architecture/25-documentation-compile.md](curr_version/architecture/25-documentation-compile.md) |
 
 ## Conventions
 
