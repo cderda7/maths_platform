@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { INITIAL_SESSION, sessionAt, sessionReducer } from "./session";
+import { allPathways } from "./pathway";
+import type { Pathway } from "@/data/types";
 
 describe("student session flow", () => {
   it("declining practice goes straight to the confidence survey", () => {
@@ -166,5 +168,50 @@ describe("diagnostic push", () => {
     s = sessionReducer(s, { type: "diagnostic/withdraw" });
     expect(s.diagnostic).toBeNull();
     expect(s.diagnosticAnswers).toEqual([]);
+  });
+});
+
+describe("routing by pathway", () => {
+  const under = (pathway: Pathway) => (s: ReturnType<typeof sessionAt>, a: Parameters<typeof sessionReducer>[1]) => sessionReducer(s, a, { pathway });
+
+  it("without an env the reducer follows the build's default pathway", () => {
+    let s = sessionReducer(sessionAt("working"), { type: "hand-in", at: 7 });
+    expect(s.stage).toBe("feedback");
+    expect(s.handedInAt).toBe(7);
+    s = sessionReducer({ ...s, stage: "rework" }, { type: "rework/done" });
+    expect(s.stage).toBe("group-pass");
+    s = sessionReducer({ ...s, stage: "group-discuss" }, { type: "group/done" });
+    expect(s.stage).toBe("report");
+  });
+
+  it("every one of the eight pathways walks its stages in order and ends on the report", () => {
+    const entry = { individual: "feedback", group: "group-pass", "whole-class": "waiting" } as const;
+    for (const pathway of allPathways()) {
+      const r = under(pathway);
+      let s = r(sessionAt("working"), { type: "hand-in" });
+      const expected = pathway.map((st) => entry[st]);
+      expect(s.stage, pathway.join(",")).toBe(expected[0] ?? "report");
+      if (pathway.includes("individual")) {
+        s = r({ ...s, stage: "rework" }, { type: "rework/done" });
+        expect(s.stage, pathway.join(",")).toBe(expected[pathway.indexOf("individual") + 1] ?? "report");
+      }
+      if (pathway.includes("group")) {
+        s = r({ ...s, stage: "group-discuss" }, { type: "group/done" });
+        expect(s.stage, pathway.join(",")).toBe(expected[pathway.indexOf("group") + 1] ?? "report");
+      }
+    }
+  });
+
+  it("submit-only lands on the report with the first attempt as the only version", () => {
+    const s = under([])(sessionAt("working"), { type: "hand-in", at: 3 });
+    expect(s.stage).toBe("report");
+    expect(s.rework).toEqual({});
+  });
+
+  it("a waiting deep link is a handed-in run", () => {
+    const s = sessionAt("waiting");
+    expect(s.stage).toBe("waiting");
+    expect(Object.keys(s.lines).length).toBeGreaterThan(0);
+    expect(s.handedInAt).toBeGreaterThan(0);
   });
 });

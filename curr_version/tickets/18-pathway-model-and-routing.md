@@ -4,14 +4,14 @@
 
 **Blocked by:** 17 (Copy sweep to the rule).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Pure pathway module: validity, legal successors for a prefix, next student stage after hand-in / rework / group under a pathway, and the human sentence for the chip; unit-tested for all eight pathways and for rejected orders and repeats
-- [ ] Classroom store and reducer with the pathway; reset clears both stores; unit-tested by action replay
-- [ ] Student reducer consults the pathway after hand-in, after rework hand-in and after group done; existing session tests extended across the eight pathways
-- [ ] New `waiting` stage with a terse "Handed in" screen shown when the next stage is whole-class review and no session is active
-- [ ] Submit-only lands on the report screen; submit→group goes straight to group pass using first-submit slips
-- [ ] `?pathway=` deep link on the student tab sets the classroom pathway for the demo
-- [ ] Pathway chip on teacher navigation; review-groups and whole-class links hidden when those stages are absent
-- [ ] Build, lint, type-check, vitest pass; headless click-through of at least submit-only, submit→group and submit→WC-waiting
-- [ ] Architecture note written and folded into `ARCHITECTURE.md`
+- [x] Pure pathway module: validity, legal successors for a prefix, next student stage after hand-in / rework / group under a pathway, and the human sentence for the chip; unit-tested for all eight pathways and for rejected orders and repeats
+- [x] Classroom store and reducer with the pathway; reset clears both stores; unit-tested by action replay
+- [x] Student reducer consults the pathway after hand-in, after rework hand-in and after group done; existing session tests extended across the eight pathways
+- [x] New `waiting` stage with a terse "Handed in" screen shown when the next stage is whole-class review and no session is active
+- [x] Submit-only lands on the report screen; submit→group goes straight to group pass using first-submit slips
+- [x] `?pathway=` deep link on the student tab sets the classroom pathway for the demo
+- [x] Pathway chip on teacher navigation; review-groups and whole-class links hidden when those stages are absent
+- [x] Build, lint, type-check, vitest pass; headless click-through of at least submit-only, submit→group and submit→WC-waiting
+- [x] Architecture note written and folded into `ARCHITECTURE.md`

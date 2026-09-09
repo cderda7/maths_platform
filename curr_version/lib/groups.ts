@@ -39,6 +39,7 @@ function liveStatus(session: StudentSession, discussion: string[]): string {
     case "report":
     case "peers":
     case "history":
+    case "waiting":
       return "Finished";
     default:
       return "Not started";

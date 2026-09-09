@@ -10,10 +10,13 @@ import FeedbackScreen from "./screens/FeedbackScreen";
 import ReworkScreen from "./screens/ReworkScreen";
 import { GroupDiscussScreen, GroupPassScreen } from "./screens/GroupScreens";
 import ReportScreen from "./screens/ReportScreen";
+import { useEffect } from "react";
 import { dispatch, useStudentSession } from "@/lib/store";
+import { dispatchClassroom } from "@/lib/classroom-store";
 import { ASSIGNMENT } from "@/data/assignment";
-import type { Stage } from "@/data/types";
+import type { Pathway, Stage } from "@/data/types";
 import type { RunKindParam } from "@/lib/session";
+import WaitingScreen from "./screens/WaitingScreen";
 import PeerScreen from "./screens/PeerScreen";
 import HistoryScreen from "./screens/HistoryScreen";
 import DiagnosticModal from "./screens/DiagnosticModal";
@@ -23,6 +26,7 @@ const CRUMB: Partial<Record<Stage, string>> = {
   confidence: "Before you start",
   working: ASSIGNMENT.title,
   feedback: ASSIGNMENT.title,
+  waiting: ASSIGNMENT.title,
   rework: "Rework on your own",
   "group-pass": "Group review",
   "group-discuss": "Group review",
@@ -35,7 +39,12 @@ const CRUMB: Partial<Record<Stage, string>> = {
  * The whole student side: one screen per stage, state in the shared demo session store so the
  * teacher tab sees the same run. `explicit` means the URL named a stage, which resets the run.
  */
-export default function StudentApp({ initStage, explicit, run = "weak" }: { initStage: Stage; explicit: boolean; run?: RunKindParam }) {
+export default function StudentApp({ initStage, explicit, run = "weak", pathway = null }: { initStage: Stage; explicit: boolean; run?: RunKindParam; pathway?: Pathway | null }) {
+  useEffect(() => {
+    // A `?pathway=` deep link creates the demo assignment with that pathway before the run starts.
+    if (pathway) dispatchClassroom({ type: "assignment/create", title: ASSIGNMENT.title, problemIds: ASSIGNMENT.problems.map((p) => p.id), pathway });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const session = useStudentSession(initStage, explicit, run);
   return (
     <IpadStage>
@@ -49,6 +58,7 @@ export default function StudentApp({ initStage, explicit, run = "weak" }: { init
         )}
         {session.stage === "working" && <WorkingScreen session={session} dispatch={dispatch} />}
         {session.stage === "feedback" && <FeedbackScreen session={session} dispatch={dispatch} />}
+        {session.stage === "waiting" && <WaitingScreen />}
         {session.stage === "rework" && <ReworkScreen session={session} dispatch={dispatch} />}
         {session.stage === "group-pass" && <GroupPassScreen session={session} dispatch={dispatch} />}
         {session.stage === "group-discuss" && <GroupDiscussScreen session={session} dispatch={dispatch} />}

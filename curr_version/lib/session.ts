@@ -1,4 +1,5 @@
-import type { Confidence, Stage, SubskillId } from "@/data/types";
+import type { Confidence, Pathway, Stage, SubskillId } from "@/data/types";
+import { DEFAULT_PATHWAY, nextStage } from "./pathway";
 import { afterUndo, type RevealedLine } from "./recognition";
 import { evaluateLine } from "./evaluate";
 import { INITIAL_ESCALATION, recordMistake, requestHelp, type EscalationState } from "./escalation";
@@ -64,6 +65,7 @@ export interface StudentSession {
 }
 
 export type SessionAction =
+  | { type: "hand-in"; at?: number }
   | { type: "practice/accept" }
   | { type: "practice/decline" }
   | { type: "practice/finish" }
@@ -120,8 +122,16 @@ export const INITIAL_SESSION: StudentSession = {
   diagnosticAnswers: [],
 };
 
-export function sessionReducer(s: StudentSession, a: SessionAction): StudentSession {
+/** What the reducer needs from outside the session: the pathway in force. */
+export interface SessionEnv {
+  pathway: Pathway;
+}
+export const DEFAULT_ENV: SessionEnv = { pathway: DEFAULT_PATHWAY };
+
+export function sessionReducer(s: StudentSession, a: SessionAction, env: SessionEnv = DEFAULT_ENV): StudentSession {
   switch (a.type) {
+    case "hand-in":
+      return { ...s, stage: nextStage(env.pathway, "handed-in"), handedInAt: a.at ?? s.handedInAt };
     case "practice/accept":
       return { ...s, practice: "taken", stage: "practice" };
     case "practice/decline":
@@ -171,13 +181,13 @@ export function sessionReducer(s: StudentSession, a: SessionAction): StudentSess
     case "rework/clear":
       return { ...s, rework: { ...s.rework, [a.problem]: [] } };
     case "rework/done":
-      return { ...s, stage: "group-pass", reworkedAt: a.at ?? s.reworkedAt };
+      return { ...s, stage: nextStage(env.pathway, "reworked"), reworkedAt: a.at ?? s.reworkedAt };
     case "group/discuss":
       return { ...s, stage: "group-discuss" };
     case "group/talked":
       return { ...s, talked: s.talked.includes(a.problem) ? s.talked.filter((p) => p !== a.problem) : [...s.talked, a.problem] };
     case "group/done":
-      return { ...s, stage: "report" };
+      return { ...s, stage: nextStage(env.pathway, "group-done") };
     case "reflection/set":
       return { ...s, reflection: a.text };
     case "report/send":
@@ -206,7 +216,7 @@ export function sessionReducer(s: StudentSession, a: SessionAction): StudentSess
   }
 }
 
-const ORDER: Stage[] = ["overview", "practice", "confidence", "working", "feedback", "rework", "group-pass", "group-discuss", "report", "peers", "history"];
+const ORDER: Stage[] = ["overview", "practice", "confidence", "working", "feedback", "waiting", "rework", "group-pass", "group-discuss", "report", "peers", "history"];
 
 /** Fixed times for deep-linked runs: handed in at 3:48 pm, rework done at 4:07 pm, today. */
 const todayAt = (h: number, m: number) => {

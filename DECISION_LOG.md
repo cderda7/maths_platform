@@ -152,3 +152,48 @@ anywhere") is no longer stated on screen and lives only in the docs.
 **Defence.** The rule is short enough to apply to every future screen and to check in review,
 the demo audience is shown the product rather than told about it, and `FUTURE_FEATURES.md`
 records where a line of explanation might earn its way back.
+
+## 2026-09-09 · Two shared stores: the student session and a teacher-owned classroom
+
+**Decision.** Teacher-owned state (the created assignment with its pathway; later the pending
+class advance and the whole-class session) lives in its own store, `lib/classroom-store.ts`,
+with the same localStorage-plus-BroadcastChannel shape as the student session store but its own
+key, channel and pure reducer. The student reducer takes the pathway as an environment argument
+rather than reading the other store.
+
+**Context.** Spec v3 lets the teacher choose a review pathway at assignment creation and, later,
+freeze the class. That state has a different writer (the teacher, once per lesson) and lifetime
+(the class, not one run) from the student session, which changes on every stroke.
+
+**Alternatives considered.** Fold the pathway into `StudentSession` (simplest today; but a reset
+of one student would forget the lesson's pathway, and a second student would need a copy).
+One combined "demo state" store (one key; but every stroke would rewrite and rebroadcast the
+teacher's state, and the multi-student build would have to split it anyway).
+
+**Tradeoffs.** Two stores to reset together (`resetSession` does both). A reducer with an
+environment argument is one more thing to pass in tests, mitigated by a default that is the
+build's original pathway so every earlier test holds unchanged.
+
+**Defence.** The seam matches who owns what: the multi-student build keys the student store per
+student and keeps the classroom store as is. And the pathway is a pure rule (`lib/pathway.ts`),
+not an enumerated list, so eight pathways cost the same as one.
+
+## 2026-09-09 · A pathway is a rule, not a list
+
+**Decision.** A review pathway is an ordered subset of `individual < group < whole-class`, each
+optional, each at most once. Validity, legal successors and the next student stage are derived
+from the order; nothing enumerates the eight pathways by hand.
+
+**Context.** The teacher picks the pathway on a three-column map; the student flow needs the next
+stage after hand-in, after rework and after group review.
+
+**Alternatives considered.** Hardcode the six pathways in the user's sketch (misses the
+three-step path and submit-only, and the map would need per-pathway wiring). A general graph
+(more than the product needs; the fixed order is the pedagogy).
+
+**Tradeoffs.** Adding a fourth review stage later means placing it in the order, which may not be
+linear forever.
+
+**Defence.** The map is "pick the next stage from those later in the order", the reducer is
+"what follows the stage just finished", and both are one function each with a test over all
+eight pathways.

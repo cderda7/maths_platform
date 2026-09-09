@@ -104,7 +104,7 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
           {session.problemIndex < problems.length - 1 ? (
             <Button onClick={() => go(session.problemIndex + 1)}>Next: {problems[session.problemIndex + 1].label} →</Button>
           ) : (
-            <Button variant="accent" onClick={() => dispatch({ type: "goto", stage: "feedback" })}>
+            <Button variant="accent" onClick={() => dispatch({ type: "hand-in" })}>
               Hand in
             </Button>
           )}

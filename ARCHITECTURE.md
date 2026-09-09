@@ -19,7 +19,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │               ▶ Confidence ▶ Working ─▶ DrawPad (canvas ink)     │
  │                                  ├▶ "Read as" column             │
  │                                  └▶ PromptModal · PracticeOverlay · HelpPicker
- │               ▶ Feedback (red / blue / clue / star)             │
+ │               ▶ Feedback (red / blue / clue / star) · Waiting   │
  │               ▶ Rework (clue only; second version on the pad)   │
  │               ▶ GroupPass (all-correct) ▶ GroupDiscuss (no marks)│
  │               ▶ Report (teacher's colours + reflection → sent)   │
@@ -32,7 +32,12 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  ┌────────────────────────────────────────────────────────────────────────────────────┐
  │ lib/store.ts   one StudentSession · localStorage snapshot · BroadcastChannel        │
  │                useStudentSession · useBatchedSession · useNow · resetSession        │
- │ lib/session.ts      StudentSession · sessionReducer · sessionAt  (pure, vitest)     │
+ │                dispatch(action) runs the reducer under env { pathway } from …       │
+ │ lib/classroom-store.ts  ClassroomState (teacher-owned, own key + channel)           │
+ │                useClassroom · dispatchClassroom · resetClassroom                    │
+ │ lib/classroom.ts    CreatedAssignment { title, problemIds, pathway } · pathwayOf    │
+ │ lib/pathway.ts      REVIEW_ORDER · successors · nextStage · pathwaySentence/Chip    │
+ │ lib/session.ts      StudentSession · sessionReducer(s, a, env) · sessionAt (pure)   │
  │ lib/recognition.ts  nextLine · afterUndo  (burst of strokes → scripted line)        │
  │ lib/evaluate.ts     evaluateLine(problem, tex) → ok | wrong | unclear               │
  │ lib/escalation.ts   recordMistake · requestHelp → { trigger, cautioned }            │
@@ -98,7 +103,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 14 | Teacher review-groups view (Tier 2) | `/teacher/groups` | `0c268b0` | [curr_version/architecture/14-teacher-review-groups-view.md](curr_version/architecture/14-teacher-review-groups-view.md) |
 | 15 | Teacher original vs final (Tier 2) | `/teacher/compare` | `3fb499b` | [curr_version/architecture/15-teacher-original-vs-final.md](curr_version/architecture/15-teacher-original-vs-final.md) |
 | 16 | Diagnostic MCQ push (Tier 2) | `/teacher` → `/student` interrupt | `7b3d49c` | [curr_version/architecture/16-diagnostic-mcq-push.md](curr_version/architecture/16-diagnostic-mcq-push.md) |
-| 17 | Copy sweep to the rule (spec v3) | every route | _this commit_ | [curr_version/architecture/17-copy-sweep.md](curr_version/architecture/17-copy-sweep.md) |
+| 17 | Copy sweep to the rule (spec v3) | every route | `cabb007` | [curr_version/architecture/17-copy-sweep.md](curr_version/architecture/17-copy-sweep.md) |
+| 18 | Pathway model and routing | `/student?pathway=…`, `/teacher` chip | _this commit_ | [curr_version/architecture/18-pathway-model-and-routing.md](curr_version/architecture/18-pathway-model-and-routing.md) |
 
 ## Conventions
 

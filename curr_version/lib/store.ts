@@ -3,6 +3,8 @@
 import { useEffect, useSyncExternalStore } from "react";
 import type { Stage } from "@/data/types";
 import { INITIAL_SESSION, sessionAt, sessionReducer, type RunKindParam, type SessionAction, type StudentSession } from "./session";
+import { pathwayOf } from "./classroom";
+import { getClassroom, resetClassroom } from "./classroom-store";
 
 /**
  * The demo session store: one student session, shared between browser tabs on the same machine.
@@ -73,15 +75,19 @@ export function setSession(next: StudentSession | null) {
   emit();
 }
 
-/** Dispatches an action, stamping the time on the two transitions that are worth dating. */
+/**
+ * Dispatches an action under the pathway in force, stamping the time on the transitions that
+ * are worth dating.
+ */
 export function dispatch(action: SessionAction) {
   const stamped: SessionAction =
-    (action.type === "goto" && action.stage === "feedback") || action.type === "rework/done" ? { ...action, at: Date.now() } : action;
-  setSession(sessionReducer(getSnapshot() ?? INITIAL_SESSION, stamped));
+    action.type === "hand-in" || (action.type === "goto" && action.stage === "feedback") || action.type === "rework/done" ? { ...action, at: Date.now() } : action;
+  setSession(sessionReducer(getSnapshot() ?? INITIAL_SESSION, stamped, { pathway: pathwayOf(getClassroom()) }));
 }
 
-/** Back to the start in every tab (a fresh session, not an empty one, so deep-linked tabs move too). */
+/** Back to the start in every tab: a fresh session and an empty classroom, so deep-linked tabs move too. */
 export function resetSession() {
+  resetClassroom();
   setSession(INITIAL_SESSION);
 }
 

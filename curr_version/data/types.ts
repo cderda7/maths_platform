@@ -68,12 +68,20 @@ export type Stage =
   | "confidence"
   | "working"
   | "feedback"
+  | "waiting"
   | "rework"
   | "group-pass"
   | "group-discuss"
   | "report"
   | "peers"
   | "history";
+
+/**
+ * The review stages a teacher can put after 1st submit. Order is fixed (individual < group <
+ * whole-class), each optional, each at most once; see `lib/pathway.ts`.
+ */
+export type ReviewStage = "individual" | "group" | "whole-class";
+export type Pathway = ReviewStage[];
 
 /** A short warm-up offered before the set, one per prerequisite subskill it makes sense for. */
 export interface PracticeProblem {
