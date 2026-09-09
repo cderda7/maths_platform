@@ -71,19 +71,6 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     why: "A product only tells you about its factors when it equals zero. Getting to standard form first is the habit.",
     hint: "Get everything onto one side first, so the other side is zero.",
   },
-  "algebra.equations.quadratic": {
-    id: "w-quadratic",
-    leaf: "algebra.equations.quadratic",
-    stem: "Solve exactly.",
-    tex: "2x^2 - 3x - 1 = 0",
-    steps: [
-      { tex: "a = 2,\\; b = -3,\\; c = -1", label: "Read off a, b, c", tags: [tag("algebra.equations.quadratic")] },
-      { tex: "b^2 - 4ac = 9 + 8 = 17", label: "Discriminant", tags: [tag("unit.u1.discriminant")] },
-      { tex: "x = \\dfrac{3 \\pm \\sqrt{17}}{4}", label: "Formula, denominator 2a", tags: [tag("algebra.equations.quadratic")] },
-    ],
-    why: "The denominator is 2a, and the roots read off a factor (x − r) are r, not −r.",
-    hint: "Write down a, b and c before anything else, signs included.",
-  },
   "algebra.number.fractions": {
     id: "w-fractions",
     leaf: "algebra.number.fractions",
@@ -227,6 +214,13 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
 
 /** The default warm-up: what the chooser falls back to when nothing was selected or said. */
 export const PRACTICE: PracticeProblem = PRACTICES["algebra.expand-factor.monic"]!;
+
+/**
+ * Leaves practice is never offered on: they name the whole task rather than one move, so a problem
+ * "on just that" is as hard as the set. Practice is offered on moves only, never at this level.
+ */
+export const NOT_ISOLATED: readonly LeafId[] = ["algebra.equations.quadratic"];
+export const isolatable = (leaf: LeafId) => !NOT_ISOLATED.includes(leaf) && !leaf.startsWith("communication.");
 
 /** Everything the warm-up can serve: one short problem per leaf. */
 export const WARMUP_BANK: PracticeProblem[] = Object.values(PRACTICES) as PracticeProblem[];

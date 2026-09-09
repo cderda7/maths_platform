@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { byEase, EASE, focusLeaves, interpret, NOT_WARMED, tutorReply, warmupScript, warmupSequence } from "./warmup";
-import { PRACTICE, WARMUP_BANK } from "@/data/practice";
+import { byEase, EASE, focusLeaves, interpret, practiceFor, tutorReply, warmupScript, warmupSequence } from "./warmup";
+import { isolatable, PRACTICE, WARMUP_BANK } from "@/data/practice";
 import { ASSIGNMENT } from "@/data/assignment";
 import { leavesTouched } from "./hierarchy";
 
@@ -41,11 +41,16 @@ describe("the warm-up sequence", () => {
     expect(warmupSequence([]).map((p) => p.id)).toEqual([PRACTICE.id]);
   });
   it("one problem per leaf, never the same problem twice, and every leaf in the set is served by a problem on that leaf", () => {
-    const all = leavesTouched(ASSIGNMENT.problems).filter((l) => !l.startsWith("communication.") && !NOT_WARMED.includes(l));
+    const all = leavesTouched(ASSIGNMENT.problems).filter(isolatable);
     const seq = warmupSequence(all);
     expect(seq.length).toBe(all.length);
     expect(new Set(seq.map((p) => p.id)).size).toBe(seq.length);
     for (const l of all) expect(seq.some((p) => p.leaf === l), l).toBe(true);
+  });
+  it("a whole-task leaf is never practised, even by a sibling", () => {
+    expect(practiceFor("algebra.equations.quadratic")).toBeNull();
+    expect(practiceFor("algebra.equations.linear")?.id).toBe("w-linear");
+    expect(practiceFor("communication.process.working")).toBeNull();
   });
   it("unlisted leaves come after listed ones, in focus order", () => {
     expect(byEase(["stats.data.summary", "algebra.number.fractions"])).toEqual(["algebra.number.fractions", "stats.data.summary"]);

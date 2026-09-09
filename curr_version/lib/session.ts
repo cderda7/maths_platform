@@ -1,7 +1,7 @@
 import type { Confidence, Pathway, Stage, Stroke } from "@/data/types";
 import { groupOf, type LeafId } from "@/data/taxonomy";
 import { PRACTICES } from "@/data/practice";
-import { focusLeaves, tutorReply, warmupSequence, type WarmupMessage } from "./warmup";
+import { focusLeaves, practiceFor, tutorReply, warmupSequence, type WarmupMessage } from "./warmup";
 import type { AdvanceKind } from "./classroom";
 import type { Diagnostic } from "@/data/diagnostic";
 import { DEFAULT_PATHWAY, nextStage } from "./pathway";
@@ -30,17 +30,13 @@ export interface PracticeEntry extends PracticePrompt {
 }
 
 /**
- * The warm-up's own slice. Its lines and ink are kept apart from the marked `lines`/`ink` so nothing
- * written here is evaluated, counted or shown to the teacher as work on the set.
+ * One run of practice on the pad: a problem, optionally its follow-up, with the help taken. Its
+ * lines and ink are kept apart from the marked `lines`/`ink` so nothing written here is
+ * evaluated, counted or shown to the teacher as work on the set. The warm-up and the mid-set
+ * isolated practice are both runs.
  */
-export interface WarmupState {
-  /** Problems the student marked as ones they don't feel confident in. */
-  selected: string[];
-  /** The chooser's chat, oldest first: the student's words and the tutor's replies. */
-  messages: WarmupMessage[];
-  /** Index into the warm-up sequence (one skill each, easiest first): the skill being warmed up. */
-  step: number;
-  /** "first": the step's problem. "second": its follow-up, with the first's worked example in view. */
+export interface PracticeRun {
+  /** "first": the run's problem. "second": its follow-up, with the first's worked example in view. */
   problem: "first" | "second";
   /** True while the worked example for the current problem is playing in place of the pad. */
   example: boolean;
@@ -50,12 +46,27 @@ export interface WarmupState {
   hinted: string[];
   /** Ids of the warm-up problems whose worked example has been seen in full. */
   exampled: string[];
-  /** Recognised lines and the ink behind them, per warm-up problem id. */
+  /** Recognised lines and the ink behind them, per practice problem id. */
   lines: Record<string, RevealedLine[]>;
   ink: Record<string, Stroke[]>;
 }
 
-export const INITIAL_WARMUP: WarmupState = { selected: [], messages: [], step: 0, problem: "first", example: false, exampleShown: 0, hinted: [], exampled: [], lines: {}, ink: {} };
+export const INITIAL_RUN: PracticeRun = { problem: "first", example: false, exampleShown: 0, hinted: [], exampled: [], lines: {}, ink: {} };
+
+/** Which run an action is about: the warm-up before the set, or the isolated practice over it. */
+export type RunKey = "warmup" | "overlay";
+
+/** The warm-up's slice: a run plus the chooser's answers and the sequence position. */
+export interface WarmupState extends PracticeRun {
+  /** Problems the student marked as ones they don't feel confident in. */
+  selected: string[];
+  /** The chooser's chat, oldest first: the student's words and the tutor's replies. */
+  messages: WarmupMessage[];
+  /** Index into the warm-up sequence (one skill each, easiest first): the skill being warmed up. */
+  step: number;
+}
+
+export const INITIAL_WARMUP: WarmupState = { ...INITIAL_RUN, selected: [], messages: [], step: 0 };
 
 export interface StudentSession {
   stage: Stage;
@@ -76,6 +87,8 @@ export interface StudentSession {
   prompt: PracticePrompt | null;
   /** The isolated practice the student is in, if any. */
   overlay: LeafId | null;
+  /** That practice on the pad: fresh each time a prompt is accepted. */
+  overlayRun: PracticeRun;
   /** Every prompt and how it was answered, oldest first. */
   practices: PracticeEntry[];
   /** Problems the student got right but wasn't sure about. */
@@ -122,17 +135,18 @@ export type SessionAction =
   | { type: "warmup/select"; problem: string }
   | { type: "warmup/say"; text: string }
   | { type: "warmup/begin" }
-  | { type: "warmup/reveal"; problem: string; line: RevealedLine }
-  | { type: "warmup/stroke"; problem: string; stroke: Stroke }
-  | { type: "warmup/undo"; problem: string; strokeCount?: number }
-  | { type: "warmup/clear"; problem: string }
-  /** The help menu's "a hint": the current warm-up problem's hint stays under the problem. */
-  | { type: "warmup/hint" }
-  /** The help menu's "a worked example": plays in place of the pad. */
-  | { type: "warmup/example" }
-  | { type: "warmup/example-step" }
+  /** Practice on the pad, for either run: the warm-up or the mid-set overlay. */
+  | { type: "run/reveal"; run: RunKey; problem: string; line: RevealedLine }
+  | { type: "run/stroke"; run: RunKey; problem: string; stroke: Stroke }
+  | { type: "run/undo"; run: RunKey; problem: string; strokeCount?: number }
+  | { type: "run/clear"; run: RunKey; problem: string }
+  /** The help menu's "hint": the current problem's hint stays under the problem. */
+  | { type: "run/hint"; run: RunKey }
+  /** The help menu's "worked example": plays in place of the pad. */
+  | { type: "run/example"; run: RunKey }
+  | { type: "run/example-step"; run: RunKey }
   /** After the first problem's worked example: the follow-up, with that example still in view. */
-  | { type: "warmup/next" }
+  | { type: "run/next"; run: RunKey }
   /** The current skill is finished: on to the next in the sequence, or the set after the last. */
   | { type: "warmup/skill-done" }
   | { type: "problem/goto"; index: number }
@@ -184,6 +198,7 @@ export const INITIAL_SESSION: StudentSession = {
   counted: [],
   prompt: null,
   overlay: null,
+  overlayRun: INITIAL_RUN,
   practices: [],
   stars: [],
   rework: {},
@@ -209,7 +224,8 @@ export const INITIAL_SESSION: StudentSession = {
 export function hydrateSession(raw: unknown): StudentSession {
   const snap = (raw && typeof raw === "object" ? raw : {}) as Partial<StudentSession>;
   const warmup = snap.warmup && typeof snap.warmup === "object" ? snap.warmup : {};
-  return { ...INITIAL_SESSION, ...snap, warmup: { ...INITIAL_WARMUP, ...warmup } };
+  const overlayRun = snap.overlayRun && typeof snap.overlayRun === "object" ? snap.overlayRun : {};
+  return { ...INITIAL_SESSION, ...snap, warmup: { ...INITIAL_WARMUP, ...warmup }, overlayRun: { ...INITIAL_RUN, ...overlayRun } };
 }
 
 /** What the reducer needs from outside the session: the pathway in force. */
@@ -262,37 +278,19 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     }
     case "warmup/begin":
       return warmupFocus(s).length === 0 ? s : { ...s, stage: "practice" };
-    case "warmup/reveal":
-      return warm(s, { lines: { ...s.warmup.lines, [a.problem]: [...(s.warmup.lines[a.problem] ?? []), a.line] } });
-    case "warmup/stroke":
-      return warm(s, { ink: { ...s.warmup.ink, [a.problem]: [...(s.warmup.ink[a.problem] ?? []), roundStroke(a.stroke)] } });
-    case "warmup/undo": {
-      const strokes = s.warmup.ink[a.problem] ?? [];
-      const count = a.strokeCount ?? Math.max(0, strokes.length - 1);
-      return warm(s, {
-        ink: { ...s.warmup.ink, [a.problem]: strokes.slice(0, count) },
-        lines: { ...s.warmup.lines, [a.problem]: afterUndo(s.warmup.lines[a.problem] ?? [], count) },
-      });
-    }
-    case "warmup/clear":
-      return warm(s, { ink: { ...s.warmup.ink, [a.problem]: [] }, lines: { ...s.warmup.lines, [a.problem]: [] } });
-    case "warmup/hint": {
-      const id = warmupProblem(s).id;
-      return s.warmup.hinted.includes(id) ? s : warm(s, { hinted: [...s.warmup.hinted, id] });
-    }
-    case "warmup/example":
-      return s.warmup.example ? s : warm(s, { example: true, exampleShown: 0 });
-    case "warmup/example-step": {
-      const p = warmupProblem(s);
-      if (!s.warmup.example) return s;
-      const shown = Math.min(p.steps.length, s.warmup.exampleShown + 1);
-      const done = shown >= p.steps.length && !s.warmup.exampled.includes(p.id);
-      return warm(s, { exampleShown: shown, exampled: done ? [...s.warmup.exampled, p.id] : s.warmup.exampled });
-    }
-    case "warmup/next": {
-      const first = warmupStep(s);
-      if (s.warmup.problem !== "first" || !first.followUp || !s.warmup.exampled.includes(first.id)) return s;
-      return warm(s, { problem: "second", example: false, exampleShown: 0 });
+    case "run/reveal":
+    case "run/stroke":
+    case "run/undo":
+    case "run/clear":
+    case "run/hint":
+    case "run/example":
+    case "run/example-step":
+    case "run/next": {
+      const run = runOf(s, a.run);
+      const first = runFirst(s, a.run);
+      if (!first) return s;
+      const next = runReducer(run, a, first);
+      return next === run ? s : a.run === "warmup" ? { ...s, warmup: { ...s.warmup, ...next } } : { ...s, overlayRun: next };
     }
     case "warmup/skill-done": {
       if (s.stage !== "practice") return s;
@@ -337,7 +335,7 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     }
     case "prompt/accept":
       if (!s.prompt) return s;
-      return { ...s, prompt: null, overlay: s.prompt.leaf, practices: [...s.practices, { ...s.prompt, accepted: true, problem: a.problem }] };
+      return { ...s, prompt: null, overlay: s.prompt.leaf, overlayRun: INITIAL_RUN, practices: [...s.practices, { ...s.prompt, accepted: true, problem: a.problem }] };
     case "prompt/decline":
       if (!s.prompt) return s;
       return { ...s, prompt: null, practices: [...s.practices, { ...s.prompt, accepted: false, problem: a.problem }] };
@@ -406,16 +404,62 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
 
 const BEFORE_HAND_IN: Stage[] = ["overview", "confidence", "warmup-pick", "practice", "working"];
 
-/** The leaf to practise for a mistake: its own practice, else another leaf in the same group that has one. */
+/** The leaf to practise for a mistake: its own practice, else another leaf in the same group that has one; never a whole-task leaf. */
 export function practiceLeaf(leaf: LeafId): LeafId | null {
-  if (PRACTICES[leaf]) return leaf;
-  const g = groupOf(leaf);
-  const alt = (Object.keys(PRACTICES) as LeafId[]).find((l) => groupOf(l) === g);
-  return alt ?? null;
+  return practiceFor(leaf)?.leaf ?? null;
 }
 export const FORCED_HAND_IN_TEXT = "Your teacher handed in the class's work.";
 
 const warm = (s: StudentSession, patch: Partial<WarmupState>): StudentSession => ({ ...s, warmup: { ...s.warmup, ...patch } });
+
+/** The run an action is about. */
+export const runOf = (s: StudentSession, key: RunKey): PracticeRun => (key === "warmup" ? s.warmup : s.overlayRun);
+
+/** A run's first problem: the warm-up's current step, or the overlay's leaf's practice (null when no overlay is open). */
+export function runFirst(s: StudentSession, key: RunKey) {
+  if (key === "warmup") return warmupStep(s);
+  return s.overlay ? (PRACTICES[s.overlay] ?? null) : null;
+}
+
+/** The problem a run is on: its first, or the follow-up. */
+export function runProblem(s: StudentSession, key: RunKey) {
+  const first = runFirst(s, key);
+  if (!first) return null;
+  return runOf(s, key).problem === "second" && first.followUp ? first.followUp : first;
+}
+
+type RunAction = Extract<SessionAction, { run: RunKey }>;
+
+/** The pad rules for one run, the same for the warm-up and the overlay. Returns the same object when nothing changes. */
+function runReducer(r: PracticeRun, a: RunAction, first: { id: string; steps: unknown[]; followUp?: unknown }): PracticeRun {
+  const cur = r.problem === "second" && first.followUp ? (first.followUp as { id: string; steps: unknown[] }) : first;
+  switch (a.type) {
+    case "run/reveal":
+      return { ...r, lines: { ...r.lines, [a.problem]: [...(r.lines[a.problem] ?? []), a.line] } };
+    case "run/stroke":
+      return { ...r, ink: { ...r.ink, [a.problem]: [...(r.ink[a.problem] ?? []), roundStroke(a.stroke)] } };
+    case "run/undo": {
+      const strokes = r.ink[a.problem] ?? [];
+      const count = a.strokeCount ?? Math.max(0, strokes.length - 1);
+      return { ...r, ink: { ...r.ink, [a.problem]: strokes.slice(0, count) }, lines: { ...r.lines, [a.problem]: afterUndo(r.lines[a.problem] ?? [], count) } };
+    }
+    case "run/clear":
+      return { ...r, ink: { ...r.ink, [a.problem]: [] }, lines: { ...r.lines, [a.problem]: [] } };
+    case "run/hint":
+      return r.hinted.includes(cur.id) ? r : { ...r, hinted: [...r.hinted, cur.id] };
+    case "run/example":
+      return r.example ? r : { ...r, example: true, exampleShown: 0 };
+    case "run/example-step": {
+      if (!r.example) return r;
+      const shown = Math.min(cur.steps.length, r.exampleShown + 1);
+      const done = shown >= cur.steps.length && !r.exampled.includes(cur.id);
+      return { ...r, exampleShown: shown, exampled: done ? [...r.exampled, cur.id] : r.exampled };
+    }
+    case "run/next":
+      if (r.problem !== "first" || !first.followUp || !r.exampled.includes(first.id)) return r;
+      return { ...r, problem: "second", example: false, exampleShown: 0 };
+  }
+}
 
 /** The leaves the chooser has settled on so far. */
 export const warmupFocus = (s: StudentSession): LeafId[] => focusLeaves(s.warmup.selected, s.warmup.messages);

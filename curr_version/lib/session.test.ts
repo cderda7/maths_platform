@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { INITIAL_SESSION, INITIAL_WARMUP, hydrateSession, sessionAt, sessionReducer, warmupFocus, warmupProblem } from "./session";
+import { INITIAL_RUN, INITIAL_SESSION, INITIAL_WARMUP, hydrateSession, runProblem, sessionAt, sessionReducer, warmupFocus, warmupProblem } from "./session";
 import { PRACTICE, WARMUP_BANK } from "@/data/practice";
 import { warmupScript } from "./warmup";
 import { allPathways } from "./pathway";
@@ -46,7 +46,7 @@ describe("student session flow", () => {
     let s = sessionAt("practice");
     expect(s.warmup.step).toBe(0);
     expect(warmupProblem(s).id).toBe("w-fractions");
-    s = sessionReducer(s, { type: "warmup/hint" });
+    s = sessionReducer(s, { type: "run/hint", run: "warmup" });
     s = sessionReducer(s, { type: "warmup/skill-done" });
     expect(s.stage).toBe("practice");
     expect(s.warmup.step).toBe(1);
@@ -108,60 +108,60 @@ describe("the warm-up on the pad", () => {
   const start = sessionReducer({ ...sessionAt("practice"), warmup: INITIAL_WARMUP }, { type: "warmup/say", text: "monic factorising" });
   it("that run's warm-up is the monic problem", () => expect(warmupProblem(start).id).toBe("w-monic"));
   const reveal = (s: ReturnType<typeof sessionAt>, problem: string, tex: string, strokeCount: number) =>
-    sessionReducer(s, { type: "warmup/reveal", problem, line: { tex, strokeCount } });
+    sessionReducer(s, { type: "run/reveal", run: "warmup", problem, line: { tex, strokeCount } });
 
   it("keeps its lines and ink apart from the marked work, with undo and clear of its own", () => {
-    let s = sessionReducer(start, { type: "warmup/stroke", problem: "w-monic", stroke: [{ x: 1.26, y: 2 }] });
+    let s = sessionReducer(start, { type: "run/stroke", run: "warmup", problem: "w-monic", stroke: [{ x: 1.26, y: 2 }] });
     s = reveal(s, "w-monic", "a", 1);
-    s = sessionReducer(s, { type: "warmup/stroke", problem: "w-monic", stroke: [{ x: 3, y: 4 }] });
+    s = sessionReducer(s, { type: "run/stroke", run: "warmup", problem: "w-monic", stroke: [{ x: 3, y: 4 }] });
     s = reveal(s, "w-monic", "b", 2);
     expect(s.warmup.lines["w-monic"].map((l) => l.tex)).toEqual(["a", "b"]);
     expect(s.warmup.ink["w-monic"]).toEqual([[{ x: 1.3, y: 2 }], [{ x: 3, y: 4 }]]);
     expect(s.lines).toEqual({});
     expect(s.ink).toEqual({});
     expect(s.escalation).toEqual(start.escalation);
-    s = sessionReducer(s, { type: "warmup/undo", problem: "w-monic" });
+    s = sessionReducer(s, { type: "run/undo", run: "warmup", problem: "w-monic" });
     expect(s.warmup.lines["w-monic"].map((l) => l.tex)).toEqual(["a"]);
     expect(s.warmup.ink["w-monic"]).toHaveLength(1);
-    s = sessionReducer(s, { type: "warmup/clear", problem: "w-monic" });
+    s = sessionReducer(s, { type: "run/clear", run: "warmup", problem: "w-monic" });
     expect(s.warmup.lines["w-monic"]).toEqual([]);
     expect(s.warmup.ink["w-monic"]).toEqual([]);
   });
 
   it("a hint is remembered per problem and asked for once", () => {
-    let s = sessionReducer(start, { type: "warmup/hint" });
+    let s = sessionReducer(start, { type: "run/hint", run: "warmup" });
     expect(s.warmup.hinted).toEqual(["w-monic"]);
-    expect(sessionReducer(s, { type: "warmup/hint" })).toBe(s);
-    s = sessionReducer(s, { type: "warmup/example" });
-    for (let i = 0; i < 4; i++) s = sessionReducer(s, { type: "warmup/example-step" });
-    s = sessionReducer(s, { type: "warmup/next" });
-    s = sessionReducer(s, { type: "warmup/hint" });
+    expect(sessionReducer(s, { type: "run/hint", run: "warmup" })).toBe(s);
+    s = sessionReducer(s, { type: "run/example", run: "warmup" });
+    for (let i = 0; i < 4; i++) s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
+    s = sessionReducer(s, { type: "run/next", run: "warmup" });
+    s = sessionReducer(s, { type: "run/hint", run: "warmup" });
     expect(s.warmup.hinted).toEqual(["w-monic", "w-monic-2"]);
   });
 
   it("the worked example reveals one step at a time, and only its completion unlocks the follow-up", () => {
-    expect(sessionReducer(start, { type: "warmup/next" })).toBe(start);
-    let s = sessionReducer(start, { type: "warmup/example" });
+    expect(sessionReducer(start, { type: "run/next", run: "warmup" })).toBe(start);
+    let s = sessionReducer(start, { type: "run/example", run: "warmup" });
     expect(s.warmup.example).toBe(true);
-    expect(sessionReducer(start, { type: "warmup/example-step" })).toBe(start);
-    s = sessionReducer(s, { type: "warmup/example-step" });
-    s = sessionReducer(s, { type: "warmup/example-step" });
+    expect(sessionReducer(start, { type: "run/example-step", run: "warmup" })).toBe(start);
+    s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
+    s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
     expect(s.warmup.exampleShown).toBe(2);
     expect(s.warmup.exampled).toEqual([]);
-    expect(sessionReducer(s, { type: "warmup/next" })).toBe(s);
-    s = sessionReducer(s, { type: "warmup/example-step" });
-    s = sessionReducer(s, { type: "warmup/example-step" });
+    expect(sessionReducer(s, { type: "run/next", run: "warmup" })).toBe(s);
+    s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
+    s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
     expect(s.warmup.exampleShown).toBe(4);
     expect(s.warmup.exampled).toEqual(["w-monic"]);
-    expect(sessionReducer(s, { type: "warmup/example-step" }).warmup.exampleShown).toBe(4);
-    s = sessionReducer(s, { type: "warmup/next" });
+    expect(sessionReducer(s, { type: "run/example-step", run: "warmup" }).warmup.exampleShown).toBe(4);
+    s = sessionReducer(s, { type: "run/next", run: "warmup" });
     expect(s.warmup.problem).toBe("second");
     expect(s.warmup.example).toBe(false);
     expect(s.warmup.exampleShown).toBe(0);
     expect(warmupProblem(s).id).toBe("w-monic-2");
-    expect(sessionReducer(s, { type: "warmup/next" })).toBe(s);
-    s = sessionReducer(s, { type: "warmup/example" });
-    for (let i = 0; i < 3; i++) s = sessionReducer(s, { type: "warmup/example-step" });
+    expect(sessionReducer(s, { type: "run/next", run: "warmup" })).toBe(s);
+    s = sessionReducer(s, { type: "run/example", run: "warmup" });
+    for (let i = 0; i < 3; i++) s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
     expect(s.warmup.exampled).toEqual(["w-monic", "w-monic-2"]);
     expect(sessionReducer(s, { type: "practice/finish" }).stage).toBe("working");
   });
@@ -175,6 +175,32 @@ describe("the warm-up on the pad", () => {
       }
     }
     expect(warmupProblem(start).id).toBe(PRACTICE.id);
+  });
+});
+
+describe("the isolated practice on the pad", () => {
+  it("starts a fresh run when a prompt is accepted, keeps its own lines and help, and clears when done", () => {
+    let s = sessionAt("working");
+    expect(sessionReducer(s, { type: "run/hint", run: "overlay" })).toBe(s);
+    s = sessionReducer(s, { type: "help/request", leaf: "algebra.expand-factor.monic", problem: "q1" });
+    s = sessionReducer(s, { type: "prompt/accept", problem: "q1" });
+    expect(s.overlay).toBe("algebra.expand-factor.monic");
+    expect(runProblem(s, "overlay")?.id).toBe("w-monic");
+    s = sessionReducer(s, { type: "run/reveal", run: "overlay", problem: "w-monic", line: { tex: "a", strokeCount: 1 } });
+    s = sessionReducer(s, { type: "run/hint", run: "overlay" });
+    expect(s.overlayRun.lines["w-monic"].map((l) => l.tex)).toEqual(["a"]);
+    expect(s.overlayRun.hinted).toEqual(["w-monic"]);
+    expect(s.warmup.lines).toEqual({});
+    expect(s.lines.q1 ?? []).toEqual([]);
+    s = sessionReducer(s, { type: "run/example", run: "overlay" });
+    for (let i = 0; i < 4; i++) s = sessionReducer(s, { type: "run/example-step", run: "overlay" });
+    s = sessionReducer(s, { type: "run/next", run: "overlay" });
+    expect(runProblem(s, "overlay")?.id).toBe("w-monic-2");
+    s = sessionReducer(s, { type: "overlay/done" });
+    expect(s.overlay).toBeNull();
+    s = sessionReducer(s, { type: "help/request", leaf: "algebra.expand-factor.monic", problem: "q1" });
+    s = sessionReducer(s, { type: "prompt/accept", problem: "q1" });
+    expect(s.overlayRun).toEqual(INITIAL_RUN);
   });
 });
 

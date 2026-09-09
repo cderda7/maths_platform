@@ -25,7 +25,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │               ▶ Practice (pad · HelpMenu: hint · worked example · video · follow-up split pane)│
  │               ▶ Working ─▶ DrawPad (canvas ink)                  │
  │                                  ├▶ "Read as" column             │
- │                                  └▶ PromptModal · PracticeOverlay · HelpPicker
+ │                                  └▶ PromptModal · HelpPicker (this problem's moves) · PracticeOverlay = PracticePad (shared with the warm-up)
  │               ▶ Feedback (one detective sentence · star) · Waiting│
  │               ▶ Frozen (own ink + lines on the board's problem; marks follow the board)  │
  │               ▶ Rework (every problem · guard banner · hand-in blocked while tripped)│
@@ -134,7 +134,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 25 | Documentation compile | — | `4e7b2a1` | [curr_version/architecture/25-documentation-compile.md](curr_version/architecture/25-documentation-compile.md) |
 | 26 | Hierarchical skill category dashboard | `/teacher` grid + drill, reports, creation Unit Focus | `b7f5a71` | [curr_version/architecture/26-hierarchical-skill-dashboard.md](curr_version/architecture/26-hierarchical-skill-dashboard.md) |
 | 27 | Warm-up on the pad, confidence first, multimodal help | `/student?stage=confidence`, `…=practice` | `9f311a5` | [curr_version/architecture/27-warm-up-on-the-pad.md](curr_version/architecture/27-warm-up-on-the-pad.md) |
-| 28 | Warm-up chooser: problems, words, one skill at a time | `/student?stage=warmup-pick`, `…=practice` | _this commit_ | [curr_version/architecture/28-warm-up-chooser.md](curr_version/architecture/28-warm-up-chooser.md) |
+| 28 | Warm-up chooser: problems, words, one skill at a time | `/student?stage=warmup-pick`, `…=practice` | `c614ed5` | [curr_version/architecture/28-warm-up-chooser.md](curr_version/architecture/28-warm-up-chooser.md) |
+| 29 | Mid-set isolated practice on the pad | `/student?stage=working` overlay | _this commit_ | [curr_version/architecture/29-isolated-practice-on-the-pad.md](curr_version/architecture/29-isolated-practice-on-the-pad.md) |
 
 ## Conventions
 

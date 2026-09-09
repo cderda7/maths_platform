@@ -132,7 +132,7 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
           onDecline={() => dispatch({ type: "prompt/decline", problem: p.id })}
         />
       )}
-      {session.overlay && <PracticeOverlay subskill={session.overlay} problem={p} onDone={() => dispatch({ type: "overlay/done" })} />}
+      {session.overlay && <PracticeOverlay session={session} problem={p} dispatch={dispatch} />}
     </div>
   );
 }

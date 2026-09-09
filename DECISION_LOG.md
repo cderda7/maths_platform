@@ -466,3 +466,41 @@ The ease list is a judgement call kept in one array.
 
 **Defence.** Every problem served is a single-leaf practice already used mid-set, so nothing in
 the warm-up can be harder than the isolated practice the set itself would offer.
+
+## 2026-09-10 · Practice is offered on moves only, never on a whole-task skill
+
+**Decision.** `NOT_ISOLATED` names the leaves that describe the whole task rather than one move
+(today: quadratic equations). No practice exists for them, the help picker never lists them, the
+warm-up never sequences them, and a wrong line tagged with one raises no practice prompt.
+`isolatable(leaf)` is the single gate.
+
+**Context.** A practice "on quadratic equations" is a quadratic equation, i.e. the set. Offering
+it produced problems as hard as, or harder than, the set (the composite warm-up, then the
+quadratic practice in the help picker).
+
+**Alternatives considered.** Keeping the practice but ranking it last (still offered). Marking the
+distinction in the taxonomy as a group-level node (a data migration for one rule).
+
+**Tradeoffs.** A slip whose first tag is the whole-task leaf (Q4's formula denominator) now
+prompts nothing; the counter still records it per group. If that proves too quiet, tag such lines
+with the move first.
+
+**Defence.** One list, one predicate, tested at every surface that offers practice.
+
+## 2026-09-10 · One practice pad, two runs
+
+**Decision.** The warm-up and the mid-set isolated practice share `PracticePad` and a
+`PracticeRun` slice each (`warmup` and `overlayRun`), driven by `run/*` actions carrying the run
+key and reduced by one `runReducer`.
+
+**Context.** The mid-set practice was the old reveal-a-step card; the user wants it to behave
+exactly like the warm-up (pad first, help on request).
+
+**Alternatives considered.** A second copy of the pad screen wired to `overlay/*` actions (two
+sets of rules to keep in step). One run slice shared by both (the warm-up's strokes would leak
+into a mid-set practice and back).
+
+**Tradeoffs.** The reducer dispatches on the run key, one indirection more than before.
+
+**Defence.** The pad's behaviour is one component and one reducer; a change to help lands in
+both places at once, and each run keeps its own ink.

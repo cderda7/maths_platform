@@ -22,7 +22,8 @@ describe("leaf status and roll-up", () => {
 });
 
 import { CLASSMATES } from "@/data/classmates";
-import { PRACTICES } from "@/data/practice";
+import { isolatable, PRACTICES } from "@/data/practice";
+import { practiceLeaf } from "./session";
 import { EVALUATION } from "@/data/evaluation";
 import { PROBLEMS } from "@/data/assignment";
 import { isLeafId, type LeafId } from "@/data/taxonomy";
@@ -114,10 +115,14 @@ describe("taxonomy coverage in the fixture", () => {
     for (const table of Object.values(EVALUATION)) for (const v of Object.values(table)) for (const t of v.tags) expect(isLeafId(t.leaf), t.leaf).toBe(true);
   });
 
-  it("every leaf with an authored wrong verdict has a practice problem, so rework can't dead-end", () => {
+  it("every move with an authored wrong verdict has a practice problem, so rework can't dead-end; a whole-task leaf never prompts", () => {
     const wrongLeaves = new Set<LeafId>();
     for (const table of Object.values(EVALUATION)) for (const v of Object.values(table)) if (v.verdict === "wrong") wrongLeaves.add(v.tags[0].leaf);
-    for (const l of wrongLeaves) expect(PRACTICES[l], l).toBeDefined();
+    for (const l of wrongLeaves) {
+      if (isolatable(l)) expect(PRACTICES[l], l).toBeDefined();
+      else expect(practiceLeaf(l), l).toBeNull();
+    }
+    expect(wrongLeaves.has("algebra.equations.quadratic")).toBe(true);
     expect(leavesTouched().length).toBeGreaterThan(10);
   });
 });

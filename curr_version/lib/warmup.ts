@@ -1,6 +1,6 @@
 import type { PracticeProblem, Problem } from "@/data/types";
 import { ASSIGNMENT } from "@/data/assignment";
-import { PRACTICE, PRACTICES } from "@/data/practice";
+import { isolatable, PRACTICE, PRACTICES } from "@/data/practice";
 import { groupOf, leafName, type LeafId } from "@/data/taxonomy";
 import { problemLeaves } from "./hierarchy";
 
@@ -49,18 +49,11 @@ export function interpret(text: string, problems: Problem[] = ASSIGNMENT.problem
   return { leaves, problems: refs };
 }
 
-/**
- * Leaves the warm-up never isolates: communication (it is about how work is shown, not a skill to
- * drill) and "quadratic equations" (it is the whole of this set; a warm-up on it is the set).
- */
-export const NOT_WARMED: readonly LeafId[] = ["algebra.equations.quadratic"];
-const COMMUNICATION = "communication.";
-
-/** Leaves the warm-up is about: the selected problems' leaves, then anything the messages named, in first-mention order. */
+/** Leaves the warm-up is about: the selected problems' leaves, then anything the messages named, in first-mention order. Only moves (`isolatable`). */
 export function focusLeaves(selected: string[], messages: WarmupMessage[], problems: Problem[] = ASSIGNMENT.problems): LeafId[] {
   const out: LeafId[] = [];
   const add = (l: LeafId) => {
-    if (!l.startsWith(COMMUNICATION) && !NOT_WARMED.includes(l) && !out.includes(l)) out.push(l);
+    if (isolatable(l) && !out.includes(l)) out.push(l);
   };
   const byId = (id: string) => problems.find((p) => p.id === id);
   for (const id of selected) for (const l of problemLeaves(byId(id) ?? { solution: [] } as unknown as Problem)) add(l);
@@ -82,7 +75,6 @@ export const EASE: LeafId[] = [
   "algebra.equations.linear",
   "algebra.expand-factor.expand",
   "functions.notation.evaluate",
-  "algebra.equations.quadratic",
   "algebra.expand-factor.monic",
   "unit.u1.nfl",
   "algebra.expand-factor.nonmonic",
@@ -103,8 +95,9 @@ const rank = (l: LeafId) => {
 /** The focus sorted easiest first (a stable sort, so unlisted leaves keep their focus order). */
 export const byEase = (focus: LeafId[]): LeafId[] => [...focus].sort((a, b) => rank(a) - rank(b));
 
-/** The practice for a leaf: its own, else a sibling's in the same group, else none. */
-function practiceFor(leaf: LeafId): PracticeProblem | null {
+/** The practice for a leaf: its own, else a sibling's in the same group, else none. Never for a whole-task leaf. */
+export function practiceFor(leaf: LeafId): PracticeProblem | null {
+  if (!isolatable(leaf)) return null;
   if (PRACTICES[leaf]) return PRACTICES[leaf]!;
   const g = groupOf(leaf);
   const alt = (Object.keys(PRACTICES) as LeafId[]).find((l) => groupOf(l) === g);
