@@ -29,16 +29,16 @@ export function Scrim({ children, onDismiss }: { children: React.ReactNode; onDi
   );
 }
 
-/** The isolated-practice prompt. Same card whether the counter triggered it or the student asked. */
+/** The isolated-practice prompt, for a detected trigger only (asking for help goes straight to the pad). */
 export function PromptModal({ prompt, problem, onAccept, onDecline }: { prompt: Prompt; problem: Problem; onAccept: () => void; onDecline: () => void }) {
   const s = leafName(prompt.leaf);
   return (
     <Scrim>
       <div className="w-[560px] rounded-3xl bg-paper p-8 shadow-lift">
-        <Eyebrow>{prompt.reason === "help" ? "You asked for a hand" : "A natural next step"}</Eyebrow>
+        <Eyebrow>A natural next step</Eyebrow>
         <h2 className="font-display mt-2 text-[28px] leading-tight text-ink">Two minutes on {s.short}?</h2>
         <p className="mt-3 text-[14px] text-ink-soft">
-          {prompt.reason === "help" ? `One short problem on ${s.short}, then back to ${problem.label}.` : `Something in ${problem.label} leaned on ${s.short}. One short problem, then back.`}
+          Something in {problem.label} leaned on {s.short}. One short problem, then back.
         </p>
         <div className="mt-6 flex justify-end gap-2">
           <Button variant="secondary" size="lg" onClick={onDecline}>

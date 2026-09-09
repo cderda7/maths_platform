@@ -183,8 +183,9 @@ describe("the isolated practice on the pad", () => {
     let s = sessionAt("working");
     expect(sessionReducer(s, { type: "run/hint", run: "overlay" })).toBe(s);
     s = sessionReducer(s, { type: "help/request", leaf: "algebra.expand-factor.monic", problem: "q1" });
-    s = sessionReducer(s, { type: "prompt/accept", problem: "q1" });
+    expect(s.prompt).toBeNull();
     expect(s.overlay).toBe("algebra.expand-factor.monic");
+    expect(s.practices).toEqual([{ leaf: "algebra.expand-factor.monic", reason: "help", accepted: true, problem: "q1" }]);
     expect(runProblem(s, "overlay")?.id).toBe("w-monic");
     s = sessionReducer(s, { type: "run/reveal", run: "overlay", problem: "w-monic", line: { tex: "a", strokeCount: 1 } });
     s = sessionReducer(s, { type: "run/hint", run: "overlay" });
@@ -199,7 +200,6 @@ describe("the isolated practice on the pad", () => {
     s = sessionReducer(s, { type: "overlay/done" });
     expect(s.overlay).toBeNull();
     s = sessionReducer(s, { type: "help/request", leaf: "algebra.expand-factor.monic", problem: "q1" });
-    s = sessionReducer(s, { type: "prompt/accept", problem: "q1" });
     expect(s.overlayRun).toEqual(INITIAL_RUN);
   });
 });
@@ -253,7 +253,8 @@ describe("escalation inside the session", () => {
     s = sessionReducer(s, { type: "prompt/decline", problem: "q2" });
     expect(s.escalation.caution).toEqual([]);
     s = sessionReducer(s, { type: "help/request", leaf: "algebra.expand-factor.monic", problem: "q3" });
-    expect(s.prompt).toEqual({ leaf: "algebra.expand-factor.monic", reason: "help" });
+    expect(s.prompt).toBeNull();
+    expect(s.overlay).toBe("algebra.expand-factor.monic");
     expect(s.escalation.caution).toEqual(["algebra.expand-factor"]);
   });
 });
@@ -476,8 +477,9 @@ describe("teacher force submit", () => {
   it("dismisses an open practice prompt or overlay on the way out", () => {
     let s = sessionAt("working");
     s = sessionReducer(s, { type: "help/request", leaf: "algebra.number.fractions", problem: "q1" });
-    expect(s.prompt).not.toBeNull();
+    expect(s.overlay).not.toBeNull();
     s = sessionReducer(s, { type: "advance/apply", id: "c", kind: "force-submit" });
+    expect(s.overlay).toBeNull();
     expect(s.prompt).toBeNull();
     expect(s.stage).toBe("feedback");
   });
@@ -490,6 +492,7 @@ describe("whole-class freeze", () => {
     s = sessionReducer(s, { type: "advance/apply", id: "wc@1", kind: "whole-class-start" });
     expect(s.stage).toBe("frozen");
     expect(s.prompt).toBeNull();
+    expect(s.overlay).toBeNull();
     expect(sessionReducer(s, { type: "freeze" })).toBe(s);
     const released = sessionReducer(s, { type: "release" });
     expect(released.stage).toBe("report");

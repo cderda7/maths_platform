@@ -329,9 +329,11 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     case "lines/clear":
       return { ...s, ink: { ...s.ink, [a.problem]: [] }, lines: { ...s.lines, [a.problem]: [] } };
     case "help/request": {
+      // The student asked and chose the skill: straight onto the pad, no prompt in between.
       const r = requestHelp(s.escalation, groupOf(a.leaf));
       const leaf = practiceLeaf(a.leaf);
-      return { ...s, escalation: r.state, prompt: leaf ? { leaf, reason: "help" } : s.prompt };
+      if (!leaf) return { ...s, escalation: r.state };
+      return { ...s, escalation: r.state, prompt: null, overlay: leaf, overlayRun: INITIAL_RUN, practices: [...s.practices, { leaf, reason: "help", accepted: true, problem: a.problem }] };
     }
     case "prompt/accept":
       if (!s.prompt) return s;
