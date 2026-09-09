@@ -12,7 +12,7 @@ import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { StatusDot, STATUS_WORD } from "@/components/Tag";
 import { ASSIGNMENT, DEMO_STUDENT, unitLabel } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
-import { categoryLabel, categoryOf, groupName, isFlat, leafName, type CategoryId, type LeafId } from "@/data/taxonomy";
+import { categoryLabel, categoryName, categoryOf, groupName, isFlat, leafName, type CategoryId, type LeafId } from "@/data/taxonomy";
 import type { Confidence } from "@/data/types";
 import { pathwayOf } from "@/lib/classroom";
 import { useAssignment, useClassroom } from "@/lib/classroom-store";
@@ -20,11 +20,17 @@ import { classmateEvidence, hierarchyFor, leavesBehind, problemsStarted, restric
 import { pathwayChip } from "@/lib/pathway";
 import { useBatchedSession, useNow } from "@/lib/store";
 
-function confidenceWord(c: Confidence | null, unit: 1 | 2 | 3 | 4): { text: string; tone: string } {
+/** How long a second click may follow the first and still count as a double-click. */
+const DOUBLE_MS = 350;
+
+/** The grey uppercase label beside a dot: the category name in a column view, the unit beside the Unit dot in a drill. */
+const LABEL = "pointer-events-none absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink-muted";
+
+function confidenceWord(c: Confidence | null): { text: string; tone: string } {
   if (!c) return { text: "—", tone: "text-ink-muted" };
   if (c.level === "confident") return { text: "confident", tone: "text-secure" };
   if (c.level === "low") return { text: "low", tone: "text-standout" };
-  return { text: `low: ${categoryLabel(c.category, unit).short.toLowerCase()}`, tone: "text-standout" };
+  return { text: `low: ${categoryName(c.category).short.toLowerCase()}`, tone: "text-standout" };
 }
 
 function ago(ms: number | null, now: number): string {
@@ -91,7 +97,16 @@ export default function TeacherLive() {
     setOpen({ student, mode: "expanded", columns: columnBoxes(student), nonce: ++nonce.current, comment: index, keep });
   };
   /** Double-click a header: the column opens for everyone at group level, then with skills, then closes. */
+  const headerCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** A click closes the column view, unless it turns out to be the first half of a double-click. */
+  const headerClick = () => {
+    if (!column) return;
+    if (headerCloseTimer.current) clearTimeout(headerCloseTimer.current);
+    headerCloseTimer.current = setTimeout(() => setColumn(null), DOUBLE_MS);
+  };
   const headerDouble = (c: CategoryId) => {
+    if (headerCloseTimer.current) clearTimeout(headerCloseTimer.current);
+    headerCloseTimer.current = null;
     setOpen(null);
     setColumn((cur) => {
       if (cur?.category === c && (cur.level === "expanded" || isFlat(c))) return null; // a two-layer category has no skills view to open
@@ -110,7 +125,7 @@ export default function TeacherLive() {
   const rowClick = (student: string, e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest("button, a")) return;
     const now = e.timeStamp;
-    const again = lastClick.current?.student === student && now - lastClick.current.at < 350;
+    const again = lastClick.current?.student === student && now - lastClick.current.at < DOUBLE_MS;
     lastClick.current = { student, at: now };
     if (again) return;
     if (open?.student === student) setOpen(null);
@@ -130,7 +145,7 @@ export default function TeacherLive() {
       evidence: live ? sessionEvidence(live) : { lines: {}, submitted: false, caution: [] },
       sub: "",
       notes: [] as { text: string; problems: string[] }[],
-      confidence: confidenceWord(live?.confidence ?? null, unit),
+      confidence: confidenceWord(live?.confidence ?? null),
       set: `${live ? problemsStarted(live) : 0}/${problems.length}`,
       setSub: live && !HANDED_IN.includes(live.stage) ? "handed in" : live && problemsStarted(live) > 0 ? "in progress" : "",
     },
@@ -182,11 +197,11 @@ export default function TeacherLive() {
                     className={`cursor-pointer select-none px-1 py-4 text-center font-semibold leading-tight transition-colors hover:text-ink ${column?.category === c ? "text-ink" : ""}`}
                     data-column={c}
                     data-column-open={column?.category === c ? column.level : undefined}
-                    onClick={() => column && setColumn(null)}
+                    onClick={headerClick}
                     onDoubleClick={() => headerDouble(c)}
                     title="Double-click to open this category for every student; click to close"
                   >
-                    <span className="inline-block rounded-md bg-standout-soft px-2 py-1 text-standout">{categoryLabel(c, unit).short}</span>
+                    <span className="inline-block rounded-md bg-standout-soft px-2 py-1 text-standout">{categoryName(c).short}</span>
                   </th>
                 ))}
                 <th className="px-3 py-4 text-center font-semibold">Confidence</th>
@@ -272,7 +287,12 @@ export default function TeacherLive() {
                               <StatusDot status={st} half={half} size="h-[15px] w-[15px]" />
                             </button>
                             {column?.category === c && (
-                              <span className="pointer-events-none absolute top-1/2 right-[calc(50%+12px)] -translate-y-1/2 whitespace-nowrap text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink-muted" data-column-label>
+                              <span className={`${LABEL} right-[calc(50%+12px)]`} data-column-label>
+                                {categoryLabel(c, unit).name}
+                              </span>
+                            )}
+                            {!column && isOpen && isFlat(c) && (
+                              <span className={`${LABEL} left-[calc(50%+12px)]`} data-unit-label>
                                 {categoryLabel(c, unit).name}
                               </span>
                             )}
