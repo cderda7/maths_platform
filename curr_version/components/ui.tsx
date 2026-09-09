@@ -55,7 +55,7 @@ export function Button({
 
 export function Avatar({ initials, size = "h-8 w-8 text-[11px]" }: { initials: string; size?: string }) {
   return (
-    <span className={`grid place-items-center rounded-full bg-accent-soft border border-accent-line text-accent-deep font-semibold ${size}`}>
+    <span className={`grid shrink-0 place-items-center rounded-full border border-accent-line bg-accent-soft font-semibold text-accent-deep ${size}`}>
       {initials}
     </span>
   );

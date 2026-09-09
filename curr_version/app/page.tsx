@@ -41,10 +41,8 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="mt-10 flex items-center justify-between text-[12.5px] text-ink-muted">
-          <span>Design demo. Recognition, evaluation and groupmates are simulated with fixture data; nothing leaves this browser.</span>
-          <ResetDemo />
-        </div>
+        <p className="mt-10 text-[12.5px] text-ink-muted">Design demo · simulated recognition, evaluation and classmates · nothing leaves this browser</p>
+        <ResetDemo />
       </main>
     </div>
   );

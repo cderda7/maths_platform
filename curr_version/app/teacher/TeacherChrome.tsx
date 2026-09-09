@@ -50,13 +50,13 @@ export default function TeacherChrome({ children }: { children: ReactNode }) {
             <Link href="/teacher/assignments/new" className={`rounded-full px-3 py-1 text-[13.5px] font-medium transition-colors ${path === "/teacher/assignments/new" ? "bg-accent-soft text-accent-deep" : "text-ink-soft hover:bg-cream-deep hover:text-ink"}`} data-new-assignment>
               New assignment
             </Link>
-            <ResetDemo className="mr-2" />
             <span>{ASSIGNMENT.teacher}</span>
             <Avatar initials="MO" />
           </div>
         </div>
       </header>
       <main className="mx-auto max-w-7xl px-6 py-12">{children}</main>
+      <ResetDemo />
     </div>
   );
 }

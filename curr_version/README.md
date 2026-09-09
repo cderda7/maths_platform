@@ -22,8 +22,9 @@ npm run lint && npx tsc --noEmit && npm run build
 ```
 
 Open **/** and pick a side. Use tabs of the same browser: the student iPad in one, the teacher in
-another, the board in a third when projecting. "Reset" (entry page or teacher bar) restarts
-everything in every tab.
+another, the board in a third when projecting. The dashed "Reset demo" pinned bottom-right on the
+entry page and every teacher page restarts everything in every tab; it is a presenter control, not
+part of the product.
 
 ## The demo, in order
 
