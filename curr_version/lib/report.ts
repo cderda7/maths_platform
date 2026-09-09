@@ -1,5 +1,5 @@
 import { PROBLEM_MAP } from "@/data/assignment";
-import { categoryName, leafName, type GroupId } from "@/data/taxonomy";
+import { leafName, type GroupId } from "@/data/taxonomy";
 import type { Confidence } from "@/data/types";
 import { feedbackFor } from "./feedback";
 import type { StudentSession } from "./session";
@@ -22,7 +22,7 @@ export function confidenceSentence(c: Confidence | null): string {
   if (!c) return "No confidence rating";
   if (c.level === "confident") return "Confident before starting";
   if (c.level === "low") return "Confidence low before starting";
-  return `Confidence low when ${categoryName(c.category).name.toLowerCase()} comes up`;
+  return `Confidence low when ${c.leaves.map((l) => leafName(l).short).join(", ") || "a named skill"} comes up`;
 }
 
 export function reportFacts(session: StudentSession): ReportFacts {

@@ -1,4 +1,5 @@
 import { ASSIGNMENT } from "@/data/assignment";
+import { isolatable } from "@/data/practice";
 import { ALL_LEAVES, CATEGORY_ORDER, categoryOf, groupsOf, leavesOf, type CategoryId, type GroupId, type LeafId } from "@/data/taxonomy";
 import type { Problem, Status } from "@/data/types";
 import { evaluateLine } from "./evaluate";
@@ -62,6 +63,17 @@ export function leavesTouched(problems: Problem[] = ASSIGNMENT.problems): LeafId
 }
 
 /** Categories with at least one tagged leaf in the assignment, canonical order. */
+/**
+ * The set's most relevant skills for a student to name: the moves it leans on, ranked by how many
+ * problems invoke each (ties in first-mention order), the top `n`. Whole-task leaves and
+ * communication are not skills a student names.
+ */
+export function relevantSkills(problems: Problem[] = ASSIGNMENT.problems, n = 7): LeafId[] {
+  const count = new Map<LeafId, number>();
+  for (const p of problems) for (const l of problemLeaves(p)) if (isolatable(l)) count.set(l, (count.get(l) ?? 0) + 1);
+  return [...count.entries()].sort((a, b) => b[1] - a[1]).slice(0, n).map(([l]) => l);
+}
+
 export function categoriesTouched(problems: Problem[] = ASSIGNMENT.problems): CategoryId[] {
   const cats = new Set(leavesTouched(problems).map(categoryOf));
   return CATEGORY_ORDER.filter((c) => cats.has(c));

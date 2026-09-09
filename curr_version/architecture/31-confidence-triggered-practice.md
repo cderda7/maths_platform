@@ -8,7 +8,11 @@ Route: `/student` (stage `working`, the practice prompt). Live path: overview �
 | File | What it does |
 |---|---|
 | `lib/escalation.ts` | `recordMistake(state, group, leaf?, threshold = 2)`; `slips` per group (leaves slipped on since the last practice, first first); a trigger returns `slipped` and resets the group's slips |
-| `lib/session.ts` | `notConfidentIn(confidence, leaf)` (level "low", or "low-when" in the leaf's category) → threshold 1; `fundamentalLeaf(slipped)` (easiest by `EASE` that has a practice); `PracticePrompt.reason` gains `confidence`; the scripted run and deep-link fills are a confident student |
+| `lib/session.ts` | `notConfidentIn(confidence, leaf)` (level "low", or "low-when" naming a skill in this leaf's group: "Factorising" covers non-monic too) → threshold 1; `fundamentalLeaf(slipped)` (easiest by `EASE` that has a practice); `PracticePrompt.reason` gains `confidence`; `DEMO_CONFIDENCE` (the demo student: not confident in factorising) for the scripted run and deep links; `hydrateSession` maps an old category answer to no skills named |
+| `data/types.ts` | `Confidence` "low-when" carries `leaves: LeafId[]` (up to seven of the set's skills) instead of a category |
+| `lib/hierarchy.ts` | `relevantSkills(problems, n = 7)`: the moves ranked by how many problems invoke them |
+| `app/student/screens/ConfidenceScreen.tsx` | "Depends on the skill" opens the seven most relevant skills as multi-select chips, student names |
+| `lib/report.ts`, `app/teacher/TeacherLive.tsx` | Confidence copy names the skills ("low: monic factorising, non-monic factorising") |
 | `data/taxonomy.ts` | `studentLeafName` (monic → "Factorising" / "factorising"); `groupWord` (the plain word for a group in a sentence) |
 | `components/Tag.tsx` | `LeafChip student` switches to the student-facing name; the teacher's chips are unchanged |
 | `app/student/screens/PracticePrompt.tsx` | `PromptModal`: no eyebrow, "two minutes on {skill}?" lowercase, subtext by reason; picker and overlay chip use student names |
@@ -30,9 +34,17 @@ Route: `/student` (stage `working`, the practice prompt). Live path: overview �
    Yes ──▶ prompt/accept ──▶ PracticeOverlay (ticket 29)
 ```
 
+## Demo consequence
+
+The scripted student names factorising, which covers the whole group. Q1's monic slip prompts at once, Q2's
+non-monic slip prompts again, and that second practice raises the teacher's caution on
+"expanding & factorising", so the teacher grid shows Sam's Algebra as a gap (the caution rule
+from ticket 05 forces the group's leaves to gap). The report lists two practices and reads
+"Confidence low when monic factorising comes up".
+
 ## Verified by
 
-vitest (164 tests). CDP click-through: a confident student's Q1 slip passes and Q2's prompts
+vitest (168 tests). CDP click-through: a confident student's Q1 slip passes and Q2's prompts
 "two minutes on factorising? this is your second mistake on factorising…" with the overlay on the
 monic problem and "factorising" on Q1's chips; a "depends on the skill · Algebra" student's Q1
 slip prompts "you've made a mistake with factorising. you told me you don't feel confident…".

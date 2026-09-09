@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { Button, Eyebrow } from "@/components/ui";
-import { categoryName, type CategoryId } from "@/data/taxonomy";
+import { studentLeafName, type LeafId } from "@/data/taxonomy";
 import type { Confidence } from "@/data/types";
 import { useAssignment } from "@/lib/classroom-store";
-import { categoriesTouched } from "@/lib/hierarchy";
+import { relevantSkills } from "@/lib/hierarchy";
 
 type Level = Confidence["level"];
 
@@ -15,16 +15,18 @@ const OPTIONS: { level: Level; title: string }[] = [
   { level: "low", title: "Not confident" },
 ];
 
+/** Three answers; "depends on the skill" opens the set's seven most relevant skills to pick from. */
 export default function ConfidenceScreen({ practice, onSubmit }: { practice: "taken" | "declined" | null; onSubmit: (c: Confidence) => void }) {
   const [level, setLevel] = useState<Level | null>(null);
-  const [category, setCategory] = useState<CategoryId | null>(null);
-  const categories = categoriesTouched(useAssignment().problems).filter((c) => c !== "communication");
-  const ready = level === "low-when" ? category !== null : level !== null;
+  const [leaves, setLeaves] = useState<LeafId[]>([]);
+  const skills = relevantSkills(useAssignment().problems);
+  const ready = level === "low-when" ? leaves.length > 0 : level !== null;
 
   const submit = () => {
     if (!ready || !level) return;
-    onSubmit(level === "low-when" ? { level, category: category! } : { level });
+    onSubmit(level === "low-when" ? { level, leaves } : { level });
   };
+  const toggle = (id: LeafId) => setLeaves((ls) => (ls.includes(id) ? ls.filter((l) => l !== id) : [...ls, id]));
 
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col px-9 py-9">
@@ -50,21 +52,22 @@ export default function ConfidenceScreen({ practice, onSubmit }: { practice: "ta
                 <span className="text-[16px] font-medium">{o.title}</span>
               </button>
               {o.level === "low-when" && active && (
-                <div className="ml-14 mt-3 flex flex-wrap items-center gap-2">
-                  <span className="mr-1 text-[13px] text-ink-soft">Which skill?</span>
-                  {categories.map((id) => {
-                    const on = category === id;
+                <div className="ml-14 mt-3 flex flex-wrap items-center gap-2" data-skill-picker>
+                  <span className="mr-1 text-[13px] text-ink-soft">Which skills?</span>
+                  {skills.map((id) => {
+                    const on = leaves.includes(id);
                     return (
                       <button
                         key={id}
                         type="button"
-                        onClick={() => setCategory(id)}
+                        onClick={() => toggle(id)}
                         aria-pressed={on}
+                        data-skill={id}
                         className={`rounded-full border px-3.5 py-1.5 text-[13px] transition-colors ${
                           on ? "border-accent bg-accent text-white" : "border-line bg-paper text-ink-soft hover:border-ink-muted"
                         }`}
                       >
-                        {categoryName(id).name}
+                        {studentLeafName(id).name}
                       </button>
                     );
                   })}

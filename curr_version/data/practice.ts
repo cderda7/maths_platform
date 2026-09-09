@@ -136,7 +136,8 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     hint: "Work out b² − 4ac and look only at its sign.",
     hintTerms: [
       { phrase: "b", tex: ["2"] },
-      { phrase: "ac", tex: ["5"] },
+      { phrase: "a", within: "4ac", tex: [], insert: { before: "x^2", tex: "1" } },
+      { phrase: "c", within: "4ac", tex: ["5"] },
     ],
   },
   "graphing.quadratics.features": {

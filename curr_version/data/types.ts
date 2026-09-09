@@ -10,7 +10,7 @@ export type Difficulty =
   | "complex familiar"
   | "complex unfamiliar";
 
-import type { CategoryId, LeafId } from "./taxonomy";
+import type { LeafId } from "./taxonomy";
 
 /** A step or a line is tagged with one or more taxonomy leaves. Confidence is stored, not yet read. */
 export interface Tag {
@@ -66,7 +66,8 @@ export interface Assignment {
 /** The three confidence-survey answers from the spec; "low when" names a category the set touches. */
 export type Confidence =
   | { level: "confident" }
-  | { level: "low-when"; category: CategoryId }
+  /** Not confident when any of these skills is involved: up to seven of the set's most relevant. */
+  | { level: "low-when"; leaves: LeafId[] }
   | { level: "low" };
 
 /** Handwriting: a stroke is the points of one pen-down to pen-up, in pad coordinates. */
@@ -102,8 +103,12 @@ export type Pathway = ReviewStage[];
 export interface HintTerm {
   /** Matched whole-word in the hint, case-insensitively, every occurrence. */
   phrase: string;
+  /** When set, the phrase is matched once, inside the first occurrence of this text, instead of as a whole word ("a" inside "4ac"). */
+  within?: string;
   /** Fragments of the problem's TeX that light while the word is hovered, each as written there. */
   tex: string[];
+  /** While the word is hovered, this TeX is conjured, lit, just before the first whole occurrence of `before`: the unwritten 1 in front of x². */
+  insert?: { before: string; tex: string };
 }
 
 /** A short isolated problem on one leaf: the pre-set warm-up and the mid-set practices. */

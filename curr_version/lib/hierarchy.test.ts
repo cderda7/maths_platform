@@ -36,16 +36,22 @@ describe("the scripted run through the hierarchy", () => {
     expect(categoriesTouched()).toEqual(["algebra", "functions", "graphing", "communication", "reasoning", "unit"]);
   });
 
-  it("ends with Algebra developing, Communication solid and Reasoning a gap, the rest secure or solid", () => {
+  it("ends with Algebra a gap (factorising under caution), Communication solid and Reasoning a gap, the rest secure or solid", () => {
     const h = sessionHierarchy({ ...scriptedSession(), stage: "feedback" });
-    expect(h.categories.algebra).toBe("developing");
+    expect(h.categories.algebra).toBe("gap");
+    expect(h.groups["algebra.expand-factor"]).toBe("gap");
+    expect(h.leaves["algebra.expand-factor.nonmonic"]).toBe("gap");
+    // Without the caution the evidence alone reads as developing.
+    const calm = sessionHierarchy({ ...scriptedSession(), stage: "feedback", escalation: { ...scriptedSession().escalation, caution: [] } });
+    expect(calm.categories.algebra).toBe("developing");
+    expect(calm.leaves["algebra.expand-factor.monic"]).toBe("developing");
     expect(h.categories.communication).toBe("solid");
     expect(h.categories.reasoning).toBe("gap");
     expect(["secure", "solid"]).toContain(h.categories.functions);
     expect(["secure", "solid"]).toContain(h.categories.graphing);
     expect(["secure", "solid"]).toContain(h.categories.unit);
     expect(h.leaves["algebra.number.fractions"]).toBe("developing");
-    expect(h.leaves["algebra.expand-factor.monic"]).toBe("developing");
+    expect(h.leaves["algebra.expand-factor.monic"]).toBe("gap");
     expect(h.leaves["reasoning.justify.formal"]).toBe("gap");
     expect(h.leaves["communication.process.working"]).toBe("solid");
     expect(h.half.categories).toEqual([]);
@@ -124,6 +130,20 @@ describe("taxonomy coverage in the fixture", () => {
     }
     expect(wrongLeaves.has("algebra.equations.quadratic")).toBe(true);
     expect(leavesTouched().length).toBeGreaterThan(10);
+  });
+});
+
+describe("the set's most relevant skills", () => {
+  it("are the seven moves most problems lean on, most common first, never the whole-task leaf or communication", async () => {
+    const { relevantSkills } = await import("./hierarchy");
+    const top = relevantSkills();
+    expect(top).toHaveLength(7);
+    expect(top[0]).toBe("unit.u1.nfl");
+    expect(top).toContain("algebra.expand-factor.monic");
+    expect(top).toContain("algebra.number.fractions");
+    expect(top).not.toContain("algebra.equations.quadratic");
+    expect(top.some((l) => l.startsWith("communication."))).toBe(false);
+    expect(relevantSkills(undefined, 3)).toEqual(top.slice(0, 3));
   });
 });
 

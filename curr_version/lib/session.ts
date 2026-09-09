@@ -1,5 +1,5 @@
 import type { Confidence, Pathway, Stage, Stroke } from "@/data/types";
-import { categoryOf, groupOf, type LeafId } from "@/data/taxonomy";
+import { groupOf, type LeafId } from "@/data/taxonomy";
 import { PRACTICES } from "@/data/practice";
 import { byEase, focusLeaves, practiceFor, tutorReply, warmupSequence, type WarmupMessage } from "./warmup";
 import type { AdvanceKind } from "./classroom";
@@ -225,7 +225,10 @@ export function hydrateSession(raw: unknown): StudentSession {
   const snap = (raw && typeof raw === "object" ? raw : {}) as Partial<StudentSession>;
   const warmup = snap.warmup && typeof snap.warmup === "object" ? snap.warmup : {};
   const overlayRun = snap.overlayRun && typeof snap.overlayRun === "object" ? snap.overlayRun : {};
-  return { ...INITIAL_SESSION, ...snap, warmup: { ...INITIAL_WARMUP, ...warmup }, overlayRun: { ...INITIAL_RUN, ...overlayRun } };
+  // A "low-when" answer saved as a category (before skills were listed) keeps its level with no skills named.
+  const c = snap.confidence as ({ level: string; leaves?: unknown } | null | undefined);
+  const confidence: Confidence | null = c && c.level === "low-when" && !Array.isArray(c.leaves) ? { level: "low-when", leaves: [] } : ((c ?? null) as Confidence | null);
+  return { ...INITIAL_SESSION, ...snap, confidence, warmup: { ...INITIAL_WARMUP, ...warmup }, overlayRun: { ...INITIAL_RUN, ...overlayRun } };
 }
 
 /** What the reducer needs from outside the session: the pathway in force. */
@@ -425,11 +428,14 @@ export function fundamentalLeaf(slipped: LeafId[]): LeafId | null {
   return null;
 }
 
-/** True when the student said they are not confident overall, or not confident in this leaf's category. */
+/**
+ * True when the student said they are not confident overall, or named a skill in this leaf's group:
+ * "Factorising" covers monic and non-monic alike, as the mistake counter does.
+ */
 export function notConfidentIn(c: Confidence | null, leaf: LeafId): boolean {
   if (!c) return false;
   if (c.level === "low") return true;
-  return c.level === "low-when" && c.category === categoryOf(leaf);
+  return c.level === "low-when" && c.leaves.some((l) => groupOf(l) === groupOf(leaf));
 }
 export const FORCED_HAND_IN_TEXT = "Your teacher handed in the class's work.";
 
@@ -513,6 +519,9 @@ const todayAt = (h: number, m: number) => {
   return d.getTime();
 };
 
+/** The demo student's answer: not confident when factorising comes up. */
+export const DEMO_CONFIDENCE: Confidence = { level: "low-when", leaves: ["algebra.expand-factor.monic"] };
+
 /** Which scripted run a deep link plays: the default weak run, or a strong one (every step held). */
 export type RunKindParam = "weak" | "strong";
 
@@ -533,7 +542,7 @@ export function strongSession(): StudentSession {
  * produces: every recognised line for every problem, the Q2 prompt taken, no help asked.
  */
 export function scriptedSession(): StudentSession {
-  let s: StudentSession = { ...INITIAL_SESSION, stage: "working", practice: "declined", confidence: { level: "confident" } };
+  let s: StudentSession = { ...INITIAL_SESSION, stage: "working", practice: "declined", confidence: DEMO_CONFIDENCE };
   for (const [i, p] of Object.entries(RECOGNITION)) {
     const index = Object.keys(RECOGNITION).indexOf(i);
     s = sessionReducer(s, { type: "problem/goto", index });
@@ -571,7 +580,7 @@ export function sessionAt(stage: Stage, run: RunKindParam = "weak"): StudentSess
     ...INITIAL_SESSION,
     stage,
     practice: i === ORDER.indexOf("warmup-pick") || i === ORDER.indexOf("practice") ? "taken" : i >= ORDER.indexOf("confidence") ? "declined" : null,
-    confidence: i >= ORDER.indexOf("warmup-pick") ? { level: "confident" } : null,
+    confidence: i >= ORDER.indexOf("warmup-pick") ? DEMO_CONFIDENCE : null,
     // A deep link straight to the pad needs something to warm up on: Q2, monic factorising and fractions, the demo's own worries.
     warmup: i === ORDER.indexOf("practice") ? { ...INITIAL_WARMUP, selected: ["q2"], messages: [{ from: "student", text: "monic factorising and fractions" }] } : INITIAL_WARMUP,
   };

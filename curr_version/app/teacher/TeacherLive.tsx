@@ -12,7 +12,7 @@ import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { StatusDot, STATUS_WORD } from "@/components/Tag";
 import { ASSIGNMENT, DEMO_STUDENT, unitLabel } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
-import { categoryLabel, categoryName, categoryOf, groupName, isFlat, type CategoryId, type LeafId } from "@/data/taxonomy";
+import { categoryLabel, categoryName, categoryOf, groupName, isFlat, leafName, type CategoryId, type LeafId } from "@/data/taxonomy";
 import type { Confidence } from "@/data/types";
 import { pathwayOf } from "@/lib/classroom";
 import { useAssignment, useClassroom } from "@/lib/classroom-store";
@@ -30,7 +30,8 @@ function confidenceWord(c: Confidence | null): { text: string; tone: string } {
   if (!c) return { text: "—", tone: "text-ink-muted" };
   if (c.level === "confident") return { text: "confident", tone: "text-secure" };
   if (c.level === "low") return { text: "low", tone: "text-standout" };
-  return { text: `low: ${categoryName(c.category).short.toLowerCase()}`, tone: "text-standout" };
+  const names = c.leaves.map((l) => leafName(l).short);
+  return { text: `low: ${names.slice(0, 2).join(", ")}${names.length > 2 ? ` +${names.length - 2}` : ""}`, tone: "text-standout" };
 }
 
 function ago(ms: number | null, now: number): string {

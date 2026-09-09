@@ -48,3 +48,12 @@ the two brackets; 3, 8, both for "ac", 10x and the nested 10) with the expressio
 and moving away clears both; the set problem on the working screen has no `hint-term` spans; the
 mid-set "on its own" pad opens from "I need help" → Monic trinomials → Yes, its hint links light
 12 and 7 the same way.
+
+## Follow-up (ticket 31, 2026-09-10)
+
+- Two fragments that abut (the two factors of a product) get a medium space (`\\;`) between them so each
+  reads as its own box; the no-spacing test allows exactly that gap.
+- `HintTerm.within`: a phrase matched inside a longer word, once ("a" and "c" inside "4ac").
+- `HintTerm.insert`: while the word is hovered, an unwritten fragment is conjured and lit just
+  before `before` (the 1 in front of x² for "a" in the discriminant hint); it goes away with the
+  hover. The discriminant hint now links b, a and c separately.

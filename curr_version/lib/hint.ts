@@ -16,15 +16,30 @@ const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
  */
 export function hintSegments(hint: string, terms: HintTerm[] = []): HintSegment[] {
   if (terms.length === 0) return [{ text: hint }];
-  const byPhrase = new Map(terms.map((t) => [t.phrase.toLowerCase(), t]));
-  const alternatives = [...byPhrase.keys()].sort((a, b) => b.length - a.length).map(escape).join("|");
-  const re = new RegExp(`(?<![a-z])(?:${alternatives})(?![a-z])`, "gi");
+  const found: { at: number; text: string; term: HintTerm }[] = [];
+  const whole = terms.filter((t) => !t.within);
+  if (whole.length > 0) {
+    const byPhrase = new Map(whole.map((t) => [t.phrase.toLowerCase(), t]));
+    const alternatives = [...byPhrase.keys()].sort((a, b) => b.length - a.length).map(escape).join("|");
+    const re = new RegExp(`(?<![a-z])(?:${alternatives})(?![a-z])`, "gi");
+    for (const m of hint.matchAll(re)) found.push({ at: m.index, text: m[0], term: byPhrase.get(m[0].toLowerCase())! });
+  }
+  // A term matched inside a longer word: "a" inside "4ac", found once, in the first occurrence of that word.
+  for (const t of terms) {
+    if (!t.within) continue;
+    const ctx = hint.indexOf(t.within);
+    if (ctx < 0) continue;
+    const at = hint.indexOf(t.phrase, ctx);
+    if (at >= 0 && at + t.phrase.length <= ctx + t.within.length) found.push({ at, text: t.phrase, term: t });
+  }
+  found.sort((a, b) => a.at - b.at || b.text.length - a.text.length);
   const out: HintSegment[] = [];
   let cursor = 0;
-  for (const m of hint.matchAll(re)) {
-    if (m.index > cursor) out.push({ text: hint.slice(cursor, m.index) });
-    out.push({ text: m[0], term: byPhrase.get(m[0].toLowerCase()) });
-    cursor = m.index + m[0].length;
+  for (const f of found) {
+    if (f.at < cursor) continue;
+    if (f.at > cursor) out.push({ text: hint.slice(cursor, f.at) });
+    out.push({ text: f.text, term: f.term });
+    cursor = f.at + f.text.length;
   }
   if (cursor < hint.length) out.push({ text: hint.slice(cursor) });
   return out;
@@ -37,11 +52,20 @@ export function hintSegments(hint: string, terms: HintTerm[] = []): HintSegment[
  * own). First whole occurrence of each fragment: not a superscript or subscript, not part of a
  * longer number or of a command name, so "2" in `x^2 + 2x` is the coefficient. A fragment inside
  * a longer one is wrapped inside it, so "10" can light within "10x"; a fragment the TeX does not
- * contain is left alone. Needs KaTeX's `trust` option, which `components/Math` sets.
+ * contain is left alone. Two fragments that abut, like the two factors of a product, get a thin
+ * space (`\\;`) between them so each reads as its own box. Needs KaTeX's `trust` option, which
+ * `components/Math` sets.
  */
 export function termTex(tex: string, terms: HintTerm[] = [], lit?: HintTerm): string {
   const fragments = [...new Set(terms.flatMap((t) => t.tex))];
-  return fragments.length ? wrap(tex, fragments, new Set(lit?.tex ?? [])) : tex;
+  const wrapped = fragments.length ? wrap(tex, fragments, new Set(lit?.tex ?? [])) : tex;
+  return lit?.insert ? conjure(wrapped, lit.insert) : wrapped;
+}
+
+/** Puts a lit fragment the problem does not write (the 1 in front of x²) just before `before`, or leaves the TeX alone when `before` is absent. */
+function conjure(tex: string, insert: { before: string; tex: string }): string {
+  const at = findFragment(tex, insert.before);
+  return at < 0 ? tex : `${tex.slice(0, at)}\\htmlClass{hint-term hint-term-lit}{${insert.tex}}${tex.slice(at)}`;
 }
 
 const alnum = (c: string | undefined) => c !== undefined && /[a-z0-9]/i.test(c);
@@ -65,13 +89,16 @@ function wrap(tex: string, fragments: string[], lit: Set<string>): string {
     .sort((a, b) => a.at - b.at || b.f.length - a.f.length);
   let out = "";
   let cursor = 0;
+  let lastEnd = -1;
   for (const { f, at } of found) {
     if (at < cursor) continue;
     const end = at + f.length;
     const inner = found.filter((x) => x.f !== f && x.at >= at && x.at + x.f.length <= end).map((x) => x.f);
     const body = inner.length ? wrap(f, inner, lit) : f;
-    out += tex.slice(cursor, at) + `\\htmlClass{${lit.has(f) ? "hint-term hint-term-lit" : "hint-term"}}{${body}}`;
+    const gap = at === lastEnd ? "\\;" : "";
+    out += tex.slice(cursor, at) + gap + `\\htmlClass{${lit.has(f) ? "hint-term hint-term-lit" : "hint-term"}}{${body}}`;
     cursor = end;
+    lastEnd = end;
   }
   return out + tex.slice(cursor);
 }

@@ -10,9 +10,9 @@ describe("student session flow", () => {
     let s = sessionReducer(INITIAL_SESSION, { type: "practice/decline" });
     expect(s.stage).toBe("confidence");
     expect(s.practice).toBe("declined");
-    s = sessionReducer(s, { type: "confidence/set", confidence: { level: "low-when", category: "algebra" } });
+    s = sessionReducer(s, { type: "confidence/set", confidence: { level: "low-when", leaves: ["algebra.number.fractions"] } });
     expect(s.stage).toBe("working");
-    expect(s.confidence).toEqual({ level: "low-when", category: "algebra" });
+    expect(s.confidence).toEqual({ level: "low-when", leaves: ["algebra.number.fractions"] });
   });
 
   it("accepting practice asks about confidence first, then opens the chooser, then the warm-up, then the set", () => {
@@ -100,6 +100,8 @@ describe("hydrating a stored session", () => {
     expect(hydrateSession({ stage: "overview" }).warmup).toEqual(INITIAL_WARMUP);
     expect(hydrateSession(null)).toEqual(INITIAL_SESSION);
     expect(hydrateSession("junk")).toEqual(INITIAL_SESSION);
+    expect(hydrateSession({ confidence: { level: "low-when", category: "algebra" } }).confidence).toEqual({ level: "low-when", leaves: [] });
+    expect(hydrateSession({ confidence: { level: "low" } }).confidence).toEqual({ level: "low" });
   });
 });
 
@@ -208,8 +210,8 @@ describe("escalation inside the session", () => {
   const reveal = (s: ReturnType<typeof sessionAt>, problem: string, tex: string, strokeCount: number) =>
     sessionReducer(s, { type: "line/reveal", problem, line: { tex, strokeCount } });
 
-  it("the scripted run: Q1's factorising slip passes, Q2's triggers the prompt", () => {
-    let s = sessionAt("working");
+  it("a confident student: Q1's factorising slip passes, Q2's triggers the prompt", () => {
+    let s: StudentSession = { ...sessionAt("working"), confidence: { level: "confident" } };
     s = reveal(s, "q1", "x^2 - 5x + 6 = 0", 5);
     s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 12);
     expect(s.prompt).toBeNull();
@@ -223,12 +225,12 @@ describe("escalation inside the session", () => {
     expect(s.escalation.caution).toEqual([]);
   });
 
-  it("a student who is not confident in the category is offered practice on the first mistake there", () => {
-    let s: StudentSession = { ...sessionAt("working"), confidence: { level: "low-when", category: "algebra" } };
+  it("a student who named a skill they are not confident in is offered practice on the first mistake on it", () => {
+    let s: StudentSession = { ...sessionAt("working"), confidence: { level: "low-when", leaves: ["algebra.expand-factor.monic"] } };
     s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 3);
     expect(s.prompt).toEqual({ leaf: "algebra.expand-factor.monic", reason: "confidence" });
     expect(s.escalation.counts["algebra.expand-factor"]).toBe(0);
-    // Not confident in algebra says nothing about the unit's rules: Q3's null-factor slip waits for a second.
+    // Naming factorising says nothing about the null factor law: Q3's slip waits for a second.
     s = sessionReducer(s, { type: "prompt/decline", problem: "q1" });
     s = sessionReducer(s, { type: "problem/goto", index: 2 });
     s = reveal(s, "q3", "x - 3 = 6 \\;\\text{or}\\; x + 2 = 6", 3);
@@ -243,8 +245,20 @@ describe("escalation inside the session", () => {
     expect(s.prompt).toEqual({ leaf: "unit.u1.nfl", reason: "confidence" });
   });
 
-  it("undo and re-reveal of the same wrong line is counted once", () => {
+  it("the demo student, not confident in factorising: Q1's monic slip prompts at once, Q2's non-monic slip too (same group), and the second practice cautions the teacher", () => {
     let s = sessionAt("working");
+    s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 5);
+    expect(s.prompt).toEqual({ leaf: "algebra.expand-factor.monic", reason: "confidence" });
+    s = sessionReducer(s, { type: "prompt/accept", problem: "q1" });
+    s = sessionReducer(s, { type: "overlay/done" });
+    s = sessionReducer(s, { type: "problem/goto", index: 1 });
+    s = reveal(s, "q2", "(2x + 4)(x - 1) = 0", 8);
+    expect(s.prompt).toEqual({ leaf: "algebra.expand-factor.nonmonic", reason: "confidence" });
+    expect(s.escalation.caution).toEqual(["algebra.expand-factor"]);
+  });
+
+  it("undo and re-reveal of the same wrong line is counted once", () => {
+    let s: StudentSession = { ...sessionAt("working"), confidence: { level: "confident" } };
     s = reveal(s, "q1", "x^2 - 5x + 6 = 0", 5);
     s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 12);
     s = sessionReducer(s, { type: "lines/undo", problem: "q1", strokeCount: 11 });
@@ -254,7 +268,7 @@ describe("escalation inside the session", () => {
   });
 
   it("accepting the prompt opens the practice overlay; finishing it returns to the same problem", () => {
-    let s = sessionAt("working");
+    let s: StudentSession = { ...sessionAt("working"), confidence: { level: "confident" } };
     s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 3);
     s = sessionReducer(s, { type: "problem/goto", index: 1 });
     s = reveal(s, "q2", "(2x + 4)(x - 1) = 0", 3);
@@ -268,7 +282,7 @@ describe("escalation inside the session", () => {
   });
 
   it("'I need help' after a detected practice raises the caution flag", () => {
-    let s = sessionAt("working");
+    let s: StudentSession = { ...sessionAt("working"), confidence: { level: "confident" } };
     s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 3);
     s = reveal(s, "q2", "(2x + 4)(x - 1) = 0", 3);
     s = sessionReducer(s, { type: "prompt/decline", problem: "q2" });

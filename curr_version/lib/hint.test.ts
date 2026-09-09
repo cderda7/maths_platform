@@ -48,6 +48,17 @@ describe("hintSegments", () => {
     expect(hintSegments("Work out b² − 4ac.", [b]).filter((s) => s.term)).toEqual([{ text: "b", term: b }]);
   });
 
+  it("matches a term inside a longer word only where told to", () => {
+    const hint = "Work out b² − 4ac and look only at its sign.";
+    const a = { phrase: "a", within: "4ac", tex: [] };
+    const c = { phrase: "c", within: "4ac", tex: ["5"] };
+    const b = { phrase: "b", tex: ["2"] };
+    const segs = hintSegments(hint, [b, a, c]);
+    expect(segs.filter((s) => s.term).map((s) => s.text)).toEqual(["b", "a", "c"]);
+    expect(segs.map((s) => s.text).join("")).toBe(hint);
+    expect(hintSegments(hint, [{ phrase: "a", within: "zzz", tex: [] }]).every((s) => !s.term)).toBe(true);
+  });
+
   it("returns the whole hint as one run without terms", () => {
     expect(hintSegments(hint)).toEqual([{ text: hint }]);
   });
@@ -61,9 +72,19 @@ describe("termTex", () => {
     expect(termTex(tex, [constant, middle], constant)).toBe("x^2 + \\htmlClass{hint-term}{7}x + \\htmlClass{hint-term hint-term-lit}{12} = 0");
   });
 
-  it("lights every fragment of a term with several", () => {
+  it("lights every fragment of a term with several, with a thin space between two that abut", () => {
     const factors = { phrase: "factors", tex: ["(x - 2)", "(x + 5)"] };
-    expect(termTex("(x - 2)(x + 5) = 0", [factors], factors)).toBe("\\htmlClass{hint-term hint-term-lit}{(x - 2)}\\htmlClass{hint-term hint-term-lit}{(x + 5)} = 0");
+    expect(termTex("(x - 2)(x + 5) = 0", [factors], factors)).toBe("\\htmlClass{hint-term hint-term-lit}{(x - 2)}\\;\\htmlClass{hint-term hint-term-lit}{(x + 5)} = 0");
+    expect(termTex("(x - 2)(x + 5) = 0", [factors])).toBe("\\htmlClass{hint-term}{(x - 2)}\\;\\htmlClass{hint-term}{(x + 5)} = 0");
+  });
+
+  it("conjures an unwritten fragment while its term is lit, and only then", () => {
+    const a = { phrase: "a", within: "4ac", tex: [], insert: { before: "x^2", tex: "1" } };
+    const c = { phrase: "c", within: "4ac", tex: ["5"] };
+    expect(termTex("x^2 + 2x + 5 = 0", [a, c])).toBe("x^2 + 2x + \\htmlClass{hint-term}{5} = 0");
+    expect(termTex("x^2 + 2x + 5 = 0", [a, c], a)).toBe("\\htmlClass{hint-term hint-term-lit}{1}x^2 + 2x + \\htmlClass{hint-term}{5} = 0");
+    expect(termTex("x^2 + 2x + 5 = 0", [a, c], c)).toBe("x^2 + 2x + \\htmlClass{hint-term hint-term-lit}{5} = 0");
+    expect(termTex("y = 3", [{ phrase: "a", tex: [], insert: { before: "x^2", tex: "1" } }], { phrase: "a", tex: [], insert: { before: "x^2", tex: "1" } })).toBe("y = 3");
   });
 
   it("nests a fragment inside a longer one", () => {
@@ -93,14 +114,17 @@ describe("termTex", () => {
     expect(html).toContain('class="enclosing hint-term"');
   });
 
-  it("changes no spacing in any warm-up problem", () => {
+  it("lighting changes no spacing in any warm-up problem, except a conjured fragment; the only change at rest is the gap between abutting fragments", () => {
     const spacing = (t: string) => {
       const html = katex.renderToString(t, { trust: true, strict: false, displayMode: true });
       return [...html.matchAll(/mspace" style="margin-right:([^;"]+)/g)].map((m) => m[1]).join(" ") + " | " + (html.match(/mbin|mrel|mopen|mclose/g) ?? []).join(" ");
     };
     for (const p of every()) {
       if (!p.hintTerms) continue;
-      for (const lit of [undefined, ...p.hintTerms]) expect(spacing(termTex(p.tex, p.hintTerms, lit)), p.id).toBe(spacing(p.tex));
+      const rest = termTex(p.tex, p.hintTerms);
+      const abutting = rest.includes("\\;\\htmlClass");
+      if (!abutting) expect(spacing(rest), p.id).toBe(spacing(p.tex));
+      for (const lit of p.hintTerms) if (!lit.insert) expect(spacing(termTex(p.tex, p.hintTerms, lit)), `${p.id}: ${lit.phrase}`).toBe(spacing(rest));
     }
   });
 });
@@ -110,8 +134,9 @@ describe("warm-up hint terms", () => {
     for (const p of every()) {
       for (const t of p.hintTerms ?? []) {
         expect(hintSegments(p.hint, [t]).some((s) => s.term === t), `${p.id}: "${t.phrase}"`).toBe(true);
-        expect(t.tex.length, `${p.id}: "${t.phrase}"`).toBeGreaterThan(0);
+        expect(t.tex.length > 0 || !!t.insert, `${p.id}: "${t.phrase}"`).toBe(true);
         for (const f of t.tex) expect(findFragment(p.tex, f), `${p.id}: ${f}`).toBeGreaterThanOrEqual(0);
+        if (t.insert) expect(findFragment(p.tex, t.insert.before), `${p.id}: ${t.insert.before}`).toBeGreaterThanOrEqual(0);
       }
     }
   });
