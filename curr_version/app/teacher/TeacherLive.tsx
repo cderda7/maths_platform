@@ -18,7 +18,6 @@ import { pathwayOf } from "@/lib/classroom";
 import { useAssignment, useClassroom } from "@/lib/classroom-store";
 import { classmateEvidence, hierarchyFor, leavesBehind, problemsStarted, restrictTo, sessionEvidence, type Evidence } from "@/lib/hierarchy";
 import { pathwayChip } from "@/lib/pathway";
-import type { StudentSession } from "@/lib/session";
 import { useBatchedSession, useNow } from "@/lib/store";
 
 function confidenceWord(c: Confidence | null): { text: string; tone: string } {
@@ -190,8 +189,8 @@ export default function TeacherLive() {
                     {categoryName(c).short}
                   </th>
                 ))}
-                <th className="px-3 py-4 font-semibold">Confidence</th>
-                <th className="px-3 py-4 font-semibold">Set</th>
+                <th className="px-3 py-4 text-center font-semibold">Confidence</th>
+                <th className="px-3 py-4 text-center font-semibold">Set</th>
               </tr>
             </thead>
             <tbody>
@@ -280,8 +279,8 @@ export default function TeacherLive() {
                           </td>
                         );
                       })}
-                      <td className={`px-3 py-3.5 text-[13px] leading-snug ${r.confidence.tone}`}>{r.confidence.text}</td>
-                      <td className="px-3 py-3.5 leading-snug text-ink-soft">
+                      <td className={`px-3 py-3.5 text-center text-[13px] leading-snug ${r.confidence.tone}`}>{r.confidence.text}</td>
+                      <td className="px-3 py-3.5 text-center leading-snug text-ink-soft">
                         {r.set}
                         <div className="text-[12px] text-ink-muted">{r.setSub}</div>
                       </td>
