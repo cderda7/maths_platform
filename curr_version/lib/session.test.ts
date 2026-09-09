@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { INITIAL_SESSION, INITIAL_WARMUP, sessionAt, sessionReducer, warmupProblem } from "./session";
+import { INITIAL_SESSION, INITIAL_WARMUP, hydrateSession, sessionAt, sessionReducer, warmupFocus, warmupProblem } from "./session";
 import { PRACTICE, WARMUP_BANK } from "@/data/practice";
 import { warmupScript } from "./warmup";
 import { allPathways } from "./pathway";
@@ -67,6 +67,20 @@ describe("student session flow", () => {
     s = sessionReducer(s, { type: "lines/clear", problem: "q1" });
     expect(s.lines.q1).toEqual([]);
     expect(s.problemIndex).toBe(1);
+  });
+});
+
+describe("hydrating a stored session", () => {
+  it("fills in fields added since the snapshot, including inside the warm-up slice", () => {
+    const old = { stage: "warmup-pick", practice: "taken", warmup: { problem: "first", example: false, exampleShown: 0, hinted: [], exampled: [], lines: {}, ink: {} } };
+    const s = hydrateSession(old);
+    expect(s.stage).toBe("warmup-pick");
+    expect(s.warmup.selected).toEqual([]);
+    expect(s.warmup.messages).toEqual([]);
+    expect(warmupFocus(s)).toEqual([]);
+    expect(hydrateSession({ stage: "overview" }).warmup).toEqual(INITIAL_WARMUP);
+    expect(hydrateSession(null)).toEqual(INITIAL_SESSION);
+    expect(hydrateSession("junk")).toEqual(INITIAL_SESSION);
   });
 });
 

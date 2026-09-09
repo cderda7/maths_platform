@@ -2,7 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import type { Stage } from "@/data/types";
-import { INITIAL_SESSION, sessionAt, sessionReducer, type RunKindParam, type SessionAction, type StudentSession } from "./session";
+import { INITIAL_SESSION, hydrateSession, sessionAt, sessionReducer, type RunKindParam, type SessionAction, type StudentSession } from "./session";
 import { pathwayOf } from "./classroom";
 import { getClassroom, resetClassroom } from "./classroom-store";
 
@@ -23,8 +23,8 @@ let wired = false;
 function load(): StudentSession | null {
   try {
     const raw = localStorage.getItem(KEY);
-    // Fields added since the snapshot was written (ink, for one) fall back to their initial value.
-    return raw ? { ...INITIAL_SESSION, ...(JSON.parse(raw) as Partial<StudentSession>) } : null;
+    // Fields added since the snapshot was written fall back to their initial value, nested slices too.
+    return raw ? hydrateSession(JSON.parse(raw)) : null;
   } catch {
     return null;
   }

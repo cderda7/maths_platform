@@ -197,6 +197,17 @@ export const INITIAL_SESSION: StudentSession = {
   diagnosticAnswers: [],
 };
 
+/**
+ * A stored snapshot brought up to the current shape: fields added since it was written fall back to
+ * their initial value, one level down as well (a warm-up saved before the chooser had no
+ * `selected` or `messages`). Anything unreadable is ignored.
+ */
+export function hydrateSession(raw: unknown): StudentSession {
+  const snap = (raw && typeof raw === "object" ? raw : {}) as Partial<StudentSession>;
+  const warmup = snap.warmup && typeof snap.warmup === "object" ? snap.warmup : {};
+  return { ...INITIAL_SESSION, ...snap, warmup: { ...INITIAL_WARMUP, ...warmup } };
+}
+
 /** What the reducer needs from outside the session: the pathway in force. */
 export interface SessionEnv {
   pathway: Pathway;
