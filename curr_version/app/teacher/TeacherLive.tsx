@@ -198,8 +198,8 @@ export default function TeacherLive() {
       </p>
 
       <div className="mt-10 grid grid-cols-[1fr_320px] gap-6">
-        <Card className="overflow-hidden">
-          <table ref={tableRef} className="w-full table-fixed text-left text-[14px]" data-grid>
+        <Card className="overflow-x-auto">
+          <table ref={tableRef} className="w-full min-w-[980px] table-fixed text-left text-[14px]" data-grid>
             <colgroup>
               <col className="w-[190px]" />
               {columns.map((c) => (
@@ -295,7 +295,7 @@ export default function TeacherLive() {
                         const on = isOpen && open.mode === "category" && open.category === c;
                         const blanked = !!column && column.category !== c; // a column view shows only its own column's dots
                         return (
-                          <td key={c} className="px-1 py-3.5 text-center">
+                          <td key={c} className="relative px-1 py-3.5 text-center">
                             <button
                               type="button"
                               onClick={() => (on && !column ? setOpen(null) : openRow(r.id, "category", c))}
@@ -308,11 +308,16 @@ export default function TeacherLive() {
                             >
                               <StatusDot status={st} half={half} size="h-[15px] w-[15px]" />
                             </button>
+                            {column?.category === c && (
+                              <span className="pointer-events-none absolute top-1/2 left-[calc(50%+12px)] -translate-y-1/2 whitespace-nowrap text-[12.5px] text-ink" data-column-label>
+                                {categoryName(c).name}
+                              </span>
+                            )}
                           </td>
                         );
                       })}
-                      <td className={`whitespace-nowrap px-3 py-3.5 text-[13px] ${r.confidence.tone}`}>{r.confidence.text}</td>
-                      <td className="whitespace-nowrap px-3 py-3.5 text-ink-soft">
+                      <td className={`px-3 py-3.5 text-[13px] leading-snug ${r.confidence.tone}`}>{r.confidence.text}</td>
+                      <td className="px-3 py-3.5 leading-snug text-ink-soft">
                         {r.set}
                         <div className="text-[12px] text-ink-muted">{r.setSub}</div>
                       </td>
