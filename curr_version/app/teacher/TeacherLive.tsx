@@ -28,40 +28,6 @@ function confidenceWord(c: Confidence | null): { text: string; tone: string } {
   return { text: `low: ${categoryName(c.category).short.toLowerCase()}`, tone: "text-standout" };
 }
 
-function stageWord(s: StudentSession): string {
-  if (s.overlay) return `Practising ${leafName(s.overlay).short}`;
-  if (s.prompt) return `Offered ${leafName(s.prompt.leaf).short} practice`;
-  switch (s.stage) {
-    case "overview":
-      return "Reading the set";
-    case "practice":
-      return "Warming up";
-    case "confidence":
-      return "Confidence check";
-    case "working":
-      return `On ${ASSIGNMENT.problems[s.problemIndex]?.label ?? ""}`;
-    case "feedback":
-      return "Handed in";
-    case "waiting":
-      return "Handed in · waiting";
-    case "frozen":
-      return "Frozen · whole-class review";
-    case "rework":
-      return "Reworking on their own";
-    case "group-pass":
-    case "group-discuss":
-      return "In group review";
-    case "report":
-      return s.reportSent ? "Report sent" : "Writing their reflection";
-    case "peers":
-      return "Reading class patterns";
-    case "history":
-      return "Looking back at their working";
-    default:
-      return s.stage;
-  }
-}
-
 function ago(ms: number | null, now: number): string {
   if (ms === null || now === 0) return "";
   const s = Math.max(0, Math.round((now - ms) / 1000));
@@ -163,7 +129,7 @@ export default function TeacherLive() {
       initials: DEMO_STUDENT.initials,
       live: true,
       evidence: live ? sessionEvidence(live) : { lines: {}, submitted: false, caution: [] },
-      sub: live && live.stage !== "working" ? stageWord(live).toLowerCase() : "",
+      sub: "",
       notes: [] as { text: string; problems: string[] }[],
       confidence: confidenceWord(live?.confidence ?? null),
       set: `${live ? problemsStarted(live) : 0}/${problems.length}`,
@@ -251,7 +217,7 @@ export default function TeacherLive() {
                             {r.live && (
                               <span className="mt-1 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-accent-line bg-paper px-2 py-0.5 text-[11px] font-medium text-accent-deep" data-live-pill>
                                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" aria-hidden />
-                                {!live ? "not started" : live.stage === "working" ? `${ASSIGNMENT.problems[live.problemIndex]?.label ?? "Q1"} in progress` : "live"}
+                                {live ? "in progress" : "not started"}
                               </span>
                             )}
                             <div className={`flex items-start gap-2 text-[12.5px] leading-snug text-ink-muted ${!column && (r.sub || r.notes.length > 0 || (r.live && (caution.length > 0 || live?.reportSent))) ? "" : "hidden"}`} data-commentary>
