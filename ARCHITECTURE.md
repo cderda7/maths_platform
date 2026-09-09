@@ -42,6 +42,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │ lib/pathway.ts      REVIEW_ORDER · successors · nextStage · pathwaySentence/Chip    │
  │ lib/session.ts      StudentSession · sessionReducer(s, a, env) · sessionAt (pure)   │
  │ lib/recognition.ts  nextLine · afterUndo  (burst of strokes → scripted line)        │
+ │   session.ink / reworkInk: strokes per problem, popped with lines on undo/clear      │
  │ lib/evaluate.ts     evaluateLine(problem, tex) → ok | wrong | unclear               │
  │ lib/escalation.ts   recordMistake · requestHelp → { trigger, cautioned }            │
  │ lib/status.ts       subskillStatuses · problemsStarted  (teacher-side derivation)   │
@@ -74,6 +75,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │   Tag.tsx DifficultyTag SubskillChip StatusDot STATUS_WORD                         │
  │   Brand.tsx Brand BrandMark                   IpadStage.tsx  bezel + scale-to-fit  │
  │   DrawPad.tsx  pointer events → ink; reports pen-down and burst-end(strokeCount)   │
+ │   InkView.tsx  read-only SVG of stored strokes, cropped and fitted to its box       │
  │   PadSection.tsx  pad + Undo/Clear      ReadAs.tsx  transcription column + shimmer  │
  │   PracticeCard.tsx  one practice problem, steps revealed one at a time              │
  │   ResetDemo.tsx     restart the shared session in every tab                         │
@@ -108,7 +110,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 16 | Diagnostic MCQ push (Tier 2) | `/teacher` → `/student` interrupt | `7b3d49c` | [curr_version/architecture/16-diagnostic-mcq-push.md](curr_version/architecture/16-diagnostic-mcq-push.md) |
 | 17 | Copy sweep to the rule (spec v3) | every route | `cabb007` | [curr_version/architecture/17-copy-sweep.md](curr_version/architecture/17-copy-sweep.md) |
 | 18 | Pathway model and routing | `/student?pathway=…`, `/teacher` chip | `dc5ee2a` | [curr_version/architecture/18-pathway-model-and-routing.md](curr_version/architecture/18-pathway-model-and-routing.md) |
-| 19 | Assignment creation with the pathway map | `/teacher/assignments/new` | _this commit_ | [curr_version/architecture/19-assignment-creation-with-pathway-map.md](curr_version/architecture/19-assignment-creation-with-pathway-map.md) |
+| 19 | Assignment creation with the pathway map | `/teacher/assignments/new` | `2af6872` | [curr_version/architecture/19-assignment-creation-with-pathway-map.md](curr_version/architecture/19-assignment-creation-with-pathway-map.md) |
+| 20 | Persisted ink | `/student` working, rework, history | _this commit_ | [curr_version/architecture/20-persisted-ink.md](curr_version/architecture/20-persisted-ink.md) |
 
 ## Conventions
 

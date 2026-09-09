@@ -215,3 +215,46 @@ describe("routing by pathway", () => {
     expect(s.handedInAt).toBeGreaterThan(0);
   });
 });
+
+describe("persisted ink", () => {
+  const stroke = (n: number) => [{ x: n + 0.123, y: 2 * n }, { x: n + 1, y: 2 * n + 1.987 }];
+
+  it("strokes are stored per problem, rounded, and undo pops ink and lines together", () => {
+    let s = sessionAt("working");
+    s = sessionReducer(s, { type: "ink/stroke", problem: "q1", stroke: stroke(1) });
+    s = sessionReducer(s, { type: "ink/stroke", problem: "q1", stroke: stroke(2) });
+    s = sessionReducer(s, { type: "line/reveal", problem: "q1", line: { tex: "a", strokeCount: 2 } });
+    s = sessionReducer(s, { type: "ink/stroke", problem: "q1", stroke: stroke(3) });
+    s = sessionReducer(s, { type: "line/reveal", problem: "q1", line: { tex: "b", strokeCount: 3 } });
+    expect(s.ink.q1).toHaveLength(3);
+    expect(s.ink.q1[0][0]).toEqual({ x: 1.1, y: 2 });
+    expect(s.ink.q1[0][1]).toEqual({ x: 2, y: 4 });
+    s = sessionReducer(s, { type: "lines/undo", problem: "q1" });
+    expect(s.ink.q1).toHaveLength(2);
+    expect(s.lines.q1.map((l) => l.tex)).toEqual(["a"]);
+    s = sessionReducer(s, { type: "lines/undo", problem: "q1" });
+    expect(s.ink.q1).toHaveLength(1);
+    expect(s.lines.q1).toEqual([]);
+    s = sessionReducer(s, { type: "lines/undo", problem: "q1" });
+    s = sessionReducer(s, { type: "lines/undo", problem: "q1" });
+    expect(s.ink.q1).toEqual([]);
+    s = sessionReducer(s, { type: "ink/stroke", problem: "q1", stroke: stroke(9) });
+    s = sessionReducer(s, { type: "lines/clear", problem: "q1" });
+    expect(s.ink.q1).toEqual([]);
+    expect(s.lines.q1).toEqual([]);
+  });
+
+  it("the rework keeps its own ink, in step with its own lines", () => {
+    let s = sessionAt("rework");
+    s = sessionReducer(s, { type: "rework/stroke", problem: "q1", stroke: stroke(1) });
+    s = sessionReducer(s, { type: "rework/reveal", problem: "q1", line: { tex: "r", strokeCount: 1 } });
+    expect(s.reworkInk.q1).toHaveLength(1);
+    expect(s.ink.q1 ?? []).toEqual([]);
+    s = sessionReducer(s, { type: "rework/undo", problem: "q1" });
+    expect(s.reworkInk.q1).toEqual([]);
+    expect(s.rework.q1).toEqual([]);
+    s = sessionReducer(s, { type: "rework/stroke", problem: "q1", stroke: stroke(1) });
+    s = sessionReducer(s, { type: "rework/clear", problem: "q1" });
+    expect(s.reworkInk.q1).toEqual([]);
+  });
+});

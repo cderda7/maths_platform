@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import M from "@/components/Math";
-import type { Stroke } from "@/components/DrawPad";
+import type { Stroke } from "@/data/types";
 import PadSection from "@/components/PadSection";
 import ReadAs from "@/components/ReadAs";
 import { Button, Eyebrow } from "@/components/ui";
@@ -15,18 +15,17 @@ import type { SessionAction, StudentSession } from "@/lib/session";
 
 /**
  * The working screen: problem on the left, the drawpad in the middle, and the transcription
- * column on the right that fills in one line per burst of strokes. Strokes live here (they're
- * heavy and only the pad needs them); recognised lines live in the session.
+ * column on the right that fills in one line per burst of strokes. Strokes and recognised lines
+ * both live in the session, so undo and clear move them together and the ink survives a reload.
  */
 export default function WorkingScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
   const problems = useAssignment().problems;
   const p = problems[Math.min(session.problemIndex, problems.length - 1)];
   const lines = session.lines[p.id] ?? [];
-  const [strokesByProblem, setStrokesByProblem] = useState<Record<string, Stroke[]>>({});
   const [recognising, setRecognising] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
-  const strokes = strokesByProblem[p.id] ?? [];
-  const setStrokes = (next: Stroke[]) => setStrokesByProblem((m) => ({ ...m, [p.id]: next }));
+  const strokes = session.ink[p.id] ?? [];
+  const addStroke = (next: Stroke[]) => dispatch({ type: "ink/stroke", problem: p.id, stroke: next[next.length - 1] });
 
   const onBurstEnd = (strokeCount: number) => {
     setRecognising(false);
@@ -34,13 +33,10 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
     if (line) dispatch({ type: "line/reveal", problem: p.id, line });
   };
   const undo = () => {
-    const next = strokes.slice(0, -1);
-    setStrokes(next);
     setRecognising(false);
-    dispatch({ type: "lines/undo", problem: p.id, strokeCount: next.length });
+    dispatch({ type: "lines/undo", problem: p.id });
   };
   const clear = () => {
-    setStrokes([]);
     setRecognising(false);
     dispatch({ type: "lines/clear", problem: p.id });
   };
@@ -93,7 +89,7 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
         </div>
       </aside>
 
-      <PadSection strokes={strokes} onStrokesChange={setStrokes} onBurstEnd={onBurstEnd} onPenDown={() => setRecognising(true)} onUndo={undo} onClear={clear} />
+      <PadSection strokes={strokes} onStrokesChange={addStroke} onBurstEnd={onBurstEnd} onPenDown={() => setRecognising(true)} onUndo={undo} onClear={clear} />
 
       <aside className="flex min-h-0 flex-col border-l border-line px-6 py-6">
         <ReadAs lines={lines} recognising={recognising} empty="Lines appear here as you write." className="flex-1" />

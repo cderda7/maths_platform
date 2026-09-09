@@ -23,7 +23,8 @@ let wired = false;
 function load(): StudentSession | null {
   try {
     const raw = localStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as StudentSession) : null;
+    // Fields added since the snapshot was written (ink, for one) fall back to their initial value.
+    return raw ? { ...INITIAL_SESSION, ...(JSON.parse(raw) as Partial<StudentSession>) } : null;
   } catch {
     return null;
   }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sessionAt } from "./session";
+import { sessionAt, sessionReducer } from "./session";
 import { alignVersions, changedRowCount, rowChanged, versionsOf } from "./versions";
 
 describe("submission history", () => {
@@ -33,5 +33,18 @@ describe("before / after", () => {
     // Q1: 3 rows all differ; Q2: 5 rows all differ; Q3: 4 rows all differ; Q4: unchanged.
     expect(changedRowCount(aligned)).toBe(12);
     expect(aligned.find((a) => a.problem.id === "q4")!.rows.some(rowChanged)).toBe(false);
+  });
+});
+
+describe("ink per version", () => {
+  it("the final version carries the rework's ink where there was a rework, else the original's", () => {
+    let s = sessionAt("history");
+    s = sessionReducer(s, { type: "ink/stroke", problem: "q4", stroke: [{ x: 1, y: 1 }] });
+    s = sessionReducer(s, { type: "ink/stroke", problem: "q1", stroke: [{ x: 5, y: 5 }] });
+    s = sessionReducer(s, { type: "rework/stroke", problem: "q1", stroke: [{ x: 9, y: 9 }] });
+    const [original, final] = versionsOf(s);
+    expect(original.ink.q1).toEqual([[{ x: 5, y: 5 }]]);
+    expect(final.ink.q1).toEqual([[{ x: 9, y: 9 }]]);
+    expect(final.ink.q4).toEqual([[{ x: 1, y: 1 }]]);
   });
 });

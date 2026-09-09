@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import M from "@/components/Math";
+import InkView from "@/components/InkView";
 import { Button, Eyebrow } from "@/components/ui";
 import { DifficultyTag } from "@/components/Tag";
 import { useAssignment } from "@/lib/classroom-store";
@@ -99,6 +100,11 @@ function Column({
               <DifficultyTag d={a.problem.difficulty} />
               {comparing && a.changed && version.id === "final" && <span className="text-[11.5px] text-accent-deep">reworked</span>}
             </div>
+            {(version.ink[a.problem.id]?.length ?? 0) > 0 && (
+              <div className="mt-1 h-[120px] rounded-lg border border-line bg-paper/70 px-3 py-2">
+                <InkView strokes={version.ink[a.problem.id]} />
+              </div>
+            )}
             <ol className="mt-1 space-y-1.5">
               {a.rows.map((r, i) => {
                 const l = side === "left" ? r.left : r.right;

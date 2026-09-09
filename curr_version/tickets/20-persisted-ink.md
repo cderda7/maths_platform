@@ -4,12 +4,12 @@
 
 **Blocked by:** 17 (Copy sweep to the rule).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Session shape carries strokes per problem per version; reveal, undo and clear actions update ink and lines together
-- [ ] Working and rework screens read strokes from the session instead of component state; drawing feels unchanged
-- [ ] Reload mid-problem shows the same ink and the same lines; a second tab shows them too
-- [ ] History screen renders read-only ink for each version
-- [ ] Session tests cover ink kept in step with lines under reveal, undo and clear for both versions
-- [ ] Build, lint, type-check, vitest pass; headless: draw, reload, compare
-- [ ] Architecture note written and folded into `ARCHITECTURE.md`
+- [x] Session shape carries strokes per problem per version; reveal, undo and clear actions update ink and lines together
+- [x] Working and rework screens read strokes from the session instead of component state; drawing feels unchanged
+- [x] Reload mid-problem shows the same ink and the same lines; a second tab shows them too
+- [x] History screen renders read-only ink for each version
+- [x] Session tests cover ink kept in step with lines under reveal, undo and clear for both versions
+- [x] Build, lint, type-check, vitest pass; headless: draw, reload, compare
+- [x] Architecture note written and folded into `ARCHITECTURE.md`

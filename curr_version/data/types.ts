@@ -61,6 +61,10 @@ export type Confidence =
   | { level: "low-when"; subskill: SubskillId }
   | { level: "low" };
 
+/** Handwriting: a stroke is the points of one pen-down to pen-up, in pad coordinates. */
+export type Point = { x: number; y: number };
+export type Stroke = Point[];
+
 /** Where the student is in the closed loop. Each stage is one screen on the iPad. */
 export type Stage =
   | "overview"

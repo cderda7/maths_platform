@@ -197,3 +197,27 @@ linear forever.
 **Defence.** The map is "pick the next stage from those later in the order", the reducer is
 "what follows the stage just finished", and both are one function each with a test over all
 eight pathways.
+
+## 2026-09-09 · Ink lives in the session, rounded, and undo pops ink and lines together
+
+**Decision.** Strokes are stored in the student session per problem per version, beside the
+recognised lines, rounded to a tenth of a pad pixel. Undo and clear are reducer actions that
+change ink and lines in one step; the pad only appends strokes.
+
+**Context.** Spec v3's frozen screen shows the student's own handwriting for the problem on the
+board, and history should show it too. Before this, strokes were component state and vanished on
+stage exit; only the transcription survived.
+
+**Alternatives considered.** A separate ink store (a second key to keep in step with the session
+on every undo; drift is exactly the bug to avoid). Storing a rendered PNG per problem (smaller
+for long pages, but loses vector quality on the projector and cannot be undone stroke by
+stroke). Full-precision coordinates (three times the bytes for no visible gain).
+
+**Tradeoffs.** Every stroke rewrites and rebroadcasts the session snapshot; a very long page of
+ink grows the snapshot into the hundreds of kilobytes, well inside localStorage but worth
+watching if pages get longer. Old snapshots without the fields are filled from the initial
+session on load.
+
+**Defence.** One source of truth means undo can never desynchronise handwriting from
+transcription (unit-tested), a reload or second tab redraws the same ink, and the frozen screen
+and history render from the same vector data through one component.

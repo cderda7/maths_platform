@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import M from "@/components/Math";
-import type { Stroke } from "@/components/DrawPad";
+import type { Stroke } from "@/data/types";
 import PadSection from "@/components/PadSection";
 import ReadAs from "@/components/ReadAs";
 import { Button, Card, Eyebrow } from "@/components/ui";
@@ -27,10 +27,9 @@ export default function ReworkScreen({ session, dispatch }: { session: StudentSe
   const cur = todo[i];
   const p = cur.problem;
   const lines = session.rework[p.id] ?? [];
-  const [strokesByProblem, setStrokesByProblem] = useState<Record<string, Stroke[]>>({});
   const [recognising, setRecognising] = useState(false);
-  const strokes = strokesByProblem[p.id] ?? [];
-  const setStrokes = (next: Stroke[]) => setStrokesByProblem((m) => ({ ...m, [p.id]: next }));
+  const strokes = session.reworkInk[p.id] ?? [];
+  const addStroke = (next: Stroke[]) => dispatch({ type: "rework/stroke", problem: p.id, stroke: next[next.length - 1] });
 
   const onBurstEnd = (strokeCount: number) => {
     setRecognising(false);
@@ -38,13 +37,10 @@ export default function ReworkScreen({ session, dispatch }: { session: StudentSe
     if (line) dispatch({ type: "rework/reveal", problem: p.id, line });
   };
   const undo = () => {
-    const next = strokes.slice(0, -1);
-    setStrokes(next);
     setRecognising(false);
-    dispatch({ type: "rework/undo", problem: p.id, strokeCount: next.length });
+    dispatch({ type: "rework/undo", problem: p.id });
   };
   const clear = () => {
-    setStrokes([]);
     setRecognising(false);
     dispatch({ type: "rework/clear", problem: p.id });
   };
@@ -108,7 +104,7 @@ export default function ReworkScreen({ session, dispatch }: { session: StudentSe
         </div>
       </aside>
 
-      <PadSection title="Reworked" strokes={strokes} onStrokesChange={setStrokes} onBurstEnd={onBurstEnd} onPenDown={() => setRecognising(true)} onUndo={undo} onClear={clear} />
+      <PadSection title="Reworked" strokes={strokes} onStrokesChange={addStroke} onBurstEnd={onBurstEnd} onPenDown={() => setRecognising(true)} onUndo={undo} onClear={clear} />
 
       <aside className="flex min-h-0 flex-col border-l border-line px-6 py-6">
         <ReadAs lines={lines} recognising={recognising} empty="Reworked lines appear here." className="flex-1" />

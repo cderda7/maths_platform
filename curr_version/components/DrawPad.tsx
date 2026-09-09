@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { Point, Stroke } from "@/data/types";
 
-export type Point = { x: number; y: number };
-export type Stroke = Point[];
+export type { Point, Stroke };
 
 /** Pen-up, then this long with no new stroke, closes a burst and reveals the next line. */
 export const BURST_IDLE_MS = 850;

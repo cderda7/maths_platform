@@ -1,5 +1,5 @@
 import { ASSIGNMENT } from "@/data/assignment";
-import type { Problem } from "@/data/types";
+import type { Problem, Stroke } from "@/data/types";
 import type { RevealedLine } from "./recognition";
 import type { StudentSession } from "./session";
 
@@ -13,6 +13,8 @@ export interface Version {
   label: string;
   at: number;
   lines: Record<string, RevealedLine[]>;
+  /** The handwriting behind each problem's lines in this version. */
+  ink: Record<string, Stroke[]>;
 }
 
 export interface AlignedProblem {
@@ -24,13 +26,15 @@ export interface AlignedProblem {
 
 export function versionsOf(session: StudentSession): Version[] {
   const final: Record<string, RevealedLine[]> = {};
+  const finalInk: Record<string, Stroke[]> = {};
   for (const p of ASSIGNMENT.problems) {
     const rw = session.rework[p.id] ?? [];
     final[p.id] = rw.length > 0 ? rw : (session.lines[p.id] ?? []);
+    finalInk[p.id] = rw.length > 0 ? (session.reworkInk[p.id] ?? []) : (session.ink[p.id] ?? []);
   }
   return [
-    { id: "original", label: "Handed in", at: session.handedInAt, lines: session.lines },
-    { id: "final", label: "After rework", at: session.reworkedAt, lines: final },
+    { id: "original", label: "Handed in", at: session.handedInAt, lines: session.lines, ink: session.ink },
+    { id: "final", label: "After rework", at: session.reworkedAt, lines: final, ink: finalInk },
   ];
 }
 

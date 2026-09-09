@@ -1,4 +1,4 @@
-import type { Confidence, Pathway, Stage, SubskillId } from "@/data/types";
+import type { Confidence, Pathway, Stage, Stroke, SubskillId } from "@/data/types";
 import { DEFAULT_PATHWAY, nextStage } from "./pathway";
 import { afterUndo, type RevealedLine } from "./recognition";
 import { evaluateLine } from "./evaluate";
@@ -31,6 +31,8 @@ export interface StudentSession {
   problemIndex: number;
   /** Recognised lines per problem id, in the order they appeared. */
   lines: Record<string, RevealedLine[]>;
+  /** The handwriting behind `lines`, per problem: one entry per stroke, in pad coordinates. */
+  ink: Record<string, Stroke[]>;
   escalation: EscalationState;
   /** Keys (`problem#lineIndex`) of wrong lines already counted, so undo + re-reveal can't double count. */
   counted: string[];
@@ -47,6 +49,8 @@ export interface StudentSession {
    * original and is never changed after hand-in, so both versions are preserved.
    */
   rework: Record<string, RevealedLine[]>;
+  /** The handwriting behind `rework`, per problem. */
+  reworkInk: Record<string, Stroke[]>;
   /** Index into the problems being reworked (those with a slip). */
   reworkIndex: number;
   /** Discussion problems the group has talked through. */
@@ -72,7 +76,9 @@ export type SessionAction =
   | { type: "confidence/set"; confidence: Confidence }
   | { type: "problem/goto"; index: number }
   | { type: "line/reveal"; problem: string; line: RevealedLine }
-  | { type: "lines/undo"; problem: string; strokeCount: number }
+  | { type: "ink/stroke"; problem: string; stroke: Stroke }
+  /** Pops the last stroke and withdraws any line revealed after the survivors. `strokeCount` forces the count instead. */
+  | { type: "lines/undo"; problem: string; strokeCount?: number }
   | { type: "lines/clear"; problem: string }
   | { type: "help/request"; subskill: SubskillId; problem: string }
   | { type: "prompt/accept"; problem: string }
@@ -81,7 +87,8 @@ export type SessionAction =
   | { type: "star/toggle"; problem: string }
   | { type: "rework/goto"; index: number }
   | { type: "rework/reveal"; problem: string; line: RevealedLine }
-  | { type: "rework/undo"; problem: string; strokeCount: number }
+  | { type: "rework/stroke"; problem: string; stroke: Stroke }
+  | { type: "rework/undo"; problem: string; strokeCount?: number }
   | { type: "rework/clear"; problem: string }
   | { type: "rework/done"; at?: number }
   | { type: "group/discuss" }
@@ -105,6 +112,7 @@ export const INITIAL_SESSION: StudentSession = {
   confidence: null,
   problemIndex: 0,
   lines: {},
+  ink: {},
   escalation: INITIAL_ESCALATION,
   counted: [],
   prompt: null,
@@ -112,6 +120,7 @@ export const INITIAL_SESSION: StudentSession = {
   practices: [],
   stars: [],
   rework: {},
+  reworkInk: {},
   reworkIndex: 0,
   talked: [],
   reflection: "",
@@ -156,10 +165,19 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
         prompt: r.trigger ? { subskill: v.subskill, reason: "detected" } : s.prompt,
       };
     }
-    case "lines/undo":
-      return { ...s, lines: { ...s.lines, [a.problem]: afterUndo(s.lines[a.problem] ?? [], a.strokeCount) } };
+    case "ink/stroke":
+      return { ...s, ink: { ...s.ink, [a.problem]: [...(s.ink[a.problem] ?? []), roundStroke(a.stroke)] } };
+    case "lines/undo": {
+      const strokes = s.ink[a.problem] ?? [];
+      const count = a.strokeCount ?? Math.max(0, strokes.length - 1);
+      return {
+        ...s,
+        ink: { ...s.ink, [a.problem]: strokes.slice(0, count) },
+        lines: { ...s.lines, [a.problem]: afterUndo(s.lines[a.problem] ?? [], count) },
+      };
+    }
     case "lines/clear":
-      return { ...s, lines: { ...s.lines, [a.problem]: [] } };
+      return { ...s, ink: { ...s.ink, [a.problem]: [] }, lines: { ...s.lines, [a.problem]: [] } };
     case "help/request": {
       const r = requestHelp(s.escalation, a.subskill);
       return { ...s, escalation: r.state, prompt: { subskill: a.subskill, reason: "help" } };
@@ -176,10 +194,19 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       return { ...s, reworkIndex: a.index };
     case "rework/reveal":
       return { ...s, rework: { ...s.rework, [a.problem]: [...(s.rework[a.problem] ?? []), a.line] } };
-    case "rework/undo":
-      return { ...s, rework: { ...s.rework, [a.problem]: afterUndo(s.rework[a.problem] ?? [], a.strokeCount) } };
+    case "rework/stroke":
+      return { ...s, reworkInk: { ...s.reworkInk, [a.problem]: [...(s.reworkInk[a.problem] ?? []), roundStroke(a.stroke)] } };
+    case "rework/undo": {
+      const strokes = s.reworkInk[a.problem] ?? [];
+      const count = a.strokeCount ?? Math.max(0, strokes.length - 1);
+      return {
+        ...s,
+        reworkInk: { ...s.reworkInk, [a.problem]: strokes.slice(0, count) },
+        rework: { ...s.rework, [a.problem]: afterUndo(s.rework[a.problem] ?? [], count) },
+      };
+    }
     case "rework/clear":
-      return { ...s, rework: { ...s.rework, [a.problem]: [] } };
+      return { ...s, reworkInk: { ...s.reworkInk, [a.problem]: [] }, rework: { ...s.rework, [a.problem]: [] } };
     case "rework/done":
       return { ...s, stage: nextStage(env.pathway, "reworked"), reworkedAt: a.at ?? s.reworkedAt };
     case "group/discuss":
@@ -214,6 +241,11 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     case "reset":
       return INITIAL_SESSION;
   }
+}
+
+/** Stored to a tenth of a pad pixel: indistinguishable on screen, a third of the bytes. */
+function roundStroke(s: Stroke): Stroke {
+  return s.map((p) => ({ x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10 }));
 }
 
 const ORDER: Stage[] = ["overview", "practice", "confidence", "working", "feedback", "waiting", "rework", "group-pass", "group-discuss", "report", "peers", "history"];
