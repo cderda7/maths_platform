@@ -225,7 +225,7 @@ export default function TeacherLive() {
                               )}
                               <span className="flex flex-col">
                                 {r.sub.split(";").map((part, n) => (
-                                  <span key={n} className={r.live ? "" : "lowercase"}>
+                                  <span key={n} className={`${r.live ? "" : "lowercase"} -indent-3 pl-3`}>
                                     {part.trim().replace(/\.$/, "")}
                                   </span>
                                 ))}
@@ -290,9 +290,9 @@ export default function TeacherLive() {
               {pathwayChip(pathwayOf(classroom))
                 .split(" → ")
                 .map((stage, i) => (
-                  <li key={stage} className="flex flex-col items-start">
+                  <li key={stage} className="flex flex-col items-center text-center">
                     {i > 0 && (
-                      <svg viewBox="0 0 12 18" className="ml-3 h-[18px] w-3 text-ink-muted/70" aria-hidden>
+                      <svg viewBox="0 0 12 18" className="h-[18px] w-3 text-ink-muted/70" aria-hidden>
                         <path d="M6 1v15M2.5 12.5 6 16l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     )}
