@@ -21,8 +21,8 @@ changed vocabulary: leaves instead of subskills.
 | `lib/feedback.ts`, `report.ts`, `peers.ts`, `groups.ts`, `mistakes.ts`, `examples.ts` | Slips, buckets, notes and facts in leaf ids and leaf short names; peers aggregate leaf statuses across classmates |
 | `lib/unit.ts` (+ test) | `inferUnitFromProblems` (most-tagged Unit Focus unit, else 1), `inferUnitFromText` (keywords), `UNIT_TITLES` |
 | `lib/classroom.ts` | `CreatedAssignment.unit` |
-| `components/HierarchyDrill.tsx` | An outline, not columns (follow-up 2026-09-09): groups stacked with their dots on one vertical line, positioned under the clicked category dot (`offsetLeft` measured from the grid), the open group's skills indented 28 px beneath it, text to the right of the dot, never truncated, no status words and no headings; the work panel for the chosen skill sits to the right (min 600 px) with each problem's difficulty tag beside its label, and the whole drill scrolls sideways when a right-hand category pushes it past the edge. Browse mode (the reports) nests categories → groups → skills the same way |
-| `components/StatusKey.tsx` | The dot key: colour · word · what it means (100 % · 80–99 % · 60–79 % · under 60 % · not seen yet) plus a grey half dot for "incomplete, problems skipped"; under the grid and on the teacher report |
+| `components/HierarchyDrill.tsx` | An outline, not columns (follow-up 2026-09-09): groups stacked with their dots on one vertical line, positioned under the clicked category dot (`offsetLeft` measured from the grid), the open group's skills indented 28 px beneath it, text to the right of the dot, never truncated, no status words and no headings; the work panel for the chosen skill sits to the right when at least 600 px remain beside the tree, otherwise beneath it at full width in three columns, each problem carrying its difficulty tag beside its label. Rule: the category dot and the group dots stay on one vertical line at all times, so the drill never scrolls. Browse mode (the reports) nests categories → groups → skills the same way |
+| `components/StatusKey.tsx` | The dot key: colour · word · what it means (100 % · 80–99 % · 60–79 % · under 60 % · not seen yet) plus a grey half dot for "incomplete, problems skipped", laid out as aligned rows (dot · word · meaning); a Key card at the bottom of the live view's right column and under the teacher report's drill |
 | `components/Tag.tsx` | `LeafChip`; `StatusDot` with `half` and the new `solid` token; `STATUS_WORD`, `STATUS_TEXT` |
 | `components/Figure.tsx` | Inline SVG parabola for Q8 |
 | `app/teacher/TeacherLive.tsx` | Columns = categories the assignment touches; 15 px dot buttons with accessible names; one expanded row at a time; classmates through the same evidence path |
@@ -30,6 +30,7 @@ changed vocabulary: leaves instead of subskills.
 | `app/teacher/assignments/new/NewAssignment.tsx` | Unit Focus card: inferred unit, Confirm (required before Create), "Not quite? describe the focus" → Reassess with a caption |
 | Overview, Working, Confidence, PracticePrompt, PracticeScreen, PeerScreen, Mistakes, Compare, WholeClassSetup | Leaf chips, category options, figures, help picker over leaves with practices |
 | `app/globals.css` | `--color-solid` (+ soft, line) |
+| `app/teacher/TeacherChrome.tsx` | Teacher pages render under a CSS zoom of 0.8 with a 1640 px container, the 80 % browser view as the default; dot alignment divides measured rects by the zoom |
 
 ## How it connects
 

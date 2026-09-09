@@ -25,9 +25,9 @@ export default function TeacherChrome({ children }: { children: ReactNode }) {
   const pathway = pathwayOf(useClassroom());
   const tabs = TEACHER_TABS.filter((t) => !t.stage || pathway.includes(t.stage));
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen [zoom:0.8]" data-teacher-root>
       <header className="border-b border-line bg-paper/70 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-[1640px] items-center justify-between px-6 py-4">
           <div className="flex items-center gap-6">
             <Brand />
             <nav className="flex items-center gap-1">
@@ -55,7 +55,7 @@ export default function TeacherChrome({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-6 py-12">{children}</main>
+      <main className="mx-auto max-w-[1640px] px-6 py-12">{children}</main>
       <ResetDemo />
     </div>
   );

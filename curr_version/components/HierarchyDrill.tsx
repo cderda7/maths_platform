@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import M from "@/components/Math";
 import { Eyebrow } from "@/components/ui";
 import { DifficultyTag, StatusDot, STATUS_TEXT, STATUS_WORD } from "@/components/Tag";
@@ -13,8 +13,9 @@ import { problemsForLeaf, STATUS_RANK, type HierarchyResult } from "@/lib/hierar
 /**
  * The skill drill as an outline: groups stacked with their dots on one vertical line (under the
  * category dot when the grid opens it), the open group's skills indented beneath it, text always
- * to the right of the dot, never truncated. The work for the chosen skill sits to the right; the
- * whole thing scrolls sideways when the tree starts near the right edge. In browse mode (the
+ * to the right of the dot, never truncated. The rule: the category dot and the group dots
+ * stay on one vertical line at all times, so the drill never scrolls. The work for the chosen skill
+ * sits to the right when there is room beside the tree, otherwise beneath it at full width. In browse mode (the
  * reports) categories are the top level and everything nests in place.
  */
 export default function HierarchyDrill({
@@ -34,6 +35,20 @@ export default function HierarchyDrill({
   const [category, setCategory] = useState<CategoryId | null>(lockCategory ?? null);
   const [group, setGroup] = useState<GroupId | null>(null);
   const [leaf, setLeaf] = useState<LeafId | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const treeRef = useRef<HTMLUListElement>(null);
+  const [below, setBelow] = useState(false);
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    const tree = treeRef.current;
+    if (!root || !tree) return;
+    const measure = () => setBelow(root.clientWidth - tree.offsetLeft - tree.offsetWidth - 32 < MIN_PANEL);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(root);
+    ro.observe(tree);
+    return () => ro.disconnect();
+  }, [offsetLeft, leaf, group, category]);
   const worst = <T extends string>(ids: T[], status: (id: T) => Status) => [...ids].sort((a, b) => STATUS_RANK[status(a)] - STATUS_RANK[status(b)]);
   const groupsIn = (c: CategoryId) => worst(groupsOf(c).filter((g) => result.groups[g] !== undefined), (g) => result.groups[g]!);
   const leavesIn = (g: GroupId) => worst(leavesOf(g).filter((l) => result.leaves[l] !== undefined), (l) => result.leaves[l]!);
@@ -64,8 +79,8 @@ export default function HierarchyDrill({
     ));
 
   return (
-    <div className="flex min-h-0 items-start gap-8 overflow-x-auto" data-drill data-mode={lockCategory ? "locked" : "browse"}>
-      <ul className="shrink-0 space-y-1 whitespace-nowrap" style={{ marginLeft: Math.max(0, offsetLeft) }} data-col="tree">
+    <div ref={rootRef} className={`flex min-h-0 gap-8 ${below ? "flex-col" : "items-start"}`} data-drill data-mode={lockCategory ? "locked" : "browse"} data-panel={below ? "below" : "beside"}>
+      <ul ref={treeRef} className="shrink-0 space-y-1 self-start whitespace-nowrap" style={{ marginLeft: Math.max(0, offsetLeft) }} data-col="tree">
         {lockCategory
           ? groupTree(lockCategory, 28)
           : result.columns.map((c) => (
@@ -79,10 +94,12 @@ export default function HierarchyDrill({
               </li>
             ))}
       </ul>
-      {leaf && <WorkPanel leaf={leaf} lines={lines} problems={problems} status={result.leaves[leaf]!} />}
+      {leaf && <WorkPanel leaf={leaf} lines={lines} problems={problems} status={result.leaves[leaf]!} wide={below} />}
     </div>
   );
 }
+
+const MIN_PANEL = 600;
 
 /** A dot with its name to the right. Status is in the dot's colour (and the accessible name), not in words. */
 function Node({ label, status, half, open, onClick, ...rest }: { label: string; status: Status; half: boolean; open: boolean; onClick: () => void } & Record<string, unknown>) {
@@ -102,15 +119,15 @@ function Node({ label, status, half, open, onClick, ...rest }: { label: string; 
 }
 
 /** The student's work on the problems that invoke a leaf: marked lines, with a left rule on the lines tagged to that leaf. */
-function WorkPanel({ leaf, lines, problems, status }: { leaf: LeafId; lines: Record<string, string[]>; problems: Problem[]; status: Status }) {
+function WorkPanel({ leaf, lines, problems, status, wide }: { leaf: LeafId; lines: Record<string, string[]>; problems: Problem[]; status: Status; wide: boolean }) {
   const invoking = problemsForLeaf(leaf, problems);
   return (
-    <div className="min-w-[600px] flex-1" data-col="work" data-leaf={leaf}>
+    <div className={wide ? "w-full" : "min-w-0 flex-1"} data-col="work" data-leaf={leaf}>
       <div className="flex items-center gap-3">
         <Eyebrow>{leafName(leaf).name}</Eyebrow>
         <span className={`text-[11.5px] ${STATUS_TEXT[status]}`}>{STATUS_WORD[status]}</span>
       </div>
-      <div className="mt-2 grid grid-cols-2 gap-3">
+      <div className={`mt-2 grid gap-3 ${wide ? "grid-cols-3" : "grid-cols-2"}`}>
         {invoking.map((p) => {
           const texs = lines[p.id] ?? [];
           const marks = lineMarks(p.id, texs);

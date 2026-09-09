@@ -89,8 +89,11 @@ export default function TeacherLive() {
   /** Where the tree's dots go: the clicked dot's left edge, relative to the drill cell's content edge (td px-5 = 20px). */
   const dotOffset = (btn: HTMLButtonElement) => {
     const table = tableRef.current?.getBoundingClientRect();
-    const dot = btn.querySelector("[data-status]")?.getBoundingClientRect();
-    return table && dot ? dot.left - table.left - 20 : 0;
+    const dotEl = btn.querySelector<HTMLElement>("[data-status]");
+    const dot = dotEl?.getBoundingClientRect();
+    if (!table || !dot || !dotEl) return 0;
+    const scale = dot.width / (dotEl.offsetWidth || dot.width); // the teacher pages render under a CSS zoom
+    return (dot.left - table.left) / scale - 20;
   };
 
   const rows: { id: string; name: string; initials: string; live: boolean; evidence: Evidence; sub: string; confidence: { text: string; tone: string }; set: string; setSub: string }[] = [
@@ -137,7 +140,7 @@ export default function TeacherLive() {
         </span>
       </p>
 
-      <div className="mt-10 grid grid-cols-[1fr_300px] gap-6">
+      <div className="mt-10 grid grid-cols-[1fr_320px] gap-6">
         <Card className="overflow-hidden">
           <table ref={tableRef} className="w-full table-fixed text-left text-[14px]" data-grid>
             <colgroup>
@@ -232,9 +235,8 @@ export default function TeacherLive() {
               })}
             </tbody>
           </table>
-          <div className="flex items-center justify-between gap-6 border-t border-line px-5 py-2.5 text-[12px] text-ink-muted">
-            <StatusKey />
-            <span className="shrink-0">
+          <div className="flex items-center justify-end border-t border-line px-5 py-2.5 text-[12px] text-ink-muted">
+            <span>
               every {Math.round(everyMs / 1000)}s · updated {ago(updatedAt, now)}
             </span>
           </div>
@@ -279,6 +281,11 @@ export default function TeacherLive() {
                 ))}
               </ul>
             )}
+          </Card>
+
+          <Card className="p-6">
+            <Eyebrow>Key</Eyebrow>
+            <StatusKey className="mt-3" />
           </Card>
         </div>
       </div>
