@@ -214,6 +214,7 @@ export function RowDrill({
   columns,
   category,
   initialLeaf = null,
+  expandAll = false,
   onNavigate,
 }: {
   mode: RowMode;
@@ -223,10 +224,14 @@ export function RowDrill({
   columns: ColumnBox[];
   category?: CategoryId;
   initialLeaf?: LeafId | null;
+  /** Category mode: open every group of the category (a double-click on the dot, or a column view at skill level). */
+  expandAll?: boolean;
   onNavigate?: (leaf: LeafId) => void;
 }) {
   const allGroups = useMemo(() => result.columns.flatMap((c) => groupsOf(c).filter((g) => result.groups[g] !== undefined)), [result]);
-  const [openGroups, setOpenGroups] = useState<GroupId[]>(() => (mode === "expanded" ? allGroups : initialLeaf ? [groupOf(initialLeaf)] : []));
+  const [openGroups, setOpenGroups] = useState<GroupId[]>(() =>
+    mode === "expanded" ? allGroups : expandAll && category ? allGroups.filter((g) => categoryOf(g) === category) : initialLeaf ? [groupOf(initialLeaf)] : [],
+  );
   const [leaf, setLeaf] = useState<LeafId | null>(initialLeaf);
   const rootRef = useRef<HTMLDivElement>(null);
   const treeRef = useRef<HTMLUListElement>(null);
@@ -245,7 +250,7 @@ export function RowDrill({
   }, [mode, leaf, openGroups]);
 
   const toggleGroup = (g: GroupId) => {
-    setOpenGroups((os) => (os.includes(g) ? os.filter((x) => x !== g) : mode === "category" ? [g] : [...os, g]));
+    setOpenGroups((os) => (os.includes(g) ? os.filter((x) => x !== g) : [...os, g]));
     setLeaf(null);
   };
   const pickLeaf = (l: LeafId) => setLeaf(leaf === l ? null : l);
@@ -254,7 +259,7 @@ export function RowDrill({
       onNavigate?.(target);
       return;
     }
-    setOpenGroups((os) => (os.includes(groupOf(target)) ? os : mode === "category" ? [groupOf(target)] : [...os, groupOf(target)]));
+    setOpenGroups((os) => (os.includes(groupOf(target)) ? os : [...os, groupOf(target)]));
     setLeaf(target);
   };
 

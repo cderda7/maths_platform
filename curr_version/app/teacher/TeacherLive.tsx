@@ -84,7 +84,9 @@ export default function TeacherLive() {
   const classroom = useClassroom();
   const wc = classroom.wholeClass;
   const status = wc?.status === "active" ? " · in whole-class review" : wc?.status === "ended" ? " · complete" : "";
-  const [open, setOpen] = useState<{ student: string; mode: RowMode; category?: CategoryId; leaf?: LeafId; columns: ColumnBox[]; nonce: number } | null>(null);
+  const [open, setOpen] = useState<{ student: string; mode: RowMode; category?: CategoryId; leaf?: LeafId; columns: ColumnBox[]; nonce: number; expandAll?: boolean } | null>(null);
+  /** A column view: one category open under every student's dot, at group level or with skills too. */
+  const [column, setColumn] = useState<{ category: CategoryId; level: "groups" | "expanded"; boxes: Record<string, ColumnBox[]>; nonce: number } | null>(null);
   const tableRef = useRef<HTMLTableElement>(null);
   const lastClick = useRef<{ student: string; at: number } | null>(null);
   const nonce = useRef(0);
@@ -106,7 +108,20 @@ export default function TeacherLive() {
       return { category: c, left, width };
     });
   };
-  const openRow = (student: string, mode: RowMode, category?: CategoryId, leaf?: LeafId) => setOpen({ student, mode, category, leaf, columns: columnBoxes(student), nonce: ++nonce.current });
+  const openRow = (student: string, mode: RowMode, category?: CategoryId, leaf?: LeafId, expandAll = false) => {
+    setColumn(null);
+    setOpen({ student, mode, category, leaf, columns: columnBoxes(student), nonce: ++nonce.current, expandAll });
+  };
+  /** Double-click a header: the column opens for everyone at group level, then with skills, then closes. */
+  const headerDouble = (c: CategoryId) => {
+    setOpen(null);
+    setColumn((cur) => {
+      if (cur?.category === c && cur.level === "expanded") return null;
+      const level = cur?.category === c ? "expanded" : "groups";
+      const boxes = Object.fromEntries(rows.map((r) => [r.id, columnBoxes(r.id)]));
+      return { category: c, level, boxes, nonce: ++nonce.current };
+    });
+  };
   /** A blamed line asks for another category: re-open this student's drill there, on that skill. */
   const jump = (student: string, leaf: LeafId) => openRow(student, "category", categoryOf(leaf), leaf);
   /**
@@ -182,7 +197,14 @@ export default function TeacherLive() {
               <tr className="border-b border-line text-[10px] uppercase tracking-[0.06em] text-ink-muted">
                 <th className="px-5 py-4 font-semibold">Student</th>
                 {columns.map((c) => (
-                  <th key={c} className="py-4 pl-2 pr-1 text-left font-semibold leading-tight" data-column={c}>
+                  <th
+                    key={c}
+                    className={`cursor-pointer select-none py-4 pl-2 pr-1 text-left font-semibold leading-tight transition-colors hover:text-ink ${column?.category === c ? "text-ink" : ""}`}
+                    data-column={c}
+                    data-column-open={column?.category === c ? column.level : undefined}
+                    onDoubleClick={() => headerDouble(c)}
+                    title="Double-click to open this category for every student"
+                  >
                     {categoryName(c).short}
                   </th>
                 ))}
@@ -194,11 +216,12 @@ export default function TeacherLive() {
               {rows.map((r, i) => {
                 const h = results[i];
                 const isOpen = open?.student === r.id;
-                const expanded = isOpen && open.mode === "category" ? open.category : null;
+                const expanded = isOpen && open.mode === "category" ? open.category : column ? column.category : null;
+                const showDrill = isOpen || !!column;
                 return (
                   <RowGroup key={r.id}>
                     <tr
-                      className={`cursor-pointer border-b border-line ${r.live ? "bg-accent-soft/30" : ""} ${isOpen ? "border-b-0" : ""}`}
+                      className={`cursor-pointer border-b border-line ${r.live ? "bg-accent-soft/30" : ""} ${showDrill ? "border-b-0" : ""}`}
                       data-live={r.live || undefined}
                       data-row={r.id}
                       data-open={isOpen ? open.mode : undefined}
@@ -247,7 +270,8 @@ export default function TeacherLive() {
                           <td key={c} className="py-3.5 pl-1 pr-1 text-left">
                             <button
                               type="button"
-                              onClick={() => (on ? setOpen(null) : openRow(r.id, "category", c))}
+                              onClick={() => (on && !column ? setOpen(null) : openRow(r.id, "category", c))}
+                              onDoubleClick={() => openRow(r.id, "category", c, undefined, true)}
                               aria-label={`${categoryName(c).name}: ${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}
                               aria-expanded={on}
                               className={`inline-grid h-7 w-7 place-items-center rounded-full transition-colors hover:bg-cream-deep ${on ? "bg-cream-deep ring-1 ring-ink" : ""}`}
@@ -267,7 +291,14 @@ export default function TeacherLive() {
                     {isOpen && open && (
                       <tr className="border-b border-line bg-cream/60" data-drill-row={r.id}>
                         <td colSpan={columns.length + 3} className="px-5 py-4">
-                          <RowDrill key={`${r.id}-${open.mode}-${open.category ?? ""}-${open.leaf ?? ""}-${open.nonce}`} mode={open.mode} result={h} lines={r.evidence.lines} problems={problems} columns={open.columns} category={open.category} initialLeaf={open.leaf ?? null} onNavigate={(leaf) => jump(r.id, leaf)} />
+                          <RowDrill key={`${r.id}-${open.mode}-${open.category ?? ""}-${open.leaf ?? ""}-${open.nonce}`} mode={open.mode} result={h} lines={r.evidence.lines} problems={problems} columns={open.columns} category={open.category} initialLeaf={open.leaf ?? null} expandAll={open.expandAll} onNavigate={(leaf) => jump(r.id, leaf)} />
+                        </td>
+                      </tr>
+                    )}
+                    {!isOpen && column && (
+                      <tr className="border-b border-line bg-cream/60" data-drill-row={r.id} data-column-drill={column.category}>
+                        <td colSpan={columns.length + 3} className="px-5 py-3">
+                          <RowDrill key={`${r.id}-col-${column.category}-${column.level}-${column.nonce}`} mode="category" result={h} lines={r.evidence.lines} problems={problems} columns={column.boxes[r.id] ?? []} category={column.category} expandAll={column.level === "expanded"} onNavigate={(leaf) => jump(r.id, leaf)} />
                         </td>
                       </tr>
                     )}
