@@ -38,15 +38,16 @@ export const DOT_COLOR: Record<Status, string> = {
  * A status dot. `half` fills the left half only: the student has handed in but skipped a problem
  * that invokes this node, so the colour comes from attempted work alone.
  */
-export function StatusDot({ status, size = "h-2 w-2", half = false, className = "" }: { status: Status; size?: string; half?: boolean; className?: string }) {
+export function StatusDot({ status, size = "h-2 w-2", px, half = false, className = "" }: { status: Status; size?: string; /** Exact diameter in px, for dots that shrink to fit. */ px?: number; half?: boolean; className?: string }) {
   const color = DOT_COLOR[status];
-  const style =
+  const paint =
     status === "unseen"
-      ? undefined
+      ? {}
       : half
         ? { backgroundImage: `linear-gradient(90deg, ${color} 50%, transparent 50%)`, borderColor: color }
         : { backgroundColor: color, borderColor: color };
-  return <span className={`inline-block shrink-0 rounded-full border ${status === "unseen" ? "border-line-strong" : ""} ${size} ${className}`} style={style} aria-hidden data-status={status} data-half={half || undefined} />;
+  const style = px ? { ...paint, width: px, height: px } : paint;
+  return <span className={`inline-block shrink-0 rounded-full border ${status === "unseen" ? "border-line-strong" : ""} ${px ? "" : size} ${className}`} style={style} aria-hidden data-status={status} data-half={half || undefined} />;
 }
 
 export const STATUS_WORD: Record<Status, string> = {

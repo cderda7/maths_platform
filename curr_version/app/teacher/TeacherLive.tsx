@@ -6,7 +6,7 @@ import TeacherChrome from "./TeacherChrome";
 import DiagnosticPush from "./DiagnosticPush";
 import ForceSubmit from "./ForceSubmit";
 import WholeClassCard from "./WholeClassCard";
-import HierarchyDrill from "@/components/HierarchyDrill";
+import { RowDrill, type ColumnBox, type RowMode } from "@/components/HierarchyDrill";
 import StatusKey from "@/components/StatusKey";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { StatusDot, STATUS_WORD } from "@/components/Tag";
@@ -84,22 +84,46 @@ export default function TeacherLive() {
   const classroom = useClassroom();
   const wc = classroom.wholeClass;
   const status = wc?.status === "active" ? " · in whole-class review" : wc?.status === "ended" ? " · complete" : "";
-  const [open, setOpen] = useState<{ student: string; category: CategoryId; left: number; leaf?: LeafId } | null>(null);
+  const [open, setOpen] = useState<{ student: string; mode: RowMode; category?: CategoryId; leaf?: LeafId; columns: ColumnBox[]; nonce: number } | null>(null);
   const tableRef = useRef<HTMLTableElement>(null);
-  /** Where the tree's dots go: the clicked dot's left edge, relative to the drill cell's content edge (td px-5 = 20px). */
-  const dotOffset = (btn: HTMLButtonElement) => {
-    const table = tableRef.current?.getBoundingClientRect();
-    const dotEl = btn.querySelector<HTMLElement>("[data-status]");
-    const dot = dotEl?.getBoundingClientRect();
-    if (!table || !dot || !dotEl) return 0;
-    const scale = dot.width / (dotEl.offsetWidth || dot.width); // the teacher pages render under a CSS zoom
-    return (dot.left - table.left) / scale - 20;
+  const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const nonce = useRef(0);
+  /**
+   * Where each category's dots sit, relative to the drill cell's content edge (td px-5 = 20px),
+   * in CSS px: rects are scaled by the page's zoom, margins are not, so divide by the scale.
+   */
+  const columnBoxes = (student: string): ColumnBox[] => {
+    const table = tableRef.current;
+    const rect = table?.getBoundingClientRect();
+    if (!table || !rect) return [];
+    const scale = rect.width / (table.offsetWidth || rect.width);
+    return columns.map((c) => {
+      const th = table.querySelector<HTMLElement>(`thead [data-column="${c}"]`)?.getBoundingClientRect();
+      const dot = table.querySelector<HTMLElement>(`[data-row="${student}"] [data-dot="${c}"] [data-status]`)?.getBoundingClientRect();
+      // The tree starts under the dot and must end inside the column: dots are left-aligned in their columns for this.
+      const left = dot ? (dot.left - rect.left) / scale - 20 : 0;
+      const width = th && dot ? Math.round((th.right - dot.left) / scale) - 6 : 80;
+      return { category: c, left, width };
+    });
   };
+  const openRow = (student: string, mode: RowMode, category?: CategoryId, leaf?: LeafId) => setOpen({ student, mode, category, leaf, columns: columnBoxes(student), nonce: ++nonce.current });
   /** A blamed line asks for another category: re-open this student's drill there, on that skill. */
-  const jump = (student: string, leaf: LeafId) => {
-    const c = categoryOf(leaf);
-    const btn = tableRef.current?.querySelector<HTMLButtonElement>(`[data-row="${student}"] [data-dot="${c}"]`);
-    setOpen({ student, category: c, left: btn ? dotOffset(btn) : 0, leaf });
+  const jump = (student: string, leaf: LeafId) => openRow(student, "category", categoryOf(leaf), leaf);
+  /** A tap on the row (not a dot): close if open, else every category's groups. A double tap: everything. */
+  const rowClick = (student: string, e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest("button, a")) return;
+    if (clickTimer.current) clearTimeout(clickTimer.current);
+    clickTimer.current = setTimeout(() => {
+      clickTimer.current = null;
+      if (open?.student === student) setOpen(null);
+      else openRow(student, "groups");
+    }, 220);
+  };
+  const rowDouble = (student: string, e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest("button, a")) return;
+    if (clickTimer.current) clearTimeout(clickTimer.current);
+    clickTimer.current = null;
+    openRow(student, "expanded");
   };
 
   const rows: { id: string; name: string; initials: string; live: boolean; evidence: Evidence; sub: string; confidence: { text: string; tone: string }; set: string; setSub: string }[] = [
@@ -145,18 +169,18 @@ export default function TeacherLive() {
         <Card className="overflow-hidden">
           <table ref={tableRef} className="w-full table-fixed text-left text-[14px]" data-grid>
             <colgroup>
-              <col className="w-[230px]" />
+              <col className="w-[212px]" />
               {columns.map((c) => (
-                <col key={c} className="w-[74px]" />
+                <col key={c} className="w-[104px]" />
               ))}
-              <col className="w-[104px]" />
               <col className="w-[86px]" />
+              <col className="w-[66px]" />
             </colgroup>
             <thead>
               <tr className="border-b border-line text-[10px] uppercase tracking-[0.06em] text-ink-muted">
                 <th className="px-5 py-4 font-semibold">Student</th>
                 {columns.map((c) => (
-                  <th key={c} className="px-1 py-4 text-center font-semibold leading-tight" data-column={c}>
+                  <th key={c} className="py-4 pl-2 pr-1 text-left font-semibold leading-tight" data-column={c}>
                     {c === "communication" ? "Comm." : categoryName(c).short}
                   </th>
                 ))}
@@ -167,10 +191,18 @@ export default function TeacherLive() {
             <tbody>
               {rows.map((r, i) => {
                 const h = results[i];
-                const expanded = open?.student === r.id ? open.category : null;
+                const isOpen = open?.student === r.id;
+                const expanded = isOpen && open.mode === "category" ? open.category : null;
                 return (
                   <RowGroup key={r.id}>
-                    <tr className={`border-b border-line ${r.live ? "bg-accent-soft/30" : ""} ${expanded ? "border-b-0" : ""}`} data-live={r.live || undefined} data-row={r.id}>
+                    <tr
+                      className={`cursor-pointer border-b border-line ${r.live ? "bg-accent-soft/30" : ""} ${isOpen ? "border-b-0" : ""}`}
+                      data-live={r.live || undefined}
+                      data-row={r.id}
+                      data-open={isOpen ? open.mode : undefined}
+                      onClick={(e) => rowClick(r.id, e)}
+                      onDoubleClick={(e) => rowDouble(r.id, e)}
+                    >
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
                           <Avatar initials={r.initials} />
@@ -183,13 +215,13 @@ export default function TeacherLive() {
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 truncate text-[12.5px] text-ink-muted">
+                            <div className="flex items-start gap-2 text-[12.5px] leading-snug text-ink-muted">
                               {r.live && caution.length > 0 && (
                                 <span className="inline-flex items-center gap-1 rounded-full border border-gap-line bg-gap-soft px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gap" data-caution>
                                   <span className="h-1.5 w-1.5 rounded-full bg-gap" aria-hidden /> caution
                                 </span>
                               )}
-                              <span className="truncate">{r.sub}</span>
+                              <span className="line-clamp-3">{r.sub}</span>
                               {r.live && live?.reportSent && (
                                 <Link href="/teacher/report" className="text-accent-deep hover:underline" data-report-link>
                                   Report →
@@ -204,10 +236,10 @@ export default function TeacherLive() {
                         const half = h.half.categories.includes(c);
                         const on = expanded === c;
                         return (
-                          <td key={c} className="px-1 py-3.5 text-center">
+                          <td key={c} className="py-3.5 pl-1 pr-1 text-left">
                             <button
                               type="button"
-                              onClick={(e) => setOpen(on ? null : { student: r.id, category: c, left: dotOffset(e.currentTarget) })}
+                              onClick={() => (on ? setOpen(null) : openRow(r.id, "category", c))}
                               aria-label={`${categoryName(c).name}: ${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}
                               aria-expanded={on}
                               className={`inline-grid h-7 w-7 place-items-center rounded-full transition-colors hover:bg-cream-deep ${on ? "bg-cream-deep ring-1 ring-ink" : ""}`}
@@ -224,10 +256,10 @@ export default function TeacherLive() {
                         <div className="text-[12px] text-ink-muted">{r.setSub}</div>
                       </td>
                     </tr>
-                    {expanded && (
+                    {isOpen && open && (
                       <tr className="border-b border-line bg-cream/60" data-drill-row={r.id}>
                         <td colSpan={columns.length + 3} className="px-5 py-4">
-                          <HierarchyDrill key={`${r.id}-${expanded}-${open?.leaf ?? ""}`} result={h} lines={r.evidence.lines} problems={problems} lockCategory={expanded} offsetLeft={open?.left ?? 0} initialLeaf={open?.leaf ?? null} onNavigate={(leaf) => jump(r.id, leaf)} />
+                          <RowDrill key={`${r.id}-${open.mode}-${open.category ?? ""}-${open.leaf ?? ""}-${open.nonce}`} mode={open.mode} result={h} lines={r.evidence.lines} problems={problems} columns={open.columns} category={open.category} initialLeaf={open.leaf ?? null} onNavigate={(leaf) => jump(r.id, leaf)} />
                         </td>
                       </tr>
                     )}
@@ -252,8 +284,8 @@ export default function TeacherLive() {
                 .map((stage, i) => (
                   <li key={stage} className="flex flex-col items-start">
                     {i > 0 && (
-                      <svg viewBox="0 0 16 22" className="my-0.5 ml-3 h-[22px] w-4 text-ink-muted" aria-hidden>
-                        <path d="M8 1v18M3 14l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                      <svg viewBox="0 0 12 18" className="ml-3 h-[18px] w-3 text-ink-muted/70" aria-hidden>
+                        <path d="M6 1v15M2.5 12.5 6 16l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     )}
                     <span>{stage}</span>
