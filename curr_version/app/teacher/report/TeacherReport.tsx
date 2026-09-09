@@ -4,19 +4,18 @@ import Link from "next/link";
 import TeacherChrome from "../TeacherChrome";
 import M from "@/components/Math";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
-import { StatusDot, STATUS_WORD } from "@/components/Tag";
+import HierarchyDrill from "@/components/HierarchyDrill";
 import { ASSIGNMENT, DEMO_STUDENT, PROBLEMS } from "@/data/assignment";
-import { PREREQ_IDS, SUBSKILL_MAP, TARGET_ID } from "@/data/subskills";
-import type { SubskillStatus } from "@/data/types";
+import { groupName } from "@/data/taxonomy";
 import { reportFacts } from "@/lib/report";
-import { subskillStatuses } from "@/lib/status";
+import { sessionEvidence, sessionHierarchy } from "@/lib/hierarchy";
 import { useBatchedSession } from "@/lib/store";
 import { useAssignment } from "@/lib/classroom-store";
 
 /** The demo student's report as the teacher sees it: subskill summary left, reflection right. */
 export default function TeacherReport() {
   const { session } = useBatchedSession(2000);
-  const st = session ? subskillStatuses(session) : null;
+  const { problems } = useAssignment();
   const facts = session ? reportFacts(session) : null;
   const sent = !!session?.reportSent;
 
@@ -39,27 +38,11 @@ export default function TeacherReport() {
 
       <div className="mt-8 grid grid-cols-[1fr_440px] gap-6">
         <div className="space-y-5">
-          <Card className="overflow-hidden">
-            <div className="border-b border-line px-5 py-3">
-              <Eyebrow>Skills</Eyebrow>
+          <Card className="p-5" data-hierarchy>
+            <Eyebrow>Skills</Eyebrow>
+            <div className="mt-3">
+              {session ? <HierarchyDrill result={sessionHierarchy(session, problems)} lines={sessionEvidence(session).lines} problems={problems} /> : <p className="text-[13.5px] text-ink-muted">Nothing yet</p>}
             </div>
-            <ul className="divide-y divide-line" data-statuses>
-              {[TARGET_ID, ...PREREQ_IDS].map((id) => {
-                const s = SUBSKILL_MAP[id];
-                const v: SubskillStatus = st ? st[id] : "unseen";
-                return (
-                  <li key={id} className="flex items-center gap-4 px-5 py-3">
-                    <StatusDot status={v} size="h-3 w-3" />
-                    <div className="flex min-w-0 flex-1 items-baseline justify-between gap-3">
-                      <span className="text-[14.5px] font-medium text-ink">{s.name}</span>
-                      <span className={`text-[12px] font-medium ${v === "secure" ? "text-secure" : v === "developing" ? "text-developing" : v === "gap" ? "text-gap" : "text-ink-muted"}`}>
-                        {STATUS_WORD[v]}
-                      </span>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
           </Card>
 
           <div className="grid grid-cols-2 gap-5">
@@ -77,7 +60,7 @@ export default function TeacherReport() {
                   ))}
                   {facts.caution.length > 0 && (
                     <li className="text-gap" data-caution>
-                      Caution · {facts.caution.map((id) => SUBSKILL_MAP[id].short.toLowerCase()).join(", ")} · practice twice
+                      Caution · {facts.caution.map((id) => groupName(id).name.toLowerCase()).join(", ")} · practice twice
                     </li>
                   )}
                 </ul>

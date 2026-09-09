@@ -1,0 +1,66 @@
+# 26 · Hierarchical skill category dashboard
+
+Routes: `/teacher` (the grid and its sideways drill), `/teacher/report` and `/student` report (the
+same drill for one student), `/teacher/assignments/new` (Unit Focus card). Every other screen
+changed vocabulary: leaves instead of subskills.
+
+## Files touched
+
+| File | What it does |
+|---|---|
+| `data/taxonomy.ts` (+ test) | The Methods taxonomy as code: seven categories in canonical order → groups → leaves, `version`, ids derived from the tree (`CategoryId`, `GroupId`, `LeafId`), lookups (`categoryOf`, `groupOf`, `groupsOf`, `leavesOf`), names in three forms, `resolveLeaf` (unknown id → one warning, null), `unitOf` |
+| `data/types.ts` | `Tag { leaf, confidence? }`; five-level `Status`; `SolutionStep.tags`; `Problem` loses `subskill`/`prereqs`, gains `figure?`; `UnitRef`; `Confidence` "low when" names a category; `PracticeProblem.leaf`. `SubskillId` and `data/subskills.ts` are gone |
+| `data/assignment.ts` | Ten problems, every step tagged (Q7 fractions + non-monic + binomial identity; Q8 a drawn parabola, graph features + zero-finding; Q9 worded ball, interpretation + graphs; Q10 show/explain, discriminant + formal justification + conclusions); `unitLabel` |
+| `data/recognition.ts` | Sam's run: Q7 multiplies two of three terms by 3; Q8 right; Q9 axis without height (compounded); Q10 misreads Δ < 0 as two solutions. Reworks for Q7 and Q10 |
+| `data/evaluation.ts` | Verdicts carry `tags[]` and an optional `compounds` flag; every model step, every scripted slip and every classmate slip is known |
+| `data/practice.ts` | `Partial<Record<LeafId, PracticeProblem>>`, one per leaf that can be a detected mistake (a test enforces it) |
+| `data/classmates.ts` | Frozen status literals removed; `done` out of ten; Amelia (Q6, Q10), Tomas (Q3–Q5, Q7), Zara (Q3, Q9) carry scripted slips |
+| `lib/hierarchy.ts` (+ test) | `leafStatus` (100 / 80 / 60 %), `rollUp` (worst-first, all-unseen → unseen), `hierarchyFor(evidence)` → leaf / group / category statuses, half-dot markers, `columns`; `sessionEvidence`, `classmateEvidence`, `classmateLines` (one evidence path); `categoriesTouched`, `leavesTouched`, `problemsForLeaf` |
+| `lib/escalation.ts` | Counter keyed by group, so a monic then a non-monic slip still triggers the expand-and-factor practice; caution is per group and forces its leaves to gap |
+| `lib/session.ts` | Prompts and overlays carry a leaf; `practiceLeaf` picks the leaf's practice or a sibling's; confidence by category |
+| `lib/feedback.ts`, `report.ts`, `peers.ts`, `groups.ts`, `mistakes.ts`, `examples.ts` | Slips, buckets, notes and facts in leaf ids and leaf short names; peers aggregate leaf statuses across classmates |
+| `lib/unit.ts` (+ test) | `inferUnitFromProblems` (most-tagged Unit Focus unit, else 1), `inferUnitFromText` (keywords), `UNIT_TITLES` |
+| `lib/classroom.ts` | `CreatedAssignment.unit` |
+| `components/HierarchyDrill.tsx` | Categories → groups → leaves → work, columns flowing right, worst-first, work panel with marked lines and a left rule on the chosen leaf's lines; `lockCategory` for the grid (the category becomes a heading so groups, skills and work get the width), `compact` collapses visited columns to a breadcrumb at depth four |
+| `components/Tag.tsx` | `LeafChip`; `StatusDot` with `half` and the new `solid` token; `STATUS_WORD`, `STATUS_TEXT` |
+| `components/Figure.tsx` | Inline SVG parabola for Q8 |
+| `app/teacher/TeacherLive.tsx` | Columns = categories the assignment touches; 15 px dot buttons with accessible names; one expanded row at a time; classmates through the same evidence path |
+| `app/student/screens/ReportScreen.tsx`, `app/teacher/report/TeacherReport.tsx` | The drill for one student (compact on the iPad) |
+| `app/teacher/assignments/new/NewAssignment.tsx` | Unit Focus card: inferred unit, Confirm (required before Create), "Not quite? describe the focus" → Reassess with a caption |
+| Overview, Working, Confidence, PracticePrompt, PracticeScreen, PeerScreen, Mistakes, Compare, WholeClassSetup | Leaf chips, category options, figures, help picker over leaves with practices |
+| `app/globals.css` | `--color-solid` (+ soft, line) |
+
+## How it connects
+
+```
+ data/taxonomy.ts  (const tree, version)  ──derives──▶  CategoryId · GroupId · LeafId  (compile-time)
+        │ names · lookups
+        ▼
+ data/assignment.ts  step.tags[]      data/evaluation.ts  verdict.tags[] · compounds      data/practice.ts  PRACTICES[leaf]
+        │                                    │                                                   ▲
+        ▼                                    ▼                                                   │ practiceLeaf(leaf)
+ lib/hierarchy.ts   hierarchyFor({ lines, submitted, caution })                     lib/session.ts  line/reveal → recordMistake(groupOf(leaf))
+   leaf = held / attempted → secure ≥100 · solid ≥80 · developing ≥60 · gap                       prompt { leaf }
+   group, category = worst-first roll-up · half = submitted && a skipped problem invokes the node
+        │ sessionEvidence(session)  ·  classmateEvidence(classmate)   ← one path for every student
+        ▼
+ TeacherLive grid: columns = categoriesTouched · StatusDot(status, half) buttons · click → <tr> HierarchyDrill lockCategory
+ ReportScreen / TeacherReport: HierarchyDrill (compact on the iPad) over the student's own evidence
+ HierarchyDrill: [category] → [groups ↓ worst-first] → [leaves ↓ worst-first] → work panel (problemsForLeaf · lineMarks · left rule on tagged lines)
+
+ NewAssignment: inferUnitFromProblems(chosen) → Unit Focus card → Confirm | note → inferUnitFromText → "reassessed from your note" → assignment/create { unit }
+```
+
+## Verified by
+
+vitest (123 tests): taxonomy round-trips and warnings; leaf thresholds and worst-first roll-up;
+the scripted run's end state (Algebra developing via monic, non-monic and fractions at 67 %,
+Communication solid at 29/30 clean lines, Reasoning gap, Functions/Graphing/Unit secure or
+solid, Stats absent); caution forcing a group's leaves to gap; half dots only after submit and
+only where problems were skipped; every classmate line evaluable; every wrong-verdict leaf has a
+practice; unit inference by tags and by keyword. `tsc --noEmit`, `eslint`, `next build`. CDP:
+six category columns; Sam's dots algebra=developing, communication=solid, reasoning=gap; Liam's
+half dots; 15 px dots with names like "Algebra: developing"; the drill opens under the row with
+groups and leaves worst-first and the work panel showing Q1 red and Q5 tagged lines; one row open
+at a time; the student report collapses to a breadcrumb at depth four; the Unit Focus card infers
+Unit 1, reassesses to Unit 3 from "mostly the chain rule", and Create waits for Confirm.

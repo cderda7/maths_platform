@@ -1,8 +1,10 @@
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
-import { CLASSMATES, type Classmate } from "@/data/classmates";
+import { CLASSMATES } from "@/data/classmates";
 import { STANDOUT } from "@/data/evaluation";
-import type { Problem, SubskillId } from "@/data/types";
+import type { LeafId } from "@/data/taxonomy";
+import type { Problem } from "@/data/types";
 import { evaluateLine } from "./evaluate";
+import { classmateLines } from "./hierarchy";
 import type { StudentSession } from "./session";
 
 /**
@@ -11,7 +13,7 @@ import type { StudentSession } from "./session";
  * the first step that didn't hold). The board sees letters, lines and bucket counts only; names
  * and verdicts stay in the private setup view.
  */
-export type Bucket = "correct" | SubskillId;
+export type Bucket = "correct" | LeafId;
 
 export interface Candidate {
   studentId: string;
@@ -42,7 +44,7 @@ const LETTERS = ["A", "B", "C", "D"];
 export function bucketOf(problemId: string, lines: string[]): Bucket {
   for (const tex of lines) {
     const v = evaluateLine(problemId, tex);
-    if (v.verdict === "wrong") return v.subskill;
+    if (v.verdict === "wrong") return v.tags[0].leaf;
   }
   return "correct";
 }
@@ -51,13 +53,6 @@ export function bucketOf(problemId: string, lines: string[]): Bucket {
 function liveLines(session: StudentSession, problemId: string): string[] {
   const rw = session.rework[problemId] ?? [];
   return (rw.length > 0 ? rw : (session.lines[problemId] ?? [])).map((l) => l.tex);
-}
-
-/** A classmate's transcription: their scripted attempt, or the model solution for a problem they finished correctly. */
-function classmateLines(c: Classmate, p: Problem, index: number): string[] | null {
-  if (c.attempts[p.id]) return c.attempts[p.id];
-  if (index < c.done && !c.wrong.includes(p.id)) return p.solution.map((s) => s.tex);
-  return null;
 }
 
 const HANDED_IN = ["overview", "practice", "confidence", "working"];

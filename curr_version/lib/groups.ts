@@ -1,8 +1,7 @@
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATE_MAP, GROUPMATE_IDS, OTHER_GROUPS } from "@/data/classmates";
-import { SUBSKILL_MAP } from "@/data/subskills";
+import { leafName, type LeafId } from "@/data/taxonomy";
 import { EVALUATION } from "@/data/evaluation";
-import type { SubskillId } from "@/data/types";
 import { computePhases, groupPlan } from "./group";
 import type { StudentSession } from "./session";
 
@@ -47,12 +46,13 @@ function liveStatus(session: StudentSession, discussion: string[]): string {
   }
 }
 
-/** Subskills behind the discussion set, from the first wrong pattern per problem. */
-function subskillsBehind(problemIds: string[]): SubskillId[] {
-  const out: SubskillId[] = [];
+/** Leaves behind the discussion set, from the first wrong pattern per problem. */
+function subskillsBehind(problemIds: string[]): LeafId[] {
+  const out: LeafId[] = [];
   for (const id of problemIds) {
     const v = Object.values(EVALUATION[id] ?? {}).find((x) => x.verdict === "wrong");
-    if (v && !out.includes(v.subskill)) out.push(v.subskill);
+    const leaf = v?.tags[0]?.leaf;
+    if (leaf && !out.includes(leaf)) out.push(leaf);
   }
   return out;
 }
@@ -60,7 +60,7 @@ function subskillsBehind(problemIds: string[]): SubskillId[] {
 function noteFor(discussion: string[], memberCount: number): string {
   if (discussion.length === 0) return `All ${memberCount} correct · quick pass only`;
   const labels = discussion.map((id) => ASSIGNMENT.problems.find((p) => p.id === id)?.label ?? id);
-  const skills = subskillsBehind(discussion).map((id) => SUBSKILL_MAP[id].short.toLowerCase());
+  const skills = subskillsBehind(discussion).map((id) => leafName(id).short);
   return `${labels.join(", ")} · ${skills.join(" and ")}`;
 }
 

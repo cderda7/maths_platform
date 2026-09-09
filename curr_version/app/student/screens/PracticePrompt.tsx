@@ -4,8 +4,9 @@ import { useState } from "react";
 import PracticeCard from "@/components/PracticeCard";
 import { Button, Eyebrow } from "@/components/ui";
 import { PRACTICES } from "@/data/practice";
-import { PREREQ_IDS, SUBSKILL_MAP } from "@/data/subskills";
-import type { Problem, SubskillId } from "@/data/types";
+import { leafName, type LeafId } from "@/data/taxonomy";
+import type { Problem } from "@/data/types";
+import { problemLeaves } from "@/lib/hierarchy";
 import type { PracticePrompt as Prompt } from "@/lib/session";
 
 /** Dim the iPad screen and centre a card. Positioned against `.ipad-screen`. */
@@ -19,14 +20,14 @@ function Scrim({ children }: { children: React.ReactNode }) {
 
 /** The isolated-practice prompt. Same card whether the counter triggered it or the student asked. */
 export function PromptModal({ prompt, problem, onAccept, onDecline }: { prompt: Prompt; problem: Problem; onAccept: () => void; onDecline: () => void }) {
-  const s = SUBSKILL_MAP[prompt.subskill];
+  const s = leafName(prompt.leaf);
   return (
     <Scrim>
       <div className="w-[560px] rounded-3xl bg-paper p-8 shadow-lift">
         <Eyebrow>{prompt.reason === "help" ? "You asked for a hand" : "A natural next step"}</Eyebrow>
-        <h2 className="font-display mt-2 text-[28px] leading-tight text-ink">Two minutes on {s.name.toLowerCase()}?</h2>
+        <h2 className="font-display mt-2 text-[28px] leading-tight text-ink">Two minutes on {s.short}?</h2>
         <p className="mt-3 text-[14px] text-ink-soft">
-          {prompt.reason === "help" ? `One short problem on ${s.short.toLowerCase()}, then back to ${problem.label}.` : `${s.short} didn't hold in ${problem.label}. One short problem, then back.`}
+          {prompt.reason === "help" ? `One short problem on ${s.short}, then back to ${problem.label}.` : `Something in ${problem.label} leaned on ${s.short}. One short problem, then back.`}
         </p>
         <div className="mt-6 flex justify-end gap-2">
           <Button variant="secondary" size="lg" onClick={onDecline}>
@@ -42,9 +43,9 @@ export function PromptModal({ prompt, problem, onAccept, onDecline }: { prompt: 
 }
 
 /** The isolated practice itself, over the working screen. */
-export function PracticeOverlay({ subskill, problem, onDone }: { subskill: SubskillId; problem: Problem; onDone: () => void }) {
-  const practice = PRACTICES[subskill as Exclude<SubskillId, "roots">];
-  const s = SUBSKILL_MAP[subskill];
+export function PracticeOverlay({ subskill, problem, onDone }: { subskill: LeafId; problem: Problem; onDone: () => void }) {
+  const practice = PRACTICES[subskill]!;
+  const s = leafName(subskill);
   const [all, setAll] = useState(false);
   return (
     <div className="absolute inset-0 z-20 overflow-y-auto bg-cream">
@@ -65,8 +66,10 @@ export function PracticeOverlay({ subskill, problem, onDone }: { subskill: Subsk
 }
 
 /** "I need help": pick what's getting in the way. Runs the identical flow a detected trigger would. */
-export function HelpPicker({ problem, onPick, onClose }: { problem: Problem; onPick: (s: SubskillId) => void; onClose: () => void }) {
-  const ordered = [...problem.prereqs, ...PREREQ_IDS.filter((id) => !problem.prereqs.includes(id))];
+export function HelpPicker({ problem, onPick, onClose }: { problem: Problem; onPick: (s: LeafId) => void; onClose: () => void }) {
+  const withPractice = (Object.keys(PRACTICES) as LeafId[]);
+  const own = problemLeaves(problem).filter((l) => withPractice.includes(l));
+  const ordered = [...own, ...withPractice.filter((id) => !own.includes(id))];
   return (
     <Scrim>
       <div className="w-[560px] rounded-3xl bg-paper p-8 shadow-lift">
@@ -74,8 +77,8 @@ export function HelpPicker({ problem, onPick, onClose }: { problem: Problem; onP
         <h2 className="font-display mt-2 text-[28px] leading-tight text-ink">Which skill?</h2>
         <ul className="mt-5 space-y-2">
           {ordered.map((id) => {
-            const s = SUBSKILL_MAP[id];
-            const leans = problem.prereqs.includes(id);
+            const s = leafName(id);
+            const leans = own.includes(id);
             return (
               <li key={id}>
                 <button

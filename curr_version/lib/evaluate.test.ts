@@ -16,15 +16,29 @@ describe("scripted evaluation", () => {
     }
   });
 
-  it("the scripted run slips on factorising in Q1 and Q2 and on the null factor law in Q3", () => {
+  it("the scripted run slips on monic then non-monic factorising, the null factor law, fractions and a justification", () => {
     const wrongs = Object.entries(RECOGNITION).flatMap(([pid, lines]) =>
-      lines.map((tex) => evaluateLine(pid, tex)).filter((v) => v.verdict === "wrong").map((v) => [pid, v.verdict === "wrong" && v.subskill]),
+      lines.map((tex) => evaluateLine(pid, tex)).filter((v) => v.verdict === "wrong").map((v) => [pid, v.verdict === "wrong" && v.tags[0].leaf]),
     );
     expect(wrongs).toEqual([
-      ["q1", "factoring"],
-      ["q2", "factoring"],
-      ["q3", "algebra"],
+      ["q1", "algebra.expand-factor.monic"],
+      ["q2", "algebra.expand-factor.nonmonic"],
+      ["q3", "unit.u1.nfl"],
+      ["q7", "algebra.number.fractions"],
+      ["q10", "reasoning.justify.formal"],
     ]);
+  });
+
+  it("the one compounded line in the scripted run is Q9's turning point without its height", () => {
+    const compounded = Object.entries(RECOGNITION).flatMap(([pid, lines]) =>
+      lines
+        .filter((tex) => {
+          const v = evaluateLine(pid, tex);
+          return v.verdict !== "unclear" && v.compounds;
+        })
+        .map(() => pid),
+    );
+    expect(compounded).toEqual(["q9"]);
   });
 
   it("an unknown line is unclear, never wrong", () => {

@@ -10,37 +10,45 @@ export type Difficulty =
   | "complex familiar"
   | "complex unfamiliar";
 
-/** The one skill the assignment targets plus the five prerequisite subskills it leans on. */
-export type SubskillId = "algebra" | "fractions" | "factoring" | "expansion" | "graphing" | "roots";
+import type { CategoryId, LeafId } from "./taxonomy";
 
-export interface Subskill {
-  id: SubskillId;
-  name: string;
-  short: string;
-  description: string;
+/** A step or a line is tagged with one or more taxonomy leaves. Confidence is stored, not yet read. */
+export interface Tag {
+  leaf: LeafId;
+  confidence?: number;
 }
+export const tag = (leaf: LeafId, confidence?: number): Tag => (confidence === undefined ? { leaf } : { leaf, confidence });
 
-/** Status the teacher (and, symmetrically, the student's final report) sees per subskill. */
-export type SubskillStatus = "secure" | "developing" | "gap" | "unseen";
+/** Five-level status for a leaf, group or category, plus "not seen yet". */
+export type Status = "secure" | "solid" | "developing" | "gap" | "unseen";
+/** @deprecated alias kept while call sites migrate. */
+export type SubskillStatus = Status;
 
 export interface SolutionStep {
   tex: string;
   /** What the step does, in the student's terms. */
   label: string;
-  subskill: SubskillId;
+  tags: Tag[];
 }
+
+/** Figures a problem can show beside its statement. */
+export type FigureId = "q8-parabola";
 
 export interface Problem {
   id: string;
   label: string;
-  /** The skill this problem is really about. */
-  subskill: SubskillId;
-  /** Prerequisite subskills the working will lean on. */
-  prereqs: SubskillId[];
   difficulty: Difficulty;
   stem: string;
   tex: string;
   solution: SolutionStep[];
+  figure?: FigureId;
+}
+
+/** QCAA unit and topic, rendered to the eyebrow by `unitLabel`. */
+export interface UnitRef {
+  number: 1 | 2 | 3 | 4;
+  topic: string;
+  title: string;
 }
 
 export interface Assignment {
@@ -49,16 +57,16 @@ export interface Assignment {
   className: string;
   teacher: string;
   due: string;
-  unit: string;
+  unit: UnitRef;
   intro: string;
   /** Ordered set of core problems. */
   problems: Problem[];
 }
 
-/** The three confidence-survey answers from the spec. */
+/** The three confidence-survey answers from the spec; "low when" names a category the set touches. */
 export type Confidence =
   | { level: "confident" }
-  | { level: "low-when"; subskill: SubskillId }
+  | { level: "low-when"; category: CategoryId }
   | { level: "low" };
 
 /** Handwriting: a stroke is the points of one pen-down to pen-up, in pad coordinates. */
@@ -91,7 +99,7 @@ export type Pathway = ReviewStage[];
 /** A short warm-up offered before the set, one per prerequisite subskill it makes sense for. */
 export interface PracticeProblem {
   id: string;
-  subskill: SubskillId;
+  leaf: LeafId;
   stem: string;
   tex: string;
   steps: SolutionStep[];

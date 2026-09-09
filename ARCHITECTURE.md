@@ -54,7 +54,9 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │   session.ink / reworkInk: strokes per problem, popped with lines on undo/clear      │
  │ lib/evaluate.ts     evaluateLine(problem, tex) → ok | wrong | unclear               │
  │ lib/escalation.ts   recordMistake · requestHelp → { trigger, cautioned }            │
- │ lib/status.ts       subskillStatuses · problemsStarted  (teacher-side derivation)   │
+ │ lib/hierarchy.ts    hierarchyFor(evidence) → leaf/group/category status · half dots  │
+ │                     sessionEvidence · classmateEvidence (one path) · categoriesTouched │
+ │ lib/unit.ts         inferUnitFromProblems · inferUnitFromText                        │
  │ lib/feedback.ts     runKind · feedbackFor (teacher views) · feedbackSummary (student) │
  │ lib/guard.ts        guardFor · trippedProblems  (originally-correct problem broken)  │
  │ lib/group.ts        computePhases (∩ correct / ∪ wrong) · groupPlan → DiscussionView │
@@ -68,9 +70,9 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
                                          ▼ reads
  ┌────────────────────────────────────────────────────────────────────────────────────┐
  │ data/  (static TypeScript, no fetching)                                            │
- │   types.ts        SubskillId · SubskillStatus · Problem · Assignment · Confidence · Stage │
- │   subskills.ts    SUBSKILLS · SUBSKILL_MAP · PREREQ_IDS · TARGET_ID                │
- │   assignment.ts   ASSIGNMENT (4 problems, labelled solutions) · PRACTICE · DEMO_STUDENT │
+ │   taxonomy.ts     TAXONOMY (7 categories → groups → leaves) · LeafId · lookups · version │
+ │   types.ts        Tag · Status (5 levels) · Problem · Assignment · UnitRef · Confidence · Stage │
+ │   assignment.ts   ASSIGNMENT (10 problems, tagged solutions) · unitLabel · DEMO_STUDENT │
  │   recognition.ts  RECOGNITION[problemId] (scripted run) · RECOGNITION_REWORK (corrected) │
  │   evaluation.ts   EVALUATION[problemId][tex] → LineVerdict (ok/wrong, subskill, clue)    │
  │                   STANDOUT[problemId][tex] → { when: strong|weak|both, why }              │
@@ -82,7 +84,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  ┌───────────────┴────────────────────────────────────────────────────────────────────┐
  │ components/  (presentational kit, no page deps)                                    │
  │   ui.tsx  Card Eyebrow H1 H2 Button Avatar    Math.tsx  M (katex.renderToString)   │
- │   Tag.tsx DifficultyTag SubskillChip StatusDot STATUS_WORD                         │
+ │   Tag.tsx DifficultyTag LeafChip StatusDot(half) STATUS_WORD    Figure.tsx (Q8 svg) │
+ │   HierarchyDrill.tsx  category → group → leaf → work, shared by grid and reports    │
  │   Brand.tsx Brand BrandMark                   IpadStage.tsx  bezel + scale-to-fit  │
  │   DrawPad.tsx  pointer events → ink; reports pen-down and burst-end(strokeCount)   │
  │   InkView.tsx  read-only SVG of stored strokes, cropped and fitted to its box       │
@@ -126,7 +129,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 22 | Teacher force submit with one-minute grace | `/teacher` Class card → `/student` pill | `bd16a06` | [curr_version/architecture/22-teacher-force-submit-with-grace.md](curr_version/architecture/22-teacher-force-submit-with-grace.md) |
 | 23 | Whole-class setup and the unmarked board | `/teacher/whole-class`, `/teacher/board` | `bb83c90` | [curr_version/architecture/23-whole-class-setup-and-unmarked-board.md](curr_version/architecture/23-whole-class-setup-and-unmarked-board.md) |
 | 24 | Student freeze, marked view and session end | `/student` frozen, `/teacher/board` marks, `/teacher` End | `9acced2` | [curr_version/architecture/24-student-freeze-marked-view-and-session-end.md](curr_version/architecture/24-student-freeze-marked-view-and-session-end.md) |
-| 25 | Documentation compile | — | _this commit_ | [curr_version/architecture/25-documentation-compile.md](curr_version/architecture/25-documentation-compile.md) |
+| 25 | Documentation compile | — | `4e7b2a1` | [curr_version/architecture/25-documentation-compile.md](curr_version/architecture/25-documentation-compile.md) |
+| 26 | Hierarchical skill category dashboard | `/teacher` grid + drill, reports, creation Unit Focus | _this commit_ | [curr_version/architecture/26-hierarchical-skill-dashboard.md](curr_version/architecture/26-hierarchical-skill-dashboard.md) |
 
 ## Conventions
 

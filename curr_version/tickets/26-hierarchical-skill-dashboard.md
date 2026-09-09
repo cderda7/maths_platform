@@ -4,7 +4,7 @@
 
 **Blocked by:** 24 (student freeze / marked view), 19 (assignment creation with pathway map).
 
-**Status:** ready
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -149,16 +149,16 @@ Each of these is appended to `FUTURE_FEATURES.md` with today's date as part of t
 - Decision log entries to write: taxonomy as code; worst-first roll-up over averaging; the five-level status scale; a single evidence path for all students.
 - Architecture note at `architecture/26.md`, folded into the root `ARCHITECTURE.md`, per the standing instruction.
 
-- [ ] Taxonomy module with derived leaf ID type, lookups, canonical order, version
-- [ ] Tags on steps and verdicts; six legacy IDs remapped across every authored site
-- [ ] Five-level status, proportional leaf rule, worst-first roll-up, half-dot markers
-- [ ] Classmates derive statuses from evaluated attempts; frozen literals removed
-- [ ] Fixture grows to ten problems with Sam's scripted errors and classmate attempts
-- [ ] Practice coverage for every leaf with a wrong verdict, enforced by test
-- [ ] Teacher grid: computed category columns, 15px dots, half dots, accessible buttons
-- [ ] Sideways drill strip with worst-first groups, leaves and marked-up work panel
-- [ ] Student report renders the same component for self after session end; breadcrumb collapse on iPad
-- [ ] Detective feedback and report summary use leaf names under category headings
-- [ ] Creation screen Unit Focus card with confirm and keyword reassessment
-- [ ] Tests per Testing Decisions; existing suites updated
-- [ ] `FUTURE_FEATURES.md`, `DECISION_LOG.md`, `architecture/26.md`, `ARCHITECTURE.md`
+- [x] Taxonomy module with derived leaf ID type, lookups, canonical order, version
+- [x] Tags on steps and verdicts; six legacy IDs remapped across every authored site
+- [x] Five-level status, proportional leaf rule, worst-first roll-up, half-dot markers
+- [x] Classmates derive statuses from evaluated attempts; frozen literals removed
+- [x] Fixture grows to ten problems with Sam's scripted errors and classmate attempts
+- [x] Practice coverage for every leaf with a wrong verdict, enforced by test
+- [x] Teacher grid: computed category columns, 15px dots, half dots, accessible buttons
+- [x] Sideways drill strip with worst-first groups, leaves and marked-up work panel
+- [x] Student report renders the same component for self after session end; breadcrumb collapse on iPad
+- [x] Detective feedback and report summary use leaf names under category headings
+- [x] Creation screen Unit Focus card with confirm and keyword reassessment
+- [x] Tests per Testing Decisions; existing suites updated
+- [x] `FUTURE_FEATURES.md`, `DECISION_LOG.md`, `architecture/26.md`, `ARCHITECTURE.md`

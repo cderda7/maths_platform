@@ -15,14 +15,14 @@ describe("group-phase computation", () => {
     expect(computePhases(["q1", "q2"], [["q1", "q2"], ["q1", "q2"]])).toEqual({ quickPass: [], discussion: ["q1", "q2"], totalWrong: 4 });
   });
 
-  it("the demo group: Q4 is the quick pass, Q1–Q3 the discussion, about 2 slips each", () => {
+  it("the demo group: the all-correct problems are the quick pass, the union of wrongs the discussion", () => {
     const g = groupPlan(sessionAt("group-pass"));
     expect(g.members.map((m) => m.id)).toEqual(["sam", "jordan", "zara", "liam"]);
-    expect(g.quickPass.map((p) => p.id)).toEqual(["q4", "q5", "q6"]);
-    expect(g.discussion.problems.map((p) => p.id)).toEqual(["q1", "q2", "q3"]);
+    expect(g.quickPass.map((p) => p.id)).toEqual(["q4", "q5", "q6", "q8"]);
+    expect(g.discussion.problems.map((p) => p.id)).toEqual(["q1", "q2", "q3", "q7", "q9", "q10"]);
     expect(g.discussion.memberCount).toBe(4);
-    expect(g.discussion.totalWrong).toBe(3 + 1 + 1 + 2);
-    expect(g.discussion.perMember).toBe(2);
+    expect(g.discussion.totalWrong).toBe(5 + 1 + 2 + 2);
+    expect(g.discussion.perMember).toBe(3);
   });
 
   it("the discussion view carries no correctness data: nothing per member, nothing per problem", () => {

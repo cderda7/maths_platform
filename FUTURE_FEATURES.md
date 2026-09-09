@@ -116,8 +116,35 @@ appends it here (see `CLAUDE.md`).
 - **Plain-text options.** Options are typeset as TeX; a plain sentence renders in maths italics.
   Detect prose and wrap it in `\text{}` or offer a text/maths toggle per option.
 
+## Skill hierarchy (from ticket 26, 2026-09-09)
+
+- **Cross-assignment persistence** of leaf statuses, so a category dot reflects the term, not one
+  set.
+- **A real auto-tagger** and a **step-granularity detector**; today tags and the `compounds` flag
+  are authored per line, and tag confidence is stored but never read (confidence-tiered
+  rendering later, without a data migration).
+- **Tagger-proposed Unit Focus leaves** beyond the closed lists per unit.
+- **Header-level column zoom**: click a category header to see the whole class at group level.
+- **A class summary row** of counts per category under the grid.
+- **Live marked-up work for students** before submission, and the broader question of where else
+  marked-up copy appears for students (the report drill shows it after the session ends).
+- **General and Specialist Mathematics taxonomies**, as further versions beside `methods-1`.
+- **Escalation by leaf or by group.** Ticket 26 counts mistakes per group so the classic demo
+  moment (monic then non-monic slip → practice) still fires; a per-leaf counter would be stricter
+  and a per-category one looser. Make it a teacher setting.
+
 ## UI copy
 
 - **Add descriptions back selectively.** v3 strips every screen to the copy rule in spec2. Once
   the terse version has been used, decide screen by screen where a line of explanation earns its
   place (first-run tooltips, an optional "learn more" per screen, teacher onboarding copy).
+
+
+- **Ask where mistake is** before starting work; in indiv review; student has 3 'tokens' to use
+  in asking 'is this problem one that i made a mistake on?' before revising.
+
+- **Address effiency** in addition to current handling of correctness.
+
+- **No prepractice of subskills**; student self-identifies as 'lacking confidence in {}', &
+  for unconfident student, first error triggers 'additional practice' ; for confident student,
+  this happens upon second error with {}.

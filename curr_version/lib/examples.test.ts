@@ -4,7 +4,7 @@ import { sessionAt } from "./session";
 
 describe("board examples", () => {
   it("buckets by correct or the first wrong step's subskill", () => {
-    expect(bucketOf("q2", ["2x^2 + 7x - 4 = 0", "(2x + 4)(x - 1) = 0", "x = -2 \;\\text{or}\; x = 1"])).toBe("factoring");
+    expect(bucketOf("q2", ["2x^2 + 7x - 4 = 0", "(2x + 4)(x - 1) = 0", "x = -2 \;\\text{or}\; x = 1"])).toBe("algebra.expand-factor.nonmonic");
     expect(bucketOf("q4", ["a = 3,\; b = -5,\; c = -1", "b^2 - 4ac = 25 + 12 = 37", "x = \\dfrac{5 \\pm \\sqrt{37}}{6}"])).toBe("correct");
     expect(bucketOf("q1", [])).toBe("correct");
   });
@@ -17,15 +17,15 @@ describe("board examples", () => {
     const reworked = candidatesFor("q2", sessionAt("group-pass"));
     const sam = reworked.find((c) => c.studentId === "sam")!;
     expect(sam.bucket).toBe("correct"); // the rework fixed Q2
-    expect(candidatesFor("q2", sessionAt("feedback")).find((c) => c.studentId === "sam")!.bucket).toBe("factoring");
+    expect(candidatesFor("q2", sessionAt("feedback")).find((c) => c.studentId === "sam")!.bucket).toBe("algebra.expand-factor.nonmonic");
   });
 
   it("counts buckets and struggles; problems sort by struggle", () => {
     const counts = bucketCounts(candidatesFor("q2", sessionAt("feedback")));
-    expect(counts.get("factoring")).toBe(3); // sam, jordan, liam
+    expect(counts.get("algebra.expand-factor.nonmonic")).toBe(3); // sam, jordan, liam
     expect(counts.get("correct")).toBe(4);
     expect(struggleCount("q3", sessionAt("feedback"))).toBe(4); // sam, tomas, zara, liam
-    expect(problemsByStruggle(sessionAt("feedback")).map((p) => p.problem.id)).toEqual(["q3", "q2", "q1", "q4", "q5", "q6"]);
+    expect(problemsByStruggle(sessionAt("feedback")).map((p) => p.problem.id)).toEqual(["q3", "q2", "q7", "q10", "q1", "q4", "q5", "q6", "q9", "q8"]);
   });
 
   it("suggests one correct example then one per error bucket, capped at three, at least two", () => {
@@ -38,10 +38,10 @@ describe("board examples", () => {
     const capped = suggestExamples(
       [
         { studentId: "a", name: "", problemId: "q1", lines: [], bucket: "correct" },
-        { studentId: "b", name: "", problemId: "q1", lines: [], bucket: "algebra" },
-        { studentId: "c", name: "", problemId: "q1", lines: [], bucket: "fractions" },
-        { studentId: "d", name: "", problemId: "q1", lines: [], bucket: "factoring" },
-        { studentId: "e", name: "", problemId: "q1", lines: [], bucket: "factoring" },
+        { studentId: "b", name: "", problemId: "q1", lines: [], bucket: "algebra.equations.linear" },
+        { studentId: "c", name: "", problemId: "q1", lines: [], bucket: "algebra.number.fractions" },
+        { studentId: "d", name: "", problemId: "q1", lines: [], bucket: "algebra.expand-factor.monic" },
+        { studentId: "e", name: "", problemId: "q1", lines: [], bucket: "algebra.expand-factor.monic" },
       ],
     );
     expect(capped.map((r) => r.studentId)).toEqual(["a", "d", "b"]); // largest error bucket first, then the rest, cap 3

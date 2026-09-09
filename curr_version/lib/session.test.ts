@@ -19,9 +19,9 @@ describe("student session flow", () => {
   });
 
   it("the confidence answer is kept and starts the set", () => {
-    const s = sessionReducer(sessionAt("confidence"), { type: "confidence/set", confidence: { level: "low-when", subskill: "fractions" } });
+    const s = sessionReducer(sessionAt("confidence"), { type: "confidence/set", confidence: { level: "low-when", category: "algebra" } });
     expect(s.stage).toBe("working");
-    expect(s.confidence).toEqual({ level: "low-when", subskill: "fractions" });
+    expect(s.confidence).toEqual({ level: "low-when", category: "algebra" });
   });
 
   it("deep-linking past the survey fills in earlier answers", () => {
@@ -54,12 +54,12 @@ describe("escalation inside the session", () => {
     s = reveal(s, "q1", "x^2 - 5x + 6 = 0", 5);
     s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 12);
     expect(s.prompt).toBeNull();
-    expect(s.escalation.counts.factoring).toBe(1);
+    expect(s.escalation.counts["algebra.expand-factor"]).toBe(1);
     s = sessionReducer(s, { type: "problem/goto", index: 1 });
     s = reveal(s, "q2", "2x^2 + 7x - 4 = 0", 6);
     s = reveal(s, "q2", "(2x + 4)(x - 1) = 0", 14);
-    expect(s.prompt).toEqual({ subskill: "factoring", reason: "detected" });
-    expect(s.escalation.counts.factoring).toBe(0);
+    expect(s.prompt).toEqual({ leaf: "algebra.expand-factor.nonmonic", reason: "detected" });
+    expect(s.escalation.counts["algebra.expand-factor"]).toBe(0);
     expect(s.escalation.caution).toEqual([]);
   });
 
@@ -69,7 +69,7 @@ describe("escalation inside the session", () => {
     s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 12);
     s = sessionReducer(s, { type: "lines/undo", problem: "q1", strokeCount: 11 });
     s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 12);
-    expect(s.escalation.counts.factoring).toBe(1);
+    expect(s.escalation.counts["algebra.expand-factor"]).toBe(1);
     expect(s.prompt).toBeNull();
   });
 
@@ -80,11 +80,11 @@ describe("escalation inside the session", () => {
     s = reveal(s, "q2", "(2x + 4)(x - 1) = 0", 3);
     s = sessionReducer(s, { type: "prompt/accept", problem: "q2" });
     expect(s.prompt).toBeNull();
-    expect(s.overlay).toBe("factoring");
+    expect(s.overlay).toBe("algebra.expand-factor.nonmonic");
     s = sessionReducer(s, { type: "overlay/done" });
     expect(s.overlay).toBeNull();
     expect(s.problemIndex).toBe(1);
-    expect(s.practices).toEqual([{ subskill: "factoring", reason: "detected", accepted: true, problem: "q2" }]);
+    expect(s.practices).toEqual([{ leaf: "algebra.expand-factor.nonmonic", reason: "detected", accepted: true, problem: "q2" }]);
   });
 
   it("'I need help' after a detected practice raises the caution flag", () => {
@@ -93,9 +93,9 @@ describe("escalation inside the session", () => {
     s = reveal(s, "q2", "(2x + 4)(x - 1) = 0", 3);
     s = sessionReducer(s, { type: "prompt/decline", problem: "q2" });
     expect(s.escalation.caution).toEqual([]);
-    s = sessionReducer(s, { type: "help/request", subskill: "factoring", problem: "q3" });
-    expect(s.prompt).toEqual({ subskill: "factoring", reason: "help" });
-    expect(s.escalation.caution).toEqual(["factoring"]);
+    s = sessionReducer(s, { type: "help/request", leaf: "algebra.expand-factor.monic", problem: "q3" });
+    expect(s.prompt).toEqual({ leaf: "algebra.expand-factor.monic", reason: "help" });
+    expect(s.escalation.caution).toEqual(["algebra.expand-factor"]);
   });
 });
 
@@ -119,7 +119,7 @@ describe("independent rework", () => {
 
   it("deep links past the rework carry both versions", () => {
     const s = sessionAt("group-pass");
-    expect(Object.keys(s.rework).sort()).toEqual(["q1", "q2", "q3"]);
+    expect(Object.keys(s.rework).sort()).toEqual(["q1", "q10", "q2", "q3", "q7"]);
     expect(s.lines.q1.length).toBe(3);
     expect(s.stars).toEqual(["q4"]);
   });
@@ -279,7 +279,7 @@ describe("rework hand-in and the guard", () => {
     s = sessionReducer(s, { type: "rework/reveal", problem: "q4", line: { tex: WRONG_Q4, strokeCount: 1 } });
     s = sessionReducer(s, { type: "rework/done", force: true });
     expect(s.stage).toBe("group-pass");
-    expect(s.notice).toMatch(/^4 of your problems still contain a mistake\./);
+    expect(s.notice).toMatch(/^6 of your problems still contain a mistake\./);
   });
 
   it("the post-rework notice reads the final version and can be dismissed", () => {
@@ -297,7 +297,7 @@ describe("teacher force submit", () => {
     s = sessionReducer(s, { type: "advance/apply", id: "force-submit@1", kind: "force-submit", at: 77 }, { pathway: ["whole-class"] });
     expect(s.stage).toBe("waiting");
     expect(s.handedInAt).toBe(77);
-    expect(s.notAttempted).toEqual(["q2", "q3", "q4", "q5", "q6"]);
+    expect(s.notAttempted).toEqual(["q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"]);
     expect(s.notice).toBe("Your teacher handed in the class's work.");
     expect(s.appliedAdvances).toEqual(["force-submit@1"]);
   });
@@ -316,7 +316,7 @@ describe("teacher force submit", () => {
 
   it("dismisses an open practice prompt or overlay on the way out", () => {
     let s = sessionAt("working");
-    s = sessionReducer(s, { type: "help/request", subskill: "fractions", problem: "q1" });
+    s = sessionReducer(s, { type: "help/request", leaf: "algebra.number.fractions", problem: "q1" });
     expect(s.prompt).not.toBeNull();
     s = sessionReducer(s, { type: "advance/apply", id: "c", kind: "force-submit" });
     expect(s.prompt).toBeNull();
@@ -327,7 +327,7 @@ describe("teacher force submit", () => {
 describe("whole-class freeze", () => {
   it("freezes wherever the student is, dismissing prompts, and releases to the report", () => {
     let s = sessionAt("working");
-    s = sessionReducer(s, { type: "help/request", subskill: "fractions", problem: "q1" });
+    s = sessionReducer(s, { type: "help/request", leaf: "algebra.number.fractions", problem: "q1" });
     s = sessionReducer(s, { type: "advance/apply", id: "wc@1", kind: "whole-class-start" });
     expect(s.stage).toBe("frozen");
     expect(s.prompt).toBeNull();

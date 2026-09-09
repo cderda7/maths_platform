@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import TeacherChrome from "../TeacherChrome";
 import M from "@/components/Math";
 import { Button, Card, Eyebrow, H1 } from "@/components/ui";
-import { DifficultyTag, SubskillChip } from "@/components/Tag";
+import { DifficultyTag, LeafChip } from "@/components/Tag";
 import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
 import { dispatchClassroom, useAssignment } from "@/lib/classroom-store";
 import { candidatesFor, MAX_EXAMPLES, problemsByStruggle, suggestExamples, type Bucket, type ExampleRef } from "@/lib/examples";
@@ -147,5 +147,5 @@ export default function WholeClassSetup() {
 
 function BucketTag({ bucket }: { bucket: Bucket }) {
   if (bucket === "correct") return <span className="rounded-full border border-secure-line bg-secure-soft px-2 py-0.5 text-[11.5px] text-secure">correct</span>;
-  return <SubskillChip id={bucket} className="border-wrong-line bg-wrong-soft text-wrong" />;
+  return <LeafChip id={bucket} className="border-wrong-line bg-wrong-soft text-wrong" />;
 }

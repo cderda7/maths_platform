@@ -13,6 +13,8 @@ export interface CreatedAssignment {
   /** Ordered ids from the problem bank. */
   problemIds: string[];
   pathway: Pathway;
+  /** The confirmed QCAA unit for Unit Focus. */
+  unit: 1 | 2 | 3 | 4;
   createdAt: number;
 }
 
@@ -47,7 +49,7 @@ export interface ClassroomState {
 }
 
 export type ClassroomAction =
-  | { type: "assignment/create"; title: string; problemIds: string[]; pathway: Pathway; at?: number }
+  | { type: "assignment/create"; title: string; problemIds: string[]; pathway: Pathway; unit?: 1 | 2 | 3 | 4; at?: number }
   | { type: "advance/start"; kind: AdvanceKind; at?: number }
   | { type: "advance/clear" }
   | { type: "wc/setup"; problems: string[]; examples: Record<string, ExampleRef[]> }
@@ -64,7 +66,7 @@ export const INITIAL_CLASSROOM: ClassroomState = { assignment: null, advance: nu
 export function classroomReducer(c: ClassroomState, a: ClassroomAction): ClassroomState {
   switch (a.type) {
     case "assignment/create":
-      return { ...c, assignment: { title: a.title, problemIds: [...a.problemIds], pathway: [...a.pathway], createdAt: a.at ?? 0 } };
+      return { ...c, assignment: { title: a.title, problemIds: [...a.problemIds], pathway: [...a.pathway], unit: a.unit ?? 1, createdAt: a.at ?? 0 } };
     case "advance/start": {
       const at = a.at ?? 0;
       return { ...c, advance: { id: `${a.kind}@${at}`, kind: a.kind, deadline: at + GRACE_MS } };

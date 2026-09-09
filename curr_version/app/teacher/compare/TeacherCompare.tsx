@@ -4,7 +4,7 @@ import Link from "next/link";
 import TeacherChrome from "../TeacherChrome";
 import M from "@/components/Math";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
-import { DifficultyTag, SubskillChip } from "@/components/Tag";
+import { DifficultyTag, LeafChip } from "@/components/Tag";
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { evaluateLine } from "@/lib/evaluate";
 import { useBatchedSession } from "@/lib/store";
@@ -91,7 +91,7 @@ export default function TeacherCompare() {
                                   {v && v.verdict !== "unclear" && (
                                     <>
                                       {v.label}
-                                      <SubskillChip id={v.subskill} />
+                                      <LeafChip id={v.tags[0].leaf} />
                                     </>
                                   )}
                                   {diff && <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">changed</span>}

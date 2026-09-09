@@ -5,10 +5,9 @@ import Link from "next/link";
 import TeacherChrome from "../TeacherChrome";
 import M from "@/components/Math";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
-import { DifficultyTag, SubskillChip } from "@/components/Tag";
+import { DifficultyTag, LeafChip } from "@/components/Tag";
 import { ASSIGNMENT } from "@/data/assignment";
-import { SUBSKILL_MAP } from "@/data/subskills";
-import type { SubskillId } from "@/data/types";
+import { leafName, type LeafId } from "@/data/taxonomy";
 import { mistakesByProblem } from "@/lib/mistakes";
 import { useBatchedSession } from "@/lib/store";
 import { useAssignment } from "@/lib/classroom-store";
@@ -28,7 +27,7 @@ export default function TeacherMistakes() {
 
       <div className="mt-10 space-y-6">
         {groups.map(({ problem, rows }) => {
-          const subskills = [...new Set(rows.flatMap((r) => r.slips))] as SubskillId[];
+          const subskills = [...new Set(rows.flatMap((r) => r.slips))] as LeafId[];
           return (
             <Card key={problem.id} className="overflow-hidden" data-problem={problem.id}>
               <div className="flex items-center justify-between border-b border-line px-6 py-4">
@@ -45,7 +44,7 @@ export default function TeacherMistakes() {
                   </span>
                   <span className="flex gap-1.5">
                     {subskills.map((id) => (
-                      <SubskillChip key={id} id={id} />
+                      <LeafChip key={id} id={id} />
                     ))}
                   </span>
                 </div>
@@ -74,7 +73,7 @@ export default function TeacherMistakes() {
                         </span>
                         <span className="flex items-center gap-4 text-[13px] text-ink-soft">
                           <span>
-                            {r.slips.map((id) => SUBSKILL_MAP[id as SubskillId].short.toLowerCase()).join(", ")} · {r.lines.length} lines
+                            {[...new Set(r.slips)].map((id) => leafName(id).short).join(", ")} · {r.lines.length} lines
                           </span>
                           <span className={`text-ink-muted transition-transform ${isOpen ? "rotate-90" : ""}`} aria-hidden>
                             ›
@@ -103,7 +102,7 @@ export default function TeacherMistakes() {
                                   {v.verdict !== "unclear" && (
                                     <span className="flex shrink-0 items-center gap-2 text-[12px] text-ink-muted">
                                       {v.label}
-                                      <SubskillChip id={v.subskill} />
+                                      <LeafChip id={v.tags[0].leaf} />
                                     </span>
                                   )}
                                 </div>

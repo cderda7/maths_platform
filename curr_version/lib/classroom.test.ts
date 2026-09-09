@@ -10,7 +10,7 @@ describe("classroom state", () => {
 
   it("creating an assignment sets the pathway in force; reset clears it", () => {
     const c = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: "Set 4", problemIds: ["q1", "q3"], pathway: ["whole-class"], at: 5 });
-    expect(c.assignment).toEqual({ title: "Set 4", problemIds: ["q1", "q3"], pathway: ["whole-class"], createdAt: 5 });
+    expect(c.assignment).toEqual({ title: "Set 4", problemIds: ["q1", "q3"], pathway: ["whole-class"], unit: 1, createdAt: 5 });
     expect(pathwayOf(c)).toEqual(["whole-class"]);
     expect(classroomReducer(c, { type: "reset" })).toEqual(INITIAL_CLASSROOM);
   });
@@ -21,7 +21,7 @@ describe("active assignment", () => {
     const { activeAssignment } = await import("./assignment");
     const a = activeAssignment(INITIAL_CLASSROOM);
     expect(a.created).toBe(false);
-    expect(a.problems.map((p) => p.id)).toEqual(["q1", "q2", "q3", "q4", "q5", "q6"]);
+    expect(a.problems.map((p) => p.id)).toEqual(["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"]);
   });
 
   it("keeps the chosen problems in bank order, drops unknown ids, never returns an empty set", async () => {
@@ -32,7 +32,7 @@ describe("active assignment", () => {
     expect(a.title).toBe("Set 4");
     expect(a.problems.map((p) => p.id)).toEqual(["q2", "q4"]);
     const empty = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: "", problemIds: [], pathway: [] });
-    expect(activeAssignment(empty).problems).toHaveLength(6);
+    expect(activeAssignment(empty).problems).toHaveLength(10);
     expect(activeAssignment(empty).title).toBe("Roots of a quadratic — Set 3");
   });
 });

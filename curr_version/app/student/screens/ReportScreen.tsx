@@ -2,14 +2,13 @@
 
 import M from "@/components/Math";
 import { Button, Card, Eyebrow } from "@/components/ui";
-import { StatusDot, STATUS_WORD } from "@/components/Tag";
+import HierarchyDrill from "@/components/HierarchyDrill";
 import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
-import { PREREQ_IDS, SUBSKILL_MAP, TARGET_ID } from "@/data/subskills";
 import { reportFacts } from "@/lib/report";
 import { isMastery } from "@/lib/peers";
 import { useAssignment } from "@/lib/classroom-store";
+import { sessionEvidence, sessionHierarchy } from "@/lib/hierarchy";
 import type { SessionAction, StudentSession } from "@/lib/session";
-import { subskillStatuses } from "@/lib/status";
 
 const sentences = (t: string) => t.split(/[.!?]+/).map((x) => x.trim()).filter(Boolean).length;
 
@@ -18,7 +17,8 @@ const sentences = (t: string) => t.split(/[.!?]+/).map((x) => x.trim()).filter(B
  * practices taken, and a short reflection sent to the teacher. No scores anywhere.
  */
 export default function ReportScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
-  const st = subskillStatuses(session);
+  const { problems } = useAssignment();
+  const hierarchy = sessionHierarchy(session, problems);
   const facts = reportFacts(session);
   const n = sentences(session.reflection);
   const sent = session.reportSent;
@@ -36,24 +36,8 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
           </Button>
         </div>
 
-        <Card className="mt-5 overflow-hidden">
-          <ul className="divide-y divide-line" data-statuses>
-            {[TARGET_ID, ...PREREQ_IDS].map((id) => {
-              const s = SUBSKILL_MAP[id];
-              const v = st[id];
-              return (
-                <li key={id} className="flex items-center gap-4 px-5 py-3">
-                  <StatusDot status={v} size="h-3 w-3" />
-                  <div className="flex min-w-0 flex-1 items-baseline justify-between gap-3">
-                    <span className="text-[14.5px] font-medium text-ink">{s.name}</span>
-                    <span className={`text-[12px] font-medium ${v === "secure" ? "text-secure" : v === "developing" ? "text-developing" : v === "gap" ? "text-gap" : "text-ink-muted"}`}>
-                      {STATUS_WORD[v]}
-                    </span>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+        <Card className="mt-5 p-5" data-hierarchy>
+          <HierarchyDrill compact result={hierarchy} lines={sessionEvidence(session).lines} problems={problems} />
         </Card>
 
         {mastery && (

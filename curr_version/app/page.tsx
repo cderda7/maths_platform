@@ -2,7 +2,7 @@ import Link from "next/link";
 import Brand from "@/components/Brand";
 import { Card, Eyebrow, H1 } from "@/components/ui";
 import ResetDemo from "@/components/ResetDemo";
-import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
+import { ASSIGNMENT, DEMO_STUDENT, unitLabel } from "@/data/assignment";
 
 export default function Home() {
   return (
@@ -11,7 +11,7 @@ export default function Home() {
         <Brand />
       </header>
       <main className="mx-auto max-w-5xl px-6 pt-10 pb-20">
-        <Eyebrow>{ASSIGNMENT.className} · {ASSIGNMENT.unit}</Eyebrow>
+        <Eyebrow>{ASSIGNMENT.className} · {unitLabel(ASSIGNMENT.unit)}</Eyebrow>
         <H1 className="mt-3 max-w-3xl">One student, one teacher, one live loop.</H1>
         <p className="mt-5 max-w-2xl text-[17px] leading-relaxed text-ink-soft">
           Open the student side in one tab and the teacher side in another. As {DEMO_STUDENT.name} works through{" "}

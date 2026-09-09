@@ -1,10 +1,6 @@
-import type { SubskillId } from "./types";
-
 /** A live multiple-choice diagnostic the teacher can push to the class mid-assignment. */
 export interface Diagnostic {
   id: string;
-  /** Absent on a question the teacher wrote themselves. */
-  subskill?: SubskillId;
   stem: string;
   tex: string;
   options: { id: string; tex: string }[];
@@ -16,7 +12,6 @@ export interface Diagnostic {
 export const DIAGNOSTICS: Diagnostic[] = [
   {
     id: "d-factor-check",
-    subskill: "factoring",
     stem: "Which of these is a factorisation of",
     tex: "2x^2 + 7x - 4",
     options: [

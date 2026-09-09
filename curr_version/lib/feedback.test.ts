@@ -22,20 +22,22 @@ describe("feedback layers", () => {
       ["q1", "(x + 2)(x + "],
       ["q2", "(2x + 4)(x -"],
       ["q3", "x - 3 = 6 \\;"],
+      ["q7", "x^2 + 6x + \\"],
+      ["q10", "\\Delta < 0 \\"],
     ]);
   });
 
   it("a weak run's standouts are the harder correct steps; a strong run's are the novel ones", () => {
     const weak = feedbackFor(scriptedSession()).flatMap((p) => p.lines.filter((l) => l.standout).map((l) => `${p.problem.id}:${l.tex.slice(0, 10)}`));
-    expect(weak).toEqual(["q2:2x + 4 = 0", "q4:b^2 - 4ac ", "q4:x = \\dfrac"]);
+    expect(weak).toEqual(["q2:2x + 4 = 0", "q4:b^2 - 4ac ", "q4:x = \\dfrac", "q8:1 - 4 + 3 "]);
     const strong = feedbackFor(modelRun()).flatMap((p) => p.lines.filter((l) => l.standout).map((l) => `${p.problem.id}:${l.tex.slice(0, 10)}`));
-    expect(strong).toEqual(["q2:ac = -8,\\q", "q3:x^2 - x - ", "q4:b^2 - 4ac ", "q5:x = \\tfrac", "q6:36 - 4k = "]);
+    expect(strong).toEqual(["q2:ac = -8,\\q", "q3:x^2 - x - ", "q4:b^2 - 4ac ", "q5:x = \\tfrac", "q6:36 - 4k = ", "q8:1 - 4 + 3 ", "q10:\\text{The "]);
   });
 
   it("clues are pattern-level and only on problems with a slip; a clean problem can be starred", () => {
     const fb = feedbackFor(scriptedSession());
-    expect(fb.map((p) => !!p.clue)).toEqual([true, true, true, false, false, false]);
-    expect(fb.map((p) => p.clean)).toEqual([false, false, false, true, true, true]);
+    expect(fb.map((p) => !!p.clue)).toEqual([true, true, true, false, false, false, true, false, false, true]);
+    expect(fb.map((p) => p.clean)).toEqual([false, false, false, true, true, true, false, true, true, false]);
     for (const p of fb) if (p.clue) expect(p.clue).not.toMatch(/line \d/i);
   });
 
@@ -52,38 +54,38 @@ describe("detective feedback summary", () => {
   it("zero mistakes: every problem held, no hint", async () => {
     const { feedbackSummary } = await import("./feedback");
     const s = feedbackSummary(modelRun());
-    expect(s).toMatchObject({ count: 0, total: 6, subskills: [] });
+    expect(s).toMatchObject({ count: 0, total: 10, subskills: [] });
     expect(s.sentence).toBe("Every problem held.");
   });
 
   it("one mistake still gets a hint naming its subskill", async () => {
     const { summarySentence } = await import("./feedback");
-    expect(summarySentence(1, ["fractions"])).toBe("1 of your problems contains a mistake. Double-check fractions.");
+    expect(summarySentence(1, ["algebra.number.fractions"])).toBe("1 of your problems contains a mistake. Double-check fractions.");
   });
 
-  it("the scripted run: three problems, subskills in first-occurrence order", async () => {
+  it("the scripted run: five problems, leaves in first-occurrence order, hint capped at three", async () => {
     const { feedbackSummary } = await import("./feedback");
     const s = feedbackSummary(scriptedSession());
-    expect(s.count).toBe(3);
-    expect(s.subskills).toEqual(["factoring", "algebra"]);
-    expect(s.sentence).toBe("3 of your problems contain a mistake. Double-check factorising and algebra.");
+    expect(s.count).toBe(5);
+    expect(s.subskills).toEqual(["algebra.expand-factor.monic", "algebra.expand-factor.nonmonic", "unit.u1.nfl", "algebra.number.fractions", "reasoning.justify.formal"]);
+    expect(s.sentence).toBe("5 of your problems contain a mistake. Double-check monic factorising, non-monic factorising and null factor law.");
   });
 
   it("caps the hint at three subskills", async () => {
     const { summarySentence } = await import("./feedback");
-    expect(summarySentence(4, ["algebra", "fractions", "factoring", "expansion"])).toBe("4 of your problems contain a mistake. Double-check algebra, fractions and factorising.");
+    expect(summarySentence(4, ["algebra.equations.linear", "algebra.number.fractions", "algebra.expand-factor.monic", "algebra.expand-factor.expand"])).toBe("4 of your problems contain a mistake. Double-check linear equations, fractions and monic factorising.");
   });
 
   it("the final version reads the rework and says 'still'", async () => {
     const { feedbackSummary } = await import("./feedback");
     const reworked = sessionAt("group-pass"); // scripted run with every slipped problem corrected
     expect(feedbackSummary(reworked, "final").sentence).toBe("Every problem holds now.");
-    expect(feedbackSummary(reworked, "original").count).toBe(3);
+    expect(feedbackSummary(reworked, "original").count).toBe(5);
     let partial = sessionAt("rework");
     partial = sessionReducer(partial, { type: "rework/reveal", problem: "q1", line: { tex: "(x - 2)(x - 3) = 0", strokeCount: 1 } });
     partial = sessionReducer(partial, { type: "rework/reveal", problem: "q1", line: { tex: "x = 2 \\text{ or } x = 3", strokeCount: 2 } });
     const f = feedbackSummary(partial, "final");
-    expect(f.count).toBe(2);
-    expect(f.sentence).toMatch(/^2 of your problems still contain a mistake\./);
+    expect(f.count).toBe(4);
+    expect(f.sentence).toMatch(/^4 of your problems still contain a mistake\./);
   });
 });

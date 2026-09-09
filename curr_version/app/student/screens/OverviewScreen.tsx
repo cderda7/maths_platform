@@ -2,32 +2,40 @@
 
 import M from "@/components/Math";
 import { Button, Card, Eyebrow } from "@/components/ui";
-import { DifficultyTag, SubskillChip } from "@/components/Tag";
-import { ASSIGNMENT } from "@/data/assignment";
+import Figure from "@/components/Figure";
+import { DifficultyTag, LeafChip } from "@/components/Tag";
+import { ASSIGNMENT, unitLabel } from "@/data/assignment";
 import { PRACTICE } from "@/data/practice";
+import { categoryName, leafName } from "@/data/taxonomy";
 import { useAssignment } from "@/lib/classroom-store";
-import { PREREQ_IDS, SUBSKILL_MAP, TARGET_ID } from "@/data/subskills";
+import { categoriesTouched, leavesTouched, problemLeaves } from "@/lib/hierarchy";
 
 export default function OverviewScreen({ onPractice, onStart }: { onPractice: () => void; onStart: () => void }) {
-  const target = SUBSKILL_MAP[TARGET_ID];
   const active = useAssignment();
+  const categories = categoriesTouched(active.problems);
+  const leaves = leavesTouched(active.problems).filter((l) => !l.startsWith("communication."));
   return (
     <div className="grid h-full min-h-0 grid-cols-[440px_1fr]">
       <aside className="min-h-0 overflow-y-auto border-r border-line px-9 py-8">
-        <Eyebrow>{ASSIGNMENT.unit}</Eyebrow>
+        <Eyebrow>{unitLabel(ASSIGNMENT.unit)}</Eyebrow>
         <h1 className="font-display mt-3 text-[34px] leading-[1.08] text-ink">{active.title}</h1>
         <p className="mt-3 text-[13px] text-ink-muted">
           {ASSIGNMENT.teacher} · due {ASSIGNMENT.due}
         </p>
-        <Eyebrow className="mt-6">About</Eyebrow>
-        <div className="mt-3 rounded-xl border border-accent-line bg-accent-soft/60 px-4 py-2.5 text-[14.5px] font-medium text-ink">{target.name}</div>
+        <Eyebrow className="mt-6">Covers</Eyebrow>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {categories.map((c) => (
+            <span key={c} className="rounded-xl border border-accent-line bg-accent-soft/60 px-3 py-1.5 text-[13.5px] font-medium text-ink">
+              {categoryName(c).name}
+            </span>
+          ))}
+        </div>
 
         <Eyebrow className="mt-5">Leans on</Eyebrow>
-        <ul className="mt-3 space-y-1.5">
-          {PREREQ_IDS.map((id) => (
-            <li key={id} className="flex items-center gap-3 text-[14px] font-medium text-ink">
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
-              {SUBSKILL_MAP[id].name}
+        <ul className="mt-3 flex flex-wrap gap-1.5">
+          {leaves.map((id) => (
+            <li key={id} className="rounded-full border border-line bg-paper px-2.5 py-1 text-[12.5px] text-ink-soft">
+              {leafName(id).name}
             </li>
           ))}
         </ul>
@@ -47,9 +55,14 @@ export default function OverviewScreen({ onPractice, onStart }: { onPractice: ()
                 <div className="math-lg mt-2.5 text-ink">
                   <M tex={p.tex} display />
                 </div>
+                {p.figure && (
+                  <div className="mx-auto mt-2 max-w-[260px]">
+                    <Figure id={p.figure} />
+                  </div>
+                )}
                 <div className="mt-3.5 flex flex-wrap gap-1.5">
-                  {p.prereqs.map((id) => (
-                    <SubskillChip key={id} id={id} />
+                  {problemLeaves(p).map((id) => (
+                    <LeafChip key={id} id={id} />
                   ))}
                 </div>
               </Card>
@@ -60,7 +73,7 @@ export default function OverviewScreen({ onPractice, onStart }: { onPractice: ()
         <Card tone="soft" className="mt-4 flex shrink-0 items-center justify-between gap-6 p-5">
           <div>
             <div className="text-[15px] font-medium text-ink">Two-minute warm-up?</div>
-            <p className="mt-1 text-[13px] text-ink-muted">{SUBSKILL_MAP[PRACTICE.subskill].name} · not marked</p>
+            <p className="mt-1 text-[13px] text-ink-muted">{leafName(PRACTICE.leaf).name} · not marked</p>
           </div>
           <div className="flex shrink-0 gap-2">
             <Button variant="secondary" size="lg" onClick={onPractice}>

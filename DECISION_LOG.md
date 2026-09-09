@@ -322,3 +322,65 @@ the board uses, so the two can only disagree if the tables do.
 student, so closing the board tab changes nothing and End works from anywhere; the atomic Project
 removed a real race found in the click-through; and the first time a student sees red on their own
 line is the moment the class has just seen the same mistake on an anonymous example.
+
+## 2026-09-09 · Taxonomy as code
+
+**Decision.** The Methods skill taxonomy is a const TypeScript tree with a version field. Leaf,
+group and category id types are derived from the tree, so an unknown id at an authored site
+(a solution step, a verdict, a practice) is a compile error. At runtime an unknown id read from
+data is dropped with one logged warning, never silently and never fatally.
+
+**Context.** Ticket 26 replaces six flat subskills with seven categories, fourteen groups and
+thirty-odd leaves, tagged across ten problems, forty verdict lines and eleven practices. Any
+mismatch between tagger and dashboard would be invisible on a dot grid.
+
+**Alternatives considered.** JSON data loaded at runtime (editable, but no compile-time check and
+a validation layer to write). A database table (right for the real product, wrong for a fixture
+demo with no backend).
+
+**Tradeoffs.** Editing the taxonomy is a code change. The derived types make the tree file a bit
+dense to read.
+
+**Defence.** Every one of the hundred-plus tags in the fixture is checked by `tsc`, the test
+suite re-checks resolution at runtime, and the version field leaves room for a General or
+Specialist tree beside it.
+
+## 2026-09-09 · Worst-first roll-up over averaging, on a five-level scale
+
+**Decision.** A leaf's status is the proportion of held lines over attempted lines tagged with
+it: 100 % secure, at least 80 % solid, at least 60 % developing, otherwise gap; no evidence is
+unseen. A group or category is the worst of its children; a parent with only unseen children is
+unseen. Half dots are a separate marker for "submitted but skipped a problem here", never a rank.
+
+**Context.** A teacher scanning a grid needs one real gap to stay visible through two hops of
+aggregation, and one slip in four attempts to read differently from two in four.
+
+**Alternatives considered.** Averaging children (a gap in one leaf disappears behind three secure
+siblings). Three levels (one slip in four and two in four both read as developing). Counting
+skipped problems as failures (a student who ran out of time turns red).
+
+**Tradeoffs.** Worst-first makes a category look as bad as its worst leaf, which is the point but
+can surprise on a first glance; the drill is one click away to explain it. Thresholds are a
+judgement call, kept in one function.
+
+**Defence.** The demo's scripted run shows exactly the intended contrast, Algebra developing and
+Reasoning a gap from one line each, and the rule is two pure functions with tests at every
+threshold.
+
+## 2026-09-09 · A single evidence path for every student
+
+**Decision.** Classmates' statuses are derived from their scripted attempts (or the model
+solution where they got a problem right) through the same evaluator and roll-up as the live
+student's. The frozen per-subskill status literals on the classmate fixtures are gone.
+
+**Context.** The drill shows the work behind a dot. If a classmate's dot came from a literal and
+their popup from their lines, the two could disagree.
+
+**Alternatives considered.** Keep literals and add lines beside them (two sources, drift).
+
+**Tradeoffs.** Every classmate slip needs a known line in the evaluation table; a test enforces
+that none is "unclear". Correct work is the model solution, so classmates look uniform where
+they are right.
+
+**Defence.** A dot and its popup can never disagree, and the multi-student build gets the same
+function per student with no special case.

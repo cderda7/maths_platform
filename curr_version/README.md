@@ -1,7 +1,7 @@
 # Edexia · Maths — closed-loop demo
 
 A design-only demo of live, closed-loop maths feedback for QCE Year 11 Mathematical Methods:
-a student works a six-problem set by hand on an iPad, the platform reads each line as it's
+a student works a ten-problem set by hand on an iPad, the platform reads each line as it's
 written and reacts, and the teacher watches the same run move in real time, chooses the review
 pathway, and can put the class's work on the board. Built 8–9 Sep 2026 from `specs/spec1.md`
 (v2, tickets 01–16) and `specs/spec2.md` (v3, tickets 17–25) in `tickets/`.
@@ -30,7 +30,8 @@ part of the product.
 
 Teacher, before the lesson (`/teacher/assignments/new`):
 
-1. **New assignment**: title, problems from the bank, and the review pathway on the map. Every
+1. **New assignment**: title, problems from the bank, the inferred QCAA unit to confirm (or
+   describe the focus and reassess), and the review pathway on the map. Every
    pathway starts at student submission; then any of individual review, group review and
    whole-class review, in that order, each optional. Pick a column and its siblings fade; leave
    later columns empty to stop there; tap "student submission" to clear the map and start again;
@@ -38,11 +39,11 @@ Teacher, before the lesson (`/teacher/assignments/new`):
 
 Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the pen):
 
-2. Overview, warm-up offer, confidence. Work Q1–Q6 on the pad; each burst of strokes is read as
-   one line and the ink is kept. Q1 and Q2 slip on factorising (a two-minute practice is offered
-   on the second), Q3 on the null factor law, Q4 holds, and the two graphing problems (Q5 the
-   turning point and intercepts of a parabola, Q6 the value of k for a single root) hold too.
-   "I need help" runs the same practice flow.
+2. Overview, warm-up offer, confidence. Work Q1–Q10 on the pad; each burst of strokes is read as
+   one line and the ink is kept. Q1 slips on monic factorising and Q2 on non-monic (a two-minute
+   practice is offered on the second), Q3 misuses the null factor law, Q4–Q6 and Q8 hold, Q7
+   multiplies only two of three terms by 3, Q9 skips the height (a compounded step, not a
+   mistake), and Q10 misreads a negative discriminant. "I need help" runs the same practice flow.
 3. **Hand in** → the pathway decides what comes next.
 4. **Individual review** (detective feedback): one sentence, "3 of your problems contain a
    mistake. Double-check factorising and algebra.", and the unmarked transcription. Rework any
@@ -60,7 +61,10 @@ Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the 
 
 Teacher, during the lesson (`/teacher`):
 
-- **Class**: the live row (subskill dots, confidence, stage, caution), static classmates, the
+- **Class**: one column per skill category the set touches (Algebra, Functions, Graphing,
+  Communication, Reasoning, Unit Focus), each dot the worst status beneath it, half dots where a
+  student skipped problems; click a dot to drill sideways into groups, skills and the marked-up
+  work behind them. Then the live row's confidence, stage and caution, the classmates, the
   pathway chip, **Force assignment submit** (confirm, then a one-minute grace on every screen), the
   **Whole-class review** card (Set up → / Students frozen · End session), the assignment status
   (in whole-class review · complete), the live diagnostic push (the example, or one you write).

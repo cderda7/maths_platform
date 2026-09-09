@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { Button, Eyebrow } from "@/components/ui";
-import { PREREQ_IDS, SUBSKILL_MAP } from "@/data/subskills";
-import type { Confidence, SubskillId } from "@/data/types";
+import { categoryName, type CategoryId } from "@/data/taxonomy";
+import type { Confidence } from "@/data/types";
+import { useAssignment } from "@/lib/classroom-store";
+import { categoriesTouched } from "@/lib/hierarchy";
 
 type Level = Confidence["level"];
 
@@ -15,12 +17,13 @@ const OPTIONS: { level: Level; title: string }[] = [
 
 export default function ConfidenceScreen({ practice, onSubmit }: { practice: "taken" | "declined" | null; onSubmit: (c: Confidence) => void }) {
   const [level, setLevel] = useState<Level | null>(null);
-  const [subskill, setSubskill] = useState<SubskillId | null>(null);
-  const ready = level === "low-when" ? subskill !== null : level !== null;
+  const [category, setCategory] = useState<CategoryId | null>(null);
+  const categories = categoriesTouched(useAssignment().problems).filter((c) => c !== "communication");
+  const ready = level === "low-when" ? category !== null : level !== null;
 
   const submit = () => {
     if (!ready || !level) return;
-    onSubmit(level === "low-when" ? { level, subskill: subskill! } : { level });
+    onSubmit(level === "low-when" ? { level, category: category! } : { level });
   };
 
   return (
@@ -50,19 +53,19 @@ export default function ConfidenceScreen({ practice, onSubmit }: { practice: "ta
               {o.level === "low-when" && active && (
                 <div className="ml-14 mt-3 flex flex-wrap items-center gap-2">
                   <span className="mr-1 text-[13px] text-ink-soft">Which skill?</span>
-                  {PREREQ_IDS.map((id) => {
-                    const on = subskill === id;
+                  {categories.map((id) => {
+                    const on = category === id;
                     return (
                       <button
                         key={id}
                         type="button"
-                        onClick={() => setSubskill(id)}
+                        onClick={() => setCategory(id)}
                         aria-pressed={on}
                         className={`rounded-full border px-3.5 py-1.5 text-[13px] transition-colors ${
                           on ? "border-accent bg-accent text-white" : "border-line bg-paper text-ink-soft hover:border-ink-muted"
                         }`}
                       >
-                        {SUBSKILL_MAP[id].name}
+                        {categoryName(id).name}
                       </button>
                     );
                   })}

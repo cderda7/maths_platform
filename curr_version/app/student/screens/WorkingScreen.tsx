@@ -6,7 +6,9 @@ import type { Stroke } from "@/data/types";
 import PadSection from "@/components/PadSection";
 import ReadAs from "@/components/ReadAs";
 import { Button, Eyebrow } from "@/components/ui";
-import { DifficultyTag, SubskillChip } from "@/components/Tag";
+import Figure from "@/components/Figure";
+import { DifficultyTag, LeafChip } from "@/components/Tag";
+import { problemLeaves } from "@/lib/hierarchy";
 import { RECOGNITION } from "@/data/recognition";
 import { useAssignment } from "@/lib/classroom-store";
 import { nextLine } from "@/lib/recognition";
@@ -56,9 +58,14 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
         <div className="math-lg mt-3 text-ink">
           <M tex={p.tex} display />
         </div>
+        {p.figure && (
+          <div className="mt-3">
+            <Figure id={p.figure} />
+          </div>
+        )}
         <div className="mt-4 flex flex-wrap gap-1.5">
-          {p.prereqs.map((id) => (
-            <SubskillChip key={id} id={id} />
+          {problemLeaves(p).map((id) => (
+            <LeafChip key={id} id={id} />
           ))}
         </div>
         <div className="mt-auto pt-6">
@@ -113,7 +120,7 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
           onClose={() => setHelpOpen(false)}
           onPick={(subskill) => {
             setHelpOpen(false);
-            dispatch({ type: "help/request", subskill, problem: p.id });
+            dispatch({ type: "help/request", leaf: subskill, problem: p.id });
           }}
         />
       )}

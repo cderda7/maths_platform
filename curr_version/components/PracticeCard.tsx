@@ -3,7 +3,7 @@
 import { useState } from "react";
 import M from "@/components/Math";
 import { Button, Card } from "@/components/ui";
-import { SubskillChip } from "@/components/Tag";
+import { LeafChip } from "@/components/Tag";
 import type { PracticeProblem } from "@/data/types";
 
 /**
@@ -23,7 +23,7 @@ export default function PracticeCard({ practice, onAllShown }: { practice: Pract
     <Card className="p-7">
       <div className="flex items-center justify-between">
         <span className="text-[14px] text-ink-soft">{practice.stem}</span>
-        <SubskillChip id={practice.subskill} />
+        <LeafChip id={practice.leaf} />
       </div>
       <div className="math-lg mt-3 text-ink">
         <M tex={practice.tex} display />

@@ -6,11 +6,13 @@ import TeacherChrome from "../../TeacherChrome";
 import PathwayMap from "./PathwayMap";
 import M from "@/components/Math";
 import { Button, Card, Eyebrow, H1 } from "@/components/ui";
-import { DifficultyTag, SubskillChip } from "@/components/Tag";
-import { ASSIGNMENT, PROBLEMS } from "@/data/assignment";
+import { DifficultyTag, LeafChip } from "@/components/Tag";
+import { ASSIGNMENT, PROBLEMS, unitLabel } from "@/data/assignment";
 import type { Pathway } from "@/data/types";
 import { dispatchClassroom } from "@/lib/classroom-store";
+import { leavesTouched } from "@/lib/hierarchy";
 import { DEFAULT_PATHWAY } from "@/lib/pathway";
+import { inferUnitFromProblems, inferUnitFromText, UNIT_TITLES } from "@/lib/unit";
 
 /** Create the assignment: title, problems from the bank, and the review pathway on the map. */
 export default function NewAssignment() {
@@ -18,19 +20,31 @@ export default function NewAssignment() {
   const [title, setTitle] = useState(ASSIGNMENT.title);
   const [chosen, setChosen] = useState<string[]>(PROBLEMS.map((p) => p.id));
   const [pathway, setPathway] = useState<Pathway>(DEFAULT_PATHWAY);
-  const toggle = (id: string) => setChosen((c) => (c.includes(id) ? c.filter((x) => x !== id) : [...c, id]));
-  const ready = chosen.length > 0 && title.trim().length > 0;
+  const [note, setNote] = useState("");
+  const [reassessed, setReassessed] = useState<1 | 2 | 3 | 4 | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
+  const toggle = (id: string) => {
+    setChosen((c) => (c.includes(id) ? c.filter((x) => x !== id) : [...c, id]));
+    setConfirmed(false);
+  };
+  const chosenProblems = PROBLEMS.filter((p) => chosen.includes(p.id));
+  const inferred = reassessed ?? inferUnitFromProblems(chosenProblems);
+  const ready = chosen.length > 0 && title.trim().length > 0 && confirmed;
 
+  const reassess = () => {
+    setReassessed(inferUnitFromText(note));
+    setConfirmed(false);
+  };
   const create = () => {
     if (!ready) return;
-    dispatchClassroom({ type: "assignment/create", title: title.trim(), problemIds: PROBLEMS.map((p) => p.id).filter((id) => chosen.includes(id)), pathway });
+    dispatchClassroom({ type: "assignment/create", title: title.trim(), problemIds: PROBLEMS.map((p) => p.id).filter((id) => chosen.includes(id)), pathway, unit: inferred });
     router.push("/teacher");
   };
 
   return (
     <TeacherChrome>
       <Eyebrow>
-        {ASSIGNMENT.className} · {ASSIGNMENT.unit}
+        {ASSIGNMENT.className} · {unitLabel(ASSIGNMENT.unit)}
       </Eyebrow>
       <H1 className="mt-3">New assignment</H1>
 
@@ -75,14 +89,46 @@ export default function NewAssignment() {
               })}
             </ul>
             <div className="mt-3 flex flex-wrap gap-1.5">
-              {[...new Set(PROBLEMS.filter((p) => chosen.includes(p.id)).flatMap((p) => p.prereqs))].map((id) => (
-                <SubskillChip key={id} id={id} />
-              ))}
+              {leavesTouched(chosenProblems)
+                .filter((l) => !l.startsWith("communication."))
+                .map((id) => (
+                  <LeafChip key={id} id={id} />
+                ))}
             </div>
           </Card>
         </div>
 
         <div className="space-y-4">
+          <Card className="p-6" data-unit-focus>
+            <div className="flex items-center justify-between">
+              <Eyebrow>Unit focus</Eyebrow>
+              {reassessed !== null && <span className="text-[11.5px] text-ink-muted">reassessed from your note</span>}
+            </div>
+            <div className="mt-3 flex items-center justify-between gap-4">
+              <div>
+                <div className="font-display text-[22px] text-ink" data-unit-inferred>
+                  Unit {inferred}
+                </div>
+                <div className="text-[13px] text-ink-soft">{UNIT_TITLES[inferred]}</div>
+              </div>
+              <Button variant={confirmed ? "accent" : "secondary"} onClick={() => setConfirmed(true)} aria-pressed={confirmed} data-unit-confirm>
+                {confirmed ? "✓ Confirmed" : "Confirm"}
+              </Button>
+            </div>
+            <div className="mt-3 flex items-center gap-2">
+              <input
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Not quite? describe the focus"
+                aria-label="Describe the focus"
+                className="min-w-0 flex-1 rounded-xl border border-line bg-paper px-3 py-2 text-[13.5px] text-ink outline-none focus:border-accent"
+                data-unit-note
+              />
+              <Button variant="ghost" onClick={reassess} disabled={!note.trim()} data-unit-reassess>
+                Reassess
+              </Button>
+            </div>
+          </Card>
           <Card className="p-6">
             <Eyebrow>Review pathway</Eyebrow>
             <div className="mt-4">

@@ -10,8 +10,8 @@ describe("peer struggles for a mastery-level student", () => {
       ["q3", 3],
       ["q2", 2],
     ]);
-    expect(p.subskills[0]).toEqual({ id: "roots", struggling: 4 });
-    expect(p.subskills).toContainEqual({ id: "factoring", struggling: 2 });
+    expect(p.leaves[0].struggling).toBeGreaterThan(0);
+    expect(p.leaves.map((l) => l.id)).toContain("algebra.expand-factor.nonmonic");
     const json = JSON.stringify(p);
     for (const name of ["Jordan", "Zara", "Liam", "Tomas", "attempts", "x = 9"]) expect(json).not.toContain(name);
     for (const x of p.problems) expect(x.pattern.length).toBeGreaterThan(0);

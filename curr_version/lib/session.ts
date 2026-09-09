@@ -1,4 +1,6 @@
-import type { Confidence, Pathway, Stage, Stroke, SubskillId } from "@/data/types";
+import type { Confidence, Pathway, Stage, Stroke } from "@/data/types";
+import { groupOf, type LeafId } from "@/data/taxonomy";
+import { PRACTICES } from "@/data/practice";
 import type { AdvanceKind } from "./classroom";
 import type { Diagnostic } from "@/data/diagnostic";
 import { DEFAULT_PATHWAY, nextStage } from "./pathway";
@@ -15,7 +17,7 @@ import { ASSIGNMENT } from "@/data/assignment";
  * plus a reducer, so the flow can be unit-tested and, from ticket 05, mirrored to the teacher tab.
  */
 export interface PracticePrompt {
-  subskill: SubskillId;
+  leaf: LeafId;
   /** detected: the counter triggered it. help: the student asked. */
   reason: "detected" | "help";
 }
@@ -43,7 +45,7 @@ export interface StudentSession {
   /** The isolated-practice prompt currently showing, if any. */
   prompt: PracticePrompt | null;
   /** The isolated practice the student is in, if any. */
-  overlay: SubskillId | null;
+  overlay: LeafId | null;
   /** Every prompt and how it was answered, oldest first. */
   practices: PracticeEntry[];
   /** Problems the student got right but wasn't sure about. */
@@ -92,7 +94,7 @@ export type SessionAction =
   /** Pops the last stroke and withdraws any line revealed after the survivors. `strokeCount` forces the count instead. */
   | { type: "lines/undo"; problem: string; strokeCount?: number }
   | { type: "lines/clear"; problem: string }
-  | { type: "help/request"; subskill: SubskillId; problem: string }
+  | { type: "help/request"; leaf: LeafId; problem: string }
   | { type: "prompt/accept"; problem: string }
   | { type: "prompt/decline"; problem: string }
   | { type: "overlay/done" }
@@ -196,12 +198,13 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       const v = evaluateLine(a.problem, a.line.tex);
       const key = `${a.problem}#${prev.length}`;
       if (v.verdict !== "wrong" || s.counted.includes(key)) return next;
-      const r = recordMistake(s.escalation, v.subskill);
+      const leaf = practiceLeaf(v.tags[0].leaf);
+      const r = recordMistake(s.escalation, groupOf(v.tags[0].leaf));
       return {
         ...next,
         escalation: r.state,
         counted: [...s.counted, key],
-        prompt: r.trigger ? { subskill: v.subskill, reason: "detected" } : s.prompt,
+        prompt: r.trigger && leaf ? { leaf, reason: "detected" } : s.prompt,
       };
     }
     case "ink/stroke":
@@ -218,12 +221,13 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     case "lines/clear":
       return { ...s, ink: { ...s.ink, [a.problem]: [] }, lines: { ...s.lines, [a.problem]: [] } };
     case "help/request": {
-      const r = requestHelp(s.escalation, a.subskill);
-      return { ...s, escalation: r.state, prompt: { subskill: a.subskill, reason: "help" } };
+      const r = requestHelp(s.escalation, groupOf(a.leaf));
+      const leaf = practiceLeaf(a.leaf);
+      return { ...s, escalation: r.state, prompt: leaf ? { leaf, reason: "help" } : s.prompt };
     }
     case "prompt/accept":
       if (!s.prompt) return s;
-      return { ...s, prompt: null, overlay: s.prompt.subskill, practices: [...s.practices, { ...s.prompt, accepted: true, problem: a.problem }] };
+      return { ...s, prompt: null, overlay: s.prompt.leaf, practices: [...s.practices, { ...s.prompt, accepted: true, problem: a.problem }] };
     case "prompt/decline":
       if (!s.prompt) return s;
       return { ...s, prompt: null, practices: [...s.practices, { ...s.prompt, accepted: false, problem: a.problem }] };
@@ -291,6 +295,14 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
 }
 
 const BEFORE_HAND_IN: Stage[] = ["overview", "practice", "confidence", "working"];
+
+/** The leaf to practise for a mistake: its own practice, else another leaf in the same group that has one. */
+export function practiceLeaf(leaf: LeafId): LeafId | null {
+  if (PRACTICES[leaf]) return leaf;
+  const g = groupOf(leaf);
+  const alt = (Object.keys(PRACTICES) as LeafId[]).find((l) => groupOf(l) === g);
+  return alt ?? null;
+}
 export const FORCED_HAND_IN_TEXT = "Your teacher handed in the class's work.";
 
 /** Stored to a tenth of a pad pixel: indistinguishable on screen, a third of the bytes. */
@@ -327,7 +339,7 @@ export function strongSession(): StudentSession {
  * produces: every recognised line for every problem, the Q2 prompt taken, no help asked.
  */
 export function scriptedSession(): StudentSession {
-  let s: StudentSession = { ...INITIAL_SESSION, stage: "working", practice: "declined", confidence: { level: "low-when", subskill: "factoring" } };
+  let s: StudentSession = { ...INITIAL_SESSION, stage: "working", practice: "declined", confidence: { level: "low-when", category: "algebra" } };
   for (const [i, p] of Object.entries(RECOGNITION)) {
     const index = Object.keys(RECOGNITION).indexOf(i);
     s = sessionReducer(s, { type: "problem/goto", index });
@@ -365,6 +377,6 @@ export function sessionAt(stage: Stage, run: RunKindParam = "weak"): StudentSess
     ...INITIAL_SESSION,
     stage,
     practice: i >= ORDER.indexOf("confidence") ? "declined" : i === ORDER.indexOf("practice") ? "taken" : null,
-    confidence: i >= ORDER.indexOf("working") ? { level: "low-when", subskill: "factoring" } : null,
+    confidence: i >= ORDER.indexOf("working") ? { level: "low-when", category: "algebra" } : null,
   };
 }

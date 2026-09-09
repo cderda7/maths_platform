@@ -1,6 +1,7 @@
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
 import type { Problem } from "@/data/types";
+import type { LeafId } from "@/data/taxonomy";
 import { evaluateLine, type Verdict } from "./evaluate";
 import { feedbackFor } from "./feedback";
 import type { StudentSession } from "./session";
@@ -16,8 +17,8 @@ export interface MistakeRow {
   initials: string;
   live: boolean;
   lines: { tex: string; verdict: Verdict }[];
-  /** Subskills of the steps that didn't hold. */
-  slips: string[];
+  /** Leaves of the steps that didn't hold. */
+  slips: LeafId[];
 }
 
 export interface ProblemMistakes {
@@ -26,7 +27,7 @@ export interface ProblemMistakes {
 }
 
 const evaluateAll = (pid: string, texs: string[]) => texs.map((tex) => ({ tex, verdict: evaluateLine(pid, tex) }));
-const slipsOf = (lines: { verdict: Verdict }[]) => lines.flatMap((l) => (l.verdict.verdict === "wrong" ? [l.verdict.subskill] : []));
+const slipsOf = (lines: { verdict: Verdict }[]) => lines.flatMap((l) => (l.verdict.verdict === "wrong" ? [l.verdict.tags[0].leaf] : []));
 
 export function mistakesByProblem(session: StudentSession | null): ProblemMistakes[] {
   const mine = session ? feedbackFor(session) : [];
