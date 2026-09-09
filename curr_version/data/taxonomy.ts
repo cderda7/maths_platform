@@ -77,7 +77,7 @@ export const TAXONOMY = {
         name: "Quadratic graphs",
         short: "Parabolas",
         leaves: {
-          sketch: leaf("Quadratic graphs", "quadratic graphs", "The shape of a parabola from its rule: direction, intercepts, turning point."),
+          sketch: leaf("Sketching a parabola", "sketching parabolas", "The shape of a parabola from its rule: direction, intercepts, turning point."),
           features: leaf("Reading graph features", "graph features", "Intercepts, axis of symmetry and turning point, read or computed."),
           transformations: leaf("Transformations", "transformations", "Shifts, stretches and reflections of a parent graph."),
         },
@@ -101,7 +101,7 @@ export const TAXONOMY = {
         short: "Process",
         leaves: {
           working: leaf("Showing complete working", "complete working", "Each step follows from the last in a way a reader can check; no line skips a step."),
-          notation: leaf("Correct notation", "notation", "Equals signs, brackets and symbols used as they mean."),
+          notation: leaf("Correct notation", "correct notation", "Equals signs, brackets and symbols used as they mean."),
         },
       },
     },
@@ -144,7 +144,7 @@ export const TAXONOMY = {
         name: "Probability",
         short: "Probability",
         leaves: {
-          basic: leaf("Basic probability", "probability", "Outcomes, events and simple rules."),
+          basic: leaf("Basic probability", "basic probability", "Outcomes, events and simple rules."),
         },
       },
     },

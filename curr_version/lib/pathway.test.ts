@@ -51,7 +51,7 @@ describe("pathway words and deep links", () => {
   it("reads the pathway in words", () => {
     expect(pathwaySentence([])).toBe("student submission → done");
     expect(pathwaySentence(["individual", "group"])).toBe("student submission → individual review → group review → done");
-    expect(pathwayChip(["group", "whole-class"])).toBe("submit → group → whole class");
+    expect(pathwayChip(["group", "whole-class"])).toBe("submit → group review → class review");
   });
 
   it("parses deep-link forms and rejects invalid ones", () => {

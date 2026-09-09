@@ -130,14 +130,9 @@ export default function TeacherLive() {
         {ASSIGNMENT.className} · {unitLabel(ASSIGNMENT.unit)}
       </Eyebrow>
       <H1 className="mt-3">Where the class is</H1>
-      <p className="mt-3 flex items-center gap-3 text-[14px] text-ink-muted">
-        <span>
-          {title} · due {ASSIGNMENT.due}
-          <span data-assignment-status>{status}</span>
-        </span>
-        <span className="rounded-full border border-line bg-paper px-2.5 py-0.5 text-[11.5px] text-ink-soft" data-pathway-chip>
-          {pathwayChip(pathwayOf(classroom))}
-        </span>
+      <p className="mt-3 text-[14px] text-ink-muted">
+        {title} · due {ASSIGNMENT.due}
+        <span data-assignment-status>{status}</span>
       </p>
 
       <div className="mt-10 grid grid-cols-[1fr_320px] gap-6">
@@ -243,6 +238,12 @@ export default function TeacherLive() {
         </Card>
 
         <div className="space-y-6">
+          <Card className="p-6" data-pathway-card>
+            <Eyebrow>Pathway</Eyebrow>
+            <p className="mt-2 font-display text-[22px] leading-snug text-ink" data-pathway-chip>
+              {pathwayChip(pathwayOf(classroom))}
+            </p>
+          </Card>
           <ForceSubmit session={live} />
           <WholeClassCard />
           <Card className={`p-6 ${caution.length ? "border-gap-line" : ""}`}>

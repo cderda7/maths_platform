@@ -34,3 +34,19 @@ describe("taxonomy", () => {
     expect(unitOf("algebra.number.fractions")).toBeNull();
   });
 });
+
+describe("names tell groups and skills apart", () => {
+  it("no skill shares its name or short name with its group, or with any category", async () => {
+    const { ALL_LEAVES, ALL_GROUPS, CATEGORY_ORDER, categoryName, groupName, groupOf, leafName } = await import("./taxonomy");
+    const groupNames = new Set(ALL_GROUPS.flatMap((g) => [groupName(g).name, groupName(g).short].map((n) => n.toLowerCase())));
+    const catNames = new Set(CATEGORY_ORDER.flatMap((c) => [categoryName(c).name, categoryName(c).short].map((n) => n.toLowerCase())));
+    for (const l of ALL_LEAVES) {
+      const own = [groupName(groupOf(l)).name, groupName(groupOf(l)).short].map((n) => n.toLowerCase());
+      for (const n of [leafName(l).name, leafName(l).short].map((x) => x.toLowerCase())) {
+        expect(own, l).not.toContain(n);
+        expect(groupNames.has(n), `${l} reuses a group name: ${n}`).toBe(false);
+        expect(catNames.has(n), `${l} reuses a category name: ${n}`).toBe(false);
+      }
+    }
+  });
+});
