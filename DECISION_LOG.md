@@ -384,3 +384,41 @@ they are right.
 
 **Defence.** A dot and its popup can never disagree, and the multi-student build gets the same
 function per student with no special case.
+
+## 2026-09-10 · The warm-up keeps its own lines and ink
+
+**Decision.** The warm-up on the pad stores its recognised lines, ink and help state in a
+`warmup` slice on the session, apart from the marked `lines`/`ink`, and reveals lines through
+`RECOGNITION_WARMUP` with no evaluation table entry.
+
+**Context.** Ticket 27 makes the warm-up the working screen with a pad. Every consumer of
+`session.lines` (evidence for the teacher grid, feedback, versions, "problems started") iterates
+its keys, so warm-up lines in the same map would be marked, counted and shown to the teacher.
+
+**Alternatives considered.** Keying warm-up problems into `lines` under their own ids and
+filtering them out at every consumer (five call sites today, and each new one a leak). Local
+component state only (a reload or a teacher tab loses the warm-up, unlike every other stage).
+
+**Tradeoffs.** Four more reducer cases that mirror the working ones. The mirror is deliberate: the
+pad behaves identically, the data goes somewhere identical in shape but separate in meaning.
+
+**Defence.** Nothing written in the warm-up can reach marking by construction, and the warm-up
+survives reloads and mirrors to the teacher tab like every other stage.
+
+## 2026-09-10 · Confidence before the warm-up, offer stays on the overview
+
+**Decision.** The confidence survey comes before the warm-up. The overview keeps the offer
+("Warm up" / "Start"); the survey's button then names what comes next.
+
+**Context.** The user wants the confidence question to be about how the student feels before any
+help, not a debrief after the warm-up.
+
+**Alternatives considered.** Moving the offer onto the survey itself (a single "Continue" on the
+overview). Kept for later: it would let the confidence answer drive which warm-up is offered
+(see FUTURE_FEATURES).
+
+**Tradeoffs.** A student who chose "Warm up" answers a question before getting it; the survey's
+button ("Warm up") makes the sequence legible.
+
+**Defence.** Smallest change to the flow that meets the requirement, and it leaves the
+confidence-driven warm-up as a clean follow-on rather than a rewrite.

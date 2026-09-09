@@ -75,7 +75,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
         {session.stage === "overview" && (
           <OverviewScreen onPractice={() => dispatch({ type: "practice/accept" })} onStart={() => dispatch({ type: "practice/decline" })} />
         )}
-        {session.stage === "practice" && <PracticeScreen onDone={() => dispatch({ type: "practice/finish" })} />}
+        {session.stage === "practice" && <PracticeScreen session={session} dispatch={dispatch} />}
         {session.stage === "confidence" && (
           <ConfidenceScreen practice={session.practice} onSubmit={(confidence) => dispatch({ type: "confidence/set", confidence })} />
         )}

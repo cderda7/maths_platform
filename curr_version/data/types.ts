@@ -96,7 +96,7 @@ export type Stage =
 export type ReviewStage = "individual" | "group" | "whole-class";
 export type Pathway = ReviewStage[];
 
-/** A short warm-up offered before the set, one per prerequisite subskill it makes sense for. */
+/** A short isolated problem on one leaf: the pre-set warm-up and the mid-set practices. */
 export interface PracticeProblem {
   id: string;
   leaf: LeafId;
@@ -105,4 +105,8 @@ export interface PracticeProblem {
   steps: SolutionStep[];
   /** One friendly line about why this warm-up is worth two minutes. */
   why: string;
+  /** One sentence of help that names the move, never the answer. */
+  hint: string;
+  /** A fresh problem on the same leaf, offered once this one's worked example has been seen. */
+  followUp?: PracticeProblem;
 }

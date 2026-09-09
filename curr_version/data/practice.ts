@@ -18,6 +18,20 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "x = -3 \\;\\text{or}\\; x = -4", label: "Null factor law", tags: [tag("unit.u1.nfl")] },
     ],
     why: "Most of this set leans on factorising. Two minutes here makes it quicker.",
+    hint: "Look for two numbers that multiply to the constant and add to the middle coefficient.",
+    followUp: {
+      id: "w-monic-2",
+      leaf: "algebra.expand-factor.monic",
+      stem: "Factorise, then solve.",
+      tex: "x^2 - 7x + 10 = 0",
+      steps: [
+        { tex: "(-2) \\times (-5) = 10,\\quad (-2) + (-5) = -7", label: "Found the pair", tags: [tag("algebra.expand-factor.monic")] },
+        { tex: "(x - 2)(x - 5) = 0", label: "Factorised", tags: [tag("algebra.expand-factor.monic")] },
+        { tex: "x = 2 \\;\\text{or}\\; x = 5", label: "Null factor law", tags: [tag("unit.u1.nfl")] },
+      ],
+      why: "Same move, negative pair: both numbers negative when the constant is positive and the middle term negative.",
+      hint: "The constant is positive and the middle term negative, so both numbers are negative.",
+    },
   },
   "algebra.expand-factor.nonmonic": {
     id: "w-nonmonic",
@@ -31,6 +45,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "(3x + 4)(x + 2)", label: "Factorised", tags: [tag("algebra.expand-factor.nonmonic")] },
     ],
     why: "When the x² term has a coefficient, the split is the move that replaces guessing.",
+    hint: "Multiply a by c, then split the middle term into two parts that add to b.",
   },
   "algebra.expand-factor.expand": {
     id: "w-expand",
@@ -42,6 +57,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "x^2 - 3x - 4", label: "Collected like terms", tags: [tag("algebra.equations.linear")] },
     ],
     why: "Expanding back is the quickest check on a factorisation. It takes one line.",
+    hint: "Every term in the first bracket meets every term in the second: four products.",
   },
   "algebra.equations.linear": {
     id: "w-linear",
@@ -53,6 +69,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "x^2 + 3x - 10 = 0", label: "Everything to one side", tags: [tag("algebra.equations.linear")] },
     ],
     why: "A product only tells you about its factors when it equals zero. Getting to standard form first is the habit.",
+    hint: "Get everything onto one side first, so the other side is zero.",
   },
   "algebra.equations.quadratic": {
     id: "w-quadratic",
@@ -65,6 +82,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "x = \\dfrac{3 \\pm \\sqrt{17}}{4}", label: "Formula, denominator 2a", tags: [tag("algebra.equations.quadratic")] },
     ],
     why: "The denominator is 2a, and the roots read off a factor (x − r) are r, not −r.",
+    hint: "Write down a, b and c before anything else, signs included.",
   },
   "algebra.number.fractions": {
     id: "w-fractions",
@@ -76,6 +94,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "x = \\pm 6", label: "Square root, both signs", tags: [tag("algebra.equations.quadratic")] },
     ],
     why: "Whatever you do to one term you do to every term, on both sides.",
+    hint: "Whatever you do to one side, do to the whole of the other side.",
   },
   "unit.u1.nfl": {
     id: "w-nfl",
@@ -87,6 +106,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "x = 2 \\;\\text{or}\\; x = -5", label: "Solved each", tags: [tag("algebra.equations.linear")] },
     ],
     why: "The null factor law only works when the product equals zero. That is the whole rule.",
+    hint: "A product is zero only when one of its factors is zero.",
   },
   "unit.u1.discriminant": {
     id: "w-discriminant",
@@ -98,6 +118,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "\\Delta < 0 \\Rightarrow \\text{none}", label: "Negative: no real roots", tags: [tag("unit.u1.discriminant")] },
     ],
     why: "Positive: two roots. Zero: one. Negative: none. The sign is the whole story.",
+    hint: "Work out b² − 4ac and look only at its sign.",
   },
   "graphing.quadratics.features": {
     id: "w-features",
@@ -110,6 +131,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "y = 1 - 2 - 8 = -9,\\quad (1, -9)", label: "Turning point", tags: [tag("graphing.quadratics.features")] },
     ],
     why: "The axis of symmetry is halfway between the intercepts; the turning point's height is the function there.",
+    hint: "The axis of symmetry sits halfway between the two intercepts.",
   },
   "reasoning.justify.formal": {
     id: "w-formal",
@@ -121,6 +143,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "\\Delta = 0 \\Rightarrow \\text{exactly one real solution}", label: "Justified", tags: [tag("reasoning.justify.formal")] },
     ],
     why: "A justification names the fact and draws the one conclusion it allows.",
+    hint: "Name the fact you are using, then say what it forces.",
   },
   "reasoning.justify.conclusions": {
     id: "w-conclusions",
@@ -132,6 +155,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "\\text{The graph never meets the x-axis}", label: "In context", tags: [tag("reasoning.justify.conclusions")] },
     ],
     why: "Finish the sentence: say what the algebra means for the picture.",
+    hint: "Say what the number means for the picture, in a sentence.",
   },
 };
 

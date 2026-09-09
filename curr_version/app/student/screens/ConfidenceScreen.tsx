@@ -30,7 +30,6 @@ export default function ConfidenceScreen({ practice, onSubmit }: { practice: "ta
     <div className="mx-auto flex h-full max-w-3xl flex-col px-9 py-9">
       <Eyebrow>Before you start</Eyebrow>
       <h1 className="font-display mt-3 text-[32px] leading-tight text-ink">How confident are you?</h1>
-      {practice === "taken" && <p className="mt-2 text-[13px] text-ink-muted">Warm-up done</p>}
 
       <div className="mt-7 space-y-3">
         {OPTIONS.map((o) => {
@@ -78,7 +77,7 @@ export default function ConfidenceScreen({ practice, onSubmit }: { practice: "ta
 
       <div className="mt-auto flex items-center justify-end pt-6">
         <Button size="lg" disabled={!ready} onClick={submit}>
-          Start Q1
+          {practice === "taken" ? "Warm up" : "Start Q1"}
         </Button>
       </div>
     </div>

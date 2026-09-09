@@ -151,3 +151,32 @@ appends it here (see `CLAUDE.md`).
 
 -**Goal** at beginning -- for now, script from teacher.
   -Later: student self-identification of goal.
+- **Low confidence students** receive message from teacher.
+  - Motivated by idea that acknowledgement of feelings has positive influence on intrinsic
+    motivation.
+
+- **Diagnostic question** functionality expanded to recommend what diagnostic question to send
+  to class. Opens window based on subskills, & targeted diagnostic question to reveal
+  misconceptions. Ordering of subskill diagnostic questions based on student performance.
+  Questions persist -- that way, if a teacher likes a question but don't immediately use it,
+  they can come back & access it later.
+
+## Warm-up (from ticket 27, 2026-09-10)
+
+- **Video help.** The help menu lists "A video" as a dead link. Where the clips come from and how
+  they are keyed to leaves is open (company decision, 2026-09-10).
+- **Multimodal help inside the set.** "I need help" during the set still goes skill picker →
+  practice overlay. Offer the same hint / worked example / video choice there, with the hint
+  drawn from the practice's `hint` (already authored for every practice).
+- **Confidence-driven warm-up.** The confidence answer now precedes the warm-up but does not
+  choose it: `PRACTICE` is always monic factorising. Pick the warm-up from the "depends on the
+  skill" category, or suggest one when the answer is "not confident". Would move the offer from
+  the overview onto the survey.
+- **A chain of follow-ups.** One follow-up per worked example today (`followUp` is recursive, so a
+  second is a data change). Decide when the chain stops: a fixed count, or the student's choice.
+- **Follow-ups for every practice.** Only the warm-up has one; the mid-set overlay could offer
+  "try one more" too once it uses the same help menu.
+- **Warm-up visible to the teacher.** The warm-up is deliberately invisible to the grid. A small
+  "warmed up · asked for a hint" note on the student row is cheap once wanted.
+- **Hints as a hint ladder.** One sentence per problem today. A second, more specific hint, or a
+  hint that names the step the student is on, once tagging is live.

@@ -31,3 +31,13 @@ export const RECOGNITION_REWORK: Record<string, string[]> = {
   q7: ["\\tfrac{1}{3}(x^2 + 6x + 8)", "2 \\times 4 = 8,\\quad 2 + 4 = 6", "\\tfrac{1}{3}(x + 2)(x + 4)"],
   q10: ["b^2 - 4ac = 16 - 20 = -4", "\\Delta < 0 \\Rightarrow \\text{no real solutions}", "\\text{The graph never meets the x-axis}"],
 };
+
+/**
+ * What the pad "reads" during the warm-up, one line per burst: the model path for the warm-up
+ * problem and for its follow-up. Nothing here is marked; the lines exist so the pad behaves as
+ * it will in the set.
+ */
+export const RECOGNITION_WARMUP: Record<string, string[]> = {
+  "w-monic": ["3 \\times 4 = 12,\\quad 3 + 4 = 7", "(x + 3)(x + 4) = 0", "x = -3 \\;\\text{or}\\; x = -4"],
+  "w-monic-2": ["(-2) \\times (-5) = 10,\\quad (-2) + (-5) = -7", "(x - 2)(x - 5) = 0", "x = 2 \\;\\text{or}\\; x = 5"],
+};

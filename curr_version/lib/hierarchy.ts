@@ -135,7 +135,7 @@ export function classmateLines(c: Classmate, p: Problem, index: number): string[
   return null;
 }
 
-const BEFORE_HAND_IN = ["overview", "practice", "confidence", "working"];
+const BEFORE_HAND_IN = ["overview", "confidence", "practice", "working"];
 
 /** The live student's first-attempt lines, whether they have handed in, and any groups under caution. */
 export function sessionEvidence(session: StudentSession): Evidence {

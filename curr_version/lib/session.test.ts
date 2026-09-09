@@ -1,31 +1,36 @@
 import { describe, expect, it } from "vitest";
-import { INITIAL_SESSION, sessionAt, sessionReducer } from "./session";
+import { INITIAL_SESSION, sessionAt, sessionReducer, warmupProblem } from "./session";
+import { PRACTICE } from "@/data/practice";
+import { RECOGNITION_WARMUP } from "@/data/recognition";
 import { allPathways } from "./pathway";
 import type { Pathway } from "@/data/types";
 
 describe("student session flow", () => {
-  it("declining practice goes straight to the confidence survey", () => {
-    const s = sessionReducer(INITIAL_SESSION, { type: "practice/decline" });
+  it("declining practice goes to the confidence survey, and the answer starts the set", () => {
+    let s = sessionReducer(INITIAL_SESSION, { type: "practice/decline" });
     expect(s.stage).toBe("confidence");
     expect(s.practice).toBe("declined");
-  });
-
-  it("accepting practice visits the warm-up, then the survey", () => {
-    let s = sessionReducer(INITIAL_SESSION, { type: "practice/accept" });
-    expect(s.stage).toBe("practice");
-    s = sessionReducer(s, { type: "practice/finish" });
-    expect(s.stage).toBe("confidence");
-    expect(s.practice).toBe("taken");
-  });
-
-  it("the confidence answer is kept and starts the set", () => {
-    const s = sessionReducer(sessionAt("confidence"), { type: "confidence/set", confidence: { level: "low-when", category: "algebra" } });
+    s = sessionReducer(s, { type: "confidence/set", confidence: { level: "low-when", category: "algebra" } });
     expect(s.stage).toBe("working");
     expect(s.confidence).toEqual({ level: "low-when", category: "algebra" });
   });
 
+  it("accepting practice asks about confidence first, then visits the warm-up, then the set", () => {
+    let s = sessionReducer(INITIAL_SESSION, { type: "practice/accept" });
+    expect(s.stage).toBe("confidence");
+    expect(s.practice).toBe("taken");
+    s = sessionReducer(s, { type: "confidence/set", confidence: { level: "confident" } });
+    expect(s.stage).toBe("practice");
+    s = sessionReducer(s, { type: "practice/finish" });
+    expect(s.stage).toBe("working");
+  });
+
   it("deep-linking past the survey fills in earlier answers", () => {
     expect(sessionAt("working").confidence).not.toBeNull();
+    expect(sessionAt("working").practice).toBe("declined");
+    expect(sessionAt("practice").confidence).not.toBeNull();
+    expect(sessionAt("practice").practice).toBe("taken");
+    expect(sessionAt("confidence").confidence).toBeNull();
     expect(sessionAt("overview")).toEqual(INITIAL_SESSION);
   });
 
@@ -42,6 +47,74 @@ describe("student session flow", () => {
     s = sessionReducer(s, { type: "lines/clear", problem: "q1" });
     expect(s.lines.q1).toEqual([]);
     expect(s.problemIndex).toBe(1);
+  });
+});
+
+describe("the warm-up on the pad", () => {
+  const start = sessionAt("practice");
+  const reveal = (s: ReturnType<typeof sessionAt>, problem: string, tex: string, strokeCount: number) =>
+    sessionReducer(s, { type: "warmup/reveal", problem, line: { tex, strokeCount } });
+
+  it("keeps its lines and ink apart from the marked work, with undo and clear of its own", () => {
+    let s = sessionReducer(start, { type: "warmup/stroke", problem: "w-monic", stroke: [{ x: 1.26, y: 2 }] });
+    s = reveal(s, "w-monic", "a", 1);
+    s = sessionReducer(s, { type: "warmup/stroke", problem: "w-monic", stroke: [{ x: 3, y: 4 }] });
+    s = reveal(s, "w-monic", "b", 2);
+    expect(s.warmup.lines["w-monic"].map((l) => l.tex)).toEqual(["a", "b"]);
+    expect(s.warmup.ink["w-monic"]).toEqual([[{ x: 1.3, y: 2 }], [{ x: 3, y: 4 }]]);
+    expect(s.lines).toEqual({});
+    expect(s.ink).toEqual({});
+    expect(s.escalation).toEqual(start.escalation);
+    s = sessionReducer(s, { type: "warmup/undo", problem: "w-monic" });
+    expect(s.warmup.lines["w-monic"].map((l) => l.tex)).toEqual(["a"]);
+    expect(s.warmup.ink["w-monic"]).toHaveLength(1);
+    s = sessionReducer(s, { type: "warmup/clear", problem: "w-monic" });
+    expect(s.warmup.lines["w-monic"]).toEqual([]);
+    expect(s.warmup.ink["w-monic"]).toEqual([]);
+  });
+
+  it("a hint is remembered per problem and asked for once", () => {
+    let s = sessionReducer(start, { type: "warmup/hint" });
+    expect(s.warmup.hinted).toEqual(["w-monic"]);
+    expect(sessionReducer(s, { type: "warmup/hint" })).toBe(s);
+    s = sessionReducer(s, { type: "warmup/example" });
+    for (let i = 0; i < 4; i++) s = sessionReducer(s, { type: "warmup/example-step" });
+    s = sessionReducer(s, { type: "warmup/next" });
+    s = sessionReducer(s, { type: "warmup/hint" });
+    expect(s.warmup.hinted).toEqual(["w-monic", "w-monic-2"]);
+  });
+
+  it("the worked example reveals one step at a time, and only its completion unlocks the follow-up", () => {
+    expect(sessionReducer(start, { type: "warmup/next" })).toBe(start);
+    let s = sessionReducer(start, { type: "warmup/example" });
+    expect(s.warmup.example).toBe(true);
+    expect(sessionReducer(start, { type: "warmup/example-step" })).toBe(start);
+    s = sessionReducer(s, { type: "warmup/example-step" });
+    s = sessionReducer(s, { type: "warmup/example-step" });
+    expect(s.warmup.exampleShown).toBe(2);
+    expect(s.warmup.exampled).toEqual([]);
+    expect(sessionReducer(s, { type: "warmup/next" })).toBe(s);
+    s = sessionReducer(s, { type: "warmup/example-step" });
+    s = sessionReducer(s, { type: "warmup/example-step" });
+    expect(s.warmup.exampleShown).toBe(4);
+    expect(s.warmup.exampled).toEqual(["w-monic"]);
+    expect(sessionReducer(s, { type: "warmup/example-step" }).warmup.exampleShown).toBe(4);
+    s = sessionReducer(s, { type: "warmup/next" });
+    expect(s.warmup.problem).toBe("second");
+    expect(s.warmup.example).toBe(false);
+    expect(s.warmup.exampleShown).toBe(0);
+    expect(warmupProblem(s).id).toBe("w-monic-2");
+    expect(sessionReducer(s, { type: "warmup/next" })).toBe(s);
+    s = sessionReducer(s, { type: "warmup/example" });
+    for (let i = 0; i < 3; i++) s = sessionReducer(s, { type: "warmup/example-step" });
+    expect(s.warmup.exampled).toEqual(["w-monic", "w-monic-2"]);
+    expect(sessionReducer(s, { type: "practice/finish" }).stage).toBe("working");
+  });
+
+  it("the warm-up and its follow-up each have a recognition script that the pad can read line by line", () => {
+    expect(RECOGNITION_WARMUP[PRACTICE.id]).toHaveLength(PRACTICE.steps.length - 1);
+    expect(RECOGNITION_WARMUP[PRACTICE.followUp!.id]).toHaveLength(PRACTICE.followUp!.steps.length);
+    expect(PRACTICE.followUp!.leaf).toBe(PRACTICE.leaf);
   });
 });
 

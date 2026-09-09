@@ -1,6 +1,6 @@
 import type { Confidence, Pathway, Stage, Stroke } from "@/data/types";
 import { groupOf, type LeafId } from "@/data/taxonomy";
-import { PRACTICES } from "@/data/practice";
+import { PRACTICE, PRACTICES } from "@/data/practice";
 import type { AdvanceKind } from "./classroom";
 import type { Diagnostic } from "@/data/diagnostic";
 import { DEFAULT_PATHWAY, nextStage } from "./pathway";
@@ -28,11 +28,34 @@ export interface PracticeEntry extends PracticePrompt {
   problem: string;
 }
 
+/**
+ * The warm-up's own slice. Its lines and ink are kept apart from the marked `lines`/`ink` so nothing
+ * written here is evaluated, counted or shown to the teacher as work on the set.
+ */
+export interface WarmupState {
+  /** "first": the warm-up problem. "second": its follow-up, with the first's worked example in view. */
+  problem: "first" | "second";
+  /** True while the worked example for the current problem is playing in place of the pad. */
+  example: boolean;
+  /** Steps of the current problem's worked example revealed so far. */
+  exampleShown: number;
+  /** Ids of the warm-up problems whose hint has been asked for. */
+  hinted: string[];
+  /** Ids of the warm-up problems whose worked example has been seen in full. */
+  exampled: string[];
+  /** Recognised lines and the ink behind them, per warm-up problem id. */
+  lines: Record<string, RevealedLine[]>;
+  ink: Record<string, Stroke[]>;
+}
+
+export const INITIAL_WARMUP: WarmupState = { problem: "first", example: false, exampleShown: 0, hinted: [], exampled: [], lines: {}, ink: {} };
+
 export interface StudentSession {
   stage: Stage;
   /** null until the offer is answered. */
   practice: "taken" | "declined" | null;
   confidence: Confidence | null;
+  warmup: WarmupState;
   /** Index into the assignment's problems while working. */
   problemIndex: number;
   /** Recognised lines per problem id, in the order they appeared. */
@@ -88,6 +111,17 @@ export type SessionAction =
   | { type: "practice/decline" }
   | { type: "practice/finish" }
   | { type: "confidence/set"; confidence: Confidence }
+  | { type: "warmup/reveal"; problem: string; line: RevealedLine }
+  | { type: "warmup/stroke"; problem: string; stroke: Stroke }
+  | { type: "warmup/undo"; problem: string; strokeCount?: number }
+  | { type: "warmup/clear"; problem: string }
+  /** The help menu's "a hint": the current warm-up problem's hint stays under the problem. */
+  | { type: "warmup/hint" }
+  /** The help menu's "a worked example": plays in place of the pad. */
+  | { type: "warmup/example" }
+  | { type: "warmup/example-step" }
+  /** After the first problem's worked example: the follow-up, with that example still in view. */
+  | { type: "warmup/next" }
   | { type: "problem/goto"; index: number }
   | { type: "line/reveal"; problem: string; line: RevealedLine }
   | { type: "ink/stroke"; problem: string; stroke: Stroke }
@@ -129,6 +163,7 @@ export const INITIAL_SESSION: StudentSession = {
   stage: "overview",
   practice: null,
   confidence: null,
+  warmup: INITIAL_WARMUP,
   problemIndex: 0,
   lines: {},
   ink: {},
@@ -183,13 +218,44 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       return applied;
     }
     case "practice/accept":
-      return { ...s, practice: "taken", stage: "practice" };
+      return { ...s, practice: "taken", stage: "confidence" };
     case "practice/decline":
       return { ...s, practice: "declined", stage: "confidence" };
-    case "practice/finish":
-      return { ...s, stage: "confidence" };
     case "confidence/set":
-      return { ...s, confidence: a.confidence, stage: "working" };
+      return { ...s, confidence: a.confidence, stage: s.practice === "taken" ? "practice" : "working" };
+    case "practice/finish":
+      return { ...s, stage: "working" };
+    case "warmup/reveal":
+      return warm(s, { lines: { ...s.warmup.lines, [a.problem]: [...(s.warmup.lines[a.problem] ?? []), a.line] } });
+    case "warmup/stroke":
+      return warm(s, { ink: { ...s.warmup.ink, [a.problem]: [...(s.warmup.ink[a.problem] ?? []), roundStroke(a.stroke)] } });
+    case "warmup/undo": {
+      const strokes = s.warmup.ink[a.problem] ?? [];
+      const count = a.strokeCount ?? Math.max(0, strokes.length - 1);
+      return warm(s, {
+        ink: { ...s.warmup.ink, [a.problem]: strokes.slice(0, count) },
+        lines: { ...s.warmup.lines, [a.problem]: afterUndo(s.warmup.lines[a.problem] ?? [], count) },
+      });
+    }
+    case "warmup/clear":
+      return warm(s, { ink: { ...s.warmup.ink, [a.problem]: [] }, lines: { ...s.warmup.lines, [a.problem]: [] } });
+    case "warmup/hint": {
+      const id = warmupProblem(s).id;
+      return s.warmup.hinted.includes(id) ? s : warm(s, { hinted: [...s.warmup.hinted, id] });
+    }
+    case "warmup/example":
+      return s.warmup.example ? s : warm(s, { example: true, exampleShown: 0 });
+    case "warmup/example-step": {
+      const p = warmupProblem(s);
+      if (!s.warmup.example) return s;
+      const shown = Math.min(p.steps.length, s.warmup.exampleShown + 1);
+      const done = shown >= p.steps.length && !s.warmup.exampled.includes(p.id);
+      return warm(s, { exampleShown: shown, exampled: done ? [...s.warmup.exampled, p.id] : s.warmup.exampled });
+    }
+    case "warmup/next": {
+      if (s.warmup.problem !== "first" || !PRACTICE.followUp || !s.warmup.exampled.includes(PRACTICE.id)) return s;
+      return warm(s, { problem: "second", example: false, exampleShown: 0 });
+    }
     case "problem/goto":
       return { ...s, problemIndex: a.index };
     case "line/reveal": {
@@ -294,7 +360,7 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
   }
 }
 
-const BEFORE_HAND_IN: Stage[] = ["overview", "practice", "confidence", "working"];
+const BEFORE_HAND_IN: Stage[] = ["overview", "confidence", "practice", "working"];
 
 /** The leaf to practise for a mistake: its own practice, else another leaf in the same group that has one. */
 export function practiceLeaf(leaf: LeafId): LeafId | null {
@@ -305,12 +371,19 @@ export function practiceLeaf(leaf: LeafId): LeafId | null {
 }
 export const FORCED_HAND_IN_TEXT = "Your teacher handed in the class's work.";
 
+const warm = (s: StudentSession, patch: Partial<WarmupState>): StudentSession => ({ ...s, warmup: { ...s.warmup, ...patch } });
+
+/** The warm-up problem the student is on: the warm-up itself, or its follow-up. */
+export function warmupProblem(s: StudentSession) {
+  return s.warmup.problem === "second" && PRACTICE.followUp ? PRACTICE.followUp : PRACTICE;
+}
+
 /** Stored to a tenth of a pad pixel: indistinguishable on screen, a third of the bytes. */
 function roundStroke(s: Stroke): Stroke {
   return s.map((p) => ({ x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10 }));
 }
 
-const ORDER: Stage[] = ["overview", "practice", "confidence", "working", "feedback", "waiting", "frozen", "rework", "group-pass", "group-discuss", "report", "peers", "history"];
+const ORDER: Stage[] = ["overview", "confidence", "practice", "working", "feedback", "waiting", "frozen", "rework", "group-pass", "group-discuss", "report", "peers", "history"];
 
 /** Fixed times for deep-linked runs: handed in at 3:48 pm, rework done at 4:07 pm, today. */
 const todayAt = (h: number, m: number) => {
@@ -376,7 +449,7 @@ export function sessionAt(stage: Stage, run: RunKindParam = "weak"): StudentSess
   return {
     ...INITIAL_SESSION,
     stage,
-    practice: i >= ORDER.indexOf("confidence") ? "declined" : i === ORDER.indexOf("practice") ? "taken" : null,
-    confidence: i >= ORDER.indexOf("working") ? { level: "low-when", category: "algebra" } : null,
+    practice: i === ORDER.indexOf("practice") ? "taken" : i >= ORDER.indexOf("confidence") ? "declined" : null,
+    confidence: i >= ORDER.indexOf("practice") ? { level: "low-when", category: "algebra" } : null,
   };
 }

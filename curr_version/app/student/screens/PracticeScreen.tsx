@@ -1,27 +1,196 @@
 "use client";
 
 import { useState } from "react";
+import M from "@/components/Math";
+import type { Stroke } from "@/data/types";
+import PadSection from "@/components/PadSection";
 import PracticeCard from "@/components/PracticeCard";
-import { Button, Eyebrow } from "@/components/ui";
+import ReadAs from "@/components/ReadAs";
+import { Button, Card, Eyebrow } from "@/components/ui";
+import { LeafChip } from "@/components/Tag";
 import { PRACTICE } from "@/data/practice";
-import { leafName } from "@/data/taxonomy";
+import { RECOGNITION_WARMUP } from "@/data/recognition";
+import { nextLine } from "@/lib/recognition";
+import { warmupProblem, type SessionAction, type StudentSession } from "@/lib/session";
+import { Scrim } from "./PracticePrompt";
 
-/** The warm-up offered before the set. */
-export default function PracticeScreen({ onDone }: { onDone: () => void }) {
-  const [all, setAll] = useState(false);
-  const s = leafName(PRACTICE.leaf);
+/**
+ * The warm-up, on the pad: the working screen's own layout with one unmarked problem. "I need help"
+ * offers a hint, a worked example or a video. The worked example plays where the pad was; once it
+ * is complete a follow-up problem opens beside it, the example staying in view on the left.
+ */
+export default function PracticeScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
+  const w = session.warmup;
+  const p = warmupProblem(session);
+  const second = w.problem === "second";
+  const lines = w.lines[p.id] ?? [];
+  const strokes = w.ink[p.id] ?? [];
+  const [recognising, setRecognising] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const hinted = w.hinted.includes(p.id);
+  const exampled = w.exampled.includes(p.id);
+
+  const addStroke = (next: Stroke[]) => dispatch({ type: "warmup/stroke", problem: p.id, stroke: next[next.length - 1] });
+  const onBurstEnd = (strokeCount: number) => {
+    setRecognising(false);
+    const line = nextLine(RECOGNITION_WARMUP[p.id] ?? [], w.lines[p.id] ?? [], strokeCount);
+    if (line) dispatch({ type: "warmup/reveal", problem: p.id, line });
+  };
+  const undo = () => {
+    setRecognising(false);
+    dispatch({ type: "warmup/undo", problem: p.id });
+  };
+  const clear = () => {
+    setRecognising(false);
+    dispatch({ type: "warmup/clear", problem: p.id });
+  };
+  const done = () => dispatch({ type: "practice/finish" });
+
   return (
-    <div className="mx-auto flex h-full max-w-3xl flex-col px-9 py-9">
-      <Eyebrow>Warm-up · {s.name}</Eyebrow>
-      <h1 className="font-display mt-3 text-[32px] leading-tight text-ink">Quick warm-up</h1>
-      <div className="mt-7">
-        <PracticeCard practice={PRACTICE} onAllShown={setAll} />
-      </div>
-      <div className="mt-auto flex items-center justify-end pt-6">
-        <Button size="lg" onClick={onDone}>
-          {all ? "On to the set" : "Skip to the set"}
-        </Button>
-      </div>
+    <div className={`grid h-full min-h-0 ${second ? "grid-cols-[400px_1fr_300px]" : "grid-cols-[300px_1fr_320px]"}`} data-warmup={w.problem}>
+      <aside className="flex min-h-0 flex-col overflow-y-auto border-r border-line px-7 py-6">
+        {second && (
+          <div className="mb-6 border-b border-line pb-6" data-worked-example>
+            <Eyebrow>Worked example</Eyebrow>
+            <div className="mt-3">
+              <PracticeCard practice={PRACTICE} shown={PRACTICE.steps.length} compact />
+            </div>
+          </div>
+        )}
+        <div className="flex items-center justify-between">
+          <span className="font-display text-[26px] text-ink">{second ? "One more" : "Warm-up"}</span>
+          <span className="text-[12px] uppercase tracking-wide text-ink-muted">not marked</span>
+        </div>
+        <p className="mt-3 text-[14px] text-ink-soft">{p.stem}</p>
+        <div className="math-lg mt-3 text-ink">
+          <M tex={p.tex} display />
+        </div>
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          <LeafChip id={p.leaf} />
+        </div>
+        {hinted && (
+          <Card tone="soft" className="mt-5 p-4" data-hint>
+            <Eyebrow>Hint</Eyebrow>
+            <p className="mt-1.5 text-[14px] leading-snug text-ink">{p.hint}</p>
+          </Card>
+        )}
+        <div className="mt-auto pt-6">
+          <Button variant="secondary" className="w-full" onClick={() => setHelpOpen(true)} disabled={w.example}>
+            I need help
+          </Button>
+        </div>
+      </aside>
+
+      {w.example ? (
+        <section className="flex min-h-0 flex-col overflow-y-auto px-6 py-6" data-example>
+          <div className="flex items-center justify-between">
+            <Eyebrow>Worked example</Eyebrow>
+            <span className="text-[12.5px] text-ink-muted">Guess the next step before you show it</span>
+          </div>
+          <div className="mt-3">
+            <PracticeCard practice={p} shown={w.exampleShown} onReveal={() => dispatch({ type: "warmup/example-step" })} />
+          </div>
+          {exampled && (
+            <div className="mt-6 flex justify-end">
+              {!second && PRACTICE.followUp ? (
+                <Button size="lg" onClick={() => dispatch({ type: "warmup/next" })}>
+                  Try one more →
+                </Button>
+              ) : (
+                <Button size="lg" variant="accent" onClick={done}>
+                  On to the set
+                </Button>
+              )}
+            </div>
+          )}
+        </section>
+      ) : (
+        <PadSection strokes={strokes} onStrokesChange={addStroke} onBurstEnd={onBurstEnd} onPenDown={() => setRecognising(true)} onUndo={undo} onClear={clear} />
+      )}
+
+      <aside className="flex min-h-0 flex-col border-l border-line px-6 py-6">
+        <ReadAs lines={lines} recognising={recognising} empty="Lines appear here as you write." className="flex-1" />
+        <div className="mt-4 flex items-center justify-end border-t border-line pt-4">
+          <Button variant="accent" onClick={done}>
+            On to the set
+          </Button>
+        </div>
+      </aside>
+
+      {helpOpen && (
+        <HelpMenu
+          hinted={hinted}
+          exampled={exampled}
+          onHint={() => {
+            setHelpOpen(false);
+            dispatch({ type: "warmup/hint" });
+          }}
+          onExample={() => {
+            setHelpOpen(false);
+            dispatch({ type: "warmup/example" });
+          }}
+          onClose={() => setHelpOpen(false)}
+        />
+      )}
     </div>
+  );
+}
+
+/** "I need help" on the warm-up: pick how much help. The video is listed so the shape is visible; it goes nowhere yet. */
+function HelpMenu({ hinted, exampled, onHint, onExample, onClose }: { hinted: boolean; exampled: boolean; onHint: () => void; onExample: () => void; onClose: () => void }) {
+  const options: { key: string; title: string; detail: string; onPick?: () => void; note?: string }[] = [
+    { key: "hint", title: "A hint", detail: "One line, stays under the problem", onPick: hinted ? undefined : onHint, note: hinted ? "Shown" : undefined },
+    { key: "example", title: "A worked example", detail: "This problem, one step at a time, then one more to try", onPick: exampled ? undefined : onExample, note: exampled ? "Seen" : undefined },
+    { key: "video", title: "A video", detail: "Two minutes on this skill", note: "Not available yet" },
+  ];
+  return (
+    <Scrim>
+      <div className="w-[560px] rounded-3xl bg-paper p-8 shadow-lift" data-help-menu>
+        <Eyebrow>I need help</Eyebrow>
+        <h2 className="font-display mt-2 text-[28px] leading-tight text-ink">What would help?</h2>
+        <ul className="mt-5 space-y-2">
+          {options.map((o) =>
+            o.key === "video" ? (
+              <li key={o.key}>
+                <a
+                  href="#"
+                  aria-disabled
+                  onClick={(e) => e.preventDefault()}
+                  className="flex w-full items-center justify-between rounded-xl border border-line bg-paper px-4 py-3 text-left opacity-60"
+                  data-help-option={o.key}
+                >
+                  <span>
+                    <span className="block text-[15px] font-medium text-ink">{o.title}</span>
+                    <span className="block text-[12.5px] text-ink-muted">{o.detail}</span>
+                  </span>
+                  <span className="ml-4 shrink-0 text-[13px] text-ink-muted">{o.note}</span>
+                </a>
+              </li>
+            ) : (
+              <li key={o.key}>
+                <button
+                  type="button"
+                  onClick={o.onPick}
+                  disabled={!o.onPick}
+                  className="flex w-full items-center justify-between rounded-xl border border-line bg-paper px-4 py-3 text-left transition-colors enabled:hover:border-ink-muted disabled:opacity-60"
+                  data-help-option={o.key}
+                >
+                  <span>
+                    <span className="block text-[15px] font-medium text-ink">{o.title}</span>
+                    <span className="block text-[12.5px] text-ink-muted">{o.detail}</span>
+                  </span>
+                  <span className={`ml-4 shrink-0 text-[13px] ${o.onPick ? "text-accent-deep" : "text-ink-muted"}`}>{o.note ?? "Show →"}</span>
+                </button>
+              </li>
+            ),
+          )}
+        </ul>
+        <div className="mt-5 flex justify-end">
+          <Button variant="ghost" onClick={onClose}>
+            Never mind
+          </Button>
+        </div>
+      </div>
+    </Scrim>
   );
 }

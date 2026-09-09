@@ -10,7 +10,7 @@ import { problemLeaves } from "@/lib/hierarchy";
 import type { PracticePrompt as Prompt } from "@/lib/session";
 
 /** Dim the iPad screen and centre a card. Positioned against `.ipad-screen`. */
-function Scrim({ children }: { children: React.ReactNode }) {
+export function Scrim({ children }: { children: React.ReactNode }) {
   return (
     <div className="absolute inset-0 z-20 grid place-items-center bg-ink/35 p-10 backdrop-blur-[2px]" role="dialog" aria-modal>
       {children}
