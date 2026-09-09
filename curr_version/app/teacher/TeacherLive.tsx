@@ -307,7 +307,7 @@ export default function TeacherLive() {
                               <StatusDot status={st} half={half} size="h-[15px] w-[15px]" />
                             </button>
                             {column?.category === c && (
-                              <span className="pointer-events-none absolute top-1/2 left-[calc(50%+12px)] -translate-y-1/2 whitespace-nowrap text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink-muted" data-column-label>
+                              <span className="pointer-events-none absolute top-1/2 right-[calc(50%+12px)] -translate-y-1/2 whitespace-nowrap text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink-muted" data-column-label>
                                 {categoryName(c).name}
                               </span>
                             )}
