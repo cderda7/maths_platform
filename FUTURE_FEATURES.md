@@ -108,6 +108,14 @@ appends it here (see `CLAUDE.md`).
   nothing on a problem counts as "not attempted" in feedback but as correct-by-absence in the
   group's quick-pass set. Decide how not-attempted should count.
 
+## Live diagnostic
+
+- **Teacher-written questions are not saved.** The "Your own" tab holds one question in component
+  state; a reload loses it and there is no bank of past questions. Add a per-teacher question
+  bank and "push again".
+- **Plain-text options.** Options are typeset as TeX; a plain sentence renders in maths italics.
+  Detect prose and wrap it in `\text{}` or offer a text/maths toggle per option.
+
 ## UI copy
 
 - **Add descriptions back selectively.** v3 strips every screen to the copy rule in spec2. Once

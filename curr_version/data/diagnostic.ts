@@ -3,13 +3,14 @@ import type { SubskillId } from "./types";
 /** A live multiple-choice diagnostic the teacher can push to the class mid-assignment. */
 export interface Diagnostic {
   id: string;
-  subskill: SubskillId;
+  /** Absent on a question the teacher wrote themselves. */
+  subskill?: SubskillId;
   stem: string;
   tex: string;
   options: { id: string; tex: string }[];
   correct: string;
   /** Why the teacher might push it, shown on the teacher side only. */
-  why: string;
+  why?: string;
 }
 
 export const DIAGNOSTICS: Diagnostic[] = [

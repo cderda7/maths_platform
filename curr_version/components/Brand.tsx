@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 export function BrandMark({ className = "h-6 w-6" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
@@ -13,12 +11,13 @@ export function BrandMark({ className = "h-6 w-6" }: { className?: string }) {
   );
 }
 
-export default function Brand({ href = "/", sub = "Maths" }: { href?: string; sub?: string }) {
+/** The wordmark. Not a link: it reads as a label, with the default cursor to say so. */
+export default function Brand({ sub = "Maths" }: { sub?: string }) {
   return (
-    <Link href={href} className="flex items-center gap-2 text-accent font-medium tracking-tight">
+    <div className="flex cursor-default select-none items-center gap-2 font-medium tracking-tight text-accent" data-brand>
       <BrandMark />
       <span className="text-[17px] text-accent-deep">Edexia</span>
-      <span className="text-ink-muted text-[13px] font-normal ml-1">· {sub}</span>
-    </Link>
+      <span className="ml-1 text-[13px] font-normal text-ink-muted">· {sub}</span>
+    </div>
   );
 }

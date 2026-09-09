@@ -31,3 +31,13 @@ vitest (57 tests), `tsc --noEmit`, `npm run lint`, `npm run build`, and a two-ta
 teacher flips the switch to recorded and pushes; the student tab, mid-Q1 with a line already
 read, shows the modal; picking B and sending closes it with Q1 and its line still there; within
 a batch the teacher reads "Sam Okonkwo answered B, the right one · recorded".
+
+## Follow-up · 2026-09-09 (spec v3 session)
+
+- `DiagnosticPush` has two tabs in the same shape: **Example** (the fixture) and **Your own**
+  (question, optional TeX expression, up to four options, tap a letter to mark the right one).
+  `lib/diagnostic.ts` gained `customQuestion(stem, tex, options, correct)` (valid with a stem, two
+  or more options and a correct one among them) and `questionFor`; `isCorrect` takes the inline
+  question. A teacher-written question travels inside `diagnostic/push` and stays on the answer,
+  so the response line judges it without a fixture. `DiagnosticModal` renders either.
+- Copy: "Push"; the response reads `Sam · B · right · recorded`.

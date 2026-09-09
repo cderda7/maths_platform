@@ -4,11 +4,12 @@ import { useState } from "react";
 import M from "@/components/Math";
 import { Button, Eyebrow } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
-import { DIAGNOSTIC_MAP } from "@/data/diagnostic";
+import type { Diagnostic } from "@/data/diagnostic";
+import { questionFor } from "@/lib/diagnostic";
 
 /** A diagnostic pushed by the teacher, over whatever the student was doing. Answer, then straight back. */
-export default function DiagnosticModal({ questionId, recorded, onAnswer }: { questionId: string; recorded: boolean; onAnswer: (option: string) => void }) {
-  const d = DIAGNOSTIC_MAP[questionId];
+export default function DiagnosticModal({ questionId, recorded, question, onAnswer }: { questionId: string; recorded: boolean; question?: Diagnostic; onAnswer: (option: string) => void }) {
+  const d = questionFor(questionId, question);
   const [pick, setPick] = useState<string | null>(null);
   if (!d) return null;
   return (
@@ -21,10 +22,17 @@ export default function DiagnosticModal({ questionId, recorded, onAnswer }: { qu
           </span>
         </div>
         <h2 className="font-display mt-2 text-[26px] leading-tight text-ink">
-          {d.stem}{" "}
-          <span className="whitespace-nowrap">
-            <M tex={d.tex} />?
-          </span>
+          {d.stem}
+          {d.tex ? (
+            <>
+              {" "}
+              <span className="whitespace-nowrap">
+                <M tex={d.tex} />?
+              </span>
+            </>
+          ) : (
+            "?"
+          )}
         </h2>
         <ul className="mt-5 grid grid-cols-2 gap-2.5">
           {d.options.map((o) => {

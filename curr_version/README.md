@@ -58,9 +58,9 @@ Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the 
 Teacher, during the lesson (`/teacher`):
 
 - **Class**: the live row (subskill dots, confidence, stage, caution), static classmates, the
-  pathway chip, **Hand in for everyone** (confirm, then a one-minute grace on every screen), the
+  pathway chip, **Force assignment submit** (confirm, then a one-minute grace on every screen), the
   **Whole-class review** card (Set up → / Students frozen · End session), the assignment status
-  (in whole-class review · complete), the live diagnostic push.
+  (in whole-class review · complete), the live diagnostic push (the example, or one you write).
 - **Whole-class setup** (`/teacher/whole-class`): problems ranked by how many struggled, top
   three pre-checked; 2–3 suggested examples per problem with names and correctness (private),
   swappable. **Project** opens the board and starts the grace.

@@ -1,5 +1,6 @@
 import type { Confidence, Pathway, Stage, Stroke, SubskillId } from "@/data/types";
 import type { AdvanceKind } from "./classroom";
+import type { Diagnostic } from "@/data/diagnostic";
 import { DEFAULT_PATHWAY, nextStage } from "./pathway";
 import { guardFor, trippedProblems } from "./guard";
 import { feedbackSummary } from "./feedback";
@@ -71,10 +72,10 @@ export interface StudentSession {
   notAttempted: string[];
   /** Ids of teacher advances this session has already applied, so tabs and reloads converge. */
   appliedAdvances: string[];
-  /** A diagnostic the teacher has pushed and the student hasn't answered yet. */
-  diagnostic: { questionId: string; recorded: boolean } | null;
+  /** A diagnostic the teacher has pushed and the student hasn't answered yet. A teacher-written question travels inline. */
+  diagnostic: { questionId: string; recorded: boolean; question?: Diagnostic } | null;
   /** Answered diagnostics, oldest first. */
-  diagnosticAnswers: { questionId: string; option: string; recorded: boolean }[];
+  diagnosticAnswers: { questionId: string; option: string; recorded: boolean; question?: Diagnostic }[];
 }
 
 export type SessionAction =
@@ -117,7 +118,7 @@ export type SessionAction =
   | { type: "goto"; stage: Stage; at?: number }
   | { type: "history/open" }
   | { type: "history/close" }
-  | { type: "diagnostic/push"; questionId: string; recorded: boolean }
+  | { type: "diagnostic/push"; questionId: string; recorded: boolean; question?: Diagnostic }
   | { type: "diagnostic/answer"; option: string }
   | { type: "diagnostic/withdraw" }
   | { type: "reset" };
@@ -274,7 +275,7 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     case "goto":
       return { ...s, stage: a.stage, handedInAt: a.stage === "feedback" && a.at ? a.at : s.handedInAt };
     case "diagnostic/push":
-      return { ...s, diagnostic: { questionId: a.questionId, recorded: a.recorded } };
+      return { ...s, diagnostic: a.question ? { questionId: a.questionId, recorded: a.recorded, question: a.question } : { questionId: a.questionId, recorded: a.recorded } };
     case "diagnostic/answer":
       if (!s.diagnostic) return s;
       return { ...s, diagnostic: null, diagnosticAnswers: [...s.diagnosticAnswers, { ...s.diagnostic, option: a.option }] };

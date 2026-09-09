@@ -15,7 +15,7 @@ const mmss = (ms: number) => {
 };
 
 /**
- * "Hand in for everyone": a confirmation with how many students are still working, then a
+ * "Force assignment submit": a confirmation with how many students are still working, then a
  * one-minute grace shown on every student's screen before their work is handed in as it stands.
  */
 export default function ForceSubmit({ session }: { session: StudentSession | null }) {
@@ -56,7 +56,7 @@ export default function ForceSubmit({ session }: { session: StudentSession | nul
               }}
               data-confirm-yes
             >
-              Hand in for everyone
+              Force assignment submit
             </Button>
             <Button variant="ghost" onClick={() => setConfirming(false)}>
               Not now
@@ -66,7 +66,7 @@ export default function ForceSubmit({ session }: { session: StudentSession | nul
       ) : (
         <div className="mt-3">
           <Button variant="secondary" disabled={!liveWorking || projecting} onClick={() => setConfirming(true)} data-force>
-            Hand in for everyone
+            Force assignment submit
           </Button>
         </div>
       )}

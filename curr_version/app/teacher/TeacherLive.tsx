@@ -13,6 +13,8 @@ import { PREREQ_IDS, SUBSKILL_MAP, TARGET_ID } from "@/data/subskills";
 import type { Confidence, SubskillId, SubskillStatus } from "@/data/types";
 import { useBatchedSession, useNow } from "@/lib/store";
 import { useAssignment, useClassroom } from "@/lib/classroom-store";
+import { pathwayOf } from "@/lib/classroom";
+import { pathwayChip } from "@/lib/pathway";
 import { problemsStarted, subskillStatuses } from "@/lib/status";
 import type { StudentSession } from "@/lib/session";
 
@@ -77,7 +79,8 @@ export default function TeacherLive() {
   const conf = confidenceWord(live?.confidence ?? null);
   const now = useNow();
   const { title } = useAssignment();
-  const wc = useClassroom().wholeClass;
+  const classroom = useClassroom();
+  const wc = classroom.wholeClass;
   const status = wc?.status === "active" ? " · in whole-class review" : wc?.status === "ended" ? " · complete" : "";
 
   return (
@@ -86,9 +89,14 @@ export default function TeacherLive() {
         {ASSIGNMENT.className} · {ASSIGNMENT.unit}
       </Eyebrow>
       <H1 className="mt-3">Where the class is</H1>
-      <p className="mt-3 text-[14px] text-ink-muted">
-        {title} · due {ASSIGNMENT.due}
-        <span data-assignment-status>{status}</span>
+      <p className="mt-3 flex items-center gap-3 text-[14px] text-ink-muted">
+        <span>
+          {title} · due {ASSIGNMENT.due}
+          <span data-assignment-status>{status}</span>
+        </span>
+        <span className="rounded-full border border-line bg-paper px-2.5 py-0.5 text-[11.5px] text-ink-soft" data-pathway-chip>
+          {pathwayChip(pathwayOf(classroom))}
+        </span>
       </p>
 
       <div className="mt-10 grid grid-cols-[1fr_300px] gap-6">

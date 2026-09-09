@@ -32,7 +32,7 @@ export default function StudentChrome({ children, crumb, frozen = false }: { chi
       </div>
       <header className={`flex h-14 items-center justify-between border-b border-line bg-paper/70 px-7 backdrop-blur ${frozen ? "pointer-events-none" : ""}`} aria-disabled={frozen || undefined}>
         <div className="flex items-center gap-5">
-          <Brand href="/student" />
+          <Brand />
           {crumb && <span className="text-[13px] text-ink-muted">{crumb}</span>}
         </div>
         <div className="flex items-center gap-3 text-[13px] text-ink-soft">

@@ -17,7 +17,7 @@ the run; `/student?stage=waiting`; the chip and gated tabs on every `/teacher` r
 | `app/student/page.tsx`, `app/student/StudentApp.tsx` | `?pathway=` parsed on the server, applied on mount by creating the fixture assignment with that pathway; `waiting` stage renders `WaitingScreen` |
 | `app/student/screens/WaitingScreen.tsx` | "Handed in · Waiting for Ms Okafor", nothing to tap |
 | `app/student/screens/WorkingScreen.tsx` | "Hand in" dispatches `hand-in` instead of `goto feedback` |
-| `app/teacher/TeacherChrome.tsx` | Pathway chip (`submit → indiv → group`); the Groups tab is offered only when the pathway includes group review |
+| `app/teacher/TeacherChrome.tsx`, `TeacherLive.tsx` | The Groups tab is offered only when the pathway includes group review; the pathway chip (`submit → indiv → group`) sits on the Class view's intro line (moved out of the top bar 2026-09-09) |
 | `app/teacher/TeacherLive.tsx`, `lib/groups.ts` | Stage words for `waiting` |
 | `lib/pathway.test.ts`, `lib/classroom.test.ts`, `lib/session.test.ts` | Eight pathways valid, bad orders rejected, successors, every transition; classroom create/reset; the reducer walked through all eight pathways ends on the report |
 

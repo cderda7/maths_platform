@@ -345,3 +345,13 @@ describe("whole-class freeze", () => {
     expect(s.rework.q4).toHaveLength(1);
   });
 });
+
+describe("teacher-written diagnostic", () => {
+  it("travels with the push and stays with the answer", () => {
+    const q = { id: "custom-1", stem: "Which is larger", tex: "", options: [{ id: "a", tex: "1" }, { id: "b", tex: "2" }], correct: "b" };
+    let s = sessionReducer(sessionAt("working"), { type: "diagnostic/push", questionId: q.id, recorded: true, question: q });
+    expect(s.diagnostic?.question).toEqual(q);
+    s = sessionReducer(s, { type: "diagnostic/answer", option: "b" });
+    expect(s.diagnosticAnswers[0]).toEqual({ questionId: "custom-1", recorded: true, question: q, option: "b" });
+  });
+});

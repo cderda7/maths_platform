@@ -108,7 +108,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
           </div>
         )}
         {session.diagnostic && !frozen && (
-          <DiagnosticModal questionId={session.diagnostic.questionId} recorded={session.diagnostic.recorded} onAnswer={(option) => dispatch({ type: "diagnostic/answer", option })} />
+          <DiagnosticModal questionId={session.diagnostic.questionId} recorded={session.diagnostic.recorded} question={session.diagnostic.question} onAnswer={(option) => dispatch({ type: "diagnostic/answer", option })} />
         )}
       </StudentChrome>
     </IpadStage>
