@@ -30,9 +30,10 @@ everything in every tab.
 Teacher, before the lesson (`/teacher/assignments/new`):
 
 1. **New assignment**: title, problems from the bank, and the review pathway on the map. Every
-   pathway starts at 1st submit; then any of individual review, group review and whole-class
-   review, in that order, each optional. Pick a column and its siblings fade; leave later columns
-   empty to stop there; the sentence under the map reads the pathway back. Create.
+   pathway starts at student submission; then any of individual review, group review and
+   whole-class review, in that order, each optional. Pick a column and its siblings fade; leave
+   later columns empty to stop there; tap "student submission" to clear the map and start again;
+   the sentence under the map reads the pathway back. Create.
 
 Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the pen):
 

@@ -4,7 +4,8 @@ import type { Pathway, ReviewStage } from "@/data/types";
 import { pathwaySentence, STAGE_WORD, successors } from "@/lib/pathway";
 
 /**
- * The review-pathway map. Column one is the fixed "1st submit". Each later column offers the
+ * The review-pathway map. Column one is "student submission", always bold; tapping it clears
+ * every later column and starts again. Each later column offers the
  * stages that may legally follow what is picked so far; the pick is bold, its siblings fade but
  * stay tappable, and picking clears everything downstream. Leaving a column unpicked ends the
  * pathway there. "Continue tomorrow" hangs off 1st submit, dashed and disabled.
@@ -23,7 +24,7 @@ export default function PathwayMap({ value, onChange }: { value: Pathway; onChan
     <div data-pathway-map>
       <div className="flex items-start gap-3">
         <div className="flex flex-col items-start gap-3">
-          <Node bold label="1st submit" />
+          <Node bold label="student submission" onClick={() => onChange([])} />
           <button type="button" disabled className="w-40 rounded-xl border border-dashed border-line-strong px-4 py-2.5 text-left text-[13px] leading-snug text-ink-muted opacity-60" data-node="continue-tomorrow" title="Coming soon">
             continue tomorrow
             <span className="ml-2 text-[10.5px] uppercase tracking-wide">soon</span>
@@ -58,7 +59,7 @@ function Node({ label, bold, faded, onClick, stage }: { label: string; bold?: bo
       type="button"
       onClick={onClick}
       disabled={!onClick}
-      aria-pressed={onClick ? !!bold : undefined}
+      aria-pressed={stage ? !!bold : undefined}
       data-node={stage ?? "submit"}
       data-picked={bold ? "true" : undefined}
       data-faded={faded ? "true" : undefined}
