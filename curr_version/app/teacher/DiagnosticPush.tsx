@@ -62,7 +62,7 @@ export default function DiagnosticPush({ session }: { session: StudentSession | 
             className={`rounded-full px-3 py-1.5 font-medium transition-colors ${tab === t ? "bg-ink text-white" : "text-ink-soft hover:text-ink"}`}
             data-diag-tab={t}
           >
-            {t === "example" ? "Example" : "Your own"}
+            {t === "example" ? "example" : "make your own"}
           </button>
         ))}
       </div>
