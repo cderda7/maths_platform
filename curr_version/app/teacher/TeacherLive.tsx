@@ -223,7 +223,13 @@ export default function TeacherLive() {
                                   <span className="h-1.5 w-1.5 rounded-full bg-gap" aria-hidden /> caution
                                 </span>
                               )}
-                              <span className="line-clamp-3">{r.sub}</span>
+                              <span className="flex flex-col">
+                                {r.sub.split(";").map((part, n) => (
+                                  <span key={n} className={r.live ? "" : "lowercase"}>
+                                    {part.trim().replace(/\.$/, "")}
+                                  </span>
+                                ))}
+                              </span>
                               {r.live && live?.reportSent && (
                                 <Link href="/teacher/report" className="text-accent-deep hover:underline" data-report-link>
                                   Report →
