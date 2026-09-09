@@ -20,7 +20,7 @@ export default function OverviewScreen({ onPractice, onStart }: { onPractice: ()
           {ASSIGNMENT.teacher} · due {ASSIGNMENT.due}
         </p>
         <Eyebrow className="mt-6">Covers</Eyebrow>
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        <div className="mt-3 flex flex-wrap justify-center gap-1.5">
           {categories.map((c) => (
             <span key={c} className="rounded-xl border border-accent-line bg-accent-soft/60 px-3 py-1.5 text-[13.5px] font-medium text-ink">
               {categoryName(c).name}
@@ -29,7 +29,7 @@ export default function OverviewScreen({ onPractice, onStart }: { onPractice: ()
         </div>
 
         <Eyebrow className="mt-5">Leans on</Eyebrow>
-        <ul className="mt-3 flex flex-wrap gap-1.5">
+        <ul className="mt-3 flex flex-wrap justify-center gap-1.5">
           {leaves.map((id) => (
             <li key={id} className="rounded-full border border-line bg-paper px-2.5 py-1 text-[12.5px] text-ink-soft">
               {leafName(id).name}

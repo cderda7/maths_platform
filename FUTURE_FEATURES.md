@@ -183,24 +183,25 @@ appends it here (see `CLAUDE.md`).
 
 ## Warm-up chooser (from ticket 28, 2026-09-10)
 
-- **Problem bank as the source of warm-ups.** The composite warm-up is simulated: three
-  hand-written problems in `COMPOSITE_WARMUPS`, scored by how many focus skills they cover. The
-  real thing draws (or generates) one problem from a bank tagged by leaf; `chooseWarmup` is the
-  seam.
-- **Atomising the warm-up.** "ok let's warm up strictly on fractions for a second" is not
-  supported: the chooser always serves one composite problem for the whole focus. The user wants
-  to think about how a student narrows to one skill mid-warm-up and what "one problem on just
-  that" means when the skill only appears inside bigger problems (2026-09-10).
+- **Problem bank as the source of warm-ups.** Each warm-up step serves the hand-written practice
+  for that leaf. The real thing draws (or generates) a problem from a bank tagged by leaf and
+  difficulty; `warmupSequence` is the seam.
+- **Composite warm-ups, pulled.** A first cut served one problem covering the whole focus (a
+  rational equation for "factorising and fractions"). It was harder than the set and was replaced
+  by one skill at a time (2026-09-10). Worth revisiting only with a difficulty measure that keeps
+  a composite below the set's easiest problem.
+- **Perceived ease as data.** `EASE` is a fixed list. Make it per unit, or learn it from the
+  class's leaf statuses.
+- **Skipping one skill.** "Skip to the set" leaves the whole warm-up; a per-skill skip (or
+  reordering the strip by dragging) is a small addition.
 - **Content tree in the chooser.** The chooser shows the assignment's skills by category. The user
   wants a content tree soon: the taxonomy (or the unit's content) browsable as a tree, so a
   student can point at something the set does not name.
 - **A real interpreter for the chat.** `interpret` is a regex table over English skill words and
   "Qn" references. Replace with a model call that returns leaf ids and problem ids; keep the
   honest reply ("one problem covers … ; … can come in the set").
-- **More composites, and composites per unit.** Three composites all live in Unit 1 algebra. Each
-  unit needs its own so the chooser can serve a Unit 3 focus.
-- **Several warm-up problems when one cannot cover the focus.** Today the reply says what is
-  left for the set. Offer a second problem for the remainder.
+- **Practices per unit.** Every practice lives in Unit 1 algebra and graphs. Each unit needs its
+  own so the chooser can serve a Unit 3 focus.
 - **Selection also from the skills list.** Chips in the skills panel are display only; tapping a
   chip could add it to the focus directly, as a third input beside problems and words.
 - **Difficulty tags elsewhere.** Removed from the overview and the chooser at the user's request;

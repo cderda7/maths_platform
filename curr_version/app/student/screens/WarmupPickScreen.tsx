@@ -64,7 +64,7 @@ function SkillRow({ category, leaves, focus }: { category: CategoryId; leaves: L
   return (
     <div className="flex items-start gap-3">
       <span className="w-[88px] shrink-0 pt-1.5 text-[10.5px] uppercase tracking-wide text-ink-muted">{categoryName(category).name}</span>
-      <ul className="flex flex-wrap gap-1.5">
+      <ul className="flex flex-wrap justify-center gap-1.5">
         {leaves.map((id) => {
           const on = focus.includes(id);
           return (

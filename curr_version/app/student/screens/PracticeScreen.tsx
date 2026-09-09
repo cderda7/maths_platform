@@ -9,8 +9,8 @@ import ReadAs from "@/components/ReadAs";
 import { Button, Card, Eyebrow } from "@/components/ui";
 import { LeafChip } from "@/components/Tag";
 import { nextLine } from "@/lib/recognition";
-import { warmupFocus, warmupProblem, type SessionAction, type StudentSession } from "@/lib/session";
-import { chooseWarmup, practiceCovers, warmupScript } from "@/lib/warmup";
+import { warmupFocus, warmupProblem, warmupStep, type SessionAction, type StudentSession } from "@/lib/session";
+import { warmupScript, warmupSequence } from "@/lib/warmup";
 import { Scrim } from "./PracticePrompt";
 
 /**
@@ -20,9 +20,10 @@ import { Scrim } from "./PracticePrompt";
  */
 export default function PracticeScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
   const w = session.warmup;
-  const focus = warmupFocus(session);
-  const first = chooseWarmup(focus);
+  const sequence = warmupSequence(warmupFocus(session));
+  const first = warmupStep(session);
   const p = warmupProblem(session);
+  const lastStep = w.step >= sequence.length - 1;
   const second = w.problem === "second";
   const lines = w.lines[p.id] ?? [];
   const strokes = w.ink[p.id] ?? [];
@@ -45,7 +46,10 @@ export default function PracticeScreen({ session, dispatch }: { session: Student
     setRecognising(false);
     dispatch({ type: "warmup/clear", problem: p.id });
   };
-  const done = () => dispatch({ type: "practice/finish" });
+  const skip = () => dispatch({ type: "practice/finish" });
+  /** Finishes this skill: the next one, or the set after the last. */
+  const done = () => dispatch({ type: "warmup/skill-done" });
+  const doneLabel = lastStep ? "On to the set" : "Next skill →";
 
   return (
     <div className={`grid h-full min-h-0 ${second ? "grid-cols-[400px_1fr_300px]" : "grid-cols-[300px_1fr_320px]"}`} data-warmup={w.problem}>
@@ -62,15 +66,30 @@ export default function PracticeScreen({ session, dispatch }: { session: Student
           <span className="font-display text-[26px] text-ink">{second ? "One more" : "Warm-up"}</span>
           <span className="text-[12px] uppercase tracking-wide text-ink-muted">not marked</span>
         </div>
+        {!second && (
+          <div className="mt-3 flex flex-wrap justify-center gap-1.5" data-sequence>
+            {sequence.map((q, i) => {
+              const state = i < w.step ? "done" : i === w.step ? "current" : "todo";
+              return (
+                <LeafChip
+                  key={q.id}
+                  id={q.leaf}
+                  data-state={state}
+                  className={state === "done" ? "!border-standout !bg-standout !text-white" : state === "current" ? "!border-standout !bg-standout-soft !text-standout" : "!border-standout-line !bg-standout-soft !text-standout"}
+                />
+              );
+            })}
+          </div>
+        )}
         <p className="mt-3 text-[14px] text-ink-soft">{p.stem}</p>
         <div className="math-lg mt-3 text-ink">
           <M tex={p.tex} display />
         </div>
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          {practiceCovers(p).map((id) => (
-            <LeafChip key={id} id={id} className={focus.includes(id) ? "!border-standout-line !bg-standout-soft !text-standout" : ""} />
-          ))}
-        </div>
+        {second && (
+          <div className="mt-4 flex flex-wrap justify-center gap-1.5">
+            <LeafChip id={p.leaf} />
+          </div>
+        )}
         {hinted && (
           <Card tone="soft" className="mt-5 p-4" data-hint>
             <Eyebrow>Hint</Eyebrow>
@@ -101,7 +120,7 @@ export default function PracticeScreen({ session, dispatch }: { session: Student
                 </Button>
               ) : (
                 <Button size="lg" variant="accent" onClick={done}>
-                  On to the set
+                  {doneLabel}
                 </Button>
               )}
             </div>
@@ -113,9 +132,14 @@ export default function PracticeScreen({ session, dispatch }: { session: Student
 
       <aside className="flex min-h-0 flex-col border-l border-line px-6 py-6">
         <ReadAs lines={lines} recognising={recognising} empty="Lines appear here as you write." className="flex-1" />
-        <div className="mt-4 flex items-center justify-end border-t border-line pt-4">
-          <Button variant="accent" onClick={done}>
-            On to the set
+        <div className="mt-4 flex items-center justify-end gap-2 border-t border-line pt-4">
+          {!lastStep && (
+            <Button variant="ghost" onClick={skip}>
+              Skip to the set
+            </Button>
+          )}
+          <Button variant="accent" onClick={done} data-done>
+            {doneLabel}
           </Button>
         </div>
       </aside>

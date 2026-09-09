@@ -1,6 +1,6 @@
-# 28: Warm-up chooser — pick problems, say it in words, get one composite warm-up
+# 28: Warm-up chooser — pick problems, say it in words, warm up one skill at a time
 
-**What to build:** The overview's warm-up card becomes two lowercase buttons, "warm up" and "start". "warm up" opens a chooser: the ten problems on the left (no difficulty tags, there or on the overview) over the assignment's skills grouped by category only; on the right, a short chat that asks the student to select the problems they are not confident in and then say in their own words what they want to warm up on. Selection and chat combine into a set of skills highlighted light blue, and one simulated warm-up problem that exercises as many of those skills as possible is served on the pad from ticket 27.
+**What to build:** The overview's warm-up card becomes two lowercase buttons, "warm up" and "start". "warm up" opens a chooser: the ten problems on the left (no difficulty tags, there or on the overview) over the assignment's skills grouped by category only; on the right, a short chat that asks the student to select the problems they are not confident in and then say in their own words what they want to warm up on. Selection and chat combine into a set of skills highlighted light blue. The warm-up then walks those skills one at a time, easiest first, one short problem each on the pad from ticket 27, with a chip strip that turns each skill from light blue to dark blue as it is finished. (A first cut served one composite problem covering the whole focus; it was harder than the set, and was replaced the same day.)
 
 **Blocked by:** 27 (warm-up on the pad), 26 (leaf-tagged problems and practices).
 
@@ -39,6 +39,7 @@ Overview: the problems grid without difficulty tags, and a footer with just "war
 - [x] Chooser: selectable problem cards (no difficulty tags) over skills by category; chat on the right with the two prompts
 - [x] `lib/warmup.ts`: interpretation of a message (skill keywords, Q references), focus = union, bank choice by coverage, tutor reply naming covered skills, script = model steps
 - [x] Focus chips light blue in the list and on the cards; "warm up on these →" serves the chosen problem on the pad
-- [x] Three composite warm-up problems with hints and follow-ups in the bank, plus every single-leaf practice
+- [x] One practice per leaf the set leans on (zero-finding, sketch, evaluate, worded, binomial added); `EASE` ordering; sequence chips light → dark blue; "Next skill →" / "Skip to the set" / "On to the set"
+- [x] Skill chip groups centre-aligned on the overview, the cards, the working screen and the pad
 - [x] vitest for interpretation, focus, choice and the session; tsc, eslint, build clean; CDP click-through
 - [x] Architecture note, `ARCHITECTURE.md`, `DECISION_LOG.md`, `FUTURE_FEATURES.md` (problem bank sourcing, atomising the warm-up, content tree)

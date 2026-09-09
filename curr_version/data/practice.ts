@@ -197,6 +197,20 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     why: "The words hide an equation. Find it, solve it, then answer the question that was asked.",
     hint: "Landing means the height is zero. Write that as an equation before anything else.",
   },
+  "functions.zeros.zero-finding": {
+    id: "w-zeros",
+    leaf: "functions.zeros.zero-finding",
+    stem: "Find the zeros of",
+    tex: "f(x) = x^2 - 9",
+    steps: [
+      { tex: "x^2 - 9 = 0", label: "A zero is where the output is 0", tags: [tag("functions.zeros.zero-finding")] },
+      { tex: "(x - 3)(x + 3) = 0", label: "Difference of two squares", tags: [tag("unit.u1.binomial")] },
+      { tex: "x = 3 \;\\text{or}\; x = -3", label: "Null factor law", tags: [tag("unit.u1.nfl")] },
+      { tex: "\\text{the graph meets the x-axis at } \\pm 3", label: "What a zero means", tags: [tag("functions.zeros.zero-finding")] },
+    ],
+    why: "A zero of a function and an x-intercept of its graph are the same fact, seen twice.",
+    hint: "Set the rule equal to zero and solve. Each answer is where the graph crosses the x-axis.",
+  },
   "unit.u1.binomial": {
     id: "w-binomial",
     leaf: "unit.u1.binomial",
@@ -214,102 +228,5 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
 /** The default warm-up: what the chooser falls back to when nothing was selected or said. */
 export const PRACTICE: PracticeProblem = PRACTICES["algebra.expand-factor.monic"]!;
 
-/**
- * Composite warm-ups: one problem that exercises several of the set's skills at once, so a
- * student who names three worries gets one problem, not three. Simulated stand-ins for a problem
- * bank (see FUTURE_FEATURES). `leaf` is the headline skill; what a problem covers is read from
- * its steps' tags.
- */
-export const COMPOSITE_WARMUPS: PracticeProblem[] = [
-  {
-    id: "w-rational-zero",
-    leaf: "algebra.number.fractions",
-    stem: "Solve. Check the denominator is not zero at your answers.",
-    tex: "\\dfrac{x^2 - 5x + 6}{2x^2 + 7x - 4} = 0",
-    steps: [
-      { tex: "x^2 - 5x + 6 = 0", label: "A fraction is zero when its numerator is", tags: [tag("algebra.number.fractions")] },
-      { tex: "(x - 2)(x - 3) = 0", label: "Factorised the numerator", tags: [tag("algebra.expand-factor.monic")] },
-      { tex: "x = 2 \\;\\text{or}\\; x = 3", label: "Null factor law", tags: [tag("unit.u1.nfl"), tag("algebra.equations.quadratic")] },
-      { tex: "2x^2 + 7x - 4 = (2x - 1)(x + 4)", label: "Factorised the denominator", tags: [tag("algebra.expand-factor.nonmonic")] },
-      { tex: "\\text{neither is } 0 \\text{ at } x = 2, 3 \\;\\checkmark", label: "Denominator checked", tags: [tag("algebra.number.fractions")] },
-    ],
-    why: "Factorising twice, a fraction, and the null factor law in one problem.",
-    hint: "A fraction equals zero only when its top is zero. Factorise the top first, then make sure the bottom is not zero there.",
-    followUp: {
-      id: "w-rational-zero-2",
-      leaf: "algebra.number.fractions",
-      stem: "Solve. Check the denominator is not zero at your answers.",
-      tex: "\\dfrac{x^2 + 7x + 12}{3x^2 + 10x + 8} = 0",
-      steps: [
-        { tex: "x^2 + 7x + 12 = 0", label: "Numerator is zero", tags: [tag("algebra.number.fractions")] },
-        { tex: "(x + 3)(x + 4) = 0", label: "Factorised the numerator", tags: [tag("algebra.expand-factor.monic")] },
-        { tex: "x = -3 \\;\\text{or}\\; x = -4", label: "Null factor law", tags: [tag("unit.u1.nfl"), tag("algebra.equations.quadratic")] },
-        { tex: "3x^2 + 10x + 8 = (3x + 4)(x + 2)", label: "Factorised the denominator", tags: [tag("algebra.expand-factor.nonmonic")] },
-        { tex: "\\text{neither is } 0 \\text{ at } x = -3, -4 \\;\\checkmark", label: "Denominator checked", tags: [tag("algebra.number.fractions")] },
-      ],
-      why: "Same shape, both pairs positive.",
-      hint: "Top first: which two numbers multiply to 12 and add to 7? Then check the bottom at each answer.",
-    },
-  },
-  {
-    id: "w-fraction-nonmonic",
-    leaf: "algebra.expand-factor.nonmonic",
-    stem: "Solve exactly.",
-    tex: "\\dfrac{2x^2}{3} + \\dfrac{7x}{3} = \\dfrac{4}{3}",
-    steps: [
-      { tex: "2x^2 + 7x = 4", label: "Multiplied every term by 3", tags: [tag("algebra.number.fractions")] },
-      { tex: "2x^2 + 7x - 4 = 0", label: "Standard form", tags: [tag("algebra.equations.linear"), tag("algebra.equations.quadratic")] },
-      { tex: "ac = -8,\\quad 8 + (-1) = 7", label: "Found the split", tags: [tag("algebra.expand-factor.nonmonic")] },
-      { tex: "(2x - 1)(x + 4) = 0", label: "Factorised", tags: [tag("algebra.expand-factor.nonmonic")] },
-      { tex: "x = \\tfrac{1}{2} \\;\\text{or}\\; x = -4", label: "Null factor law", tags: [tag("unit.u1.nfl"), tag("algebra.number.fractions")] },
-    ],
-    why: "Clearing fractions, then a non-monic factorisation.",
-    hint: "Every term has the same denominator. Multiply the whole equation by it first, then get everything to one side.",
-    followUp: {
-      id: "w-fraction-nonmonic-2",
-      leaf: "algebra.expand-factor.nonmonic",
-      stem: "Solve exactly.",
-      tex: "\\dfrac{3x^2}{2} + 5x = -4",
-      steps: [
-        { tex: "3x^2 + 10x = -8", label: "Multiplied every term by 2", tags: [tag("algebra.number.fractions")] },
-        { tex: "3x^2 + 10x + 8 = 0", label: "Standard form", tags: [tag("algebra.equations.linear"), tag("algebra.equations.quadratic")] },
-        { tex: "ac = 24,\\quad 6 + 4 = 10", label: "Found the split", tags: [tag("algebra.expand-factor.nonmonic")] },
-        { tex: "(3x + 4)(x + 2) = 0", label: "Factorised", tags: [tag("algebra.expand-factor.nonmonic")] },
-        { tex: "x = -\\tfrac{4}{3} \\;\\text{or}\\; x = -2", label: "Null factor law", tags: [tag("unit.u1.nfl"), tag("algebra.number.fractions")] },
-      ],
-      why: "Only one fraction this time, and the right side is not zero yet.",
-      hint: "Multiply every term, including the −4, by 2. Then bring the −8 across.",
-    },
-  },
-  {
-    id: "w-fraction-discriminant",
-    leaf: "unit.u1.discriminant",
-    stem: "For which values of k does the following have exactly one real root?",
-    tex: "\\dfrac{x^2}{2} + kx + 2 = 0",
-    steps: [
-      { tex: "x^2 + 2kx + 4 = 0", label: "Multiplied every term by 2", tags: [tag("algebra.number.fractions")] },
-      { tex: "a = 1,\\; b = 2k,\\; c = 4", label: "Read off a, b, c", tags: [tag("algebra.equations.quadratic")] },
-      { tex: "b^2 - 4ac = 4k^2 - 16", label: "Discriminant", tags: [tag("unit.u1.discriminant")] },
-      { tex: "4k^2 - 16 = 0 \\Rightarrow k = \\pm 2", label: "One root means Δ = 0", tags: [tag("unit.u1.discriminant"), tag("reasoning.justify.formal")] },
-    ],
-    why: "A fraction to clear, then the discriminant with a parameter in it.",
-    hint: "Clear the fraction, then write the discriminant in terms of k. One root means it equals zero.",
-    followUp: {
-      id: "w-fraction-discriminant-2",
-      leaf: "unit.u1.discriminant",
-      stem: "For which values of k does the following have no real roots?",
-      tex: "\\dfrac{x^2}{3} + 2x + k = 0",
-      steps: [
-        { tex: "x^2 + 6x + 3k = 0", label: "Multiplied every term by 3", tags: [tag("algebra.number.fractions")] },
-        { tex: "a = 1,\\; b = 6,\\; c = 3k", label: "Read off a, b, c", tags: [tag("algebra.equations.quadratic")] },
-        { tex: "b^2 - 4ac = 36 - 12k", label: "Discriminant", tags: [tag("unit.u1.discriminant")] },
-        { tex: "36 - 12k < 0 \\Rightarrow k > 3", label: "No roots means Δ < 0", tags: [tag("unit.u1.discriminant"), tag("reasoning.justify.formal")] },
-      ],
-      why: "Same idea with the inequality the other way.",
-      hint: "No real roots means the discriminant is negative. Write it in terms of k and solve the inequality.",
-    },
-  },
-];
-
-/** Everything the warm-up chooser can serve: the composites first, then one problem per leaf. */
-export const WARMUP_BANK: PracticeProblem[] = [...COMPOSITE_WARMUPS, ...(Object.values(PRACTICES) as PracticeProblem[])];
+/** Everything the warm-up can serve: one short problem per leaf. */
+export const WARMUP_BANK: PracticeProblem[] = Object.values(PRACTICES) as PracticeProblem[];

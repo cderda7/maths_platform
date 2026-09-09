@@ -63,7 +63,7 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
             <Figure id={p.figure} />
           </div>
         )}
-        <div className="mt-4 flex flex-wrap gap-1.5">
+        <div className="mt-4 flex flex-wrap justify-center gap-1.5">
           {problemLeaves(p).map((id) => (
             <LeafChip key={id} id={id} />
           ))}

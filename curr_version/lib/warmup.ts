@@ -1,13 +1,13 @@
 import type { PracticeProblem, Problem } from "@/data/types";
 import { ASSIGNMENT } from "@/data/assignment";
-import { PRACTICE, WARMUP_BANK } from "@/data/practice";
-import { leafName, type LeafId } from "@/data/taxonomy";
+import { PRACTICE, PRACTICES } from "@/data/practice";
+import { groupOf, leafName, type LeafId } from "@/data/taxonomy";
 import { problemLeaves } from "./hierarchy";
 
 /**
  * The warm-up chooser's brain, simulated: what a student's message means, which skills the
- * selection and the message add up to, and which one problem from the bank covers most of them.
- * Pure, so every rule is unit-tested and the screen only renders.
+ * selection and the message add up to, and the order those skills are warmed up in, one short
+ * problem each, easiest first. Pure, so every rule is unit-tested and the screen only renders.
  */
 
 export interface WarmupMessage {
@@ -68,33 +68,55 @@ export function focusLeaves(selected: string[], messages: WarmupMessage[], probl
   return out;
 }
 
-/** Leaves a practice problem exercises: its headline leaf and every leaf tagged on a step. */
-export function practiceCovers(p: PracticeProblem): LeafId[] {
-  const out: LeafId[] = [p.leaf];
-  for (const st of p.steps) for (const t of st.tags) if (!out.includes(t.leaf)) out.push(t.leaf);
-  return out;
+/**
+ * Perceived ease, easiest first: the order the warm-up walks a student's focus. A leaf not listed
+ * comes after every listed one, in focus order.
+ */
+export const EASE: LeafId[] = [
+  "algebra.number.fractions",
+  "algebra.equations.linear",
+  "algebra.expand-factor.expand",
+  "functions.notation.evaluate",
+  "algebra.equations.quadratic",
+  "algebra.expand-factor.monic",
+  "unit.u1.nfl",
+  "algebra.expand-factor.nonmonic",
+  "unit.u1.binomial",
+  "unit.u1.discriminant",
+  "functions.zeros.zero-finding",
+  "graphing.quadratics.features",
+  "graphing.quadratics.sketch",
+  "reasoning.interpret.worded",
+  "reasoning.justify.formal",
+  "reasoning.justify.conclusions",
+];
+const rank = (l: LeafId) => {
+  const i = EASE.indexOf(l);
+  return i < 0 ? EASE.length : i;
+};
+
+/** The focus sorted easiest first (a stable sort, so unlisted leaves keep their focus order). */
+export const byEase = (focus: LeafId[]): LeafId[] => [...focus].sort((a, b) => rank(a) - rank(b));
+
+/** The practice for a leaf: its own, else a sibling's in the same group, else none. */
+function practiceFor(leaf: LeafId): PracticeProblem | null {
+  if (PRACTICES[leaf]) return PRACTICES[leaf]!;
+  const g = groupOf(leaf);
+  const alt = (Object.keys(PRACTICES) as LeafId[]).find((l) => groupOf(l) === g);
+  return alt ? PRACTICES[alt]! : null;
 }
 
 /**
- * The one problem to serve: the bank entry covering the most focus leaves; ties go to the entry
- * with fewer leaves outside the focus, then to the one whose steps are mostly on-focus, then to
- * bank order (composites first). Nothing in focus, or nothing covering it → the default warm-up.
+ * The warm-up as a sequence: one problem per focus leaf, easiest first, no problem twice. Nothing
+ * in focus, or nothing with a practice → the default warm-up alone.
  */
-export function chooseWarmup(focus: LeafId[], bank: PracticeProblem[] = WARMUP_BANK): PracticeProblem {
-  if (focus.length === 0) return PRACTICE;
-  let best: PracticeProblem | null = null;
-  let bestScore: [number, number, number] = [-1, -Infinity, -1];
-  for (const p of bank) {
-    const covers = practiceCovers(p);
-    const hit = covers.filter((l) => focus.includes(l)).length;
-    const onFocusSteps = p.steps.filter((st) => st.tags.some((t) => focus.includes(t.leaf))).length / p.steps.length;
-    const score: [number, number, number] = [hit, hit - covers.length, onFocusSteps];
-    if (score[0] > bestScore[0] || (score[0] === bestScore[0] && (score[1] > bestScore[1] || (score[1] === bestScore[1] && score[2] > bestScore[2])))) {
-      best = p;
-      bestScore = score;
-    }
+export function warmupSequence(focus: LeafId[]): PracticeProblem[] {
+  const out: PracticeProblem[] = [];
+  for (const l of byEase(focus)) {
+    const p = practiceFor(l);
+    if (p && !out.some((q) => q.id === p.id)) out.push(p);
   }
-  return bestScore[0] > 0 && best ? best : PRACTICE;
+  return out.length > 0 ? out : [PRACTICE];
 }
 
 const names = (ls: LeafId[]) => ls.map((l) => leafName(l).short);
@@ -108,12 +130,8 @@ export function tutorReply(message: string, focus: LeafId[], problems: Problem[]
       ? "I couldn't match that to a skill in this set. Try naming one, like \"fractions\", or a question, like \"Q2\"."
       : `I couldn't add anything from that. Still warming up on ${list(names(focus))}.`;
   }
-  const chosen = chooseWarmup(focus);
-  const covered = practiceCovers(chosen).filter((l) => focus.includes(l));
-  const missed = focus.filter((l) => !covered.includes(l));
-  const head = `Got it. Warming up on ${list(names(focus))}.`;
-  const tail = missed.length === 0 ? " One problem covers all of that." : ` One problem covers ${list(names(covered))}; ${list(names(missed))} can come in the set.`;
-  return head + tail;
+  const ordered = warmupSequence(focus).map((p) => p.leaf);
+  return ordered.length === 1 ? `Got it. One short problem on ${names(ordered)[0]}.` : `Got it. One short problem each, easiest first: ${list(names(ordered))}.`;
 }
 
 /** What the pad reads for a warm-up problem, one line per burst: its own model steps. */

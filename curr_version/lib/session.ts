@@ -1,7 +1,7 @@
 import type { Confidence, Pathway, Stage, Stroke } from "@/data/types";
 import { groupOf, type LeafId } from "@/data/taxonomy";
 import { PRACTICES } from "@/data/practice";
-import { chooseWarmup, focusLeaves, tutorReply, type WarmupMessage } from "./warmup";
+import { focusLeaves, tutorReply, warmupSequence, type WarmupMessage } from "./warmup";
 import type { AdvanceKind } from "./classroom";
 import type { Diagnostic } from "@/data/diagnostic";
 import { DEFAULT_PATHWAY, nextStage } from "./pathway";
@@ -38,7 +38,9 @@ export interface WarmupState {
   selected: string[];
   /** The chooser's chat, oldest first: the student's words and the tutor's replies. */
   messages: WarmupMessage[];
-  /** "first": the warm-up problem. "second": its follow-up, with the first's worked example in view. */
+  /** Index into the warm-up sequence (one skill each, easiest first): the skill being warmed up. */
+  step: number;
+  /** "first": the step's problem. "second": its follow-up, with the first's worked example in view. */
   problem: "first" | "second";
   /** True while the worked example for the current problem is playing in place of the pad. */
   example: boolean;
@@ -53,7 +55,7 @@ export interface WarmupState {
   ink: Record<string, Stroke[]>;
 }
 
-export const INITIAL_WARMUP: WarmupState = { selected: [], messages: [], problem: "first", example: false, exampleShown: 0, hinted: [], exampled: [], lines: {}, ink: {} };
+export const INITIAL_WARMUP: WarmupState = { selected: [], messages: [], step: 0, problem: "first", example: false, exampleShown: 0, hinted: [], exampled: [], lines: {}, ink: {} };
 
 export interface StudentSession {
   stage: Stage;
@@ -131,6 +133,8 @@ export type SessionAction =
   | { type: "warmup/example-step" }
   /** After the first problem's worked example: the follow-up, with that example still in view. */
   | { type: "warmup/next" }
+  /** The current skill is finished: on to the next in the sequence, or the set after the last. */
+  | { type: "warmup/skill-done" }
   | { type: "problem/goto"; index: number }
   | { type: "line/reveal"; problem: string; line: RevealedLine }
   | { type: "ink/stroke"; problem: string; stroke: Stroke }
@@ -286,9 +290,15 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       return warm(s, { exampleShown: shown, exampled: done ? [...s.warmup.exampled, p.id] : s.warmup.exampled });
     }
     case "warmup/next": {
-      const first = chooseWarmup(warmupFocus(s));
+      const first = warmupStep(s);
       if (s.warmup.problem !== "first" || !first.followUp || !s.warmup.exampled.includes(first.id)) return s;
       return warm(s, { problem: "second", example: false, exampleShown: 0 });
+    }
+    case "warmup/skill-done": {
+      if (s.stage !== "practice") return s;
+      const last = warmupSequence(warmupFocus(s)).length - 1;
+      if (s.warmup.step >= last) return { ...s, stage: "working", warmup: { ...s.warmup, step: last + 1 } };
+      return warm(s, { step: s.warmup.step + 1, problem: "first", example: false, exampleShown: 0 });
     }
     case "problem/goto":
       return { ...s, problemIndex: a.index };
@@ -410,9 +420,15 @@ const warm = (s: StudentSession, patch: Partial<WarmupState>): StudentSession =>
 /** The leaves the chooser has settled on so far. */
 export const warmupFocus = (s: StudentSession): LeafId[] => focusLeaves(s.warmup.selected, s.warmup.messages);
 
-/** The warm-up problem the student is on: the bank's best fit for the focus, or its follow-up. */
+/** The current step's problem (the sequence's last once the warm-up is over). */
+export function warmupStep(s: StudentSession) {
+  const seq = warmupSequence(warmupFocus(s));
+  return seq[Math.min(s.warmup.step, seq.length - 1)];
+}
+
+/** The warm-up problem the student is on: the current step's, or its follow-up. */
 export function warmupProblem(s: StudentSession) {
-  const first = chooseWarmup(warmupFocus(s));
+  const first = warmupStep(s);
   return s.warmup.problem === "second" && first.followUp ? first.followUp : first;
 }
 

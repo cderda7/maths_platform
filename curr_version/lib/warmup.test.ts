@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { chooseWarmup, focusLeaves, interpret, practiceCovers, tutorReply, warmupScript } from "./warmup";
-import { COMPOSITE_WARMUPS, PRACTICE, WARMUP_BANK } from "@/data/practice";
+import { byEase, EASE, focusLeaves, interpret, tutorReply, warmupScript, warmupSequence } from "./warmup";
+import { PRACTICE, WARMUP_BANK } from "@/data/practice";
 import { ASSIGNMENT } from "@/data/assignment";
 import { leavesTouched } from "./hierarchy";
 
@@ -31,49 +31,47 @@ describe("the focus", () => {
   });
 });
 
-describe("choosing the warm-up", () => {
-  it("nothing in focus → the default warm-up", () => {
-    expect(chooseWarmup([]).id).toBe(PRACTICE.id);
+describe("the warm-up sequence", () => {
+  it("walks the focus easiest first: fractions, quadratic equations, monic, null factor law, non-monic", () => {
+    const focus = focusLeaves(["q2"], [{ from: "student", text: "monic factorising and fractions" }]);
+    expect(warmupSequence(focus).map((p) => p.leaf)).toEqual([
+      "algebra.number.fractions",
+      "algebra.equations.quadratic",
+      "algebra.expand-factor.monic",
+      "unit.u1.nfl",
+      "algebra.expand-factor.nonmonic",
+    ]);
   });
-  it("factorising and fractions → the rational-zero composite, which covers all four", () => {
-    const focus = focusLeaves([], [{ from: "student", text: "factoring and fractions" }]);
-    const p = chooseWarmup(focus);
-    expect(p.id).toBe("w-rational-zero");
-    expect(focus.every((l) => practiceCovers(p).includes(l))).toBe(true);
+  it("nothing in focus → the default warm-up alone", () => {
+    expect(warmupSequence([]).map((p) => p.id)).toEqual([PRACTICE.id]);
   });
-  it("a single skill → its own practice, not a composite with extras", () => {
-    expect(chooseWarmup(["unit.u1.discriminant"]).id).toBe("w-discriminant");
-    expect(chooseWarmup(["algebra.expand-factor.nonmonic"]).id).toBe("w-nonmonic");
+  it("one problem per leaf, never the same problem twice, and every leaf in the set is served by a problem on that leaf", () => {
+    const all = leavesTouched(ASSIGNMENT.problems).filter((l) => !l.startsWith("communication."));
+    const seq = warmupSequence(all);
+    expect(seq.length).toBe(all.length);
+    expect(new Set(seq.map((p) => p.id)).size).toBe(seq.length);
+    for (const l of all) expect(seq.some((p) => p.leaf === l), l).toBe(true);
   });
-  it("Q4 selected and fractions said → the discriminant-with-a-fraction composite", () => {
-    expect(chooseWarmup(focusLeaves(["q4"], [{ from: "student", text: "fractions" }])).id).toBe("w-fraction-discriminant");
+  it("unlisted leaves come after listed ones, in focus order", () => {
+    expect(byEase(["stats.data.summary", "algebra.number.fractions"])).toEqual(["algebra.number.fractions", "stats.data.summary"]);
+    expect(new Set(EASE).size).toBe(EASE.length);
   });
-  it("every leaf the set leans on can be warmed up by something in the bank that covers it", () => {
-    for (const l of leavesTouched(ASSIGNMENT.problems).filter((l) => !l.startsWith("communication."))) {
-      expect(practiceCovers(chooseWarmup([l])), l).toContain(l);
-    }
-  });
-  it("Q2 selected and fractions said → the fraction-clearing non-monic composite (its steps are all on focus)", () => {
-    expect(chooseWarmup(focusLeaves(["q2"], [{ from: "student", text: "fractions" }])).id).toBe("w-fraction-nonmonic");
-  });
-  it("composites have hints, follow-ups on the same leaf, and scripts", () => {
-    for (const p of COMPOSITE_WARMUPS) {
+  it("every practice has a hint and a script the pad can read", () => {
+    for (const p of WARMUP_BANK) {
       expect(p.hint.length).toBeGreaterThan(0);
-      expect(p.followUp?.leaf).toBe(p.leaf);
       expect(warmupScript(p)).toEqual(p.steps.map((s) => s.tex));
+      if (p.followUp) expect(p.followUp.leaf).toBe(p.leaf);
     }
-    expect(new Set(WARMUP_BANK.map((p) => p.id)).size).toBe(WARMUP_BANK.length);
   });
 });
 
 describe("the tutor's reply", () => {
-  it("names the focus and says what one problem covers", () => {
+  it("names the sequence, easiest first", () => {
     const focus = focusLeaves([], [{ from: "student", text: "factoring and fractions" }]);
-    expect(tutorReply("factoring and fractions", focus)).toBe("Got it. Warming up on monic factorising, non-monic factorising and fractions. One problem covers all of that.");
+    expect(tutorReply("factoring and fractions", focus)).toBe("Got it. One short problem each, easiest first: fractions, monic factorising and non-monic factorising.");
   });
-  it("says what is left for the set when one problem cannot cover everything", () => {
-    const focus = focusLeaves([], [{ from: "student", text: "fractions and sketching a parabola" }]);
-    expect(tutorReply("fractions and sketching a parabola", focus)).toMatch(/can come in the set\.$/);
+  it("a single skill gets a single problem", () => {
+    expect(tutorReply("fractions", ["algebra.number.fractions"])).toBe("Got it. One short problem on fractions.");
   });
   it("asks again when nothing matched", () => {
     expect(tutorReply("hmm", [])).toMatch(/^I couldn't match/);

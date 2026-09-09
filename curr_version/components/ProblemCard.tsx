@@ -36,7 +36,7 @@ export default function ProblemCard({ problem: p, selected = false, onToggle, hi
           <Figure id={p.figure} />
         </div>
       )}
-      <div className="mt-3.5 flex flex-wrap gap-1.5">
+      <div className="mt-3.5 flex flex-wrap justify-center gap-1.5">
         {problemLeaves(p).map((id) => (
           <LeafChip key={id} id={id} className={highlight.includes(id) ? "!border-standout-line !bg-standout-soft !text-standout" : ""} />
         ))}

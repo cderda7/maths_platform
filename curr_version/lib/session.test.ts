@@ -38,8 +38,26 @@ describe("student session flow", () => {
     expect(sessionReducer(s, { type: "warmup/say", text: "   " })).toBe(s);
     s = sessionReducer(s, { type: "warmup/say", text: "fractions, and Q2" });
     expect(s.warmup.messages.map((m) => m.from)).toEqual(["student", "tutor"]);
-    expect(s.warmup.messages[1].text).toMatch(/^Got it\. Warming up on /);
-    expect(warmupProblem(s).id).toBe("w-fraction-nonmonic");
+    expect(s.warmup.messages[1].text).toMatch(/^Got it\. One short problem each, easiest first: fractions, /);
+    expect(warmupProblem(s).id).toBe("w-fractions");
+  });
+
+  it("the warm-up walks its skills one at a time and hands over to the set after the last", () => {
+    let s = sessionAt("practice");
+    expect(s.warmup.step).toBe(0);
+    expect(warmupProblem(s).id).toBe("w-fractions");
+    s = sessionReducer(s, { type: "warmup/hint" });
+    s = sessionReducer(s, { type: "warmup/skill-done" });
+    expect(s.stage).toBe("practice");
+    expect(s.warmup.step).toBe(1);
+    expect(warmupProblem(s).id).toBe("w-quadratic");
+    expect(s.warmup.hinted).toEqual(["w-fractions"]);
+    s = sessionReducer(s, { type: "warmup/skill-done" });
+    s = sessionReducer(s, { type: "warmup/skill-done" });
+    expect(warmupProblem(s).id).toBe("w-nonmonic");
+    s = sessionReducer(s, { type: "warmup/skill-done" });
+    expect(s.stage).toBe("working");
+    expect(sessionReducer(s, { type: "warmup/skill-done" })).toBe(s);
   });
 
   it("deep-linking past the survey fills in earlier answers", () => {
@@ -49,7 +67,7 @@ describe("student session flow", () => {
     expect(sessionAt("practice").practice).toBe("taken");
     expect(sessionAt("warmup-pick").practice).toBe("taken");
     expect(sessionAt("warmup-pick").warmup.selected).toEqual([]);
-    expect(warmupProblem(sessionAt("practice")).id).toBe("w-fraction-nonmonic");
+    expect(warmupProblem(sessionAt("practice")).id).toBe("w-fractions");
     expect(sessionAt("confidence").confidence).toBeNull();
     expect(sessionAt("overview")).toEqual(INITIAL_SESSION);
   });

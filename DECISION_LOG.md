@@ -446,3 +446,23 @@ visible rather than silent. Composite problems are hand-authored (three today).
 **Defence.** Every rule is unit-tested against the user's own example sentence, the seam for the
 real interpreter is one function (`interpret`), and the seam for the bank is one array
 (`WARMUP_BANK`) plus one scorer (`chooseWarmup`).
+
+## 2026-09-10 · Warm-up skills in isolation, easiest first, not one composite problem
+
+**Decision.** The chooser's focus is warmed up as a sequence: one short single-skill problem per
+focus leaf, ordered by a fixed perceived-ease list (`EASE`), with the chip strip on the pad
+marking each skill done. The composite problems and the coverage scorer from earlier the same
+day are removed.
+
+**Context.** The composite that covered "factorising and fractions" (a rational equation) was
+harder than anything in the set. A warm-up must be easier than the set, and a student who
+names three worries should meet them one at a time.
+
+**Alternatives considered.** Keeping composites but capping difficulty (no measure of difficulty
+exists for practices). Letting the student order the skills (more choices before any maths).
+
+**Tradeoffs.** Three worries mean three problems; "Skip to the set" is one tap away throughout.
+The ease list is a judgement call kept in one array.
+
+**Defence.** Every problem served is a single-leaf practice already used mid-set, so nothing in
+the warm-up can be harder than the isolated practice the set itself would offer.
