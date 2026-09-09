@@ -166,58 +166,35 @@ export default function PracticeScreen({ session, dispatch }: { session: Student
 
 /** "I need help" on the warm-up: pick how much help. The video is listed so the shape is visible; it goes nowhere yet. */
 function HelpMenu({ hinted, exampled, onHint, onExample, onClose }: { hinted: boolean; exampled: boolean; onHint: () => void; onExample: () => void; onClose: () => void }) {
-  const options: { key: string; title: string; detail: string; onPick?: () => void; note?: string }[] = [
-    { key: "hint", title: "A hint", detail: "One line, stays under the problem", onPick: hinted ? undefined : onHint, note: hinted ? "Shown" : undefined },
-    { key: "example", title: "A worked example", detail: "This problem, one step at a time, then one more to try", onPick: exampled ? undefined : onExample, note: exampled ? "Seen" : undefined },
-    { key: "video", title: "A video", detail: "Two minutes on this skill", note: "Not available yet" },
+  const options: { key: string; title: string; onPick?: () => void; note?: string }[] = [
+    { key: "hint", title: "hint", onPick: hinted ? undefined : onHint, note: hinted ? "Shown" : undefined },
+    { key: "example", title: "worked example", onPick: exampled ? undefined : onExample, note: exampled ? "Seen" : undefined },
+    { key: "video", title: "video", note: "Not available yet" },
   ];
+  const row = "flex w-full items-center justify-between rounded-xl border border-line bg-paper px-4 py-3 text-left";
   return (
-    <Scrim>
-      <div className="w-[560px] rounded-3xl bg-paper p-8 shadow-lift" data-help-menu>
-        <Eyebrow>I need help</Eyebrow>
-        <h2 className="font-display mt-2 text-[28px] leading-tight text-ink">What would help?</h2>
+    <Scrim onDismiss={onClose}>
+      <div className="w-[480px] rounded-3xl bg-paper p-8 shadow-lift" data-help-menu>
+        <h2 className="font-display text-[28px] leading-tight text-ink">I&rsquo;d like a…</h2>
         <ul className="mt-5 space-y-2">
           {options.map((o) =>
             o.key === "video" ? (
               <li key={o.key}>
-                <a
-                  href="#"
-                  aria-disabled
-                  onClick={(e) => e.preventDefault()}
-                  className="flex w-full items-center justify-between rounded-xl border border-line bg-paper px-4 py-3 text-left opacity-60"
-                  data-help-option={o.key}
-                >
-                  <span>
-                    <span className="block text-[15px] font-medium text-ink">{o.title}</span>
-                    <span className="block text-[12.5px] text-ink-muted">{o.detail}</span>
-                  </span>
+                <a href="#" aria-disabled onClick={(e) => e.preventDefault()} className={`${row} opacity-60`} data-help-option={o.key}>
+                  <span className="text-[15px] font-medium text-ink">{o.title}</span>
                   <span className="ml-4 shrink-0 text-[13px] text-ink-muted">{o.note}</span>
                 </a>
               </li>
             ) : (
               <li key={o.key}>
-                <button
-                  type="button"
-                  onClick={o.onPick}
-                  disabled={!o.onPick}
-                  className="flex w-full items-center justify-between rounded-xl border border-line bg-paper px-4 py-3 text-left transition-colors enabled:hover:border-ink-muted disabled:opacity-60"
-                  data-help-option={o.key}
-                >
-                  <span>
-                    <span className="block text-[15px] font-medium text-ink">{o.title}</span>
-                    <span className="block text-[12.5px] text-ink-muted">{o.detail}</span>
-                  </span>
+                <button type="button" onClick={o.onPick} disabled={!o.onPick} className={`${row} transition-colors enabled:hover:border-ink-muted disabled:opacity-60`} data-help-option={o.key}>
+                  <span className="text-[15px] font-medium text-ink">{o.title}</span>
                   <span className={`ml-4 shrink-0 text-[13px] ${o.onPick ? "text-accent-deep" : "text-ink-muted"}`}>{o.note ?? "Show →"}</span>
                 </button>
               </li>
             ),
           )}
         </ul>
-        <div className="mt-5 flex justify-end">
-          <Button variant="ghost" onClick={onClose}>
-            Never mind
-          </Button>
-        </div>
       </div>
     </Scrim>
   );

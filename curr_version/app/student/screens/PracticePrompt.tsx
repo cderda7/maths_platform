@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PracticeCard from "@/components/PracticeCard";
 import { Button, Eyebrow } from "@/components/ui";
 import { PRACTICES } from "@/data/practice";
@@ -9,10 +9,21 @@ import type { Problem } from "@/data/types";
 import { problemLeaves } from "@/lib/hierarchy";
 import type { PracticePrompt as Prompt } from "@/lib/session";
 
-/** Dim the iPad screen and centre a card. Positioned against `.ipad-screen`. */
-export function Scrim({ children }: { children: React.ReactNode }) {
+/** Dim the iPad screen and centre a card. Positioned against `.ipad-screen`. `onDismiss`: a tap on the dim or Escape closes it. */
+export function Scrim({ children, onDismiss }: { children: React.ReactNode; onDismiss?: () => void }) {
+  useEffect(() => {
+    if (!onDismiss) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onDismiss();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onDismiss]);
   return (
-    <div className="absolute inset-0 z-20 grid place-items-center bg-ink/35 p-10 backdrop-blur-[2px]" role="dialog" aria-modal>
+    <div
+      className="absolute inset-0 z-20 grid place-items-center bg-ink/35 p-10 backdrop-blur-[2px]"
+      role="dialog"
+      aria-modal
+      onClick={onDismiss ? (e) => e.target === e.currentTarget && onDismiss() : undefined}
+    >
       {children}
     </div>
   );
