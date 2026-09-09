@@ -297,7 +297,7 @@ describe("teacher force submit", () => {
     s = sessionReducer(s, { type: "advance/apply", id: "force-submit@1", kind: "force-submit", at: 77 }, { pathway: ["whole-class"] });
     expect(s.stage).toBe("waiting");
     expect(s.handedInAt).toBe(77);
-    expect(s.notAttempted).toEqual(["q2", "q3", "q4"]);
+    expect(s.notAttempted).toEqual(["q2", "q3", "q4", "q5", "q6"]);
     expect(s.notice).toBe("Your teacher handed in the class's work.");
     expect(s.appliedAdvances).toEqual(["force-submit@1"]);
   });

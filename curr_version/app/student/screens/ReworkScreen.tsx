@@ -81,7 +81,7 @@ export default function ReworkScreen({ session, dispatch }: { session: StudentSe
 
         <div className="mt-auto pt-5">
           <Eyebrow>Problems</Eyebrow>
-          <ol className="mt-2.5 flex gap-1.5">
+          <ol className="mt-2.5 flex flex-wrap gap-1.5">
             {problems.map((q, n) => {
               const active = n === i;
               const started = (session.rework[q.id]?.length ?? 0) > 0;
@@ -93,7 +93,7 @@ export default function ReworkScreen({ session, dispatch }: { session: StudentSe
                     onClick={() => go(n)}
                     aria-current={active ? "step" : undefined}
                     data-broken={broken ? "true" : undefined}
-                    className={`relative h-9 w-11 rounded-lg border text-[13px] font-medium transition-colors ${
+                    className={`relative h-9 w-10 rounded-lg border text-[13px] font-medium transition-colors ${
                       active ? "border-ink bg-ink text-white" : started ? "border-accent-line bg-accent-soft text-accent-deep" : "border-line bg-paper text-ink-soft hover:border-ink-muted"
                     }`}
                   >

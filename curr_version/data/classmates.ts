@@ -12,7 +12,7 @@ export interface Classmate {
   initials: string;
   statuses: Record<SubskillId, SubskillStatus>;
   confidence: "confident" | "low" | `low: ${string}`;
-  /** Problems finished, out of four. */
+  /** Problems finished, in assignment order, out of six. */
   done: number;
   when: string;
   /** Problem ids this classmate got wrong. */
@@ -27,6 +27,8 @@ export interface Classmate {
 const Q2_GUESSED = ["2x^2 + 7x - 4 = 0", "(2x + 4)(x - 1) = 0", "x = -2 \\;\\text{or}\\; x = 1"];
 const Q3_NFL = ["(x - 3)(x + 2) = 6", "x - 3 = 6 \\;\\text{or}\\; x + 2 = 6", "x = 9 \\;\\text{or}\\; x = 4"];
 const Q4_OVER_A = ["a = 3,\\; b = -5,\\; c = -1", "b^2 - 4ac = 25 + 12 = 37", "x = \\dfrac{5 \\pm \\sqrt{37}}{3}"];
+const Q5_SIGNS = ["(x - 5)(x + 1) = 0", "x = -5 \\;\\text{or}\\; x = 1", "x = \\tfrac{-5 + 1}{2} = -2"];
+const Q6_TWICE = ["b^2 - 4ac = 36 - 4k", "36 - 4k > 0", "k < 9"];
 
 const st = (a: SubskillStatus, f: SubskillStatus, fa: SubskillStatus, e: SubskillStatus, g: SubskillStatus, r: SubskillStatus): Record<SubskillId, SubskillStatus> => ({
   algebra: a,
@@ -38,11 +40,11 @@ const st = (a: SubskillStatus, f: SubskillStatus, fa: SubskillStatus, e: Subskil
 });
 
 export const CLASSMATES: Classmate[] = [
-  { id: "priya", name: "Priya Raman", initials: "PR", statuses: st("secure", "secure", "secure", "secure", "unseen", "secure"), confidence: "confident", done: 4, when: "4:12 pm", wrong: [], attempts: {}, groupStatus: "Quick pass done · nothing to discuss" },
+  { id: "priya", name: "Priya Raman", initials: "PR", statuses: st("secure", "secure", "secure", "secure", "secure", "secure"), confidence: "confident", done: 6, when: "4:12 pm", wrong: [], attempts: {}, groupStatus: "Quick pass done · nothing to discuss" },
   { id: "jordan", name: "Jordan Whitlock", initials: "JW", statuses: st("secure", "unseen", "developing", "secure", "unseen", "developing"), confidence: "confident", done: 3, when: "3:48 pm", wrong: ["q2"], note: "Non-monic factorising: factors not checked by expanding.", attempts: { q2: Q2_GUESSED }, groupStatus: "Discussing Q2 · expanding back" },
-  { id: "amelia", name: "Amelia Chen", initials: "AC", statuses: st("secure", "secure", "secure", "secure", "unseen", "secure"), confidence: "low", done: 4, when: "2:30 pm", wrong: [], attempts: {}, groupStatus: "Quick pass done · comparing Q4 methods" },
-  { id: "tomas", name: "Tomas Reyes", initials: "TR", statuses: st("developing", "gap", "secure", "secure", "unseen", "developing"), confidence: "low: fractions", done: 3, when: "Yesterday", wrong: ["q3", "q4"], note: "Divided by a instead of 2a in the quadratic formula.", attempts: { q3: Q3_NFL, q4: Q4_OVER_A }, groupStatus: "Discussing Q4 · the 2a" },
-  { id: "zara", name: "Zara Haddad", initials: "ZH", statuses: st("secure", "developing", "secure", "secure", "unseen", "developing"), confidence: "confident", done: 4, when: "1:05 pm", wrong: ["q3"], note: "Applied the null factor law to (x − 3)(x + 2) = 6 without rearranging.", attempts: { q3: Q3_NFL }, groupStatus: "Discussing Q3 · when the null factor law applies" },
+  { id: "amelia", name: "Amelia Chen", initials: "AC", statuses: st("secure", "secure", "secure", "secure", "developing", "secure"), confidence: "low", done: 6, when: "2:30 pm", wrong: ["q6"], note: "Read \"touches once\" as a discriminant greater than zero.", attempts: { q6: Q6_TWICE }, groupStatus: "Quick pass done · comparing Q4 methods" },
+  { id: "tomas", name: "Tomas Reyes", initials: "TR", statuses: st("developing", "gap", "secure", "secure", "gap", "developing"), confidence: "low: fractions", done: 5, when: "Yesterday", wrong: ["q3", "q4", "q5"], note: "Divided by a instead of 2a in the quadratic formula.", attempts: { q3: Q3_NFL, q4: Q4_OVER_A, q5: Q5_SIGNS }, groupStatus: "Discussing Q4 · the 2a" },
+  { id: "zara", name: "Zara Haddad", initials: "ZH", statuses: st("secure", "developing", "secure", "secure", "secure", "developing"), confidence: "confident", done: 6, when: "1:05 pm", wrong: ["q3"], note: "Applied the null factor law to (x − 3)(x + 2) = 6 without rearranging.", attempts: { q3: Q3_NFL }, groupStatus: "Discussing Q3 · when the null factor law applies" },
   { id: "liam", name: "Liam O'Connell", initials: "LO", statuses: st("gap", "developing", "developing", "gap", "unseen", "developing"), confidence: "confident", done: 2, when: "9:40 am", wrong: ["q2", "q3"], note: "Guessed a factor pair without expanding back.", attempts: { q2: Q2_GUESSED, q3: Q3_NFL }, groupStatus: "Discussing Q2 · listening" },
 ];
 

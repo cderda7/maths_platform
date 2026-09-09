@@ -25,7 +25,7 @@ describe("board examples", () => {
     expect(counts.get("factoring")).toBe(3); // sam, jordan, liam
     expect(counts.get("correct")).toBe(4);
     expect(struggleCount("q3", sessionAt("feedback"))).toBe(4); // sam, tomas, zara, liam
-    expect(problemsByStruggle(sessionAt("feedback")).map((p) => p.problem.id)).toEqual(["q3", "q2", "q1", "q4"]);
+    expect(problemsByStruggle(sessionAt("feedback")).map((p) => p.problem.id)).toEqual(["q3", "q2", "q1", "q4", "q5", "q6"]);
   });
 
   it("suggests one correct example then one per error bucket, capped at three, at least two", () => {

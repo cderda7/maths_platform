@@ -29,13 +29,13 @@ describe("feedback layers", () => {
     const weak = feedbackFor(scriptedSession()).flatMap((p) => p.lines.filter((l) => l.standout).map((l) => `${p.problem.id}:${l.tex.slice(0, 10)}`));
     expect(weak).toEqual(["q2:2x + 4 = 0", "q4:b^2 - 4ac ", "q4:x = \\dfrac"]);
     const strong = feedbackFor(modelRun()).flatMap((p) => p.lines.filter((l) => l.standout).map((l) => `${p.problem.id}:${l.tex.slice(0, 10)}`));
-    expect(strong).toEqual(["q2:ac = -8,\\q", "q3:x^2 - x - ", "q4:b^2 - 4ac "]);
+    expect(strong).toEqual(["q2:ac = -8,\\q", "q3:x^2 - x - ", "q4:b^2 - 4ac ", "q5:x = \\tfrac", "q6:36 - 4k = "]);
   });
 
   it("clues are pattern-level and only on problems with a slip; a clean problem can be starred", () => {
     const fb = feedbackFor(scriptedSession());
-    expect(fb.map((p) => !!p.clue)).toEqual([true, true, true, false]);
-    expect(fb.map((p) => p.clean)).toEqual([false, false, false, true]);
+    expect(fb.map((p) => !!p.clue)).toEqual([true, true, true, false, false, false]);
+    expect(fb.map((p) => p.clean)).toEqual([false, false, false, true, true, true]);
     for (const p of fb) if (p.clue) expect(p.clue).not.toMatch(/line \d/i);
   });
 
@@ -52,7 +52,7 @@ describe("detective feedback summary", () => {
   it("zero mistakes: every problem held, no hint", async () => {
     const { feedbackSummary } = await import("./feedback");
     const s = feedbackSummary(modelRun());
-    expect(s).toMatchObject({ count: 0, total: 4, subskills: [] });
+    expect(s).toMatchObject({ count: 0, total: 6, subskills: [] });
     expect(s.sentence).toBe("Every problem held.");
   });
 

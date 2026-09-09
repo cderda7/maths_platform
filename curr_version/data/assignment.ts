@@ -1,9 +1,10 @@
 import type { Assignment, Problem } from "./types";
 
 /**
- * The demo assignment: four problems on the roots of a quadratic, hand-checked. The set is
- * shaped so a scripted run can slip on factorising twice (Q1 then Q2), slip on the null factor
- * law once (Q3), and finish Q4 correctly but unsure. Later tickets build on exactly this shape.
+ * The demo assignment: six problems on the roots of a quadratic, hand-checked. The set is shaped
+ * so a scripted run can slip on factorising twice (Q1 then Q2), slip on the null factor law once
+ * (Q3), finish Q4 correctly but unsure, and get the two graphing problems (Q5, Q6) right. Later
+ * tickets build on exactly this shape.
  */
 export const PROBLEMS: Problem[] = [
   {
@@ -66,6 +67,35 @@ export const PROBLEMS: Problem[] = [
       { tex: "x = \\dfrac{5 \\pm \\sqrt{37}}{6}", label: "Quadratic formula", subskill: "fractions" },
     ],
   },
+  {
+    id: "q5",
+    label: "Q5",
+    subskill: "roots",
+    prereqs: ["factoring", "graphing"],
+    difficulty: "simple unfamiliar",
+    stem: "Find the x-intercepts and the turning point of the graph of",
+    tex: "y = x^2 - 4x - 5",
+    solution: [
+      { tex: "(x - 5)(x + 1) = 0", label: "Factorised", subskill: "factoring" },
+      { tex: "x = 5 \\;\\text{or}\\; x = -1", label: "x-intercepts", subskill: "roots" },
+      { tex: "x = \\tfrac{5 + (-1)}{2} = 2", label: "Axis of symmetry", subskill: "graphing" },
+      { tex: "y = 4 - 8 - 5 = -9,\\quad (2, -9)", label: "Turning point", subskill: "graphing" },
+    ],
+  },
+  {
+    id: "q6",
+    label: "Q6",
+    subskill: "roots",
+    prereqs: ["graphing", "algebra"],
+    difficulty: "complex unfamiliar",
+    stem: "For which value of k does the graph of the following touch the x-axis exactly once?",
+    tex: "y = x^2 + 6x + k",
+    solution: [
+      { tex: "b^2 - 4ac = 36 - 4k", label: "Discriminant", subskill: "roots" },
+      { tex: "36 - 4k = 0", label: "One root: discriminant zero", subskill: "graphing" },
+      { tex: "k = 9", label: "Solved for k", subskill: "algebra" },
+    ],
+  },
 ];
 
 export const PROBLEM_MAP = Object.fromEntries(PROBLEMS.map((p) => [p.id, p])) as Record<string, Problem>;
@@ -77,7 +107,7 @@ export const ASSIGNMENT: Assignment = {
   teacher: "Ms Okafor",
   due: "Thu 10 Sep",
   unit: "Unit 1 · Topic 2 · Functions and graphs",
-  intro: "Four problems on finding where a quadratic crosses the x-axis. Each one leans on a couple of skills you already have.",
+  intro: "Six problems on finding where a quadratic crosses the x-axis, and what its graph shows. Each one leans on a couple of skills you already have.",
   problems: PROBLEMS,
 };
 

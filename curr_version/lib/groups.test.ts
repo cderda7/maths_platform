@@ -28,7 +28,7 @@ describe("teacher's review groups view", () => {
     const groups = reviewGroups(null);
     expect(groups.length).toBe(2);
     expect(groups[1].members.map((m) => m.id)).toEqual(["priya", "amelia", "tomas"]);
-    expect(groups[1].discussing).toEqual(["q3", "q4"]);
+    expect(groups[1].discussing).toEqual(["q3", "q4", "q5", "q6"]);
     expect(groups[0].members[0].status).toBe("Not started");
   });
 });

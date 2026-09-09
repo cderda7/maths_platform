@@ -1,7 +1,7 @@
 # Edexia · Maths — closed-loop demo
 
 A design-only demo of live, closed-loop maths feedback for QCE Year 11 Mathematical Methods:
-a student works a four-problem set by hand on an iPad, the platform reads each line as it's
+a student works a six-problem set by hand on an iPad, the platform reads each line as it's
 written and reacts, and the teacher watches the same run move in real time, chooses the review
 pathway, and can put the class's work on the board. Built 8–9 Sep 2026 from `specs/spec1.md`
 (v2, tickets 01–16) and `specs/spec2.md` (v3, tickets 17–25) in `tickets/`.
@@ -38,9 +38,11 @@ Teacher, before the lesson (`/teacher/assignments/new`):
 
 Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the pen):
 
-2. Overview, warm-up offer, confidence. Work Q1–Q4 on the pad; each burst of strokes is read as
+2. Overview, warm-up offer, confidence. Work Q1–Q6 on the pad; each burst of strokes is read as
    one line and the ink is kept. Q1 and Q2 slip on factorising (a two-minute practice is offered
-   on the second), Q3 on the null factor law, Q4 holds. "I need help" runs the same practice flow.
+   on the second), Q3 on the null factor law, Q4 holds, and the two graphing problems (Q5 the
+   turning point and intercepts of a parabola, Q6 the value of k for a single root) hold too.
+   "I need help" runs the same practice flow.
 3. **Hand in** → the pathway decides what comes next.
 4. **Individual review** (detective feedback): one sentence, "3 of your problems contain a
    mistake. Double-check factorising and algebra.", and the unmarked transcription. Rework any

@@ -10,6 +10,8 @@ describe("teacher mistake view", () => {
       ["q2", ["sam", "jordan", "liam"]],
       ["q3", ["sam", "tomas", "zara", "liam"]],
       ["q4", ["tomas"]],
+      ["q5", ["tomas"]],
+      ["q6", ["amelia"]],
     ]);
     expect(m[1].rows[0].live).toBe(true);
     expect(m[1].rows[1].live).toBe(false);
@@ -26,7 +28,7 @@ describe("teacher mistake view", () => {
 
   it("without a live session only the classmates appear", () => {
     const m = mistakesByProblem(null);
-    expect(m.map((p) => p.problem.id)).toEqual(["q2", "q3", "q4"]);
+    expect(m.map((p) => p.problem.id)).toEqual(["q2", "q3", "q4", "q5", "q6"]);
     expect(m.flatMap((p) => p.rows.map((r) => r.id))).not.toContain("sam");
   });
 });

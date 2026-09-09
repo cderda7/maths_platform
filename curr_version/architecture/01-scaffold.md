@@ -51,3 +51,14 @@ Routes: `/`, `/student`, `/teacher`.
 `npm run build`, `npm run lint`, `tsc --noEmit`, `vitest run` (no tests yet, passes), and
 headless-Chrome screenshots of `/`, `/student` and `/teacher` at 1440×1000, plus `/student` at
 1100×800 to check the stage scales down.
+
+## Follow-up · 2026-09-09 · two graphing problems
+
+The set grew from four to six problems. Q5 (`y = x² − 4x − 5`: x-intercepts and turning point)
+and Q6 (`y = x² + 6x + k`: the k for which the graph touches the x-axis once) lean on graphing,
+so the graphing column on the teacher's live view is now seen. Everything that iterates
+`ASSIGNMENT.problems` picked them up: the scripted run gets both right (`data/recognition.ts`),
+`data/evaluation.ts` knows every model step plus two classic slips (roots read off factors with
+flipped signs; "touches once" read as a positive discriminant), `data/classmates.ts` gives Tomas
+the Q5 slip and Amelia the Q6 slip so the board and the mistake view have graphing examples, and
+the overview's problem grid scrolls. Tests that counted "of 4" now count "of 6".

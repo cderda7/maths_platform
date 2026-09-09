@@ -66,7 +66,7 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
             I need help
           </Button>
           <Eyebrow>Problems</Eyebrow>
-          <ol className="mt-2.5 flex gap-1.5">
+          <ol className="mt-2.5 flex flex-wrap gap-1.5">
             {problems.map((q, i) => {
               const active = i === session.problemIndex;
               const started = (session.lines[q.id]?.length ?? 0) > 0;
@@ -76,7 +76,7 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
                     type="button"
                     onClick={() => go(i)}
                     aria-current={active ? "step" : undefined}
-                    className={`h-9 w-11 rounded-lg border text-[13px] font-medium transition-colors ${
+                    className={`h-9 w-10 rounded-lg border text-[13px] font-medium transition-colors ${
                       active ? "border-ink bg-ink text-white" : started ? "border-accent-line bg-accent-soft text-accent-deep" : "border-line bg-paper text-ink-soft hover:border-ink-muted"
                     }`}
                   >

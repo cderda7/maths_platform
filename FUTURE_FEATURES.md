@@ -86,7 +86,7 @@ appends it here (see `CLAUDE.md`).
   screens to the problems the teacher picked, but `feedbackFor`, `versionsOf`, `reportFacts` and
   the teacher views still iterate the fixture's four problems (unchosen ones just have no lines,
   and the report says "of 4"). Thread the active problem list through `lib/` when the bank grows.
-- **A real problem bank** larger than the four fixture problems, with search and tagging by
+- **A real problem bank** larger than the six fixture problems, with search and tagging by
   subskill; the creation screen's list is the fixture today.
 
 - **Multi-student student store** keyed per student; the classroom store is already shaped for

@@ -18,7 +18,7 @@ describe("group-phase computation", () => {
   it("the demo group: Q4 is the quick pass, Q1–Q3 the discussion, about 2 slips each", () => {
     const g = groupPlan(sessionAt("group-pass"));
     expect(g.members.map((m) => m.id)).toEqual(["sam", "jordan", "zara", "liam"]);
-    expect(g.quickPass.map((p) => p.id)).toEqual(["q4"]);
+    expect(g.quickPass.map((p) => p.id)).toEqual(["q4", "q5", "q6"]);
     expect(g.discussion.problems.map((p) => p.id)).toEqual(["q1", "q2", "q3"]);
     expect(g.discussion.memberCount).toBe(4);
     expect(g.discussion.totalWrong).toBe(3 + 1 + 1 + 2);

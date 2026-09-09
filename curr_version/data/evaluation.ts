@@ -78,6 +78,37 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "The denominator of the quadratic formula is 2a. With a = 3, what is it?",
     ),
   },
+  q5: {
+    "(x - 5)(x + 1) = 0": ok("factoring", "Factorised"),
+    "x = 5 \\;\\text{or}\\; x = -1": ok("roots", "x-intercepts"),
+    "x = \\tfrac{5 + (-1)}{2} = 2": ok("graphing", "Axis of symmetry"),
+    "y = 4 - 8 - 5 = -9,\\quad (2, -9)": ok("graphing", "Turning point"),
+    "x = -5 \\;\\text{or}\\; x = 1": wrong(
+      "roots",
+      "x-intercepts",
+      "Reading a root off a factor flips a sign somewhere. Substituting the root back into the factor is a one-line check.",
+      "Put x = −5 into (x − 5). Does it come out as zero?",
+    ),
+    "x = \\tfrac{-5 + 1}{2} = -2": ok("graphing", "Axis of symmetry", true),
+    "(2, -5)": wrong(
+      "graphing",
+      "Turning point",
+      "The turning point's x is right but its y came from the wrong line. The y-value is the function evaluated at that x, not the constant term.",
+      "Substitute x = 2 into y = x² − 4x − 5. What is y?",
+    ),
+  },
+  q6: {
+    "b^2 - 4ac = 36 - 4k": ok("roots", "Discriminant"),
+    "36 - 4k = 0": ok("graphing", "One root: discriminant zero"),
+    "k = 9": ok("algebra", "Solved for k"),
+    "36 - 4k > 0": wrong(
+      "graphing",
+      "Discriminant condition",
+      "Touching once and crossing twice are different pictures. Which one does the discriminant's sign describe here?",
+      "A graph that touches the x-axis once has how many roots? What does that make the discriminant?",
+    ),
+    "k < 9": ok("algebra", "Solved the inequality", true),
+  },
 };
 
 /**
@@ -101,5 +132,11 @@ export const STANDOUT: Record<string, Record<string, Standout>> = {
   q4: {
     "b^2 - 4ac = 25 + 12 = 37": { when: "both", why: "Two negatives handled cleanly: −4 × 3 × (−1) came out as +12." },
     "x = \\dfrac{5 \\pm \\sqrt{37}}{6}": { when: "weak", why: "Left √37 exact rather than rounding. That's what \"exact values\" asks for." },
+  },
+  q5: {
+    "x = \\tfrac{5 + (-1)}{2} = 2": { when: "strong", why: "Axis of symmetry straight from the roots, no formula needed." },
+  },
+  q6: {
+    "36 - 4k = 0": { when: "strong", why: "Translated “touches once” into “discriminant is zero” in one line." },
   },
 };

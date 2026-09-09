@@ -35,7 +35,7 @@ export default function OverviewScreen({ onPractice, onStart }: { onPractice: ()
 
       <section className="flex min-h-0 flex-col px-9 py-8">
         <Eyebrow>Problems</Eyebrow>
-        <ol className="mt-5 grid grid-cols-2 gap-4">
+        <ol className="mt-5 grid min-h-0 grid-cols-2 gap-4 overflow-y-auto pb-2">
           {active.problems.map((p) => (
             <li key={p.id}>
               <Card className="h-full p-5">
@@ -57,7 +57,7 @@ export default function OverviewScreen({ onPractice, onStart }: { onPractice: ()
           ))}
         </ol>
 
-        <Card tone="soft" className="mt-auto flex items-center justify-between gap-6 p-5">
+        <Card tone="soft" className="mt-4 flex shrink-0 items-center justify-between gap-6 p-5">
           <div>
             <div className="text-[15px] font-medium text-ink">Two-minute warm-up?</div>
             <p className="mt-1 text-[13px] text-ink-muted">{SUBSKILL_MAP[PRACTICE.subskill].name} · not marked</p>

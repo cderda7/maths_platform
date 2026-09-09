@@ -36,7 +36,7 @@ export default function DiagnosticPush({ session }: { session: StudentSession | 
       <div className="flex items-center justify-between">
         <Eyebrow>Live diagnostic</Eyebrow>
         <label className="flex cursor-pointer items-center gap-2 text-[12.5px] text-ink-soft">
-          <span>{recorded ? "Recorded" : "Not recorded"}</span>
+          <span>{recorded ? "recorded" : "not recorded"}</span>
           <button
             type="button"
             role="switch"
