@@ -99,12 +99,15 @@ export default function TeacherLive() {
     const rect = table?.getBoundingClientRect();
     if (!table || !rect) return [];
     const scale = rect.width / (table.offsetWidth || rect.width);
-    return columns.map((c) => {
-      const th = table.querySelector<HTMLElement>(`thead [data-column="${c}"]`)?.getBoundingClientRect();
-      const dot = table.querySelector<HTMLElement>(`[data-row="${student}"] [data-dot="${c}"] [data-status]`)?.getBoundingClientRect();
-      // The tree starts under the dot and must end inside the column: dots are left-aligned in their columns for this.
+    const dots = columns.map((c) => table.querySelector<HTMLElement>(`[data-row="${student}"] [data-dot="${c}"] [data-status]`)?.getBoundingClientRect());
+    return columns.map((c, i) => {
+      const dot = dots[i];
+      const next = dots[i + 1];
+      // The tree starts under its dot and may run until the next column's dot (the space its neighbour never uses); the last until its column's edge.
       const left = dot ? (dot.left - rect.left) / scale - 20 : 0;
-      const width = th && dot ? Math.round((th.right - dot.left) / scale) - 6 : 80;
+      // The last tree has no neighbour tree: it may run to the grid's edge (the drill row is empty there).
+      const end = next ? next.left - 10 : rect.right - 20 * scale;
+      const width = dot ? Math.round((end - dot.left) / scale) : 80;
       return { category: c, left, width };
     });
   };
@@ -150,7 +153,7 @@ export default function TeacherLive() {
       initials: DEMO_STUDENT.initials,
       live: true,
       evidence: live ? sessionEvidence(live) : { lines: {}, submitted: false, caution: [] },
-      sub: live ? stageWord(live) : "Not started",
+      sub: live && live.stage !== "working" ? stageWord(live).toLowerCase() : "",
       confidence: confidenceWord(live?.confidence ?? null),
       set: `${live ? problemsStarted(live) : 0}/${problems.length}`,
       setSub: live && !HANDED_IN.includes(live.stage) ? "handed in" : live && problemsStarted(live) > 0 ? "in progress" : "",
@@ -186,12 +189,12 @@ export default function TeacherLive() {
         <Card className="overflow-hidden">
           <table ref={tableRef} className="w-full table-fixed text-left text-[14px]" data-grid>
             <colgroup>
-              <col className="w-[212px]" />
+              <col className="w-[190px]" />
               {columns.map((c) => (
-                <col key={c} className="w-[104px]" />
+                <col key={c} className="w-[112px]" />
               ))}
-              <col className="w-[86px]" />
-              <col className="w-[66px]" />
+              <col className="w-[80px]" />
+              <col className="w-[60px]" />
             </colgroup>
             <thead>
               <tr className="border-b border-line text-[10px] uppercase tracking-[0.06em] text-ink-muted">
@@ -199,11 +202,12 @@ export default function TeacherLive() {
                 {columns.map((c) => (
                   <th
                     key={c}
-                    className={`cursor-pointer select-none py-4 pl-2 pr-1 text-left font-semibold leading-tight transition-colors hover:text-ink ${column?.category === c ? "text-ink" : ""}`}
+                    className={`cursor-pointer select-none px-1 py-4 text-center font-semibold leading-tight transition-colors hover:text-ink ${column?.category === c ? "text-ink" : ""}`}
                     data-column={c}
                     data-column-open={column?.category === c ? column.level : undefined}
+                    onClick={() => column && setColumn(null)}
                     onDoubleClick={() => headerDouble(c)}
-                    title="Double-click to open this category for every student"
+                    title="Double-click to open this category for every student; click to close"
                   >
                     {categoryName(c).short}
                   </th>
@@ -216,7 +220,6 @@ export default function TeacherLive() {
               {rows.map((r, i) => {
                 const h = results[i];
                 const isOpen = open?.student === r.id;
-                const expanded = isOpen && open.mode === "category" ? open.category : column ? column.category : null;
                 const showDrill = isOpen || !!column;
                 return (
                   <RowGroup key={r.id}>
@@ -235,12 +238,13 @@ export default function TeacherLive() {
                             <div className="flex items-center gap-2 whitespace-nowrap font-medium text-ink">
                               {r.name}
                               {r.live && (
-                                <span className="inline-flex items-center gap-1 rounded-full border border-accent-line bg-paper px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-deep">
-                                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" aria-hidden /> live
+                                <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-accent-line bg-paper px-2 py-0.5 text-[11px] font-medium text-accent-deep" data-live-pill>
+                                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" aria-hidden />
+                                  {!live ? "not started" : live.stage === "working" ? `${ASSIGNMENT.problems[live.problemIndex]?.label ?? "Q1"} in progress` : "live"}
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-start gap-2 text-[12.5px] leading-snug text-ink-muted">
+                            <div className={`flex items-start gap-2 text-[12.5px] leading-snug text-ink-muted ${r.sub || (r.live && (caution.length > 0 || live?.reportSent)) ? "" : "hidden"}`}>
                               {r.live && caution.length > 0 && (
                                 <span className="inline-flex items-center gap-1 rounded-full border border-gap-line bg-gap-soft px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gap" data-caution>
                                   <span className="h-1.5 w-1.5 rounded-full bg-gap" aria-hidden /> caution
@@ -265,9 +269,9 @@ export default function TeacherLive() {
                       {columns.map((c) => {
                         const st = h.categories[c] ?? "unseen";
                         const half = h.half.categories.includes(c);
-                        const on = expanded === c;
+                        const on = isOpen && open.mode === "category" && open.category === c;
                         return (
-                          <td key={c} className="py-3.5 pl-1 pr-1 text-left">
+                          <td key={c} className="px-1 py-3.5 text-center">
                             <button
                               type="button"
                               onClick={() => (on && !column ? setOpen(null) : openRow(r.id, "category", c))}
