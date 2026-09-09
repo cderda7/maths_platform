@@ -1,17 +1,21 @@
+"use client";
+
 import M from "@/components/Math";
 import { Button, Card, Eyebrow } from "@/components/ui";
 import { DifficultyTag, SubskillChip } from "@/components/Tag";
 import { ASSIGNMENT } from "@/data/assignment";
 import { PRACTICE } from "@/data/practice";
+import { useAssignment } from "@/lib/classroom-store";
 import { PREREQ_IDS, SUBSKILL_MAP, TARGET_ID } from "@/data/subskills";
 
 export default function OverviewScreen({ onPractice, onStart }: { onPractice: () => void; onStart: () => void }) {
   const target = SUBSKILL_MAP[TARGET_ID];
+  const active = useAssignment();
   return (
     <div className="grid h-full min-h-0 grid-cols-[440px_1fr]">
       <aside className="min-h-0 overflow-y-auto border-r border-line px-9 py-8">
         <Eyebrow>{ASSIGNMENT.unit}</Eyebrow>
-        <h1 className="font-display mt-3 text-[34px] leading-[1.08] text-ink">{ASSIGNMENT.title}</h1>
+        <h1 className="font-display mt-3 text-[34px] leading-[1.08] text-ink">{active.title}</h1>
         <p className="mt-3 text-[13px] text-ink-muted">
           {ASSIGNMENT.teacher} · due {ASSIGNMENT.due}
         </p>
@@ -32,7 +36,7 @@ export default function OverviewScreen({ onPractice, onStart }: { onPractice: ()
       <section className="flex min-h-0 flex-col px-9 py-8">
         <Eyebrow>Problems</Eyebrow>
         <ol className="mt-5 grid grid-cols-2 gap-4">
-          {ASSIGNMENT.problems.map((p) => (
+          {active.problems.map((p) => (
             <li key={p.id}>
               <Card className="h-full p-5">
                 <div className="flex items-center justify-between">

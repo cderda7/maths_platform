@@ -12,7 +12,7 @@ import { GroupDiscussScreen, GroupPassScreen } from "./screens/GroupScreens";
 import ReportScreen from "./screens/ReportScreen";
 import { useEffect } from "react";
 import { dispatch, useStudentSession } from "@/lib/store";
-import { dispatchClassroom } from "@/lib/classroom-store";
+import { dispatchClassroom, useAssignment } from "@/lib/classroom-store";
 import { ASSIGNMENT } from "@/data/assignment";
 import type { Pathway, Stage } from "@/data/types";
 import type { RunKindParam } from "@/lib/session";
@@ -24,9 +24,6 @@ import DiagnosticModal from "./screens/DiagnosticModal";
 const CRUMB: Partial<Record<Stage, string>> = {
   practice: "Warm-up",
   confidence: "Before you start",
-  working: ASSIGNMENT.title,
-  feedback: ASSIGNMENT.title,
-  waiting: ASSIGNMENT.title,
   rework: "Rework on your own",
   "group-pass": "Group review",
   "group-discuss": "Group review",
@@ -46,9 +43,11 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const session = useStudentSession(initStage, explicit, run);
+  const { title } = useAssignment();
+  const crumb = CRUMB[session.stage] ?? (["working", "feedback", "waiting"].includes(session.stage) ? title : ASSIGNMENT.className);
   return (
     <IpadStage>
-      <StudentChrome crumb={CRUMB[session.stage] ?? ASSIGNMENT.className}>
+      <StudentChrome crumb={crumb}>
         {session.stage === "overview" && (
           <OverviewScreen onPractice={() => dispatch({ type: "practice/accept" })} onStart={() => dispatch({ type: "practice/decline" })} />
         )}

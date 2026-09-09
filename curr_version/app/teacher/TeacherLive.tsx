@@ -10,6 +10,7 @@ import { CLASSMATES } from "@/data/classmates";
 import { PREREQ_IDS, SUBSKILL_MAP, TARGET_ID } from "@/data/subskills";
 import type { Confidence, SubskillId, SubskillStatus } from "@/data/types";
 import { useBatchedSession, useNow } from "@/lib/store";
+import { useAssignment } from "@/lib/classroom-store";
 import { problemsStarted, subskillStatuses } from "@/lib/status";
 import type { StudentSession } from "@/lib/session";
 
@@ -71,6 +72,7 @@ export default function TeacherLive() {
   const caution = live?.escalation.caution ?? [];
   const conf = confidenceWord(live?.confidence ?? null);
   const now = useNow();
+  const { title } = useAssignment();
 
   return (
     <TeacherChrome>
@@ -79,7 +81,7 @@ export default function TeacherLive() {
       </Eyebrow>
       <H1 className="mt-3">Where the class is</H1>
       <p className="mt-3 text-[14px] text-ink-muted">
-        {ASSIGNMENT.title} · due {ASSIGNMENT.due}
+        {title} · due {ASSIGNMENT.due}
       </p>
 
       <div className="mt-10 grid grid-cols-[1fr_300px] gap-6">

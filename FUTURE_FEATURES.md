@@ -79,6 +79,13 @@ appends it here (see `CLAUDE.md`).
 
 ## Data and platform
 
+- **Derivations honour the chosen problem subset.** Ticket 19 (2026-09-09) filters the student
+  screens to the problems the teacher picked, but `feedbackFor`, `versionsOf`, `reportFacts` and
+  the teacher views still iterate the fixture's four problems (unchosen ones just have no lines,
+  and the report says "of 4"). Thread the active problem list through `lib/` when the bank grows.
+- **A real problem bank** larger than the four fixture problems, with search and tagging by
+  subskill; the creation screen's list is the fixture today.
+
 - **Multi-student student store** keyed per student; the classroom store is already shaped for
   it. Needed before any of the above runs with a real class.
 - **Ink rendering in the history compare view** and in the teacher's original-vs-final view

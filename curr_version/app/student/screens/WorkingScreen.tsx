@@ -7,8 +7,8 @@ import PadSection from "@/components/PadSection";
 import ReadAs from "@/components/ReadAs";
 import { Button, Eyebrow } from "@/components/ui";
 import { DifficultyTag, SubskillChip } from "@/components/Tag";
-import { ASSIGNMENT } from "@/data/assignment";
 import { RECOGNITION } from "@/data/recognition";
+import { useAssignment } from "@/lib/classroom-store";
 import { nextLine } from "@/lib/recognition";
 import { HelpPicker, PracticeOverlay, PromptModal } from "./PracticePrompt";
 import type { SessionAction, StudentSession } from "@/lib/session";
@@ -19,8 +19,8 @@ import type { SessionAction, StudentSession } from "@/lib/session";
  * heavy and only the pad needs them); recognised lines live in the session.
  */
 export default function WorkingScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
-  const problems = ASSIGNMENT.problems;
-  const p = problems[session.problemIndex];
+  const problems = useAssignment().problems;
+  const p = problems[Math.min(session.problemIndex, problems.length - 1)];
   const lines = session.lines[p.id] ?? [];
   const [strokesByProblem, setStrokesByProblem] = useState<Record<string, Stroke[]>>({});
   const [recognising, setRecognising] = useState(false);

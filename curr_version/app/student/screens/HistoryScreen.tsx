@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import M from "@/components/Math";
 import { Button, Eyebrow } from "@/components/ui";
 import { DifficultyTag } from "@/components/Tag";
-import { ASSIGNMENT } from "@/data/assignment";
+import { useAssignment } from "@/lib/classroom-store";
 import type { StudentSession } from "@/lib/session";
 import { alignVersions, versionsOf, type AlignedProblem, type Version } from "@/lib/versions";
 
@@ -35,7 +35,7 @@ export default function HistoryScreen({ session, onBack }: { session: StudentSes
     <div className="flex h-full min-h-0 flex-col px-9 py-6">
       <div className="flex items-end justify-between">
         <div>
-          <Eyebrow>{ASSIGNMENT.title} · reviewed</Eyebrow>
+          <Eyebrow>{useAssignment().title} · reviewed</Eyebrow>
           <h1 className="font-display mt-1.5 text-[26px] leading-tight text-ink">Your working</h1>
         </div>
         <div className="flex items-center gap-3">

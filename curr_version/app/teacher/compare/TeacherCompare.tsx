@@ -8,6 +8,7 @@ import { DifficultyTag, SubskillChip } from "@/components/Tag";
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { evaluateLine } from "@/lib/evaluate";
 import { useBatchedSession } from "@/lib/store";
+import { useAssignment } from "@/lib/classroom-store";
 import { alignVersions, changedRowCount, rowChanged, versionsOf } from "@/lib/versions";
 
 const time = (ms: number) => (ms > 0 ? new Date(ms).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "—");
@@ -23,7 +24,7 @@ export default function TeacherCompare() {
   return (
     <TeacherChrome>
       <Eyebrow>
-        {ASSIGNMENT.className} · {ASSIGNMENT.title}
+        {ASSIGNMENT.className} · {useAssignment().title}
       </Eyebrow>
       <div className="mt-3 flex items-end justify-between">
         <div className="flex items-center gap-4">

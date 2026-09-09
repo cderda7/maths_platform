@@ -5,6 +5,7 @@ import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
 import { reviewGroups } from "@/lib/groups";
 import { useBatchedSession } from "@/lib/store";
+import { useAssignment } from "@/lib/classroom-store";
 
 /** During review groups: each group, one line per student, one shared note for why it formed. */
 export default function TeacherGroups() {
@@ -13,7 +14,7 @@ export default function TeacherGroups() {
   return (
     <TeacherChrome>
       <Eyebrow>
-        {ASSIGNMENT.className} · {ASSIGNMENT.title}
+        {ASSIGNMENT.className} · {useAssignment().title}
       </Eyebrow>
       <H1 className="mt-3">Review groups</H1>
 

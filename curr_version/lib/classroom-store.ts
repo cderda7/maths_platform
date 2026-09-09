@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { classroomReducer, INITIAL_CLASSROOM, type ClassroomAction, type ClassroomState } from "./classroom";
+import { activeAssignment, type ActiveAssignment } from "./assignment";
 
 /**
  * The classroom store: teacher-owned state shared between every tab on this machine, same shape
@@ -84,4 +85,9 @@ const serverSnapshot = () => INITIAL_CLASSROOM;
 
 export function useClassroom(): ClassroomState {
   return useSyncExternalStore(subscribeClassroom, getClassroom, serverSnapshot);
+}
+
+/** The assignment in force (created or fixture), live in every tab. */
+export function useAssignment(): ActiveAssignment {
+  return activeAssignment(useClassroom());
 }

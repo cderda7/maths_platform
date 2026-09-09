@@ -11,6 +11,7 @@ import type { SubskillStatus } from "@/data/types";
 import { reportFacts } from "@/lib/report";
 import { subskillStatuses } from "@/lib/status";
 import { useBatchedSession } from "@/lib/store";
+import { useAssignment } from "@/lib/classroom-store";
 
 /** The demo student's report as the teacher sees it: subskill summary left, reflection right. */
 export default function TeacherReport() {
@@ -22,7 +23,7 @@ export default function TeacherReport() {
   return (
     <TeacherChrome>
       <Eyebrow>
-        {ASSIGNMENT.className} · {ASSIGNMENT.title}
+        {ASSIGNMENT.className} · {useAssignment().title}
       </Eyebrow>
       <div className="mt-3 flex items-end justify-between">
         <div className="flex items-center gap-4">

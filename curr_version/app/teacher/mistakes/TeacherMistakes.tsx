@@ -11,6 +11,7 @@ import { SUBSKILL_MAP } from "@/data/subskills";
 import type { SubskillId } from "@/data/types";
 import { mistakesByProblem } from "@/lib/mistakes";
 import { useBatchedSession } from "@/lib/store";
+import { useAssignment } from "@/lib/classroom-store";
 
 /** Mistakes by problem, then by student; a row expands inline to the working with the slip in red. */
 export default function TeacherMistakes() {
@@ -21,7 +22,7 @@ export default function TeacherMistakes() {
   return (
     <TeacherChrome>
       <Eyebrow>
-        {ASSIGNMENT.className} · {ASSIGNMENT.title}
+        {ASSIGNMENT.className} · {useAssignment().title}
       </Eyebrow>
       <H1 className="mt-3">Where it went wrong</H1>
 

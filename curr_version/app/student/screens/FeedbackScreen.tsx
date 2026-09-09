@@ -5,6 +5,7 @@ import M from "@/components/Math";
 import { Button, Card, Eyebrow } from "@/components/ui";
 import { DifficultyTag, SubskillChip } from "@/components/Tag";
 import { feedbackFor } from "@/lib/feedback";
+import { useAssignment } from "@/lib/classroom-store";
 import type { SessionAction, StudentSession } from "@/lib/session";
 
 /**
@@ -13,9 +14,10 @@ import type { SessionAction, StudentSession } from "@/lib/session";
  * line. A star on a problem that was right but felt unsure.
  */
 export default function FeedbackScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
-  const fb = feedbackFor(session);
+  const ids = useAssignment().problems.map((p) => p.id);
+  const fb = feedbackFor(session).filter((p) => ids.includes(p.problem.id));
   const [sel, setSel] = useState(0);
-  const cur = fb[sel];
+  const cur = fb[Math.min(sel, fb.length - 1)];
   const slipsTotal = fb.reduce((n, p) => n + p.slips.length, 0);
   const starred = session.stars.includes(cur.problem.id);
 

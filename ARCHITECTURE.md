@@ -11,6 +11,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  browser tab A · student iPad                        browser tab B · teacher
  ┌──────────────────────────────────┐                ┌──────────────────────────────────┐
  │ /student?stage=  page.tsx (server)│               │ /teacher  page.tsx ▶ TeacherLive │
+ │ /teacher/assignments/new         │
+ │   NewAssignment ▶ PathwayMap     │
  │   └▶ StudentApp (client)         │                │   useBatchedSession(3 s)         │
  │       useStudentSession()        │                │   subskillStatuses · caution     │
  │       └▶ IpadStage ▶ StudentChrome│               │   classmates (static fixture)    │
@@ -36,6 +38,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │ lib/classroom-store.ts  ClassroomState (teacher-owned, own key + channel)           │
  │                useClassroom · dispatchClassroom · resetClassroom                    │
  │ lib/classroom.ts    CreatedAssignment { title, problemIds, pathway } · pathwayOf    │
+ │ lib/assignment.ts   activeAssignment(classroom) → created title + problems, or fixture│
  │ lib/pathway.ts      REVIEW_ORDER · successors · nextStage · pathwaySentence/Chip    │
  │ lib/session.ts      StudentSession · sessionReducer(s, a, env) · sessionAt (pure)   │
  │ lib/recognition.ts  nextLine · afterUndo  (burst of strokes → scripted line)        │
@@ -104,7 +107,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 15 | Teacher original vs final (Tier 2) | `/teacher/compare` | `3fb499b` | [curr_version/architecture/15-teacher-original-vs-final.md](curr_version/architecture/15-teacher-original-vs-final.md) |
 | 16 | Diagnostic MCQ push (Tier 2) | `/teacher` → `/student` interrupt | `7b3d49c` | [curr_version/architecture/16-diagnostic-mcq-push.md](curr_version/architecture/16-diagnostic-mcq-push.md) |
 | 17 | Copy sweep to the rule (spec v3) | every route | `cabb007` | [curr_version/architecture/17-copy-sweep.md](curr_version/architecture/17-copy-sweep.md) |
-| 18 | Pathway model and routing | `/student?pathway=…`, `/teacher` chip | _this commit_ | [curr_version/architecture/18-pathway-model-and-routing.md](curr_version/architecture/18-pathway-model-and-routing.md) |
+| 18 | Pathway model and routing | `/student?pathway=…`, `/teacher` chip | `dc5ee2a` | [curr_version/architecture/18-pathway-model-and-routing.md](curr_version/architecture/18-pathway-model-and-routing.md) |
+| 19 | Assignment creation with the pathway map | `/teacher/assignments/new` | _this commit_ | [curr_version/architecture/19-assignment-creation-with-pathway-map.md](curr_version/architecture/19-assignment-creation-with-pathway-map.md) |
 
 ## Conventions
 

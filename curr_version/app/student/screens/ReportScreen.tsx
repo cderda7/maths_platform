@@ -7,6 +7,7 @@ import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
 import { PREREQ_IDS, SUBSKILL_MAP, TARGET_ID } from "@/data/subskills";
 import { reportFacts } from "@/lib/report";
 import { isMastery } from "@/lib/peers";
+import { useAssignment } from "@/lib/classroom-store";
 import type { SessionAction, StudentSession } from "@/lib/session";
 import { subskillStatuses } from "@/lib/status";
 
@@ -26,7 +27,7 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
   return (
     <div className="grid h-full min-h-0 grid-cols-[1fr_440px]">
       <section className="flex min-h-0 flex-col overflow-y-auto px-9 py-7">
-        <Eyebrow>{ASSIGNMENT.title}</Eyebrow>
+        <Eyebrow>{useAssignment().title}</Eyebrow>
         <h1 className="font-display mt-2 text-[30px] leading-tight text-ink">Your report</h1>
         <div className="mt-2 flex items-center justify-between gap-4">
           <p className="text-[13px] text-ink-muted">What {ASSIGNMENT.teacher} sees</p>

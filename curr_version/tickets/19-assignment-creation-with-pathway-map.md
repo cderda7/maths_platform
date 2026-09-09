@@ -4,14 +4,14 @@
 
 **Blocked by:** 18 (Pathway model and routing).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Teacher route for creating an assignment, ported from the Sept 7 mockup and cut to the copy rule
-- [ ] Title input and problem picker from the bank; at least one problem required
-- [ ] Pathway map with bold-and-fade columns driven by the pathway module's legal successors; reversible; implicit stop; live summary sentence
-- [ ] Dashed disabled "continue tomorrow" node, coming soon
-- [ ] Submit writes to the classroom store; student tab reads title, problems and pathway from it when present, fixture otherwise
-- [ ] Reset clears the created assignment along with the student session
-- [ ] Classroom reducer tests cover creation and reset
-- [ ] Build, lint, type-check, vitest pass; headless: create with two different pathways and confirm the student tab follows each
-- [ ] Architecture note written and folded into `ARCHITECTURE.md`
+- [x] Teacher route for creating an assignment, ported from the Sept 7 mockup and cut to the copy rule
+- [x] Title input and problem picker from the bank; at least one problem required
+- [x] Pathway map with bold-and-fade columns driven by the pathway module's legal successors; reversible; implicit stop; live summary sentence
+- [x] Dashed disabled "continue tomorrow" node, coming soon
+- [x] Submit writes to the classroom store; student tab reads title, problems and pathway from it when present, fixture otherwise
+- [x] Reset clears the created assignment along with the student session
+- [x] Classroom reducer tests cover creation and reset
+- [x] Build, lint, type-check, vitest pass; headless: create with two different pathways and confirm the student tab follows each
+- [x] Architecture note written and folded into `ARCHITECTURE.md`

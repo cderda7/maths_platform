@@ -9,6 +9,7 @@ import { Button, Card, Eyebrow } from "@/components/ui";
 import { DifficultyTag } from "@/components/Tag";
 import { RECOGNITION_REWORK } from "@/data/recognition";
 import { feedbackFor } from "@/lib/feedback";
+import { useAssignment } from "@/lib/classroom-store";
 import { nextLine } from "@/lib/recognition";
 import type { SessionAction, StudentSession } from "@/lib/session";
 
@@ -18,8 +19,10 @@ import type { SessionAction, StudentSession } from "@/lib/session";
  * preserved; the rework becomes a second version.
  */
 export default function ReworkScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
-  const todo = feedbackFor(session).filter((p) => p.slips.length > 0);
-  const held = feedbackFor(session).filter((p) => p.slips.length === 0);
+  const ids = useAssignment().problems.map((p) => p.id);
+  const fb = feedbackFor(session).filter((p) => ids.includes(p.problem.id));
+  const todo = fb.filter((p) => p.slips.length > 0);
+  const held = fb.filter((p) => p.slips.length === 0);
   const i = Math.min(session.reworkIndex, todo.length - 1);
   const cur = todo[i];
   const p = cur.problem;
