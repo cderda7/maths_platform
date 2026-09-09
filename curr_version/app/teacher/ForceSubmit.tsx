@@ -66,7 +66,7 @@ export default function ForceSubmit({ session }: { session: StudentSession | nul
       ) : (
         <div className="mt-3">
           <Button variant="secondary" disabled={!liveWorking || projecting} onClick={() => setConfirming(true)} data-force>
-            Force assignment submit
+            force assignment submit
           </Button>
         </div>
       )}
