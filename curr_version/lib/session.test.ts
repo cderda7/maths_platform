@@ -38,7 +38,7 @@ describe("student session flow", () => {
     expect(sessionReducer(s, { type: "warmup/say", text: "   " })).toBe(s);
     s = sessionReducer(s, { type: "warmup/say", text: "fractions, and Q2" });
     expect(s.warmup.messages.map((m) => m.from)).toEqual(["student", "tutor"]);
-    expect(s.warmup.messages[1].text).toMatch(/^Got it\. One short problem each, easiest first: fractions, /);
+    expect(s.warmup.messages[1].text).toBe("Got it. Let's get started.");
     expect(warmupProblem(s).id).toBe("w-fractions");
   });
 
@@ -50,9 +50,10 @@ describe("student session flow", () => {
     s = sessionReducer(s, { type: "warmup/skill-done" });
     expect(s.stage).toBe("practice");
     expect(s.warmup.step).toBe(1);
-    expect(warmupProblem(s).id).toBe("w-quadratic");
+    expect(warmupProblem(s).id).toBe("w-monic");
     expect(s.warmup.hinted).toEqual(["w-fractions"]);
     s = sessionReducer(s, { type: "warmup/skill-done" });
+    expect(warmupProblem(s).id).toBe("w-nfl");
     s = sessionReducer(s, { type: "warmup/skill-done" });
     expect(warmupProblem(s).id).toBe("w-nonmonic");
     s = sessionReducer(s, { type: "warmup/skill-done" });

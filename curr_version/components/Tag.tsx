@@ -17,11 +17,12 @@ export function DifficultyTag({ d, className = "" }: { d: Difficulty; className?
 }
 
 /** A taxonomy leaf by its short name. */
-export function LeafChip({ id, status, className = "", ...rest }: { id: LeafId; status?: Status; className?: string } & React.HTMLAttributes<HTMLSpanElement>) {
+export function LeafChip({ id, status, after, className = "", ...rest }: { id: LeafId; status?: Status; after?: React.ReactNode; className?: string } & React.HTMLAttributes<HTMLSpanElement>) {
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full border border-line bg-paper px-2.5 py-0.5 text-[11.5px] text-ink-soft ${className}`} data-leaf={id} {...rest}>
       {status && <StatusDot status={status} size="h-2 w-2" />}
       {leafName(id).short}
+      {after}
     </span>
   );
 }

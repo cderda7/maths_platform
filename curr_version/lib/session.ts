@@ -505,7 +505,7 @@ export function sessionAt(stage: Stage, run: RunKindParam = "weak"): StudentSess
     stage,
     practice: i === ORDER.indexOf("warmup-pick") || i === ORDER.indexOf("practice") ? "taken" : i >= ORDER.indexOf("confidence") ? "declined" : null,
     confidence: i >= ORDER.indexOf("warmup-pick") ? { level: "low-when", category: "algebra" } : null,
-    // A deep link straight to the pad needs something to warm up on: Q2 and fractions, the demo's own worry.
-    warmup: i === ORDER.indexOf("practice") ? { ...INITIAL_WARMUP, selected: ["q2"], messages: [{ from: "student", text: "fractions" }] } : INITIAL_WARMUP,
+    // A deep link straight to the pad needs something to warm up on: Q2, monic factorising and fractions, the demo's own worries.
+    warmup: i === ORDER.indexOf("practice") ? { ...INITIAL_WARMUP, selected: ["q2"], messages: [{ from: "student", text: "monic factorising and fractions" }] } : INITIAL_WARMUP,
   };
 }

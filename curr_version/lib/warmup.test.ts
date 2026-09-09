@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { byEase, EASE, focusLeaves, interpret, tutorReply, warmupScript, warmupSequence } from "./warmup";
+import { byEase, EASE, focusLeaves, interpret, NOT_WARMED, tutorReply, warmupScript, warmupSequence } from "./warmup";
 import { PRACTICE, WARMUP_BANK } from "@/data/practice";
 import { ASSIGNMENT } from "@/data/assignment";
 import { leavesTouched } from "./hierarchy";
@@ -23,8 +23,9 @@ describe("interpreting the student's words", () => {
 describe("the focus", () => {
   it("is the selected problems' leaves plus what the words named, communication excluded, in first-mention order", () => {
     const f = focusLeaves(["q4"], [{ from: "student", text: "fractions and Q1" }, { from: "tutor", text: "monic" }]);
-    expect(f).toEqual(["algebra.equations.quadratic", "unit.u1.discriminant", "algebra.number.fractions", "algebra.expand-factor.monic", "unit.u1.nfl"]);
+    expect(f).toEqual(["unit.u1.discriminant", "algebra.number.fractions", "algebra.expand-factor.monic", "unit.u1.nfl"]);
     expect(f.some((l) => l.startsWith("communication."))).toBe(false);
+    expect(f).not.toContain("algebra.equations.quadratic");
   });
   it("is empty with nothing selected and nothing said", () => {
     expect(focusLeaves([], [])).toEqual([]);
@@ -32,21 +33,15 @@ describe("the focus", () => {
 });
 
 describe("the warm-up sequence", () => {
-  it("walks the focus easiest first: fractions, quadratic equations, monic, null factor law, non-monic", () => {
+  it("walks the focus easiest first: fractions, monic, null factor law, non-monic (quadratic equations is never isolated)", () => {
     const focus = focusLeaves(["q2"], [{ from: "student", text: "monic factorising and fractions" }]);
-    expect(warmupSequence(focus).map((p) => p.leaf)).toEqual([
-      "algebra.number.fractions",
-      "algebra.equations.quadratic",
-      "algebra.expand-factor.monic",
-      "unit.u1.nfl",
-      "algebra.expand-factor.nonmonic",
-    ]);
+    expect(warmupSequence(focus).map((p) => p.leaf)).toEqual(["algebra.number.fractions", "algebra.expand-factor.monic", "unit.u1.nfl", "algebra.expand-factor.nonmonic"]);
   });
   it("nothing in focus → the default warm-up alone", () => {
     expect(warmupSequence([]).map((p) => p.id)).toEqual([PRACTICE.id]);
   });
   it("one problem per leaf, never the same problem twice, and every leaf in the set is served by a problem on that leaf", () => {
-    const all = leavesTouched(ASSIGNMENT.problems).filter((l) => !l.startsWith("communication."));
+    const all = leavesTouched(ASSIGNMENT.problems).filter((l) => !l.startsWith("communication.") && !NOT_WARMED.includes(l));
     const seq = warmupSequence(all);
     expect(seq.length).toBe(all.length);
     expect(new Set(seq.map((p) => p.id)).size).toBe(seq.length);
@@ -66,12 +61,9 @@ describe("the warm-up sequence", () => {
 });
 
 describe("the tutor's reply", () => {
-  it("names the sequence, easiest first", () => {
+  it("is short when something matched", () => {
     const focus = focusLeaves([], [{ from: "student", text: "factoring and fractions" }]);
-    expect(tutorReply("factoring and fractions", focus)).toBe("Got it. One short problem each, easiest first: fractions, monic factorising and non-monic factorising.");
-  });
-  it("a single skill gets a single problem", () => {
-    expect(tutorReply("fractions", ["algebra.number.fractions"])).toBe("Got it. One short problem on fractions.");
+    expect(tutorReply("factoring and fractions", focus)).toBe("Got it. Let's get started.");
   });
   it("asks again when nothing matched", () => {
     expect(tutorReply("hmm", [])).toMatch(/^I couldn't match/);

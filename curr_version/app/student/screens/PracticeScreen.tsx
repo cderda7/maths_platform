@@ -75,7 +75,8 @@ export default function PracticeScreen({ session, dispatch }: { session: Student
                   key={q.id}
                   id={q.leaf}
                   data-state={state}
-                  className={state === "done" ? "!border-standout !bg-standout !text-white" : state === "current" ? "!border-standout !bg-standout-soft !text-standout" : "!border-standout-line !bg-standout-soft !text-standout"}
+                  className={state === "current" ? "!border-standout !bg-standout !text-white" : "!border-standout-line !bg-standout-soft !text-standout"}
+                  after={state === "done" ? <span aria-label="done" className="font-semibold">✓</span> : undefined}
                 />
               );
             })}

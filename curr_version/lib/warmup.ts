@@ -49,13 +49,18 @@ export function interpret(text: string, problems: Problem[] = ASSIGNMENT.problem
   return { leaves, problems: refs };
 }
 
+/**
+ * Leaves the warm-up never isolates: communication (it is about how work is shown, not a skill to
+ * drill) and "quadratic equations" (it is the whole of this set; a warm-up on it is the set).
+ */
+export const NOT_WARMED: readonly LeafId[] = ["algebra.equations.quadratic"];
 const COMMUNICATION = "communication.";
 
 /** Leaves the warm-up is about: the selected problems' leaves, then anything the messages named, in first-mention order. */
 export function focusLeaves(selected: string[], messages: WarmupMessage[], problems: Problem[] = ASSIGNMENT.problems): LeafId[] {
   const out: LeafId[] = [];
   const add = (l: LeafId) => {
-    if (!l.startsWith(COMMUNICATION) && !out.includes(l)) out.push(l);
+    if (!l.startsWith(COMMUNICATION) && !NOT_WARMED.includes(l) && !out.includes(l)) out.push(l);
   };
   const byId = (id: string) => problems.find((p) => p.id === id);
   for (const id of selected) for (const l of problemLeaves(byId(id) ?? { solution: [] } as unknown as Problem)) add(l);
@@ -130,8 +135,7 @@ export function tutorReply(message: string, focus: LeafId[], problems: Problem[]
       ? "I couldn't match that to a skill in this set. Try naming one, like \"fractions\", or a question, like \"Q2\"."
       : `I couldn't add anything from that. Still warming up on ${list(names(focus))}.`;
   }
-  const ordered = warmupSequence(focus).map((p) => p.leaf);
-  return ordered.length === 1 ? `Got it. One short problem on ${names(ordered)[0]}.` : `Got it. One short problem each, easiest first: ${list(names(ordered))}.`;
+  return "Got it. Let's get started.";
 }
 
 /** What the pad reads for a warm-up problem, one line per burst: its own model steps. */

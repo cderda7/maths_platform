@@ -207,3 +207,6 @@ appends it here (see `CLAUDE.md`).
 - **Difficulty tags elsewhere.** Removed from the overview and the chooser at the user's request;
   still shown on the working screen, the reports and the teacher views. Decide whether the
   student should ever see them.
+- **Quadratic equations as a warm-up.** Excluded from the warm-up focus (`NOT_WARMED`): it is the
+  whole of this set, and isolating it made the warm-up as hard as the set (2026-09-10). Other sets
+  will have their own "whole-set" leaf; make the exclusion per assignment.
