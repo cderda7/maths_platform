@@ -16,7 +16,7 @@ import { categoryName, categoryOf, groupName, leafName, type CategoryId, type Le
 import type { Confidence } from "@/data/types";
 import { pathwayOf } from "@/lib/classroom";
 import { useAssignment, useClassroom } from "@/lib/classroom-store";
-import { classmateEvidence, hierarchyFor, problemsStarted, sessionEvidence, type Evidence } from "@/lib/hierarchy";
+import { classmateEvidence, hierarchyFor, leavesBehind, problemsStarted, restrictTo, sessionEvidence, type Evidence } from "@/lib/hierarchy";
 import { pathwayChip } from "@/lib/pathway";
 import type { StudentSession } from "@/lib/session";
 import { useBatchedSession, useNow } from "@/lib/store";
@@ -84,7 +84,7 @@ export default function TeacherLive() {
   const classroom = useClassroom();
   const wc = classroom.wholeClass;
   const status = wc?.status === "active" ? " · in whole-class review" : wc?.status === "ended" ? " · complete" : "";
-  const [open, setOpen] = useState<{ student: string; mode: RowMode; category?: CategoryId; leaf?: LeafId; columns: ColumnBox[]; nonce: number; expandAll?: boolean } | null>(null);
+  const [open, setOpen] = useState<{ student: string; mode: RowMode; category?: CategoryId; leaf?: LeafId; columns: ColumnBox[]; nonce: number; expandAll?: boolean; comment?: number; keep?: LeafId[] } | null>(null);
   /** A column view: one category open under every student's dot, at group level or with skills too. */
   const [column, setColumn] = useState<{ category: CategoryId; level: "groups" | "expanded"; boxes: Record<string, ColumnBox[]>; nonce: number } | null>(null);
   const tableRef = useRef<HTMLTableElement>(null);
@@ -114,6 +114,16 @@ export default function TeacherLive() {
   const openRow = (student: string, mode: RowMode, category?: CategoryId, leaf?: LeafId, expandAll = false) => {
     setColumn(null);
     setOpen({ student, mode, category, leaf, columns: columnBoxes(student), nonce: ++nonce.current, expandAll });
+  };
+  /** A comment opens everything for that student with only the comment's skills coloured; the same comment again closes. */
+  const commentClick = (student: string, index: number, keep: LeafId[], e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (open?.student === student && open.comment === index) {
+      setOpen(null);
+      return;
+    }
+    setColumn(null);
+    setOpen({ student, mode: "expanded", columns: columnBoxes(student), nonce: ++nonce.current, comment: index, keep });
   };
   /** Double-click a header: the column opens for everyone at group level, then with skills, then closes. */
   const headerDouble = (c: CategoryId) => {
@@ -146,7 +156,7 @@ export default function TeacherLive() {
     openRow(student, "expanded");
   };
 
-  const rows: { id: string; name: string; initials: string; live: boolean; evidence: Evidence; sub: string; confidence: { text: string; tone: string }; set: string; setSub: string }[] = [
+  const rows: { id: string; name: string; initials: string; live: boolean; evidence: Evidence; sub: string; notes: { text: string; problems: string[] }[]; confidence: { text: string; tone: string }; set: string; setSub: string }[] = [
     {
       id: DEMO_STUDENT.id,
       name: DEMO_STUDENT.name,
@@ -154,6 +164,7 @@ export default function TeacherLive() {
       live: true,
       evidence: live ? sessionEvidence(live) : { lines: {}, submitted: false, caution: [] },
       sub: live && live.stage !== "working" ? stageWord(live).toLowerCase() : "",
+      notes: [] as { text: string; problems: string[] }[],
       confidence: confidenceWord(live?.confidence ?? null),
       set: `${live ? problemsStarted(live) : 0}/${problems.length}`,
       setSub: live && !HANDED_IN.includes(live.stage) ? "handed in" : live && problemsStarted(live) > 0 ? "in progress" : "",
@@ -164,7 +175,8 @@ export default function TeacherLive() {
       initials: c.initials,
       live: false,
       evidence: classmateEvidence(c, problems),
-      sub: c.note ?? "",
+      sub: "",
+      notes: c.notes,
       confidence: { text: c.confidence, tone: c.confidence === "confident" ? "text-secure" : "text-standout" },
       set: `${Math.min(c.done, problems.length)}/${problems.length}`,
       setSub: c.when,
@@ -218,8 +230,8 @@ export default function TeacherLive() {
             </thead>
             <tbody>
               {rows.map((r, i) => {
-                const h = results[i];
                 const isOpen = open?.student === r.id;
+                const h = isOpen && open.keep ? restrictTo(results[i], open.keep) : results[i];
                 const showDrill = isOpen || !!column;
                 return (
                   <RowGroup key={r.id}>
@@ -244,18 +256,29 @@ export default function TeacherLive() {
                                 </span>
                               )}
                             </div>
-                            <div className={`flex items-start gap-2 text-[12.5px] leading-snug text-ink-muted ${r.sub || (r.live && (caution.length > 0 || live?.reportSent)) ? "" : "hidden"}`}>
+                            <div className={`flex items-start gap-2 text-[12.5px] leading-snug text-ink-muted ${r.sub || r.notes.length > 0 || (r.live && (caution.length > 0 || live?.reportSent)) ? "" : "hidden"}`}>
                               {r.live && caution.length > 0 && (
                                 <span className="inline-flex items-center gap-1 rounded-full border border-gap-line bg-gap-soft px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gap" data-caution>
                                   <span className="h-1.5 w-1.5 rounded-full bg-gap" aria-hidden /> caution
                                 </span>
                               )}
-                              <span className="flex flex-col">
-                                {r.sub.split(";").map((part, n) => (
-                                  <span key={n} className={`${r.live ? "" : "lowercase"} -indent-3 pl-3`}>
-                                    {part.trim().replace(/\.$/, "")}
-                                  </span>
-                                ))}
+                              <span className="flex flex-col items-start">
+                                {r.sub && <span className="-indent-3 pl-3">{r.sub}</span>}
+                                {r.notes.map((note, n) => {
+                                  const active = isOpen && open.comment === n;
+                                  return (
+                                    <button
+                                      key={n}
+                                      type="button"
+                                      onClick={(e) => commentClick(r.id, n, leavesBehind(note.problems, r.evidence.lines, problems), e)}
+                                      className={`-indent-3 pl-3 text-left lowercase transition-colors hover:text-ink ${active ? "text-ink underline decoration-line-strong underline-offset-2" : ""}`}
+                                      title="Show only the skills behind this comment"
+                                      data-comment={n}
+                                    >
+                                      {note.text}
+                                    </button>
+                                  );
+                                })}
                               </span>
                               {r.live && live?.reportSent && (
                                 <Link href="/teacher/report" className="text-accent-deep hover:underline" data-report-link>
@@ -270,6 +293,7 @@ export default function TeacherLive() {
                         const st = h.categories[c] ?? "unseen";
                         const half = h.half.categories.includes(c);
                         const on = isOpen && open.mode === "category" && open.category === c;
+                        const blanked = !!column && column.category !== c; // a column view shows only its own column's dots
                         return (
                           <td key={c} className="px-1 py-3.5 text-center">
                             <button
@@ -278,8 +302,9 @@ export default function TeacherLive() {
                               onDoubleClick={() => openRow(r.id, "category", c, undefined, true)}
                               aria-label={`${categoryName(c).name}: ${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}
                               aria-expanded={on}
-                              className={`inline-grid h-7 w-7 place-items-center rounded-full transition-colors hover:bg-cream-deep ${on ? "bg-cream-deep ring-1 ring-ink" : ""}`}
+                              className={`inline-grid h-7 w-7 place-items-center rounded-full transition-colors hover:bg-cream-deep ${on ? "bg-cream-deep ring-1 ring-ink" : ""} ${blanked ? "invisible" : ""}`}
                               data-dot={c}
+                              data-blanked={blanked || undefined}
                             >
                               <StatusDot status={st} half={half} size="h-[15px] w-[15px]" />
                             </button>

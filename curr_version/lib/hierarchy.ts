@@ -160,3 +160,28 @@ export const classmateHierarchy = (c: Classmate, problems: Problem[] = ASSIGNMEN
 export function problemsStarted(session: StudentSession): number {
   return Object.values(session.lines).filter((ls) => ls.length > 0).length;
 }
+
+/** The same result with only `keep` leaves coloured; groups and categories roll up from those alone, the rest reads as unseen. */
+export function restrictTo(result: HierarchyResult, keep: LeafId[]): HierarchyResult {
+  const leaves: Partial<Record<LeafId, Status>> = {};
+  for (const l of Object.keys(result.leaves) as LeafId[]) leaves[l] = keep.includes(l) ? result.leaves[l] : "unseen";
+  const groups: Partial<Record<GroupId, Status>> = {};
+  const categories: Partial<Record<CategoryId, Status>> = {};
+  for (const g of Object.keys(result.groups) as GroupId[]) groups[g] = rollUp(leavesOf(g).filter((l) => keep.includes(l)).map((l) => result.leaves[l] ?? "unseen"));
+  for (const c of Object.keys(result.categories) as CategoryId[]) categories[c] = rollUp(groupsOf(c).map((g) => groups[g] ?? "unseen"));
+  return { ...result, leaves, groups, categories, half: { leaves: [], groups: [], categories: [] } };
+}
+
+/** Leaves a comment is about: every leaf the named problems invoke, plus the leaf of any wrong line the student wrote on them. */
+export function leavesBehind(problemIds: string[], lines: Record<string, string[]>, problems: Problem[] = ASSIGNMENT.problems): LeafId[] {
+  const out = new Set<LeafId>();
+  for (const pid of problemIds) {
+    const p = problems.find((x) => x.id === pid);
+    if (p) for (const l of problemLeaves(p)) out.add(l);
+    for (const tex of lines[pid] ?? []) {
+      const v = evaluateLine(pid, tex);
+      if (v.verdict === "wrong") for (const t of v.tags) out.add(t.leaf);
+    }
+  }
+  return [...out];
+}

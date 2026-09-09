@@ -16,7 +16,8 @@ export interface Classmate {
   when: string;
   /** Problem ids this classmate got wrong. */
   wrong: string[];
-  note?: string;
+  /** Teacher-facing comments, each tied to the problems it is about (clicking one lights only those skills). */
+  notes: { text: string; problems: string[] }[];
   /** Their recognised working on the problems they got wrong, for the teacher's mistake view. */
   attempts: Record<string, string[]>;
   /** One line for the teacher's "during review groups" view. Static; the demo student's is live. */
@@ -34,12 +35,12 @@ const Q9_HEIGHT = ["-x(x - 6) = 0", "x = 0 \\;\\text{or}\\; x = 6", "x = 3", "h 
 const Q10_TWICE = ["b^2 - 4ac = 16 - 20 = -4", "\\Delta < 0 \\Rightarrow \\text{no real solutions}", "\\text{The graph crosses the x-axis twice}"];
 
 export const CLASSMATES: Classmate[] = [
-  { id: "priya", name: "Priya Raman", initials: "PR", confidence: "confident", done: 10, when: "4:12 pm", wrong: [], attempts: {}, groupStatus: "Quick pass done · nothing to discuss" },
-  { id: "jordan", name: "Jordan Whitlock", initials: "JW", confidence: "confident", done: 3, when: "3:48 pm", wrong: ["q2"], note: "Non-monic factors not checked by expanding.", attempts: { q2: Q2_GUESSED }, groupStatus: "Discussing Q2 · expanding back" },
-  { id: "amelia", name: "Amelia Chen", initials: "AC", confidence: "low", done: 10, when: "2:30 pm", wrong: ["q6", "q10"], note: "Read “touches once” as discriminant > 0; said the graph crosses twice.", attempts: { q6: Q6_TWICE, q10: Q10_TWICE }, groupStatus: "Quick pass done · comparing Q4 methods" },
-  { id: "tomas", name: "Tomas Reyes", initials: "TR", confidence: "low: fractions", done: 7, when: "Yesterday", wrong: ["q3", "q4", "q5", "q7"], note: "Divided by a, not 2a; scaled two of three terms.", attempts: { q3: Q3_NFL, q4: Q4_OVER_A, q5: Q5_SIGNS, q7: Q7_TWO_TERMS }, groupStatus: "Discussing Q4 · the 2a" },
-  { id: "zara", name: "Zara Haddad", initials: "ZH", confidence: "confident", done: 10, when: "1:05 pm", wrong: ["q3", "q9"], note: "Null factor law on a product that isn’t 0; axis given as the height.", attempts: { q3: Q3_NFL, q9: Q9_HEIGHT }, groupStatus: "Discussing Q3 · when the null factor law applies" },
-  { id: "liam", name: "Liam O'Connell", initials: "LO", confidence: "confident", done: 2, when: "9:40 am", wrong: ["q2", "q3"], note: "Guessed a factor pair without expanding back.", attempts: { q2: Q2_GUESSED, q3: Q3_NFL }, groupStatus: "Discussing Q2 · listening" },
+  { id: "priya", name: "Priya Raman", initials: "PR", confidence: "confident", done: 10, when: "4:12 pm", wrong: [], notes: [], attempts: {}, groupStatus: "Quick pass done · nothing to discuss" },
+  { id: "jordan", name: "Jordan Whitlock", initials: "JW", confidence: "confident", done: 3, when: "3:48 pm", wrong: ["q2"], notes: [{ text: "non-monic factors not checked by expanding", problems: ["q2"] }], attempts: { q2: Q2_GUESSED }, groupStatus: "Discussing Q2 · expanding back" },
+  { id: "amelia", name: "Amelia Chen", initials: "AC", confidence: "low", done: 10, when: "2:30 pm", wrong: ["q6", "q10"], notes: [{ text: "read “touches once” as discriminant > 0", problems: ["q6"] }, { text: "said the graph crosses twice", problems: ["q10"] }], attempts: { q6: Q6_TWICE, q10: Q10_TWICE }, groupStatus: "Quick pass done · comparing Q4 methods" },
+  { id: "tomas", name: "Tomas Reyes", initials: "TR", confidence: "low: fractions", done: 7, when: "Yesterday", wrong: ["q3", "q4", "q5", "q7"], notes: [{ text: "divided by a, not 2a", problems: ["q4"] }, { text: "scaled two of three terms", problems: ["q7"] }], attempts: { q3: Q3_NFL, q4: Q4_OVER_A, q5: Q5_SIGNS, q7: Q7_TWO_TERMS }, groupStatus: "Discussing Q4 · the 2a" },
+  { id: "zara", name: "Zara Haddad", initials: "ZH", confidence: "confident", done: 10, when: "1:05 pm", wrong: ["q3", "q9"], notes: [{ text: "null factor law on a product that isn’t 0", problems: ["q3"] }, { text: "axis given as the height", problems: ["q9"] }], attempts: { q3: Q3_NFL, q9: Q9_HEIGHT }, groupStatus: "Discussing Q3 · when the null factor law applies" },
+  { id: "liam", name: "Liam O'Connell", initials: "LO", confidence: "confident", done: 2, when: "9:40 am", wrong: ["q2", "q3"], notes: [{ text: "guessed a factor pair without expanding back", problems: ["q2", "q3"] }], attempts: { q2: Q2_GUESSED, q3: Q3_NFL }, groupStatus: "Discussing Q2 · listening" },
 ];
 
 export const CLASSMATE_MAP = Object.fromEntries(CLASSMATES.map((c) => [c.id, c])) as Record<string, Classmate>;

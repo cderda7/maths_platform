@@ -121,3 +121,24 @@ describe("taxonomy coverage in the fixture", () => {
     expect(leavesTouched().length).toBeGreaterThan(10);
   });
 });
+
+describe("restricting a result to a comment's skills", () => {
+  it("colours only the kept leaves and rolls groups and categories up from them alone", async () => {
+    const { classmateHierarchy, leavesBehind, restrictTo, classmateEvidence } = await import("./hierarchy");
+    const amelia = CLASSMATES.find((c) => c.id === "amelia")!;
+    const full = classmateHierarchy(amelia);
+    const keep = leavesBehind(["q10"], classmateEvidence(amelia).lines);
+    expect(keep).toContain("reasoning.justify.conclusions");
+    expect(keep).toContain("unit.u1.discriminant");
+    const r = restrictTo(full, keep);
+    expect(r.leaves["reasoning.justify.conclusions"]).toBe("gap");
+    expect(r.groups["reasoning.justify"]).toBe("gap");
+    expect(r.categories.reasoning).toBe("gap");
+    expect(r.leaves["unit.u1.discriminant"]).toBe("developing");
+    expect(r.categories.unit).toBe("developing");
+    expect(r.leaves["algebra.expand-factor.monic"]).toBe("unseen");
+    expect(r.categories.algebra).toBe("unseen");
+    expect(r.categories.functions).toBe("unseen");
+    expect(r.categories.graphing).toBe("secure"); // Q10's "in context" step is also a sketching step
+  });
+});
