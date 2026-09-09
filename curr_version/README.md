@@ -3,7 +3,7 @@
 A design-only demo of live, closed-loop maths feedback for QCE Year 11 Mathematical Methods:
 a student works a four-problem set by hand on an iPad, the platform reads each line as it's
 written and reacts, and the teacher watches the same run move in real time. Built 8 Sep 2026 from
-`spec.md` (v2) through the sixteen tickets in `tickets/`.
+`specs/spec1.md` (v2) through the sixteen tickets in `tickets/`.
 
 Everything is simulated with fixture data: recognition is scripted per line, evaluation is a
 lookup table for the demo problems, groupmates are mock, and nothing leaves the browser.
