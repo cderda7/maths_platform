@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -20,9 +20,9 @@ One route that reads the classroom state and the pathway and decides what to sho
 
 ## Acceptance
 
-- [ ] Board route and home card; nothing interactive on the route
-- [ ] Blank with nothing student-specific during submission and individual review
-- [ ] Whole-class review projected on the board; the teacher's page keeps the controls and the pad, and the mirror to students still works
-- [ ] A "holding" state after group review ends, until the teacher advances
-- [ ] The teacher's live view shows what the board is showing
-- [ ] Browser check across the stages with the skip-to strip; architecture note and root docs
+- [x] Board route and home card; nothing interactive on the route
+- [x] Blank with nothing student-specific during submission and individual review
+- [x] Whole-class review projected on the board; the teacher's page keeps the controls and the pad, and the mirror to students still works
+- [x] A "holding" state after group review ends, until the teacher advances
+- [x] The teacher's live view shows what the board is showing
+- [x] Browser check across the stages with the skip-to strip; architecture note and root docs

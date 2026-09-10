@@ -28,8 +28,8 @@ export default function WholeClassCard() {
             {starting && classroom.advance ? `Starting · ${mmss(classroom.advance.deadline - now)}` : `Students frozen · problem ${slide.index + 1} of ${slide.total}`}
           </span>
           <div className="mt-3 flex items-center gap-2">
-            <Link href="/teacher/board" className="inline-flex items-center rounded-full border border-line-strong bg-paper px-3.5 py-1.5 text-[13px] font-medium text-ink hover:border-ink-muted">
-              Board →
+            <Link href="/teacher/board" className="inline-flex items-center rounded-full border border-line-strong bg-paper px-3.5 py-1.5 text-[13px] font-medium text-ink hover:border-ink-muted" data-wc-controls>
+              Controls →
             </Link>
             <button type="button" className="inline-flex items-center rounded-full bg-ink px-3.5 py-1.5 text-[13px] font-medium text-white hover:bg-ink-soft" onClick={() => dispatchClassroom({ type: "wc/end" })} data-wc-end>
               End session

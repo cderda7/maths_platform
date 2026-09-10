@@ -8,13 +8,13 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 ## System diagram
 
 ```
- browser tab A · student iPad                        browser tab B · teacher
+ browser tab A · student iPad                        browser tab B · teacher laptop
  ┌──────────────────────────────────┐                ┌──────────────────────────────────┐
  │ /student?stage=  page.tsx (server)│               │ /teacher  page.tsx ▶ TeacherLive │
- │ /teacher/assignments/new         │
+ │ /teacher/assignments/new         │                │   BoardIndicator "Board · …"     │
  │   NewAssignment ▶ PathwayMap     │
  │ /teacher/whole-class ▶ setup     │
- │ /teacher/board ▶ Board (projected)│
+ │ /teacher/board ▶ BoardControls   │   (pad · prev · mode · marks · End · next; no examples)
  │   └▶ StudentApp (client)         │                │   useBatchedSession(3 s)         │
  │   ForceSubmit → advance/start    │
  │       useStudentSession()        │                │   subskillStatuses · caution     │
@@ -35,6 +35,14 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │               ▶ History (final only; compare scroll-synced)      │
  │               DiagnosticModal over any stage while a push is pending
  └───────────────┬──────────────────┘                               │
+ browser tab C · smartboard (projector, display only)               │
+ ┌──────────────────────────────────────────────────────────────┐   │
+ │ /board ▶ SmartBoard  useClassroom · useLiveSession           │   │
+ │   boardContent → blank (class · title) · holding (standings  │   │
+ │   placeholder) · slide (examples A/B/C · n/m students · marks│   │
+ │   iff marked · read-only mirror of the teacher's ink)        │   │
+ │   no button, no link, no live pad, no name                   │   │
+ └──────────────────────────────────────────────────────────────┘   │
                  │ dispatch(action)                                 │
                  ▼                                                  ▼
  ┌────────────────────────────────────────────────────────────────────────────────────┐
@@ -49,6 +57,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │ lib/examples.ts     candidatesFor · bucketOf · suggestExamples · boardExamples (no names)│
  │                     lineMarks (red / blue for the marked view, board and student alike)  │
  │ lib/frozen.ts       frozenView(session, classroom) → the student's own work on the slide │
+ │ lib/board.ts        boardContent(classroom, session) → blank | holding | whole-class · boardWord│
  │ lib/assignment.ts   activeAssignment(classroom) → created title + problems, or fixture│
  │ lib/pathway.ts      REVIEW_ORDER · successors · nextStage · pathwaySentence/Chip    │
  │ lib/session.ts      StudentSession · sessionReducer(s, a, env) · sessionAt (pure)   │
@@ -100,8 +109,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  └────────────────────────────────────────────────────────────────────────────────────┘
  ┌────────────────────────────────────────────────────────────────────────────────────┐
  │ app/layout.tsx  fonts · katex.css · globals.css (@theme tokens, .ipad-bezel/.screen)│
- │ app/page.tsx    entry: student iPad, teacher view, or both and the board in /split │
- │ app/split/      SplitView: the three routes in scaled iframes, one, two or all three │
+ │ app/page.tsx    entry: student iPad, teacher view, smartboard, or all three in /split│
+ │ app/split/      SplitView: /student, /teacher, /board in scaled iframes, any of them  │
  │                 (lib/split.ts: panes · parse/toggle · gridFor · frameFor)            │
  │ scripts/laptop-check.mjs  every teacher route at two laptop widths, no x-overflow    │
  └────────────────────────────────────────────────────────────────────────────────────┘
@@ -147,9 +156,10 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 32 | Individual review with correction on one screen | `/student?stage=feedback` | `66fa851` | [curr_version/architecture/32-review-with-correction.md](curr_version/architecture/32-review-with-correction.md) |
 | 33 | Demo "skip to" strip | `/student` (presenter control) | `d3bd7e0` | [curr_version/architecture/33-demo-skip-to.md](curr_version/architecture/33-demo-skip-to.md) |
 | 34 | Whole-class review: versions beside a pad, frozen or write-with-me | `/student` frozen, `/teacher/whole-class`, `/teacher/board` | `fb9fc69` | [curr_version/architecture/34-whole-class-follow-modes.md](curr_version/architecture/34-whole-class-follow-modes.md) |
-| 35 | Split view: student, teacher and board in one tab | `/split` (presenter page) | _this commit_ | [curr_version/architecture/35-split-view.md](curr_version/architecture/35-split-view.md) |
+| 35 | Split view: student, teacher and board in one tab | `/split` (presenter page) | `bff34c5` | [curr_version/architecture/35-split-view.md](curr_version/architecture/35-split-view.md) |
 | 36 | Class of twenty in five colour groups | `/teacher/groups` | `00d5979` | [curr_version/architecture/36-class-of-twenty-colour-groups.md](curr_version/architecture/36-class-of-twenty-colour-groups.md) |
 | 37 | Teacher on a laptop: full width, and a viewport guard over every teacher route | `/` teacher card, `/teacher/**` | `02372da` | [curr_version/architecture/37-teacher-on-a-laptop.md](curr_version/architecture/37-teacher-on-a-laptop.md) |
+| 38 | The smartboard surface: display only, the laptop keeps the controls | `/board`, `/teacher/board` (controls), `/teacher` indicator, `/` card | `d76c226` | [curr_version/architecture/38-smartboard-surface.md](curr_version/architecture/38-smartboard-surface.md) |
 | 39 | The whole class enters group review together | `/student` class-wait, `/teacher` Class card | `54f397f` | [curr_version/architecture/39-class-enters-group-review-together.md](curr_version/architecture/39-class-enters-group-review-together.md) |
 | 40 | Group review on one shared whiteboard | `/student` group | `8d9cf9e` | [curr_version/architecture/40-group-review-shared-whiteboard.md](curr_version/architecture/40-group-review-shared-whiteboard.md) |
 

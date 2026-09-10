@@ -847,3 +847,46 @@ It is macOS-shaped by default (the Chrome path), overridable with `CHROME`.
 
 **Defence.** One file, no dependencies, the real layout engine at the two sizes the demo runs
 on, and a failure that names the element and how far past the edge it sits.
+## 2026-09-10 · The board is a display-only third surface; the laptop keeps the controls
+
+**Decision.** The smartboard is its own surface at `/board`, opened once at the start of the
+lesson and left on the projector: no button, no link, no pad that takes the pen. What it shows
+is one pure rule over the classroom state, the pathway and the session (`lib/board.ts`): blank
+(the class name and the assignment title, nothing else) while students work and through
+individual and group review, and again after whole-class review ends; a holding placeholder once
+group review is over until the teacher advances (ticket 42 puts the final standings there); the
+whole-class slide while projecting, with a read-only mirror of the teacher's working. Every
+control of whole-class review (previous, screens frozen / write with me, marks, End, next) and
+the teacher's pad stay on the laptop at `/teacher/board`, which shows what the board is showing
+instead of the examples; the live view carries the same indicator.
+
+**Context.** Until now the projected board and its controls were one page under the teacher's
+routes, so the projector showed buttons and the teacher had to drive from the projected window.
+Tickets 40 and 42 want a board that is up all lesson (the group-review standings), so the room
+needs a screen that is always on and never shows a control. The blank state shows the class and
+the title so a projector that is on doesn't read as broken, and nothing student-specific ever
+reaches it.
+
+**Alternatives considered.** A presenter mode on the projected page (a query flag that hides the
+controls): one route with two faces, easy to open the wrong one on the projector, and the
+laptop still shows the examples it doesn't need. Keeping the examples on the laptop beside the
+pad: the teacher would read from the laptop rather than the room's shared object. Rendering the
+board's content into the teacher's page as a live thumbnail: extra work on every store change
+for a picture the teacher can see on the wall. Driving the holding state from a new classroom
+flag: state that the group session of ticket 40 will own anyway; for now the demo student's
+session (their group review ending) is the class's clock, which the note and the code say.
+
+**Tradeoffs.** The teacher no longer sees the examples on the laptop and points at the wall
+instead; if that turns out to matter, a small read-only strip of the examples can come back on
+the controls page. The board reads the session unbatched (a new `useLiveSession`), so it moves
+the moment the class does while the teacher's views keep their 3 s batches; two cadences to
+know about. The board mirrors the teacher's ink, so a private scribble is on the wall; the
+teacher's pad has Clear. With a pathway that ends at group review the board holds the
+standings for good, which is what ticket 42 asks for ("hold until the teacher advances"), and
+with none it stays blank.
+
+**Defence.** One pure function decides what the wall shows, tested per stage and for naming no
+student; the projector's route has zero interactive elements by construction, so nothing can
+be pressed on it by accident; and the controls, the pad and the mirror to frozen students are
+unchanged in behaviour, only moved. The same rule feeds the indicator on both teacher pages, so
+the teacher never has to look at the wall to know what is on it.

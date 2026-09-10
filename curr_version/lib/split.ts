@@ -26,8 +26,8 @@ export const PANES: readonly Pane[] = [
   // A small laptop: the teacher's 0.8 zoom makes it 1600 layout px, enough for the dashboard's columns, and
   // close to the iPad's width so the panes land at about the same scale. It scrolls, so no height.
   { id: "teacher", label: "Teacher", href: "/teacher", design: { width: 1280, fit: "fill" } },
-  // A projector at 16:9. Narrower and the example lines wrap.
-  { id: "board", label: "Board", href: "/teacher/board", design: { width: 1440, height: 810, fit: "letterbox" } },
+  // The smartboard, a projector at 16:9. Narrower and the example lines wrap.
+  { id: "board", label: "Board", href: "/board", design: { width: 1440, height: 810, fit: "letterbox" } },
 ];
 
 export const ALL_PANES: readonly PaneId[] = PANES.map((p) => p.id);

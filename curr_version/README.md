@@ -76,8 +76,14 @@ Teacher, during the lesson (`/teacher`):
 - **Whole-class setup** (`/teacher/whole-class`): problems ranked by how many struggled, top
   three pre-checked; 2–3 suggested examples per problem with names and correctness (private),
   swappable. **Project** opens the board and starts the grace.
-- **Board** (`/teacher/board`, drag to the projector): one slide per problem, examples A/B/C with
-  "n/m students", no names, no marks until **Show marks**; Previous · Next · End.
+- **Board controls** (`/teacher/board`): which problem is up, what the board is showing, the
+  teacher's pad (mirrored to frozen students and to the board); Previous · screens frozen /
+  write with me · Show marks · End · Next.
+
+Smartboard (`/board`, left on the projector, nothing to press): blank (class and title) through
+submission and individual review; a holding placeholder once group review is over; during
+whole-class review one slide per problem, examples A/B/C with "n/m students", no names, no marks
+until the teacher shows them, and a mirror of the teacher's working.
 - **Mistakes**, **Groups** (only when the pathway has group review), **Report**,
   **/teacher/compare**.
 

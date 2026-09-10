@@ -6,6 +6,7 @@ import TeacherChrome from "./TeacherChrome";
 import DiagnosticPush from "./DiagnosticPush";
 import ForceSubmit from "./ForceSubmit";
 import WholeClassCard from "./WholeClassCard";
+import BoardIndicator from "./BoardIndicator";
 import { RowDrill, type ColumnBox, type RowMode } from "@/components/HierarchyDrill";
 import StatusKey from "@/components/StatusKey";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
@@ -173,9 +174,12 @@ export default function TeacherLive() {
         {ASSIGNMENT.className} · {unitLabel(ASSIGNMENT.unit)}
       </Eyebrow>
       <H1 className="mt-3">Class View</H1>
-      <p className="mt-3 text-[14px] text-ink-muted">
-        {title} · due {ASSIGNMENT.due}
-        <span data-assignment-status>{status}</span>
+      <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[14px] text-ink-muted">
+        <span>
+          {title} · due {ASSIGNMENT.due}
+          <span data-assignment-status>{status}</span>
+        </span>
+        <BoardIndicator session={live} />
       </p>
 
       <div className="mt-10 grid grid-cols-[1fr_320px] gap-6">
