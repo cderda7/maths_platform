@@ -522,6 +522,10 @@ appends it here (see `CLAUDE.md`).
   has several red lines.
 - **A peer who is still writing when the group moves on.** `PEER_DEBRIEF_MS` is a single constant
   tied to the hold; a real peer's debrief length would come from their device, not a timer.
+- **The ring's last frame.** The ring is cut the instant the hold ends (2026-09-10 follow-up,
+  the user asked for it removed). Its fill animates one second behind the clock, so the last
+  frame seen is about 90 % full. A short fade-out, or a fill that completes before the cut,
+  would read as "done" rather than "gone". Not asked for; left as is.
 
 ## Group review header: the progress bar stays put on "the group got it" (from ticket 53, 2026-09-10)
 

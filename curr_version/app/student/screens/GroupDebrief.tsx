@@ -137,7 +137,8 @@ function Lines({ lines, marked, onGreen }: { lines: { tex: string; mark: LineMar
 /**
  * The hold's ring: a pill drawn in pixels around whatever it wraps, 4 px out, filling clockwise
  * with `progress`. Sized from the child by a ResizeObserver, so it fits "next" and "finish" alike;
- * a fixed viewBox would keep a circle and let it drift off a wide button.
+ * a fixed viewBox would keep a circle and let it drift off a wide button. Once the hold is over
+ * (`progress` 1, the same moment `holdOver` enables the button) the ring is not drawn at all.
  */
 function HoldRing({ progress, children }: { progress: number; children: ReactNode }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -158,7 +159,7 @@ function HoldRing({ progress, children }: { progress: number; children: ReactNod
   const r = (h - stroke) / 2;
   return (
     <span ref={ref} className="relative inline-flex">
-      {box.w > 0 && (
+      {box.w > 0 && progress < 1 && (
         <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="pointer-events-none absolute" style={{ left: -gap, top: -gap }} aria-hidden data-ring>
           <rect x={stroke / 2} y={stroke / 2} width={w - stroke} height={h - stroke} rx={r} fill="none" stroke="var(--color-accent-line)" strokeWidth={stroke} />
           <rect x={stroke / 2} y={stroke / 2} width={w - stroke} height={h - stroke} rx={r} fill="none" stroke="var(--color-accent)" strokeWidth={stroke} pathLength={100} strokeDasharray={100} strokeDashoffset={100 - progress * 100} style={{ transition: "stroke-dashoffset 1s linear" }} />

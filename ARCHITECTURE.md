@@ -177,7 +177,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 49 | Group review header: no colour label, names in the group colour, a big progress bar | `/student` group | — | [curr_version/architecture/49-group-header-tint.md](curr_version/architecture/49-group-header-tint.md) |
 | 50 | Feedback summary: skills as dark purple chips; "What you submitted" / "If needed, correct it here" / "Read as" on one line | `/student?stage=feedback` | — | [curr_version/architecture/50-feedback-summary-chips.md](curr_version/architecture/50-feedback-summary-chips.md) |
 | 51 | Debrief: a pane that matches the group's rework turns green | `/student` group debrief | — | [curr_version/architecture/51-debrief-matching-pane-green.md](curr_version/architecture/51-debrief-matching-pane-green.md) |
-| 52 | Group review: Liam's Q7 checks wrong first; a ten-second hold; the ring fits the button | `/student` group | — | [curr_version/architecture/52-group-wrong-rework-and-hold.md](curr_version/architecture/52-group-wrong-rework-and-hold.md) |
+| 52 | Group review: Liam's Q7 checks wrong first; a ten-second hold; the ring fits the button and goes once the hold ends | `/student` group | — | [curr_version/architecture/52-group-wrong-rework-and-hold.md](curr_version/architecture/52-group-wrong-rework-and-hold.md) |
 | 53 | Group review header: the progress bar stays put on "the group got it" | `/student` group whiteboard + debrief | — | [curr_version/architecture/53-group-header-shared.md](curr_version/architecture/53-group-header-shared.md) |
 
 ## Conventions

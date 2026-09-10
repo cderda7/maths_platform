@@ -25,4 +25,5 @@ The presenter reached Q7 (Liam's turn) and never saw a wrong check, because the 
 - [x] On Q7 the "Not yet · read as" panel appears with the first line red and "2 more lines", then Liam's second attempt checks correct and the debrief opens
 - [x] Hint reads "take a moment to reflect"; Next enables ten seconds after "show me the marks"
 - [x] The ring is a pill hugging Next (and "finish"), filling clockwise over the hold
+- [x] The ring disappears the moment the hold ends and Next enables (follow-up 2026-09-10: it stayed as a full ring around the enabled button; the user asked for it removed)
 - [x] Unit tests for the Q7 script and the ten-second hold; browser check; architecture note and root docs
