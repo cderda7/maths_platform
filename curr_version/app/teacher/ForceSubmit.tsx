@@ -7,6 +7,7 @@ import { GRACE_MS, isPending, isProjecting } from "@/lib/classroom";
 import { dispatchClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
 import type { StudentSession } from "@/lib/session";
 import { useNow } from "@/lib/store";
+import GroupStart from "./GroupStart";
 
 const WORKING = ["overview", "confidence", "warmup-pick", "practice", "working"];
 const mmss = (ms: number) => {
@@ -70,6 +71,7 @@ export default function ForceSubmit({ session }: { session: StudentSession | nul
           </Button>
         </div>
       )}
+      <GroupStart />
     </Card>
   );
 }

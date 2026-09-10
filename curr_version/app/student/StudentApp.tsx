@@ -20,6 +20,9 @@ import { ASSIGNMENT } from "@/data/assignment";
 import type { Pathway, Stage } from "@/data/types";
 import type { RunKindParam } from "@/lib/session";
 import WaitingScreen from "./screens/WaitingScreen";
+import ClassWaitScreen from "./screens/ClassWaitScreen";
+import { classReadiness } from "@/lib/readiness";
+import { DEMO_STUDENT } from "@/data/assignment";
 import PeerScreen from "./screens/PeerScreen";
 import HistoryScreen from "./screens/HistoryScreen";
 import DiagnosticModal from "./screens/DiagnosticModal";
@@ -34,6 +37,7 @@ const CRUMB: Partial<Record<Stage, string>> = {
   "warmup-pick": "Warm-up",
   practice: "Warm-up",
   confidence: "Before you start",
+  "class-wait": "Group review",
   "group-pass": "Group review",
   "group-discuss": "Group review",
   report: "Your report",
@@ -62,6 +66,14 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
     // The grace ran out: apply the teacher's advance once (the reducer ignores repeats by id).
     if (due && advance) dispatch({ type: "advance/apply", id: advance.id, kind: advance.kind, at: now });
   }, [due, advance, now]);
+  const atGate = session.stage === "class-wait";
+  const arrived = classroom.arrivals?.[DEMO_STUDENT.id] !== undefined;
+  const started = classReadiness(classroom, now).started;
+  useEffect(() => {
+    // The gate into group review: record the arrival once; go in the moment the class is in (or the teacher started it).
+    if (atGate && !arrived) dispatchClassroom({ type: "class/arrive", student: DEMO_STUDENT.id, at: now });
+    if (atGate && arrived && started) dispatch({ type: "group/start" });
+  }, [atGate, arrived, started, now]);
   const projecting = isProjecting(classroom);
   const frozen = session.stage === "frozen";
   useEffect(() => {
@@ -70,6 +82,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
     if (!projecting && frozen) dispatch({ type: "release" });
   }, [projecting, counting, frozen]);
   const crumb = CRUMB[session.stage] ?? (["working", "feedback", "waiting", "frozen"].includes(session.stage) ? title : ASSIGNMENT.className);
+  const groupStartPill = counting && advance?.kind === "group-start";
   return (
     <IpadStage>
       <StudentChrome crumb={crumb} frozen={frozen}>
@@ -84,6 +97,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
         {session.stage === "working" && <WorkingScreen session={session} dispatch={dispatch} />}
         {session.stage === "feedback" && <FeedbackScreen session={session} dispatch={dispatch} />}
         {session.stage === "waiting" && <WaitingScreen />}
+        {session.stage === "class-wait" && <ClassWaitScreen />}
         {session.stage === "frozen" && <FrozenScreen session={session} dispatch={dispatch} />}
         {session.stage === "group-pass" && <GroupPassScreen session={session} dispatch={dispatch} />}
         {session.stage === "group-discuss" && <GroupDiscussScreen session={session} dispatch={dispatch} />}
@@ -94,7 +108,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
           <div className="pointer-events-none absolute inset-x-0 top-[33px] z-20 flex justify-center px-8" data-countdown>
             <div className="flex items-center gap-3 rounded-full border border-accent-line bg-accent-soft px-4 py-1.5 text-[13.5px] text-ink shadow-card">
               <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
-              Your teacher is moving the class on in {mmss(advance.deadline - now)}
+              {groupStartPill ? "Group review starts in" : "Your teacher is moving the class on in"} {mmss(advance.deadline - now)}
             </div>
           </div>
         )}

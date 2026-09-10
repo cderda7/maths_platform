@@ -292,3 +292,7 @@ appends it here (see `CLAUDE.md`).
   considered and left out so the draw stays the point.
 - **Peers seeing each other's reflections.** Teacher-only by decision; a group-visible variant
   would turn the reflection into a performance.
+- **Force submit and start group review as one gesture.** Ticket 39's "start group review now"
+  leaves a student still writing the set alone; the teacher presses force submit first. A single
+  "move everyone to group review" that forces the set, then the corrections, then opens the gate
+  would be one press.

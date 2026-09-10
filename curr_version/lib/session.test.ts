@@ -287,7 +287,7 @@ describe("independent rework", () => {
 
   it("finishing the rework hands off to the group stage", () => {
     const s = sessionReducer(sessionAt("feedback"), { type: "rework/done" });
-    expect(s.stage).toBe("group-pass");
+    expect(s.stage).toBe("class-wait");
   });
 
   it("deep links past the rework carry both versions", () => {
@@ -352,13 +352,13 @@ describe("routing by pathway", () => {
     expect(s.stage).toBe("feedback");
     expect(s.handedInAt).toBe(7);
     s = sessionReducer({ ...s, stage: "feedback" }, { type: "rework/done" });
-    expect(s.stage).toBe("group-pass");
+    expect(s.stage).toBe("class-wait");
     s = sessionReducer({ ...s, stage: "group-discuss" }, { type: "group/done" });
     expect(s.stage).toBe("report");
   });
 
   it("every one of the eight pathways walks its stages in order and ends on the report", () => {
-    const entry = { individual: "feedback", group: "group-pass", "whole-class": "waiting" } as const;
+    const entry = { individual: "feedback", group: "class-wait", "whole-class": "waiting" } as const;
     for (const pathway of allPathways()) {
       const r = under(pathway);
       let s = r(sessionAt("working"), { type: "hand-in" });
@@ -369,10 +369,24 @@ describe("routing by pathway", () => {
         expect(s.stage, pathway.join(",")).toBe(expected[pathway.indexOf("individual") + 1] ?? "report");
       }
       if (pathway.includes("group")) {
+        s = r(s, { type: "group/start" });
+        expect(s.stage, pathway.join(",")).toBe("group-pass");
         s = r({ ...s, stage: "group-discuss" }, { type: "group/done" });
         expect(s.stage, pathway.join(",")).toBe(expected[pathway.indexOf("group") + 1] ?? "report");
       }
     }
+  });
+
+  it("the gate: group/start only opens from class-wait; the teacher's group-start advance takes a waiting student in and hands a correcting one in as it stands", () => {
+    expect(sessionReducer(sessionAt("working"), { type: "group/start" }).stage).toBe("working");
+    expect(sessionReducer(sessionAt("class-wait"), { type: "group/start" }).stage).toBe("group-pass");
+    const waiting = sessionReducer(sessionAt("class-wait"), { type: "advance/apply", id: "g1", kind: "group-start", at: 9 });
+    expect(waiting.stage).toBe("group-pass");
+    const correcting = sessionReducer(sessionAt("feedback"), { type: "advance/apply", id: "g1", kind: "group-start", at: 9 });
+    expect(correcting.stage).toBe("group-pass");
+    expect(correcting.reworkedAt).toBe(9);
+    expect(correcting.notice).toMatch(/mistake/);
+    expect(sessionReducer(sessionAt("working"), { type: "advance/apply", id: "g1", kind: "group-start", at: 9 }).stage).toBe("working");
   });
 
   it("submit-only lands on the report with the first attempt as the only version", () => {
@@ -443,7 +457,7 @@ describe("rework hand-in and the guard", () => {
     expect(refused.reworkedAt).toBe(s.reworkedAt);
     s = sessionReducer(s, { type: "rework/clear", problem: "q4" });
     s = sessionReducer(s, { type: "rework/done", at: 9 });
-    expect(s.stage).toBe("group-pass");
+    expect(s.stage).toBe("class-wait");
     expect(s.reworkedAt).toBe(9);
   });
 
@@ -451,7 +465,7 @@ describe("rework hand-in and the guard", () => {
     let s = sessionAt("feedback");
     s = sessionReducer(s, { type: "rework/reveal", problem: "q4", line: { tex: WRONG_Q4, strokeCount: 1 } });
     s = sessionReducer(s, { type: "rework/done", force: true });
-    expect(s.stage).toBe("group-pass");
+    expect(s.stage).toBe("class-wait");
     expect(s.notice).toMatch(/^6 of your problems still contain a mistake\./);
   });
 

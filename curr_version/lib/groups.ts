@@ -28,6 +28,8 @@ export interface ReviewGroup {
 
 function liveStatus(session: StudentSession, discussion: string[]): string {
   switch (session.stage) {
+    case "class-wait":
+      return "Waiting for the class";
     case "group-pass":
       return "In the quick pass";
     case "group-discuss": {

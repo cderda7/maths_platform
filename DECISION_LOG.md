@@ -764,3 +764,26 @@ allowed with a flag rather than refused, so a class of twenty-one is fine.
 
 **Defence.** One data file for the colours and the default, one pure module for the rules, one
 classroom action to move a student, and the evidence path unchanged.
+
+## 2026-09-10 · Group review starts for the whole class at once
+
+**Decision.** Every student who hands in corrections waits at a class-level gate ("waiting for
+the class · n of 20 handed in"). Group review starts on its own when everyone is in, or when the
+teacher's "start group review now" grace runs out. Individual review is still entered per
+student. Arrivals are classroom state; for the demo the classmates arrive on a scripted timeline
+anchored to the demo student's arrival, so the count climbs while the room watches.
+
+**Context.** The group review to come is a race between groups on the smartboard; a race is
+meaningless if one group starts minutes ahead. The gate also gives the teacher one moment to
+address the room before groups begin.
+
+**Alternatives considered.** Per-group gates (a finished group starts early; leapfrogging by head
+start). Teacher-only start with no automatic open (one more thing to press every lesson).
+Arrivals as session state (they are a fact about the class, and the teacher's card needs them).
+
+**Tradeoffs.** A fast student waits for the slowest; the teacher's start bounds that at one
+minute. A student still writing the set when the teacher starts is left alone, since force
+submit exists for that.
+
+**Defence.** One pure readiness rule read by both surfaces, one classroom action per arrival, the
+existing advance mechanism for the teacher's start, and the scripted timeline lives in one table.

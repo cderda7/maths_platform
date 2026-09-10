@@ -84,6 +84,8 @@ export type Stage =
   | "working"
   | "feedback"
   | "waiting"
+  /** Corrections handed in; waiting for the whole class before group review starts. */
+  | "class-wait"
   | "frozen"
   | "group-pass"
   | "group-discuss"

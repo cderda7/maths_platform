@@ -1,8 +1,9 @@
-import { ASSIGNMENT } from "@/data/assignment";
+import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import type { Pathway } from "@/data/types";
 import { classroomReducer, GRACE_MS, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
 import { candidatesFor, problemsByStruggle, suggestExamples } from "./examples";
 import { INITIAL_SESSION, reworkedSession, sessionAt, type StudentSession } from "./session";
+import { LAST_ARRIVAL_MS } from "./readiness";
 
 /**
  * Presenter shortcuts, not product: jump the demo to a moment in Sam's run. Every jump rebuilds the
@@ -10,12 +11,15 @@ import { INITIAL_SESSION, reworkedSession, sessionAt, type StudentSession } from
  * session for that moment, so what Sam submitted is always the same. Pure: the strip applies the
  * result through the stores.
  */
-export type SkipTarget = "start" | "warm-up" | "working" | "indiv review" | "group review" | "whole-class review" | "report";
+export type SkipTarget = "start" | "warm-up" | "working" | "indiv review" | "class wait" | "group review" | "whole-class review" | "report";
 
-export const SKIP_TARGETS: SkipTarget[] = ["start", "warm-up", "working", "indiv review", "group review", "whole-class review", "report"];
+export const SKIP_TARGETS: SkipTarget[] = ["start", "warm-up", "working", "indiv review", "class wait", "group review", "whole-class review", "report"];
 
 /** Every review stage, so any of the three jumps has somewhere to land. */
 export const DEMO_PATHWAY: Pathway = ["individual", "group", "whole-class"];
+
+/** The gate long since opened: Sam arrived before the last scripted classmate, so everyone is in. */
+const everyoneIn = (c: ClassroomState, now: number) => classroomReducer(c, { type: "class/arrive", student: DEMO_STUDENT.id, at: now - LAST_ARRIVAL_MS - 1000 });
 
 /** How many problems the whole-class jump projects: the two the class struggled with most. */
 const PROJECTED = 2;
@@ -31,10 +35,13 @@ export function skipFixture(target: SkipTarget, now: number): { session: Student
       return { session: sessionAt("working"), classroom };
     case "indiv review":
       return { session: sessionAt("feedback"), classroom };
+    case "class wait":
+      // Sam has just handed in corrections: the classmates' scripted arrivals start now.
+      return { session: sessionAt("class-wait"), classroom: classroomReducer(classroom, { type: "class/arrive", student: DEMO_STUDENT.id, at: now }) };
     case "group review":
-      return { session: sessionAt("group-pass"), classroom };
+      return { session: sessionAt("group-pass"), classroom: everyoneIn(classroom, now) };
     case "report":
-      return { session: sessionAt("report"), classroom };
+      return { session: sessionAt("report"), classroom: everyoneIn(classroom, now) };
     case "whole-class review": {
       // The teacher's setup, as it would be done from the reworked run: the most-struggled problems, suggested examples, projected with the grace already over.
       const session = { ...reworkedSession(), stage: "frozen" as const };
@@ -43,7 +50,7 @@ export function skipFixture(target: SkipTarget, now: number): { session: Student
         .map((r) => r.problem.id);
       const ordered = ASSIGNMENT.problems.map((p) => p.id).filter((id) => problems.includes(id));
       const examples = Object.fromEntries(ordered.map((id) => [id, suggestExamples(candidatesFor(id, session))]));
-      classroom = classroomReducer(classroom, { type: "wc/setup", problems: ordered, examples, mode: "frozen" });
+      classroom = classroomReducer(everyoneIn(classroom, now), { type: "wc/setup", problems: ordered, examples, mode: "frozen" });
       classroom = classroomReducer(classroom, { type: "wc/project", at: now - GRACE_MS - 1000 });
       return { session, classroom };
     }

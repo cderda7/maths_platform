@@ -31,16 +31,16 @@ describe("next stage under a pathway", () => {
   it("routes hand-in by the first stage", () => {
     expect(nextStage([], "handed-in")).toBe("report");
     expect(nextStage(["individual"], "handed-in")).toBe("feedback");
-    expect(nextStage(["group"], "handed-in")).toBe("group-pass");
+    expect(nextStage(["group"], "handed-in")).toBe("class-wait"); // group review is entered through the class gate
     expect(nextStage(["whole-class"], "handed-in")).toBe("waiting");
-    expect(nextStage(["group", "whole-class"], "handed-in")).toBe("group-pass");
+    expect(nextStage(["group", "whole-class"], "handed-in")).toBe("class-wait");
   });
 
   it("routes rework and group completion by what follows them", () => {
     expect(nextStage(["individual"], "reworked")).toBe("report");
-    expect(nextStage(["individual", "group"], "reworked")).toBe("group-pass");
+    expect(nextStage(["individual", "group"], "reworked")).toBe("class-wait");
     expect(nextStage(["individual", "whole-class"], "reworked")).toBe("waiting");
-    expect(nextStage(["individual", "group", "whole-class"], "reworked")).toBe("group-pass");
+    expect(nextStage(["individual", "group", "whole-class"], "reworked")).toBe("class-wait");
     expect(nextStage(["individual", "group"], "group-done")).toBe("report");
     expect(nextStage(["group", "whole-class"], "group-done")).toBe("waiting");
     expect(nextStage(["individual", "group", "whole-class"], "group-done")).toBe("waiting");

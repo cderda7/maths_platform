@@ -37,7 +37,8 @@ export function allPathways(): Pathway[] {
 /** The three moments the student flow consults the pathway. */
 export type Transition = "handed-in" | "reworked" | "group-done";
 
-const ENTRY: Record<ReviewStage, Stage> = { individual: "feedback", group: "group-pass", "whole-class": "waiting" };
+/** Group review is entered through the class-wait gate: the whole class starts it together (ticket 39). */
+const ENTRY: Record<ReviewStage, Stage> = { individual: "feedback", group: "class-wait", "whole-class": "waiting" };
 
 /** The student stage after a transition under a pathway. `report` when nothing is left. */
 export function nextStage(pathway: readonly ReviewStage[], from: Transition): Stage {

@@ -177,6 +177,8 @@ export type SessionAction =
   /** Whole-class review: everyone is frozen on the board's problem; released to the report when it ends. */
   | { type: "freeze" }
   | { type: "release" }
+  /** The gate opened: everyone is in, or the teacher started group review. */
+  | { type: "group/start" }
   | { type: "group/discuss" }
   | { type: "group/talked"; problem: string }
   | { type: "group/done" }
@@ -252,6 +254,12 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       if (s.appliedAdvances.includes(a.id)) return s;
       const applied = { ...s, appliedAdvances: [...s.appliedAdvances, a.id] };
       if (a.kind === "whole-class-start") return applied.stage === "frozen" ? applied : { ...applied, stage: "frozen", prompt: null, overlay: null };
+      if (a.kind === "group-start") {
+        // The teacher started group review: a student waiting at the gate goes in; one still correcting hands in as it stands and goes in.
+        if (applied.stage === "class-wait") return { ...applied, stage: "group-pass" };
+        if (applied.stage === "feedback") return { ...applied, stage: "group-pass", reworkedAt: a.at ?? s.reworkedAt, notice: feedbackSummary(s, "final").sentence };
+        return applied;
+      }
       if (a.kind === "force-submit") {
         if (!BEFORE_HAND_IN.includes(s.stage)) return applied;
         const notAttempted = ASSIGNMENT.problems.map((p) => p.id).filter((id) => (s.lines[id]?.length ?? 0) === 0);
@@ -387,6 +395,8 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       return s.stage === "frozen" ? s : { ...s, stage: "frozen", prompt: null, overlay: null };
     case "release":
       return s.stage === "frozen" ? { ...s, stage: "report" } : s;
+    case "group/start":
+      return s.stage === "class-wait" ? { ...s, stage: "group-pass" } : s;
     case "group/discuss":
       return { ...s, stage: "group-discuss" };
     case "group/talked":
@@ -513,7 +523,7 @@ function roundStroke(s: Stroke): Stroke {
   return s.map((p) => ({ x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10 }));
 }
 
-const ORDER: Stage[] = ["overview", "confidence", "warmup-pick", "practice", "working", "feedback", "waiting", "frozen", "group-pass", "group-discuss", "report", "peers", "history"];
+const ORDER: Stage[] = ["overview", "confidence", "warmup-pick", "practice", "working", "feedback", "waiting", "frozen", "class-wait", "group-pass", "group-discuss", "report", "peers", "history"];
 
 /** Fixed times for deep-linked runs: handed in at 3:48 pm, rework done at 4:07 pm, today. */
 const todayAt = (h: number, m: number) => {
@@ -577,7 +587,7 @@ export function sessionAt(stage: Stage, run: RunKindParam = "weak"): StudentSess
   const i = ORDER.indexOf(stage);
   if (i < 0) return INITIAL_SESSION;
   if (run === "strong" && i >= ORDER.indexOf("feedback")) return { ...strongSession(), stage, stars: [], handedInAt: todayAt(15, 48) };
-  if (i >= ORDER.indexOf("group-pass")) return { ...reworkedSession(), stage };
+  if (i >= ORDER.indexOf("class-wait")) return { ...reworkedSession(), stage };
   if (i >= ORDER.indexOf("feedback")) return { ...scriptedSession(), stage };
   return {
     ...INITIAL_SESSION,

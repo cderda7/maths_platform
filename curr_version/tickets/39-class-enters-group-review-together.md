@@ -4,7 +4,7 @@
 
 **Blocked by:** 36 (the count needs the class of twenty).
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -20,8 +20,8 @@ A class-level readiness state: who has handed in corrections. The student's scre
 
 ## Acceptance
 
-- [ ] Waiting screen with the count after corrections are handed in
-- [ ] Automatic start when everyone is in; the teacher's force starts it early for all
-- [ ] Individual review is still entered per student, as today
-- [ ] Demo: the count climbs on a scripted timeline; the skip-to strip lands on the waiting screen and on the start
-- [ ] Unit tests for the readiness rule; browser check; architecture note and root docs
+- [x] Waiting screen with the count after corrections are handed in
+- [x] Automatic start when everyone is in; the teacher's force starts it early for all
+- [x] Individual review is still entered per student, as today
+- [x] Demo: the count climbs on a scripted timeline; the skip-to strip lands on the waiting screen and on the start
+- [x] Unit tests for the readiness rule; browser check; architecture note and root docs

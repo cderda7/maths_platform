@@ -21,7 +21,7 @@ export interface CreatedAssignment {
 }
 
 /** A teacher-driven move of the whole class, applied by every student tab when the deadline passes. */
-export type AdvanceKind = "force-submit" | "whole-class-start";
+export type AdvanceKind = "force-submit" | "whole-class-start" | "group-start";
 export interface PendingAdvance {
   id: string;
   kind: AdvanceKind;
@@ -57,6 +57,8 @@ export interface ClassroomState {
   wholeClass: WholeClassSession | null;
   /** The teacher's seating groups, per class; absent in older stored state (read through `seatingOf`). */
   groups?: SeatingGroups;
+  /** When each student arrived at the gate into group review (ms since epoch); the demo student's anchors the classmates' scripted arrivals. */
+  arrivals?: Record<string, number>;
 }
 
 export type ClassroomAction =
@@ -64,6 +66,8 @@ export type ClassroomAction =
   /** The groups page: move one student to a colour. */
   | { type: "groups/move"; student: string; to: GroupColour }
   | { type: "groups/reset" }
+  /** A student reached the gate into group review. Idempotent per student. */
+  | { type: "class/arrive"; student: string; at: number }
   | { type: "advance/start"; kind: AdvanceKind; at?: number }
   | { type: "advance/clear" }
   | { type: "wc/setup"; problems: string[]; examples: Record<string, ExampleRef[]>; mode?: FollowMode }
@@ -97,6 +101,8 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
       return { ...c, groups: moveStudent(seatingOf(c.groups), a.student, a.to) };
     case "groups/reset":
       return { ...c, groups: DEFAULT_GROUPS };
+    case "class/arrive":
+      return c.arrivals?.[a.student] !== undefined ? c : { ...c, arrivals: { ...(c.arrivals ?? {}), [a.student]: a.at } };
     case "wc/setup": {
       const mode = a.mode ?? "frozen";
       return { ...c, wholeClass: { problems: [...a.problems], examples: a.examples, slide: 0, view: "unmarked", status: "setup", modes: Object.fromEntries(a.problems.map((id) => [id, mode])), ink: {} } };
