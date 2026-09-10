@@ -20,7 +20,7 @@ describe("board examples", () => {
     expect(q4).not.toContain("jordan");
     expect(q4).not.toContain("liam");
     expect(candidatesFor("q2", sessionAt("working")).some((c) => c.studentId === "sam")).toBe(false);
-    const reworked = candidatesFor("q2", sessionAt("group-pass"));
+    const reworked = candidatesFor("q2", sessionAt("group"));
     const sam = reworked.find((c) => c.studentId === "sam")!;
     expect(sam.bucket).toBe("correct"); // the rework fixed Q2
     expect(candidatesFor("q2", sessionAt("feedback")).find((c) => c.studentId === "sam")!.bucket).toBe("algebra.expand-factor.nonmonic");

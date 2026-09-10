@@ -787,3 +787,29 @@ submit exists for that.
 
 **Defence.** One pure readiness rule read by both surfaces, one classroom action per arrival, the
 existing advance mechanism for the teacher's start, and the scripted timeline lives in one table.
+
+## 2026-09-10 · Group review is one shared whiteboard, and the run lives on the classroom
+
+**Decision.** A group reworks the union of its members' mistakes on a single shared board, one
+problem at a time, one pen-holder per problem drawn by a reshuffling shuffle; only the holder
+checks; a wrong check and "we're stuck" both show work only up to the first mistake. The run
+(pen, board, attempts, resolved) is classroom state; a peer's turn in the demo is a timed script
+of synthetic ink and lines, replayed once by index so tabs and reloads converge.
+
+**Context.** The first design had four students reworking the same problems in parallel with
+lockstep waits and retries at every step. One board removes the parallel work and the waiting,
+makes the confident student explain and the unsure one ask, and gives the smartboard one stream
+per group to measure.
+
+**Alternatives considered.** Pass-the-pen or multi-cursor (the random draw is the point).
+Recognising the board live (the user wants transcription only at the check, matching where OCR
+is credible). Storing the run on the demo student's session (three other members and the teacher
+read it). Synthetic turns as derived state from the clock (the turn start depends on the group's
+own actions, so a replayed script with an index is simpler and idempotent).
+
+**Tradeoffs.** Weaker signal on the quiet student; an individual check afterwards was dropped
+and is logged. The synthetic ink is scribble, not text. Every board stroke broadcasts the
+classroom state, as with the teacher's pad.
+
+**Defence.** One pure module for the rules, one reducer for the board, one script table for the
+demo, and the same evaluator judging the check as everywhere else.

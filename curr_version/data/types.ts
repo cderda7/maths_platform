@@ -87,8 +87,8 @@ export type Stage =
   /** Corrections handed in; waiting for the whole class before group review starts. */
   | "class-wait"
   | "frozen"
-  | "group-pass"
-  | "group-discuss"
+  /** Group review on the shared whiteboard. */
+  | "group"
   | "report"
   | "peers"
   | "history";

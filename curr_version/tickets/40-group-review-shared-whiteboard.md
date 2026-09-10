@@ -4,7 +4,7 @@
 
 **Blocked by:** 36 (groups), 39 (the class starts together).
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -16,14 +16,14 @@ Today's group review is a list of discussion prompts with "Talked" toggles; nobo
 
 ## Solution
 
-A group session in the classroom state: the union, the pen order, the current problem, the shared strokes, the check result. Strokes from the pen-holder's iPad reach every member's board. Check transcribes the board and judges every known line, the final line deciding. The wrong-check annotation and "we're stuck" both follow the first-mistake rule. The demo scripts Sam's group: Sam holds the pen on Q1 (right first time) and Q7 (wrong, then right); Zara on Q2 and Q10; Jordan on Q3 (wrong, the group presses "we're stuck", then right); Liam on Q9.
+A group session in the classroom state: the union, the pen order, the current problem, the shared strokes, the check result. Strokes from the pen-holder's iPad reach every member's board. Check transcribes the board and judges every known line, the final line deciding. The wrong-check annotation and "we're stuck" both follow the first-mistake rule. The demo scripts Sam's group. The shuffle rule (nobody writes twice before everyone has once) deals Sam, Zara, Jordan, Liam, then Sam, Zara, so: Sam on Q1 (right first time) and Q9 (wrong, then right); Zara on Q2 and Q10; Jordan on Q3 (wrong, the group presses "we're stuck", then right); Liam on Q7. This differs from the first proposal (Sam on Q7, Liam on Q9) because that order broke the shuffle rule.
 
 ## Acceptance
 
-- [ ] The union of the group's mistakes, in problem order; the pen shuffle; both header labels
-- [ ] The pen-holder's strokes appear on every member's board; watchers cannot write
-- [ ] Check for the pen-holder only; a wrong check shows the transcription marked to the first mistake, rest as a count, board kept
-- [ ] "We're stuck" for any member marks everyone's earlier versions to the first mistake
-- [ ] Peers' turns as scripted synthetic ink; Sam's scripted turns and the Q3 rescue
-- [ ] Nothing written on the shared board is marked as a version of anyone's work
-- [ ] Unit tests for the union, the shuffle, the check and the first-mistake cut; two-tab browser check; architecture note and root docs; the old quick-pass and discussion screens removed
+- [x] The union of the group's mistakes, in problem order; the pen shuffle; both header labels
+- [x] The pen-holder's strokes appear on every member's board; watchers cannot write
+- [x] Check for the pen-holder only; a wrong check shows the transcription marked to the first mistake, rest as a count, board kept
+- [x] "We're stuck" for any member marks everyone's earlier versions to the first mistake
+- [x] Peers' turns as scripted synthetic ink; Sam's scripted turns and the Q3 rescue
+- [x] Nothing written on the shared board is marked as a version of anyone's work
+- [x] Unit tests for the union, the shuffle, the check and the first-mistake cut; two-tab browser check; architecture note and root docs; the old quick-pass and discussion screens removed

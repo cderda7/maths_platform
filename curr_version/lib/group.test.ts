@@ -16,7 +16,7 @@ describe("group-phase computation", () => {
   });
 
   it("the demo group: the all-correct problems are the quick pass, the union of wrongs the discussion", () => {
-    const g = groupPlan(sessionAt("group-pass"));
+    const g = groupPlan(sessionAt("group"));
     expect(g.members.map((m) => m.id)).toEqual(["sam", "jordan", "zara", "liam"]);
     expect(g.quickPass.map((p) => p.id)).toEqual(["q4", "q5", "q6", "q8"]);
     expect(g.discussion.problems.map((p) => p.id)).toEqual(["q1", "q2", "q3", "q7", "q9", "q10"]);
@@ -26,7 +26,7 @@ describe("group-phase computation", () => {
   });
 
   it("the discussion view carries no correctness data: nothing per member, nothing per problem", () => {
-    const d = groupPlan(sessionAt("group-pass")).discussion;
+    const d = groupPlan(sessionAt("group")).discussion;
     expect(Object.keys(d).sort()).toEqual(["memberCount", "perMember", "problems", "totalWrong"]);
     for (const p of d.problems) expect(Object.keys(p)).not.toContain("wrong");
     const json = JSON.stringify(d);

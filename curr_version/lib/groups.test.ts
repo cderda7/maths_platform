@@ -5,7 +5,7 @@ import { sessionAt, sessionReducer } from "./session";
 
 describe("teacher's review groups view", () => {
   it("the demo group carries one shared note about why it formed", () => {
-    const [g1] = reviewGroups(sessionAt("group-discuss"));
+    const [g1] = reviewGroups(sessionAt("group"));
     expect(g1.members.map((m) => m.id)).toEqual(["sam", "jordan", "zara", "liam"]);
     expect(g1.discussing).toEqual(["q1", "q2", "q3", "q7", "q9", "q10"]);
     expect(g1.note).toMatch(/Q1, Q2, Q3/);
@@ -14,12 +14,10 @@ describe("teacher's review groups view", () => {
   });
 
   it("the demo student's line follows the session; classmates' lines are static", () => {
-    let s = sessionAt("group-pass");
-    expect(reviewGroups(s)[0].members[0].status).toBe("In the quick pass");
-    s = sessionReducer(s, { type: "group/discuss" });
-    expect(reviewGroups(s)[0].members[0].status).toBe("Discussing Q1 · 0 of 6 talked through");
-    s = sessionReducer(s, { type: "group/talked", problem: "q1" });
-    expect(reviewGroups(s)[0].members[0].status).toBe("Discussing Q2 · 1 of 6 talked through");
+    let s = sessionAt("class-wait");
+    expect(reviewGroups(s)[0].members[0].status).toBe("Waiting for the class");
+    s = sessionReducer(s, { type: "group/start" });
+    expect(reviewGroups(s)[0].members[0].status).toBe("On the whiteboard");
     s = sessionReducer(s, { type: "group/done" });
     expect(reviewGroups(s)[0].members[0].status).toBe("Finished");
     expect(reviewGroups(s)[0].members[1].status).toMatch(/Discussing Q2/);

@@ -8,7 +8,7 @@ describe("skip-to fixtures", () => {
   const now = 1_700_000_000_000;
 
   it("every target lands on its stage with the three-stage pathway and, except whole-class, no projection", () => {
-    const stages = { start: "overview", "warm-up": "warmup-pick", working: "working", "indiv review": "feedback", "class wait": "class-wait", "group review": "group-pass", "whole-class review": "frozen", report: "report" } as const;
+    const stages = { start: "overview", "warm-up": "warmup-pick", working: "working", "indiv review": "feedback", "class wait": "class-wait", "group review": "group", "whole-class review": "frozen", report: "report" } as const;
     for (const t of SKIP_TARGETS) {
       const { session, classroom } = skipFixture(t, now);
       expect(session.stage, t).toBe(stages[t]);
@@ -21,6 +21,13 @@ describe("skip-to fixtures", () => {
   it("what Sam submitted is the same at every review stage", () => {
     const a = skipFixture("indiv review", now).session.lines;
     for (const t of ["class wait", "group review", "whole-class review", "report"] as const) expect(skipFixture(t, now).session.lines).toEqual(a);
+  });
+
+  it("the group-review jump begins the whiteboard run on the union with the agreed pen order", () => {
+    const { classroom } = skipFixture("group review", now);
+    expect(classroom.group?.problems).toEqual(["q1", "q2", "q3", "q7", "q9", "q10"]);
+    expect(classroom.group?.pen).toEqual({ q1: "sam", q2: "zara", q3: "jordan", q7: "liam", q9: "sam", q10: "zara" });
+    expect(classroom.group?.index).toBe(0);
   });
 
   it("the class-wait jump has Sam just arrived and the count climbing; the later jumps have everyone in", () => {

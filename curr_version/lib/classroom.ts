@@ -1,6 +1,7 @@
 import type { Pathway, Stroke } from "@/data/types";
 import { DEFAULT_GROUPS, type GroupColour, type SeatingGroups } from "@/data/groups";
 import { moveStudent, seatingOf } from "./seating";
+import { beginRun, checkBoard, currentProblem, type GroupRun, type TurnEvent } from "./groupReview";
 import type { ExampleRef } from "./examples";
 import { DEFAULT_PATHWAY } from "./pathway";
 
@@ -59,6 +60,8 @@ export interface ClassroomState {
   groups?: SeatingGroups;
   /** When each student arrived at the gate into group review (ms since epoch); the demo student's anchors the classmates' scripted arrivals. */
   arrivals?: Record<string, number>;
+  /** The demo student's group on the shared whiteboard, once group review has begun. */
+  group?: GroupRun | null;
 }
 
 export type ClassroomAction =
@@ -68,6 +71,19 @@ export type ClassroomAction =
   | { type: "groups/reset" }
   /** A student reached the gate into group review. Idempotent per student. */
   | { type: "class/arrive"; student: string; at: number }
+  /** The shared whiteboard. `group/begin` is idempotent: a run already begun is kept. */
+  | { type: "group/begin"; members: string[]; problems: string[]; at: number }
+  | { type: "group/stroke"; stroke: Stroke }
+  | { type: "group/undo" }
+  | { type: "group/clear" }
+  /** A line read from the board (kept hidden until the check). */
+  | { type: "group/line"; tex: string }
+  | { type: "group/check" }
+  | { type: "group/stuck" }
+  /** After a correct check: the next problem, or done after the last. */
+  | { type: "group/next"; at: number }
+  /** A peer's scripted event, applied once by index. */
+  | { type: "group/scripted"; index: number; event: TurnEvent }
   | { type: "advance/start"; kind: AdvanceKind; at?: number }
   | { type: "advance/clear" }
   | { type: "wc/setup"; problems: string[]; examples: Record<string, ExampleRef[]>; mode?: FollowMode }
@@ -103,6 +119,26 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
       return { ...c, groups: DEFAULT_GROUPS };
     case "class/arrive":
       return c.arrivals?.[a.student] !== undefined ? c : { ...c, arrivals: { ...(c.arrivals ?? {}), [a.student]: a.at } };
+    case "group/begin":
+      return c.group ? c : { ...c, group: beginRun(a.members, a.problems, a.at) };
+    case "group/stroke":
+    case "group/undo":
+    case "group/clear":
+    case "group/line":
+    case "group/check":
+    case "group/stuck":
+    case "group/next": {
+      if (!c.group || c.group.done) return c;
+      const next = groupReducer(c.group, a);
+      return next === c.group ? c : { ...c, group: next };
+    }
+    case "group/scripted": {
+      const g = c.group;
+      if (!g || a.index !== g.scriptDone) return c;
+      const e = a.event;
+      const applied = e.kind === "stroke" ? groupReducer(g, { type: "group/stroke", stroke: e.stroke }) : e.kind === "line" ? groupReducer(g, { type: "group/line", tex: e.tex }) : e.kind === "check" ? groupReducer(g, { type: "group/check" }) : groupReducer(g, { type: "group/stuck" });
+      return { ...c, group: { ...applied, scriptDone: g.scriptDone + 1 } };
+    }
     case "wc/setup": {
       const mode = a.mode ?? "frozen";
       return { ...c, wholeClass: { problems: [...a.problems], examples: a.examples, slide: 0, view: "unmarked", status: "setup", modes: Object.fromEntries(a.problems.map((id) => [id, mode])), ink: {} } };
@@ -145,6 +181,42 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
       return c.wholeClass ? { ...c, wholeClass: { ...c.wholeClass, status: "ended" }, advance: null } : c;
     case "reset":
       return INITIAL_CLASSROOM;
+  }
+}
+
+type GroupAction = Extract<ClassroomAction, { type: `group/${string}` }>;
+
+/** The board's own rules, one problem at a time. Returns the same run when nothing changes. */
+function groupReducer(g: GroupRun, a: GroupAction): GroupRun {
+  const problem = currentProblem(g);
+  if (!problem) return g;
+  const resolved = g.resolved.includes(problem);
+  switch (a.type) {
+    case "group/stroke":
+      return resolved ? g : { ...g, strokes: [...g.strokes, a.stroke] };
+    case "group/undo":
+      return resolved || g.strokes.length === 0 ? g : { ...g, strokes: g.strokes.slice(0, -1), lines: g.lines.slice(0, Math.min(g.lines.length, g.strokes.length - 1)) };
+    case "group/clear":
+      return resolved ? g : { ...g, strokes: [], lines: [] };
+    case "group/line":
+      return resolved ? g : { ...g, lines: [...g.lines, a.tex] };
+    case "group/check": {
+      if (resolved || g.lines.length === 0) return g;
+      const { correct } = checkBoard(problem, g.lines);
+      const attempt = { lines: g.lines, correct };
+      const attempts = { ...g.attempts, [problem]: [...(g.attempts[problem] ?? []), attempt] };
+      // A wrong check keeps the board so the line can be fixed; the next attempt's lines start again.
+      return { ...g, attempts, lines: correct ? g.lines : [], resolved: correct ? [...g.resolved, problem] : g.resolved };
+    }
+    case "group/stuck":
+      return g.stuck.includes(problem) ? g : { ...g, stuck: [...g.stuck, problem] };
+    case "group/next": {
+      if (!resolved) return g;
+      const last = g.index >= g.problems.length - 1;
+      return last ? { ...g, done: true } : { ...g, index: g.index + 1, strokes: [], lines: [], turnStartedAt: a.at, scriptDone: 0 };
+    }
+    default:
+      return g;
   }
 }
 

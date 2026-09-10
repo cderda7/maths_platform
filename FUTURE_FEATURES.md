@@ -296,3 +296,10 @@ appends it here (see `CLAUDE.md`).
   leaves a student still writing the set alone; the teacher presses force submit first. A single
   "move everyone to group review" that forces the set, then the corrections, then opens the gate
   would be one press.
+- **Synthetic ink that looks like the line.** A peer's turn draws deterministic scribbles per
+  line (ticket 40). Rendering the actual TeX as a handwriting font path, or recorded strokes per
+  line, would make the mirror read as the working.
+- **A stroke channel for the shared board.** Every stroke broadcasts the whole classroom state;
+  fine for one live member, not for four real iPads.
+- **"We're stuck" before any check.** Any member can press it at any time during a problem; decide
+  whether it should wait for a wrong check, and whether pressing it should count anywhere.

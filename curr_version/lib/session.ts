@@ -102,8 +102,6 @@ export interface StudentSession {
   reworkInk: Record<string, Stroke[]>;
   /** Index into the problems being reworked (those with a slip). */
   reworkIndex: number;
-  /** Discussion problems the group has talked through. */
-  talked: string[];
   /** The 2–3 sentence reflection on the final report. */
   reflection: string;
   /** True once the reflection has been sent to the teacher. */
@@ -179,8 +177,6 @@ export type SessionAction =
   | { type: "release" }
   /** The gate opened: everyone is in, or the teacher started group review. */
   | { type: "group/start" }
-  | { type: "group/discuss" }
-  | { type: "group/talked"; problem: string }
   | { type: "group/done" }
   | { type: "reflection/set"; text: string }
   | { type: "report/send" }
@@ -212,7 +208,6 @@ export const INITIAL_SESSION: StudentSession = {
   rework: {},
   reworkInk: {},
   reworkIndex: 0,
-  talked: [],
   reflection: "",
   reportSent: false,
   handedInAt: 0,
@@ -256,8 +251,8 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       if (a.kind === "whole-class-start") return applied.stage === "frozen" ? applied : { ...applied, stage: "frozen", prompt: null, overlay: null };
       if (a.kind === "group-start") {
         // The teacher started group review: a student waiting at the gate goes in; one still correcting hands in as it stands and goes in.
-        if (applied.stage === "class-wait") return { ...applied, stage: "group-pass" };
-        if (applied.stage === "feedback") return { ...applied, stage: "group-pass", reworkedAt: a.at ?? s.reworkedAt, notice: feedbackSummary(s, "final").sentence };
+        if (applied.stage === "class-wait") return { ...applied, stage: "group" };
+        if (applied.stage === "feedback") return { ...applied, stage: "group", reworkedAt: a.at ?? s.reworkedAt, notice: feedbackSummary(s, "final").sentence };
         return applied;
       }
       if (a.kind === "force-submit") {
@@ -396,11 +391,7 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     case "release":
       return s.stage === "frozen" ? { ...s, stage: "report" } : s;
     case "group/start":
-      return s.stage === "class-wait" ? { ...s, stage: "group-pass" } : s;
-    case "group/discuss":
-      return { ...s, stage: "group-discuss" };
-    case "group/talked":
-      return { ...s, talked: s.talked.includes(a.problem) ? s.talked.filter((p) => p !== a.problem) : [...s.talked, a.problem] };
+      return s.stage === "class-wait" ? { ...s, stage: "group" } : s;
     case "group/done":
       return { ...s, stage: nextStage(env.pathway, "group-done") };
     case "reflection/set":
@@ -523,7 +514,7 @@ function roundStroke(s: Stroke): Stroke {
   return s.map((p) => ({ x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10 }));
 }
 
-const ORDER: Stage[] = ["overview", "confidence", "warmup-pick", "practice", "working", "feedback", "waiting", "frozen", "class-wait", "group-pass", "group-discuss", "report", "peers", "history"];
+const ORDER: Stage[] = ["overview", "confidence", "warmup-pick", "practice", "working", "feedback", "waiting", "frozen", "class-wait", "group", "report", "peers", "history"];
 
 /** Fixed times for deep-linked runs: handed in at 3:48 pm, rework done at 4:07 pm, today. */
 const todayAt = (h: number, m: number) => {

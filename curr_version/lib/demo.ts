@@ -4,6 +4,7 @@ import { classroomReducer, GRACE_MS, INITIAL_CLASSROOM, type ClassroomState } fr
 import { candidatesFor, problemsByStruggle, suggestExamples } from "./examples";
 import { INITIAL_SESSION, reworkedSession, sessionAt, type StudentSession } from "./session";
 import { LAST_ARRIVAL_MS } from "./readiness";
+import { groupPlan } from "./group";
 
 /**
  * Presenter shortcuts, not product: jump the demo to a moment in Sam's run. Every jump rebuilds the
@@ -38,8 +39,11 @@ export function skipFixture(target: SkipTarget, now: number): { session: Student
     case "class wait":
       // Sam has just handed in corrections: the classmates' scripted arrivals start now.
       return { session: sessionAt("class-wait"), classroom: classroomReducer(classroom, { type: "class/arrive", student: DEMO_STUDENT.id, at: now }) };
-    case "group review":
-      return { session: sessionAt("group-pass"), classroom: everyoneIn(classroom, now) };
+    case "group review": {
+      const session = sessionAt("group");
+      const c = everyoneIn(classroom, now);
+      return { session, classroom: classroomReducer(c, { type: "group/begin", members: groupPlan(session).members.map((m) => m.id), problems: groupPlan(session).discussion.problems.map((p) => p.id), at: now }) };
+    }
     case "report":
       return { session: sessionAt("report"), classroom: everyoneIn(classroom, now) };
     case "whole-class review": {

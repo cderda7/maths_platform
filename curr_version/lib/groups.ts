@@ -26,17 +26,12 @@ export interface ReviewGroup {
   discussing: string[];
 }
 
-function liveStatus(session: StudentSession, discussion: string[]): string {
+function liveStatus(session: StudentSession): string {
   switch (session.stage) {
     case "class-wait":
       return "Waiting for the class";
-    case "group-pass":
-      return "In the quick pass";
-    case "group-discuss": {
-      const done = discussion.filter((id) => session.talked.includes(id)).length;
-      const next = discussion.find((id) => !session.talked.includes(id));
-      return next ? `Discussing ${ASSIGNMENT.problems.find((p) => p.id === next)?.label} · ${done} of ${discussion.length} talked through` : "All talked through";
-    }
+    case "group":
+      return "On the whiteboard";
     case "report":
     case "peers":
     case "history":
@@ -76,7 +71,7 @@ export function reviewGroups(session: StudentSession | null): ReviewGroup[] {
   groups.push({
     id: "g1",
     members: [
-      { id: DEMO_STUDENT.id, name: DEMO_STUDENT.name, initials: DEMO_STUDENT.initials, live: true, status: session ? liveStatus(session, discussion) : "Not started" },
+      { id: DEMO_STUDENT.id, name: DEMO_STUDENT.name, initials: DEMO_STUDENT.initials, live: true, status: session ? liveStatus(session) : "Not started" },
       ...mates.map((m) => ({ id: m.id, name: m.name, initials: m.initials, live: false, status: m.groupStatus })),
     ],
     note: noteFor(discussion, mates.length + 1),

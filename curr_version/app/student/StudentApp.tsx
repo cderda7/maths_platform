@@ -8,7 +8,9 @@ import WarmupPickScreen from "./screens/WarmupPickScreen";
 import ConfidenceScreen from "./screens/ConfidenceScreen";
 import WorkingScreen from "./screens/WorkingScreen";
 import FeedbackScreen from "./screens/FeedbackScreen";
-import { GroupDiscussScreen, GroupPassScreen } from "./screens/GroupScreens";
+import GroupBoardScreen from "./screens/GroupBoardScreen";
+import { groupPlan } from "@/lib/group";
+import { penHolder, turnScript } from "@/lib/groupReview";
 import ReportScreen from "./screens/ReportScreen";
 import { useEffect } from "react";
 import { dispatch, useStudentSession } from "@/lib/store";
@@ -38,8 +40,7 @@ const CRUMB: Partial<Record<Stage, string>> = {
   practice: "Warm-up",
   confidence: "Before you start",
   "class-wait": "Group review",
-  "group-pass": "Group review",
-  "group-discuss": "Group review",
+  group: "Group review",
   report: "Your report",
   peers: "Where the class is finding it hard",
   history: "Your working",
@@ -74,6 +75,27 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
     if (atGate && !arrived) dispatchClassroom({ type: "class/arrive", student: DEMO_STUDENT.id, at: now });
     if (atGate && arrived && started) dispatch({ type: "group/start" });
   }, [atGate, arrived, started, now]);
+  // The shared whiteboard: begin the run on arrival; while a peer holds the pen, play their scripted turn (each event once, by index).
+  const onBoard = session.stage === "group";
+  const board = classroom.group ?? null;
+  useEffect(() => {
+    if (!onBoard) return;
+    if (!board) {
+      const plan = groupPlan(session);
+      dispatchClassroom({ type: "group/begin", members: plan.members.map((m) => m.id), problems: plan.discussion.problems.map((p) => p.id), at: now });
+      return;
+    }
+    if (board.done) {
+      dispatch({ type: "group/done" });
+      return;
+    }
+    const holder = penHolder(board);
+    if (!holder || holder === DEMO_STUDENT.id) return;
+    const events = turnScript(board.problems[board.index]);
+    const next = events[board.scriptDone];
+    if (next && now >= board.turnStartedAt + next.at) dispatchClassroom({ type: "group/scripted", index: board.scriptDone, event: next });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onBoard, board, now]);
   const projecting = isProjecting(classroom);
   const frozen = session.stage === "frozen";
   useEffect(() => {
@@ -99,8 +121,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
         {session.stage === "waiting" && <WaitingScreen />}
         {session.stage === "class-wait" && <ClassWaitScreen />}
         {session.stage === "frozen" && <FrozenScreen session={session} dispatch={dispatch} />}
-        {session.stage === "group-pass" && <GroupPassScreen session={session} dispatch={dispatch} />}
-        {session.stage === "group-discuss" && <GroupDiscussScreen session={session} dispatch={dispatch} />}
+        {session.stage === "group" && <GroupBoardScreen session={session} />}
         {session.stage === "report" && <ReportScreen session={session} dispatch={dispatch} />}
         {session.stage === "peers" && <PeerScreen onBack={() => dispatch({ type: "peers/close" })} />}
         {session.stage === "history" && <HistoryScreen session={session} onBack={() => dispatch({ type: "history/close" })} />}

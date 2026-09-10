@@ -12,7 +12,7 @@ describe("the frozen student's view", () => {
   });
 
   it("follows the current slide and stacks handed-in then reworked, unmarked while the board is unmarked", () => {
-    const s = sessionAt("group-pass"); // scripted run, Q1–Q3 reworked
+    const s = sessionAt("group"); // scripted run, Q1–Q3 reworked
     let c = projecting();
     let v = frozenView(s, c)!;
     expect(v.problem.id).toBe("q3");
