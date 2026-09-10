@@ -63,7 +63,8 @@ export function fitLabels(labels: { text: string; depth: number }[], available: 
 
 /* ---------- nodes and trees ---------- */
 
-function Node({ label, status, half, open, fit, onClick, node }: { label: string; status: Status; half: boolean; open: boolean; fit: Fit; onClick: () => void; node: string }) {
+/** Group and skill names read lowercase; a category (`keepCase`) keeps its own. */
+function Node({ label, status, half, open, fit, onClick, node, keepCase = false }: { label: string; status: Status; half: boolean; open: boolean; fit: Fit; onClick: () => void; node: string; keepCase?: boolean }) {
   return (
     <button
       type="button"
@@ -74,7 +75,7 @@ function Node({ label, status, half, open, fit, onClick, node }: { label: string
       data-node={node}
     >
       <StatusDot status={status} half={half} px={fit.dot} className="shrink-0" />
-      <span className={`leading-tight text-ink ${fit.wrap ? "whitespace-normal [text-wrap:balance]" : "whitespace-nowrap"}`} style={{ fontSize: fit.size }}>
+      <span className={`leading-tight text-ink ${keepCase ? "" : "lowercase"} ${fit.wrap ? "whitespace-normal [text-wrap:balance]" : "whitespace-nowrap"}`} style={{ fontSize: fit.size }}>
         {label}
       </span>
     </button>
@@ -338,7 +339,7 @@ export default function HierarchyDrill({ result, lines, problems, unit = 1, stud
       <ul ref={treeRef} className="shrink-0 space-y-1 self-start" data-col="tree">
         {result.columns.map((c) => (
           <li key={c}>
-            <Node label={categoryLabel(c, unit).name} status={result.categories[c] ?? "unseen"} half={result.half.categories.includes(c)} open={c === category} fit={FULL} onClick={() => { setCategory(category === c ? null : c); setGroup(null); setLeaf(null); }} node={c} />
+            <Node label={categoryLabel(c, unit).name} status={result.categories[c] ?? "unseen"} half={result.half.categories.includes(c)} open={c === category} fit={FULL} onClick={() => { setCategory(category === c ? null : c); setGroup(null); setLeaf(null); }} node={c} keepCase />
             {c === category && isFlat(c) && (
               <ul className="mt-1 space-y-1 pl-7" data-col="leaves">
                 {worst(groupsOf(c).flatMap((g) => leavesIn(g)), (l) => result.leaves[l]!).map((l) => (

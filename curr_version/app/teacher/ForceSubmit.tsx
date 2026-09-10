@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Card, Eyebrow } from "@/components/ui";
+import { Button } from "@/components/ui";
 import { CLASSMATES } from "@/data/classmates";
 import { GRACE_MS, isPending, isProjecting } from "@/lib/classroom";
 import { dispatchClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
 import type { StudentSession } from "@/lib/session";
 import { useNow } from "@/lib/store";
-import GroupStart from "./GroupStart";
 
 const WORKING = ["overview", "confidence", "warmup-pick", "practice", "working"];
 const mmss = (ms: number) => {
@@ -16,8 +15,9 @@ const mmss = (ms: number) => {
 };
 
 /**
- * "Force assignment submit": a confirmation with how many students are still working, then a
- * one-minute grace shown on every student's screen before their work is handed in as it stands.
+ * "Force assignment submit", inline on the class view's title line, right against the table's
+ * edge: a confirmation with how many students are still working, then a one-minute grace shown
+ * on every student's screen before their work is handed in as it stands.
  */
 export default function ForceSubmit({ session }: { session: StudentSession | null }) {
   const classroom = useClassroom();
@@ -31,10 +31,9 @@ export default function ForceSubmit({ session }: { session: StudentSession | nul
   const stillWorking = (liveWorking ? 1 : 0) + CLASSMATES.filter((c) => c.done < problems.length).length;
 
   return (
-    <Card className="p-6" data-force-submit>
-      <Eyebrow className="inline-block rounded-md bg-accent px-2 py-1 text-white">Class</Eyebrow>
+    <div className="flex items-center gap-3" data-force-submit>
       {pending && advance ? (
-        <div className="mt-3 flex items-center justify-between" data-advance-pending>
+        <div className="flex items-center gap-4" data-advance-pending>
           <span className="flex items-center gap-2 text-[14px] text-ink">
             <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
             Handing in · {mmss(advance.deadline - now)}
@@ -44,34 +43,29 @@ export default function ForceSubmit({ session }: { session: StudentSession | nul
           </button>
         </div>
       ) : confirming ? (
-        <div className="mt-3" data-confirm>
+        <div className="flex items-center gap-3" data-confirm>
           <p className="text-[14px] text-ink">
             {stillWorking} still working · {Math.round(GRACE_MS / 60000)} minute to finish
           </p>
-          <div className="mt-3 flex gap-2">
-            <Button
-              variant="accent"
-              onClick={() => {
-                dispatchClassroom({ type: "advance/start", kind: "force-submit" });
-                setConfirming(false);
-              }}
-              data-confirm-yes
-            >
-              Force assignment submit
-            </Button>
-            <Button variant="ghost" onClick={() => setConfirming(false)}>
-              Not now
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="mt-3">
-          <Button variant="sky" disabled={!liveWorking || projecting} onClick={() => setConfirming(true)} data-force>
-            force assignment submit
+          <Button
+            variant="accent"
+            onClick={() => {
+              dispatchClassroom({ type: "advance/start", kind: "force-submit" });
+              setConfirming(false);
+            }}
+            data-confirm-yes
+          >
+            Force assignment submit
+          </Button>
+          <Button variant="ghost" onClick={() => setConfirming(false)}>
+            Not now
           </Button>
         </div>
+      ) : (
+        <Button variant="sky" disabled={!liveWorking || projecting} onClick={() => setConfirming(true)} data-force>
+          force assignment submit
+        </Button>
       )}
-      <GroupStart />
-    </Card>
+    </div>
   );
 }

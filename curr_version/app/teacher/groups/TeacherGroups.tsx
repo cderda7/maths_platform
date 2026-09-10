@@ -13,11 +13,14 @@ import { dispatchClassroom, useAssignment, useClassroom } from "@/lib/classroom-
 
 const person = (id: string) => (id === DEMO_STUDENT.id ? DEMO_STUDENT : CLASSMATE_MAP[id]);
 
+/** The groups the platform would form from shared mistakes. Off for now (2026-09-10): the teacher wants only the seating groups on this page; see FUTURE_FEATURES. */
+const SHOW_SUGGESTED = false;
+
 /**
- * Groups. First the seating groups the teacher sets by hand: five colour columns, drag a student
- * between them (or pick a colour from the small menu on each chip); a group of any size other
- * than four is flagged, never refused. Below, the groups the platform would suggest from shared
- * mistakes, kept for reporting.
+ * Groups: the seating groups the teacher sets by hand. Five colour columns, each known by its
+ * coloured top edge alone (no dot, no colour name); drag a student between them (or pick a
+ * colour from the small menu on each chip); a group of any size other than four is flagged,
+ * never refused. The suggested-by-mistakes groups stay in the code behind `SHOW_SUGGESTED`.
  */
 export default function TeacherGroups() {
   const { session } = useBatchedSession(3000);
@@ -72,11 +75,8 @@ export default function TeacherGroups() {
               style={{ borderTopColor: GROUP_HEX[colour].fill, borderTopWidth: 6 }}
             >
               <div className="flex items-center justify-between px-4 pt-3">
-                <span className="flex items-center gap-2 text-[13.5px] font-medium text-ink">
-                  <span className="h-3 w-3 rounded-full" style={{ backgroundColor: GROUP_HEX[colour].fill }} aria-hidden />
-                  {colour}
-                </span>
-                <span className={`text-[12px] ${flagged ? "text-developing" : "text-ink-muted"}`} data-size>
+                <span className="sr-only">{colour}</span>
+                <span className={`ml-auto text-[12px] ${flagged ? "text-developing" : "text-ink-muted"}`} data-size>
                   {members.length}
                   {flagged ? " · uneven" : ""}
                 </span>
@@ -118,50 +118,54 @@ export default function TeacherGroups() {
         })}
       </div>
 
-      <Eyebrow className="mt-12">Suggested by mistakes</Eyebrow>
-      <p className="mt-1 text-[12.5px] text-ink-muted">What the platform would form from shared mistakes. Kept for reporting; the seating groups above are the ones in force.</p>
-      <div className="mt-4 grid grid-cols-2 gap-6" data-suggested>
-        {suggested.map((g, i) => (
-          <Card key={g.id} className="self-start overflow-hidden" data-group={g.id}>
-            <div className="flex items-center justify-between border-b border-line px-6 py-4">
-              <div className="font-display text-[22px] text-ink">Suggested group {i + 1}</div>
-              <div className="flex gap-1.5 text-[12px] text-ink-muted">
-                {g.discussing.length === 0
-                  ? "all correct"
-                  : g.discussing.map((id) => (
-                      <span key={id} className="rounded-full border border-line bg-paper px-2 py-0.5">
-                        {ASSIGNMENT.problems.find((p) => p.id === id)?.label}
+      {SHOW_SUGGESTED && (
+        <>
+          <Eyebrow className="mt-12">Suggested by mistakes</Eyebrow>
+          <p className="mt-1 text-[12.5px] text-ink-muted">What the platform would form from shared mistakes. Kept for reporting; the seating groups above are the ones in force.</p>
+          <div className="mt-4 grid grid-cols-2 gap-6" data-suggested>
+            {suggested.map((g, i) => (
+              <Card key={g.id} className="self-start overflow-hidden" data-group={g.id}>
+                <div className="flex items-center justify-between border-b border-line px-6 py-4">
+                  <div className="font-display text-[22px] text-ink">Suggested group {i + 1}</div>
+                  <div className="flex gap-1.5 text-[12px] text-ink-muted">
+                    {g.discussing.length === 0
+                      ? "all correct"
+                      : g.discussing.map((id) => (
+                          <span key={id} className="rounded-full border border-line bg-paper px-2 py-0.5">
+                            {ASSIGNMENT.problems.find((p) => p.id === id)?.label}
+                          </span>
+                        ))}
+                  </div>
+                </div>
+                <ul className="divide-y divide-line">
+                  {g.members.map((m) => (
+                    <li key={m.id} className={`flex items-center justify-between px-6 py-3 ${m.live ? "bg-accent-soft/30" : ""}`} data-member={m.id}>
+                      <span className="flex items-center gap-3">
+                        <Avatar initials={m.initials} />
+                        <span className="font-medium text-ink">{m.name}</span>
+                        {m.live && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-accent-line bg-paper px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-deep">
+                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" aria-hidden /> live
+                          </span>
+                        )}
                       </span>
-                    ))}
-              </div>
-            </div>
-            <ul className="divide-y divide-line">
-              {g.members.map((m) => (
-                <li key={m.id} className={`flex items-center justify-between px-6 py-3 ${m.live ? "bg-accent-soft/30" : ""}`} data-member={m.id}>
-                  <span className="flex items-center gap-3">
-                    <Avatar initials={m.initials} />
-                    <span className="font-medium text-ink">{m.name}</span>
-                    {m.live && (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-accent-line bg-paper px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-deep">
-                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" aria-hidden /> live
+                      <span className="text-[13px] text-ink-soft" data-status>
+                        {m.status}
                       </span>
-                    )}
-                  </span>
-                  <span className="text-[13px] text-ink-soft" data-status>
-                    {m.status}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <div className="border-t border-line bg-cream/70 px-6 py-4">
-              <Eyebrow>Formed around</Eyebrow>
-              <p className="mt-1.5 text-[13.5px] leading-snug text-ink-soft" data-note>
-                {g.note}
-              </p>
-            </div>
-          </Card>
-        ))}
-      </div>
+                    </li>
+                  ))}
+                </ul>
+                <div className="border-t border-line bg-cream/70 px-6 py-4">
+                  <Eyebrow>Formed around</Eyebrow>
+                  <p className="mt-1.5 text-[13.5px] leading-snug text-ink-soft" data-note>
+                    {g.note}
+                  </p>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </>
+      )}
     </TeacherChrome>
   );
 }

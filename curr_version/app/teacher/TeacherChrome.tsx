@@ -11,12 +11,11 @@ import type { ReviewStage } from "@/data/types";
 import { pathwayOf } from "@/lib/classroom";
 import { useClassroom } from "@/lib/classroom-store";
 
-/** Tabs; a tab tied to a review stage is offered only when the pathway includes that stage. */
+/** Tabs; a tab tied to a review stage is offered only when the pathway includes that stage. The individual view (`/teacher/report`) has no tab: it opens from a name on the class view. */
 export const TEACHER_TABS: { href: string; label: string; stage?: ReviewStage }[] = [
   { href: "/teacher", label: "Class" },
   { href: "/teacher/mistakes", label: "Mistakes" },
   { href: "/teacher/groups", label: "Groups", stage: "group" },
-  { href: "/teacher/report", label: "Report" },
 ];
 
 /** The teacher side's top bar (tabs gated by the pathway, plus the pathway chip) and page frame. */
