@@ -181,6 +181,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 53 | Group review header: the progress bar stays put on "the group got it" | `/student` group whiteboard + debrief | — | [curr_version/architecture/53-group-header-shared.md](curr_version/architecture/53-group-header-shared.md) |
 | 54 | Whole-class review: the teacher writes on the smartboard, and switches the students' mode from it | `/board` slide, `/student` frozen, `/teacher/board` | — | [curr_version/architecture/54-board-pad-and-mode-toggle.md](curr_version/architecture/54-board-pad-and-mode-toggle.md) |
 | 55 | Class view: see skills / full breakdown / close, one hover target per student, no board chip | `/teacher` grid, `/teacher/board` heading | — | [curr_version/architecture/55-class-view-button-words-and-no-board-chip.md](curr_version/architecture/55-class-view-button-words-and-no-board-chip.md) |
+| 56 | Brand header: the real Edexia logo everywhere; the confidence top bar drops "Before you start" | every header, `/student?stage=confidence` | — | [curr_version/architecture/56-brand-logo-and-confidence-crumb.md](curr_version/architecture/56-brand-logo-and-confidence-crumb.md) |
 
 ## Conventions
 

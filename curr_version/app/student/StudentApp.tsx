@@ -39,7 +39,6 @@ const mmss = (ms: number) => {
 const CRUMB: Partial<Record<Stage, string>> = {
   "warmup-chat": "Warm-up",
   practice: "Warm-up",
-  confidence: "Before you start",
   "class-wait": "Group review",
   group: "Group review",
   report: "Your report",
