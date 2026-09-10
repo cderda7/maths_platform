@@ -202,5 +202,6 @@ describe("frameFor", () => {
   it("the teacher view, which scrolls, is the one surface without a design height; the board is the one letterboxed", () => {
     expect(PANES.filter((p) => !p.design.height).map((p) => p.id)).toEqual(["teacher"]);
     expect(PANES.filter((p) => p.design.fit === "letterbox").map((p) => p.id)).toEqual(["board"]);
+    expect(PANES.map((p) => p.href)).toEqual(["/student", "/teacher", "/board"]);
   });
 });

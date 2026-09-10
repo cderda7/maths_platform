@@ -95,6 +95,14 @@ export function resetSession() {
 const serverSnapshot = () => null;
 
 /**
+ * A live, read-only view of the session for a surface that doesn't own it and mustn't lag it
+ * (the smartboard). The teacher's views read in batches instead (`useBatchedSession`).
+ */
+export function useLiveSession(): StudentSession | null {
+  return useSyncExternalStore(subscribe, getSnapshot, serverSnapshot);
+}
+
+/**
  * The student tab. An explicit `?stage=` deep link wins over whatever is stored; otherwise the
  * stored run continues. With nothing stored the session starts fresh.
  */

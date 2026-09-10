@@ -14,11 +14,11 @@ export default function Home() {
         <Eyebrow>{ASSIGNMENT.className} · {unitLabel(ASSIGNMENT.unit)}</Eyebrow>
         <H1 className="mt-3 max-w-3xl">One student, one teacher, one live loop.</H1>
         <p className="mt-5 max-w-2xl text-[17px] leading-relaxed text-ink-soft">
-          Open the student side in one tab and the teacher side in another. As {DEMO_STUDENT.name} works through{" "}
-          <em>{ASSIGNMENT.title}</em> on the iPad, the teacher's view moves with them.
+          Open the student side in one tab, the teacher side in another, and the board on the projector. As {DEMO_STUDENT.name} works through{" "}
+          <em>{ASSIGNMENT.title}</em> on the iPad, the teacher's view moves with them; the board wakes for whole-class review.
         </p>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-2">
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
           <Link href="/student" className="group">
             <Card className="p-7 h-full transition-shadow group-hover:shadow-lift">
               <Eyebrow>Student · iPad</Eyebrow>
@@ -37,6 +37,16 @@ export default function Home() {
                 Where the class is: each subskill as it's leaned on, a caution flag when a student is about to loop back, and the final report.
               </p>
               <div className="mt-6 text-[14px] font-medium text-accent-deep group-hover:underline">Open the teacher view →</div>
+            </Card>
+          </Link>
+          <Link href="/board" className="group" data-board-link>
+            <Card className="p-7 h-full transition-shadow group-hover:shadow-lift">
+              <Eyebrow>Smartboard</Eyebrow>
+              <div className="mt-3 font-display text-[30px] leading-tight text-ink">The projector</div>
+              <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
+                Opened once at the start of the lesson and left up. Blank until whole-class review, then the class's examples and the teacher's working; nothing on it to press.
+              </p>
+              <div className="mt-6 text-[14px] font-medium text-accent-deep group-hover:underline">Open the board →</div>
             </Card>
           </Link>
         </div>

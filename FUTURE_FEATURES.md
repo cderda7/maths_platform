@@ -32,8 +32,10 @@ appends it here (see `CLAUDE.md`).
 - **Model-solution slide** after the examples.
 - **Teacher live annotation / pen** over the projected examples.
 - **Presenter view on a second device** (laptop or phone) showing names, notes, correctness and
-  the next slide, with the board as a display-only mirror. Deferred: single projected window with
-  a name-free control strip in v3.
+  the next slide, with the board as a display-only mirror. Built in part 2026-09-10 (ticket 38):
+  the board is display-only at `/board` and the laptop's `/teacher/board` holds the controls and
+  the pad. Still open: names, notes and correctness on the laptop page, and the next slide's
+  preview.
 - **Swap an example mid-session** from the presenter view without names reaching the projector.
 - **Examples mirrored onto student screens** as a teacher toggle, so students can compare at
   their desk. Deferred: own work only, to keep the board the shared object of attention.
@@ -292,3 +294,27 @@ appends it here (see `CLAUDE.md`).
   considered and left out so the draw stays the point.
 - **Peers seeing each other's reflections.** Teacher-only by decision; a group-visible variant
   would turn the reflection into a performance.
+
+## The smartboard surface (from ticket 38, 2026-09-10)
+
+- **Examples on the laptop too.** The controls page shows which problem is up and the board
+  indicator, not the examples; the teacher reads them off the wall. Deferred: a small read-only
+  strip of A/B/C on the controls page, if pointing at the wall turns out not to be enough.
+- **A countdown on the board during the grace.** The board shows the first slide the moment the
+  teacher projects, while students still have their minute. Deferred: "whole-class review in
+  0:42" on the wall, so the room sees the same clock the iPads do.
+- **What the board shows after End.** Blank today. Candidates: a closing card (problems reviewed,
+  the class's most common slip), or the group-review standings again.
+- **A class-level group-review signal.** The holding state reads the demo student's session
+  (their group review ending is the class's) until ticket 40 gives the classroom a group session
+  of its own; then `boardContent` should read that and nothing per-student.
+- **Hide my working from the wall.** The board mirrors the teacher's ink. A per-problem toggle
+  ("just the students' pads", "just the wall") would let the teacher scribble privately.
+- **The board indicator elsewhere.** It sits on the live view and the controls page. Deferred:
+  the teacher chrome's header on every page, so Mistakes / Groups / Report show it too.
+- **A stroke channel.** Every teacher stroke still broadcasts the whole classroom state (noted
+  under whole-class review); with three surfaces listening it is one more reason.
+- **Join code or QR on the blank board.** The blank state is the class and the title. A
+  join code for late devices, or the day's plan, are candidates for that empty wall.
+- **Board typography for the back of the room.** Sized for a 1440 × 810 projector image; not yet
+  checked on a 4K wall or a small classroom TV. A `?scale=` or a font-size step is the likely fix.

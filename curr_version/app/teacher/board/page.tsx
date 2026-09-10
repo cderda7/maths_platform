@@ -1,5 +1,5 @@
-import Board from "./Board";
+import BoardControls from "./BoardControls";
 
 export default function Page() {
-  return <Board />;
+  return <BoardControls />;
 }
