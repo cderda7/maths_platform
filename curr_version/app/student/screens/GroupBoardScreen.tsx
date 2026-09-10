@@ -17,6 +17,7 @@ import type { SessionAction, StudentSession } from "@/lib/session";
 import { Scrim } from "./PracticePrompt";
 import GroupDebrief from "./GroupDebrief";
 import { pendingDebrief } from "@/lib/debrief";
+import GroupBar from "./GroupBar";
 
 const first = (id: string) => (id === DEMO_STUDENT.id ? "You" : CLASSMATE_MAP[id]?.name.split(" ")[0] ?? id);
 
@@ -70,6 +71,7 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
             {run.index + 1} of {run.problems.length}
           </span>
         </div>
+        <GroupBar session={session} />
         <span className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium ${mine ? "bg-ink text-white" : "border border-line bg-paper text-ink"}`} data-pen>
           {mine ? "you have the pen" : `${first(holder)} has the pen`}
         </span>

@@ -358,3 +358,33 @@ appends it here (see `CLAUDE.md`).
   Decide whether the board should replay what they missed.
 - **The hold length.** Twenty seconds is fixed (ticket 41). Make it a teacher setting, or scale it
   with how many lines are marked.
+
+## Progress bar, leaderboard and medals (from ticket 42, 2026-09-10)
+
+- **Sam's own check stamped by the screen.** The store stamps `at` on `group/check`, so the
+  whiteboard screen (being edited for ticket 41 at the same time) didn't need touching. Cleaner
+  later: the screen passes `at: Date.now()` itself like `group/next` does, and the fallback to the
+  turn's start in the reducer goes.
+- **The scripted race after reseating.** `RACE_SCHEDULE` rows are sized to the default seating's
+  unions; a group made bigger by a drag on the groups page carries on at its row's last gap.
+  Deferred: derive each row from a finish time and a pace curve so any union size lands on the
+  intended finish.
+- **The demo student's group by seating, not by fixture.** The run's members still come from
+  `GROUPMATE_IDS` (ticket 08); if the teacher drags Sam to another colour, that colour's row goes
+  live with the run's members and sky's row runs scripted with three seated names. Deferred until
+  the run is begun from the seating groups.
+- **A sound or a flash when a group finishes.** The bar fills and the medal appears; a room may
+  want a cue. Deferred: keep the board silent until asked.
+- **Resolved-problem ticks under the bar.** The bar shows mistakes resolved, not problems; a small
+  "3 of 6" or a row of dots per union problem would show a group where it is in its list.
+  Deferred: the percent is the race's one number.
+- **A clock on the board.** "4:12 in" beside the heading would give the room the pace. Deferred:
+  nothing on the board that isn't the race.
+- **Teacher's card shows the demo group only in detail.** The other groups' pen-holders are not
+  in the fixture (the race has no turns). Deferred: a pen order per scripted group so the card
+  can read "Priya has the pen · Q4" for everyone.
+- **Old-style figures in the percent.** Playfair's digits are old-style (a small 0); a lining
+  figure set (`font-variant-numeric: lining-nums`) may read better from the back of the room.
+  Not changed: it matches the rest of the board's display type.
+- **What the board shows after the whole-class review ends** (from ticket 38) now has a candidate
+  with content: the final standings again, since they are computable at any time from the run.

@@ -913,3 +913,40 @@ is live when they rejoin. The hold is a fixed twenty seconds, not adaptive.
 
 **Defence.** Two pure rules (the prompt and the pending debrief), three session actions with
 their order enforced, and the group's own clock untouched.
+## 2026-09-10 · The race is derived from timestamps; the lock and the medals are consequences, not flags
+
+**Decision.** A group's progress during group review is its members' original mistakes on the
+problems the group has resolved over all of their original mistakes on the union (`groupProgress`),
+so a problem two members had wrong moves the bar twice as far as one only one had wrong. The
+demo student's group is live from the whiteboard run; the other four groups follow a scripted
+table (`data/race.ts`: seconds from the start at which each union problem checks correct), a pure
+function of the clock. The leaderboard sorts by percent, then by the moment that percent was
+reached, then by seating. A finished group's moment is its finish and nothing sorts above 100 %,
+so the first home stays first and medals fall out of the ranks: gold, silver, bronze for the
+first three at 100 %, nothing for fourth and fifth. The run gains `startedAt` (the race's clock)
+and `resolvedAt` per problem (the tie-break); the store stamps `at` on the check actions.
+
+**Context.** The ticket asked for a lock ("a group at 100 % locks its position") and for ties
+to go to whoever got there first, on a board that any tab may open or reload mid-race, with a
+teacher card and an iPad bar that must agree with it.
+
+**Alternatives considered.** A `locked` / `medal` field written onto the group session when a
+group finishes (the ticket's own sketch): a second source of truth that a reload or a fast-forward
+in the demo could contradict, and the scripted groups have no session to write it on. A timeline
+driven by `setInterval` ticks accumulated in component state: not reloadable, and three surfaces
+would drift. Resolved counts as a fraction of the finish time with no table: nothing to tune per
+group, and every group would move in lockstep.
+
+**Tradeoffs.** The scripted rows are sized to the fixture's unions; if the teacher reseats
+students the union changes and a row carries on at its last gap (or finishes early), which is
+tuned only by reading the table. Sam's own check without a moment (an older screen) falls back to
+the turn's start, so a tie against a scripted group in that window could resolve the wrong way;
+the store's stamp makes that a non-case in this build. The reorder is a `transform` transition on
+rows positioned by rank, which is simple and robust but means the rows are absolutely positioned
+inside a fixed-height area, so the leaderboard is a full-screen surface, not a component that
+flows.
+
+**Defence.** One pure function (`standingsAt`) gives the board, the teacher and the iPad the same
+picture from the same state and clock; the lock and the medals cannot disagree with the order
+because they are the order; the demo's fast-forward is a one-field edit of `startedAt`; and the
+whole race is tested against exact percentages and finishing times.

@@ -51,13 +51,13 @@ describe("the session's debrief notes", () => {
     expect(pendingDebrief(c.group!, {})).toBeNull();
     for (const tex of RECOGNITION_REWORK.q1) c = classroomReducer(c, { type: "group/line", tex });
     c = classroomReducer(c, { type: "group/check", at: 70 });
-    expect(c.group?.resolvedAt).toBe(70);
+    expect(c.group?.resolvedAt?.q1).toBe(70);
     expect(pendingDebrief(c.group!, {})).toBe("q1");
     expect(groupRework(c.group!, "q1")?.lines).toEqual(RECOGNITION_REWORK.q1);
     expect(pendingDebrief(c.group!, { q1: { prompt: "own", text: "x", markedAt: 1, done: true } })).toBeNull();
     c = classroomReducer(c, { type: "group/next", at: 99 });
-    expect(c.group?.resolvedAt).toBeNull();
+    expect(c.group?.resolvedAt?.q1).toBe(70); // the finish moment is kept for the standings
     expect(pendingDebrief(c.group!, {})).toBe("q1"); // the group moved on; the student lingers until Next
-    expect(beginRun(["a"], ["q1"], 0).resolvedAt).toBeNull();
+    expect(beginRun(["a"], ["q1"], 0).resolvedAt).toEqual({});
   });
 });

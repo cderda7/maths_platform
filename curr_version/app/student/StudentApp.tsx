@@ -90,18 +90,19 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
       dispatch({ type: "group/done" });
       return;
     }
-    if (board.resolvedAt !== null) {
+    const resolvedAt = board.resolvedAt?.[board.problems[board.index]];
+    if (resolvedAt !== undefined) {
       // Resolved: the next pen-holder's first stroke moves the group on. A peer's comes after their own debrief; Sam's is his Next.
       const nextHolder = board.pen[board.problems[board.index + 1] ?? ""];
       const last = board.index >= board.problems.length - 1;
-      if ((last || nextHolder !== DEMO_STUDENT.id) && now >= board.resolvedAt + PEER_DEBRIEF_MS) dispatchClassroom({ type: "group/next", at: now });
+      if ((last || nextHolder !== DEMO_STUDENT.id) && now >= resolvedAt + PEER_DEBRIEF_MS) dispatchClassroom({ type: "group/next", at: now });
       return;
     }
     const holder = penHolder(board);
     if (!holder || holder === DEMO_STUDENT.id) return;
     const events = turnScript(board.problems[board.index]);
     const next = events[board.scriptDone];
-    if (next && now >= board.turnStartedAt + next.at) dispatchClassroom({ type: "group/scripted", index: board.scriptDone, event: next });
+    if (next && now >= board.turnStartedAt + next.at) dispatchClassroom({ type: "group/scripted", index: board.scriptDone, event: next, at: board.turnStartedAt + next.at });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onBoard, board, now]);
   const projecting = isProjecting(classroom);

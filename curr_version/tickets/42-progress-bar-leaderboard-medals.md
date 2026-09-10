@@ -4,7 +4,7 @@
 
 **Blocked by:** 38 (the board), 40 (the group session that produces progress).
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -20,9 +20,9 @@ Progress derived from the group session and the fixture's wrong lists. Rows size
 
 ## Acceptance
 
-- [ ] Progress rule with the exact jumps (a union of three problems with 2, 2 and 1 members wrong jumps 40%, 40%, 20%)
-- [ ] Board rows: four names, colour, large bar, percentage; animated reorder; ties by arrival
-- [ ] 100% locks position; gold, silver, bronze; nothing for fourth and fifth; standings hold until the teacher advances
-- [ ] Scripted timeline for the other four groups, two ahead of Sam's group and two behind
-- [ ] Teacher live view: per-group bar and pen-holder; iPad: own group's bar only
-- [ ] Unit tests for progress, locking and ties; two-tab browser check; architecture note and root docs
+- [x] Progress rule with the exact jumps (a union of three problems with 2, 2 and 1 members wrong jumps 40%, 40%, 20%)
+- [x] Board rows: four names, colour, large bar, percentage; animated reorder; ties by arrival
+- [x] 100% locks position; gold, silver, bronze; nothing for fourth and fifth; standings hold until the teacher advances
+- [x] Scripted timeline for the other four groups, two ahead of Sam's group and two behind
+- [x] Teacher live view: per-group bar and pen-holder; iPad: own group's bar only
+- [x] Unit tests for progress, locking and ties; two-tab browser check; architecture note and root docs

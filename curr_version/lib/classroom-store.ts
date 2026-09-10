@@ -74,7 +74,7 @@ export function setClassroom(next: ClassroomState) {
 
 export function dispatchClassroom(action: ClassroomAction) {
   const stamped: ClassroomAction =
-    action.type === "assignment/create" || action.type === "advance/start" || action.type === "wc/project" || action.type === "group/check" ? { ...action, at: action.at ?? Date.now() } : action;
+    action.type === "assignment/create" || action.type === "advance/start" || action.type === "wc/project" || action.type === "group/check" || action.type === "group/scripted" ? { ...action, at: action.at ?? Date.now() } : action;
   setClassroom(classroomReducer(getClassroom(), stamped));
 }
 

@@ -33,9 +33,11 @@ export interface GroupRun {
   stuck: string[];
   /** Problems whose rework has checked correct, in order. */
   resolved: string[];
+  /** When each resolved problem checked correct (ms since epoch): the standings' tie-break. */
+  resolvedAt?: Record<string, number>;
+  /** When group review began for this group (ms since epoch); the other groups' race runs from here. */
+  startedAt?: number;
   turnStartedAt: number;
-  /** When the current problem's rework checked correct; the next pen-holder's first stroke (or a peer's scripted one) moves the group on. */
-  resolvedAt: number | null;
   /** How many scripted events of a peer's turn have been applied (idempotent replay). */
   scriptDone: number;
   done: boolean;
@@ -72,8 +74,13 @@ export function penOrder(problems: string[], members: string[], seed: number): R
 export const DEMO_SEED = 1368;
 
 export function beginRun(members: string[], problems: string[], at: number, seed = DEMO_SEED): GroupRun {
-  return { members, problems, pen: penOrder(problems, members, seed), index: 0, strokes: [], lines: [], attempts: {}, stuck: [], resolved: [], turnStartedAt: at, resolvedAt: null, scriptDone: 0, done: false };
+  return { members, problems, pen: penOrder(problems, members, seed), index: 0, strokes: [], lines: [], attempts: {}, stuck: [], resolved: [], resolvedAt: {}, startedAt: at, turnStartedAt: at, scriptDone: 0, done: false };
 }
+
+/** When the run began; a run stored before `startedAt` existed began with its first turn. */
+export const runStartedAt = (run: GroupRun): number => run.startedAt ?? run.turnStartedAt;
+/** When a resolved problem checked correct; a run stored before the moments were kept counts from its start. */
+export const resolvedMoment = (run: GroupRun, problem: string): number => run.resolvedAt?.[problem] ?? runStartedAt(run);
 
 export const currentProblem = (run: GroupRun): string | undefined => run.problems[run.index];
 export const penHolder = (run: GroupRun): string | undefined => run.pen[currentProblem(run) ?? ""];

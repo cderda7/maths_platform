@@ -37,7 +37,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  └───────────────┬──────────────────┘                               │
  browser tab C · smartboard (projector, display only)               │
  ┌──────────────────────────────────────────────────────────────┐   │
- │ /board ▶ SmartBoard  useClassroom · useLiveSession           │   │
+ │ /board ▶ SmartBoard  useClassroom · useLiveSession · useNow   │   │
  │   boardContent → blank (class · title) · holding (standings  │   │
  │   placeholder) · slide (examples A/B/C · n/m students · marks│   │
  │   iff marked · read-only mirror of the teacher's ink)        │   │
@@ -57,7 +57,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │ lib/examples.ts     candidatesFor · bucketOf · suggestExamples · boardExamples (no names)│
  │                     lineMarks (red / blue for the marked view, board and student alike)  │
  │ lib/frozen.ts       frozenView(session, classroom) → the student's own work on the slide │
- │ lib/board.ts        boardContent(classroom, session) → blank | holding | whole-class · boardWord│
+ │ lib/board.ts        boardContent(classroom, session, now) → blank | group | holding | whole-class│
+ │ lib/standings.ts    standingsAt (per seating group: live run or the scripted race) · rankStandings│
  │ lib/assignment.ts   activeAssignment(classroom) → created title + problems, or fixture│
  │ lib/pathway.ts      REVIEW_ORDER · successors · nextStage · pathwaySentence/Chip    │
  │ lib/session.ts      StudentSession · sessionReducer(s, a, env) · sessionAt (pure)   │
@@ -90,6 +91,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │                   STANDOUT[problemId][tex] → { when: strong|weak|both, why }              │
  │   practice.ts     PRACTICES[subskill]: one isolated practice problem each · PRACTICE     │
  │   classmates.ts   CLASSMATES (rows, wrong sets, attempts, group lines) · groups          │
+ │   race.ts         RACE_SCHEDULE: the other groups' finish moments, seconds from the start │
  │   diagnostic.ts   DIAGNOSTICS: the live multiple-choice question the teacher can push    │
  └────────────────────────────────────────────────────────────────────────────────────┘
                  ▲ reads (a chip needs only an id)
@@ -162,7 +164,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 38 | The smartboard surface: display only, the laptop keeps the controls | `/board`, `/teacher/board` (controls), `/teacher` indicator, `/` card | `d76c226` | [curr_version/architecture/38-smartboard-surface.md](curr_version/architecture/38-smartboard-surface.md) |
 | 39 | The whole class enters group review together | `/student` class-wait, `/teacher` Class card | `54f397f` | [curr_version/architecture/39-class-enters-group-review-together.md](curr_version/architecture/39-class-enters-group-review-together.md) |
 | 40 | Group review on one shared whiteboard | `/student` group | `8d9cf9e` | [curr_version/architecture/40-group-review-shared-whiteboard.md](curr_version/architecture/40-group-review-shared-whiteboard.md) |
-| 41 | The debrief after a correct check | `/student` group, `/teacher/report` | _this commit_ | [curr_version/architecture/41-debrief-after-a-correct-check.md](curr_version/architecture/41-debrief-after-a-correct-check.md) |
+| 41 | The debrief after a correct check | `/student` group, `/teacher/report` | `82ff198` | [curr_version/architecture/41-debrief-after-a-correct-check.md](curr_version/architecture/41-debrief-after-a-correct-check.md) |
+| 42 | Progress bar, leaderboard and medals | `/board` race and held standings, `/teacher` card, `/student` group bar | `fca135e` | [curr_version/architecture/42-progress-bar-leaderboard-medals.md](curr_version/architecture/42-progress-bar-leaderboard-medals.md) |
 
 ## Conventions
 

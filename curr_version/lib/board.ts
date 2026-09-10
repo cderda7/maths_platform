@@ -5,6 +5,7 @@ import { currentSlide, pathwayOf, type BoardView, type ClassroomState } from "./
 import { boardExamples, type BoardExample } from "./examples";
 import { nextStage } from "./pathway";
 import type { StudentSession } from "./session";
+import { leaderboardAt, type RankedStanding } from "./standings";
 
 /**
  * What the smartboard shows. The board is the third surface: opened once at the start of the
@@ -14,16 +15,19 @@ import type { StudentSession } from "./session";
  *  - `blank` while students work and through individual review: the class and the assignment
  *    title, so a projector that is on doesn't read as broken, and nothing else. Also after
  *    whole-class review has ended.
- *  - `holding` once group review is over and the teacher has not advanced: a quiet placeholder
- *    that ticket 42 fills with the final standings.
+ *  - `group` while the class is in group review (the classroom has a run that isn't done): the
+ *    race, five standings ranked with medals for the first three to finish.
+ *  - `holding` once group review is over and the teacher has not advanced: the same standings,
+ *    final, held on the wall until the teacher projects or ends.
  *  - `whole-class` while the teacher is projecting: the current problem, its anonymous examples
  *    with "n/m students" (marks only in the marked view) and a read-only mirror of the teacher's
  *    working.
  *
- * Until ticket 40 gives the classroom a group session of its own, the demo student's session is
- * the class's clock: their group review ending is the class's.
+ * The run on the classroom is the class's clock for group review; the demo student's session
+ * still says when their group review is over (the pathway's next stage), which is the holding
+ * moment when no run was ever begun (a jump straight to the report).
  */
-export type BoardKind = "blank" | "holding" | "whole-class";
+export type BoardKind = "blank" | "group" | "holding" | "whole-class";
 
 interface Lesson {
   className: string;
@@ -32,7 +36,8 @@ interface Lesson {
 
 export type BoardContent =
   | ({ kind: "blank" } & Lesson)
-  | ({ kind: "holding" } & Lesson)
+  | ({ kind: "group"; standings: RankedStanding[] } & Lesson)
+  | ({ kind: "holding"; standings: RankedStanding[] } & Lesson)
   | ({
       kind: "whole-class";
       problem: Problem;
@@ -55,7 +60,8 @@ function groupReviewOver(c: ClassroomState | null | undefined, session: StudentS
   return session.stage === nextStage(pathway, "group-done") || AFTER_REVIEW.includes(session.stage);
 }
 
-export function boardContent(c: ClassroomState | null | undefined, session: StudentSession | null): BoardContent {
+/** `now` drives the scripted race; 0 (the server, before the first tick) reads as the start. */
+export function boardContent(c: ClassroomState | null | undefined, session: StudentSession | null, now = 0): BoardContent {
   const lesson: Lesson = { className: ASSIGNMENT.className, title: activeAssignment(c).title };
   const slide = currentSlide(c);
   if (slide) {
@@ -64,12 +70,14 @@ export function boardContent(c: ClassroomState | null | undefined, session: Stud
     return { kind: "whole-class", ...lesson, problem, index: slide.index, total: slide.total, view: slide.view, examples: boardExamples(refs, slide.problemId, session), teacherInk: slide.teacherInk };
   }
   if (c?.wholeClass?.status === "ended") return { kind: "blank", ...lesson };
-  if (groupReviewOver(c, session)) return { kind: "holding", ...lesson };
+  if (c?.group && !c.group.done) return { kind: "group", ...lesson, standings: leaderboardAt(c, session, now) };
+  if (c?.group?.done || groupReviewOver(c, session)) return { kind: "holding", ...lesson, standings: leaderboardAt(c, session, now) };
   return { kind: "blank", ...lesson };
 }
 
-/** The teacher's indicator: "blank", "holding", or "Q3 · 2 of 3" (with " · marks" in the marked view). */
+/** The teacher's indicator: "blank", "standings", "holding", or "Q3 · 2 of 3" (with " · marks" in the marked view). */
 export function boardWord(b: BoardContent): string {
+  if (b.kind === "group") return "standings";
   if (b.kind !== "whole-class") return b.kind;
   return `${b.problem.label} · ${b.index + 1} of ${b.total}${b.view === "marked" ? " · marks" : ""}`;
 }
