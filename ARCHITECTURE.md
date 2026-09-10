@@ -183,6 +183,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 55 | Class view: see skills / full breakdown / close, one hover target per student, no board chip | `/teacher` grid, `/teacher/board` heading | — | [curr_version/architecture/55-class-view-button-words-and-no-board-chip.md](curr_version/architecture/55-class-view-button-words-and-no-board-chip.md) |
 | 56 | Brand header: the real Edexia logo everywhere; the confidence top bar drops "Before you start" | every header, `/student?stage=confidence` | — | [curr_version/architecture/56-brand-logo-and-confidence-crumb.md](curr_version/architecture/56-brand-logo-and-confidence-crumb.md) |
 | 57 | Student report: the skills laid out as the teacher's class-view row, every group shown at once | `/student?stage=report` | — | [curr_version/architecture/57-student-report-skill-columns.md](curr_version/architecture/57-student-report-skill-columns.md) |
+| 58 | Student report: a tile per problem in a column per review stage in the pathway; Starred gone; the reflection required before sending | `/student?stage=report` | — | [curr_version/architecture/58-report-outcome-tiles.md](curr_version/architecture/58-report-outcome-tiles.md) |
 
 ## Conventions
 

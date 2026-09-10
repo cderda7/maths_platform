@@ -421,7 +421,8 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     case "reflection/set":
       return { ...s, reflection: a.text };
     case "report/send":
-      return { ...s, reportSent: true };
+      // A report goes with a reflection or not at all: the button stays disabled until something is written.
+      return s.reflection.trim() === "" ? s : { ...s, reportSent: true };
     case "peers/open":
       return { ...s, stage: "peers" };
     case "peers/close":

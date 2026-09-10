@@ -1,7 +1,9 @@
-import { PROBLEM_MAP } from "@/data/assignment";
+import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
 import { leafName, type GroupId } from "@/data/taxonomy";
-import type { Confidence } from "@/data/types";
+import type { Confidence, Problem, ReviewStage } from "@/data/types";
+import { evaluateLine } from "./evaluate";
 import { feedbackFor } from "./feedback";
+import type { GroupRun } from "./groupReview";
 import type { StudentSession } from "./session";
 import type { DebriefPrompt } from "./debrief";
 
@@ -73,4 +75,43 @@ export function reportFacts(session: StudentSession): ReportFacts {
       .filter(([, n]) => n.text.trim() !== "")
       .map(([id, n]) => ({ label: PROBLEM_MAP[id]?.label ?? id, prompt: n.prompt, text: n.text.trim() })),
   };
+}
+
+/**
+ * Where each problem ended up, for the tiles on the student's report: right when handed in,
+ * right after the independent rework, right once the group's rework checked, or still wrong.
+ * The first that applies wins, so a problem sits in exactly one column. A pathway without a
+ * stage never yields that stage's outcome, and that column is not shown at all.
+ */
+export type Outcome = "first" | "individual" | "group" | "wrong";
+
+export interface OutcomeColumn {
+  id: Outcome;
+  label: string;
+  problems: Problem[];
+}
+
+export const OUTCOME_LABEL: Record<Outcome, string> = {
+  first: "Correct first try",
+  individual: "Correct after individual review",
+  group: "Correct after group review",
+  wrong: "Incorrect",
+};
+
+/** A version is right when it has at least one line and none of them is wrong: the same rule as "every step held". */
+const holds = (problem: string, lines: { tex: string }[]): boolean => lines.length > 0 && lines.every((l) => evaluateLine(problem, l.tex).verdict !== "wrong");
+
+export function problemOutcome(session: StudentSession, problem: string, pathway: readonly ReviewStage[], run: GroupRun | null | undefined): Outcome {
+  if (holds(problem, session.lines[problem] ?? [])) return "first";
+  if (pathway.includes("individual") && holds(problem, session.rework[problem] ?? [])) return "individual";
+  if (pathway.includes("group") && run?.resolved.includes(problem)) return "group";
+  return "wrong";
+}
+
+/** The columns the pathway allows, in order, each with its problems in set order. An empty column stays, so the layout never shifts. */
+export function outcomeColumns(session: StudentSession, pathway: readonly ReviewStage[], run: GroupRun | null | undefined, problems: Problem[] = ASSIGNMENT.problems): OutcomeColumn[] {
+  const ids: Outcome[] = ["first", ...(pathway.includes("individual") ? (["individual"] as const) : []), ...(pathway.includes("group") ? (["group"] as const) : []), "wrong"];
+  const columns = ids.map((id) => ({ id, label: OUTCOME_LABEL[id], problems: [] as Problem[] }));
+  for (const p of problems) columns.find((c) => c.id === problemOutcome(session, p.id, pathway, run))!.problems.push(p);
+  return columns;
 }

@@ -583,3 +583,31 @@ appends it here (see `CLAUDE.md`).
 - **The "New skills" chip.** The student's header uses the teacher's category short names, so
   the Unit Focus column reads NEW SKILLS with "UNIT 1" beside its dot, as on the grid; a
   student-facing chip word could differ.
+
+## Student report: outcome tiles and the required reflection (from ticket 58, 2026-09-10)
+
+- **Correct but dysfunctional problems, and how to batch them.** A tile lands in a "correct"
+  column when no line of that version is wrong (the "every step held" rule), so a version whose
+  lines are all right but that stops short of the answer, or ends on a line the evaluation table
+  does not know, counts as correct on the student's report, while the group review's check
+  (`checkBoard`) also demands that the last line be a known correct one. The user raised the
+  open question of how to batch such "correct but dysfunctional" problems: their own column, a
+  mark on the tile, folding them into incorrect, or a teacher setting. Nothing decides it yet;
+  `problemOutcome` is the one place to change once it is decided.
+- **Whole-class review has no column.** Only individual and group review produce a per-student
+  check, so a pathway of `wc` alone shows two columns; if whole-class review ever records
+  something per student (a diagnostic answered, a "write with me" version), a fifth outcome
+  belongs between group and incorrect.
+- **The teacher's report still reads the old sentences.** `reportFacts` ("5 of 10 problems with
+  a slip", "Reworked Q1 …", the practice line, the stars) is unchanged and the teacher's
+  `/teacher/report` still lists them; the student's tiles are built from `outcomeColumns`. The
+  teacher's view could show the same tiles so the two read the same.
+- **The practice line and the stars left the student's report.** "Practice · monic factorising ·
+  Q2 · taken" and the Starred card were removed with the text card; the data is still in the
+  session and on the teacher's report. If a student should see what they starred (to revisit it
+  from the report), a star on the tile is the natural place.
+- **The demo's group column is empty.** The scripted rework fixes all five slipped problems, so
+  no problem of the demo student's reaches the group column on the report; a demo that leaves
+  one wrong after the rework (Q7, say) would show all four columns filled.
+- **Empty columns.** An empty column reads "None" and keeps its width so the layout never
+  shifts; collapsing it would give the filled columns more room on a two-of-four report.

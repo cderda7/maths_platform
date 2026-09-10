@@ -1,27 +1,38 @@
 "use client";
 
-import M from "@/components/Math";
 import { Button, Card, Eyebrow } from "@/components/ui";
 import SkillColumns from "@/components/SkillColumns";
-import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
-import { reportFacts } from "@/lib/report";
+import { ASSIGNMENT } from "@/data/assignment";
+import { pathwayOf } from "@/lib/classroom";
+import { outcomeColumns, type Outcome } from "@/lib/report";
 import { isMastery } from "@/lib/peers";
-import { useAssignment } from "@/lib/classroom-store";
+import { useAssignment, useClassroom } from "@/lib/classroom-store";
 import { sessionEvidence, sessionHierarchy } from "@/lib/hierarchy";
 import type { SessionAction, StudentSession } from "@/lib/session";
 
 const sentences = (t: string) => t.split(/[.!?]+/).map((x) => x.trim()).filter(Boolean).length;
 
+/** The tile tint per column: green right away, blue after the student's own rework, amber after the group's, red still wrong. */
+const TILE: Record<Outcome, string> = {
+  first: "border-secure-line bg-secure-soft",
+  individual: "border-standout-line bg-standout-soft",
+  group: "border-developing-line bg-developing-soft",
+  wrong: "border-wrong-line bg-wrong-soft",
+};
+
 /**
  * The final report: the skills laid out as the teacher's class-view row (a column per category,
- * every group shown at once), the starred problems, the practices taken, and a short reflection
- * sent to the teacher. No scores anywhere.
+ * every group shown at once), where every problem ended up as a tile in a column per review
+ * stage the teacher set, and a short reflection that must be written before the report can go.
+ * No scores anywhere.
  */
 export default function ReportScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
   const { problems, unit } = useAssignment();
+  const classroom = useClassroom();
   const hierarchy = sessionHierarchy(session, problems);
-  const facts = reportFacts(session);
+  const columns = outcomeColumns(session, pathwayOf(classroom), classroom.group, problems);
   const n = sentences(session.reflection);
+  const written = session.reflection.trim() !== "";
   const sent = session.reportSent;
   const mastery = isMastery(session);
 
@@ -51,65 +62,55 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
           </Card>
         )}
 
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          <Card className="p-4">
-            <Eyebrow>Starred</Eyebrow>
-            {session.stars.length === 0 ? (
-              <p className="mt-2 text-[13px] text-ink-muted">None</p>
-            ) : (
-              <ul className="mt-2 space-y-1.5">
-                {session.stars.map((id) => (
-                  <li key={id} className="flex items-center gap-2 text-[13.5px] text-ink">
-                    <span aria-hidden>★</span> {PROBLEM_MAP[id].label}
-                    <span className="text-ink-muted">
-                      <M tex={PROBLEM_MAP[id].tex} />
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-          <Card className="p-4">
-            <Eyebrow>What happened</Eyebrow>
-            <ul className="mt-2 space-y-1 text-[13px] text-ink-soft">
-              <li>
-                {facts.slipped} of {facts.total} problems with a slip
-              </li>
-              <li>{facts.reworked.length > 0 ? `Reworked ${facts.reworked.join(", ")}` : "No rework"}</li>
-              {facts.practices.map((p, i) => (
-                <li key={i}>{p}</li>
-              ))}
-            </ul>
-          </Card>
-        </div>
+        <Card className="mt-3 p-4" data-outcomes>
+          <Eyebrow>What happened</Eyebrow>
+          <div className="mt-3 grid gap-4" style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}>
+            {columns.map((c) => (
+              <div key={c.id} data-outcome={c.id}>
+                {/* Two lines tall whether the label wraps or not, so every column's tiles start on the same row. */}
+                <div className="min-h-[33px] text-[12px] font-medium leading-snug text-ink-soft">{c.label}</div>
+                {c.problems.length === 0 ? (
+                  <div className="mt-2 text-[13px] text-ink-muted">None</div>
+                ) : (
+                  <ul className="mt-2 flex flex-wrap gap-1.5">
+                    {c.problems.map((p) => (
+                      <li key={p.id} className={`inline-flex h-9 min-w-9 items-center justify-center rounded-lg border px-2 text-[13px] font-medium text-ink ${TILE[c.id]}`}>
+                        {p.label}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        </Card>
       </section>
 
       <aside className="flex min-h-0 flex-col border-l border-line bg-paper/60 px-8 py-7">
-        <Eyebrow>Reflection</Eyebrow>
-        <h2 className="font-display mt-2 text-[24px] leading-tight text-ink">Two or three sentences</h2>
-        <textarea
-          value={session.reflection}
-          onChange={(e) => dispatch({ type: "reflection/set", text: e.target.value })}
-          disabled={sent}
-          rows={7}
-          placeholder="What went wrong, and what you'd check next time…"
-          className="mt-4 w-full resize-none rounded-2xl border border-line bg-paper px-4 py-3 text-[15px] leading-relaxed text-ink outline-none placeholder:text-ink-muted/70 focus:border-accent disabled:bg-cream-deep/50"
-          aria-label="Reflection"
-        />
-        <div className="mt-2 flex items-center justify-between text-[12px] text-ink-muted">
-          <span>{n === 0 ? "" : `${n} ${n === 1 ? "sentence" : "sentences"}`}</span>
-          <span>Optional</span>
-        </div>
-        <div className="mt-auto pt-6">
-          {sent ? (
-            <div className="rounded-2xl border border-secure-line bg-secure-soft px-5 py-4 text-[14px] text-ink" data-sent>
-              Sent to {ASSIGNMENT.teacher}
-            </div>
-          ) : (
-            <Button size="lg" className="w-full" onClick={() => dispatch({ type: "report/send" })}>
-              {session.reflection.trim() ? `Send to ${ASSIGNMENT.teacher}` : "Send without a reflection"}
-            </Button>
-          )}
+        <div className="mt-auto">
+          <Eyebrow>Reflection</Eyebrow>
+          <h2 className="font-display mt-2 text-[24px] leading-tight text-ink">Two or three sentences</h2>
+          <textarea
+            value={session.reflection}
+            onChange={(e) => dispatch({ type: "reflection/set", text: e.target.value })}
+            disabled={sent}
+            rows={7}
+            placeholder="What went wrong, and what you'd check next time…"
+            className="mt-4 w-full resize-none rounded-2xl border border-line bg-paper px-4 py-3 text-[15px] leading-relaxed text-ink outline-none placeholder:text-ink-muted/70 focus:border-accent disabled:bg-cream-deep/50"
+            aria-label="Reflection"
+          />
+          <div className="mt-2 min-h-4 text-[12px] text-ink-muted">{n === 0 ? "" : `${n} ${n === 1 ? "sentence" : "sentences"}`}</div>
+          <div className="pt-4">
+            {sent ? (
+              <div className="rounded-2xl border border-secure-line bg-secure-soft px-5 py-4 text-[14px] text-ink" data-sent>
+                Sent to {ASSIGNMENT.teacher}
+              </div>
+            ) : (
+              <Button size="lg" className="w-full" disabled={!written} onClick={() => dispatch({ type: "report/send" })}>
+                Send to {ASSIGNMENT.teacher}
+              </Button>
+            )}
+          </div>
         </div>
       </aside>
     </div>

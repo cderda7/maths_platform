@@ -1022,3 +1022,37 @@ the pressed pill.
 **Defence.** One store, one set of actions, one reducer: the board became an input surface by
 adding four dispatch calls and no new state, so every existing test of the ink and the mode
 covers the board's writing too, and the student's mirror cannot disagree with the wall.
+
+## 2026-09-10 · A problem's outcome on the report is one of four, decided by the first stage that got it right, and only stages in the pathway count
+
+**Decision.** `lib/report.ts` classifies every problem as `first`, `individual`, `group` or
+`wrong` with a fixed precedence: right when handed in; else right after the student's own
+rework, if individual review is in the pathway; else resolved by the group's rework, if group
+review is in the pathway; else wrong. "Right" means at least one line and no wrong line, the
+same rule as "every step held". The columns on the student's report are derived from the
+pathway, so a stage the teacher did not set has no column, and an empty column still shows.
+
+**Context.** The user asked for the "What happened" text to become tiles in four columns tied
+to the assignment's settings, so a class without group review never sees a "correct after group
+review" column. The data for the three stages lives in three places (the session's `lines` and
+`rework`, the classroom's `GroupRun.resolved`), and each stage has its own notion of correct.
+
+**Alternatives considered.** Deriving the outcome from the debrief's `functional` check
+(`checkBoard`: no wrong line *and* the last line a known correct one): stricter, but it would
+call a handed-in version with all-correct lines "incorrect" on the report while the feedback
+screen said every step held. A per-stage record written by the reducer at each transition:
+simpler to read but a third copy of the truth that the demo fixtures and stored sessions would
+have to carry. Counting the group's success only when the student's own version matches the
+group's line for line (the debrief's green rule): would leave most group-resolved problems
+"incorrect" for the members who did not hold the pen, which is not what the column means.
+
+**Tradeoffs.** A version that is all-correct but stops short of the answer counts as correct
+(the "correct but dysfunctional" question, logged in `FUTURE_FEATURES.md`). The group column
+credits the group's rework to every member, so a student who wrote nothing right sits in a green
+column if their group got it; that is the column's stated meaning. Whole-class review has no
+column because nothing per student is checked there.
+
+**Defence.** The classification is one pure function over inputs that already exist, with the
+precedence written once and tested per pathway; the screen renders whatever columns it is given,
+so changing the rule for dysfunctional versions, or adding a fifth outcome, touches
+`problemOutcome` and the label map and nothing else.
