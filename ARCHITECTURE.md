@@ -100,7 +100,9 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  └────────────────────────────────────────────────────────────────────────────────────┘
  ┌────────────────────────────────────────────────────────────────────────────────────┐
  │ app/layout.tsx  fonts · katex.css · globals.css (@theme tokens, .ipad-bezel/.screen)│
- │ app/page.tsx    entry: student iPad or teacher view                                │
+ │ app/page.tsx    entry: student iPad, teacher view, or both and the board in /split │
+ │ app/split/      SplitView: the three routes in scaled iframes, one, two or all three │
+ │                 (lib/split.ts: panes · parse/toggle · gridFor · frameFor)            │
  └────────────────────────────────────────────────────────────────────────────────────┘
 
  Dependency rule: app ──▶ components ──▶ data ──▶ types. Nothing points the other way.
@@ -139,11 +141,12 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 27 | Warm-up on the pad, confidence first, multimodal help | `/student?stage=confidence`, `…=practice` | `9f311a5` | [curr_version/architecture/27-warm-up-on-the-pad.md](curr_version/architecture/27-warm-up-on-the-pad.md) |
 | 28 | Warm-up chooser: problems, words, one skill at a time | `/student?stage=warmup-pick`, `…=practice` | `c614ed5` | [curr_version/architecture/28-warm-up-chooser.md](curr_version/architecture/28-warm-up-chooser.md) |
 | 29 | Mid-set isolated practice on the pad | `/student?stage=working` overlay | `2022a51` | [curr_version/architecture/29-isolated-practice-on-the-pad.md](curr_version/architecture/29-isolated-practice-on-the-pad.md) |
-| 30 | Hint words that light the problem | `/student?stage=practice`, `…=working` overlay | _this commit_ | [curr_version/architecture/30-hint-links.md](curr_version/architecture/30-hint-links.md) |
+| 30 | Hint words that light the problem | `/student?stage=practice`, `…=working` overlay | `917bb70` | [curr_version/architecture/30-hint-links.md](curr_version/architecture/30-hint-links.md) |
 | 31 | Practice sent to the fundamental skill; confidence for the teacher | `/student?stage=working` prompt | `18b97f0` | [curr_version/architecture/31-confidence-triggered-practice.md](curr_version/architecture/31-confidence-triggered-practice.md) |
 | 32 | Individual review with correction on one screen | `/student?stage=feedback` | `66fa851` | [curr_version/architecture/32-review-with-correction.md](curr_version/architecture/32-review-with-correction.md) |
 | 33 | Demo "skip to" strip | `/student` (presenter control) | `d3bd7e0` | [curr_version/architecture/33-demo-skip-to.md](curr_version/architecture/33-demo-skip-to.md) |
-| 34 | Whole-class review: versions beside a pad, frozen or write-with-me | `/student` frozen, `/teacher/whole-class`, `/teacher/board` | _this commit_ | [curr_version/architecture/34-whole-class-follow-modes.md](curr_version/architecture/34-whole-class-follow-modes.md) |
+| 34 | Whole-class review: versions beside a pad, frozen or write-with-me | `/student` frozen, `/teacher/whole-class`, `/teacher/board` | `fb9fc69` | [curr_version/architecture/34-whole-class-follow-modes.md](curr_version/architecture/34-whole-class-follow-modes.md) |
+| 35 | Split view: student, teacher and board in one tab | `/split` (presenter page) | _this commit_ | [curr_version/architecture/35-split-view.md](curr_version/architecture/35-split-view.md) |
 
 ## Conventions
 

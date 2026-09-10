@@ -1,11 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-
-/** Bezel (22px × 2) plus the 1180pt screen. */
-const DEVICE_W = 1180 + 44;
-const DEVICE_H = 820 + 44;
-const MARGIN = 40;
+import { DEVICE_H, DEVICE_W, STAGE_MARGIN as MARGIN } from "@/lib/ipad";
 
 /**
  * Renders children on a landscape iPad screen (1180 × 820 logical points) inside a bezel,

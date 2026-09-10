@@ -698,3 +698,30 @@ anyone.
 
 **Defence.** Mode and ink live where their owner is (classroom for the teacher, session for the
 student), the per-problem switch is one action, and older stored sessions read as frozen.
+
+## 2026-09-10 · Split view: the real routes in scaled iframes, inside the app
+
+**Decision.** `/split` shows the student iPad, the teacher view and the board in one tab by
+rendering each real route in an iframe, laid out at that surface's design viewport and scaled
+with a transform to fit its pane. It is a route of the app, not a file beside it. The choice of
+panes and layout lives in the URL and is remembered in localStorage.
+
+**Context.** The user wanted to watch all three sides at once while presenting or developing.
+The routes already sync through localStorage and a BroadcastChannel, which same-origin iframes
+share, so the only work is the frame.
+
+**Alternatives considered.** A static HTML harness opened from disk (the user's first idea): no
+build step, but a `file://` page cannot read the app's styles or tokens, has to hard-code the
+port, and drifts from the app. Rendering the three apps in one React tree: they would share a
+document, so `h-screen`, `fixed` presenter controls, the iPad stage's viewport fit and the
+teacher's `zoom` would all fight, and the stores would need in-document plumbing they don't have.
+Reflowing each route to its pane's width instead of scaling: the product would show layouts it
+never shows on a real screen.
+
+**Tradeoffs.** Text is small at three panes on a laptop (about a third scale); the layout toggle
+and the per-pane "Open in a tab" are the remedy. Every pane is a full app instance, so three
+panes do three times the work. A scaled iframe is a real document with real input, so drawing
+on a pad works, but a very small pane makes the pen fiddly.
+
+**Defence.** One page, no new state to sync, the product's real screens at true proportions,
+and a link that reproduces a presenter's setup.

@@ -1,7 +1,8 @@
 # Edexia · Maths
 
 - `curr_version/` — the current build: a demo of the live, closed-loop maths feedback product
-  (student iPad in a desktop browser, teacher view and projected board in other tabs). Spec v2
+  (student iPad in a desktop browser, teacher view and projected board in other tabs, or all of
+  them in one tab at `/split`). Spec v2
   (tickets 01–16) and spec v3 (tickets 17–25: review pathways, whole-class review, detective
   feedback, force submit, persisted ink, the copy rule) are done. See `curr_version/README.md`
   for the demo script and deep links, `curr_version/specs/` for the specs, `curr_version/tickets/`

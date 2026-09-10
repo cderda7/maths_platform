@@ -253,3 +253,23 @@ appends it here (see `CLAUDE.md`).
 - **Difficulty tags are teacher-only.** Every student surface is now free of them (sweep of
   2026-09-10: working, review, whole-class, peers, group, history, the student report's drill).
   The rule is in `components/ProblemCard.tsx` and `HierarchyDrill`'s `student` flag; keep it.
+
+## Split view (from ticket 35, 2026-09-10)
+
+- **Draggable dividers.** The grid splits the window evenly. A drag handle between panes (and a
+  remembered split) would let a presenter give the iPad most of the width.
+- **Scale override.** Panes scale to fit their design viewport. A per-pane "1:1" or a zoom
+  slider would trade overview for legibility when one pane is the focus.
+- **Route per pane.** The teacher pane always opens on Class; the tabs inside it navigate. A
+  toolbar choice of teacher tab (Class · Mistakes · Groups · Report · New assignment) and of the
+  student's deep link (`?stage=` and `?pathway=`) would make a split URL reproduce a full setup.
+- **Sync-state button.** The user's motivation mentioned a shared "sync state" control. The
+  stores already sync, so today it is unneeded; if a pane ever holds state of its own (a scroll
+  position, a selected tab) a "line everything up" button belongs on the toolbar.
+- **Static harness for other origins.** A `file://` page with iframes would let a reviewer point
+  panes at two different builds (main and a worktree on another port) side by side. Deferred:
+  the in-app route covers the one-build case and keeps the styles.
+- **More surfaces.** A second student (another name, another run) as a fourth pane would show
+  group review from both sides. Needs the store to hold more than one session.
+- **Keyboard shortcuts.** 1 / 2 / 3 to toggle panes, L for the layout, when the focus is not in
+  a pane.

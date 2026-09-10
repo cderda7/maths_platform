@@ -41,6 +41,13 @@ export default function Home() {
           </Link>
         </div>
 
+        <p className="mt-8 text-[14px] text-ink-soft">
+          Or{" "}
+          <Link href="/split" className="font-medium text-accent-deep hover:underline" data-split-link>
+            see the iPad, the teacher view and the board in one tab →
+          </Link>
+        </p>
+
         <p className="mt-10 text-[12.5px] text-ink-muted">Design demo · simulated recognition, evaluation and classmates · nothing leaves this browser</p>
         <ResetDemo />
       </main>
