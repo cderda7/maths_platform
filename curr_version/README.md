@@ -87,8 +87,10 @@ for the first three groups home (the other four groups run a scripted ten-minute
 student's is live); the final standings held once group review is over; during whole-class
 review one slide per problem, examples A/B/C with "n/m students", no names, no marks until the
 teacher shows them, and a mirror of the teacher's working.
-- **Mistakes**, **Groups** (only when the pathway has group review), **Report**,
-  **/teacher/compare**.
+- **Mistakes**, **Groups** (only when the pathway has group review), **/teacher/compare**.
+  A student's name on the class view opens their individual view (`/teacher/report?student=`):
+  the platform's commentary as a few ideas in a light-blue bubble, and what the student wrote
+  back in a purple-bordered box.
 
 ## Deep links
 

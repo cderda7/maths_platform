@@ -74,6 +74,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │ lib/guard.ts        guardFor · trippedProblems  (originally-correct problem broken)  │
  │ lib/group.ts        computePhases (∩ correct / ∪ wrong) · groupPlan → DiscussionView │
  │ lib/report.ts       reportFacts · confidenceSentence  (same text on both sides)      │
+ │ lib/commentary.ts   commentaryFor(student, session) → ideas + clarification (individual view) │
  │ lib/mistakes.ts     mistakesByProblem → problem → rows (live student + classmates)   │
  │ lib/peers.ts        peerStruggles (counts only) · isMastery                          │
  │ lib/versions.ts     versionsOf (handed in / after rework) · alignVersions            │
@@ -166,6 +167,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 40 | Group review on one shared whiteboard | `/student` group | `8d9cf9e` | [curr_version/architecture/40-group-review-shared-whiteboard.md](curr_version/architecture/40-group-review-shared-whiteboard.md) |
 | 41 | The debrief after a correct check | `/student` group, `/teacher/report` | `82ff198` | [curr_version/architecture/41-debrief-after-a-correct-check.md](curr_version/architecture/41-debrief-after-a-correct-check.md) |
 | 42 | Progress bar, leaderboard and medals | `/board` race and held standings, `/teacher` card, `/student` group bar | `fca135e` | [curr_version/architecture/42-progress-bar-leaderboard-medals.md](curr_version/architecture/42-progress-bar-leaderboard-medals.md) |
+| 43 | The individual view, and a tidy of the teacher's screens | `/teacher` title line, chips, name links; `/teacher/report?student=`; `/teacher/groups` | `f558209` | [curr_version/architecture/43-individual-view-and-teacher-tidy.md](curr_version/architecture/43-individual-view-and-teacher-tidy.md) |
 
 ## Conventions
 

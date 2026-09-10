@@ -388,6 +388,21 @@ appends it here (see `CLAUDE.md`).
   Not changed: it matches the rest of the board's display type.
 - **What the board shows after the whole-class review ends** (from ticket 38) now has a candidate
   with content: the final standings again, since they are computable at any time from the run.
-- **Teacher notes on hover only.** Classmate notes moved from under the name into a hover bubble
-  (2026-09-10); the bubble may cover the row below by design. On touch there is no hover, so a
-  tap target or a notes column toggle is needed before the teacher view runs on a tablet.
+- **Teacher notes on hover only** (2026-09-10, undone the same day). The hover bubble under a
+  name lasted one commit; commentary now lives on the individual view only (ticket 43). If notes
+  ever return to the class view, the touch problem stands: there is no hover on a tablet.
+- **Suggested-by-mistakes groups, hidden** (2026-09-10). The teacher wants only the seating
+  groups on the groups page for now. `reviewGroups` and its cards stay in the code behind
+  `SHOW_SUGGESTED` in `TeacherGroups.tsx`; a "compare with suggested" toggle is the likely way
+  back, once a real grouping algorithm replaces the fixture's shared-mistake pass.
+- **The platform's commentary is fixture text** (ticket 43). A classmate's ideas are authored
+  notes and their clarification a scripted line; the demo student's ideas are the evaluation
+  table's teacher notes, one per distinct note. A real build generates the 2–3 sentence
+  commentary from the run and lets the student reply from their report screen (the reflection
+  already exists; a reply threaded against each idea does not).
+- **Category chips on the class view need a tap target** (ticket 43). The "expand" button is
+  hover-only, like the double-click it fronts; on a tablet neither exists.
+- **Lowercase by CSS, not by data** (ticket 43). Group and skill names are lowercased with
+  `text-transform` in the drill's `Node`; the taxonomy still holds capitalised names, and other
+  surfaces (skill chips, the mistakes view, the student side) show them as authored. Decide once
+  whether the taxonomy itself should be lowercase.
