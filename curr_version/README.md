@@ -67,9 +67,13 @@ Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the 
 Teacher, during the lesson (`/teacher`):
 
 - **Class**: one column per skill category the set touches (Algebra, Functions, Graphing,
-  Communication, Reasoning, Unit Focus), each dot the worst status beneath it, half dots where a
+  Communication, Reasoning, New skills), each dot the worst status beneath it, half dots where a
   student skipped problems; click a dot to drill sideways into groups, skills and the marked-up
-  work behind them. Then the live row's confidence, stage and caution, the classmates, the
+  work behind them. Hover a column header for its **skills** / **sub-skills** buttons (the
+  chosen level opens under every student; choose it again to close). Hover a row for two
+  buttons beside the name: **see dot skills** (every dot's skills for that student) and
+  **student report**. A student with nothing handed in shows a caution triangle and MISSING in
+  the Set column. Then the live row's confidence, stage and caution, the classmates, the
   pathway chip, **Force assignment submit** (confirm, then a one-minute grace on every screen), the
   **Whole-class review** card (Set up → / Students frozen · End session), the assignment status
   (in whole-class review · complete), the live diagnostic push (the example, or one you write).
@@ -88,7 +92,7 @@ student's is live); the final standings held once group review is over; during w
 review one slide per problem, examples A/B/C with "n/m students", no names, no marks until the
 teacher shows them, and a mirror of the teacher's working.
 - **Mistakes**, **Groups** (only when the pathway has group review), **/teacher/compare**.
-  A student's name on the class view opens their individual view (`/teacher/report?student=`):
+  **student report** beside a name on the class view opens their individual view (`/teacher/report?student=`):
   the platform's commentary as a few ideas in a light-blue bubble, and what the student wrote
   back in a purple-bordered box.
 

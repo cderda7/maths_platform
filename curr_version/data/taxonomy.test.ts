@@ -62,3 +62,10 @@ describe("flat categories", () => {
     expect(categoryLabel("algebra", 1).name).toBe("Algebra");
   });
 });
+
+describe("the unit column's header", () => {
+  it("reads New skills to the teacher", async () => {
+    const { categoryName } = await import("./taxonomy");
+    expect(categoryName("unit").short).toBe("New skills");
+  });
+});

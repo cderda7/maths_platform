@@ -161,3 +161,18 @@ describe("restricting a result to a comment's skills", () => {
     expect(r.categories.graphing).toBe("secure"); // Q10's "in context" step is also a sketching step
   });
 });
+
+describe("a classmate with nothing done", () => {
+  it("has not submitted, so no problem reads as skipped and every dot is unseen", async () => {
+    const { classmateEvidence, hierarchyFor } = await import("./hierarchy");
+    const { CLASSMATE_MAP } = await import("@/data/classmates");
+    const chloe = CLASSMATE_MAP.chloe;
+    expect(chloe.done).toBe(0);
+    const ev = classmateEvidence(chloe);
+    expect(ev.submitted).toBe(false);
+    expect(Object.keys(ev.lines)).toEqual([]);
+    const h = hierarchyFor(ev);
+    expect(h.half.categories).toEqual([]);
+    expect(Object.values(h.categories).every((s) => s === "unseen")).toBe(true);
+  });
+});

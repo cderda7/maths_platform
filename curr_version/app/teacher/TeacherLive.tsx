@@ -10,13 +10,14 @@ import GroupStart, { groupStartShown } from "./GroupStart";
 import WholeClassCard from "./WholeClassCard";
 import BoardIndicator from "./BoardIndicator";
 import { RowDrill, type ColumnBox, type RowMode } from "@/components/HierarchyDrill";
+import FitText from "@/components/FitText";
 import StatusKey from "@/components/StatusKey";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { StatusDot, STATUS_WORD } from "@/components/Tag";
 import { ASSIGNMENT, DEMO_STUDENT, unitLabel } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
 import { categoryLabel, categoryName, categoryOf, isFlat, type CategoryId, type LeafId } from "@/data/taxonomy";
-import { confidenceLabel } from "@/lib/report";
+import { confidenceLabel, confidenceLines } from "@/lib/report";
 import type { Confidence } from "@/data/types";
 import { pathwayOf } from "@/lib/classroom";
 import { useAssignment, useClassroom } from "@/lib/classroom-store";
@@ -29,6 +30,11 @@ const DOUBLE_MS = 350;
 
 /** The grey uppercase label beside a dot: the category name in a column view, the unit beside the Unit dot in a drill. */
 const LABEL = "pointer-events-none absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink-muted";
+
+/** The stacked pair of small buttons beside a student's name and over a column header: light blue, dark indigo text, one width. */
+const STACK_BUTTON = "block w-[96px] rounded-md px-2 py-[3px] text-[11px] font-medium leading-snug transition-colors";
+const STACK_IDLE = `${STACK_BUTTON} bg-standout-soft text-accent-deep hover:bg-standout-line`;
+const STACK_ACTIVE = `${STACK_BUTTON} bg-accent text-white hover:bg-accent-deep`;
 
 function confidenceWord(c: Confidence | null): { text: string; tone: string } {
   const text = confidenceLabel(c);
@@ -46,7 +52,8 @@ const HANDED_IN = ["overview", "confidence", "warmup-pick", "practice", "working
 /**
  * "Where the class is": one row per student, one column per category the assignment touches
  * (canonical order), each dot the worst status beneath it. Clicking a dot expands that row into
- * the category → group → leaf → work drill; a name opens the student's individual view. The
+ * the category → group → leaf → work drill; hovering a row shows two buttons beside the name: the
+ * row's skills (its groups) and the student's individual view. The
  * demo student's row is live (in batches); classmates come through the same evidence path from
  * their scripted attempts.
  */
@@ -89,23 +96,15 @@ export default function TeacherLive() {
     setColumn(null);
     setOpen({ student, mode, category, leaf, columns: columnBoxes(student), nonce: ++nonce.current, expandAll });
   };
-  /** Double-click a header: the column opens for everyone at group level, then with skills, then closes. */
-  const headerCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  /** A click closes the column view, unless it turns out to be the first half of a double-click. */
-  const headerClick = () => {
-    if (!column) return;
-    if (headerCloseTimer.current) clearTimeout(headerCloseTimer.current);
-    headerCloseTimer.current = setTimeout(() => setColumn(null), DOUBLE_MS);
-  };
-  /** What the hover button on a header would do next: open the groups, then the skills, then close. */
-  const headerNext = (c: CategoryId): "expand" | "close" => (column?.category === c && (column.level === "expanded" || isFlat(c)) ? "close" : "expand");
-  const headerDouble = (c: CategoryId) => {
-    if (headerCloseTimer.current) clearTimeout(headerCloseTimer.current);
-    headerCloseTimer.current = null;
+  /**
+   * The header's stacked buttons: "skills" (the groups) and "sub-skills" (a two-layer category has only "skills").
+   * Choosing a level opens that column for every student at that level; choosing the level that is
+   * already open closes it.
+   */
+  const setColumnLevel = (c: CategoryId, level: "groups" | "expanded") => {
     setOpen(null);
     setColumn((cur) => {
-      if (cur?.category === c && (cur.level === "expanded" || isFlat(c))) return null; // a two-layer category has no skills view to open
-      const level = cur?.category === c ? "expanded" : "groups";
+      if (cur?.category === c && cur.level === level) return null;
       const boxes = Object.fromEntries(rows.map((r) => [r.id, columnBoxes(r.id)]));
       return { category: c, level, boxes, nonce: ++nonce.current };
     });
@@ -131,12 +130,13 @@ export default function TeacherLive() {
     openRow(student, "expanded");
   };
 
-  const rows: { id: string; name: string; initials: string; live: boolean; evidence: Evidence; sub: string; confidence: { text: string; tone: string }; set: string; setSub: string }[] = [
+  const rows: { id: string; name: string; initials: string; live: boolean; missing: boolean; evidence: Evidence; sub: string; confidence: { text: string; tone: string }; set: string; setSub: string }[] = [
     {
       id: DEMO_STUDENT.id,
       name: DEMO_STUDENT.name,
       initials: DEMO_STUDENT.initials,
       live: true,
+      missing: false,
       evidence: live ? sessionEvidence(live) : { lines: {}, submitted: false, caution: [] },
       sub: "",
       confidence: confidenceWord(live?.confidence ?? null),
@@ -148,11 +148,12 @@ export default function TeacherLive() {
       name: c.name,
       initials: c.initials,
       live: false,
+      missing: c.done === 0,
       evidence: classmateEvidence(c, problems),
       sub: "",
-      confidence: { text: c.confidence, tone: c.confidence === "confident" ? "text-secure" : "text-accent-deep" },
+      confidence: c.done === 0 ? confidenceWord(null) : { text: c.confidence, tone: c.confidence === "confident" ? "text-secure" : "text-accent-deep" },
       set: `${Math.min(c.done, problems.length)}/${problems.length}`,
-      setSub: c.when,
+      setSub: "",
     })),
   ];
   const results = rows.map((r) => hierarchyFor(r.evidence, problems));
@@ -180,46 +181,48 @@ export default function TeacherLive() {
 
       <div className="mt-10 grid grid-cols-[1fr_320px] gap-6">
         <Card className="overflow-x-auto">
-          <table ref={tableRef} className="w-full min-w-[980px] table-fixed text-left text-[14px]" data-grid>
+          <table ref={tableRef} className="w-full min-w-[1040px] table-fixed text-left text-[14px]" data-grid>
             <colgroup>
-              <col className="w-[190px]" />
+              <col className="w-[280px]" />
               {columns.map((c) => (
-                <col key={c} className="w-[112px]" />
+                <col key={c} className="w-[100px]" />
               ))}
-              <col className="w-[80px]" />
-              <col className="w-[60px]" />
+              <col className="w-[96px]" />
+              <col className="w-[64px]" />
             </colgroup>
             <thead>
               <tr className="border-b border-line text-[10px] uppercase tracking-[0.06em] text-ink-muted">
                 <th className="px-5 py-4 font-semibold">Student</th>
-                {columns.map((c) => (
-                  <th
-                    key={c}
-                    className={`cursor-pointer select-none px-1 py-4 text-center font-semibold leading-tight transition-colors hover:text-ink ${column?.category === c ? "text-ink" : ""}`}
-                    data-column={c}
-                    data-column-open={column?.category === c ? column.level : undefined}
-                    onClick={headerClick}
-                    onDoubleClick={() => headerDouble(c)}
-                    title="Double-click to open this category for every student; click to close"
-                  >
-                    <span className="group/head relative inline-block">
-                      <span className="inline-block rounded-md bg-standout-soft px-2 py-1 text-standout">{categoryName(c).short}</span>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          headerDouble(c);
-                        }}
-                        onDoubleClick={(e) => e.stopPropagation()}
-                        className="absolute inset-0 hidden rounded-md border border-standout-line bg-paper font-semibold text-accent-deep group-hover/head:block"
-                        data-expand={c}
-                        aria-label={`${headerNext(c) === "close" ? "Close" : "Expand"} ${categoryName(c).short} for every student`}
-                      >
-                        {headerNext(c)}
-                      </button>
-                    </span>
-                  </th>
-                ))}
+                {columns.map((c) => {
+                  const openHere = column?.category === c;
+                  const levels: { level: "groups" | "expanded"; word: string }[] = isFlat(c) ? [{ level: "groups", word: "skills" }] : [{ level: "groups", word: "skills" }, { level: "expanded", word: "sub-skills" }];
+                  return (
+                    <th key={c} className={`group/head relative select-none px-1 py-4 text-center font-semibold leading-tight ${openHere ? "text-ink" : ""}`} data-column={c} data-column-open={openHere ? column.level : undefined}>
+                      <span className="relative inline-block">
+                        <span className={`inline-block rounded-md px-2 py-1 group-hover/head:invisible group-focus-within/head:invisible ${openHere ? "bg-accent text-white" : "bg-standout-soft text-standout"}`}>{categoryName(c).short}</span>
+                        <span className="invisible absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col gap-1 normal-case tracking-normal group-hover/head:visible group-focus-within/head:visible" data-column-controls={c}>
+                          {levels.map(({ level, word }) => {
+                            const active = openHere && column.level === level;
+                            return (
+                              <button
+                                type="button"
+                                key={level}
+                                onClick={() => setColumnLevel(c, level)}
+                                className={`${active ? STACK_ACTIVE : STACK_IDLE} shadow-sm`}
+                                data-expand={c}
+                                data-level={level}
+                                aria-pressed={active}
+                                aria-label={`${active ? "Close" : "Show"} ${word} under ${categoryName(c).short} for every student`}
+                              >
+                                {active ? `close ${word}` : word}
+                              </button>
+                            );
+                          })}
+                        </span>
+                      </span>
+                    </th>
+                  );
+                })}
                 <th className="px-3 py-4 text-center font-semibold">Confidence</th>
                 <th className="px-3 py-4 text-center font-semibold">Set</th>
               </tr>
@@ -232,7 +235,8 @@ export default function TeacherLive() {
                 return (
                   <RowGroup key={r.id}>
                     <tr
-                      className={`cursor-pointer border-b border-line ${r.live ? "bg-accent-soft/30" : ""} ${showDrill ? "border-b-0" : ""}`}
+                      className={`group/row cursor-pointer border-b border-line ${r.live ? "bg-accent-soft/30" : ""} ${showDrill ? "border-b-0" : ""}`}
+                      data-missing={r.missing || undefined}
                       data-live={r.live || undefined}
                       data-row={r.id}
                       data-open={isOpen ? open.mode : undefined}
@@ -243,9 +247,9 @@ export default function TeacherLive() {
                         <div className="flex items-center gap-3">
                           <Avatar initials={r.initials} />
                           <div className="min-w-0">
-                            <Link href={`/teacher/report?student=${r.id}`} className="whitespace-nowrap font-medium text-ink hover:text-accent-deep hover:underline" data-student-link={r.id} title="Open this student">
+                            <span className="block whitespace-nowrap font-medium text-ink" data-student-name={r.id}>
                               {r.name}
-                            </Link>
+                            </span>
                             {r.live && (
                               <span className="mt-1 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-accent-line bg-paper px-2 py-0.5 text-[11px] font-medium text-accent-deep" data-live-pill>
                                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" aria-hidden />
@@ -265,6 +269,14 @@ export default function TeacherLive() {
                                 </Link>
                               )}
                             </div>
+                          </div>
+                          <div className="invisible ml-auto flex shrink-0 flex-col gap-1 group-hover/row:visible group-focus-within/row:visible" data-row-actions={r.id}>
+                            <button type="button" onClick={() => (isOpen && open.mode === "groups" ? setOpen(null) : openRow(r.id, "groups"))} className={isOpen && open.mode === "groups" ? STACK_ACTIVE : STACK_IDLE} data-see-skills={r.id} aria-pressed={isOpen && open.mode === "groups"}>
+                              see dot skills
+                            </button>
+                            <Link href={`/teacher/report?student=${r.id}`} className={`${STACK_IDLE} text-center`} data-student-link={r.id}>
+                              student report
+                            </Link>
                           </div>
                         </div>
                       </td>
@@ -300,10 +312,18 @@ export default function TeacherLive() {
                           </td>
                         );
                       })}
-                      <td className={`px-3 py-3.5 text-center text-[13px] leading-snug ${r.confidence.tone}`}>{r.confidence.text}</td>
-                      <td className="px-3 py-3.5 text-center leading-snug text-ink-soft">
-                        {r.set}
-                        <div className="text-[12px] text-ink-muted">{r.setSub}</div>
+                      <td className={`px-2 py-3.5 text-center text-[13px] leading-snug ${r.confidence.tone}`} data-confidence>
+                        <ConfidenceCell label={r.confidence.text} />
+                      </td>
+                      <td className="px-2 py-3.5 text-center leading-snug text-ink-soft">
+                        {r.missing ? (
+                          <Missing />
+                        ) : (
+                          <>
+                            {r.set}
+                            {r.setSub && <div className="text-[12px] text-ink-muted">{r.setSub}</div>}
+                          </>
+                        )}
                       </td>
                     </tr>
                     {isOpen && open && (
@@ -368,6 +388,35 @@ export default function TeacherLive() {
         </div>
       </div>
     </TeacherChrome>
+  );
+}
+
+/** The confidence word, split so a named skill never breaks across two lines: shrunk to fit instead. */
+function ConfidenceCell({ label }: { label: string }) {
+  const { head, skills } = confidenceLines(label);
+  if (skills.length === 0) return <>{head}</>;
+  return (
+    <div>
+      <div>{head}</div>
+      {skills.map((skill) => (
+        <FitText key={skill}>{skill}</FitText>
+      ))}
+    </div>
+  );
+}
+
+/** A student with nothing handed in: a light blue caution triangle over a small grey MISSING. */
+function Missing() {
+  return (
+    <div className="flex flex-col items-center gap-0.5" data-missing-mark role="img" aria-label="Nothing submitted">
+      <svg viewBox="0 0 24 22" className="h-[26px] w-[28px]" aria-hidden>
+        <path d="M10.3 2.1a2 2 0 0 1 3.4 0l9 15.6a2 2 0 0 1-1.7 3H3a2 2 0 0 1-1.7-3z" fill="var(--color-standout-line)" stroke="var(--color-standout)" strokeOpacity="0.45" strokeWidth="0.8" strokeLinejoin="round" />
+        <text x="12" y="17.5" textAnchor="middle" fontSize="13" fontWeight="800" fill="#000" fontFamily="inherit">
+          !
+        </text>
+      </svg>
+      <span className="text-[9.5px] font-semibold uppercase tracking-[0.08em] text-ink-muted">missing</span>
+    </div>
   );
 }
 

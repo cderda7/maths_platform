@@ -418,3 +418,24 @@ appends it here (see `CLAUDE.md`).
   full size was not built. The working screen shows it at full size.
 - **Problem rows that open the problem.** The rows do nothing on tap. A tap could jump the
   student to that problem once the set has started; deferred, the set starts at Q1.
+
+## Class view polish (from ticket 45, 2026-09-10)
+
+- **Row and header buttons on a tablet.** "see dot skills" / "student report" beside a name and
+  "skills" / "sub-skills" over a header appear on hover (and keyboard focus); a tablet has
+  neither. A long-press or a persistent small handle would be needed there.
+- **MISSING in the key.** The caution triangle over MISSING (a student who handed nothing in)
+  has no row in the Key card. Add one if teachers ask what it means.
+- **A missing student everywhere else.** Chloe Abara has `done: 0`. Her individual view opens
+  with every skill unseen and the groups page still seats her; a real build would show
+  "nothing submitted" on the report and let the teacher chase or exclude her. Force submit
+  counts her among those still working.
+- **Confidence words that shrink.** A named skill in the Confidence column shrinks to one line
+  (`FitText`), down to whatever fits: "non-monic factorising" lands near 9.5 px. If that reads
+  too small, the alternative is a wider column or a tooltip with the full list.
+- **Wording of the header control.** "skills" (the groups) and "sub-skills" (the leaves) were
+  chosen to match "see dot skills"; the drill itself still says groups and skills in code. The
+  user asked to try something and refine, so expect the words to change.
+- **The live row's Set sub-line.** Timestamps are gone from the Set column for classmates; the
+  demo student's "handed in" / "in progress" sub-line stays, though the pill beside the name says
+  the same. Drop one of them.

@@ -39,6 +39,16 @@ export function confidenceLabel(c: Confidence | null): string {
   return named ? `low: ${named.join(", ")}` : "low";
 }
 
+/**
+ * A confidence word split for a narrow column: the head ("confident", "low", "low:") and the named
+ * skills, one per line, so no skill name is ever broken across two lines.
+ */
+export function confidenceLines(label: string): { head: string; skills: string[] } {
+  const i = label.indexOf(":");
+  if (i < 0) return { head: label, skills: [] };
+  return { head: label.slice(0, i + 1), skills: label.slice(i + 1).split(",").map((s) => s.trim()).filter(Boolean) };
+}
+
 export function confidenceSentence(c: Confidence | null): string {
   if (!c) return "No confidence rating";
   if (c.level === "confident") return "Confident before starting";

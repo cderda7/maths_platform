@@ -162,7 +162,8 @@ export function classmateEvidence(c: Classmate, problems: Problem[] = ASSIGNMENT
     const ls = classmateLines(c, p, i);
     if (ls) lines[p.id] = ls;
   });
-  return { lines, submitted: true, caution: [] };
+  // A classmate with no problems done never handed anything in: no half-dots for problems "skipped".
+  return { lines, submitted: c.done > 0, caution: [] };
 }
 
 export const sessionHierarchy = (session: StudentSession, problems: Problem[] = ASSIGNMENT.problems) => hierarchyFor(sessionEvidence(session), problems);

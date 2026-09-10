@@ -151,7 +151,7 @@ export const TAXONOMY = {
   },
   unit: {
     name: "Unit Focus",
-    short: "Unit",
+    short: "New skills",
     groups: {
       u1: {
         name: "Unit 1",

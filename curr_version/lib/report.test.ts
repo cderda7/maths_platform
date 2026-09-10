@@ -33,3 +33,16 @@ describe("the confidence label", () => {
     expect(confidenceSentence({ level: "low-when", leaves: [] })).toBe("Confidence low before starting");
   });
 });
+
+describe("confidenceLines", () => {
+  it("keeps a plain word whole", async () => {
+    const { confidenceLines } = await import("./report");
+    expect(confidenceLines("confident")).toEqual({ head: "confident", skills: [] });
+    expect(confidenceLines("low")).toEqual({ head: "low", skills: [] });
+    expect(confidenceLines("—")).toEqual({ head: "—", skills: [] });
+  });
+  it("splits the named skills one per line after the head", async () => {
+    const { confidenceLines } = await import("./report");
+    expect(confidenceLines("low: fractions, non-monic factorising")).toEqual({ head: "low:", skills: ["fractions", "non-monic factorising"] });
+  });
+});
