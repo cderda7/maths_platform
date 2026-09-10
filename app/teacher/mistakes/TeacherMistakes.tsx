@@ -105,7 +105,7 @@ export default function TeacherMistakes() {
                         type="button"
                         onClick={() => toggle(problem.id)}
                         aria-expanded={isOpen}
-                        className={`row-start-1 flex min-w-0 items-center gap-3 px-5 pt-4 pb-1.5 text-left transition-colors hover:bg-cream-deep/40 ${column(i)} ${isOpen ? "bg-accent-soft/30" : ""}`}
+                        className={`row-start-1 flex min-w-0 items-center gap-3 px-5 pt-4 pb-3.5 text-left transition-colors hover:bg-cream-deep/40 ${column(i)} ${isOpen ? "bg-accent-soft/30" : ""}`}
                         style={{ gridColumn: i + 1 }}
                         data-row={key}
                       >

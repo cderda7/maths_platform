@@ -191,6 +191,7 @@ data static under `data/`. The Sept 7 mockup was removed on 10 Sep 2026 (ticket 
 | 63 | Mistakes view: one pill spans the students who slipped on the same step; the header keeps only the difficulty tag | `/teacher/mistakes` | 62 | [architecture/63-mistakes-shared-pills.md](architecture/63-mistakes-shared-pills.md) |
 | 64 | Mistakes view: bigger red-filled slip pills, the question header opens and closes, an expand / close / close-all button on hover | `/teacher/mistakes` | 63 | [architecture/64-mistakes-expand-button.md](architecture/64-mistakes-expand-button.md) |
 | 65 | The Edexia bar stays put when the page scrolls, and the board gets one | `/teacher/**` sticky, `/student` verified, `/board` | — | [architecture/65-sticky-brand-header.md](architecture/65-sticky-brand-header.md) |
+| 66 | Mistakes view: more room between the student's name and the slip pill | `/teacher/mistakes` | 64 | [architecture/66-mistakes-pill-spacing.md](architecture/66-mistakes-pill-spacing.md) |
 
 ## Conventions
 
