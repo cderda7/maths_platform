@@ -278,3 +278,16 @@ appends it here (see `CLAUDE.md`).
   group review from both sides. Needs the store to hold more than one session.
 - **Keyboard shortcuts.** 1 / 2 / 3 to toggle panes, L for the layout, when the focus is not in
   a pane.
+
+## Group review on a shared whiteboard (tickets 36–42, planned 2026-09-10)
+
+- **Individual verification after the group's last problem.** One short problem per student to
+  recover the signal a shared board loses on the quiet student. Dropped from the plan; decide
+  later whether it feeds the teacher's grid.
+- **Full scripted attempts for the thirteen new classmates.** Ticket 36 adds them as lightweight
+  entries (name, confidence, wrong list, group). A full version, with every line evaluable like
+  the six existing classmates, is a candidate for an overnight run.
+- **Passing the pen.** The pen is a random draw by design; a "pass the pen" for a stuck holder was
+  considered and left out so the draw stays the point.
+- **Peers seeing each other's reflections.** Teacher-only by decision; a group-visible variant
+  would turn the reflection into a performance.
