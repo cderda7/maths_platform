@@ -54,7 +54,7 @@ export default function SkillColumns({ result, lines, problems, unit = 1 }: { re
         {columns.map((c) => (
           /* Flex centring: a chip wider than its column (Communication) spills evenly into the slack either side instead of under its neighbour. */
           <div key={c} className="flex justify-center py-4 leading-tight" data-column={c}>
-            <span className="shrink-0 whitespace-nowrap rounded-md bg-standout-soft px-2 py-1 text-standout">{categoryName(c).short}</span>
+            <span className="shrink-0 whitespace-nowrap rounded-md bg-standout-soft px-2.5 py-1 text-[11px] text-standout">{categoryName(c).short}</span>
           </div>
         ))}
       </div>

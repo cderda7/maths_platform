@@ -204,7 +204,7 @@ export default function TeacherLive() {
                   return (
                     <th key={c} className={`group/head relative select-none px-1 py-4 text-center font-semibold leading-tight ${openHere ? "text-ink" : ""}`} data-column={c} data-column-open={openHere ? column.level : undefined}>
                       <span className="relative inline-block">
-                        <span className={`inline-block rounded-md px-2 py-1 group-hover/head:invisible group-focus-within/head:invisible ${openHere ? "bg-accent text-white" : "bg-standout-soft text-standout"}`}>{categoryName(c).short}</span>
+                        <span className={`inline-block rounded-md px-2.5 py-1 text-[11px] group-hover/head:invisible group-focus-within/head:invisible ${openHere ? "bg-accent text-white" : "bg-standout-soft text-standout"}`}>{categoryName(c).short}</span>
                         <span className="invisible absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col gap-1 normal-case tracking-normal group-hover/head:visible group-focus-within/head:visible" data-column-controls={c}>
                           {levels.map(({ level, word }) => {
                             const active = openHere && column.level === level;
