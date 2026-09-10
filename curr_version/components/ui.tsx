@@ -38,7 +38,7 @@ export function Button({
     variant === "primary"
       ? "bg-ink text-white hover:bg-ink-soft"
       : variant === "sky"
-        ? "bg-standout-soft text-standout border border-standout-line hover:bg-standout-line/60"
+        ? "bg-standout-soft text-accent-deep border border-standout-line hover:bg-standout-line/60"
         : variant === "accent"
         ? "bg-accent text-white hover:bg-accent-deep"
         : variant === "secondary"

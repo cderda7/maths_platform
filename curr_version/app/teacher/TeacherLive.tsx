@@ -14,7 +14,7 @@ import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { StatusDot, STATUS_WORD } from "@/components/Tag";
 import { ASSIGNMENT, DEMO_STUDENT, unitLabel } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
-import { categoryLabel, categoryName, categoryOf, groupName, isFlat, leafName, type CategoryId, type LeafId } from "@/data/taxonomy";
+import { categoryLabel, categoryName, categoryOf, isFlat, leafName, type CategoryId, type LeafId } from "@/data/taxonomy";
 import type { Confidence } from "@/data/types";
 import { pathwayOf } from "@/lib/classroom";
 import { useAssignment, useClassroom } from "@/lib/classroom-store";
@@ -31,9 +31,9 @@ const LABEL = "pointer-events-none absolute top-1/2 -translate-y-1/2 whitespace-
 function confidenceWord(c: Confidence | null): { text: string; tone: string } {
   if (!c) return { text: "—", tone: "text-ink-muted" };
   if (c.level === "confident") return { text: "confident", tone: "text-secure" };
-  if (c.level === "low") return { text: "low", tone: "text-standout" };
+  if (c.level === "low") return { text: "low", tone: "text-accent-deep" };
   const names = c.leaves.map((l) => leafName(l).short);
-  return { text: `low: ${names.slice(0, 2).join(", ")}${names.length > 2 ? ` +${names.length - 2}` : ""}`, tone: "text-standout" };
+  return { text: `low: ${names.slice(0, 2).join(", ")}${names.length > 2 ? ` +${names.length - 2}` : ""}`, tone: "text-accent-deep" };
 }
 
 function ago(ms: number | null, now: number): string {
@@ -160,7 +160,7 @@ export default function TeacherLive() {
       evidence: classmateEvidence(c, problems),
       sub: "",
       notes: c.notes,
-      confidence: { text: c.confidence, tone: c.confidence === "confident" ? "text-secure" : "text-standout" },
+      confidence: { text: c.confidence, tone: c.confidence === "confident" ? "text-secure" : "text-accent-deep" },
       set: `${Math.min(c.done, problems.length)}/${problems.length}`,
       setSub: c.when,
     })),
@@ -232,38 +232,44 @@ export default function TeacherLive() {
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
                           <Avatar initials={r.initials} />
-                          <div className="min-w-0">
+                          <div className="group/name relative min-w-0">
                             <div className="whitespace-nowrap font-medium text-ink">{r.name}</div>
+                            {r.notes.length > 0 && !column && (
+                              <div className="pointer-events-none absolute left-0 top-full z-30 hidden w-max max-w-[300px] pt-1 group-hover/name:block" data-notes-bubble>
+                                <div className="pointer-events-auto rounded-xl border border-line bg-paper px-3.5 py-2.5 text-[12.5px] leading-snug text-ink-soft shadow-lift">
+                                  <div className="flex flex-col items-start gap-1">
+                                    {r.notes.map((note, n) => {
+                                      const active = isOpen && open.comment === n;
+                                      return (
+                                        <button
+                                          key={n}
+                                          type="button"
+                                          onClick={(e) => commentClick(r.id, n, leavesBehind(note.problems, r.evidence.lines, problems), e)}
+                                          className={`text-left lowercase transition-colors hover:text-ink ${active ? "text-ink underline decoration-line-strong underline-offset-2" : ""}`}
+                                          title="Show only the skills behind this comment"
+                                          data-comment={n}
+                                        >
+                                          {note.text}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                             {r.live && (
                               <span className="mt-1 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-accent-line bg-paper px-2 py-0.5 text-[11px] font-medium text-accent-deep" data-live-pill>
                                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" aria-hidden />
                                 {live ? "in progress" : "not started"}
                               </span>
                             )}
-                            <div className={`flex items-start gap-2 text-[12.5px] leading-snug text-ink-muted ${!column && (r.sub || r.notes.length > 0 || (r.live && (caution.length > 0 || live?.reportSent))) ? "" : "hidden"}`} data-commentary>
+                            <div className={`flex items-start gap-2 text-[12.5px] leading-snug text-ink-muted ${!column && (r.sub || (r.live && (caution.length > 0 || live?.reportSent))) ? "" : "hidden"}`} data-commentary>
                               {r.live && caution.length > 0 && (
                                 <span className="inline-flex items-center gap-1 rounded-full border border-gap-line bg-gap-soft px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gap" data-caution>
                                   <span className="h-1.5 w-1.5 rounded-full bg-gap" aria-hidden /> caution
                                 </span>
                               )}
-                              <span className="flex flex-col items-start">
-                                {r.sub && <span className="-indent-3 pl-3">{r.sub}</span>}
-                                {r.notes.map((note, n) => {
-                                  const active = isOpen && open.comment === n;
-                                  return (
-                                    <button
-                                      key={n}
-                                      type="button"
-                                      onClick={(e) => commentClick(r.id, n, leavesBehind(note.problems, r.evidence.lines, problems), e)}
-                                      className={`-indent-3 pl-3 text-left lowercase transition-colors hover:text-ink ${active ? "text-ink underline decoration-line-strong underline-offset-2" : ""}`}
-                                      title="Show only the skills behind this comment"
-                                      data-comment={n}
-                                    >
-                                      {note.text}
-                                    </button>
-                                  );
-                                })}
-                              </span>
+                              {r.sub && <span className="-indent-3 pl-3">{r.sub}</span>}
                               {r.live && live?.reportSent && (
                                 <Link href="/teacher/report" className="text-accent-deep hover:underline" data-report-link>
                                   Report →
@@ -340,17 +346,17 @@ export default function TeacherLive() {
         <div className="space-y-6">
           <Card className="p-6" data-pathway-card>
             <Eyebrow className="inline-block rounded-md bg-accent px-2 py-1 text-white">Pathway</Eyebrow>
-            <ol className="mx-auto mt-3 w-fit rounded-xl bg-standout-soft px-6 py-3 font-display text-[22px] leading-snug text-ink" data-pathway-chip>
+            <ol className="mx-auto mt-3 flex w-fit flex-col items-center font-display text-[22px] leading-snug text-ink" data-pathway-chip>
               {pathwayChip(pathwayOf(classroom))
                 .split(" → ")
                 .map((stage, i) => (
                   <li key={stage} className="flex flex-col items-center text-center">
                     {i > 0 && (
-                      <svg viewBox="0 0 12 18" className="h-[18px] w-3 text-ink-muted/70" aria-hidden>
+                      <svg viewBox="0 0 12 18" className="my-0.5 h-[18px] w-3 text-ink-muted/70" aria-hidden>
                         <path d="M6 1v15M2.5 12.5 6 16l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     )}
-                    <span>{stage}</span>
+                    <span className="rounded-xl bg-standout-soft px-5 py-1.5">{stage}</span>
                   </li>
                 ))}
             </ol>
@@ -358,24 +364,6 @@ export default function TeacherLive() {
           <ForceSubmit session={live} />
           <GroupProgressCard session={live} />
           <WholeClassCard />
-          <Card className={`p-6 ${caution.length ? "border-gap-line" : ""}`}>
-            <Eyebrow className={caution.length ? "text-gap" : ""}>Worth a look</Eyebrow>
-            {caution.length === 0 ? (
-              <p className="mt-3 text-[13.5px] text-ink-muted">Nothing flagged</p>
-            ) : (
-              <ul className="mt-3 space-y-3">
-                {caution.map((g) => (
-                  <li key={g} className="rounded-xl border border-gap-line bg-gap-soft px-4 py-3">
-                    <div className="flex items-center gap-2 text-[14px] font-medium text-gap">
-                      <span className="h-2 w-2 rounded-full bg-gap" aria-hidden />
-                      {DEMO_STUDENT.name} · {groupName(g).name}
-                    </div>
-                    <p className="mt-1 text-[12.5px] text-ink-soft">Practice twice</p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
 
           <DiagnosticPush session={live} />
 

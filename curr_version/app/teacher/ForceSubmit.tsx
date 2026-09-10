@@ -32,7 +32,7 @@ export default function ForceSubmit({ session }: { session: StudentSession | nul
 
   return (
     <Card className="p-6" data-force-submit>
-      <Eyebrow>Class</Eyebrow>
+      <Eyebrow className="inline-block rounded-md bg-accent px-2 py-1 text-white">Class</Eyebrow>
       {pending && advance ? (
         <div className="mt-3 flex items-center justify-between" data-advance-pending>
           <span className="flex items-center gap-2 text-[14px] text-ink">
@@ -66,7 +66,7 @@ export default function ForceSubmit({ session }: { session: StudentSession | nul
         </div>
       ) : (
         <div className="mt-3">
-          <Button variant="secondary" disabled={!liveWorking || projecting} onClick={() => setConfirming(true)} data-force>
+          <Button variant="sky" disabled={!liveWorking || projecting} onClick={() => setConfirming(true)} data-force>
             force assignment submit
           </Button>
         </div>

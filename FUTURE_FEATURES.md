@@ -388,3 +388,6 @@ appends it here (see `CLAUDE.md`).
   Not changed: it matches the rest of the board's display type.
 - **What the board shows after the whole-class review ends** (from ticket 38) now has a candidate
   with content: the final standings again, since they are computable at any time from the run.
+- **Teacher notes on hover only.** Classmate notes moved from under the name into a hover bubble
+  (2026-09-10); the bubble may cover the row below by design. On touch there is no hover, so a
+  tap target or a notes column toggle is needed before the teacher view runs on a tablet.

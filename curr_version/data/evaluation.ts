@@ -57,6 +57,7 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Somewhere a pair of signs doesn't survive the trip back. Expanding a factorisation is a one-line check.",
       "Expand this back: what sign does the x term come out with?",
     ),
+    "x = 2, 3": okc(T(NFL), "Roots read off, the null factor law not shown"),
     "x = -2 \\;\\text{or}\\; x = -3": ok(T(NFL, QUAD), "Null factor law", true),
   },
   q2: {
@@ -66,6 +67,7 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
     "2x(x+4) - 1(x+4) = 0": ok(T(NONMONIC), "Grouped"),
     "(2x - 1)(x + 4) = 0": ok(T(NONMONIC), "Factorised"),
     "x = \\tfrac{1}{2} \\;\\text{or}\\; x = -4": ok(T(NFL, FRAC), "Null factor law"),
+    "2x^2 + 7x - 4 = (2x - 1)(x + 4)": okc(T(NONMONIC), "Factorised in one line, the split not shown"),
     "(2x + 4)(x - 1) = 0": wrong(
       T(NONMONIC),
       "Factorised",
@@ -81,6 +83,7 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
     "x^2 - x - 12 = 0": ok(T(LIN), "Rearranged to standard form"),
     "(x - 4)(x + 3) = 0": ok(T(MONIC), "Factorised"),
     "x = 4 \\;\\text{or}\\; x = -3": ok(T(NFL, QUAD), "Null factor law"),
+    "x^2 - x - 12 = 0 \\Rightarrow x = 4, -3": okc(T(MONIC, NFL), "Factorised and solved in one line"),
     "x - 3 = 6 \\;\\text{or}\\; x + 2 = 6": wrong(
       T(NFL),
       "Split the product",

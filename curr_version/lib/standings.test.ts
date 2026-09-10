@@ -38,10 +38,10 @@ describe("the scripted race", () => {
     expect(fixture("coral").total).toBe(7);
     expect(fixture("amber").union).toEqual(["q1", "q2", "q3", "q4", "q7", "q9"]);
     expect(fixture("amber").total).toBe(6);
-    expect(fixture("mint").union).toEqual(["q5", "q6", "q10"]);
-    expect(fixture("mint").total).toBe(4);
-    expect(fixture("violet").union).toEqual(["q1", "q2", "q3", "q4", "q9"]);
-    expect(fixture("violet").total).toBe(7);
+    expect(fixture("mint").union).toEqual(["q5", "q6", "q9", "q10"]);
+    expect(fixture("mint").total).toBe(5);
+    expect(fixture("violet").union).toEqual(["q1", "q2", "q3", "q4", "q5", "q9"]);
+    expect(fixture("violet").total).toBe(9);
     expect(unionOf({ a: ["q9", "q1"], b: ["q3"] })).toEqual(["q1", "q3", "q9"]);
   });
 
@@ -74,7 +74,7 @@ describe("the scripted race", () => {
     }
   });
 
-  it("at the start every bar is at zero and the demo group holds the pen on Q1; five minutes in, mint and amber are home and coral and violet are level", () => {
+  it("at the start every bar is at zero and the demo group holds the pen on Q1; five minutes in, mint and amber are home and coral is ahead of violet", () => {
     const { classroom, session } = skipFixture("group review", now);
     const start = standingsAt(classroom, session, now);
     expect(start.map((s) => s.colour)).toEqual([...GROUP_COLOURS]);
@@ -93,7 +93,7 @@ describe("the scripted race", () => {
     expect(by.mint.percent).toBe(100);
     expect(by.amber.percent).toBe(100);
     expect(by.coral.percent).toBe(43);
-    expect(by.violet.percent).toBe(43);
+    expect(by.violet.percent).toBe(33);
     expect(by.sky.percent).toBe(0);
     expect(by.violet.reachedAt).toBeLessThan(by.coral.reachedAt);
     // Before the first tick the clock reads 0: the start, never a negative elapsed.

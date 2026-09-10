@@ -36,14 +36,21 @@ const Q7_TWO_TERMS = ["x^2 + 6x + \\tfrac{8}{3}", "2 \\times 4 = 8,\\quad 2 + 4 
 const Q8_MIRROR = ["x = -1 \\;\\text{or}\\; x = -3"];
 const Q9_HEIGHT = ["-x(x - 6) = 0", "x = 0 \\;\\text{or}\\; x = 6", "x = 3", "h = 6"];
 const Q10_TWICE = ["b^2 - 4ac = 16 - 20 = -4", "\\Delta < 0 \\Rightarrow \\text{no real solutions}", "\\text{The graph crosses the x-axis twice}"];
+/** Q5 with the turning point's height read off the wrong line, and Q9 rushed: the axis given as the height, a step skipped on the way. */
+const Q5_HEIGHT = ["(x - 5)(x + 1) = 0", "x = 5 \\;\\text{or}\\; x = -1", "x = \\tfrac{5 + (-1)}{2} = 2", "(2, -5)"];
+const Q9_RUSHED = ["-x(x - 6) = 0", "\\text{turning point at } x = 3", "h = 6"];
+/** Right, but in one jump each: what a student who skips steps hands in. */
+const Q1_JUMP = ["x^2 - 5x + 6 = 0", "x = 2, 3"];
+const Q2_JUMP = ["2x^2 + 7x - 4 = (2x - 1)(x + 4)", "x = \\tfrac{1}{2} \\;\\text{or}\\; x = -4"];
+const Q3_JUMP = ["x^2 - x - 12 = 0 \\Rightarrow x = 4, -3"];
 const Q1_SIGNS = ["x^2 - 5x + 6 = 0", "(x + 2)(x + 3) = 0", "x = -2 \\;\\text{or}\\; x = -3"];
 
 /** One known slip per problem, every line in the evaluation table: what a lightweight classmate wrote when they got it wrong. */
 export const SLIPS: Record<string, string[]> = { q1: Q1_SIGNS, q2: Q2_GUESSED, q3: Q3_NFL, q4: Q4_OVER_A, q5: Q5_SIGNS, q6: Q6_TWICE, q7: Q7_TWO_TERMS, q8: Q8_MIRROR, q9: Q9_HEIGHT, q10: Q10_TWICE };
 
-/** A lightweight classmate: the slip for each wrong problem comes from `SLIPS`; no teacher notes. */
-function light(id: string, name: string, initials: string, confidence: Classmate["confidence"], done: number, when: string, wrong: string[], groupStatus = "Quick pass done"): Classmate {
-  return { id, name, initials, confidence, done, when, wrong, notes: [], attempts: Object.fromEntries(wrong.map((pid) => [pid, SLIPS[pid]])), groupStatus };
+/** A lightweight classmate: the slip for each wrong problem comes from `SLIPS` unless overridden; one teacher note per slip. */
+function light(id: string, name: string, initials: string, confidence: Classmate["confidence"], done: number, when: string, wrong: string[], notes: { text: string; problems: string[] }[] = [], attempts: Record<string, string[]> = {}, groupStatus = "Quick pass done"): Classmate {
+  return { id, name, initials, confidence, done, when, wrong, notes, attempts: { ...Object.fromEntries(wrong.map((pid) => [pid, SLIPS[pid]])), ...attempts }, groupStatus };
 }
 
 export const CLASSMATES: Classmate[] = [
@@ -54,19 +61,19 @@ export const CLASSMATES: Classmate[] = [
   { id: "zara", name: "Zara Haddad", initials: "ZH", confidence: "confident", done: 10, when: "1:05 pm", wrong: ["q3", "q9"], notes: [{ text: "null factor law on a product that isn’t 0", problems: ["q3"] }, { text: "axis given as the height", problems: ["q9"] }], attempts: { q3: Q3_NFL, q9: Q9_HEIGHT }, groupStatus: "Discussing Q3 · when the null factor law applies" },
   { id: "liam", name: "Liam O'Connell", initials: "LO", confidence: "confident", done: 2, when: "9:40 am", wrong: ["q2", "q3"], notes: [{ text: "guessed a factor pair without expanding back", problems: ["q2", "q3"] }], attempts: { q2: Q2_GUESSED, q3: Q3_NFL }, groupStatus: "Discussing Q2 · listening" },
   // The lightweight thirteen (ticket 36). A full version of each is a candidate for a later run; see FUTURE_FEATURES.
-  light("aiden", "Aiden Park", "AP", "confident", 10, "3:55 pm", ["q7"]),
-  light("mia", "Mia Nguyen", "MN", "low: fractions", 10, "4:02 pm", ["q2", "q7"]),
-  light("noah", "Noah Fitzgerald", "NF", "confident", 9, "3:51 pm", ["q3"]),
+  light("aiden", "Aiden Park", "AP", "confident", 10, "3:55 pm", ["q7"], [{ text: "scaled two of three terms", problems: ["q7"] }]),
+  light("mia", "Mia Nguyen", "MN", "low: fractions", 10, "4:02 pm", ["q2", "q7"], [{ text: "guessed a factor pair, never expanded back", problems: ["q2"] }, { text: "the third off by a third", problems: ["q7"] }]),
+  light("noah", "Noah Fitzgerald", "NF", "confident", 9, "3:51 pm", ["q3"], [{ text: "null factor law on a product that isn't 0", problems: ["q3"] }]),
   light("chloe", "Chloe Abara", "CA", "confident", 10, "3:58 pm", []),
-  light("ethan", "Ethan Kowalski", "EK", "low", 8, "4:05 pm", ["q1", "q4", "q9"]),
-  light("isla", "Isla Moretti", "IM", "confident", 10, "3:49 pm", ["q10"]),
-  light("lucas", "Lucas Tanaka", "LT", "low: discriminant", 10, "4:00 pm", ["q6", "q10"]),
-  light("grace", "Grace Okoye", "GO", "confident", 10, "3:47 pm", []),
-  light("harper", "Harper Singh", "HS", "confident", 9, "3:57 pm", ["q5"]),
-  light("oliver", "Oliver Brennan", "OB", "low: factorising", 7, "4:08 pm", ["q1", "q2", "q3"]),
-  light("ruby", "Ruby Castellanos", "RC", "confident", 10, "3:53 pm", ["q9"]),
-  light("finn", "Finn Dlamini", "FD", "confident", 10, "3:56 pm", ["q4"]),
-  light("sofia", "Sofia Petrov", "SP", "low: fractions", 10, "4:01 pm", ["q2", "q4"]),
+  light("ethan", "Ethan Kowalski", "EK", "low", 8, "4:05 pm", ["q1", "q4", "q9"], [{ text: "signs flipped in the factors", problems: ["q1"] }, { text: "divided by a, not 2a", problems: ["q4"] }, { text: "axis given as the height, a step skipped", problems: ["q9"] }], { q9: Q9_RUSHED }),
+  light("isla", "Isla Moretti", "IM", "confident", 10, "3:49 pm", ["q10"], [{ text: "said the graph crosses twice", problems: ["q10"] }]),
+  light("lucas", "Lucas Tanaka", "LT", "low: discriminant", 10, "4:00 pm", ["q6", "q10"], [{ text: "read “touches once” as Δ > 0", problems: ["q6"] }, { text: "negative discriminant, two solutions", problems: ["q10"] }]),
+  light("grace", "Grace Okoye", "GO", "confident", 4, "3:47 pm", [], [{ text: "right every time, but jumps steps a reader can't follow", problems: ["q1", "q2", "q3"] }], { q1: Q1_JUMP, q2: Q2_JUMP, q3: Q3_JUMP }),
+  light("harper", "Harper Singh", "HS", "confident", 6, "3:57 pm", ["q5", "q9"], [{ text: "turning point's height from the wrong line", problems: ["q5"] }, { text: "axis given as the height, jumped straight to it", problems: ["q9"] }], { q5: Q5_HEIGHT, q9: Q9_RUSHED }),
+  light("oliver", "Oliver Brennan", "OB", "low: factorising", 7, "4:08 pm", ["q1", "q2", "q3"], [{ text: "guesses factor pairs without expanding back", problems: ["q1", "q2"] }, { text: "null factor law on a product that isn't 0", problems: ["q3"] }]),
+  light("ruby", "Ruby Castellanos", "RC", "confident", 10, "3:53 pm", ["q5", "q9"], [{ text: "turning point's height from the wrong line", problems: ["q5"] }, { text: "axis given as the height", problems: ["q9"] }], { q5: Q5_HEIGHT }),
+  light("finn", "Finn Dlamini", "FD", "confident", 10, "3:56 pm", ["q4", "q5"], [{ text: "divided by a, not 2a", problems: ["q4"] }, { text: "turning point's height from the wrong line", problems: ["q5"] }], { q5: Q5_HEIGHT }),
+  light("sofia", "Sofia Petrov", "SP", "low: fractions", 10, "4:01 pm", ["q2", "q4"], [{ text: "guessed a factor pair", problems: ["q2"] }, { text: "denominator a, not 2a", problems: ["q4"] }]),
 ];
 
 export const CLASSMATE_MAP = Object.fromEntries(CLASSMATES.map((c) => [c.id, c])) as Record<string, Classmate>;
