@@ -25,7 +25,7 @@ export default function TeacherChrome({ children }: { children: ReactNode }) {
   const tabs = TEACHER_TABS.filter((t) => !t.stage || pathway.includes(t.stage));
   return (
     <div className="min-h-screen [zoom:0.8]" data-teacher-root>
-      <header className="border-b border-line bg-paper/70 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-line bg-paper/70 backdrop-blur">
         <div className="mx-auto flex max-w-[1640px] items-center justify-between px-6 py-4">
           <div className="flex items-center gap-6">
             <Brand />

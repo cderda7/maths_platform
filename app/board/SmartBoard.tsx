@@ -1,5 +1,6 @@
 "use client";
 
+import Brand from "@/components/Brand";
 import M from "@/components/Math";
 import PadSection from "@/components/PadSection";
 import { Eyebrow } from "@/components/ui";
@@ -28,6 +29,10 @@ export default function SmartBoard() {
   const content = boardContent(classroom, session, now);
   return (
     <div className="flex h-screen min-h-0 flex-col bg-cream select-none" data-board data-board-state={content.kind}>
+      {/* The same Edexia bar as the laptop and the iPad, so the projector reads as the same product (ticket 65). */}
+      <header className="flex h-14 shrink-0 items-center border-b border-line bg-paper/70 px-10 backdrop-blur" data-board-brand>
+        <Brand />
+      </header>
       {content.kind === "whole-class" ? <Slide content={content} /> : content.kind === "group" || content.kind === "holding" ? <Race content={content} /> : <Blank content={content} />}
     </div>
   );
