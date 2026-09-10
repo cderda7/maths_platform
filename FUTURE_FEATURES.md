@@ -419,7 +419,7 @@ appends it here (see `CLAUDE.md`).
 - **Problem rows that open the problem.** The rows do nothing on tap. A tap could jump the
   student to that problem once the set has started; deferred, the set starts at Q1.
 
-## Class view polish (from ticket 45, 2026-09-10)
+## Class view polish (from ticket 46, 2026-09-10)
 
 - **Row and header buttons on a tablet.** "see dot skills" / "student report" beside a name and
   "skills" / "sub-skills" over a header appear on hover (and keyboard focus); a tablet has

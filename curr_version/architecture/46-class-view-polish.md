@@ -1,4 +1,4 @@
-# 45 · Class view polish
+# 46 · Class view polish
 
 Route: `/teacher` (the grid).
 

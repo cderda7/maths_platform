@@ -65,7 +65,7 @@ export const CLASSMATES: Classmate[] = [
   light("aiden", "Aiden Park", "AP", "confident", 10, ["q7"], [{ text: "scaled two of three terms", problems: ["q7"] }], {}, "I divided the x terms by 3 and forgot the constant was part of it too."),
   light("mia", "Mia Nguyen", "MN", "low: fractions, non-monic factorising", 10, ["q2", "q7"], [{ text: "guessed a factor pair, never expanded back", problems: ["q2"] }, { text: "the third off by a third", problems: ["q7"] }], {}, "I keep guessing the brackets instead of checking. With the fractions I lost track of which terms I had scaled."),
   light("noah", "Noah Fitzgerald", "NF", "confident", 9, ["q3"], [{ text: "null factor law on a product that isn't 0", problems: ["q3"] }], {}, "I didn't move the 6 across first. I treated it like it was already equal to zero."),
-  // Nothing handed in: the class view shows her row as missing (ticket 45).
+  // Nothing handed in: the class view shows her row as missing (ticket 46).
   light("chloe", "Chloe Abara", "CA", "confident", 0, [], [], {}, undefined, "Nothing submitted"),
   light("ethan", "Ethan Kowalski", "EK", "low", 8, ["q1", "q4", "q9"], [{ text: "signs flipped in the factors", problems: ["q1"] }, { text: "divided by a, not 2a", problems: ["q4"] }, { text: "axis given as the height, a step skipped", problems: ["q9"] }], { q9: Q9_RUSHED }, "I was rushing on Q9 and went straight to the height. On Q4 I always forget the 2 under the line."),
   light("isla", "Isla Moretti", "IM", "confident", 10, ["q10"], [{ text: "said the graph crosses twice", problems: ["q10"] }], {}, "I worked out there were no real solutions and then wrote the opposite in the sentence. I didn't read my own answer back."),

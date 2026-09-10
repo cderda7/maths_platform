@@ -1,4 +1,4 @@
-# 45: Class view polish
+# 46: Class view polish
 
 **What to build:** On `/teacher`: the Confidence column a fifth wider, with a named skill that would wrap shrunk to one line instead; hovering a row shows two stacked buttons beside the name ("see dot skills" opens every dot's skills for that student, "student report" opens the individual view) in light blue with dark indigo text, the name itself no longer a link; the UNIT header reads NEW SKILLS; no timestamps in the Set column; one student (Chloe Abara) has handed nothing in and shows a light blue caution triangle with a bold black exclamation mark over a small grey MISSING; the header's hover "expand" (which cycled groups → skills → close with the same label, and could not close from the groups level) is replaced by two stacked buttons, "skills" and "sub-skills", the open one highlighted and reading "close …".
 
