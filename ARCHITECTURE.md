@@ -27,9 +27,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │               ▶ Working ─▶ DrawPad (canvas ink)                  │
  │                                  ├▶ "Read as" column             │
  │                                  └▶ PromptModal · HelpPicker (this problem's moves) · PracticeOverlay = PracticePad (shared with the warm-up)
- │               ▶ Feedback (one detective sentence · star) · Waiting│
+ │               ▶ Feedback = individual review (detective sentence · star · what you submitted · pad · guard · hand in) · Waiting│
  │               ▶ Frozen (own ink + lines on the board's problem; marks follow the board)  │
- │               ▶ Rework (every problem · guard banner · hand-in blocked while tripped)│
  │               ▶ GroupPass (all-correct) ▶ GroupDiscuss (no marks)│
  │               ▶ Report (teacher's colours + reflection → sent)   │
  │               ▶ Peers (mastery only: class struggles, counts)    │
@@ -141,7 +140,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 28 | Warm-up chooser: problems, words, one skill at a time | `/student?stage=warmup-pick`, `…=practice` | `c614ed5` | [curr_version/architecture/28-warm-up-chooser.md](curr_version/architecture/28-warm-up-chooser.md) |
 | 29 | Mid-set isolated practice on the pad | `/student?stage=working` overlay | `2022a51` | [curr_version/architecture/29-isolated-practice-on-the-pad.md](curr_version/architecture/29-isolated-practice-on-the-pad.md) |
 | 30 | Hint words that light the problem | `/student?stage=practice`, `…=working` overlay | _this commit_ | [curr_version/architecture/30-hint-links.md](curr_version/architecture/30-hint-links.md) |
-| 31 | Practice triggered by confidence, sent to the fundamental skill | `/student?stage=working` prompt | _this commit_ | [curr_version/architecture/31-confidence-triggered-practice.md](curr_version/architecture/31-confidence-triggered-practice.md) |
+| 31 | Practice sent to the fundamental skill; confidence for the teacher | `/student?stage=working` prompt | `18b97f0` | [curr_version/architecture/31-confidence-triggered-practice.md](curr_version/architecture/31-confidence-triggered-practice.md) |
+| 32 | Individual review with correction on one screen | `/student?stage=feedback` | _this commit_ | [curr_version/architecture/32-review-with-correction.md](curr_version/architecture/32-review-with-correction.md) |
 
 ## Conventions
 

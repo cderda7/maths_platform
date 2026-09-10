@@ -653,3 +653,23 @@ practices. The seven-skill list is per assignment, ranked by how many problems l
 
 **Defence.** One threshold parameter and one predicate; the demo now shows the rule end to end,
 student prompt to teacher caution.
+
+## 2026-09-10 · One individual review screen: feedback and correction together
+
+**Decision.** The rework stage is folded into the individual review screen. The student sees
+what they submitted, corrects it on a pad beside it, and hands in from the same screen; the
+guard and its restore live there too. The rework *version* (lines, ink, guard, hand-in
+transition) is unchanged; only the stage and its screen are gone.
+
+**Context.** The user found no way to correct work from the review screen: the separate rework
+stage read as a different place, reached by a button. Correction is what individual review is
+for, so it belongs on that screen.
+
+**Alternatives considered.** Keep both screens and add a shortcut (two places doing one job).
+Rename the rework stage (still two screens).
+
+**Tradeoffs.** The review screen is denser: three columns beside the list. The `rework` deep link
+is gone; `?stage=feedback` shows the same run.
+
+**Defence.** One screen per review stage, matching the pathway model (individual · group ·
+whole-class); nothing downstream reads a stage name, only the rework version.

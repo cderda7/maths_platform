@@ -500,7 +500,7 @@ function roundStroke(s: Stroke): Stroke {
   return s.map((p) => ({ x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10 }));
 }
 
-const ORDER: Stage[] = ["overview", "confidence", "warmup-pick", "practice", "working", "feedback", "waiting", "frozen", "rework", "group-pass", "group-discuss", "report", "peers", "history"];
+const ORDER: Stage[] = ["overview", "confidence", "warmup-pick", "practice", "working", "feedback", "waiting", "frozen", "group-pass", "group-discuss", "report", "peers", "history"];
 
 /** Fixed times for deep-linked runs: handed in at 3:48 pm, rework done at 4:07 pm, today. */
 const todayAt = (h: number, m: number) => {
@@ -549,7 +549,7 @@ export function scriptedSession(): StudentSession {
 
 /** The scripted run plus the corrected rework of every problem that slipped (Q4 held, so it is left alone), Q4 starred. */
 export function reworkedSession(): StudentSession {
-  let s = { ...scriptedSession(), stage: "rework" as Stage, stars: ["q4"] };
+  let s = { ...scriptedSession(), stage: "feedback" as Stage, stars: ["q4"] };
   for (const [pid, lines] of Object.entries(RECOGNITION_REWORK)) {
     if (guardFor(s, pid).originalCorrect) continue;
     lines.forEach((tex, n) => {

@@ -2,7 +2,7 @@ import StudentApp from "./StudentApp";
 import type { Stage } from "@/data/types";
 import { parsePathway } from "@/lib/pathway";
 
-const STAGES: Stage[] = ["overview", "confidence", "warmup-pick", "practice", "working", "feedback", "waiting", "frozen", "rework", "group-pass", "group-discuss", "report", "peers", "history"];
+const STAGES: Stage[] = ["overview", "confidence", "warmup-pick", "practice", "working", "feedback", "waiting", "frozen", "group-pass", "group-discuss", "report", "peers", "history"];
 
 /**
  * Deep links land a reviewer on a specific moment: /student?stage=confidence, /student?stage=working.

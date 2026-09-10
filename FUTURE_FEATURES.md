@@ -236,3 +236,6 @@ appends it here (see `CLAUDE.md`).
   two half-width boxes side by side (2026-09-10). The marked views (feedback, frozen screen,
   history, the teacher's work panel) still show the line whole; extend `branchesOf` there, and
   decide how a red mark on one branch is drawn.
+- **Review screen density.** With the pad and "Read as" beside the submitted lines (ticket 32), the
+  review pane is three narrow columns on the iPad. If it gets cramped, collapse "What you
+  submitted" to a toggle, or stack it over the pad in portrait.

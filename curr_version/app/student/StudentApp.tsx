@@ -8,7 +8,6 @@ import WarmupPickScreen from "./screens/WarmupPickScreen";
 import ConfidenceScreen from "./screens/ConfidenceScreen";
 import WorkingScreen from "./screens/WorkingScreen";
 import FeedbackScreen from "./screens/FeedbackScreen";
-import ReworkScreen from "./screens/ReworkScreen";
 import { GroupDiscussScreen, GroupPassScreen } from "./screens/GroupScreens";
 import ReportScreen from "./screens/ReportScreen";
 import { useEffect } from "react";
@@ -34,7 +33,6 @@ const CRUMB: Partial<Record<Stage, string>> = {
   "warmup-pick": "Warm-up",
   practice: "Warm-up",
   confidence: "Before you start",
-  rework: "Rework on your own",
   "group-pass": "Group review",
   "group-discuss": "Group review",
   report: "Your report",
@@ -86,7 +84,6 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
         {session.stage === "feedback" && <FeedbackScreen session={session} dispatch={dispatch} />}
         {session.stage === "waiting" && <WaitingScreen />}
         {session.stage === "frozen" && <FrozenScreen session={session} />}
-        {session.stage === "rework" && <ReworkScreen session={session} dispatch={dispatch} />}
         {session.stage === "group-pass" && <GroupPassScreen session={session} dispatch={dispatch} />}
         {session.stage === "group-discuss" && <GroupDiscussScreen session={session} dispatch={dispatch} />}
         {session.stage === "report" && <ReportScreen session={session} dispatch={dispatch} />}

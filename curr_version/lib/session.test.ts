@@ -274,7 +274,7 @@ describe("escalation inside the session", () => {
 
 describe("independent rework", () => {
   it("keeps the original version untouched while a second version builds up", () => {
-    let s = sessionAt("rework");
+    let s = sessionAt("feedback");
     const original = s.lines.q1.map((l) => l.tex);
     s = sessionReducer(s, { type: "rework/reveal", problem: "q1", line: { tex: "(x - 2)(x - 3) = 0", strokeCount: 4 } });
     s = sessionReducer(s, { type: "rework/reveal", problem: "q1", line: { tex: "x = 2", strokeCount: 8 } });
@@ -282,11 +282,11 @@ describe("independent rework", () => {
     expect(s.lines.q1.map((l) => l.tex)).toEqual(original);
     s = sessionReducer(s, { type: "rework/undo", problem: "q1", strokeCount: 7 });
     expect(s.rework.q1.map((l) => l.tex)).toEqual(["(x - 2)(x - 3) = 0"]);
-    expect(s.escalation).toEqual(sessionAt("rework").escalation);
+    expect(s.escalation).toEqual(sessionAt("feedback").escalation);
   });
 
   it("finishing the rework hands off to the group stage", () => {
-    const s = sessionReducer(sessionAt("rework"), { type: "rework/done" });
+    const s = sessionReducer(sessionAt("feedback"), { type: "rework/done" });
     expect(s.stage).toBe("group-pass");
   });
 
@@ -351,7 +351,7 @@ describe("routing by pathway", () => {
     let s = sessionReducer(sessionAt("working"), { type: "hand-in", at: 7 });
     expect(s.stage).toBe("feedback");
     expect(s.handedInAt).toBe(7);
-    s = sessionReducer({ ...s, stage: "rework" }, { type: "rework/done" });
+    s = sessionReducer({ ...s, stage: "feedback" }, { type: "rework/done" });
     expect(s.stage).toBe("group-pass");
     s = sessionReducer({ ...s, stage: "group-discuss" }, { type: "group/done" });
     expect(s.stage).toBe("report");
@@ -365,7 +365,7 @@ describe("routing by pathway", () => {
       const expected = pathway.map((st) => entry[st]);
       expect(s.stage, pathway.join(",")).toBe(expected[0] ?? "report");
       if (pathway.includes("individual")) {
-        s = r({ ...s, stage: "rework" }, { type: "rework/done" });
+        s = r({ ...s, stage: "feedback" }, { type: "rework/done" });
         expect(s.stage, pathway.join(",")).toBe(expected[pathway.indexOf("individual") + 1] ?? "report");
       }
       if (pathway.includes("group")) {
@@ -418,7 +418,7 @@ describe("persisted ink", () => {
   });
 
   it("the rework keeps its own ink, in step with its own lines", () => {
-    let s = sessionAt("rework");
+    let s = sessionAt("feedback");
     s = sessionReducer(s, { type: "rework/stroke", problem: "q1", stroke: stroke(1) });
     s = sessionReducer(s, { type: "rework/reveal", problem: "q1", line: { tex: "r", strokeCount: 1 } });
     expect(s.reworkInk.q1).toHaveLength(1);
@@ -436,10 +436,10 @@ describe("rework hand-in and the guard", () => {
   const WRONG_Q4 = "x = \\dfrac{5 \\pm \\sqrt{37}}{3}";
 
   it("is refused while a correct problem is broken, and goes through once restored", () => {
-    let s = sessionAt("rework");
+    let s = sessionAt("feedback");
     s = sessionReducer(s, { type: "rework/reveal", problem: "q4", line: { tex: WRONG_Q4, strokeCount: 1 } });
     const refused = sessionReducer(s, { type: "rework/done", at: 9 });
-    expect(refused.stage).toBe("rework");
+    expect(refused.stage).toBe("feedback");
     expect(refused.reworkedAt).toBe(s.reworkedAt);
     s = sessionReducer(s, { type: "rework/clear", problem: "q4" });
     s = sessionReducer(s, { type: "rework/done", at: 9 });
@@ -448,7 +448,7 @@ describe("rework hand-in and the guard", () => {
   });
 
   it("a forced hand-in goes through with the broken problem counted in the notice", () => {
-    let s = sessionAt("rework");
+    let s = sessionAt("feedback");
     s = sessionReducer(s, { type: "rework/reveal", problem: "q4", line: { tex: WRONG_Q4, strokeCount: 1 } });
     s = sessionReducer(s, { type: "rework/done", force: true });
     expect(s.stage).toBe("group-pass");
@@ -457,7 +457,7 @@ describe("rework hand-in and the guard", () => {
 
   it("the post-rework notice reads the final version and can be dismissed", () => {
     let s = sessionAt("group-pass"); // fully corrected rework
-    s = sessionReducer({ ...s, stage: "rework" }, { type: "rework/done" });
+    s = sessionReducer({ ...s, stage: "feedback" }, { type: "rework/done" });
     expect(s.notice).toBe("Every problem holds now.");
     expect(sessionReducer(s, { type: "notice/dismiss" }).notice).toBeNull();
   });
@@ -478,11 +478,11 @@ describe("teacher force submit", () => {
   it("is idempotent by id and leaves a student who already handed in alone", () => {
     let s = sessionAt("working");
     s = sessionReducer(s, { type: "advance/apply", id: "a", kind: "force-submit", at: 5 });
-    const again = sessionReducer({ ...s, stage: "rework" }, { type: "advance/apply", id: "a", kind: "force-submit", at: 9 });
-    expect(again.stage).toBe("rework");
+    const again = sessionReducer({ ...s, stage: "feedback" }, { type: "advance/apply", id: "a", kind: "force-submit", at: 9 });
+    expect(again.stage).toBe("feedback");
     expect(again.handedInAt).toBe(5);
-    const later = sessionReducer(sessionAt("rework"), { type: "advance/apply", id: "b", kind: "force-submit", at: 9 });
-    expect(later.stage).toBe("rework");
+    const later = sessionReducer(sessionAt("feedback"), { type: "advance/apply", id: "b", kind: "force-submit", at: 9 });
+    expect(later.stage).toBe("feedback");
     expect(later.appliedAdvances).toEqual(["b"]);
     expect(later.notice).toBeNull();
   });
@@ -513,7 +513,7 @@ describe("whole-class freeze", () => {
   });
 
   it("a student mid-rework keeps their broken rework as it stands when frozen", () => {
-    let s = sessionAt("rework");
+    let s = sessionAt("feedback");
     s = sessionReducer(s, { type: "rework/reveal", problem: "q4", line: { tex: "x = \\dfrac{5 \\pm \\sqrt{37}}{3}", strokeCount: 1 } });
     s = sessionReducer(s, { type: "freeze" });
     expect(s.stage).toBe("frozen");

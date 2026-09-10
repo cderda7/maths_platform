@@ -81,7 +81,7 @@ describe("detective feedback summary", () => {
     const reworked = sessionAt("group-pass"); // scripted run with every slipped problem corrected
     expect(feedbackSummary(reworked, "final").sentence).toBe("Every problem holds now.");
     expect(feedbackSummary(reworked, "original").count).toBe(5);
-    let partial = sessionAt("rework");
+    let partial = sessionAt("feedback");
     partial = sessionReducer(partial, { type: "rework/reveal", problem: "q1", line: { tex: "(x - 2)(x - 3) = 0", strokeCount: 1 } });
     partial = sessionReducer(partial, { type: "rework/reveal", problem: "q1", line: { tex: "x = 2 \\text{ or } x = 3", strokeCount: 2 } });
     const f = feedbackSummary(partial, "final");
