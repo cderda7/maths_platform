@@ -7,6 +7,7 @@ import PadSection from "@/components/PadSection";
 import ReadAs from "@/components/ReadAs";
 import { Button, Card, Eyebrow } from "@/components/ui";
 import StarButton from "@/components/StarButton";
+import { LeafChip } from "@/components/Tag";
 import { RECOGNITION_REWORK } from "@/data/recognition";
 import { useAssignment } from "@/lib/classroom-store";
 import { branchesOf } from "@/lib/branches";
@@ -59,10 +60,16 @@ export default function FeedbackScreen({ session, dispatch }: { session: Student
       <aside className="flex min-h-0 flex-col border-r border-line px-7 py-7">
         <Eyebrow>Handed in</Eyebrow>
         <h1 className="font-display mt-2 text-[28px] leading-tight text-ink">How it held up</h1>
-        <Card tone="soft" className="mt-4 p-4">
-          <p className="text-[15px] leading-relaxed text-ink" data-summary>
-            {summary.sentence}
-          </p>
+        <Card tone="soft" className="mt-4 p-4" data-summary>
+          <p className="text-[15px] leading-relaxed text-ink">{summary.head}</p>
+          {summary.hint.length > 0 && (
+            <p className="mt-2 flex flex-wrap items-center gap-1.5 text-[15px] leading-relaxed text-ink" data-hint>
+              <span>Double-check</span>
+              {summary.hint.map((id) => (
+                <LeafChip student key={id} id={id} className="!border-accent-deep !bg-accent-deep !text-white" />
+              ))}
+            </p>
+          )}
         </Card>
         <ol className="mt-5 min-h-0 flex-1 space-y-2 overflow-y-auto pb-1">
           {problems.map((p, i) => {
@@ -149,7 +156,7 @@ export default function FeedbackScreen({ session, dispatch }: { session: Student
             )}
           </div>
 
-          <PadSection title="Correct it here" strokes={strokes} onStrokesChange={addStroke} onBurstEnd={onBurstEnd} onPenDown={() => setRecognising(true)} onUndo={undo} onClear={clear} />
+          <PadSection title="If needed, correct it here" padded={false} strokes={strokes} onStrokesChange={addStroke} onBurstEnd={onBurstEnd} onPenDown={() => setRecognising(true)} onUndo={undo} onClear={clear} />
 
           <ReadAs lines={rework} recognising={recognising} empty="Corrected lines appear here as you write." />
         </div>

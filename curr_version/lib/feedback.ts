@@ -71,6 +71,11 @@ export interface FeedbackSummary {
   total: number;
   /** Leaves to double-check, first-occurrence order. */
   subskills: LeafId[];
+  /** The count clause ("5 of your problems contain a mistake."), without the hint. */
+  head: string;
+  /** The leaves the hint names: the first `HINT_CAP` of `subskills`, rendered as chips on screen. */
+  hint: LeafId[];
+  /** `head` and the hint as one plain sentence, for the notice and for tests. */
   sentence: string;
 }
 
@@ -95,7 +100,7 @@ export function feedbackSummary(session: StudentSession, version: FeedbackVersio
     count++;
     for (const v of wrong) if (v.verdict === "wrong") for (const t of v.tags) if (!subskills.includes(t.leaf)) subskills.push(t.leaf);
   }
-  return { count, total: problems.length, subskills, sentence: summarySentence(count, subskills, version) };
+  return { count, total: problems.length, subskills, ...summaryParts(count, subskills, version) };
 }
 
 function joinWords(words: string[]): string {
@@ -103,10 +108,19 @@ function joinWords(words: string[]): string {
   return `${words.slice(0, -1).join(", ")} and ${words[words.length - 1]}`;
 }
 
-export function summarySentence(count: number, subskills: LeafId[], version: FeedbackVersion = "original"): string {
+/** The count clause, the capped hint leaves, and the two joined as one sentence. */
+export function summaryParts(count: number, subskills: LeafId[], version: FeedbackVersion = "original"): Pick<FeedbackSummary, "head" | "hint" | "sentence"> {
   const still = version === "final" ? "still " : "";
-  if (count === 0) return version === "final" ? "Every problem holds now." : "Every problem held.";
+  if (count === 0) {
+    const head = version === "final" ? "Every problem holds now." : "Every problem held.";
+    return { head, hint: [], sentence: head };
+  }
   const head = count === 1 ? `1 of your problems ${still}contains a mistake.` : `${count} of your problems ${still}contain a mistake.`;
-  const names = subskills.slice(0, HINT_CAP).map((id) => studentLeafName(id).short);
-  return names.length ? `${head} Double-check ${joinWords(names)}.` : head;
+  const hint = subskills.slice(0, HINT_CAP);
+  const names = hint.map((id) => studentLeafName(id).short);
+  return { head, hint, sentence: names.length ? `${head} Double-check ${joinWords(names)}.` : head };
+}
+
+export function summarySentence(count: number, subskills: LeafId[], version: FeedbackVersion = "original"): string {
+  return summaryParts(count, subskills, version).sentence;
 }

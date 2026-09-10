@@ -13,6 +13,7 @@ export default function PadSection({
   onUndo,
   onClear,
   readOnly = false,
+  padded = true,
 }: {
   title?: string;
   strokes: Stroke[];
@@ -23,13 +24,16 @@ export default function PadSection({
   onClear: () => void;
   /** A mirror: no toolbar, no input. */
   readOnly?: boolean;
+  /** `false` when the pad sits in a grid beside other columns: no inset, so its eyebrow lines up with theirs. */
+  padded?: boolean;
 }) {
   return (
-    <section className="flex h-full min-h-0 flex-1 flex-col px-6 py-6">
-      <div className="flex items-center justify-between">
+    <section className={`flex h-full min-h-0 flex-1 flex-col ${padded ? "px-6 py-6" : ""}`}>
+      {/* The eyebrow marks the top of the row and the taller buttons are pulled up to centre on it, so the title lines up with a neighbouring column's eyebrow. */}
+      <div className="flex items-start justify-between">
         <Eyebrow>{title}</Eyebrow>
         {!readOnly && (
-          <div className="flex gap-1.5">
+          <div className="-mt-2.5 flex gap-1.5">
             <Button variant="ghost" onClick={onUndo} disabled={strokes.length === 0}>
               Undo
             </Button>

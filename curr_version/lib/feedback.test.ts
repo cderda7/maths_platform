@@ -71,6 +71,15 @@ describe("detective feedback summary", () => {
     expect(s.sentence).toBe("5 of your problems contain a mistake. Double-check factorising, non-monic factorising and null factor law.");
   });
 
+  it("splits the sentence into the count clause and the capped hint leaves for the chips", async () => {
+    const { feedbackSummary, summaryParts } = await import("./feedback");
+    const s = feedbackSummary(scriptedSession());
+    expect(s.head).toBe("5 of your problems contain a mistake.");
+    expect(s.hint).toEqual(["algebra.expand-factor.monic", "algebra.expand-factor.nonmonic", "unit.u1.nfl"]);
+    expect(summaryParts(0, ["algebra.number.fractions"])).toEqual({ head: "Every problem held.", hint: [], sentence: "Every problem held." });
+    expect(summaryParts(2, [], "final")).toEqual({ head: "2 of your problems still contain a mistake.", hint: [], sentence: "2 of your problems still contain a mistake." });
+  });
+
   it("caps the hint at three subskills", async () => {
     const { summarySentence } = await import("./feedback");
     expect(summarySentence(4, ["algebra.equations.linear", "algebra.number.fractions", "algebra.expand-factor.monic", "algebra.expand-factor.expand"])).toBe("4 of your problems contain a mistake. Double-check linear equations, fractions and factorising.");

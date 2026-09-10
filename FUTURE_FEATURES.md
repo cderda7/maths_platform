@@ -486,3 +486,18 @@ appends it here (see `CLAUDE.md`).
 - **A done skill reopened.** A tap on a dark chip reopens that problem with its working still
   there; finishing it again keeps it done and moves on. There is no way to un-do a skill, and no
   fresh copy of the problem; a "try it again" that clears the pad for that problem was not built.
+
+## Feedback summary chips and level column labels (from ticket 50, 2026-09-10)
+
+- **Tappable skill chips in the detective sentence.** The three purple bubbles ("factorising",
+  "non-monic factorising", "null factor law") are inert. A tap could jump to the first problem in
+  the list where that skill slipped, or open the same skill drill the teacher's view has. Deferred
+  because the review is meant to stay detective: the student finds the mistake, the app never
+  points at a line.
+- **Chip type size on the review card.** The chips reuse `LeafChip` at 11.5 px inside 15 px prose
+  so they match every other chip on the student side. A larger, prose-sized chip only for this
+  card was not built; revisit if the card reads as too small on a real iPad.
+- **A shared header row for the review's three columns.** The three eyebrows are levelled by
+  taking the pad's inset away and top-anchoring its header; a single header grid that owns all
+  three labels and the Undo / Clear buttons would be the sturdier structure if a fourth column
+  ever arrives.
