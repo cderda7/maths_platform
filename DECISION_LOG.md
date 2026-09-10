@@ -738,3 +738,29 @@ the setting survives toggling a pane off and on. Shares are clamped at 15 % so a
 made small but never disappear; double-click restores a boundary. Alternatives: sizes in the
 URL (long, and wrong for another screen size); CSS `resize` on the panes (one-sided, no gutter,
 no minimum); a library splitter (a dependency for a hundred lines).
+
+## 2026-09-10 · Seating groups are teacher-set classroom state; lightweight classmates borrow known slips
+
+**Decision.** The five review groups are static, set by the teacher on a groups page (drag
+between five colour columns) and kept on the classroom state per class, with a seating-chart
+fixture as the default. A group's only identity is its colour. The platform-generated grouping
+from shared mistakes stays as a read-only "suggested" section. The thirteen new classmates are
+lightweight entries whose wrong problems reuse a known slip per problem, so every line of theirs
+is still one the evaluator can follow.
+
+**Context.** The leaderboard needs five groups; real groups are the seating chart, not a
+computed clustering; and the demo needs twenty believable rows without twenty hand-written
+attempt sets.
+
+**Alternatives considered.** Groups formed by the existing shared-mistake rule (not how a
+classroom works, and unstable as evidence changes). Groups on the assignment rather than the
+class (they would be re-set every lesson). Lightweight classmates with no attempts at all (their
+wrong problems would read as unattempted, and the "one evidence path for every student" rule
+would break).
+
+**Tradeoffs.** The thirteen share slips, so the teacher's mistake view shows the same working
+under several names; a full version per student is logged for later. Groups of any size are
+allowed with a flag rather than refused, so a class of twenty-one is fine.
+
+**Defence.** One data file for the colours and the default, one pure module for the rules, one
+classroom action to move a student, and the evidence path unchanged.

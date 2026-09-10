@@ -1,14 +1,16 @@
 import { describe, expect, it } from "vitest";
+import { CLASSMATES } from "@/data/classmates";
 import { isMastery, peerStruggles } from "./peers";
 import { sessionAt } from "./session";
 
 describe("peer struggles for a mastery-level student", () => {
   it("aggregates counts only: no names, no lines of work", () => {
     const p = peerStruggles();
-    expect(p.classSize).toBe(6);
-    expect(p.problems.map((x) => [x.problem.id, x.missed])).toEqual([
-      ["q3", 3],
-      ["q2", 2],
+    expect(p.classSize).toBe(CLASSMATES.length);
+    const missed = (pid: string) => CLASSMATES.filter((c) => c.wrong.includes(pid)).length;
+    expect(p.problems.slice(0, 2).map((x) => [x.problem.id, x.missed])).toEqual([
+      ["q2", missed("q2")],
+      ["q3", missed("q3")],
     ]);
     expect(p.leaves[0].struggling).toBeGreaterThan(0);
     expect(p.leaves.map((l) => l.id)).toContain("algebra.expand-factor.nonmonic");

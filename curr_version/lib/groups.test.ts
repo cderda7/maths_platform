@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { OTHER_GROUPS } from "@/data/classmates";
 import { reviewGroups } from "./groups";
 import { sessionAt, sessionReducer } from "./session";
 
@@ -26,7 +27,7 @@ describe("teacher's review groups view", () => {
 
   it("other groups are static and get a note of their own", () => {
     const groups = reviewGroups(null);
-    expect(groups.length).toBe(2);
+    expect(groups.length).toBe(1 + OTHER_GROUPS.length);
     expect(groups[1].members.map((m) => m.id)).toEqual(["priya", "amelia", "tomas"]);
     expect(groups[1].discussing).toEqual(["q3", "q4", "q5", "q6", "q7", "q10"]);
     expect(groups[0].members[0].status).toBe("Not started");

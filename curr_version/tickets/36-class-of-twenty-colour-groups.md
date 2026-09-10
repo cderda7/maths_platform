@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -20,9 +20,9 @@ Thirteen lightweight classmates join the six full ones and Sam: a name, a confid
 
 ## Acceptance
 
-- [ ] Twenty students in the fixture; Sam's group is Sam, Jordan, Zara and Liam as today
-- [ ] Teacher groups page: five colour columns, drag a student between them, uneven group shows a warning, saved per class and surviving a reload
-- [ ] The teacher's live grid, mistakes, compare, report and whole-class setup show all twenty
-- [ ] The generated grouping still exists and is untouched
-- [ ] Unit tests for the group model and the seeded fixture; a browser check of a drag
-- [ ] Architecture note and root docs
+- [x] Twenty students in the fixture; Sam's group is Sam, Jordan, Zara and Liam as today
+- [x] Teacher groups page: five colour columns, drag a student between them, uneven group shows a warning, saved per class and surviving a reload
+- [x] The teacher's live grid, mistakes, compare, report and whole-class setup show all twenty
+- [x] The generated grouping still exists and is untouched
+- [x] Unit tests for the group model and the seeded fixture; a browser check of a drag
+- [x] Architecture note and root docs

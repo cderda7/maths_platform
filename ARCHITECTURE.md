@@ -18,7 +18,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │   └▶ StudentApp (client)         │                │   useBatchedSession(3 s)         │
  │   ForceSubmit → advance/start    │
  │       useStudentSession()        │                │   subskillStatuses · caution     │
- │       └▶ IpadStage ▶ StudentChrome│               │   classmates (static fixture)    │
+ │       └▶ IpadStage ▶ StudentChrome│               │   classmates (19: 6 full, 13 light) · seating groups (5 colours)│
  │            └▶ screens/            │               └──────────────┬───────────────────┘
  │               Overview ▶ Confidence│                              │ reads every 3 s
  │               ▶ WarmupPick (select problems · skills by category · chat → focus → warmupSequence, easiest first)│
@@ -147,6 +147,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 33 | Demo "skip to" strip | `/student` (presenter control) | `d3bd7e0` | [curr_version/architecture/33-demo-skip-to.md](curr_version/architecture/33-demo-skip-to.md) |
 | 34 | Whole-class review: versions beside a pad, frozen or write-with-me | `/student` frozen, `/teacher/whole-class`, `/teacher/board` | `fb9fc69` | [curr_version/architecture/34-whole-class-follow-modes.md](curr_version/architecture/34-whole-class-follow-modes.md) |
 | 35 | Split view: student, teacher and board in one tab | `/split` (presenter page) | _this commit_ | [curr_version/architecture/35-split-view.md](curr_version/architecture/35-split-view.md) |
+| 36 | Class of twenty in five colour groups | `/teacher/groups` | _this commit_ | [curr_version/architecture/36-class-of-twenty-colour-groups.md](curr_version/architecture/36-class-of-twenty-colour-groups.md) |
 
 ## Conventions
 

@@ -1,4 +1,6 @@
 import type { Pathway, Stroke } from "@/data/types";
+import { DEFAULT_GROUPS, type GroupColour, type SeatingGroups } from "@/data/groups";
+import { moveStudent, seatingOf } from "./seating";
 import type { ExampleRef } from "./examples";
 import { DEFAULT_PATHWAY } from "./pathway";
 
@@ -53,10 +55,15 @@ export interface ClassroomState {
   assignment: CreatedAssignment | null;
   advance: PendingAdvance | null;
   wholeClass: WholeClassSession | null;
+  /** The teacher's seating groups, per class; absent in older stored state (read through `seatingOf`). */
+  groups?: SeatingGroups;
 }
 
 export type ClassroomAction =
   | { type: "assignment/create"; title: string; problemIds: string[]; pathway: Pathway; unit?: 1 | 2 | 3 | 4; at?: number }
+  /** The groups page: move one student to a colour. */
+  | { type: "groups/move"; student: string; to: GroupColour }
+  | { type: "groups/reset" }
   | { type: "advance/start"; kind: AdvanceKind; at?: number }
   | { type: "advance/clear" }
   | { type: "wc/setup"; problems: string[]; examples: Record<string, ExampleRef[]>; mode?: FollowMode }
@@ -74,7 +81,7 @@ export type ClassroomAction =
   | { type: "wc/end" }
   | { type: "reset" };
 
-export const INITIAL_CLASSROOM: ClassroomState = { assignment: null, advance: null, wholeClass: null };
+export const INITIAL_CLASSROOM: ClassroomState = { assignment: null, advance: null, wholeClass: null, groups: DEFAULT_GROUPS };
 
 export function classroomReducer(c: ClassroomState, a: ClassroomAction): ClassroomState {
   switch (a.type) {
@@ -86,6 +93,10 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
     }
     case "advance/clear":
       return { ...c, advance: null };
+    case "groups/move":
+      return { ...c, groups: moveStudent(seatingOf(c.groups), a.student, a.to) };
+    case "groups/reset":
+      return { ...c, groups: DEFAULT_GROUPS };
     case "wc/setup": {
       const mode = a.mode ?? "frozen";
       return { ...c, wholeClass: { problems: [...a.problems], examples: a.examples, slide: 0, view: "unmarked", status: "setup", modes: Object.fromEntries(a.problems.map((id) => [id, mode])), ink: {} } };

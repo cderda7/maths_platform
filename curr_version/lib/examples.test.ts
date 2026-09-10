@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { CLASSMATES } from "@/data/classmates";
 import { boardExamples, bucketCounts, bucketOf, candidatesFor, problemsByStruggle, struggleCount, suggestExamples } from "./examples";
 import { sessionAt } from "./session";
 
@@ -11,8 +12,13 @@ describe("board examples", () => {
 
   it("every classmate who handed a problem in is a candidate; the live student joins once handed in, with their final version", () => {
     const none = candidatesFor("q2", null);
-    expect(none.map((c) => c.studentId)).toEqual(["priya", "jordan", "amelia", "tomas", "zara", "liam"]);
-    expect(candidatesFor("q4", null).map((c) => c.studentId)).toEqual(["priya", "amelia", "tomas", "zara"]); // jordan and liam never reached Q4
+    // Everyone who reached Q2, in fixture order: the six full classmates first, then the lightweight thirteen.
+    expect(none.map((c) => c.studentId).slice(0, 6)).toEqual(["priya", "jordan", "amelia", "tomas", "zara", "liam"]);
+    expect(none).toHaveLength(CLASSMATES.filter((c) => c.done >= 2).length);
+    const q4 = candidatesFor("q4", null).map((c) => c.studentId);
+    expect(q4.slice(0, 4)).toEqual(["priya", "amelia", "tomas", "zara"]); // jordan and liam never reached Q4
+    expect(q4).not.toContain("jordan");
+    expect(q4).not.toContain("liam");
     expect(candidatesFor("q2", sessionAt("working")).some((c) => c.studentId === "sam")).toBe(false);
     const reworked = candidatesFor("q2", sessionAt("group-pass"));
     const sam = reworked.find((c) => c.studentId === "sam")!;
@@ -22,10 +28,13 @@ describe("board examples", () => {
 
   it("counts buckets and struggles; problems sort by struggle", () => {
     const counts = bucketCounts(candidatesFor("q2", sessionAt("feedback")));
-    expect(counts.get("algebra.expand-factor.nonmonic")).toBe(3); // sam, jordan, liam
-    expect(counts.get("correct")).toBe(4);
-    expect(struggleCount("q3", sessionAt("feedback"))).toBe(4); // sam, tomas, zara, liam
-    expect(problemsByStruggle(sessionAt("feedback")).map((p) => p.problem.id)).toEqual(["q3", "q2", "q7", "q10", "q1", "q4", "q5", "q6", "q9", "q8"]);
+    const wrongQ2 = 1 + CLASSMATES.filter((c) => c.wrong.includes("q2")).length; // sam + jordan, liam, mia, oliver, sofia
+    expect(counts.get("algebra.expand-factor.nonmonic")).toBe(wrongQ2);
+    expect(counts.get("correct")).toBe(CLASSMATES.filter((c) => c.done >= 2 && !c.wrong.includes("q2")).length);
+    expect(struggleCount("q3", sessionAt("feedback"))).toBe(1 + CLASSMATES.filter((c) => c.wrong.includes("q3")).length);
+    const order = problemsByStruggle(sessionAt("feedback")).map((p) => p.problem.id);
+    expect(order.slice(0, 2)).toEqual(["q2", "q3"]); // q2 draws the most slips in the class of twenty
+    expect(order).toHaveLength(10);
   });
 
   it("suggests one correct example then one per error bucket, capped at three, at least two", () => {
@@ -52,8 +61,10 @@ describe("board examples", () => {
     const refs = suggestExamples(candidatesFor("q2", s));
     const board = boardExamples(refs, "q2", s);
     expect(board.map((e) => e.letter)).toEqual(["A", "B"]);
-    expect(board[0]).toEqual({ letter: "A", lines: expect.any(Array), count: 4, denominator: 7 });
-    expect(board[1].count).toBe(3);
+    const handedIn = 1 + CLASSMATES.filter((c) => c.done >= 2).length;
+    const wrongQ2 = 1 + CLASSMATES.filter((c) => c.wrong.includes("q2")).length;
+    expect(board[0]).toEqual({ letter: "A", lines: expect.any(Array), count: handedIn - wrongQ2, denominator: handedIn });
+    expect(board[1].count).toBe(wrongQ2);
     for (const e of board) {
       expect(Object.keys(e).sort()).toEqual(["count", "denominator", "letter", "lines"]);
       expect(JSON.stringify(e)).not.toMatch(/Okonkwo|Raman|Whitlock|verdict|wrong/);
