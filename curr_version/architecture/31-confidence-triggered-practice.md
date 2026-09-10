@@ -11,7 +11,7 @@ Route: `/student` (stage `working`, the practice prompt). Live path: overview �
 | `lib/session.ts` | `notConfidentIn(confidence, leaf)` (level "low", or "low-when" naming a skill in this leaf's group: "Factorising" covers non-monic too) → threshold 1; `fundamentalLeaf(slipped)` (easiest by `EASE` that has a practice); `PracticePrompt.reason` gains `confidence`; `DEMO_CONFIDENCE` (the demo student: not confident in factorising) for the scripted run and deep links; `hydrateSession` maps an old category answer to no skills named |
 | `data/types.ts` | `Confidence` "low-when" carries `leaves: LeafId[]` (up to seven of the set's skills) instead of a category |
 | `lib/hierarchy.ts` | `relevantSkills(problems, n = 7)`: the moves ranked by how many problems invoke them |
-| `app/student/screens/ConfidenceScreen.tsx` | "Depends on the skill" opens the seven most relevant skills as multi-select chips, student names |
+| `app/student/screens/ConfidenceScreen.tsx` | Three lowercase answers: "confident", "not confident with…" over the seven most relevant skills stacked as an always-visible tick list (any number; ticking one selects that answer), and "not confident" overall; student names, lowercase |
 | `lib/report.ts`, `app/teacher/TeacherLive.tsx` | Confidence copy names the skills ("low: monic factorising, non-monic factorising") |
 | `data/taxonomy.ts` | `studentLeafName` (monic → "Factorising" / "factorising"); `groupWord` (the plain word for a group in a sentence) |
 | `components/Tag.tsx` | `LeafChip student` switches to the student-facing name; the teacher's chips are unchanged |
