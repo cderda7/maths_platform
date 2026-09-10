@@ -8,6 +8,7 @@
     "start": "npm --prefix curr_version run start",
     "lint": "npm --prefix curr_version run lint",
     "test": "npm --prefix curr_version run test",
+    "check:laptop": "npm --prefix curr_version run check:laptop",
     "install:app": "npm --prefix curr_version install",
     "dev:roughdraft": "npm --prefix roughdraft_sept7 run dev",
     "install:roughdraft": "npm --prefix roughdraft_sept7 install"

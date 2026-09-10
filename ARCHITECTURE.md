@@ -103,6 +103,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │ app/page.tsx    entry: student iPad, teacher view, or both and the board in /split │
  │ app/split/      SplitView: the three routes in scaled iframes, one, two or all three │
  │                 (lib/split.ts: panes · parse/toggle · gridFor · frameFor)            │
+ │ scripts/laptop-check.mjs  every teacher route at two laptop widths, no x-overflow    │
  └────────────────────────────────────────────────────────────────────────────────────┘
 
  Dependency rule: app ──▶ components ──▶ data ──▶ types. Nothing points the other way.
@@ -147,7 +148,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 33 | Demo "skip to" strip | `/student` (presenter control) | `d3bd7e0` | [curr_version/architecture/33-demo-skip-to.md](curr_version/architecture/33-demo-skip-to.md) |
 | 34 | Whole-class review: versions beside a pad, frozen or write-with-me | `/student` frozen, `/teacher/whole-class`, `/teacher/board` | `fb9fc69` | [curr_version/architecture/34-whole-class-follow-modes.md](curr_version/architecture/34-whole-class-follow-modes.md) |
 | 35 | Split view: student, teacher and board in one tab | `/split` (presenter page) | _this commit_ | [curr_version/architecture/35-split-view.md](curr_version/architecture/35-split-view.md) |
-| 36 | Class of twenty in five colour groups | `/teacher/groups` | _this commit_ | [curr_version/architecture/36-class-of-twenty-colour-groups.md](curr_version/architecture/36-class-of-twenty-colour-groups.md) |
+| 36 | Class of twenty in five colour groups | `/teacher/groups` | `00d5979` | [curr_version/architecture/36-class-of-twenty-colour-groups.md](curr_version/architecture/36-class-of-twenty-colour-groups.md) |
+| 37 | Teacher on a laptop: full width, and a viewport guard over every teacher route | `/` teacher card, `/teacher/**` | _this commit_ | [curr_version/architecture/37-teacher-on-a-laptop.md](curr_version/architecture/37-teacher-on-a-laptop.md) |
 
 ## Conventions
 

@@ -19,6 +19,7 @@ npm install
 npm run dev        # http://localhost:3000
 npm test           # vitest: 208 tests over the pure logic in lib/
 npm run lint && npx tsc --noEmit && npm run build
+npx next start -p 3121 & npm run check:laptop   # every teacher route at 1440×900 and 1280×800, fails on horizontal overflow
 ```
 
 Open **/** and pick a side. Use tabs of the same browser: the student iPad in one, the teacher in

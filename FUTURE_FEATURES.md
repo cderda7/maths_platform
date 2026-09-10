@@ -292,3 +292,27 @@ appends it here (see `CLAUDE.md`).
   considered and left out so the draw stays the point.
 - **Peers seeing each other's reflections.** Teacher-only by decision; a group-visible variant
   would turn the reflection into a performance.
+
+## Teacher on a laptop (from ticket 37, 2026-09-10)
+
+- **The guard inside `npm test`.** `check:laptop` needs a built app on a port and a Chrome, so it
+  stays a separate command (2026-09-10). A vitest wrapper that builds, starts Next on a free port,
+  runs the check and tears down would make one command cover everything, at the cost of a
+  minute per run; worth it once there is a CI job.
+- **More sizes.** Only 1440 × 900 and 1280 × 800 are measured. Candidates: 1366 × 768 (the
+  common Windows laptop), 1536 × 864 (1920 at 125 %), 1512 × 982 (14-inch MacBook), and a
+  browser zoomed to 110 % / 125 %, which is how many teachers actually run a laptop.
+- **Vertical fit.** The check is horizontal only. The board is `h-screen` by design; a vertical
+  rule for the other pages (the live grid's header row and the first student visible without
+  scrolling at 800 px tall) would need a per-page definition of "what must be above the fold".
+- **Deeper states.** Each route is measured on a fresh load. An open skill drill, the diagnostic
+  push modal, the force-submit grace pill, an assignment with every skill chosen, the groups page
+  mid-drag and a whole-class session mid-projection could all be driven before measuring.
+- **Student and presenter routes.** `/student` is a fixed-size stage and `/split` fits itself
+  to the window, so they are out of scope here; a variant of the check over the iPad stage at
+  the stage's own minimum window would catch a regression in `IpadStage`'s fit.
+- **A screenshot on failure.** The failure names the element and its right edge; a PNG of the
+  offending route in the scratchpad would make the fix faster.
+- **The 0.8 zoom.** The teacher root is drawn at `zoom: 0.8` so the class grid fits; the ticket
+  keeps it. Revisit whether the grid should instead reflow (fewer visible subskill columns with a
+  horizontal scroll inside the table only) so text reads at full size on a 1280-wide laptop.

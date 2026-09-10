@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -20,7 +20,7 @@ Keep the teacher pages frameless and full width. State the laptop on the home ca
 
 ## Acceptance
 
-- [ ] Home card copy names the laptop
-- [ ] Every teacher route measured at 1440×900 and 1280×800 with no horizontal scroll, in an automated check that runs with the rest of the verification
-- [ ] Any overflow found is fixed in the same ticket
-- [ ] Architecture note and root docs
+- [x] Home card copy names the laptop
+- [x] Every teacher route measured at 1440×900 and 1280×800 with no horizontal scroll, in an automated check that runs with the rest of the verification
+- [x] Any overflow found is fixed in the same ticket
+- [x] Architecture note and root docs
