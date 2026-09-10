@@ -39,8 +39,8 @@ export const groupRework = (run: GroupRun, problem: string): Attempt | undefined
 export interface MarkedVersion {
   label: string;
   lines: { tex: string; mark: LineMark }[];
-  /** True on the student's own version when it is line for line what the group wrote; never on the group's own column. */
-  matches: boolean;
+  /** The pane sits on green: always the group's rework (it checked correct), and an own version only when it is line for line the same. */
+  green: boolean;
 }
 
 const normalise = (tex: string) => tex.replace(/\s+/g, " ").trim();
@@ -50,10 +50,10 @@ export const matchesGroup = (lines: string[], group: string[]): boolean => lines
 
 /** The annotated view: full red and blue marks on the student's own versions, blue standouts on the group's rework. */
 export function markedVersions(problem: string, own: { lines: string[]; rework: string[] }, group: string[]): MarkedVersion[] {
-  const mark = (label: string, lines: string[], matches: boolean): MarkedVersion => ({ label, lines: lines.map((tex, i) => ({ tex, mark: lineMarks(problem, lines)[i] })), matches });
+  const mark = (label: string, lines: string[], green: boolean): MarkedVersion => ({ label, lines: lines.map((tex, i) => ({ tex, mark: lineMarks(problem, lines)[i] })), green });
   const out = [mark("Handed in", own.lines, matchesGroup(own.lines, group))];
   if (own.rework.length > 0) out.push(mark("Reworked", own.rework, matchesGroup(own.rework, group)));
-  out.push(mark("Group's rework", group, false));
+  out.push(mark("Group's rework", group, true));
   return out;
 }
 

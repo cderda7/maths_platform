@@ -58,12 +58,12 @@ export default function GroupDebrief({ session, dispatch, run, problem }: { sess
         {versions.map((v) => (
           <section
             key={v.label}
-            className={`flex min-h-0 flex-col overflow-y-auto rounded-2xl border p-4 ${v.matches ? "border-secure-line bg-secure-soft" : v.label === "Group's rework" ? "border-standout-line bg-paper" : "border-line bg-paper"}`}
+            className={`flex min-h-0 flex-col overflow-y-auto rounded-2xl border p-4 ${v.green ? "border-secure-line bg-secure-soft" : "border-line bg-paper"}`}
             data-version={v.label}
-            data-matches={v.matches ? "" : undefined}
+            data-green={v.green ? "" : undefined}
           >
             <Eyebrow>{v.label}</Eyebrow>
-            <Lines lines={v.lines} marked={marked} onGreen={v.matches} />
+            <Lines lines={v.lines} marked={marked} onGreen={v.green} />
           </section>
         ))}
       </div>
@@ -107,7 +107,7 @@ export default function GroupDebrief({ session, dispatch, run, problem }: { sess
   );
 }
 
-/** The lines of one version; `onGreen` is the pane that matches the group's rework, where a plain line box sits on green rather than white. */
+/** The lines of one version; on a green pane (the group's rework, or an own version that matches it) a plain line box sits on green rather than white. */
 function Lines({ lines, marked, onGreen }: { lines: { tex: string; mark: LineMark }[]; marked: boolean; onGreen: boolean }) {
   if (lines.length === 0) return <p className="mt-2 text-[12.5px] text-ink-muted">not attempted</p>;
   return (

@@ -22,14 +22,15 @@ describe("the marked view", () => {
     expect(v[2].lines.some((l) => l.mark === "standout")).toBe(true); // "expanded first" is the Q3 standout
     expect(markedVersions("q1", { lines: RECOGNITION.q1, rework: [] }, RECOGNITION_REWORK.q1).map((x) => x.label)).toEqual(["Handed in", "Group's rework"]);
   });
-  it("flags the student's own version when it is line for line the group's rework, never the group's column", () => {
+  it("greens the group's rework always, and the student's own version only when it is line for line the same", () => {
     const v = markedVersions("q1", { lines: RECOGNITION.q1, rework: RECOGNITION_REWORK.q1 }, RECOGNITION_REWORK.q1);
-    expect(v.map((x) => [x.label, x.matches])).toEqual([
+    expect(v.map((x) => [x.label, x.green])).toEqual([
       ["Handed in", false],
       ["Reworked", true],
-      ["Group's rework", false],
+      ["Group's rework", true],
     ]);
-    expect(markedVersions("q1", { lines: RECOGNITION_REWORK.q1, rework: [] }, RECOGNITION_REWORK.q1).map((x) => x.matches)).toEqual([true, false]);
+    expect(markedVersions("q1", { lines: RECOGNITION_REWORK.q1, rework: [] }, RECOGNITION_REWORK.q1).map((x) => x.green)).toEqual([true, true]);
+    expect(markedVersions("q1", { lines: RECOGNITION.q1, rework: [] }, RECOGNITION_REWORK.q1).map((x) => x.green)).toEqual([false, true]);
     expect(matchesGroup(["(x - 2)(x - 3) = 0", "x = 2 \\;\\text{or}\\;  x = 3"], RECOGNITION_REWORK.q1)).toBe(true); // whitespace aside
     expect(matchesGroup([...RECOGNITION_REWORK.q1].reverse(), RECOGNITION_REWORK.q1)).toBe(false); // same lines, wrong order
     expect(matchesGroup(RECOGNITION_REWORK.q1.slice(0, 1), RECOGNITION_REWORK.q1)).toBe(false); // a prefix is not a match
