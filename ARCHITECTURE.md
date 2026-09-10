@@ -168,9 +168,10 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 41 | The debrief after a correct check | `/student` group, `/teacher/report` | `82ff198` | [curr_version/architecture/41-debrief-after-a-correct-check.md](curr_version/architecture/41-debrief-after-a-correct-check.md) |
 | 42 | Progress bar, leaderboard and medals | `/board` race and held standings, `/teacher` card, `/student` group bar | `fca135e` | [curr_version/architecture/42-progress-bar-leaderboard-medals.md](curr_version/architecture/42-progress-bar-leaderboard-medals.md) |
 | 43 | The individual view, and a tidy of the teacher's screens | `/teacher` title line, chips, name links; `/teacher/report?student=`; `/teacher/groups` | `f558209` | [curr_version/architecture/43-individual-view-and-teacher-tidy.md](curr_version/architecture/43-individual-view-and-teacher-tidy.md) |
-| 44 | Start screen simplified: no skill panel, one row per problem, accent buttons | `/student` overview | — | [curr_version/architecture/44-start-screen-simplified.md](curr_version/architecture/44-start-screen-simplified.md) |
+| 44 | Start screen simplified: no skill panel, one row per problem, accent buttons | `/student` overview | `e3466a9` | [curr_version/architecture/44-start-screen-simplified.md](curr_version/architecture/44-start-screen-simplified.md) |
 | 45 | The teacher pane scales with its height: a 1280 × 800 laptop, fitted like the iPad | `/split` teacher pane | — | [curr_version/architecture/45-teacher-pane-scales-with-its-height.md](curr_version/architecture/45-teacher-pane-scales-with-its-height.md) |
 | 46 | Class view polish: row buttons, header skills/sub-skills control, New skills, no timestamps, a missing student | `/teacher` grid | — | [curr_version/architecture/46-class-view-polish.md](curr_version/architecture/46-class-view-polish.md) |
+| 47 | Start screen as a grid of tiles: ten square cards, no chips, WARM UP / START bottom right | `/student` overview | — | [curr_version/architecture/47-start-screen-tiles.md](curr_version/architecture/47-start-screen-tiles.md) |
 
 ## Conventions
 

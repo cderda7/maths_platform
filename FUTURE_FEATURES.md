@@ -439,3 +439,16 @@ appends it here (see `CLAUDE.md`).
 - **The live row's Set sub-line.** Timestamps are gone from the Set column for classmates; the
   demo student's "handed in" / "in progress" sub-line stays, though the pill beside the name says
   the same. Drop one of them.
+
+## Start screen as a grid of tiles (from ticket 47, 2026-09-10)
+
+- **Skill chips on the start screen.** Gone entirely on 2026-09-10 at the user's request (the
+  ticket-44 chip column). The warm-up chooser is the only place before the set where a skill name
+  appears. If the student should be able to see a problem's skills before starting, a long-press
+  or flip on a tile is the natural home; not built.
+- **A figure that fills its tile.** Q8's parabola sits at 100 px inside a 208 px square; its axis
+  numerals are too small to read. A tile that gives the figure the space the stem does not need,
+  or a tap to enlarge, was not built.
+- **The band between the tiles and the buttons.** Ten squares leave about 120 px empty above
+  the button row. A line of set-level information (how many problems, expected time, whether a
+  warm-up is suggested) could sit there; nothing was put there so the screen stays quiet.

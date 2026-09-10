@@ -75,10 +75,6 @@ body {
 .math-lg .katex {
   font-size: 1.35em;
 }
-/* An expression set inline after its stem (the start screen's problem rows). */
-.math-row .katex {
-  font-size: 1.25em;
-}
 
 /* A fragment of a problem linked from its hint (lib/hint.ts). Lit while its word is hovered. */
 .katex .hint-term {
