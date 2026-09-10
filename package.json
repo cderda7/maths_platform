@@ -1,16 +1,31 @@
 {
-  "name": "maths_platform",
+  "name": "edexia-maths-demo",
+  "version": "0.1.0",
   "private": true,
-  "description": "Edexia \u00b7 Maths. The real build lives in curr_version/ (scripts delegate there); the Sept 7 design mockup is kept in roughdraft_sept7/.",
   "scripts": {
-    "dev": "npm --prefix curr_version run dev",
-    "build": "npm --prefix curr_version run build",
-    "start": "npm --prefix curr_version run start",
-    "lint": "npm --prefix curr_version run lint",
-    "test": "npm --prefix curr_version run test",
-    "check:laptop": "npm --prefix curr_version run check:laptop",
-    "install:app": "npm --prefix curr_version install",
-    "dev:roughdraft": "npm --prefix roughdraft_sept7 run dev",
-    "install:roughdraft": "npm --prefix roughdraft_sept7 install"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "vitest run",
+    "check:laptop": "node scripts/laptop-check.mjs"
+  },
+  "dependencies": {
+    "@types/katex": "^0.16.8",
+    "katex": "^0.18.7",
+    "next": "16.3.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.4",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^5.0.0"
   }
 }

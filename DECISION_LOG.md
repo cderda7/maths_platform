@@ -1,8 +1,9 @@
 # Decision log — Edexia · Maths (current build)
 
-Significant technical decisions for the closed-loop demo in `curr_version/`. Newest at the bottom.
-Product and pedagogy decisions inherited from the Sept 7 mockup are in
-`roughdraft_sept7/decisions_log.md`.
+Significant technical decisions for the closed-loop demo. Newest at the bottom.
+Product and pedagogy decisions inherited from the Sept 7 mockup are in its `decisions_log.md`,
+last present at commit `e40040c` under `roughdraft_sept7/` (the folder was removed on 10 Sep 2026;
+see the entry of that date).
 
 ## 2026-09-08 · Fresh app in `curr_version/`, kit ported from the roughdraft
 
@@ -1056,3 +1057,31 @@ column because nothing per student is checked there.
 precedence written once and tested per pathway; the screen renders whatever columns it is given,
 so changing the rule for dysfunctional versions, or adding a fifth outcome, touches
 `problemOutcome` and the label map and nothing else.
+
+## 2026-09-10 · The app is the repo root; the Sept 7 mockup is deleted, not archived
+
+**Decision.** Move everything in `curr_version/` up to the repo root with `git mv` and delete
+`roughdraft_sept7/` outright. One `package.json`, one `README.md`, one `.gitignore`. The mockup's
+own `decisions_log.md` and `ARCHITECTURE.md` are not copied anywhere; its last commit is
+`e40040c`.
+
+**Context.** The two-apps-in-one-repo layout was the transitional state chosen on 2026-09-08 so
+the roughdraft's kit could be ported without extending it. Sixty tickets later the mockup had not
+been opened since 8 Sep, every root script was a one-line `npm --prefix` delegation, every doc
+path carried a `curr_version/` prefix, and each worktree had to `npm ci` one level down.
+
+**Alternatives considered.** Keep the mockup in an `archive/` folder (still in the working tree,
+still in every grep and every search-in-editor, for a thing git already keeps). Keep the
+delegating root `package.json` with the app in a folder (the status quo; the extra level buys
+nothing once there is one app). Move the app but carry the mockup's decision entries into this
+log (they are product and pedagogy notes from a design that was replaced; anyone who wants them
+can check out the commit).
+
+**Tradeoffs.** Every branch cut before this commit conflicts on merge, so the three stale
+worktrees are removed rather than rebased. Old tickets and notes that named the folder as a fact
+now say "the app folder, since flattened" rather than being rewritten as if it never existed.
+Recovering the mockup means a checkout of an old commit rather than a folder open.
+
+**Defence.** The repo is one Next app and now looks like one: `npm ci`, `npm run dev` and every
+path in every doc work from the root, worktrees are plain checkouts, and rename detection keeps
+`git log --follow` intact for every moved file.

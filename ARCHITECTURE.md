@@ -1,9 +1,9 @@
-# Architecture — Edexia · Maths (current build, `curr_version/`)
+# Architecture — Edexia · Maths
 
 Running architecture record for the closed-loop demo. One row per completed ticket, in build
-order (01–16 spec v2, 17–25 spec v3); per-ticket detail lives in `curr_version/architecture/<nn>-<slug>.md`. Paths below are
-relative to `curr_version/`. Next.js 16 App Router, React 19, Tailwind 4, KaTeX; no backend, all
-data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/ARCHITECTURE.md`.
+order (01–16 spec v2, 17–25 spec v3); per-ticket detail lives in `architecture/<nn>-<slug>.md`. Paths below are
+relative to the repo root. Next.js 16 App Router, React 19, Tailwind 4, KaTeX; no backend, all
+data static under `data/`. The Sept 7 mockup was removed on 10 Sep 2026 (ticket 60).
 
 ## System diagram
 
@@ -126,65 +126,66 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 
 | # | Ticket | Routes | Commit | Note |
 |---|---|---|---|---|
-| 01 | Scaffold, iPad stage, demo assignment fixture | `/`, `/student`, `/teacher` | `bc49ffa` | [curr_version/architecture/01-scaffold.md](curr_version/architecture/01-scaffold.md) |
-| 02 | Pre-assignment skill list, practice offer, confidence survey | `/student?stage=…` | `5ce1673` | [curr_version/architecture/02-pre-assignment-and-confidence.md](curr_version/architecture/02-pre-assignment-and-confidence.md) |
-| 03 | Drawpad with simulated line-by-line recognition | `/student?stage=working` | `bcca326` | [curr_version/architecture/03-drawpad-simulated-recognition.md](curr_version/architecture/03-drawpad-simulated-recognition.md) |
-| 04 | Scripted evaluation, escalation counter, practice prompt, "I need help" | `/student?stage=working` | `db5cbb1` | [curr_version/architecture/04-scripted-evaluation-and-escalation.md](curr_version/architecture/04-scripted-evaluation-and-escalation.md) |
-| 05 | Teacher live subskill status and caution flag | `/teacher`, `/student` | `a816258` | [curr_version/architecture/05-teacher-live-status-and-caution-flag.md](curr_version/architecture/05-teacher-live-status-and-caution-flag.md) |
-| 06 | Feedback layers on submission | `/student?stage=feedback` | `c09798e` | [curr_version/architecture/06-feedback-layers.md](curr_version/architecture/06-feedback-layers.md) |
-| 07 | Independent rework stage | `/student?stage=rework` | `6dbf08f` | [curr_version/architecture/07-independent-rework.md](curr_version/architecture/07-independent-rework.md) |
-| 08 | Simulated group review, two phases | `/student?stage=group-pass`, `…=group-discuss` | `8b2f174` | [curr_version/architecture/08-simulated-group-review.md](curr_version/architecture/08-simulated-group-review.md) |
-| 09 | Student final report and reflection | `/student?stage=report` | `7c66e0a` | [curr_version/architecture/09-student-final-report.md](curr_version/architecture/09-student-final-report.md) |
-| 10 | Teacher final report | `/teacher/report` | `d3fb1c9` | [curr_version/architecture/10-teacher-final-report.md](curr_version/architecture/10-teacher-final-report.md) |
-| 11 | Teacher mistake view | `/teacher/mistakes` | `5ac30a1` | [curr_version/architecture/11-teacher-mistake-view.md](curr_version/architecture/11-teacher-mistake-view.md) |
-| 12 | Peer-struggle screen (Tier 2) | `/student?stage=report&run=strong` → peers | `a53863a` | [curr_version/architecture/12-peer-struggle-screen.md](curr_version/architecture/12-peer-struggle-screen.md) |
-| 13 | Submission history (Tier 2) | `/student?stage=history` | `67db35d` | [curr_version/architecture/13-submission-history.md](curr_version/architecture/13-submission-history.md) |
-| 14 | Teacher review-groups view (Tier 2) | `/teacher/groups` | `0c268b0` | [curr_version/architecture/14-teacher-review-groups-view.md](curr_version/architecture/14-teacher-review-groups-view.md) |
-| 15 | Teacher original vs final (Tier 2) | `/teacher/compare` | `3fb499b` | [curr_version/architecture/15-teacher-original-vs-final.md](curr_version/architecture/15-teacher-original-vs-final.md) |
-| 16 | Diagnostic MCQ push (Tier 2) | `/teacher` → `/student` interrupt | `7b3d49c` | [curr_version/architecture/16-diagnostic-mcq-push.md](curr_version/architecture/16-diagnostic-mcq-push.md) |
-| 17 | Copy sweep to the rule (spec v3) | every route | `cabb007` | [curr_version/architecture/17-copy-sweep.md](curr_version/architecture/17-copy-sweep.md) |
-| 18 | Pathway model and routing | `/student?pathway=…`, `/teacher` chip | `dc5ee2a` | [curr_version/architecture/18-pathway-model-and-routing.md](curr_version/architecture/18-pathway-model-and-routing.md) |
-| 19 | Assignment creation with the pathway map | `/teacher/assignments/new` | `2af6872` | [curr_version/architecture/19-assignment-creation-with-pathway-map.md](curr_version/architecture/19-assignment-creation-with-pathway-map.md) |
-| 20 | Persisted ink | `/student` working, rework, history | `67aec66` | [curr_version/architecture/20-persisted-ink.md](curr_version/architecture/20-persisted-ink.md) |
-| 21 | Detective feedback and the guard | `/student?stage=feedback`, rework | `3479206` | [curr_version/architecture/21-detective-feedback-and-guard.md](curr_version/architecture/21-detective-feedback-and-guard.md) |
-| 22 | Teacher force submit with one-minute grace | `/teacher` Class card → `/student` pill | `bd16a06` | [curr_version/architecture/22-teacher-force-submit-with-grace.md](curr_version/architecture/22-teacher-force-submit-with-grace.md) |
-| 23 | Whole-class setup and the unmarked board | `/teacher/whole-class`, `/teacher/board` | `bb83c90` | [curr_version/architecture/23-whole-class-setup-and-unmarked-board.md](curr_version/architecture/23-whole-class-setup-and-unmarked-board.md) |
-| 24 | Student freeze, marked view and session end | `/student` frozen, `/teacher/board` marks, `/teacher` End | `9acced2` | [curr_version/architecture/24-student-freeze-marked-view-and-session-end.md](curr_version/architecture/24-student-freeze-marked-view-and-session-end.md) |
-| 25 | Documentation compile | — | `4e7b2a1` | [curr_version/architecture/25-documentation-compile.md](curr_version/architecture/25-documentation-compile.md) |
-| 26 | Hierarchical skill category dashboard | `/teacher` grid + drill, reports, creation Unit Focus | `b7f5a71` | [curr_version/architecture/26-hierarchical-skill-dashboard.md](curr_version/architecture/26-hierarchical-skill-dashboard.md) |
-| 27 | Warm-up on the pad, confidence first, multimodal help | `/student?stage=confidence`, `…=practice` | `9f311a5` | [curr_version/architecture/27-warm-up-on-the-pad.md](curr_version/architecture/27-warm-up-on-the-pad.md) |
-| 28 | Warm-up chooser: problems, words, one skill at a time | `/student?stage=warmup-pick`, `…=practice` | `c614ed5` | [curr_version/architecture/28-warm-up-chooser.md](curr_version/architecture/28-warm-up-chooser.md) |
-| 29 | Mid-set isolated practice on the pad | `/student?stage=working` overlay | `2022a51` | [curr_version/architecture/29-isolated-practice-on-the-pad.md](curr_version/architecture/29-isolated-practice-on-the-pad.md) |
-| 30 | Hint words that light the problem | `/student?stage=practice`, `…=working` overlay | `917bb70` | [curr_version/architecture/30-hint-links.md](curr_version/architecture/30-hint-links.md) |
-| 31 | Practice sent to the fundamental skill; confidence for the teacher | `/student?stage=working` prompt | `18b97f0` | [curr_version/architecture/31-confidence-triggered-practice.md](curr_version/architecture/31-confidence-triggered-practice.md) |
-| 32 | Individual review with correction on one screen | `/student?stage=feedback` | `66fa851` | [curr_version/architecture/32-review-with-correction.md](curr_version/architecture/32-review-with-correction.md) |
-| 33 | Demo "skip to" strip | `/student` (presenter control) | `d3bd7e0` | [curr_version/architecture/33-demo-skip-to.md](curr_version/architecture/33-demo-skip-to.md) |
-| 34 | Whole-class review: versions beside a pad, frozen or write-with-me | `/student` frozen, `/teacher/whole-class`, `/teacher/board` | `fb9fc69` | [curr_version/architecture/34-whole-class-follow-modes.md](curr_version/architecture/34-whole-class-follow-modes.md) |
-| 35 | Split view: student, teacher and board in one tab | `/split` (presenter page) | `bff34c5` | [curr_version/architecture/35-split-view.md](curr_version/architecture/35-split-view.md) |
-| 36 | Class of twenty in five colour groups | `/teacher/groups` | `00d5979` | [curr_version/architecture/36-class-of-twenty-colour-groups.md](curr_version/architecture/36-class-of-twenty-colour-groups.md) |
-| 37 | Teacher on a laptop: full width, and a viewport guard over every teacher route | `/` teacher card, `/teacher/**` | `02372da` | [curr_version/architecture/37-teacher-on-a-laptop.md](curr_version/architecture/37-teacher-on-a-laptop.md) |
-| 38 | The smartboard surface: display only, the laptop keeps the controls | `/board`, `/teacher/board` (controls), `/teacher` indicator, `/` card | `d76c226` | [curr_version/architecture/38-smartboard-surface.md](curr_version/architecture/38-smartboard-surface.md) |
-| 39 | The whole class enters group review together | `/student` class-wait, `/teacher` Class card | `54f397f` | [curr_version/architecture/39-class-enters-group-review-together.md](curr_version/architecture/39-class-enters-group-review-together.md) |
-| 40 | Group review on one shared whiteboard | `/student` group | `8d9cf9e` | [curr_version/architecture/40-group-review-shared-whiteboard.md](curr_version/architecture/40-group-review-shared-whiteboard.md) |
-| 41 | The debrief after a correct check | `/student` group, `/teacher/report` | `82ff198` | [curr_version/architecture/41-debrief-after-a-correct-check.md](curr_version/architecture/41-debrief-after-a-correct-check.md) |
-| 42 | Progress bar, leaderboard and medals | `/board` race and held standings, `/teacher` card, `/student` group bar | `fca135e` | [curr_version/architecture/42-progress-bar-leaderboard-medals.md](curr_version/architecture/42-progress-bar-leaderboard-medals.md) |
-| 43 | The individual view, and a tidy of the teacher's screens | `/teacher` title line, chips, name links; `/teacher/report?student=`; `/teacher/groups` | `f558209` | [curr_version/architecture/43-individual-view-and-teacher-tidy.md](curr_version/architecture/43-individual-view-and-teacher-tidy.md) |
-| 44 | Start screen simplified: no skill panel, one row per problem, accent buttons | `/student` overview | `e3466a9` | [curr_version/architecture/44-start-screen-simplified.md](curr_version/architecture/44-start-screen-simplified.md) |
-| 45 | The teacher pane scales with its height: a 1280 × 800 laptop, fitted like the iPad | `/split` teacher pane | — | [curr_version/architecture/45-teacher-pane-scales-with-its-height.md](curr_version/architecture/45-teacher-pane-scales-with-its-height.md) |
-| 46 | Class view polish: row buttons, header skills/sub-skills control, New skills, no timestamps, a missing student | `/teacher` grid | — | [curr_version/architecture/46-class-view-polish.md](curr_version/architecture/46-class-view-polish.md) |
-| 47 | Start screen as a grid of tiles: ten square cards, no chips, WARM UP / START bottom right | `/student` overview | — | [curr_version/architecture/47-start-screen-tiles.md](curr_version/architecture/47-start-screen-tiles.md) |
-| 48 | Warm-up concerns chat: the picker page gone, one question per ticked skill, then the pad with skill buttons | `/student?stage=warmup-chat`, `…=practice` | — | [curr_version/architecture/48-warm-up-concerns-chat.md](curr_version/architecture/48-warm-up-concerns-chat.md) |
-| 49 | Group review header: no colour label, names in the group colour, a big progress bar | `/student` group | — | [curr_version/architecture/49-group-header-tint.md](curr_version/architecture/49-group-header-tint.md) |
-| 50 | Feedback summary: skills as dark purple chips; "What you submitted" / "If needed, correct it here" / "Read as" on one line | `/student?stage=feedback` | — | [curr_version/architecture/50-feedback-summary-chips.md](curr_version/architecture/50-feedback-summary-chips.md) |
-| 51 | Debrief: a pane that matches the group's rework turns green | `/student` group debrief | — | [curr_version/architecture/51-debrief-matching-pane-green.md](curr_version/architecture/51-debrief-matching-pane-green.md) |
-| 52 | Group review: Liam's Q7 checks wrong first; a ten-second hold; the ring fits the button and goes once the hold ends | `/student` group | — | [curr_version/architecture/52-group-wrong-rework-and-hold.md](curr_version/architecture/52-group-wrong-rework-and-hold.md) |
-| 53 | Group review header: the progress bar stays put on "the group got it" | `/student` group whiteboard + debrief | — | [curr_version/architecture/53-group-header-shared.md](curr_version/architecture/53-group-header-shared.md) |
-| 54 | Whole-class review: the teacher writes on the smartboard, and switches the students' mode from it | `/board` slide, `/student` frozen, `/teacher/board` | — | [curr_version/architecture/54-board-pad-and-mode-toggle.md](curr_version/architecture/54-board-pad-and-mode-toggle.md) |
-| 55 | Class view: see skills / full breakdown / close, one hover target per student, no board chip | `/teacher` grid, `/teacher/board` heading | — | [curr_version/architecture/55-class-view-button-words-and-no-board-chip.md](curr_version/architecture/55-class-view-button-words-and-no-board-chip.md) |
-| 56 | Brand header: the real Edexia logo everywhere; the confidence top bar drops "Before you start" | every header, `/student?stage=confidence` | — | [curr_version/architecture/56-brand-logo-and-confidence-crumb.md](curr_version/architecture/56-brand-logo-and-confidence-crumb.md) |
-| 57 | Student report: the skills laid out as the teacher's class-view row, every group shown at once | `/student?stage=report` | — | [curr_version/architecture/57-student-report-skill-columns.md](curr_version/architecture/57-student-report-skill-columns.md) |
-| 58 | Student report: a tile per problem in a column per review stage in the pathway; Starred gone; the reflection required before sending | `/student?stage=report` | — | [curr_version/architecture/58-report-outcome-tiles.md](curr_version/architecture/58-report-outcome-tiles.md) |
-| 59 | Class view: "see dot skills" beside a name opens the row's full breakdown, every group open to its skills | `/teacher` grid | — | [curr_version/architecture/59-row-see-dot-skills-full-breakdown.md](curr_version/architecture/59-row-see-dot-skills-full-breakdown.md) |
+| 01 | Scaffold, iPad stage, demo assignment fixture | `/`, `/student`, `/teacher` | `bc49ffa` | [architecture/01-scaffold.md](architecture/01-scaffold.md) |
+| 02 | Pre-assignment skill list, practice offer, confidence survey | `/student?stage=…` | `5ce1673` | [architecture/02-pre-assignment-and-confidence.md](architecture/02-pre-assignment-and-confidence.md) |
+| 03 | Drawpad with simulated line-by-line recognition | `/student?stage=working` | `bcca326` | [architecture/03-drawpad-simulated-recognition.md](architecture/03-drawpad-simulated-recognition.md) |
+| 04 | Scripted evaluation, escalation counter, practice prompt, "I need help" | `/student?stage=working` | `db5cbb1` | [architecture/04-scripted-evaluation-and-escalation.md](architecture/04-scripted-evaluation-and-escalation.md) |
+| 05 | Teacher live subskill status and caution flag | `/teacher`, `/student` | `a816258` | [architecture/05-teacher-live-status-and-caution-flag.md](architecture/05-teacher-live-status-and-caution-flag.md) |
+| 06 | Feedback layers on submission | `/student?stage=feedback` | `c09798e` | [architecture/06-feedback-layers.md](architecture/06-feedback-layers.md) |
+| 07 | Independent rework stage | `/student?stage=rework` | `6dbf08f` | [architecture/07-independent-rework.md](architecture/07-independent-rework.md) |
+| 08 | Simulated group review, two phases | `/student?stage=group-pass`, `…=group-discuss` | `8b2f174` | [architecture/08-simulated-group-review.md](architecture/08-simulated-group-review.md) |
+| 09 | Student final report and reflection | `/student?stage=report` | `7c66e0a` | [architecture/09-student-final-report.md](architecture/09-student-final-report.md) |
+| 10 | Teacher final report | `/teacher/report` | `d3fb1c9` | [architecture/10-teacher-final-report.md](architecture/10-teacher-final-report.md) |
+| 11 | Teacher mistake view | `/teacher/mistakes` | `5ac30a1` | [architecture/11-teacher-mistake-view.md](architecture/11-teacher-mistake-view.md) |
+| 12 | Peer-struggle screen (Tier 2) | `/student?stage=report&run=strong` → peers | `a53863a` | [architecture/12-peer-struggle-screen.md](architecture/12-peer-struggle-screen.md) |
+| 13 | Submission history (Tier 2) | `/student?stage=history` | `67db35d` | [architecture/13-submission-history.md](architecture/13-submission-history.md) |
+| 14 | Teacher review-groups view (Tier 2) | `/teacher/groups` | `0c268b0` | [architecture/14-teacher-review-groups-view.md](architecture/14-teacher-review-groups-view.md) |
+| 15 | Teacher original vs final (Tier 2) | `/teacher/compare` | `3fb499b` | [architecture/15-teacher-original-vs-final.md](architecture/15-teacher-original-vs-final.md) |
+| 16 | Diagnostic MCQ push (Tier 2) | `/teacher` → `/student` interrupt | `7b3d49c` | [architecture/16-diagnostic-mcq-push.md](architecture/16-diagnostic-mcq-push.md) |
+| 17 | Copy sweep to the rule (spec v3) | every route | `cabb007` | [architecture/17-copy-sweep.md](architecture/17-copy-sweep.md) |
+| 18 | Pathway model and routing | `/student?pathway=…`, `/teacher` chip | `dc5ee2a` | [architecture/18-pathway-model-and-routing.md](architecture/18-pathway-model-and-routing.md) |
+| 19 | Assignment creation with the pathway map | `/teacher/assignments/new` | `2af6872` | [architecture/19-assignment-creation-with-pathway-map.md](architecture/19-assignment-creation-with-pathway-map.md) |
+| 20 | Persisted ink | `/student` working, rework, history | `67aec66` | [architecture/20-persisted-ink.md](architecture/20-persisted-ink.md) |
+| 21 | Detective feedback and the guard | `/student?stage=feedback`, rework | `3479206` | [architecture/21-detective-feedback-and-guard.md](architecture/21-detective-feedback-and-guard.md) |
+| 22 | Teacher force submit with one-minute grace | `/teacher` Class card → `/student` pill | `bd16a06` | [architecture/22-teacher-force-submit-with-grace.md](architecture/22-teacher-force-submit-with-grace.md) |
+| 23 | Whole-class setup and the unmarked board | `/teacher/whole-class`, `/teacher/board` | `bb83c90` | [architecture/23-whole-class-setup-and-unmarked-board.md](architecture/23-whole-class-setup-and-unmarked-board.md) |
+| 24 | Student freeze, marked view and session end | `/student` frozen, `/teacher/board` marks, `/teacher` End | `9acced2` | [architecture/24-student-freeze-marked-view-and-session-end.md](architecture/24-student-freeze-marked-view-and-session-end.md) |
+| 25 | Documentation compile | — | `4e7b2a1` | [architecture/25-documentation-compile.md](architecture/25-documentation-compile.md) |
+| 26 | Hierarchical skill category dashboard | `/teacher` grid + drill, reports, creation Unit Focus | `b7f5a71` | [architecture/26-hierarchical-skill-dashboard.md](architecture/26-hierarchical-skill-dashboard.md) |
+| 27 | Warm-up on the pad, confidence first, multimodal help | `/student?stage=confidence`, `…=practice` | `9f311a5` | [architecture/27-warm-up-on-the-pad.md](architecture/27-warm-up-on-the-pad.md) |
+| 28 | Warm-up chooser: problems, words, one skill at a time | `/student?stage=warmup-pick`, `…=practice` | `c614ed5` | [architecture/28-warm-up-chooser.md](architecture/28-warm-up-chooser.md) |
+| 29 | Mid-set isolated practice on the pad | `/student?stage=working` overlay | `2022a51` | [architecture/29-isolated-practice-on-the-pad.md](architecture/29-isolated-practice-on-the-pad.md) |
+| 30 | Hint words that light the problem | `/student?stage=practice`, `…=working` overlay | `917bb70` | [architecture/30-hint-links.md](architecture/30-hint-links.md) |
+| 31 | Practice sent to the fundamental skill; confidence for the teacher | `/student?stage=working` prompt | `18b97f0` | [architecture/31-confidence-triggered-practice.md](architecture/31-confidence-triggered-practice.md) |
+| 32 | Individual review with correction on one screen | `/student?stage=feedback` | `66fa851` | [architecture/32-review-with-correction.md](architecture/32-review-with-correction.md) |
+| 33 | Demo "skip to" strip | `/student` (presenter control) | `d3bd7e0` | [architecture/33-demo-skip-to.md](architecture/33-demo-skip-to.md) |
+| 34 | Whole-class review: versions beside a pad, frozen or write-with-me | `/student` frozen, `/teacher/whole-class`, `/teacher/board` | `fb9fc69` | [architecture/34-whole-class-follow-modes.md](architecture/34-whole-class-follow-modes.md) |
+| 35 | Split view: student, teacher and board in one tab | `/split` (presenter page) | `bff34c5` | [architecture/35-split-view.md](architecture/35-split-view.md) |
+| 36 | Class of twenty in five colour groups | `/teacher/groups` | `00d5979` | [architecture/36-class-of-twenty-colour-groups.md](architecture/36-class-of-twenty-colour-groups.md) |
+| 37 | Teacher on a laptop: full width, and a viewport guard over every teacher route | `/` teacher card, `/teacher/**` | `02372da` | [architecture/37-teacher-on-a-laptop.md](architecture/37-teacher-on-a-laptop.md) |
+| 38 | The smartboard surface: display only, the laptop keeps the controls | `/board`, `/teacher/board` (controls), `/teacher` indicator, `/` card | `d76c226` | [architecture/38-smartboard-surface.md](architecture/38-smartboard-surface.md) |
+| 39 | The whole class enters group review together | `/student` class-wait, `/teacher` Class card | `54f397f` | [architecture/39-class-enters-group-review-together.md](architecture/39-class-enters-group-review-together.md) |
+| 40 | Group review on one shared whiteboard | `/student` group | `8d9cf9e` | [architecture/40-group-review-shared-whiteboard.md](architecture/40-group-review-shared-whiteboard.md) |
+| 41 | The debrief after a correct check | `/student` group, `/teacher/report` | `82ff198` | [architecture/41-debrief-after-a-correct-check.md](architecture/41-debrief-after-a-correct-check.md) |
+| 42 | Progress bar, leaderboard and medals | `/board` race and held standings, `/teacher` card, `/student` group bar | `fca135e` | [architecture/42-progress-bar-leaderboard-medals.md](architecture/42-progress-bar-leaderboard-medals.md) |
+| 43 | The individual view, and a tidy of the teacher's screens | `/teacher` title line, chips, name links; `/teacher/report?student=`; `/teacher/groups` | `f558209` | [architecture/43-individual-view-and-teacher-tidy.md](architecture/43-individual-view-and-teacher-tidy.md) |
+| 44 | Start screen simplified: no skill panel, one row per problem, accent buttons | `/student` overview | `e3466a9` | [architecture/44-start-screen-simplified.md](architecture/44-start-screen-simplified.md) |
+| 45 | The teacher pane scales with its height: a 1280 × 800 laptop, fitted like the iPad | `/split` teacher pane | — | [architecture/45-teacher-pane-scales-with-its-height.md](architecture/45-teacher-pane-scales-with-its-height.md) |
+| 46 | Class view polish: row buttons, header skills/sub-skills control, New skills, no timestamps, a missing student | `/teacher` grid | — | [architecture/46-class-view-polish.md](architecture/46-class-view-polish.md) |
+| 47 | Start screen as a grid of tiles: ten square cards, no chips, WARM UP / START bottom right | `/student` overview | — | [architecture/47-start-screen-tiles.md](architecture/47-start-screen-tiles.md) |
+| 48 | Warm-up concerns chat: the picker page gone, one question per ticked skill, then the pad with skill buttons | `/student?stage=warmup-chat`, `…=practice` | — | [architecture/48-warm-up-concerns-chat.md](architecture/48-warm-up-concerns-chat.md) |
+| 49 | Group review header: no colour label, names in the group colour, a big progress bar | `/student` group | — | [architecture/49-group-header-tint.md](architecture/49-group-header-tint.md) |
+| 50 | Feedback summary: skills as dark purple chips; "What you submitted" / "If needed, correct it here" / "Read as" on one line | `/student?stage=feedback` | — | [architecture/50-feedback-summary-chips.md](architecture/50-feedback-summary-chips.md) |
+| 51 | Debrief: a pane that matches the group's rework turns green | `/student` group debrief | — | [architecture/51-debrief-matching-pane-green.md](architecture/51-debrief-matching-pane-green.md) |
+| 52 | Group review: Liam's Q7 checks wrong first; a ten-second hold; the ring fits the button and goes once the hold ends | `/student` group | — | [architecture/52-group-wrong-rework-and-hold.md](architecture/52-group-wrong-rework-and-hold.md) |
+| 53 | Group review header: the progress bar stays put on "the group got it" | `/student` group whiteboard + debrief | — | [architecture/53-group-header-shared.md](architecture/53-group-header-shared.md) |
+| 54 | Whole-class review: the teacher writes on the smartboard, and switches the students' mode from it | `/board` slide, `/student` frozen, `/teacher/board` | — | [architecture/54-board-pad-and-mode-toggle.md](architecture/54-board-pad-and-mode-toggle.md) |
+| 55 | Class view: see skills / full breakdown / close, one hover target per student, no board chip | `/teacher` grid, `/teacher/board` heading | — | [architecture/55-class-view-button-words-and-no-board-chip.md](architecture/55-class-view-button-words-and-no-board-chip.md) |
+| 56 | Brand header: the real Edexia logo everywhere; the confidence top bar drops "Before you start" | every header, `/student?stage=confidence` | — | [architecture/56-brand-logo-and-confidence-crumb.md](architecture/56-brand-logo-and-confidence-crumb.md) |
+| 57 | Student report: the skills laid out as the teacher's class-view row, every group shown at once | `/student?stage=report` | — | [architecture/57-student-report-skill-columns.md](architecture/57-student-report-skill-columns.md) |
+| 58 | Student report: a tile per problem in a column per review stage in the pathway; Starred gone; the reflection required before sending | `/student?stage=report` | — | [architecture/58-report-outcome-tiles.md](architecture/58-report-outcome-tiles.md) |
+| 59 | Class view: "see dot skills" beside a name opens the row's full breakdown, every group open to its skills | `/teacher` grid | — | [architecture/59-row-see-dot-skills-full-breakdown.md](architecture/59-row-see-dot-skills-full-breakdown.md) |
+| 60 | Repo flatten: the app is the repo root, the Sept 7 mockup deleted | — | — | [architecture/60-repo-flatten.md](architecture/60-repo-flatten.md) |
 
 ## Conventions
 
@@ -193,7 +194,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 - **Components read data, never pages.** A chip needs only a subskill id.
 - **Vocabulary lives in `data/types.ts`.** Rationale in `DECISION_LOG.md`.
 - **`lib/` is for pure, testable logic** (escalation counter, group-phase computation).
-- **Copy follows the rule in `curr_version/specs/spec2.md`**: headlines two to four words, no
+- **Copy follows the rule in `specs/spec2.md`**: headlines two to four words, no
   explanatory sentence that doesn't change what the user does next, labels over sentences, at
   most one helper line per screen, no legends. The detective sentence is the one exception.
 - **Student screens are designed at true iPad size** (1180×820) inside `IpadStage`; the stage

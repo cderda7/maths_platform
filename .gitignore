@@ -1,4 +1,8 @@
-node_modules/
-.next/
+/node_modules
+/.next/
+/out/
+*.tsbuildinfo
+next-env.d.ts
 .DS_Store
+.env*
 .claude/worktrees/
