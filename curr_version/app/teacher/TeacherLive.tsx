@@ -54,7 +54,7 @@ const HANDED_IN = ["overview", "confidence", "warmup-chat", "practice", "working
  * "Where the class is": one row per student, one column per category the assignment touches
  * (canonical order), each dot the worst status beneath it. Clicking a dot expands that row into
  * the category → group → leaf → work drill; hovering a student's block (their row and any drill
- * open under it) shows two buttons beside the name: the row's skills (its groups; "close" while
+ * open under it) shows two buttons beside the name: the row's full breakdown (every group open to its skills; "close" while
  * the row is open) and the student's individual view. The
  * demo student's row is live (in batches); classmates come through the same evidence path from
  * their scripted attempts.
@@ -275,7 +275,7 @@ export default function TeacherLive() {
                             </div>
                           </div>
                           <div className="invisible ml-auto flex shrink-0 flex-col gap-1 group-hover/row:visible group-focus-within/row:visible" data-row-actions={r.id}>
-                            <button type="button" onClick={() => (isOpen ? setOpen(null) : openRow(r.id, "groups"))} className={isOpen ? STACK_ACTIVE : STACK_IDLE} data-see-skills={r.id} aria-pressed={isOpen}>
+                            <button type="button" onClick={() => (isOpen ? setOpen(null) : openRow(r.id, "expanded"))} className={isOpen ? STACK_ACTIVE : STACK_IDLE} data-see-skills={r.id} aria-pressed={isOpen}>
                               {isOpen ? "close" : "see dot skills"}
                             </button>
                             <Link href={`/teacher/report?student=${r.id}`} className={`${STACK_IDLE} text-center`} data-student-link={r.id}>

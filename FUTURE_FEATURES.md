@@ -611,3 +611,13 @@ appends it here (see `CLAUDE.md`).
   one wrong after the rework (Q7, say) would show all four columns filled.
 - **Empty columns.** An empty column reads "None" and keeps its width so the layout never
   shifts; collapsing it would give the filled columns more room on a two-of-four report.
+
+## Class view: "see dot skills" opens the full breakdown (from ticket 59, 2026-09-10)
+
+- **No row-level groups button any more.** The row's hover button now opens every group with its
+  skills; the groups-only level is reachable only by a single tap on the row itself, which a
+  teacher cannot discover. If the groups level is worth keeping, the row stack could grow a
+  third button ("see skills" / "full breakdown" / "student report") to mirror the header.
+- **A tall row on a small screen.** With every group open a row's drill runs to ~14 skills across
+  six columns; on a laptop the class list below it moves a long way. A "collapse all" chip in
+  the drill, or remembering which groups the teacher closed, would ease that.

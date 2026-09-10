@@ -72,8 +72,9 @@ Teacher, during the lesson (`/teacher`):
   work behind them. Hover a column header for its **see skills** / **full breakdown** buttons
   (the chosen level opens under every student; the open level's button reads **close**, and
   with the full breakdown open it is the only button). Hover anywhere in a student's block (the
-  row, or the drill open under it) for two buttons beside the name: **see dot skills** (every
-  dot's skills for that student; **close** while the row is open) and **student report**. A student with nothing handed in shows a caution triangle and MISSING in
+  row, or the drill open under it) for two buttons beside the name: **see dot skills** (the
+  student's full breakdown, every group of every dot open to its skills; **close** while the row
+  is open) and **student report**. A student with nothing handed in shows a caution triangle and MISSING in
   the Set column. Then the live row's confidence, stage and caution, the classmates, the
   pathway chip, **Force assignment submit** (confirm, then a one-minute grace on every screen), the
   **Whole-class review** card (Set up → / Students frozen · End session), the assignment status
