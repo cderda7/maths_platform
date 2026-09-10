@@ -406,3 +406,15 @@ appends it here (see `CLAUDE.md`).
   `text-transform` in the drill's `Node`; the taxonomy still holds capitalised names, and other
   surfaces (skill chips, the mistakes view, the student side) show them as authored. Decide once
   whether the taxonomy itself should be lowercase.
+
+## Start screen simplified (from ticket 44, 2026-09-10)
+
+- **A skill summary for the set.** The "Covers" pills and "Leans on" chips came off the start
+  screen on 2026-09-10 at the user's request. The per-problem chips are the only skill words on
+  that screen now; the warm-up chooser's "Skills" section is where the set's skills are laid out.
+  If a whole-set view is wanted again, a tap on a chip that lights the same skill on every row
+  would do it without a panel.
+- **A figure thumbnail that opens.** Q8's parabola sits at 120 px in its row; a tap to see it
+  full size was not built. The working screen shows it at full size.
+- **Problem rows that open the problem.** The rows do nothing on tap. A tap could jump the
+  student to that problem once the set has started; deferred, the set starts at Q1.
