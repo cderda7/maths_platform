@@ -15,7 +15,8 @@ import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { StatusDot, STATUS_WORD } from "@/components/Tag";
 import { ASSIGNMENT, DEMO_STUDENT, unitLabel } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
-import { categoryLabel, categoryName, categoryOf, isFlat, leafName, type CategoryId, type LeafId } from "@/data/taxonomy";
+import { categoryLabel, categoryName, categoryOf, isFlat, type CategoryId, type LeafId } from "@/data/taxonomy";
+import { confidenceLabel } from "@/lib/report";
 import type { Confidence } from "@/data/types";
 import { pathwayOf } from "@/lib/classroom";
 import { useAssignment, useClassroom } from "@/lib/classroom-store";
@@ -30,11 +31,8 @@ const DOUBLE_MS = 350;
 const LABEL = "pointer-events-none absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink-muted";
 
 function confidenceWord(c: Confidence | null): { text: string; tone: string } {
-  if (!c) return { text: "—", tone: "text-ink-muted" };
-  if (c.level === "confident") return { text: "confident", tone: "text-secure" };
-  if (c.level === "low") return { text: "low", tone: "text-accent-deep" };
-  const names = c.leaves.map((l) => leafName(l).short);
-  return { text: `low: ${names.slice(0, 2).join(", ")}${names.length > 2 ? ` +${names.length - 2}` : ""}`, tone: "text-accent-deep" };
+  const text = confidenceLabel(c);
+  return { text, tone: !c ? "text-ink-muted" : text === "confident" ? "text-secure" : "text-accent-deep" };
 }
 
 function ago(ms: number | null, now: number): string {

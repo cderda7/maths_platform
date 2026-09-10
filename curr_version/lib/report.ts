@@ -21,11 +21,29 @@ export interface ReportFacts {
   groupNotes: { label: string; prompt: DebriefPrompt; text: string }[];
 }
 
+/** Naming three or more skills reads as low confidence overall: the answer is treated exactly as "not confident". */
+export const NAMED_CAP = 2;
+
+/** The skills a "not confident with…" answer names, or null when it should read as low overall (none named, or more than the cap). */
+export function namedSkills(c: Confidence | null): string[] | null {
+  if (!c || c.level !== "low-when") return null;
+  const names = c.leaves.map((l) => leafName(l).short);
+  return names.length === 0 || names.length > NAMED_CAP ? null : names;
+}
+
+/** The short label on the live grid: "confident", "low", or "low: fractions, discriminant". */
+export function confidenceLabel(c: Confidence | null): string {
+  if (!c) return "—";
+  if (c.level === "confident") return "confident";
+  const named = namedSkills(c);
+  return named ? `low: ${named.join(", ")}` : "low";
+}
+
 export function confidenceSentence(c: Confidence | null): string {
   if (!c) return "No confidence rating";
   if (c.level === "confident") return "Confident before starting";
-  if (c.level === "low") return "Confidence low before starting";
-  return `Confidence low when ${c.leaves.map((l) => leafName(l).short).join(", ") || "a named skill"} comes up`;
+  const named = namedSkills(c);
+  return named ? `Confidence low when ${named.join(", ")} comes up` : "Confidence low before starting";
 }
 
 export function reportFacts(session: StudentSession): ReportFacts {
