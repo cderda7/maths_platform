@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { boardContent, boardWord } from "./board";
+import { boardContent } from "./board";
 import { classroomReducer, INITIAL_CLASSROOM } from "./classroom";
 import { skipFixture, SKIP_TARGETS } from "./demo";
 import { sessionAt } from "./session";
@@ -15,7 +15,6 @@ describe("what the board shows per stage", () => {
     const b = boardContent(INITIAL_CLASSROOM, null);
     expect(b).toEqual({ kind: "blank", className: "11 Methods B", title: "ROOTS OF A QUADRATIC — SET 3" });
     expect(boardContent(null, null).kind).toBe("blank");
-    expect(boardWord(b)).toBe("blank");
   });
 
   it("follows the demo's skips: blank through individual review and the gate, the standings during group review, the board while projecting, holding once group review is over", () => {
@@ -63,7 +62,6 @@ describe("what the board shows per stage", () => {
       expect(e.count).toBeGreaterThan(0);
       expect(e.denominator).toBeGreaterThanOrEqual(e.count);
     }
-    expect(boardWord(first)).toBe(`${first.problem.label} · 1 of 2`);
 
     classroom = classroomReducer(classroom, { type: "wc/marks", on: true });
     classroom = classroomReducer(classroom, { type: "wc/stroke", problem: first.problem.id, stroke: [{ x: 1, y: 2 }] });
@@ -71,7 +69,6 @@ describe("what the board shows per stage", () => {
     if (marked.kind !== "whole-class") throw new Error("expected the board");
     expect(marked.view).toBe("marked");
     expect(marked.teacherInk).toEqual([[{ x: 1, y: 2 }]]);
-    expect(boardWord(marked)).toBe(`${first.problem.label} · 1 of 2 · marks`);
 
     // The board's toggle: the same action the laptop sends, per problem.
     classroom = classroomReducer(classroom, { type: "wc/mode", problem: first.problem.id, mode: "write-with-me" });
@@ -107,14 +104,13 @@ describe("what the board shows per stage", () => {
     expect(Object.keys(boardContent(skipFixture("group review", now).classroom, sessionAt("group")))).toEqual(["kind", "className", "title", "standings"]);
   });
 
-  it("during group review: five standings, the demo group live with the pen, the word 'standings'; once the run is done the same standings hold, final", () => {
+  it("during group review: five standings, the demo group live with the pen; once the run is done the same standings hold, final", () => {
     const { classroom, session } = skipFixture("group review", now);
     const live = boardContent(classroom, session, now);
     if (live.kind !== "group") throw new Error("expected the race");
     expect(live.standings).toHaveLength(5);
     expect(live.standings.map((s) => s.percent)).toEqual([0, 0, 0, 0, 0]);
     expect(live.standings.find((s) => s.live)?.pen).toBe("sam");
-    expect(boardWord(live)).toBe("standings");
     // Every row names four first names and no surname.
     for (const s of live.standings) {
       expect(s.names).toHaveLength(4);
@@ -122,7 +118,6 @@ describe("what the board shows per stage", () => {
     }
     const done = boardContent({ ...classroom, group: { ...classroom.group!, done: true } }, session, now);
     expect(done.kind).toBe("holding");
-    expect(boardWord(done)).toBe("holding");
     // The report jump: the run long finished, everyone across the line, three medals.
     const held = boardContent(skipFixture("report", now).classroom, sessionAt("report"), now);
     if (held.kind !== "holding") throw new Error("expected the final standings");

@@ -11,7 +11,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  browser tab A · student iPad                        browser tab B · teacher laptop
  ┌──────────────────────────────────┐                ┌──────────────────────────────────┐
  │ /student?stage=  page.tsx (server)│               │ /teacher  page.tsx ▶ TeacherLive │
- │ /teacher/assignments/new         │                │   BoardIndicator "Board · …"     │
+ │ /teacher/assignments/new         │                │   (no board indicator, ticket 55)│
  │   NewAssignment ▶ PathwayMap     │
  │ /teacher/whole-class ▶ setup     │
  │ /teacher/board ▶ BoardControls   │   (pad · prev · mode · marks · End · next; no examples)
@@ -180,6 +180,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 52 | Group review: Liam's Q7 checks wrong first; a ten-second hold; the ring fits the button and goes once the hold ends | `/student` group | — | [curr_version/architecture/52-group-wrong-rework-and-hold.md](curr_version/architecture/52-group-wrong-rework-and-hold.md) |
 | 53 | Group review header: the progress bar stays put on "the group got it" | `/student` group whiteboard + debrief | — | [curr_version/architecture/53-group-header-shared.md](curr_version/architecture/53-group-header-shared.md) |
 | 54 | Whole-class review: the teacher writes on the smartboard, and switches the students' mode from it | `/board` slide, `/student` frozen, `/teacher/board` | — | [curr_version/architecture/54-board-pad-and-mode-toggle.md](curr_version/architecture/54-board-pad-and-mode-toggle.md) |
+| 55 | Class view: see skills / full breakdown / close, one hover target per student, no board chip | `/teacher` grid, `/teacher/board` heading | — | [curr_version/architecture/55-class-view-button-words-and-no-board-chip.md](curr_version/architecture/55-class-view-button-words-and-no-board-chip.md) |
 
 ## Conventions
 

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import TeacherChrome from "../TeacherChrome";
-import BoardIndicator from "../BoardIndicator";
 import M from "@/components/Math";
 import PadSection from "@/components/PadSection";
 import { Card, Eyebrow, H1 } from "@/components/ui";
@@ -11,20 +10,17 @@ import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
 import type { Stroke } from "@/data/types";
 import { currentSlide, FOLLOW_MODE_WORD, type FollowMode } from "@/lib/classroom";
 import { dispatchClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
-import { useBatchedSession } from "@/lib/store";
 
 /**
  * The teacher's side of whole-class review, on the laptop: the controls and the pad, nothing
- * projected. The examples are on the smartboard (`/board`); this page says which problem is up
- * and what the board is showing, takes the teacher's writing (mirrored to frozen students and
- * to the board, and the board's own writing shows here), and steps the session: previous ·
- * screens frozen / write with me · marks · End · next. Where the slide sits in the set is on the
- * board indicator above.
+ * projected. The examples are on the smartboard (`/board`); this page says which problem is up,
+ * takes the teacher's writing (mirrored to frozen students and to the board, and the board's own
+ * writing shows here), and steps the session: previous · screens frozen / write with me · marks ·
+ * End · next.
  */
 export default function BoardControls() {
   const router = useRouter();
   const classroom = useClassroom();
-  const { session } = useBatchedSession(3000);
   const { title } = useAssignment();
   const slide = currentSlide(classroom);
 
@@ -33,9 +29,8 @@ export default function BoardControls() {
       <Eyebrow>
         {ASSIGNMENT.className} · {title}
       </Eyebrow>
-      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-3">
+      <div className="mt-3">
         <H1>Board controls</H1>
-        <BoardIndicator session={session} className="mt-2" />
       </div>
     </>
   );

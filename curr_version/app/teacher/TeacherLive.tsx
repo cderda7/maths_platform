@@ -8,7 +8,6 @@ import ForceSubmit from "./ForceSubmit";
 import GroupProgressCard from "./GroupProgressCard";
 import GroupStart, { groupStartShown } from "./GroupStart";
 import WholeClassCard from "./WholeClassCard";
-import BoardIndicator from "./BoardIndicator";
 import { RowDrill, type ColumnBox, type RowMode } from "@/components/HierarchyDrill";
 import FitText from "@/components/FitText";
 import StatusKey from "@/components/StatusKey";
@@ -52,8 +51,9 @@ const HANDED_IN = ["overview", "confidence", "warmup-chat", "practice", "working
 /**
  * "Where the class is": one row per student, one column per category the assignment touches
  * (canonical order), each dot the worst status beneath it. Clicking a dot expands that row into
- * the category → group → leaf → work drill; hovering a row shows two buttons beside the name: the
- * row's skills (its groups) and the student's individual view. The
+ * the category → group → leaf → work drill; hovering a student's block (their row and any drill
+ * open under it) shows two buttons beside the name: the row's skills (its groups; "close" while
+ * the row is open) and the student's individual view. The
  * demo student's row is live (in batches); classmates come through the same evidence path from
  * their scripted attempts.
  */
@@ -97,9 +97,10 @@ export default function TeacherLive() {
     setOpen({ student, mode, category, leaf, columns: columnBoxes(student), nonce: ++nonce.current, expandAll });
   };
   /**
-   * The header's stacked buttons: "skills" (the groups) and "sub-skills" (a two-layer category has only "skills").
-   * Choosing a level opens that column for every student at that level; choosing the level that is
-   * already open closes it.
+   * The header's stacked buttons: "see skills" (the groups) and "full breakdown" (the leaves; a
+   * two-layer category has only "see skills"). Choosing a level opens that column for every
+   * student at that level. The open level's button reads "close" and closes the column; with the
+   * full breakdown open, "close" is the only button.
    */
   const setColumnLevel = (c: CategoryId, level: "groups" | "expanded") => {
     setOpen(null);
@@ -176,7 +177,6 @@ export default function TeacherLive() {
           {title} · due {ASSIGNMENT.due}
           <span data-assignment-status>{status}</span>
         </span>
-        <BoardIndicator session={live} />
       </p>
 
       <div className="mt-10 grid grid-cols-[1fr_320px] gap-6">
@@ -195,7 +195,9 @@ export default function TeacherLive() {
                 <th className="px-5 py-4 font-semibold">Student</th>
                 {columns.map((c) => {
                   const openHere = column?.category === c;
-                  const levels: { level: "groups" | "expanded"; word: string }[] = isFlat(c) ? [{ level: "groups", word: "skills" }] : [{ level: "groups", word: "skills" }, { level: "expanded", word: "sub-skills" }];
+                  const all: { level: "groups" | "expanded"; word: string }[] = isFlat(c) ? [{ level: "groups", word: "see skills" }] : [{ level: "groups", word: "see skills" }, { level: "expanded", word: "full breakdown" }];
+                  // The full breakdown open: one button, "close".
+                  const levels = openHere && column.level === "expanded" ? all.filter((l) => l.level === "expanded") : all;
                   return (
                     <th key={c} className={`group/head relative select-none px-1 py-4 text-center font-semibold leading-tight ${openHere ? "text-ink" : ""}`} data-column={c} data-column-open={openHere ? column.level : undefined}>
                       <span className="relative inline-block">
@@ -212,9 +214,9 @@ export default function TeacherLive() {
                                 data-expand={c}
                                 data-level={level}
                                 aria-pressed={active}
-                                aria-label={`${active ? "Close" : "Show"} ${word} under ${categoryName(c).short} for every student`}
+                                aria-label={active ? `Close ${categoryName(c).short} for every student` : `${word} under ${categoryName(c).short} for every student`}
                               >
-                                {active ? `close ${word}` : word}
+                                {active ? "close" : word}
                               </button>
                             );
                           })}
@@ -227,15 +229,14 @@ export default function TeacherLive() {
                 <th className="px-3 py-4 text-center font-semibold">Set</th>
               </tr>
             </thead>
-            <tbody>
-              {rows.map((r, i) => {
+            {rows.map((r, i) => {
                 const isOpen = open?.student === r.id;
                 const h = isOpen && open.keep ? restrictTo(results[i], open.keep) : results[i];
                 const showDrill = isOpen || !!column;
                 return (
                   <RowGroup key={r.id}>
                     <tr
-                      className={`group/row cursor-pointer border-b border-line ${r.live ? "bg-accent-soft/30" : ""} ${showDrill ? "border-b-0" : ""}`}
+                      className={`cursor-pointer border-b border-line ${r.live ? "bg-accent-soft/30" : ""} ${showDrill ? "border-b-0" : ""}`}
                       data-missing={r.missing || undefined}
                       data-live={r.live || undefined}
                       data-row={r.id}
@@ -271,8 +272,8 @@ export default function TeacherLive() {
                             </div>
                           </div>
                           <div className="invisible ml-auto flex shrink-0 flex-col gap-1 group-hover/row:visible group-focus-within/row:visible" data-row-actions={r.id}>
-                            <button type="button" onClick={() => (isOpen && open.mode === "groups" ? setOpen(null) : openRow(r.id, "groups"))} className={isOpen && open.mode === "groups" ? STACK_ACTIVE : STACK_IDLE} data-see-skills={r.id} aria-pressed={isOpen && open.mode === "groups"}>
-                              see dot skills
+                            <button type="button" onClick={() => (isOpen ? setOpen(null) : openRow(r.id, "groups"))} className={isOpen ? STACK_ACTIVE : STACK_IDLE} data-see-skills={r.id} aria-pressed={isOpen}>
+                              {isOpen ? "close" : "see dot skills"}
                             </button>
                             <Link href={`/teacher/report?student=${r.id}`} className={`${STACK_IDLE} text-center`} data-student-link={r.id}>
                               student report
@@ -343,7 +344,6 @@ export default function TeacherLive() {
                   </RowGroup>
                 );
               })}
-            </tbody>
           </table>
           <div className="flex items-center justify-end border-t border-line px-5 py-2.5 text-[12px] text-ink-muted">
             <span>
@@ -420,7 +420,10 @@ function Missing() {
   );
 }
 
-/** Two table rows that belong together (a student and their open drill). */
+/**
+ * A student's block: their row and, under it, any open drill. One `tbody` per student so a hover
+ * anywhere in the block (the drill row included) shows the buttons beside the name.
+ */
 function RowGroup({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return <tbody className="group/row">{children}</tbody>;
 }

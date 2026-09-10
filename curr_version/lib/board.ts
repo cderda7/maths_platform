@@ -77,10 +77,3 @@ export function boardContent(c: ClassroomState | null | undefined, session: Stud
   if (c?.group?.done || groupReviewOver(c, session)) return { kind: "holding", ...lesson, standings: leaderboardAt(c, session, now) };
   return { kind: "blank", ...lesson };
 }
-
-/** The teacher's indicator: "blank", "standings", "holding", or "Q3 · 2 of 3" (with " · marks" in the marked view). */
-export function boardWord(b: BoardContent): string {
-  if (b.kind === "group") return "standings";
-  if (b.kind !== "whole-class") return b.kind;
-  return `${b.problem.label} · ${b.index + 1} of ${b.total}${b.view === "marked" ? " · marks" : ""}`;
-}

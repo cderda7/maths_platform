@@ -552,5 +552,17 @@ appends it here (see `CLAUDE.md`).
   need not see. If teaching from the board sticks, a small strip of those four could join the
   header.
 - **Position text.** "1 of 2" was removed from the student screen, the board and the laptop's
-  problem card; it lives on only in the teacher's board indicator ("Q2 · 1 of 2"). A quiet dot
-  strip on the board (one dot per projected problem) would say where the class is without words.
+  problem card; it lived on in the teacher's board indicator ("Q2 · 1 of 2") until ticket 55
+  removed that too, so nothing now says where the class is in the set. A quiet dot strip on the
+  board (one dot per projected problem) would say it without words.
+
+## Class view words and the board chip (from ticket 55, 2026-09-10)
+
+- **What the board is showing, on the laptop.** The "Board · blank / holding / Q2 · 1 of 2 ·
+  marks" chip is gone from the class view and board controls at the user's request ("never have
+  this"). `boardContent` still knows; if a teacher ever needs to check the projector without
+  looking at it, a small line inside the whole-class card is the place, not a chip by the title.
+- **A "close all" for the grid.** Rows and columns each close from their own "close"; there is no
+  one control that shuts every open drill. Add one if teachers open several rows at once.
+- **Row buttons on a tablet.** Unchanged from ticket 46: the block-wide hover helps on a laptop
+  only; a tablet still has no way to reach "see dot skills" / "student report".
