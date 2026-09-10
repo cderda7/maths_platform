@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import katex from "katex";
 import { PRACTICES } from "@/data/practice";
 import type { PracticeProblem } from "@/data/types";
-import { findFragment, hintSegments, termTex } from "./hint";
+import { findFragment, hintSegments, hoistSpacing, termTex } from "./hint";
 
 const constant = { phrase: "constant", tex: ["12"] };
 const middle = { phrase: "middle coefficient", tex: ["7"] };
@@ -126,6 +126,30 @@ describe("termTex", () => {
       if (!abutting) expect(spacing(rest), p.id).toBe(spacing(p.tex));
       for (const lit of p.hintTerms) if (!lit.insert) expect(spacing(termTex(p.tex, p.hintTerms, lit)), `${p.id}: ${lit.phrase}`).toBe(spacing(rest));
     }
+  });
+});
+
+describe("hoistSpacing", () => {
+  const render = (t: string) => katex.renderToString(t, { trust: true, strict: false, displayMode: true });
+
+  it("moves the spacing KaTeX puts inside a hint-term span to outside it, leaving the rest of the markup as it was", () => {
+    const html = render("x^2 + 2x + \\htmlClass{hint-term hint-term-lit}{5} = 0");
+    expect(html).toContain('<span class="enclosing hint-term hint-term-lit"><span class="mord">5</span><span class="mspace" style="margin-right:0.2778em;"></span></span>');
+    const fixed = hoistSpacing(html);
+    expect(fixed).toContain('<span class="enclosing hint-term hint-term-lit"><span class="mord">5</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span>');
+    expect(fixed.replace(/<span class="mspace" style="[^"]*"><\/span>/g, "")).toBe(html.replace(/<span class="mspace" style="[^"]*"><\/span>/g, ""));
+    expect(fixed.match(/mspace/g)?.length).toBe(html.match(/mspace/g)?.length);
+  });
+
+  it("handles nested spans and a fragment with no spacing, and leaves markup without hint terms alone", () => {
+    const plain = render("x^2 + 7x + 12 = 0");
+    expect(hoistSpacing(plain)).toBe(plain);
+    const nested = render("3x^2 + \\htmlClass{hint-term}{\\htmlClass{hint-term hint-term-lit}{10}x} + 8");
+    const fixed = hoistSpacing(nested);
+    expect(fixed).not.toBe(nested);
+    expect(hoistSpacing(fixed)).toBe(fixed);
+    expect(fixed.match(/mspace/g)?.length).toBe(nested.match(/mspace/g)?.length);
+    expect(fixed).toContain('<span class="enclosing hint-term hint-term-lit"><span class="mord">10</span></span>');
   });
 });
 

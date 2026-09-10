@@ -79,6 +79,9 @@ body {
 /* A fragment of a problem linked from its hint (lib/hint.ts). Lit while its word is hovered. */
 .katex .hint-term {
   border-radius: 3px;
+  /* A little air on both sides, taken back with margin so the layout is unchanged: the fragment sits centred in its box. */
+  padding: 0 0.1em;
+  margin: 0 -0.1em;
   transition:
     color 120ms,
     background-color 120ms,

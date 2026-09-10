@@ -102,3 +102,54 @@ function wrap(tex: string, fragments: string[], lit: Set<string>): string {
   }
   return out + tex.slice(cursor);
 }
+
+const MSPACE = /^<span class="mspace" style="[^"]*"><\/span>/;
+
+/**
+ * KaTeX places the spacing between a `\\htmlClass` group and its neighbours inside the group, so a
+ * lit fragment's box would run into the space before "=" or after "+". Moves any leading or
+ * trailing `mspace` of every `hint-term` span outside it, so the box hugs the fragment and the
+ * layout is unchanged. Pure string surgery on KaTeX's own markup; anything else passes through.
+ */
+export function hoistSpacing(html: string): string {
+  const open = /<span class="enclosing hint-term[^"]*">/g;
+  let out = "";
+  let cursor = 0;
+  for (const m of html.matchAll(open)) {
+    if (m.index < cursor) continue;
+    const start = m.index + m[0].length;
+    const end = closeOf(html, start);
+    if (end < 0) break;
+    let inner = hoistSpacing(html.slice(start, end));
+    let before = "";
+    let after = "";
+    const lead = inner.match(MSPACE);
+    if (lead) {
+      before = lead[0];
+      inner = inner.slice(lead[0].length);
+    }
+    const tail = inner.match(/<span class="mspace" style="[^"]*"><\/span>$/);
+    if (tail) {
+      after = tail[0];
+      inner = inner.slice(0, -tail[0].length);
+    }
+    out += html.slice(cursor, m.index) + before + m[0] + inner + "</span>" + after;
+    cursor = end + "</span>".length;
+  }
+  return out + html.slice(cursor);
+}
+
+/** Index of the `</span>` that closes a span whose content starts at `from`, or -1. */
+function closeOf(html: string, from: number): number {
+  const tag = /<span\b[^>]*>|<\/span>/g;
+  tag.lastIndex = from;
+  let depth = 0;
+  for (const m of html.matchAll(tag)) {
+    if (m.index < from) continue;
+    if (m[0] === "</span>") {
+      if (depth === 0) return m.index;
+      depth--;
+    } else depth++;
+  }
+  return -1;
+}
