@@ -91,7 +91,7 @@ export default function TeacherGroups() {
                       onDragStart={(e) => onDragStart(e, id)}
                       onDragEnd={() => setDragging(null)}
                       data-student={id}
-                      className={`flex cursor-grab items-center gap-2.5 rounded-xl border border-line px-2.5 py-2 active:cursor-grabbing ${dragging === id ? "opacity-40" : ""}`}
+                      className={`flex items-center gap-2.5 rounded-xl border border-line px-2.5 py-2 ${dragging === id ? "opacity-40" : ""}`}
                       style={{ backgroundColor: GROUP_HEX[colour].soft }}
                     >
                       <Avatar initials={who.initials} size="h-7 w-7 text-[10px]" />
@@ -101,7 +101,7 @@ export default function TeacherGroups() {
                         value={colour}
                         onChange={(e) => move(id, e.target.value as GroupColour)}
                         data-move={id}
-                        className="w-5 cursor-pointer appearance-none bg-transparent text-center text-[12px] text-ink-muted hover:text-ink"
+                        className="w-5 appearance-none bg-transparent text-center text-[12px] text-ink-muted hover:text-ink"
                       >
                         {GROUP_COLOURS.map((c) => (
                           <option key={c} value={c}>

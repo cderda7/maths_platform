@@ -63,7 +63,7 @@ function Node({ label, bold, faded, onClick, stage }: { label: string; bold?: bo
       data-node={stage ?? "submit"}
       data-picked={bold ? "true" : undefined}
       data-faded={faded ? "true" : undefined}
-      className={`w-40 rounded-xl border px-4 py-2.5 text-left text-[14px] font-medium leading-snug transition-colors ${cls} ${faded ? "opacity-35" : ""} ${onClick ? "" : "cursor-default"}`}
+      className={`w-40 rounded-xl border px-4 py-2.5 text-left text-[14px] font-medium leading-snug transition-colors ${cls} ${faded ? "opacity-35" : ""}`}
     >
       {label}
     </button>

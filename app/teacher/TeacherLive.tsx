@@ -239,7 +239,7 @@ export default function TeacherLive() {
                 return (
                   <RowGroup key={r.id}>
                     <tr
-                      className={`cursor-pointer border-b border-line ${r.live ? "bg-accent-soft/30" : ""} ${showDrill ? "border-b-0" : ""}`}
+                      className={`border-b border-line ${r.live ? "bg-accent-soft/30" : ""} ${showDrill ? "border-b-0" : ""}`}
                       data-missing={r.missing || undefined}
                       data-live={r.live || undefined}
                       data-row={r.id}

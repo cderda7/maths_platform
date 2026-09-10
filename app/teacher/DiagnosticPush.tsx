@@ -35,7 +35,7 @@ export default function DiagnosticPush({ session }: { session: StudentSession | 
     <Card className="p-6" data-diagnostic-push>
       <div className="flex items-center justify-between">
         <Eyebrow className="inline-block rounded-md bg-accent px-2 py-1 text-white">Live diagnostic</Eyebrow>
-        <label className="flex cursor-pointer items-center gap-2 text-[12.5px] text-ink-soft">
+        <label className="flex items-center gap-2 text-[12.5px] text-ink-soft">
           <span>{recorded ? "recorded" : "not recorded"}</span>
           <button
             type="button"

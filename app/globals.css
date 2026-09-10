@@ -115,6 +115,19 @@ body {
   position: relative;
 }
 
+/*
+ * Teacher side (ticket 61): the arrow everywhere. Links, buttons, rows, drag handles and disabled
+ * controls never show the hand; only a field the teacher types into shows the I-beam. Unlayered, so
+ * it beats every Tailwind cursor-* utility and the browser's own pointer on <a href>.
+ */
+[data-teacher-root],
+[data-teacher-root] * {
+  cursor: default;
+}
+[data-teacher-root] :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="button"], [type="submit"]), textarea, [contenteditable="true"]) {
+  cursor: text;
+}
+
 /* "Recognising…" placeholder in the transcription column. */
 @keyframes shimmer {
   0% { background-position: -200px 0; }
