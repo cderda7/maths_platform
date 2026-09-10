@@ -103,6 +103,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │ app/page.tsx    entry: student iPad, teacher view, or both and the board in /split │
  │ app/split/      SplitView: the three routes in scaled iframes, one, two or all three │
  │                 (lib/split.ts: panes · parse/toggle · gridFor · frameFor)            │
+ │ scripts/laptop-check.mjs  every teacher route at two laptop widths, no x-overflow    │
  └────────────────────────────────────────────────────────────────────────────────────┘
 
  Dependency rule: app ──▶ components ──▶ data ──▶ types. Nothing points the other way.
@@ -148,8 +149,9 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 34 | Whole-class review: versions beside a pad, frozen or write-with-me | `/student` frozen, `/teacher/whole-class`, `/teacher/board` | `fb9fc69` | [curr_version/architecture/34-whole-class-follow-modes.md](curr_version/architecture/34-whole-class-follow-modes.md) |
 | 35 | Split view: student, teacher and board in one tab | `/split` (presenter page) | _this commit_ | [curr_version/architecture/35-split-view.md](curr_version/architecture/35-split-view.md) |
 | 36 | Class of twenty in five colour groups | `/teacher/groups` | `00d5979` | [curr_version/architecture/36-class-of-twenty-colour-groups.md](curr_version/architecture/36-class-of-twenty-colour-groups.md) |
+| 37 | Teacher on a laptop: full width, and a viewport guard over every teacher route | `/` teacher card, `/teacher/**` | `02372da` | [curr_version/architecture/37-teacher-on-a-laptop.md](curr_version/architecture/37-teacher-on-a-laptop.md) |
 | 39 | The whole class enters group review together | `/student` class-wait, `/teacher` Class card | `54f397f` | [curr_version/architecture/39-class-enters-group-review-together.md](curr_version/architecture/39-class-enters-group-review-together.md) |
-| 40 | Group review on one shared whiteboard | `/student` group | _this commit_ | [curr_version/architecture/40-group-review-shared-whiteboard.md](curr_version/architecture/40-group-review-shared-whiteboard.md) |
+| 40 | Group review on one shared whiteboard | `/student` group | `8d9cf9e` | [curr_version/architecture/40-group-review-shared-whiteboard.md](curr_version/architecture/40-group-review-shared-whiteboard.md) |
 
 ## Conventions
 

@@ -813,3 +813,37 @@ classroom state, as with the teacher's pad.
 
 **Defence.** One pure module for the rules, one reducer for the board, one script table for the
 demo, and the same evaluator judging the check as everywhere else.
+## 2026-09-10 · The laptop guard is a browser script against a running build, not a vitest test
+
+**Decision.** The teacher's surface is a laptop, frameless and full width (no stage like the
+student's iPad). What keeps it fitting is `scripts/laptop-check.mjs` (`npm run check:laptop`): a
+dependency-free CDP script that opens every teacher route at 1440 × 900 and 1280 × 800 in a
+headless Chrome, and fails if the document scrolls sideways or any visible element's box ends
+more than 1 px past the viewport. A box an `overflow: hidden` or `clip` ancestor cuts off is
+measured at the cut (KaTeX draws `\sqrt` as a 400 000-unit path inside a clipping svg, and a
+truncated line is `overflow-hidden whitespace-nowrap`); a scrollable ancestor is not a cut,
+since content past its edge is a scrollbar inside the page. It expects a production build already serving on a port; it
+refuses a CDP port something else answers on, and it ends its browser and deletes its profile
+whatever happens.
+
+**Context.** A reviewer met a horizontal scrollbar on the assignment-creation page at a normal
+laptop width. Nothing measured layout: vitest covers `lib/` only, and the teacher pages are grids
+with fixed side columns (`320px`, `380px`, `420px`, `440px`, `400px`) plus a `min-w-[980px]`
+table, any of which could tip over the edge with one more column.
+
+**Alternatives considered.** A vitest test with jsdom: no layout engine, so it cannot measure
+anything. Playwright: a real browser harness with a fixture and a config, but a new dependency
+for one measurement, when the demo's other browser checks already run over plain CDP. Starting
+Chrome and Next from the test itself: hides the build step and doubles the run's time on every
+`vitest run`; keeping the app's start explicit (`next build && next start -p 3121`) matches how
+the other browser checks are run and how the demo is presented. A CSS-only defence (`overflow-x:
+hidden` on the teacher root): would hide the symptom and clip content instead of failing.
+
+**Tradeoffs.** The check is a separate command with a running app as a precondition, so it
+does not fail on `npm test` alone; the README lists it beside the other verification steps and
+the ticket rule is to run it before calling a teacher screen done. It measures a fresh load of
+each route, not every state (an open drill, a pending diagnostic push, a half-built assignment).
+It is macOS-shaped by default (the Chrome path), overridable with `CHROME`.
+
+**Defence.** One file, no dependencies, the real layout engine at the two sizes the demo runs
+on, and a failure that names the element and how far past the edge it sits.

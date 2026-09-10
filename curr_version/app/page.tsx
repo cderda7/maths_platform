@@ -15,7 +15,7 @@ export default function Home() {
         <H1 className="mt-3 max-w-3xl">One student, one teacher, one live loop.</H1>
         <p className="mt-5 max-w-2xl text-[17px] leading-relaxed text-ink-soft">
           Open the student side in one tab and the teacher side in another. As {DEMO_STUDENT.name} works through{" "}
-          <em>{ASSIGNMENT.title}</em> on the iPad, the teacher's view moves with them.
+          <em>{ASSIGNMENT.title}</em> on the iPad, the teacher's laptop moves with them.
         </p>
 
         <div className="mt-12 grid gap-6 md:grid-cols-2">
@@ -31,10 +31,10 @@ export default function Home() {
           </Link>
           <Link href="/teacher" className="group">
             <Card className="p-7 h-full transition-shadow group-hover:shadow-lift">
-              <Eyebrow>Teacher</Eyebrow>
+              <Eyebrow>Teacher · Laptop</Eyebrow>
               <div className="mt-3 font-display text-[30px] leading-tight text-ink">{ASSIGNMENT.teacher}</div>
               <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
-                Where the class is: each subskill as it's leaned on, a caution flag when a student is about to loop back, and the final report.
+                Full width on a laptop, no frame. Where the class is: each subskill as it's leaned on, a caution flag when a student is about to loop back, and the final report.
               </p>
               <div className="mt-6 text-[14px] font-medium text-accent-deep group-hover:underline">Open the teacher view →</div>
             </Card>
