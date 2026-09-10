@@ -2,7 +2,7 @@
 
 import M from "@/components/Math";
 import { Button, Card, Eyebrow } from "@/components/ui";
-import HierarchyDrill from "@/components/HierarchyDrill";
+import SkillColumns from "@/components/SkillColumns";
 import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
 import { reportFacts } from "@/lib/report";
 import { isMastery } from "@/lib/peers";
@@ -13,8 +13,9 @@ import type { SessionAction, StudentSession } from "@/lib/session";
 const sentences = (t: string) => t.split(/[.!?]+/).map((x) => x.trim()).filter(Boolean).length;
 
 /**
- * The final report: the same subskill colours the teacher sees, the starred problems, the
- * practices taken, and a short reflection sent to the teacher. No scores anywhere.
+ * The final report: the skills laid out as the teacher's class-view row (a column per category,
+ * every group shown at once), the starred problems, the practices taken, and a short reflection
+ * sent to the teacher. No scores anywhere.
  */
 export default function ReportScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
   const { problems, unit } = useAssignment();
@@ -36,8 +37,9 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
           </Button>
         </div>
 
-        <Card className="mt-5 p-5" data-hierarchy>
-          <HierarchyDrill result={hierarchy} lines={sessionEvidence(session).lines} problems={problems} unit={unit} student />
+        {/* No overflow-hidden here: as a flex child it would let the card shrink and clip an opened skill's work. */}
+        <Card className="mt-5 shrink-0" data-hierarchy>
+          <SkillColumns result={hierarchy} lines={sessionEvidence(session).lines} problems={problems} unit={unit} />
         </Card>
 
         {mastery && (

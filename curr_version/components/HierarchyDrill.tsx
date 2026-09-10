@@ -4,7 +4,7 @@ import { forwardRef, useLayoutEffect, useMemo, useRef, useState } from "react";
 import M from "@/components/Math";
 import { Eyebrow } from "@/components/ui";
 import { DifficultyTag, StatusDot, STATUS_TEXT, STATUS_WORD } from "@/components/Tag";
-import { categoryLabel, categoryOf, groupName, groupOf, groupsOf, isFlat, leafName, leavesOf, type CategoryId, type GroupId, type LeafId } from "@/data/taxonomy";
+import { categoryLabel, categoryOf, groupName, groupOf, groupsOf, isFlat, leafName, leavesOf, studentLeafName, type CategoryId, type GroupId, type LeafId } from "@/data/taxonomy";
 import type { Problem, Status } from "@/data/types";
 import { evaluateLine } from "@/lib/evaluate";
 import { lineMarks } from "@/lib/examples";
@@ -96,14 +96,17 @@ interface TreeProps {
   /** The column the tree must stay inside; the text fits itself to it. */
   width?: number;
   marginLeft?: number;
+  /** The student's own report: skills by their student-facing names. */
+  student?: boolean;
 }
 
-export const SkillTree = forwardRef<HTMLUListElement, TreeProps>(function SkillTree({ category, result, openGroups, leaf, onGroup, onLeaf, width, marginLeft }, ref) {
+export const SkillTree = forwardRef<HTMLUListElement, TreeProps>(function SkillTree({ category, result, openGroups, leaf, onGroup, onLeaf, width, marginLeft, student = false }, ref) {
   const groups = worst(groupsOf(category).filter((g) => result.groups[g] !== undefined), (g) => result.groups[g]!);
   const leavesIn = (g: GroupId) => worst(leavesOf(g).filter((l) => result.leaves[l] !== undefined), (l) => result.leaves[l]!);
+  const name = (l: LeafId) => (student ? studentLeafName(l) : leafName(l)).name;
   const flat = isFlat(category);
   const flatLeaves = flat ? worst(groups.flatMap(leavesIn), (l) => result.leaves[l]!) : [];
-  const labels = flat ? flatLeaves.map((l) => ({ text: leafName(l).name, depth: 0 })) : groups.flatMap((g) => [{ text: groupName(g).name, depth: 0 }, ...(openGroups.includes(g) ? leavesIn(g).map((l) => ({ text: leafName(l).name, depth: 1 })) : [])]);
+  const labels = flat ? flatLeaves.map((l) => ({ text: name(l), depth: 0 })) : groups.flatMap((g) => [{ text: groupName(g).name, depth: 0 }, ...(openGroups.includes(g) ? leavesIn(g).map((l) => ({ text: name(l), depth: 1 })) : [])]);
   const fit = fitLabels(labels, width);
   const centre = (FULL.dot - fit.dot) / 2; // a smaller dot still sits centred on the category dot's line
   const style = { width, marginLeft: marginLeft === undefined ? undefined : marginLeft + centre, paddingLeft: marginLeft === undefined ? centre : undefined };
@@ -112,7 +115,7 @@ export const SkillTree = forwardRef<HTMLUListElement, TreeProps>(function SkillT
       <ul ref={ref} className="space-y-0.5 self-start" style={style} data-col="tree" data-category={category} data-fit={fit.size} data-flat>
         {flatLeaves.map((l) => (
           <li key={l}>
-            <Node label={leafName(l).name} status={result.leaves[l]!} half={result.half.leaves.includes(l)} open={l === leaf} fit={fit} onClick={() => onLeaf(l)} node={l} />
+            <Node label={name(l)} status={result.leaves[l]!} half={result.half.leaves.includes(l)} open={l === leaf} fit={fit} onClick={() => onLeaf(l)} node={l} />
           </li>
         ))}
       </ul>
@@ -127,7 +130,7 @@ export const SkillTree = forwardRef<HTMLUListElement, TreeProps>(function SkillT
             <ul className="mt-0.5 space-y-0.5" style={{ paddingLeft: fit.indent }} data-col="leaves">
               {leavesIn(g).map((l) => (
                 <li key={l}>
-                  <Node label={leafName(l).name} status={result.leaves[l]!} half={result.half.leaves.includes(l)} open={l === leaf} fit={fit} onClick={() => onLeaf(l)} node={l} />
+                  <Node label={name(l)} status={result.leaves[l]!} half={result.half.leaves.includes(l)} open={l === leaf} fit={fit} onClick={() => onLeaf(l)} node={l} />
                 </li>
               ))}
             </ul>
@@ -146,7 +149,7 @@ export function WorkPanel({ leaf, lines, problems, status, wide, onGoTo, student
   return (
     <div className={wide ? "w-full" : "min-w-0 flex-1"} data-col="work" data-leaf={leaf}>
       <div className="flex items-center gap-3">
-        <Eyebrow>{leafName(leaf).name}</Eyebrow>
+        <Eyebrow>{(student ? studentLeafName(leaf) : leafName(leaf)).name}</Eyebrow>
         <span className={`text-[11.5px] ${STATUS_TEXT[status]}`}>{STATUS_WORD[status]}</span>
       </div>
       <div className={`mt-2 grid gap-3 ${wide ? "grid-cols-3" : "grid-cols-2"}`}>
@@ -178,7 +181,7 @@ export function WorkPanel({ leaf, lines, problems, status, wide, onGoTo, student
                         key={i}
                         data-mark={mark ?? undefined}
                         data-tagged={tagged || undefined}
-                        className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-1.5 text-[14.5px] text-ink ${tagged ? "border-l-[3px] border-l-ink" : ""} ${
+                        className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border px-3 py-1.5 text-[14.5px] text-ink ${tagged ? "border-l-[3px] border-l-ink" : ""} ${
                           mark === "wrong" ? "border-wrong-line bg-wrong-soft" : mark === "standout" ? "border-standout-line bg-standout-soft" : "border-line bg-cream/40"
                         }`}
                       >
@@ -236,6 +239,7 @@ export function RowDrill({
   initialLeaf = null,
   expandAll = false,
   onNavigate,
+  student = false,
 }: {
   mode: RowMode;
   result: HierarchyResult;
@@ -247,6 +251,8 @@ export function RowDrill({
   /** Category mode: open every group of the category (a double-click on the dot, or a column view at skill level). */
   expandAll?: boolean;
   onNavigate?: (leaf: LeafId) => void;
+  /** The student's own report: student-facing skill names, no difficulty tags. */
+  student?: boolean;
 }) {
   const allGroups = useMemo(() => result.columns.flatMap((c) => groupsOf(c).filter((g) => result.groups[g] !== undefined)), [result]);
   const [openGroups, setOpenGroups] = useState<GroupId[]>(() =>
@@ -287,8 +293,8 @@ export function RowDrill({
     const box = columns.find((c) => c.category === category);
     return (
       <div ref={rootRef} className={`flex min-h-0 gap-8 ${below ? "flex-col" : "items-start"}`} data-drill data-mode={mode} data-panel={below ? "below" : "beside"}>
-        <SkillTree ref={treeRef} category={category} result={result} openGroups={openGroups} leaf={leaf} onGroup={toggleGroup} onLeaf={pickLeaf} marginLeft={Math.max(0, box?.left ?? 0)} />
-        {leaf && <WorkPanel leaf={leaf} lines={lines} problems={problems} status={result.leaves[leaf]!} wide={below} onGoTo={goTo} />}
+        <SkillTree ref={treeRef} category={category} result={result} openGroups={openGroups} leaf={leaf} onGroup={toggleGroup} onLeaf={pickLeaf} marginLeft={Math.max(0, box?.left ?? 0)} student={student} />
+        {leaf && <WorkPanel leaf={leaf} lines={lines} problems={problems} status={result.leaves[leaf]!} wide={below} onGoTo={goTo} student={student} />}
       </div>
     );
   }
@@ -299,10 +305,10 @@ export function RowDrill({
       <div className="grid items-start" style={{ gridTemplateColumns: `${Math.max(0, first)}px ${columns.map((c, i) => `${i < columns.length - 1 ? columns[i + 1].left - c.left : c.width}px`).join(" ")}` }} data-trees>
         <div />
         {columns.map((c) => (
-          <SkillTree key={c.category} category={c.category} result={result} openGroups={openGroups} leaf={leaf} onGroup={toggleGroup} onLeaf={pickLeaf} width={c.width} />
+          <SkillTree key={c.category} category={c.category} result={result} openGroups={openGroups} leaf={leaf} onGroup={toggleGroup} onLeaf={pickLeaf} width={c.width} student={student} />
         ))}
       </div>
-      {leaf && <WorkPanel leaf={leaf} lines={lines} problems={problems} status={result.leaves[leaf]!} wide onGoTo={goTo} />}
+      {leaf && <WorkPanel leaf={leaf} lines={lines} problems={problems} status={result.leaves[leaf]!} wide onGoTo={goTo} student={student} />}
     </div>
   );
 }

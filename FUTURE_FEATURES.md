@@ -566,3 +566,20 @@ appends it here (see `CLAUDE.md`).
   one control that shuts every open drill. Add one if teachers open several rows at once.
 - **Row buttons on a tablet.** Unchanged from ticket 46: the block-wide hover helps on a laptop
   only; a tablet still has no way to reach "see dot skills" / "student report".
+
+## Student report as the teacher's row (from ticket 57, 2026-09-10)
+
+- **Every skill visible at once.** The card shows each category's groups open, as the teacher's
+  "see skills" level does; the skills beneath a group still open on a click, as on the teacher's
+  grid. If the user wants the "full breakdown" level (every skill under every group, no clicks),
+  `SkillColumns` can pass `mode="expanded"` to `RowDrill`; the columns are ~96 px on the iPad
+  card, so the names would drop to the 9 px fit and wrap.
+- **The collapsed outline is gone from the student side.** `HierarchyDrill`'s browse outline
+  now serves only the teacher's individual view; if the student's card ever needs a compact form
+  (a phone), that outline is the candidate.
+- **"monic factorising" in "What happened".** The practice line under the columns still names
+  the skill as the teacher does; `reportFacts` is shared with the teacher's report, so a student
+  flag there would let the student read "factorising".
+- **The "New skills" chip.** The student's header uses the teacher's category short names, so
+  the Unit Focus column reads NEW SKILLS with "UNIT 1" beside its dot, as on the grid; a
+  student-facing chip word could differ.
