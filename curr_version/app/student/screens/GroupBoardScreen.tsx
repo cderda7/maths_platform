@@ -59,10 +59,6 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
     <div className="flex h-full min-h-0 flex-col px-8 py-5" data-group-board data-problem={pid} data-holder={holder} data-resolved={resolved || undefined}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <span className="flex items-center gap-2 rounded-full border px-3 py-1 text-[12.5px] font-medium text-ink" style={{ borderColor: GROUP_HEX[colour].fill, backgroundColor: GROUP_HEX[colour].soft }}>
-            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: GROUP_HEX[colour].fill }} aria-hidden />
-            {colour}
-          </span>
           <span className="font-display text-[26px] text-ink">{problem.label}</span>
           <span className="math-lg text-ink">
             <M tex={problem.tex} />
@@ -78,7 +74,12 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
       </div>
       <ul className="mt-2 flex gap-1.5" aria-label="Group">
         {run.members.map((id) => (
-          <li key={id} className={`flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[12px] ${id === holder ? "border-ink bg-ink text-white" : "border-line bg-paper text-ink-soft"}`}>
+          <li
+            key={id}
+            className={`flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[12px] ${id === holder ? "border-ink bg-ink text-white" : "text-ink"}`}
+            style={id === holder ? undefined : { borderColor: GROUP_HEX[colour].fill, backgroundColor: GROUP_HEX[colour].soft }}
+            data-group-colour={colour}
+          >
             <Avatar initials={id === DEMO_STUDENT.id ? DEMO_STUDENT.initials : CLASSMATE_MAP[id].initials} size="h-4 w-4 text-[8px]" />
             {first(id)}
           </li>
