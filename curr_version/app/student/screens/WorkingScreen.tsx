@@ -7,8 +7,6 @@ import PadSection from "@/components/PadSection";
 import ReadAs from "@/components/ReadAs";
 import { Button, Eyebrow } from "@/components/ui";
 import Figure from "@/components/Figure";
-import { DifficultyTag, LeafChip } from "@/components/Tag";
-import { problemLeaves } from "@/lib/hierarchy";
 import { RECOGNITION } from "@/data/recognition";
 import { useAssignment } from "@/lib/classroom-store";
 import { nextLine } from "@/lib/recognition";
@@ -50,10 +48,7 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
   return (
     <div className="grid h-full min-h-0 grid-cols-[300px_1fr_320px]">
       <aside className="flex min-h-0 flex-col overflow-y-auto border-r border-line px-7 py-6">
-        <div className="flex items-center justify-between">
-          <span className="font-display text-[26px] text-ink">{p.label}</span>
-          <DifficultyTag d={p.difficulty} />
-        </div>
+        <span className="font-display text-[26px] text-ink">{p.label}</span>
         <p className="mt-3 text-[14px] text-ink-soft">{p.stem}</p>
         <div className="math-lg mt-3 text-ink">
           <M tex={p.tex} display />
@@ -63,11 +58,6 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
             <Figure id={p.figure} />
           </div>
         )}
-        <div className="mt-4 flex flex-wrap justify-center gap-1.5">
-          {problemLeaves(p).map((id) => (
-            <LeafChip student key={id} id={id} />
-          ))}
-        </div>
         <div className="mt-auto pt-6">
           <Button variant="secondary" className="mb-6 w-full" onClick={() => setHelpOpen(true)}>
             I need help

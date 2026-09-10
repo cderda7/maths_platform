@@ -204,9 +204,10 @@ appends it here (see `CLAUDE.md`).
   own so the chooser can serve a Unit 3 focus.
 - **Selection also from the skills list.** Chips in the skills panel are display only; tapping a
   chip could add it to the focus directly, as a third input beside problems and words.
-- **Difficulty tags elsewhere.** Removed from the overview and the chooser at the user's request;
-  still shown on the working screen, the reports and the teacher views. Decide whether the
-  student should ever see them.
+- **Difficulty tags elsewhere.** Removed from the overview, the chooser, the working screen and
+  the rework screen at the user's request (2026-09-10), along with the skill chips on the working
+  screen (skills now surface only through "I need help"). Still shown on the reports and the
+  teacher views. Decide whether the student should ever see them.
 - **Quadratic equations as a warm-up.** Excluded from the warm-up focus (`NOT_WARMED`): it is the
   whole of this set, and isolating it made the warm-up as hard as the set (2026-09-10). Other sets
   will have their own "whole-set" leaf; make the exclusion per assignment.

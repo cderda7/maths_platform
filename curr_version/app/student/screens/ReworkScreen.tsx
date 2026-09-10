@@ -6,7 +6,6 @@ import type { Stroke } from "@/data/types";
 import PadSection from "@/components/PadSection";
 import ReadAs from "@/components/ReadAs";
 import { Button, Card, Eyebrow } from "@/components/ui";
-import { DifficultyTag } from "@/components/Tag";
 import { RECOGNITION_REWORK } from "@/data/recognition";
 import { useAssignment } from "@/lib/classroom-store";
 import { GUARD_TEXT, guardFor, trippedProblems } from "@/lib/guard";
@@ -52,10 +51,7 @@ export default function ReworkScreen({ session, dispatch }: { session: StudentSe
   return (
     <div className="grid h-full min-h-0 grid-cols-[320px_1fr_300px]">
       <aside className="flex min-h-0 flex-col overflow-y-auto border-r border-line px-7 py-6">
-        <div className="flex items-center justify-between">
-          <span className="font-display text-[26px] text-ink">{p.label}</span>
-          <DifficultyTag d={p.difficulty} />
-        </div>
+        <span className="font-display text-[26px] text-ink">{p.label}</span>
         <div className="math-lg mt-2 text-ink">
           <M tex={p.tex} display />
         </div>
