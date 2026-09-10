@@ -890,3 +890,26 @@ student; the projector's route has zero interactive elements by construction, so
 be pressed on it by accident; and the controls, the pad and the mirror to frozen students are
 unchanged in behaviour, only moved. The same rule feeds the indicator on both teacher pages, so
 the teacher never has to look at the wall to know what is on it.
+
+## 2026-09-10 · The debrief is per student, the group's clock is the next pen-holder's
+
+**Decision.** After a correct check each student debriefs alone: a note against a prompt chosen
+from their own history, then the marks for at least twenty seconds. The note is session state
+and reaches only the teacher's report. The group moves on when the next pen-holder writes (a
+peer's scripted first stroke, or Sam's Next), not when every member has finished; a student who
+lingers keeps their debrief and rejoins the live board on Next.
+
+**Context.** The shared board loses the individual moment; the debrief restores it without
+reintroducing a group-wide wait. The user asked that the marks stay in view for a forced
+minimum and the note stay editable throughout.
+
+**Alternatives considered.** Waiting for all four debriefs before the next problem (a wait at
+every step, which the shared board was chosen to remove). Showing notes to the group (a
+reflection becomes a performance). Marking only to the first mistake here (the detective phase is
+over once the group has the correct working).
+
+**Tradeoffs.** A lingering student can fall a problem behind the board; the next problem's board
+is live when they rejoin. The hold is a fixed twenty seconds, not adaptive.
+
+**Defence.** Two pure rules (the prompt and the pending debrief), three session actions with
+their order enforced, and the group's own clock untouched.

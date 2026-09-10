@@ -13,8 +13,10 @@ import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { attemptsOn, cutAtFirstMistake, currentProblem, earlierVersions, lastAttempt, ownAttemptScript, penHolder, resolvedCurrent, type CutView } from "@/lib/groupReview";
 import { nextLine, type RevealedLine } from "@/lib/recognition";
 import { groupOfStudent, seatingOf } from "@/lib/seating";
-import type { StudentSession } from "@/lib/session";
+import type { SessionAction, StudentSession } from "@/lib/session";
 import { Scrim } from "./PracticePrompt";
+import GroupDebrief from "./GroupDebrief";
+import { pendingDebrief } from "@/lib/debrief";
 
 const first = (id: string) => (id === DEMO_STUDENT.id ? "You" : CLASSMATE_MAP[id]?.name.split(" ")[0] ?? id);
 
@@ -25,12 +27,15 @@ const first = (id: string) => (id === DEMO_STUDENT.id ? "You" : CLASSMATE_MAP[id
  * press "we're stuck" to see everyone's earlier work cut the same way. A correct check opens
  * "next" (the debrief of ticket 41 will sit here).
  */
-export default function GroupBoardScreen({ session }: { session: StudentSession }) {
+export default function GroupBoardScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
   const classroom = useClassroom();
   const run = classroom.group ?? null;
   const [stuckOpen, setStuckOpen] = useState(false);
   const [recognising, setRecognising] = useState(false);
   if (!run) return <p className="mt-16 text-center text-[15px] text-ink-muted">Setting up the whiteboard…</p>;
+  // A resolved problem the student has not yet moved on from: their debrief, whether or not the group has moved on.
+  const debriefing = pendingDebrief(run, session.debrief);
+  if (debriefing) return <GroupDebrief session={session} dispatch={dispatch} run={run} problem={debriefing} />;
   const pid = currentProblem(run)!;
   const problem = PROBLEM_MAP[pid];
   const holder = penHolder(run)!;
@@ -85,14 +90,6 @@ export default function GroupBoardScreen({ session }: { session: StudentSession 
             <span className="text-[12px] text-ink-muted">up to the first mistake</span>
           </div>
           <Lines view={wrongShown} />
-        </div>
-      )}
-      {resolved && (
-        <div className="mt-3 flex items-center justify-between rounded-2xl border border-secure-line bg-secure-soft px-4 py-3" data-correct>
-          <span className="text-[14px] font-medium text-ink">Correct</span>
-          <Button variant="accent" onClick={() => dispatchClassroom({ type: "group/next", at: Date.now() })} data-next>
-            {run.index >= run.problems.length - 1 ? "Finish" : "next"}
-          </Button>
         </div>
       )}
 

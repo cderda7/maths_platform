@@ -11,6 +11,7 @@ import FeedbackScreen from "./screens/FeedbackScreen";
 import GroupBoardScreen from "./screens/GroupBoardScreen";
 import { groupPlan } from "@/lib/group";
 import { penHolder, turnScript } from "@/lib/groupReview";
+import { PEER_DEBRIEF_MS } from "@/lib/debrief";
 import ReportScreen from "./screens/ReportScreen";
 import { useEffect } from "react";
 import { dispatch, useStudentSession } from "@/lib/store";
@@ -89,6 +90,13 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
       dispatch({ type: "group/done" });
       return;
     }
+    if (board.resolvedAt !== null) {
+      // Resolved: the next pen-holder's first stroke moves the group on. A peer's comes after their own debrief; Sam's is his Next.
+      const nextHolder = board.pen[board.problems[board.index + 1] ?? ""];
+      const last = board.index >= board.problems.length - 1;
+      if ((last || nextHolder !== DEMO_STUDENT.id) && now >= board.resolvedAt + PEER_DEBRIEF_MS) dispatchClassroom({ type: "group/next", at: now });
+      return;
+    }
     const holder = penHolder(board);
     if (!holder || holder === DEMO_STUDENT.id) return;
     const events = turnScript(board.problems[board.index]);
@@ -121,7 +129,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
         {session.stage === "waiting" && <WaitingScreen />}
         {session.stage === "class-wait" && <ClassWaitScreen />}
         {session.stage === "frozen" && <FrozenScreen session={session} dispatch={dispatch} />}
-        {session.stage === "group" && <GroupBoardScreen session={session} />}
+        {session.stage === "group" && <GroupBoardScreen session={session} dispatch={dispatch} />}
         {session.stage === "report" && <ReportScreen session={session} dispatch={dispatch} />}
         {session.stage === "peers" && <PeerScreen onBack={() => dispatch({ type: "peers/close" })} />}
         {session.stage === "history" && <HistoryScreen session={session} onBack={() => dispatch({ type: "history/close" })} />}

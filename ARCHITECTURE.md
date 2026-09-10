@@ -29,7 +29,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │                                  └▶ PromptModal · HelpPicker (this problem's moves) · PracticeOverlay = PracticePad (shared with the warm-up)
  │               ▶ Feedback = individual review (detective sentence · star · what you submitted · pad · guard · hand in) · Waiting│
  │               ▶ Frozen (versions beside a pad: teacher-ink mirror or write-with-me; marks follow the board)│
- │               ▶ ClassWait (gate: n of 20 · teacher start) ▶ GroupBoard (one shared whiteboard · the pen by shuffle · check · we're stuck)│
+ │               ▶ ClassWait (gate: n of 20 · teacher start) ▶ GroupBoard (one shared whiteboard · the pen by shuffle · check · we're stuck) ▶ GroupDebrief (three versions · a note · marks · 20 s hold)│
  │               ▶ Report (teacher's colours + reflection → sent)   │
  │               ▶ Peers (mastery only: class struggles, counts)    │
  │               ▶ History (final only; compare scroll-synced)      │
@@ -162,6 +162,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 38 | The smartboard surface: display only, the laptop keeps the controls | `/board`, `/teacher/board` (controls), `/teacher` indicator, `/` card | `d76c226` | [curr_version/architecture/38-smartboard-surface.md](curr_version/architecture/38-smartboard-surface.md) |
 | 39 | The whole class enters group review together | `/student` class-wait, `/teacher` Class card | `54f397f` | [curr_version/architecture/39-class-enters-group-review-together.md](curr_version/architecture/39-class-enters-group-review-together.md) |
 | 40 | Group review on one shared whiteboard | `/student` group | `8d9cf9e` | [curr_version/architecture/40-group-review-shared-whiteboard.md](curr_version/architecture/40-group-review-shared-whiteboard.md) |
+| 41 | The debrief after a correct check | `/student` group, `/teacher/report` | _this commit_ | [curr_version/architecture/41-debrief-after-a-correct-check.md](curr_version/architecture/41-debrief-after-a-correct-check.md) |
 
 ## Conventions
 

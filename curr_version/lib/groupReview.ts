@@ -34,6 +34,8 @@ export interface GroupRun {
   /** Problems whose rework has checked correct, in order. */
   resolved: string[];
   turnStartedAt: number;
+  /** When the current problem's rework checked correct; the next pen-holder's first stroke (or a peer's scripted one) moves the group on. */
+  resolvedAt: number | null;
   /** How many scripted events of a peer's turn have been applied (idempotent replay). */
   scriptDone: number;
   done: boolean;
@@ -70,7 +72,7 @@ export function penOrder(problems: string[], members: string[], seed: number): R
 export const DEMO_SEED = 1368;
 
 export function beginRun(members: string[], problems: string[], at: number, seed = DEMO_SEED): GroupRun {
-  return { members, problems, pen: penOrder(problems, members, seed), index: 0, strokes: [], lines: [], attempts: {}, stuck: [], resolved: [], turnStartedAt: at, scriptDone: 0, done: false };
+  return { members, problems, pen: penOrder(problems, members, seed), index: 0, strokes: [], lines: [], attempts: {}, stuck: [], resolved: [], turnStartedAt: at, resolvedAt: null, scriptDone: 0, done: false };
 }
 
 export const currentProblem = (run: GroupRun): string | undefined => run.problems[run.index];

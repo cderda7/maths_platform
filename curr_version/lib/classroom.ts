@@ -78,7 +78,7 @@ export type ClassroomAction =
   | { type: "group/clear" }
   /** A line read from the board (kept hidden until the check). */
   | { type: "group/line"; tex: string }
-  | { type: "group/check" }
+  | { type: "group/check"; at?: number }
   | { type: "group/stuck" }
   /** After a correct check: the next problem, or done after the last. */
   | { type: "group/next"; at: number }
@@ -136,7 +136,7 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
       const g = c.group;
       if (!g || a.index !== g.scriptDone) return c;
       const e = a.event;
-      const applied = e.kind === "stroke" ? groupReducer(g, { type: "group/stroke", stroke: e.stroke }) : e.kind === "line" ? groupReducer(g, { type: "group/line", tex: e.tex }) : e.kind === "check" ? groupReducer(g, { type: "group/check" }) : groupReducer(g, { type: "group/stuck" });
+      const applied = e.kind === "stroke" ? groupReducer(g, { type: "group/stroke", stroke: e.stroke }) : e.kind === "line" ? groupReducer(g, { type: "group/line", tex: e.tex }) : e.kind === "check" ? groupReducer(g, { type: "group/check", at: g.turnStartedAt + e.at }) : groupReducer(g, { type: "group/stuck" });
       return { ...c, group: { ...applied, scriptDone: g.scriptDone + 1 } };
     }
     case "wc/setup": {
@@ -206,14 +206,14 @@ function groupReducer(g: GroupRun, a: GroupAction): GroupRun {
       const attempt = { lines: g.lines, correct };
       const attempts = { ...g.attempts, [problem]: [...(g.attempts[problem] ?? []), attempt] };
       // A wrong check keeps the board so the line can be fixed; the next attempt's lines start again.
-      return { ...g, attempts, lines: correct ? g.lines : [], resolved: correct ? [...g.resolved, problem] : g.resolved };
+      return { ...g, attempts, lines: correct ? g.lines : [], resolved: correct ? [...g.resolved, problem] : g.resolved, resolvedAt: correct ? (a.at ?? g.resolvedAt ?? 0) : g.resolvedAt };
     }
     case "group/stuck":
       return g.stuck.includes(problem) ? g : { ...g, stuck: [...g.stuck, problem] };
     case "group/next": {
       if (!resolved) return g;
       const last = g.index >= g.problems.length - 1;
-      return last ? { ...g, done: true } : { ...g, index: g.index + 1, strokes: [], lines: [], turnStartedAt: a.at, scriptDone: 0 };
+      return last ? { ...g, done: true } : { ...g, index: g.index + 1, strokes: [], lines: [], turnStartedAt: a.at, resolvedAt: null, scriptDone: 0 };
     }
     default:
       return g;

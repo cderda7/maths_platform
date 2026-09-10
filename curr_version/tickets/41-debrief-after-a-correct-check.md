@@ -4,7 +4,7 @@
 
 **Blocked by:** 40.
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -20,9 +20,9 @@ A per-student debrief state for the current problem: which prompt, the text, whe
 
 ## Acceptance
 
-- [ ] Three-version comparison, unmarked, with the prompt chosen by the student's own history
-- [ ] Annotated view: full marks on the student's versions, blue standouts on the group's rework
-- [ ] 20-second hold with the ring; Next disabled until it passes; reflection editable before and after
-- [ ] Next problem opens on the new pen-holder's first stroke; lingerers join on Next
-- [ ] Reflections stored per student and shown in the teacher's report only
-- [ ] Unit tests for the prompt rule and the hold; browser check; architecture note and root docs
+- [x] Three-version comparison, unmarked, with the prompt chosen by the student's own history
+- [x] Annotated view: full marks on the student's versions, blue standouts on the group's rework
+- [x] 20-second hold with the ring; Next disabled until it passes; reflection editable before and after
+- [x] Next problem opens on the new pen-holder's first stroke; lingerers join on Next
+- [x] Reflections stored per student and shown in the teacher's report only
+- [x] Unit tests for the prompt rule and the hold; browser check; architecture note and root docs

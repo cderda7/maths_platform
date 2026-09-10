@@ -353,3 +353,8 @@ appends it here (see `CLAUDE.md`).
   join code for late devices, or the day's plan, are candidates for that empty wall.
 - **Board typography for the back of the room.** Sized for a 1440 × 810 projector image; not yet
   checked on a 4K wall or a small classroom TV. A `?scale=` or a font-size step is the likely fix.
+- **Catching up after lingering.** A student who stays in a debrief past the group's move rejoins
+  a board already in progress and may miss a wrong check or a "we're stuck" on the next problem.
+  Decide whether the board should replay what they missed.
+- **The hold length.** Twenty seconds is fixed (ticket 41). Make it a teacher setting, or scale it
+  with how many lines are marked.

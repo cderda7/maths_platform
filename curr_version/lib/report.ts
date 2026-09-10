@@ -3,6 +3,7 @@ import { leafName, type GroupId } from "@/data/taxonomy";
 import type { Confidence } from "@/data/types";
 import { feedbackFor } from "./feedback";
 import type { StudentSession } from "./session";
+import type { DebriefPrompt } from "./debrief";
 
 /**
  * The facts on the final report, shared by the student's and the teacher's views so the two
@@ -16,6 +17,8 @@ export interface ReportFacts {
   caution: GroupId[];
   confidence: string;
   stars: string[];
+  /** The group-review debrief, per problem: which prompt the student answered and what they wrote. */
+  groupNotes: { label: string; prompt: DebriefPrompt; text: string }[];
 }
 
 export function confidenceSentence(c: Confidence | null): string {
@@ -38,5 +41,8 @@ export function reportFacts(session: StudentSession): ReportFacts {
     caution: session.escalation.caution,
     confidence: confidenceSentence(session.confidence),
     stars: session.stars.map((id) => PROBLEM_MAP[id].label),
+    groupNotes: Object.entries(session.debrief)
+      .filter(([, n]) => n.text.trim() !== "")
+      .map(([id, n]) => ({ label: PROBLEM_MAP[id]?.label ?? id, prompt: n.prompt, text: n.text.trim() })),
   };
 }
