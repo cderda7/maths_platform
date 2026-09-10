@@ -122,7 +122,7 @@ export default function TeacherMistakes() {
                   {groups.map((g) => (
                     <div
                       key={g.slips.join("|")}
-                      className={`row-start-2 flex min-w-0 items-start gap-1.5 pr-5 pb-4 pl-16 ${column(g.start)} ${isOpen ? "bg-accent-soft/30" : ""}`}
+                      className={`row-start-2 flex min-w-0 items-start gap-1.5 pr-5 pb-4 pl-5 ${column(g.start)} ${isOpen ? "bg-accent-soft/30" : ""}`}
                       style={{ gridColumn: `${g.start + 1} / span ${g.rows.length}` }}
                       data-slip-group={g.rows.map((r) => r.id).join(",")}
                     >
