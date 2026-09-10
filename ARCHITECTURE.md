@@ -175,6 +175,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 48 | Warm-up concerns chat: the picker page gone, one question per ticked skill, then the pad with skill buttons | `/student?stage=warmup-chat`, `…=practice` | — | [curr_version/architecture/48-warm-up-concerns-chat.md](curr_version/architecture/48-warm-up-concerns-chat.md) |
 | 49 | Group review header: no colour label, names in the group colour, a big progress bar | `/student` group | — | [curr_version/architecture/49-group-header-tint.md](curr_version/architecture/49-group-header-tint.md) |
 | 50 | Feedback summary: skills as dark purple chips; "What you submitted" / "If needed, correct it here" / "Read as" on one line | `/student?stage=feedback` | — | [curr_version/architecture/50-feedback-summary-chips.md](curr_version/architecture/50-feedback-summary-chips.md) |
+| 51 | Debrief: a pane that matches the group's rework turns green | `/student` group debrief | — | [curr_version/architecture/51-debrief-matching-pane-green.md](curr_version/architecture/51-debrief-matching-pane-green.md) |
 
 ## Conventions
 

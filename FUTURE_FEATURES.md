@@ -501,3 +501,13 @@ appends it here (see `CLAUDE.md`).
   taking the pad's inset away and top-anchoring its header; a single header grid that owns all
   three labels and the Undo / Clear buttons would be the sturdier structure if a fourth column
   ever arrives.
+## Debrief: a pane that matches the group's rework turns green (from ticket 51, 2026-09-10)
+
+- **A correct version in different words.** Only a line-for-line match earns the green. A
+  student whose rework checks correct by another route (say, the quadratic formula for Q1) still
+  sits in a white box beside the group's green-worthy one. `functional()` already knows the
+  version passes; a second, paler tint ("also right") or a small "checks out" word in the eyebrow
+  would say so. Deferred because the user asked for the match case only.
+- **A partial match.** A version that has the group's first line but not the second gets nothing.
+  Tinting just the matching line boxes green, inside a white pane, would show how far the student
+  got on their own; not built so the pane reads as one signal.
