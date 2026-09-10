@@ -36,9 +36,11 @@ describe("the marked view", () => {
     expect(matchesGroup(RECOGNITION_REWORK.q1.slice(0, 1), RECOGNITION_REWORK.q1)).toBe(false); // a prefix is not a match
     expect(matchesGroup([], [])).toBe(false); // nothing written matches nothing
   });
-  it("the hold: twenty seconds from the marks opening", () => {
+  it("the hold: ten seconds from the marks opening", () => {
+    expect(HOLD_MS).toBe(10_000);
     expect(holdProgress(null, 5)).toBe(0);
-    expect(holdProgress(1000, 11_000)).toBe(0.5);
+    expect(holdProgress(1000, 6_000)).toBe(0.5);
+    expect(holdProgress(1000, 11_000)).toBe(1);
     expect(holdOver(1000, 1000 + HOLD_MS - 1)).toBe(false);
     expect(holdOver(1000, 1000 + HOLD_MS)).toBe(true);
   });

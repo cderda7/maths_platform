@@ -76,6 +76,16 @@ describe("the demo scripts", () => {
     expect(q3.findIndex((e) => e.kind === "stuck")).toBeGreaterThan(q3.findIndex((e) => e.kind === "check"));
     expect(turnScript("q4")).toEqual([]);
   });
+  it("Liam's Q7 turn checks wrong once, the fraction cleared from two terms, then checks right without getting stuck", () => {
+    const q7 = turnScript("q7");
+    const checks = q7.filter((e) => e.kind === "check");
+    expect(checks).toHaveLength(2);
+    expect(q7.filter((e) => e.kind === "stuck")).toHaveLength(0);
+    const [firstGo] = GROUP_SCRIPTS.q7.attempts;
+    expect(checkBoard("q7", firstGo)).toEqual({ correct: false, cut: 0 });
+    expect(cutAtFirstMistake("q7", firstGo)).toEqual({ shown: [{ tex: firstGo[0], mark: "wrong" }], hidden: 2 });
+    expect(q7.filter((e) => e.kind === "line").map((e) => e.kind === "line" && e.tex)).toEqual([...firstGo, ...RECOGNITION_REWORK.q7]);
+  });
 });
 
 describe("the run on the classroom", () => {

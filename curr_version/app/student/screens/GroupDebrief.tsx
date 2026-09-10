@@ -1,5 +1,6 @@
 "use client";
 
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import M from "@/components/Math";
 import { Button, Eyebrow } from "@/components/ui";
 import { DEMO_STUDENT, PROBLEM_MAP } from "@/data/assignment";
@@ -17,7 +18,7 @@ const first = (id: string) => (id === DEMO_STUDENT.id ? "you" : CLASSMATE_MAP[id
 /**
  * After the group's rework checks correct: the student's handed-in and reworked versions beside
  * the group's, unmarked, with one prompt from their own history; then, once they have written,
- * the same three with full marks (blue standouts on the group's rework) and a twenty-second hold
+ * the same three with full marks (blue standouts on the group's rework) and a ten-second hold
  * before Next. The note stays editable throughout. Next moves the group on if it is still on
  * this problem; otherwise the student simply rejoins the live board.
  */
@@ -89,16 +90,12 @@ export default function GroupDebrief({ session, dispatch, run, problem }: { sess
             </Button>
           ) : (
             <>
-              {!canNext && <span className="text-[12.5px] text-ink-muted">take a moment with the marks</span>}
-              <span className="relative inline-flex">
-                <svg viewBox="0 0 36 36" className="absolute -inset-1 h-[calc(100%+8px)] w-[calc(100%+8px)]" aria-hidden data-ring style={{ borderRadius: 9999 }}>
-                  <rect x="1" y="1" width="34" height="34" rx="17" fill="none" stroke="var(--color-accent-line)" strokeWidth="2" />
-                  <rect x="1" y="1" width="34" height="34" rx="17" fill="none" stroke="var(--color-accent)" strokeWidth="2" pathLength={100} strokeDasharray={100} strokeDashoffset={100 - progress * 100} style={{ transition: "stroke-dashoffset 1s linear" }} />
-                </svg>
+              {!canNext && <span className="text-[12.5px] text-ink-muted">take a moment to reflect</span>}
+              <HoldRing progress={progress}>
                 <Button variant="accent" disabled={!canNext} onClick={next} data-next>
                   {last && groupStillHere ? "finish" : "next"}
                 </Button>
-              </span>
+              </HoldRing>
             </>
           )}
         </div>
@@ -132,5 +129,40 @@ function Lines({ lines, marked, onGreen }: { lines: { tex: string; mark: LineMar
         );
       })}
     </ol>
+  );
+}
+
+/**
+ * The hold's ring: a pill drawn in pixels around whatever it wraps, 4 px out, filling clockwise
+ * with `progress`. Sized from the child by a ResizeObserver, so it fits "next" and "finish" alike;
+ * a fixed viewBox would keep a circle and let it drift off a wide button.
+ */
+function HoldRing({ progress, children }: { progress: number; children: ReactNode }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [box, setBox] = useState({ w: 0, h: 0 });
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => setBox({ w: el.offsetWidth, h: el.offsetHeight });
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const gap = 4;
+  const stroke = 2;
+  const w = box.w + gap * 2;
+  const h = box.h + gap * 2;
+  const r = (h - stroke) / 2;
+  return (
+    <span ref={ref} className="relative inline-flex">
+      {box.w > 0 && (
+        <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="pointer-events-none absolute" style={{ left: -gap, top: -gap }} aria-hidden data-ring>
+          <rect x={stroke / 2} y={stroke / 2} width={w - stroke} height={h - stroke} rx={r} fill="none" stroke="var(--color-accent-line)" strokeWidth={stroke} />
+          <rect x={stroke / 2} y={stroke / 2} width={w - stroke} height={h - stroke} rx={r} fill="none" stroke="var(--color-accent)" strokeWidth={stroke} pathLength={100} strokeDasharray={100} strokeDashoffset={100 - progress * 100} style={{ transition: "stroke-dashoffset 1s linear" }} />
+        </svg>
+      )}
+      {children}
+    </span>
   );
 }

@@ -511,3 +511,15 @@ appends it here (see `CLAUDE.md`).
 - **A partial match.** A version that has the group's first line but not the second gets nothing.
   Tinting just the matching line boxes green, inside a white pane, would show how far the student
   got on their own; not built so the pane reads as one signal.
+## Group review: a wrong first go on Q7, a ten-second hold (from ticket 52, 2026-09-10)
+
+- **The group's failed attempts in the debrief.** The debrief shows only the group's correct
+  rework. A fourth column (or a row under it) listing the attempts that checked wrong, cut at the
+  first mistake, would keep the whole story visible after the fact. Offered as an option; the user
+  chose the wrong first go on Q7 instead.
+- **A hold that adapts.** Ten seconds is fixed for everyone. It could shorten when the student's
+  own versions match the group's (nothing new to look at) and lengthen when the Handed in pane
+  has several red lines.
+- **A peer who is still writing when the group moves on.** `PEER_DEBRIEF_MS` is a single constant
+  tied to the hold; a real peer's debrief length would come from their device, not a timer.
+

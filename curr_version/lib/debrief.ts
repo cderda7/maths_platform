@@ -5,9 +5,9 @@ import { lineMarks, type LineMark } from "./examples";
 /**
  * The debrief after the group's rework checks correct: each student sees their own two versions
  * beside the group's, names a mistake in their own words, then looks at the marks for at least
- * twenty seconds. Pure rules; the session keeps each student's note and when the marks opened.
+ * ten seconds. Pure rules; the session keeps each student's note and when the marks opened.
  */
-export const HOLD_MS = 20_000;
+export const HOLD_MS = 10_000;
 
 export type DebriefPrompt = "own" | "peers";
 
@@ -74,4 +74,4 @@ export function pendingDebrief(run: GroupRun, notes: Record<string, DebriefNote>
 }
 
 /** How long a peer who holds the next pen waits before their first stroke moves the group on: their own debrief, roughly. */
-export const PEER_DEBRIEF_MS = 26_000;
+export const PEER_DEBRIEF_MS = 16_000;
