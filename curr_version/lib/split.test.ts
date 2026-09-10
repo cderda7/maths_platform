@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ALL_PANES, frameFor, gridFor, PANES, parseLayout, parsePanes, serialisePanes, togglePane } from "./split";
-import { DEVICE_W, STAGE_MARGIN } from "./ipad";
+import { ALL_PANES, columnsFor, frameFor, PANES, parseLayout, parsePanes, rowHeight, serialisePanes, togglePane } from "./split";
+import { DEVICE_H, DEVICE_W, STAGE_MARGIN } from "./ipad";
 
 describe("parsePanes", () => {
   it("returns null when absent or naming nothing", () => {
@@ -36,20 +36,42 @@ describe("togglePane", () => {
 });
 
 describe("layout", () => {
-  it("parses stacked, defaults to beside", () => {
-    expect(parseLayout("stacked")).toBe("stacked");
-    expect(parseLayout("sideways")).toBe("beside");
-    expect(parseLayout(undefined)).toBe("beside");
+  it("parses beside, defaults to stacked", () => {
+    expect(parseLayout("beside")).toBe("beside");
+    expect(parseLayout("sideways")).toBe("stacked");
+    expect(parseLayout(undefined)).toBe("stacked");
   });
   it("beside is one column per pane", () => {
-    expect(gridFor(1, "beside")).toEqual({ columns: 1, spanLast: false });
-    expect(gridFor(2, "beside")).toEqual({ columns: 2, spanLast: false });
-    expect(gridFor(3, "beside")).toEqual({ columns: 3, spanLast: false });
+    expect(columnsFor(1, "beside")).toBe(1);
+    expect(columnsFor(2, "beside")).toBe(2);
+    expect(columnsFor(3, "beside")).toBe(3);
   });
-  it("stacked is rows, with three as two over one", () => {
-    expect(gridFor(1, "stacked")).toEqual({ columns: 1, spanLast: false });
-    expect(gridFor(2, "stacked")).toEqual({ columns: 1, spanLast: false });
-    expect(gridFor(3, "stacked")).toEqual({ columns: 2, spanLast: true });
+  it("stacked is one full-width row per pane", () => {
+    expect(columnsFor(1, "stacked")).toBe(1);
+    expect(columnsFor(2, "stacked")).toBe(1);
+    expect(columnsFor(3, "stacked")).toBe(1);
+  });
+});
+
+describe("rowHeight", () => {
+  const student = PANES.find((p) => p.id === "student")!.design;
+  const teacher = PANES.find((p) => p.id === "teacher")!.design;
+  const board = PANES.find((p) => p.id === "board")!.design;
+  it("gives the iPad its full height when the row is wide enough", () => {
+    expect(rowHeight(student, 1900, 1100)).toBe(DEVICE_H + STAGE_MARGIN);
+  });
+  it("shrinks a natural-height surface with a narrow row", () => {
+    // Half the iPad's design width: half its height.
+    expect(rowHeight(student, (DEVICE_W + STAGE_MARGIN) / 2, 1100)).toBe(Math.round((DEVICE_H + STAGE_MARGIN) / 2));
+    expect(rowHeight(board, 720, 1100)).toBe(405);
+  });
+  it("never exceeds the window", () => {
+    expect(rowHeight(student, 1900, 600)).toBe(600);
+    expect(rowHeight(board, 1900, 500)).toBe(500);
+  });
+  it("gives a scrolling surface the window", () => {
+    expect(rowHeight(teacher, 1900, 1100)).toBe(1100);
+    expect(rowHeight(teacher, 600, 700)).toBe(700);
   });
 });
 
@@ -73,9 +95,9 @@ describe("frameFor", () => {
     expect(frameFor({ width: 0, height: 0 }, { width: 1280 })).toEqual({ scale: 1, width: 0, height: 0 });
   });
   it("gives the student pane the stage's own margin, so the device lands at scale 1 inside", () => {
-    expect(PANES.find((p) => p.id === "student")!.design).toEqual({ width: DEVICE_W + STAGE_MARGIN });
+    expect(PANES.find((p) => p.id === "student")!.design).toEqual({ width: DEVICE_W + STAGE_MARGIN, height: DEVICE_H + STAGE_MARGIN });
   });
-  it("only the board, which fills its screen, has a design height", () => {
-    expect(PANES.filter((p) => p.design.height).map((p) => p.id)).toEqual(["board"]);
+  it("the teacher view, which scrolls, is the one surface without a design height", () => {
+    expect(PANES.filter((p) => !p.design.height).map((p) => p.id)).toEqual(["teacher"]);
   });
 });

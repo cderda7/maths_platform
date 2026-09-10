@@ -17,14 +17,15 @@ classroom.
 cd curr_version
 npm install
 npm run dev        # http://localhost:3000
-npm test           # vitest: 195 tests over the pure logic in lib/
+npm test           # vitest: 199 tests over the pure logic in lib/
 npm run lint && npx tsc --noEmit && npm run build
 ```
 
 Open **/** and pick a side. Use tabs of the same browser: the student iPad in one, the teacher in
 another, the board in a third when projecting. Or open **/split** to see any one, two or all
-three of them in one tab (toggles in the dashed toolbar; side by side or stacked); the panes are
-the real routes and stay in step with each other and with any other tab. The dashed "Reset demo"
+three of them in one tab (toggles in the dashed toolbar; stacked full-width rows the page scrolls
+through, or side by side); the panes are the real routes and stay in step with each other and
+with any other tab. The dashed "Reset demo"
 pinned bottom-right on the entry page and every teacher page (and in the split view's toolbar)
 restarts everything in every tab; it is a presenter control, not part of the product.
 
@@ -92,8 +93,8 @@ Useful starts: `/student?stage=working&pathway=wc` (hand in, wait for the board)
 `/student?stage=feedback` (the detective sentence).
 
 `/split?panes=student,teacher,board&layout=beside` opens that set of panes (`panes` is any of
-`student`, `teacher`, `board`, comma-separated; `layout` is `beside` or `stacked`). Plain
-`/split` reopens the last choice.
+`student`, `teacher`, `board`, comma-separated; `layout` is `stacked`, the default, or
+`beside`). Plain `/split` reopens the last choice.
 
 ## Where things are
 

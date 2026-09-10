@@ -718,8 +718,10 @@ teacher's `zoom` would all fight, and the stores would need in-document plumbing
 Reflowing each route to its pane's width instead of scaling: the product would show layouts it
 never shows on a real screen.
 
-**Tradeoffs.** Text is small at three panes on a laptop (about a third scale); the layout toggle
-and the per-pane "Open in a tab" are the remedy. Every pane is a full app instance, so three
+**Tradeoffs.** Side by side, text is small at three panes on a laptop (about a third scale). So
+the default is stacked: full-width rows, each as tall as its surface needs at the scale the
+width allows (the iPad at full size on a desktop), the page scrolling between them; the cost is
+that not everything is on screen at once, and the per-pane "Open in a tab" remains for a focus. Every pane is a full app instance, so three
 panes do three times the work. A scaled iframe is a real document with real input, so drawing
 on a pad works, but a very small pane makes the pen fiddly.
 

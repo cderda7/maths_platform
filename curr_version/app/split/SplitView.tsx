@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type RefObject } from "react";
 import Brand from "@/components/Brand";
 import { resetSession } from "@/lib/store";
-import { frameFor, gridFor, PANES, parseLayout, parsePanes, serialisePanes, togglePane, type Layout, type Pane, type PaneId } from "@/lib/split";
+import { columnsFor, frameFor, PANES, parseLayout, parsePanes, rowHeight, serialisePanes, togglePane, type Layout, type Pane, type PaneId } from "@/lib/split";
 
 const KEY = "edexia-demo-split";
 
@@ -48,17 +48,39 @@ const store = (c: Choice) => {
   } catch {
     // Storage blocked: the URL still carries the choice.
   }
-  window.history.replaceState(null, "", `/split?panes=${serialisePanes(c.panes)}${c.layout === "stacked" ? "&layout=stacked" : ""}`);
+  window.history.replaceState(null, "", `/split?panes=${serialisePanes(c.panes)}${c.layout === "beside" ? "&layout=beside" : ""}`);
   listeners.forEach((cb) => cb());
 };
 
 const chip = (on: boolean) => `rounded-full px-2.5 py-1 text-[12px] transition-colors ${on ? "bg-accent-soft text-accent-deep" : "text-ink-muted hover:bg-cream-deep hover:text-ink"}`;
 
+/** The element's content box, kept current by a ResizeObserver; zero until measured. */
+function useSize(ref: RefObject<HTMLElement | null>) {
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      setSize({ width: Math.floor(width), height: Math.floor(height) });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref]);
+  return size;
+}
+
+/** The pane caption's height plus the section's borders, taken off a stacked row's budget. */
+const CAPTION = 28 + 2;
+
 /**
- * The student iPad, the teacher view and the board side by side in one tab, a presenter page
- * rather than a product screen: the dashed toolbar picks which of the three to show and how to
- * arrange them, and each pane is the real route in an iframe, laid out at its design width and
- * scaled to fit. Same origin, so the demo stores keep the panes in step exactly as they keep tabs.
+ * The student iPad, the teacher view and the board in one tab, a presenter page rather than a
+ * product screen: the dashed toolbar picks which of the three to show and how to arrange them,
+ * and each pane is the real route in an iframe, laid out at its design viewport and scaled to
+ * fit. Stacked (the default) is one full-width row per pane, each as tall as its surface needs
+ * and no taller than the window, the page scrolling through them; side by side is one
+ * window-high column per pane. Same origin, so the demo stores keep the panes in step exactly as
+ * they keep tabs.
  */
 export default function SplitView({ init, explicit, initLayout }: { init: PaneId[]; explicit: boolean; initLayout: Layout }) {
   // A named URL is used as given until the first toggle; from then on, and for plain /split, the stored
@@ -74,7 +96,10 @@ export default function SplitView({ init, explicit, initLayout }: { init: PaneId
   };
   const panes = choice?.panes ?? [];
   const layout = choice?.layout ?? initLayout;
-  const grid = gridFor(panes.length, layout);
+  const stacked = layout === "stacked";
+  const columns = columnsFor(panes.length, layout);
+  const mainRef = useRef<HTMLElement>(null);
+  const main = useSize(mainRef);
   return (
     <div className="flex h-screen flex-col bg-cream" data-split>
       <header className="flex h-12 shrink-0 items-center justify-between border-b border-dashed border-line-strong bg-paper/80 px-4 backdrop-blur">
@@ -96,9 +121,9 @@ export default function SplitView({ init, explicit, initLayout }: { init: PaneId
           </div>
           {panes.length > 1 && (
             <div className="flex items-center gap-1 rounded-full border border-dashed border-line-strong px-1.5 py-0.5" data-layout-toggles>
-              {(["beside", "stacked"] as const).map((l) => (
+              {(["stacked", "beside"] as const).map((l) => (
                 <button key={l} type="button" aria-pressed={layout === l} data-layout={l} onClick={() => choice && choose({ ...choice, layout: l })} className={chip(layout === l)}>
-                  {l === "beside" ? "Side by side" : panes.length === 3 ? "Two over one" : "Stacked"}
+                  {l === "stacked" ? "Stacked" : "Side by side"}
                 </button>
               ))}
             </div>
@@ -109,42 +134,39 @@ export default function SplitView({ init, explicit, initLayout }: { init: PaneId
         </div>
       </header>
       <main
-        className="grid min-h-0 flex-1 gap-3 p-3"
-        style={{ gridTemplateColumns: `repeat(${grid.columns}, minmax(0, 1fr))`, gridAutoRows: "minmax(0, 1fr)" }}
-        data-columns={grid.columns}
+        ref={mainRef}
+        className={`grid min-h-0 flex-1 gap-3 p-3 ${stacked ? "content-start overflow-y-auto" : ""}`}
+        style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, gridAutoRows: stacked ? "max-content" : "minmax(0, 1fr)" }}
+        data-columns={columns}
+        data-layout={layout}
       >
-        {PANES.filter((p) => panes.includes(p.id)).map((p, i) => (
-          <PaneFrame key={p.id} pane={p} span={grid.spanLast && i === panes.length - 1 ? grid.columns : 1} />
+        {PANES.filter((p) => panes.includes(p.id)).map((p) => (
+          <PaneFrame key={p.id} pane={p} height={stacked && main.width > 0 ? rowHeight(p.design, main.width, main.height - CAPTION) : undefined} />
         ))}
       </main>
     </div>
   );
 }
 
-/** One surface: a caption with a link to the route in its own tab, and the route in an iframe scaled to the pane. */
-function PaneFrame({ pane, span }: { pane: Pane; span: number }) {
+/**
+ * One surface: a caption with a link to the route in its own tab, and the route in an iframe
+ * scaled to the pane. With `height` (a stacked row) the frame area is that tall; without it the
+ * section fills its grid cell.
+ */
+function PaneFrame({ pane, height }: { pane: Pane; height?: number }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState({ width: 0, height: 0 });
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const ro = new ResizeObserver(([entry]) => {
-      const { width, height } = entry.contentRect;
-      setSize({ width: Math.floor(width), height: Math.floor(height) });
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+  const size = useSize(ref);
   const frame = frameFor(size, pane.design);
   return (
-    <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-line bg-paper shadow-card" style={{ gridColumn: `span ${span}` }} data-pane={pane.id}>
+    // A stacked row must keep its content height as its minimum, or the grid shares the window between the rows instead of scrolling.
+    <section className={`flex flex-col overflow-hidden rounded-xl border border-line bg-paper shadow-card ${height === undefined ? "min-h-0" : ""}`} data-pane={pane.id}>
       <div className="flex h-7 shrink-0 items-center justify-between border-b border-line px-3 text-[11px] uppercase tracking-wide text-ink-muted select-none">
         <span>{pane.label}</span>
         <a href={pane.href} target="_blank" rel="noreferrer" className="normal-case tracking-normal hover:text-ink">
           Open in a tab ↗
         </a>
       </div>
-      <div ref={ref} className="relative min-h-0 flex-1 overflow-hidden bg-cream">
+      <div ref={ref} className={`relative min-h-0 overflow-hidden bg-cream ${height === undefined ? "flex-1" : "shrink-0"}`} style={height === undefined ? undefined : { height }}>
         {size.width > 0 && (
           <iframe
             title={pane.label}

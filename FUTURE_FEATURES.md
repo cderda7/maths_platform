@@ -256,8 +256,12 @@ appends it here (see `CLAUDE.md`).
 
 ## Split view (from ticket 35, 2026-09-10)
 
-- **Draggable dividers.** The grid splits the window evenly. A drag handle between panes (and a
-  remembered split) would let a presenter give the iPad most of the width.
+- **Draggable dividers.** Side by side splits the window evenly. A drag handle between panes (and
+  a remembered split) would let a presenter give the iPad most of the width.
+- **A fit-to-window stack.** Stacked rows are full size and scroll (chosen 2026-09-10 because a
+  narrow column made everything too small). A third mode that shrinks the rows to fit the window
+  without scrolling, or a "two over one" with the board across the bottom (the earlier stacked
+  layout), could return as an option if a presenter wants everything visible at once.
 - **Scale override.** Panes scale to fit their design viewport. A per-pane "1:1" or a zoom
   slider would trade overview for legibility when one pane is the focus.
 - **Route per pane.** The teacher pane always opens on Class; the tabs inside it navigate. A

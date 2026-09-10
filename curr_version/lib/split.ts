@@ -1,4 +1,4 @@
-import { DEVICE_W, STAGE_MARGIN } from "./ipad";
+import { DEVICE_H, DEVICE_W, STAGE_MARGIN } from "./ipad";
 
 /**
  * The split view: the student iPad, the teacher view and the projected board in one tab, any one,
@@ -10,18 +10,18 @@ export type PaneId = "student" | "teacher" | "board";
 export type Layout = "beside" | "stacked";
 
 /**
- * A surface and the viewport it is designed for. `design.height` is set only for a surface that
- * fills its screen rather than scrolling (the board), so a wide, short pane scales it to fit its
- * height instead of cropping it.
+ * A surface and the viewport it is designed for. `design.height` is set for a surface that has a
+ * natural height (the iPad, the board's 16:9 slide): a wide, short pane scales it to fit its
+ * height instead of cropping it, and a stacked row is only as tall as it needs. A surface that
+ * scrolls (the teacher) has no height and takes what it is given.
  */
 export type Design = { width: number; height?: number };
 export type Pane = { id: PaneId; label: string; href: string; design: Design };
 
 /** The three surfaces in the order they sit on the page. */
 export const PANES: readonly Pane[] = [
-  // The stage's own margin included, so the device sits inside its pane at scale 1 on the stage's terms; the
-  // stage fits the device to its height itself.
-  { id: "student", label: "Student", href: "/student", design: { width: DEVICE_W + STAGE_MARGIN } },
+  // The stage's own margin included, so the device sits inside its pane at scale 1 on the stage's terms.
+  { id: "student", label: "Student", href: "/student", design: { width: DEVICE_W + STAGE_MARGIN, height: DEVICE_H + STAGE_MARGIN } },
   // A small laptop: the teacher's 0.8 zoom makes it 1600 layout px, enough for the dashboard's columns, and
   // close to the iPad's width so the panes land at about the same scale. It scrolls, so no height.
   { id: "teacher", label: "Teacher", href: "/teacher", design: { width: 1280 } },
@@ -57,16 +57,24 @@ export function togglePane(panes: readonly PaneId[], id: PaneId): PaneId[] {
   return ordered([...panes, id]);
 }
 
-export const parseLayout = (raw: string | undefined): Layout => (raw === "stacked" ? "stacked" : "beside");
+/** Stacked unless the URL says beside: full-width rows show every surface at its largest. */
+export const parseLayout = (raw: string | undefined): Layout => (raw === "beside" ? "beside" : "stacked");
 
 /**
- * The grid for n panes. Beside: one column per pane. Stacked: one pane per row, except that
- * three panes go two on top and the third across the bottom (the board, in page order).
+ * Columns for n panes. Beside: one column per pane, each the height of the window. Stacked: one
+ * full-width row per pane, the page scrolling through them.
  */
-export function gridFor(count: number, layout: Layout): { columns: number; spanLast: boolean } {
-  if (layout === "beside" || count <= 1) return { columns: Math.max(1, count), spanLast: false };
-  if (count === 2) return { columns: 1, spanLast: false };
-  return { columns: 2, spanLast: true };
+export const columnsFor = (count: number, layout: Layout): number => (layout === "beside" ? Math.max(1, count) : 1);
+
+/**
+ * The height of a stacked row's frame area for a row of the given width, with `available` the
+ * window height left under the toolbar: a surface with a natural height gets that height at the
+ * scale its width allows, no taller than the window; a scrolling surface gets the window.
+ */
+export function rowHeight(design: Design, width: number, available: number): number {
+  if (!design.height) return available;
+  const scale = Math.min(1, width / design.width);
+  return Math.min(available, Math.round(design.height * scale));
 }
 
 /**
