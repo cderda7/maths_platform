@@ -230,3 +230,7 @@ appends it here (see `CLAUDE.md`).
   current test that every phrase and fragment resolves.
 - **Lighting in the worked example.** The example's steps ("Found the pair: 3 × 4 = 12") could
   light the same 12 when hovered, tying the hint, the step and the problem together.
+- **Branching in every line view.** "Read as" now shows a two-case line ("x = −2 or x = 1") as
+  two half-width boxes side by side (2026-09-10). The marked views (feedback, frozen screen,
+  history, the teacher's work panel) still show the line whole; extend `branchesOf` there, and
+  decide how a red mark on one branch is drawn.
