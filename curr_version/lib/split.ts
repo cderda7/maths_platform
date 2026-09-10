@@ -23,9 +23,11 @@ export type Pane = { id: PaneId; label: string; href: string; design: Design };
 export const PANES: readonly Pane[] = [
   // The stage's own margin included, so the device sits inside its pane at scale 1 on the stage's terms.
   { id: "student", label: "Student", href: "/student", design: { width: DEVICE_W + STAGE_MARGIN, height: DEVICE_H + STAGE_MARGIN, fit: "fill" } },
-  // A small laptop: the teacher's 0.8 zoom makes it 1600 layout px, enough for the dashboard's columns, and
-  // close to the iPad's width so the panes land at about the same scale. It scrolls, so no height.
-  { id: "teacher", label: "Teacher", href: "/teacher", design: { width: 1280, fit: "fill" } },
+  // A small laptop at 1280 × 800: the teacher's 0.8 zoom makes it 1600 layout px, enough for the dashboard's
+  // columns, and close to the iPad's size so the panes land at about the same scale. The height means a
+  // short pane shrinks the laptop rather than cropping it; the page centres itself in the spare width
+  // (its `max-w`) as the iPad stage centres the device, and scrolls inside the frame as on a laptop.
+  { id: "teacher", label: "Teacher", href: "/teacher", design: { width: 1280, height: 800, fit: "fill" } },
   // The smartboard, a projector at 16:9. Narrower and the example lines wrap.
   { id: "board", label: "Board", href: "/board", design: { width: 1440, height: 810, fit: "letterbox" } },
 ];
