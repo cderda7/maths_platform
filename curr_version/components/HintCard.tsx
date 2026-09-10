@@ -25,7 +25,7 @@ export default function HintCard({ problem, lit, onLit, className = "" }: { prob
               tabIndex={0}
               data-hint-term={term.phrase}
               data-lit={on || undefined}
-              className={`-mx-[2px] cursor-help whitespace-nowrap rounded-[3px] px-[3px] ring-1 transition-colors ${on ? "bg-standout text-white ring-standout" : "bg-standout-soft text-standout ring-standout-line"}`}
+              className={`mx-[2px] cursor-help whitespace-nowrap rounded-[3px] px-[3px] ring-1 transition-colors ${on ? "bg-standout text-white ring-standout" : "bg-standout-soft text-standout ring-standout-line"}`}
               onMouseOver={() => onLit(term)}
               onMouseOut={() => onLit(null)}
               onFocus={() => onLit(term)}
