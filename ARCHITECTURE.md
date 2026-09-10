@@ -193,6 +193,7 @@ data static under `data/`. The Sept 7 mockup was removed on 10 Sep 2026 (ticket 
 | 65 | The Edexia bar stays put when the page scrolls, and the board gets one | `/teacher/**` sticky, `/student` verified, `/board` | — | [architecture/65-sticky-brand-header.md](architecture/65-sticky-brand-header.md) |
 | 66 | Mistakes view: more room between the student's name and the slip pill | `/teacher/mistakes` | 64 | [architecture/66-mistakes-pill-spacing.md](architecture/66-mistakes-pill-spacing.md) |
 | 67 | Mistakes view: the slip pill starts under the avatar, not the name | `/teacher/mistakes` | 66 | [architecture/67-mistakes-pill-avatar.md](architecture/67-mistakes-pill-avatar.md) |
+| 68 | Teacher side: the bar never rides the rubber-band; the window stops scrolling and only the content region does | `/teacher/**` | 65 | [architecture/68-teacher-fixed-header-frame.md](architecture/68-teacher-fixed-header-frame.md) |
 
 ## Conventions
 
