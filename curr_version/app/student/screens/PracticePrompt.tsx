@@ -29,10 +29,7 @@ export function Scrim({ children, onDismiss }: { children: React.ReactNode; onDi
   );
 }
 
-/**
- * The isolated-practice prompt, for a trigger the program raised (asking for help goes straight to
- * the pad): a second mistake in a group, or a first one where the student said they are not confident.
- */
+/** The isolated-practice prompt, for a second mistake on a group (asking for help goes straight to the pad). */
 export function PromptModal({ prompt, onAccept, onDecline }: { prompt: Prompt; problem: Problem; onAccept: () => void; onDecline: () => void }) {
   const s = studentLeafName(prompt.leaf);
   const word = groupWord(groupOf(prompt.leaf));
@@ -40,11 +37,7 @@ export function PromptModal({ prompt, onAccept, onDecline }: { prompt: Prompt; p
     <Scrim>
       <div className="w-[560px] rounded-3xl bg-paper p-8 shadow-lift" data-prompt={prompt.reason}>
         <h2 className="font-display text-[28px] leading-tight text-ink">two minutes on {s.short}?</h2>
-        <p className="mt-3 text-[14px] text-ink-soft">
-          {prompt.reason === "confidence"
-            ? `you've made a mistake with ${word}. you told me you don't feel confident with this skill, so let's do a short problem to review.`
-            : `this is your second mistake on ${word}. let's do a short problem to review.`}
-        </p>
+        <p className="mt-3 text-[14px] text-ink-soft">this is your second mistake on {word}. let&rsquo;s do a short problem to review.</p>
         <div className="mt-6 flex justify-end gap-2">
           <Button variant="secondary" size="lg" onClick={onDecline}>
             Not now

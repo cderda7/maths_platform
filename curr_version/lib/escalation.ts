@@ -6,8 +6,7 @@ import type { GroupId, LeafId } from "@/data/taxonomy";
  *   1st instance of a mistake in a group -> no-op
  *   2nd instance                        -> trigger isolated practice, reset the count
  *   2nd instance again after a reset    -> trigger practice AND raise the caution flag
- * A student who said they are not confident here triggers on the 1st instance instead
- * (`threshold` 1). "I need help" runs the identical trigger path, so a self-identified practice
+ * "I need help" runs the identical trigger path, so a self-identified practice
  * counts as an entry exactly like a detected one. The leaves slipped on since the last practice
  * are kept, so the practice can go to the most fundamental of them. Pure: the session feeds it,
  * the UI reads the result.
@@ -35,13 +34,13 @@ export interface EscalationResult {
   cautioned: boolean;
 }
 
-/** A detected mistake on `group` (on `leaf`, when known). `threshold`: instances before practice triggers, 2 by default, 1 for a student who said they are not confident here. */
-export function recordMistake(state: EscalationState, group: GroupId, leaf?: LeafId, threshold = 2): EscalationResult {
+/** A detected mistake on `group` (on `leaf`, when known). Practice triggers on the second instance since the last practice. */
+export function recordMistake(state: EscalationState, group: GroupId, leaf?: LeafId): EscalationResult {
   const n = (state.counts[group] ?? 0) + 1;
   const prior = state.slips[group] ?? [];
   const slipped = leaf && !prior.includes(leaf) ? [...prior, leaf] : prior;
   const counted = { ...state, counts: { ...state.counts, [group]: n }, slips: { ...state.slips, [group]: slipped } };
-  if (n < threshold) return { state: counted, slipped, trigger: false, cautioned: false };
+  if (n < 2) return { state: counted, slipped, trigger: false, cautioned: false };
   return trigger(counted, group);
 }
 

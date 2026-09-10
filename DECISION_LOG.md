@@ -538,6 +538,98 @@ rewording. Hover has no meaning on the iPad's touch input (deferred).
 unchanged lit or not) are enforced by tests over every practice, so a broken link fails the suite
 rather than silently not lighting.
 
+## 2026-09-10 · Confidence is for the teacher; practice triggers on the second mistake for everyone
+
+**Decision.** The confidence answer (confident / not confident with up to seven named skills /
+not confident) is recorded and shown to the teacher in the live view and the report. It never
+changes when practice is offered: the second mistake on a group triggers it, for everyone. The
+practice goes to the most fundamental leaf slipped on in the group since its last practice.
+
+**Context.** A first-mistake trigger for low-confidence students was built during the day and
+reverted at the user's request: it intervened too early, and the teacher, not the program, is the
+right one to respond to a low-confidence answer (a message to the student is the intended use;
+see FUTURE_FEATURES).
+
+**Alternatives considered.** Threshold 1 for a named skill (reverted). Threshold 1 only for
+"not confident" overall (the same objection).
+
+**Tradeoffs.** A student who said they are not confident gets no earlier help from the program;
+the teacher sees the answer and can act.
+
+**Defence.** One rule for practice, easy to explain to a student; confidence stays an honest
+signal to the teacher rather than a lever.
+
+## 2026-09-10 · Practice is offered on moves only, never on a whole-task skill
+
+**Decision.** `NOT_ISOLATED` names the leaves that describe the whole task rather than one move
+(today: quadratic equations). No practice exists for them, the help picker never lists them, the
+warm-up never sequences them, and a wrong line tagged with one raises no practice prompt.
+`isolatable(leaf)` is the single gate.
+
+**Context.** A practice "on quadratic equations" is a quadratic equation, i.e. the set. Offering
+it produced problems as hard as, or harder than, the set (the composite warm-up, then the
+quadratic practice in the help picker).
+
+**Alternatives considered.** Keeping the practice but ranking it last (still offered). Marking the
+distinction in the taxonomy as a group-level node (a data migration for one rule).
+
+**Tradeoffs.** A slip whose first tag is the whole-task leaf (Q4's formula denominator) now
+prompts nothing; the counter still records it per group. If that proves too quiet, tag such lines
+with the move first.
+
+**Defence.** One list, one predicate, tested at every surface that offers practice.
+
+## 2026-09-10 · One practice pad, two runs
+
+**Decision.** The warm-up and the mid-set isolated practice share `PracticePad` and a
+`PracticeRun` slice each (`warmup` and `overlayRun`), driven by `run/*` actions carrying the run
+key and reduced by one `runReducer`.
+
+**Context.** The mid-set practice was the old reveal-a-step card; the user wants it to behave
+exactly like the warm-up (pad first, help on request).
+
+**Alternatives considered.** A second copy of the pad screen wired to `overlay/*` actions (two
+sets of rules to keep in step). One run slice shared by both (the warm-up's strokes would leak
+into a mid-set practice and back).
+
+**Tradeoffs.** The reducer dispatches on the run key, one indirection more than before.
+
+**Defence.** The pad's behaviour is one component and one reducer; a change to help lands in
+both places at once, and each run keeps its own ink.
+
+## 2026-09-10 · Hint words point at the problem through phrase → TeX-fragment pairs
+
+**Decision.** A practice problem may carry `hintTerms: { phrase, tex[] }[]`: a word as written in
+the hint, and the fragments of the problem's TeX it stands for. The hint is split at every whole-
+word occurrence of a phrase (`hintSegments`), and every fragment is wrapped in a KaTeX
+`\htmlClass{hint-term}` group at all times, with `hint-term-lit` added to the hovered term's
+fragments (`termTex`). Fragments are found as whole tokens (`findFragment`), never a superscript,
+part of a longer number or a command name, and nest when one lies inside another. The links render
+only in `PracticePad` (warm-up and mid-set practice); a set problem never carries them.
+
+**Context.** The user wants "constant" and "middle coefficient" to read as pointers and, on hover,
+to light the 12 and the 7, and the same for "a", "b", "c" and "ac" on every warm-up hint. The
+hint and the expression are plain strings, so something had to say which word means which part.
+
+**Alternatives considered.** Markup inside the hint string (`[constant](12)`): mixes content and
+wiring, and one phrase used twice would need writing twice. Positional indices into the TeX:
+brittle under any edit of the expression. A structured expression tree with addressable terms:
+the right long-term answer but a rewrite of every fixture and the renderer for one feature.
+Re-typesetting only the lit fragment on hover: measured, and a wrapped group changes no KaTeX
+spacing, but wrapping everything always is simpler and provably layout-stable (a test compares the
+spacing of every problem with every term lit against the plain expression).
+
+**Tradeoffs.** Fragment matching is textual: a fragment must appear verbatim in the TeX, and the
+first whole occurrence is taken, so an author must pick a fragment that is unambiguous (the follow-
+up's "middle term" is `- 7x`, sign included, because KaTeX keeps binary spacing inside the group).
+Every occurrence of a phrase links, so a hint that uses "constant" in two senses would need
+rewording. Hover has no meaning on the iPad's touch input (deferred).
+
+**Defence.** The data stays two readable strings plus a small list per problem; the invariants
+(every phrase found whole in its hint, every fragment found as a token in its TeX, spacing
+unchanged lit or not) are enforced by tests over every practice, so a broken link fails the suite
+rather than silently not lighting.
+
 ## 2026-09-10 · Confidence sets the practice threshold; the demo student stays confident
 
 **Decision.** A student who answered "not confident" (overall, or naming this skill among up to

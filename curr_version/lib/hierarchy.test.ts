@@ -36,22 +36,16 @@ describe("the scripted run through the hierarchy", () => {
     expect(categoriesTouched()).toEqual(["algebra", "functions", "graphing", "communication", "reasoning", "unit"]);
   });
 
-  it("ends with Algebra a gap (factorising under caution), Communication solid and Reasoning a gap, the rest secure or solid", () => {
+  it("ends with Algebra developing, Communication solid and Reasoning a gap, the rest secure or solid", () => {
     const h = sessionHierarchy({ ...scriptedSession(), stage: "feedback" });
-    expect(h.categories.algebra).toBe("gap");
-    expect(h.groups["algebra.expand-factor"]).toBe("gap");
-    expect(h.leaves["algebra.expand-factor.nonmonic"]).toBe("gap");
-    // Without the caution the evidence alone reads as developing.
-    const calm = sessionHierarchy({ ...scriptedSession(), stage: "feedback", escalation: { ...scriptedSession().escalation, caution: [] } });
-    expect(calm.categories.algebra).toBe("developing");
-    expect(calm.leaves["algebra.expand-factor.monic"]).toBe("developing");
+    expect(h.categories.algebra).toBe("developing");
     expect(h.categories.communication).toBe("solid");
     expect(h.categories.reasoning).toBe("gap");
     expect(["secure", "solid"]).toContain(h.categories.functions);
     expect(["secure", "solid"]).toContain(h.categories.graphing);
     expect(["secure", "solid"]).toContain(h.categories.unit);
     expect(h.leaves["algebra.number.fractions"]).toBe("developing");
-    expect(h.leaves["algebra.expand-factor.monic"]).toBe("gap");
+    expect(h.leaves["algebra.expand-factor.monic"]).toBe("developing");
     expect(h.leaves["reasoning.justify.formal"]).toBe("gap");
     expect(h.leaves["communication.process.working"]).toBe("solid");
     expect(h.half.categories).toEqual([]);

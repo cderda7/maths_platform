@@ -19,8 +19,8 @@ import { ASSIGNMENT } from "@/data/assignment";
  */
 export interface PracticePrompt {
   leaf: LeafId;
-  /** detected: a second mistake. confidence: a first mistake where the student said they are not confident. help: the student asked. */
-  reason: "detected" | "confidence" | "help";
+  /** detected: a second mistake on a group. help: the student asked. */
+  reason: "detected" | "help";
 }
 
 export interface PracticeEntry extends PracticePrompt {
@@ -310,14 +310,13 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       const key = `${a.problem}#${prev.length}`;
       if (v.verdict !== "wrong" || s.counted.includes(key)) return next;
       const slipped = v.tags[0].leaf;
-      const unsure = notConfidentIn(s.confidence, slipped);
-      const r = recordMistake(s.escalation, groupOf(slipped), slipped, unsure ? 1 : 2);
+      const r = recordMistake(s.escalation, groupOf(slipped), slipped);
       const leaf = r.trigger ? fundamentalLeaf(r.slipped) : null;
       return {
         ...next,
         escalation: r.state,
         counted: [...s.counted, key],
-        prompt: leaf ? { leaf, reason: unsure ? "confidence" : "detected" } : s.prompt,
+        prompt: leaf ? { leaf, reason: "detected" } : s.prompt,
       };
     }
     case "ink/stroke":
@@ -428,15 +427,6 @@ export function fundamentalLeaf(slipped: LeafId[]): LeafId | null {
   return null;
 }
 
-/**
- * True when the student said they are not confident overall, or named a skill in this leaf's group:
- * "Factorising" covers monic and non-monic alike, as the mistake counter does.
- */
-export function notConfidentIn(c: Confidence | null, leaf: LeafId): boolean {
-  if (!c) return false;
-  if (c.level === "low") return true;
-  return c.level === "low-when" && c.leaves.some((l) => groupOf(l) === groupOf(leaf));
-}
 export const FORCED_HAND_IN_TEXT = "Your teacher handed in the class's work.";
 
 const warm = (s: StudentSession, patch: Partial<WarmupState>): StudentSession => ({ ...s, warmup: { ...s.warmup, ...patch } });
@@ -519,7 +509,7 @@ const todayAt = (h: number, m: number) => {
   return d.getTime();
 };
 
-/** The demo student's answer: not confident when factorising comes up. */
+/** The demo student's answer: not confident when factorising comes up. Shown to the teacher; it never changes when practice is offered. */
 export const DEMO_CONFIDENCE: Confidence = { level: "low-when", leaves: ["algebra.expand-factor.monic"] };
 
 /** Which scripted run a deep link plays: the default weak run, or a strong one (every step held). */
