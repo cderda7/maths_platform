@@ -17,7 +17,7 @@ import type { SessionAction, StudentSession } from "@/lib/session";
 import { Scrim } from "./PracticePrompt";
 import GroupDebrief from "./GroupDebrief";
 import { pendingDebrief } from "@/lib/debrief";
-import GroupBar from "./GroupBar";
+import GroupHeader from "./GroupHeader";
 
 const first = (id: string) => (id === DEMO_STUDENT.id ? "You" : CLASSMATE_MAP[id]?.name.split(" ")[0] ?? id);
 
@@ -57,21 +57,20 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
 
   return (
     <div className="flex h-full min-h-0 flex-col px-8 py-5" data-group-board data-problem={pid} data-holder={holder} data-resolved={resolved || undefined}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <span className="font-display text-[26px] text-ink">{problem.label}</span>
-          <span className="math-lg text-ink">
-            <M tex={problem.tex} />
+      <GroupHeader
+        session={session}
+        label={problem.label}
+        tex={problem.tex}
+        right={
+          <span className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium ${mine ? "bg-ink text-white" : "border border-line bg-paper text-ink"}`} data-pen>
+            {mine ? "you have the pen" : `${first(holder)} has the pen`}
           </span>
-          <span className="text-[13px] text-ink-muted">
-            {run.index + 1} of {run.problems.length}
-          </span>
-        </div>
-        <GroupBar session={session} />
-        <span className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium ${mine ? "bg-ink text-white" : "border border-line bg-paper text-ink"}`} data-pen>
-          {mine ? "you have the pen" : `${first(holder)} has the pen`}
+        }
+      >
+        <span className="text-[13px] text-ink-muted">
+          {run.index + 1} of {run.problems.length}
         </span>
-      </div>
+      </GroupHeader>
       <ul className="mt-2 flex gap-1.5" aria-label="Group">
         {run.members.map((id) => (
           <li

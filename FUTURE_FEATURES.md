@@ -523,3 +523,13 @@ appends it here (see `CLAUDE.md`).
 - **A peer who is still writing when the group moves on.** `PEER_DEBRIEF_MS` is a single constant
   tied to the hold; a real peer's debrief length would come from their device, not a timer.
 
+## Group review header: the progress bar stays put on "the group got it" (from ticket 53, 2026-09-10)
+
+- **The debrief shows less of the header than the whiteboard.** The whiteboard has `1 of 6` and
+  the four name chips under the header; the debrief has neither, so those still appear and vanish
+  around a correct check. Carrying both across, with the pen-holder chip dark as on the board,
+  would make the whole top of the screen still. Deferred because the user asked about the bar.
+- **The pill and the pen chip are different sizes in the same slot.** `you have the pen` is 13 px
+  with 6 px vertical padding, `the group got it · you wrote it` 12.5 px with 4 px, so the right
+  edge of the header changes height by 3 px across the check. One chip style for the slot would
+  remove the last flicker there.

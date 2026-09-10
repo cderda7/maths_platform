@@ -29,7 +29,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │                                  └▶ PromptModal · HelpPicker (this problem's moves) · PracticeOverlay = PracticePad (shared with the warm-up)
  │               ▶ Feedback = individual review (detective sentence · star · what you submitted · pad · guard · hand in) · Waiting│
  │               ▶ Frozen (versions beside a pad: teacher-ink mirror or write-with-me; marks follow the board)│
- │               ▶ ClassWait (gate: n of 20 · teacher start) ▶ GroupBoard (one shared whiteboard · the pen by shuffle · check · we're stuck) ▶ GroupDebrief (three versions · a note · marks · 10 s hold)│
+ │               ▶ ClassWait (gate: n of 20 · teacher start) ▶ GroupBoard (one shared whiteboard · the pen by shuffle · check · we're stuck) ▶ GroupDebrief (three versions · a note · marks · 20 s hold)│
+ │                 └─ both under one GroupHeader (problem · GroupBar centred in a 3-column grid · pen chip or "the group got it")                                        │
  │               ▶ Report (teacher's colours + reflection → sent)   │
  │               ▶ Peers (mastery only: class struggles, counts)    │
  │               ▶ History (final only; compare scroll-synced)      │
@@ -177,6 +178,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 50 | Feedback summary: skills as dark purple chips; "What you submitted" / "If needed, correct it here" / "Read as" on one line | `/student?stage=feedback` | — | [curr_version/architecture/50-feedback-summary-chips.md](curr_version/architecture/50-feedback-summary-chips.md) |
 | 51 | Debrief: a pane that matches the group's rework turns green | `/student` group debrief | — | [curr_version/architecture/51-debrief-matching-pane-green.md](curr_version/architecture/51-debrief-matching-pane-green.md) |
 | 52 | Group review: Liam's Q7 checks wrong first; a ten-second hold; the ring fits the button | `/student` group | — | [curr_version/architecture/52-group-wrong-rework-and-hold.md](curr_version/architecture/52-group-wrong-rework-and-hold.md) |
+| 53 | Group review header: the progress bar stays put on "the group got it" | `/student` group whiteboard + debrief | — | [curr_version/architecture/53-group-header-shared.md](curr_version/architecture/53-group-header-shared.md) |
 
 ## Conventions
 

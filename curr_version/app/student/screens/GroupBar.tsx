@@ -5,7 +5,7 @@ import { useClassroom } from "@/lib/classroom-store";
 import type { StudentSession } from "@/lib/session";
 import { ownStanding } from "@/lib/standings";
 
-/** The student's own group's progress, and nothing about any other group: a large bar and the number in the whiteboard's header. */
+/** The student's own group's progress, and nothing about any other group: a large bar and the number in the group header. The number has a fixed width so the bar never shifts as it changes. */
 export default function GroupBar({ session }: { session: StudentSession }) {
   const s = ownStanding(useClassroom(), session);
   if (!s) return null;
@@ -14,7 +14,7 @@ export default function GroupBar({ session }: { session: StudentSession }) {
       <span className="relative h-5 w-[320px] overflow-hidden rounded-full bg-cream-deep">
         <span className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-500" style={{ width: `${s.percent}%`, backgroundColor: GROUP_HEX[s.colour].fill }} />
       </span>
-      <span className="text-[16px] font-medium tabular-nums text-ink">{s.percent}%</span>
+      <span className="w-11 text-[16px] font-medium tabular-nums text-ink">{s.percent}%</span>
     </span>
   );
 }

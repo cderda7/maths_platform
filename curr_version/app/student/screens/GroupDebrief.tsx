@@ -12,6 +12,7 @@ import type { GroupRun } from "@/lib/groupReview";
 import type { LineMark } from "@/lib/examples";
 import type { SessionAction, StudentSession } from "@/lib/session";
 import { useNow } from "@/lib/store";
+import GroupHeader from "./GroupHeader";
 
 const first = (id: string) => (id === DEMO_STUDENT.id ? "you" : CLASSMATE_MAP[id]?.name.split(" ")[0] ?? id);
 
@@ -45,15 +46,16 @@ export default function GroupDebrief({ session, dispatch, run, problem }: { sess
 
   return (
     <div className="flex h-full min-h-0 flex-col px-8 py-5" data-debrief={problem} data-phase={marked ? "marked" : "note"}>
-      <div className="flex items-center gap-4">
-        <span className="font-display text-[26px] text-ink">{p.label}</span>
-        <span className="math-lg text-ink">
-          <M tex={p.tex} />
-        </span>
-        <span className="rounded-full border border-secure-line bg-secure-soft px-3 py-1 text-[12.5px] font-medium text-ink" data-correct>
-          the group got it · {first(holder)} wrote it
-        </span>
-      </div>
+      <GroupHeader
+        session={session}
+        label={p.label}
+        tex={p.tex}
+        right={
+          <span className="rounded-full border border-secure-line bg-secure-soft px-3 py-1 text-[12.5px] font-medium text-ink" data-correct>
+            the group got it · {first(holder)} wrote it
+          </span>
+        }
+      />
 
       <div className={`mt-4 grid min-h-0 flex-1 gap-3 ${versions.length === 3 ? "grid-cols-3" : "grid-cols-2"}`} data-versions>
         {versions.map((v) => (
