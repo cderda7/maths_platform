@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { debriefPrompt, groupRework, HOLD_MS, holdOver, holdProgress, markedVersions, pendingDebrief } from "./debrief";
+import { debriefPrompt, groupRework, HOLD_MS, holdOver, holdProgress, markedVersions, matchesGroup, pendingDebrief } from "./debrief";
 import { beginRun } from "./groupReview";
 import { classroomReducer, INITIAL_CLASSROOM } from "./classroom";
 import { RECOGNITION, RECOGNITION_REWORK } from "@/data/recognition";
@@ -21,6 +21,19 @@ describe("the marked view", () => {
     expect(v[0].lines.map((l) => l.mark)).toEqual([null, "wrong", null]);
     expect(v[2].lines.some((l) => l.mark === "standout")).toBe(true); // "expanded first" is the Q3 standout
     expect(markedVersions("q1", { lines: RECOGNITION.q1, rework: [] }, RECOGNITION_REWORK.q1).map((x) => x.label)).toEqual(["Handed in", "Group's rework"]);
+  });
+  it("flags the student's own version when it is line for line the group's rework, never the group's column", () => {
+    const v = markedVersions("q1", { lines: RECOGNITION.q1, rework: RECOGNITION_REWORK.q1 }, RECOGNITION_REWORK.q1);
+    expect(v.map((x) => [x.label, x.matches])).toEqual([
+      ["Handed in", false],
+      ["Reworked", true],
+      ["Group's rework", false],
+    ]);
+    expect(markedVersions("q1", { lines: RECOGNITION_REWORK.q1, rework: [] }, RECOGNITION_REWORK.q1).map((x) => x.matches)).toEqual([true, false]);
+    expect(matchesGroup(["(x - 2)(x - 3) = 0", "x = 2 \\;\\text{or}\\;  x = 3"], RECOGNITION_REWORK.q1)).toBe(true); // whitespace aside
+    expect(matchesGroup([...RECOGNITION_REWORK.q1].reverse(), RECOGNITION_REWORK.q1)).toBe(false); // same lines, wrong order
+    expect(matchesGroup(RECOGNITION_REWORK.q1.slice(0, 1), RECOGNITION_REWORK.q1)).toBe(false); // a prefix is not a match
+    expect(matchesGroup([], [])).toBe(false); // nothing written matches nothing
   });
   it("the hold: twenty seconds from the marks opening", () => {
     expect(holdProgress(null, 5)).toBe(0);

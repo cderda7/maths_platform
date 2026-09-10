@@ -56,9 +56,14 @@ export default function GroupDebrief({ session, dispatch, run, problem }: { sess
 
       <div className={`mt-4 grid min-h-0 flex-1 gap-3 ${versions.length === 3 ? "grid-cols-3" : "grid-cols-2"}`} data-versions>
         {versions.map((v) => (
-          <section key={v.label} className={`flex min-h-0 flex-col overflow-y-auto rounded-2xl border p-4 ${v.label === "Group's rework" ? "border-standout-line bg-paper" : "border-line bg-paper"}`} data-version={v.label}>
+          <section
+            key={v.label}
+            className={`flex min-h-0 flex-col overflow-y-auto rounded-2xl border p-4 ${v.matches ? "border-secure-line bg-secure-soft" : v.label === "Group's rework" ? "border-standout-line bg-paper" : "border-line bg-paper"}`}
+            data-version={v.label}
+            data-matches={v.matches ? "" : undefined}
+          >
             <Eyebrow>{v.label}</Eyebrow>
-            <Lines lines={v.lines} marked={marked} />
+            <Lines lines={v.lines} marked={marked} onGreen={v.matches} />
           </section>
         ))}
       </div>
@@ -102,13 +107,14 @@ export default function GroupDebrief({ session, dispatch, run, problem }: { sess
   );
 }
 
-function Lines({ lines, marked }: { lines: { tex: string; mark: LineMark }[]; marked: boolean }) {
+/** The lines of one version; `onGreen` is the pane that matches the group's rework, where a plain line box sits on green rather than white. */
+function Lines({ lines, marked, onGreen }: { lines: { tex: string; mark: LineMark }[]; marked: boolean; onGreen: boolean }) {
   if (lines.length === 0) return <p className="mt-2 text-[12.5px] text-ink-muted">not attempted</p>;
   return (
     <ol className="mt-2 space-y-1.5">
       {lines.map((l, i) => {
         const mark = marked ? l.mark : null;
-        const tone = mark === "wrong" ? "border-wrong-line bg-wrong-soft" : mark === "standout" ? "border-standout-line bg-standout-soft" : "border-line bg-cream/40";
+        const tone = mark === "wrong" ? "border-wrong-line bg-wrong-soft" : mark === "standout" ? "border-standout-line bg-standout-soft" : onGreen ? "border-secure-line bg-paper/70" : "border-line bg-cream/40";
         const box = `rounded-xl border px-3 py-2 text-[14.5px] text-ink ${tone}`;
         const branches = branchesOf(l.tex);
         return branches.length === 2 ? (

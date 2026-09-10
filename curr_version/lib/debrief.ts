@@ -39,14 +39,21 @@ export const groupRework = (run: GroupRun, problem: string): Attempt | undefined
 export interface MarkedVersion {
   label: string;
   lines: { tex: string; mark: LineMark }[];
+  /** True on the student's own version when it is line for line what the group wrote; never on the group's own column. */
+  matches: boolean;
 }
+
+const normalise = (tex: string) => tex.replace(/\s+/g, " ").trim();
+
+/** A version matches the group's rework when it is the same lines in the same order, whitespace aside. */
+export const matchesGroup = (lines: string[], group: string[]): boolean => lines.length > 0 && lines.length === group.length && lines.every((tex, i) => normalise(tex) === normalise(group[i]));
 
 /** The annotated view: full red and blue marks on the student's own versions, blue standouts on the group's rework. */
 export function markedVersions(problem: string, own: { lines: string[]; rework: string[] }, group: string[]): MarkedVersion[] {
-  const mark = (label: string, lines: string[]): MarkedVersion => ({ label, lines: lines.map((tex, i) => ({ tex, mark: lineMarks(problem, lines)[i] })) });
-  const out = [mark("Handed in", own.lines)];
-  if (own.rework.length > 0) out.push(mark("Reworked", own.rework));
-  out.push(mark("Group's rework", group));
+  const mark = (label: string, lines: string[], matches: boolean): MarkedVersion => ({ label, lines: lines.map((tex, i) => ({ tex, mark: lineMarks(problem, lines)[i] })), matches });
+  const out = [mark("Handed in", own.lines, matchesGroup(own.lines, group))];
+  if (own.rework.length > 0) out.push(mark("Reworked", own.rework, matchesGroup(own.rework, group)));
+  out.push(mark("Group's rework", group, false));
   return out;
 }
 
