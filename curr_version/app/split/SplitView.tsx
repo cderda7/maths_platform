@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type RefObject } from "react";
 import Brand from "@/components/Brand";
 import { resetSession } from "@/lib/store";
-import { columnsFor, frameFor, PANES, parseLayout, parsePanes, rowHeight, serialisePanes, togglePane, type Layout, type Pane, type PaneId } from "@/lib/split";
+import { frameFor, PANES, parseLayout, parsePanes, placeFor, serialisePanes, togglePane, type Layout, type Pane, type PaneId } from "@/lib/split";
 
 const KEY = "edexia-demo-split";
 
@@ -70,17 +70,12 @@ function useSize(ref: RefObject<HTMLElement | null>) {
   return size;
 }
 
-/** The pane caption's height plus the section's borders, taken off a stacked row's budget. */
-const CAPTION = 28 + 2;
-
 /**
- * The student iPad, the teacher view and the board in one tab, a presenter page rather than a
- * product screen: the dashed toolbar picks which of the three to show and how to arrange them,
- * and each pane is the real route in an iframe, laid out at its design viewport and scaled to
- * fit. Stacked (the default) is one full-width row per pane, each as tall as its surface needs
- * and no taller than the window, the page scrolling through them; side by side is one
- * window-high column per pane. Same origin, so the demo stores keep the panes in step exactly as
- * they keep tabs.
+ * The student iPad, the teacher view and the board in one tab, fitted to the window, a presenter
+ * page rather than a product screen: the dashed toolbar picks which of the three to show and how
+ * to arrange them (`placeFor`), and each pane is the real route in an iframe, laid out at its
+ * design viewport and scaled to fit (`frameFor`). Same origin, so the demo stores keep the panes
+ * in step exactly as they keep tabs.
  */
 export default function SplitView({ init, explicit, initLayout }: { init: PaneId[]; explicit: boolean; initLayout: Layout }) {
   // A named URL is used as given until the first toggle; from then on, and for plain /split, the stored
@@ -96,10 +91,7 @@ export default function SplitView({ init, explicit, initLayout }: { init: PaneId
   };
   const panes = choice?.panes ?? [];
   const layout = choice?.layout ?? initLayout;
-  const stacked = layout === "stacked";
-  const columns = columnsFor(panes.length, layout);
-  const mainRef = useRef<HTMLElement>(null);
-  const main = useSize(mainRef);
+  const placement = placeFor(panes, layout);
   return (
     <div className="flex h-screen flex-col bg-cream" data-split>
       <header className="flex h-12 shrink-0 items-center justify-between border-b border-dashed border-line-strong bg-paper/80 px-4 backdrop-blur">
@@ -134,45 +126,38 @@ export default function SplitView({ init, explicit, initLayout }: { init: PaneId
         </div>
       </header>
       <main
-        ref={mainRef}
-        className={`grid min-h-0 flex-1 gap-3 p-3 ${stacked ? "content-start overflow-y-auto" : ""}`}
-        style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, gridAutoRows: stacked ? "max-content" : "minmax(0, 1fr)" }}
-        data-columns={columns}
+        className="grid min-h-0 flex-1 gap-3 p-3"
+        style={{ gridTemplateColumns: placement.columns, gridTemplateRows: `repeat(${placement.rows}, minmax(0, 1fr))` }}
         data-layout={layout}
       >
-        {PANES.filter((p) => panes.includes(p.id)).map((p) => (
-          <PaneFrame key={p.id} pane={p} height={stacked && main.width > 0 ? rowHeight(p.design, main.width, main.height - CAPTION) : undefined} />
+        {placement.cells.map((cell) => (
+          <PaneFrame key={cell.id} pane={PANES.find((p) => p.id === cell.id)!} area={cell.area} />
         ))}
       </main>
     </div>
   );
 }
 
-/**
- * One surface: a caption with a link to the route in its own tab, and the route in an iframe
- * scaled to the pane. With `height` (a stacked row) the frame area is that tall; without it the
- * section fills its grid cell.
- */
-function PaneFrame({ pane, height }: { pane: Pane; height?: number }) {
+/** One surface in its grid cell: a caption with a link to the route in its own tab, and the route in an iframe scaled to the pane. */
+function PaneFrame({ pane, area }: { pane: Pane; area: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const size = useSize(ref);
   const frame = frameFor(size, pane.design);
   return (
-    // A stacked row must keep its content height as its minimum, or the grid shares the window between the rows instead of scrolling.
-    <section className={`flex flex-col overflow-hidden rounded-xl border border-line bg-paper shadow-card ${height === undefined ? "min-h-0" : ""}`} data-pane={pane.id}>
+    <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-line bg-paper shadow-card" style={{ gridArea: area }} data-pane={pane.id}>
       <div className="flex h-7 shrink-0 items-center justify-between border-b border-line px-3 text-[11px] uppercase tracking-wide text-ink-muted select-none">
         <span>{pane.label}</span>
         <a href={pane.href} target="_blank" rel="noreferrer" className="normal-case tracking-normal hover:text-ink">
           Open in a tab ↗
         </a>
       </div>
-      <div ref={ref} className={`relative min-h-0 overflow-hidden bg-cream ${height === undefined ? "flex-1" : "shrink-0"}`} style={height === undefined ? undefined : { height }}>
+      <div ref={ref} className="relative min-h-0 flex-1 overflow-hidden bg-cream">
         {size.width > 0 && (
           <iframe
             title={pane.label}
             src={pane.href}
-            className="absolute left-0 top-0 origin-top-left border-0"
-            style={{ width: frame.width, height: frame.height, transform: `scale(${frame.scale})` }}
+            className="absolute origin-top-left border-0"
+            style={{ left: frame.left, top: frame.top, width: frame.width, height: frame.height, transform: `scale(${frame.scale})` }}
             data-scale={frame.scale.toFixed(3)}
           />
         )}

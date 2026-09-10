@@ -258,10 +258,11 @@ appends it here (see `CLAUDE.md`).
 
 - **Draggable dividers.** Side by side splits the window evenly. A drag handle between panes (and
   a remembered split) would let a presenter give the iPad most of the width.
-- **A fit-to-window stack.** Stacked rows are full size and scroll (chosen 2026-09-10 because a
-  narrow column made everything too small). A third mode that shrinks the rows to fit the window
-  without scrolling, or a "two over one" with the board across the bottom (the earlier stacked
-  layout), could return as an option if a presenter wants everything visible at once.
+- **Other fitted arrangements.** Stacked is fixed at student over teacher (3/5) with the board
+  down the right (2/5), fitted to the window (2026-09-10). Two earlier layouts were dropped and
+  could return as options: "two over one" with the board across the bottom, and a scrolling
+  stack of full-size rows (the iPad at true size). A ratio control for the column split would
+  cover a presenter who wants a bigger board.
 - **Scale override.** Panes scale to fit their design viewport. A per-pane "1:1" or a zoom
   slider would trade overview for legibility when one pane is the focus.
 - **Route per pane.** The teacher pane always opens on Class; the tabs inside it navigate. A
