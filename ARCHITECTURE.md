@@ -141,7 +141,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 29 | Mid-set isolated practice on the pad | `/student?stage=working` overlay | `2022a51` | [curr_version/architecture/29-isolated-practice-on-the-pad.md](curr_version/architecture/29-isolated-practice-on-the-pad.md) |
 | 30 | Hint words that light the problem | `/student?stage=practice`, `…=working` overlay | _this commit_ | [curr_version/architecture/30-hint-links.md](curr_version/architecture/30-hint-links.md) |
 | 31 | Practice sent to the fundamental skill; confidence for the teacher | `/student?stage=working` prompt | `18b97f0` | [curr_version/architecture/31-confidence-triggered-practice.md](curr_version/architecture/31-confidence-triggered-practice.md) |
-| 32 | Individual review with correction on one screen | `/student?stage=feedback` | _this commit_ | [curr_version/architecture/32-review-with-correction.md](curr_version/architecture/32-review-with-correction.md) |
+| 32 | Individual review with correction on one screen | `/student?stage=feedback` | `66fa851` | [curr_version/architecture/32-review-with-correction.md](curr_version/architecture/32-review-with-correction.md) |
+| 33 | Demo "skip to" strip | `/student` (presenter control) | _this commit_ | [curr_version/architecture/33-demo-skip-to.md](curr_version/architecture/33-demo-skip-to.md) |
 
 ## Conventions
 

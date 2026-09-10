@@ -23,6 +23,7 @@ import WaitingScreen from "./screens/WaitingScreen";
 import PeerScreen from "./screens/PeerScreen";
 import HistoryScreen from "./screens/HistoryScreen";
 import DiagnosticModal from "./screens/DiagnosticModal";
+import SkipTo from "@/components/SkipTo";
 
 const mmss = (ms: number) => {
   const s = Math.max(0, Math.ceil(ms / 1000));
@@ -111,6 +112,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
           <DiagnosticModal questionId={session.diagnostic.questionId} recorded={session.diagnostic.recorded} question={session.diagnostic.question} onAnswer={(option) => dispatch({ type: "diagnostic/answer", option })} />
         )}
       </StudentChrome>
+      <SkipTo />
     </IpadStage>
   );
 }
