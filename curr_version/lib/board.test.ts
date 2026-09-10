@@ -19,7 +19,7 @@ describe("what the board shows per stage", () => {
   });
 
   it("follows the demo's skips: blank through individual and group review, the board while projecting, holding once group review is over", () => {
-    const kinds = { start: "blank", "warm-up": "blank", working: "blank", "indiv review": "blank", "group review": "blank", "whole-class review": "whole-class", report: "holding" } as const;
+    const kinds = { start: "blank", "warm-up": "blank", working: "blank", "indiv review": "blank", "class wait": "blank", "group review": "blank", "whole-class review": "whole-class", report: "holding" } as const;
     for (const t of SKIP_TARGETS) {
       const { session, classroom } = skipFixture(t, now);
       expect(boardContent(classroom, session).kind, t).toBe(kinds[t]);
