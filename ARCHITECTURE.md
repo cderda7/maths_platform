@@ -28,7 +28,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │                                  ├▶ "Read as" column             │
  │                                  └▶ PromptModal · HelpPicker (this problem's moves) · PracticeOverlay = PracticePad (shared with the warm-up)
  │               ▶ Feedback = individual review (detective sentence · star · what you submitted · pad · guard · hand in) · Waiting│
- │               ▶ Frozen (own ink + lines on the board's problem; marks follow the board)  │
+ │               ▶ Frozen (versions beside a pad: teacher-ink mirror or write-with-me; marks follow the board)│
  │               ▶ GroupPass (all-correct) ▶ GroupDiscuss (no marks)│
  │               ▶ Report (teacher's colours + reflection → sent)   │
  │               ▶ Peers (mastery only: class struggles, counts)    │
@@ -142,7 +142,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 30 | Hint words that light the problem | `/student?stage=practice`, `…=working` overlay | _this commit_ | [curr_version/architecture/30-hint-links.md](curr_version/architecture/30-hint-links.md) |
 | 31 | Practice sent to the fundamental skill; confidence for the teacher | `/student?stage=working` prompt | `18b97f0` | [curr_version/architecture/31-confidence-triggered-practice.md](curr_version/architecture/31-confidence-triggered-practice.md) |
 | 32 | Individual review with correction on one screen | `/student?stage=feedback` | `66fa851` | [curr_version/architecture/32-review-with-correction.md](curr_version/architecture/32-review-with-correction.md) |
-| 33 | Demo "skip to" strip | `/student` (presenter control) | _this commit_ | [curr_version/architecture/33-demo-skip-to.md](curr_version/architecture/33-demo-skip-to.md) |
+| 33 | Demo "skip to" strip | `/student` (presenter control) | `d3bd7e0` | [curr_version/architecture/33-demo-skip-to.md](curr_version/architecture/33-demo-skip-to.md) |
+| 34 | Whole-class review: versions beside a pad, frozen or write-with-me | `/student` frozen, `/teacher/whole-class`, `/teacher/board` | _this commit_ | [curr_version/architecture/34-whole-class-follow-modes.md](curr_version/architecture/34-whole-class-follow-modes.md) |
 
 ## Conventions
 

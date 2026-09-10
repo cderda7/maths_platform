@@ -673,3 +673,28 @@ is gone; `?stage=feedback` shows the same run.
 
 **Defence.** One screen per review stage, matching the pathway model (individual · group ·
 whole-class); nothing downstream reads a stage name, only the rework version.
+
+## 2026-09-10 · Whole-class review: the mode is per problem, the teacher's ink rides the classroom store
+
+**Decision.** During whole-class review a student's pad is either a mirror of the teacher's
+writing ("screens frozen") or their own ("write with me"). The teacher picks one before
+projecting and can switch the current problem from the board; the choice is stored per
+projected problem. The teacher's strokes are classroom state, broadcast like every other
+classroom change; the student's write-along strokes are a session slice of their own, never a
+version and never marked.
+
+**Context.** The user wants two distinct classroom moves: everyone watches, or everyone copies.
+Both need the teacher's working in front of the student, and the second needs the student's
+pen live without that writing counting as work on the set.
+
+**Alternatives considered.** One mode for the whole session (the teacher cannot open a problem
+up for copying mid-review). The teacher's strokes in the student session (they belong to the
+class, not to one student). Recognising the student's write-along ink (it is a copy of the
+teacher's working, not evidence).
+
+**Tradeoffs.** Every teacher stroke broadcasts the whole classroom state; fine for a demo, a
+stroke channel later. The mirror is one-way: nothing a student does in frozen mode reaches
+anyone.
+
+**Defence.** Mode and ink live where their owner is (classroom for the teacher, session for the
+student), the per-problem switch is one action, and older stored sessions read as frozen.

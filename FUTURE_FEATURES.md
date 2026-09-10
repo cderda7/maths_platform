@@ -22,9 +22,10 @@ appends it here (see `CLAUDE.md`).
 
 ## Whole-class review
 
-- **"Follow along with me" rewrite mode.** Teacher says "class, write this down" and student
-  screens unfreeze into a guided pad that mirrors the board. Deferred 2026-09-09 so the absolute
-  freeze can be experienced first.
+- **"Follow along with me" rewrite mode.** Built 2026-09-10 (ticket 34) as "write with me": the
+  student's pad goes live to copy the teacher's working, switchable per problem from the board.
+  Still open: recognising or keeping that writing anywhere beyond the session, and a stroke
+  channel instead of broadcasting the whole classroom state per stroke.
 - **More views per problem slide.** v3 has two: unmarked, then marked (red and blue, no text).
   Deferred: an "examples hidden, predict first" view; the teacher's misconception note or the
   pattern clue shown under a red line; a correct/incorrect verdict badge per example.
@@ -239,3 +240,8 @@ appends it here (see `CLAUDE.md`).
 - **Review screen density.** With the pad and "Read as" beside the submitted lines (ticket 32), the
   review pane is three narrow columns on the iPad. If it gets cramped, collapse "What you
   submitted" to a toggle, or stack it over the pad in portrait.
+- **A third version for whole-class review.** The frozen screen lays out three versions at two
+  thirds of the width, but group review produces no version of its own today, so only "Handed
+  in" and "Reworked" ever appear. Decide whether group review writes a version.
+- **Marks on the frozen screen's split lines.** A two-case line now shows as two boxes there; a
+  red mark colours both. Decide whether a mark can point at one branch.

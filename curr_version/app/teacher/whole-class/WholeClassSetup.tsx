@@ -8,6 +8,7 @@ import { Button, Card, Eyebrow, H1 } from "@/components/ui";
 import { DifficultyTag, LeafChip } from "@/components/Tag";
 import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
 import { dispatchClassroom, useAssignment } from "@/lib/classroom-store";
+import { FOLLOW_MODE_WORD, type FollowMode } from "@/lib/classroom";
 import { candidatesFor, MAX_EXAMPLES, problemsByStruggle, suggestExamples, type Bucket, type ExampleRef } from "@/lib/examples";
 import { useBatchedSession } from "@/lib/store";
 
@@ -24,6 +25,7 @@ export default function WholeClassSetup() {
   const ranked = problemsByStruggle(session).filter((r) => problems.some((p) => p.id === r.problem.id));
   const [chosen, setChosen] = useState<string[] | null>(null);
   const [overrides, setOverrides] = useState<Record<string, ExampleRef[]>>({});
+  const [mode, setMode] = useState<FollowMode>("frozen");
   const chosenIds = chosen ?? ranked.slice(0, PRECHECK).map((r) => r.problem.id);
   const toggle = (id: string) => setChosen(chosenIds.includes(id) ? chosenIds.filter((x) => x !== id) : [...chosenIds, id]);
   const examplesFor = (pid: string) => overrides[pid] ?? suggestExamples(candidatesFor(pid, session));
@@ -37,7 +39,7 @@ export default function WholeClassSetup() {
 
   const project = () => {
     const examples = Object.fromEntries(ordered.map((id) => [id, examplesFor(id)]));
-    dispatchClassroom({ type: "wc/setup", problems: ordered, examples });
+    dispatchClassroom({ type: "wc/setup", problems: ordered, examples, mode });
     dispatchClassroom({ type: "wc/project" });
     router.push("/teacher/board");
   };
@@ -77,6 +79,27 @@ export default function WholeClassSetup() {
               );
             })}
           </ul>
+          <Eyebrow className="mt-6">Student screens</Eyebrow>
+          <div className="mt-2 space-y-1.5" data-mode-choice>
+            {(
+              [
+                { m: "frozen", detail: "their pad mirrors what you write on the board" },
+                { m: "write-with-me", detail: "their pad is live; they copy your working" },
+              ] as { m: FollowMode; detail: string }[]
+            ).map(({ m, detail }) => {
+              const on = mode === m;
+              return (
+                <button key={m} type="button" onClick={() => setMode(m)} aria-pressed={on} data-mode={m} className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left transition-colors ${on ? "border-ink bg-paper" : "border-line bg-paper hover:border-ink-muted"}`}>
+                  <span className={`grid h-4 w-4 shrink-0 place-items-center rounded-full border ${on ? "border-ink" : "border-line-strong"}`} aria-hidden>
+                    {on && <span className="h-2 w-2 rounded-full bg-ink" />}
+                  </span>
+                  <span className="text-[13.5px] font-medium text-ink">{FOLLOW_MODE_WORD[m]}</span>
+                  <span className="min-w-0 flex-1 text-[12px] text-ink-muted">{detail}</span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="mt-2 text-[12px] text-ink-muted">You can change this per problem from the board.</p>
           <div className="mt-5 flex justify-end">
             <Button size="lg" disabled={ordered.length === 0} onClick={project} data-project>
               Project

@@ -45,3 +45,17 @@ describe("the frozen student's view", () => {
     expect(v.versions).toEqual([]);
   });
 });
+
+describe("the pad beside the versions", () => {
+  it("carries the board's mode and the teacher's ink", async () => {
+    const { classroomReducer, INITIAL_CLASSROOM } = await import("./classroom");
+    const { frozenView } = await import("./frozen");
+    const { sessionAt } = await import("./session");
+    let c = classroomReducer(INITIAL_CLASSROOM, { type: "wc/setup", problems: ["q2"], examples: { q2: [] }, mode: "write-with-me" });
+    c = classroomReducer(c, { type: "wc/project", at: 0 });
+    c = classroomReducer(c, { type: "wc/stroke", problem: "q2", stroke: [{ x: 3, y: 4 }] });
+    const v = frozenView(sessionAt("frozen"), c)!;
+    expect(v.mode).toBe("write-with-me");
+    expect(v.teacherInk).toEqual([[{ x: 3, y: 4 }]]);
+  });
+});

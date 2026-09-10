@@ -115,6 +115,8 @@ export interface StudentSession {
   notice: string | null;
   /** Problems with no lines when the teacher handed in for the class. */
   notAttempted: string[];
+  /** What the student wrote along with the teacher during whole-class review, per problem. Never marked, never a version. */
+  followInk: Record<string, Stroke[]>;
   /** Ids of teacher advances this session has already applied, so tabs and reloads converge. */
   appliedAdvances: string[];
   /** A diagnostic the teacher has pushed and the student hasn't answered yet. A teacher-written question travels inline. */
@@ -168,6 +170,10 @@ export type SessionAction =
   /** Refused while the guard is tripped on any problem, unless `force` (a teacher advance). */
   | { type: "rework/done"; at?: number; force?: boolean }
   | { type: "notice/dismiss" }
+  /** Whole-class review, "write with me": the student's own pad. */
+  | { type: "follow/stroke"; problem: string; stroke: Stroke }
+  | { type: "follow/undo"; problem: string }
+  | { type: "follow/clear"; problem: string }
   /** Whole-class review: everyone is frozen on the board's problem; released to the report when it ends. */
   | { type: "freeze" }
   | { type: "release" }
@@ -211,6 +217,7 @@ export const INITIAL_SESSION: StudentSession = {
   reworkedAt: 0,
   notice: null,
   notAttempted: [],
+  followInk: {},
   appliedAdvances: [],
   diagnostic: null,
   diagnosticAnswers: [],
@@ -370,6 +377,12 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     }
     case "notice/dismiss":
       return { ...s, notice: null };
+    case "follow/stroke":
+      return { ...s, followInk: { ...s.followInk, [a.problem]: [...(s.followInk[a.problem] ?? []), roundStroke(a.stroke)] } };
+    case "follow/undo":
+      return { ...s, followInk: { ...s.followInk, [a.problem]: (s.followInk[a.problem] ?? []).slice(0, -1) } };
+    case "follow/clear":
+      return { ...s, followInk: { ...s.followInk, [a.problem]: [] } };
     case "freeze":
       return s.stage === "frozen" ? s : { ...s, stage: "frozen", prompt: null, overlay: null };
     case "release":

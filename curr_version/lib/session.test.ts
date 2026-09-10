@@ -498,6 +498,21 @@ describe("teacher force submit", () => {
   });
 });
 
+describe("writing along with the teacher", () => {
+  it("keeps the student's follow-along ink per problem, apart from every version, with undo and clear", () => {
+    let s = sessionAt("frozen");
+    s = sessionReducer(s, { type: "follow/stroke", problem: "q2", stroke: [{ x: 1.26, y: 2 }] });
+    s = sessionReducer(s, { type: "follow/stroke", problem: "q2", stroke: [{ x: 3, y: 4 }] });
+    expect(s.followInk.q2).toEqual([[{ x: 1.3, y: 2 }], [{ x: 3, y: 4 }]]);
+    expect(s.ink.q2).toEqual(sessionAt("frozen").ink.q2);
+    expect(s.reworkInk.q2).toEqual(sessionAt("frozen").reworkInk.q2);
+    s = sessionReducer(s, { type: "follow/undo", problem: "q2" });
+    expect(s.followInk.q2).toHaveLength(1);
+    s = sessionReducer(s, { type: "follow/clear", problem: "q2" });
+    expect(s.followInk.q2).toEqual([]);
+  });
+});
+
 describe("whole-class freeze", () => {
   it("freezes wherever the student is, dismissing prompts, and releases to the report", () => {
     let s = sessionAt("working");

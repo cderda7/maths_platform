@@ -12,6 +12,7 @@ export default function PadSection({
   onPenDown,
   onUndo,
   onClear,
+  readOnly = false,
 }: {
   title?: string;
   strokes: Stroke[];
@@ -20,22 +21,26 @@ export default function PadSection({
   onPenDown: () => void;
   onUndo: () => void;
   onClear: () => void;
+  /** A mirror: no toolbar, no input. */
+  readOnly?: boolean;
 }) {
   return (
-    <section className="flex min-h-0 flex-col px-6 py-6">
+    <section className="flex h-full min-h-0 flex-1 flex-col px-6 py-6">
       <div className="flex items-center justify-between">
         <Eyebrow>{title}</Eyebrow>
-        <div className="flex gap-1.5">
-          <Button variant="ghost" onClick={onUndo} disabled={strokes.length === 0}>
-            Undo
-          </Button>
-          <Button variant="ghost" onClick={onClear} disabled={strokes.length === 0}>
-            Clear
-          </Button>
-        </div>
+        {!readOnly && (
+          <div className="flex gap-1.5">
+            <Button variant="ghost" onClick={onUndo} disabled={strokes.length === 0}>
+              Undo
+            </Button>
+            <Button variant="ghost" onClick={onClear} disabled={strokes.length === 0}>
+              Clear
+            </Button>
+          </div>
+        )}
       </div>
       <div className="mt-3 min-h-0 flex-1 overflow-hidden rounded-2xl border border-line bg-paper shadow-card">
-        <DrawPad strokes={strokes} onStrokesChange={onStrokesChange} onBurstEnd={onBurstEnd} onPenDown={onPenDown} />
+        <DrawPad strokes={strokes} onStrokesChange={onStrokesChange} onBurstEnd={onBurstEnd} onPenDown={onPenDown} readOnly={readOnly} />
       </div>
     </section>
   );

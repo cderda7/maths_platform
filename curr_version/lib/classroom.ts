@@ -1,4 +1,4 @@
-import type { Pathway } from "@/data/types";
+import type { Pathway, Stroke } from "@/data/types";
 import type { ExampleRef } from "./examples";
 import { DEFAULT_PATHWAY } from "./pathway";
 
@@ -34,12 +34,19 @@ export const STALE_MS = 60_000;
 
 /** The whole-class review session: chosen problems, chosen examples, and where the board is. */
 export type BoardView = "unmarked" | "marked";
+/** What a student's pad does during whole-class review: mirror the teacher's writing, or take the student's own. */
+export type FollowMode = "frozen" | "write-with-me";
+export const FOLLOW_MODE_WORD: Record<FollowMode, string> = { frozen: "screens frozen", "write-with-me": "write with me" };
 export interface WholeClassSession {
   problems: string[];
   examples: Record<string, ExampleRef[]>;
   slide: number;
   view: BoardView;
   status: "setup" | "active" | "ended";
+  /** The mode per projected problem, seeded from the setup choice; the board can change one at a time. */
+  modes: Record<string, FollowMode>;
+  /** The teacher's writing per problem, mirrored onto frozen students' pads. */
+  ink: Record<string, Stroke[]>;
 }
 
 export interface ClassroomState {
@@ -52,7 +59,13 @@ export type ClassroomAction =
   | { type: "assignment/create"; title: string; problemIds: string[]; pathway: Pathway; unit?: 1 | 2 | 3 | 4; at?: number }
   | { type: "advance/start"; kind: AdvanceKind; at?: number }
   | { type: "advance/clear" }
-  | { type: "wc/setup"; problems: string[]; examples: Record<string, ExampleRef[]> }
+  | { type: "wc/setup"; problems: string[]; examples: Record<string, ExampleRef[]>; mode?: FollowMode }
+  /** Switch one projected problem's mode from the board. */
+  | { type: "wc/mode"; problem: string; mode: FollowMode }
+  /** The teacher's pad on the board. */
+  | { type: "wc/stroke"; problem: string; stroke: Stroke }
+  | { type: "wc/ink-undo"; problem: string }
+  | { type: "wc/ink-clear"; problem: string }
   /** Activates the session and starts the whole-class-start grace in one step, so no tab can see one without the other. */
   | { type: "wc/project"; at?: number }
   | { type: "wc/next" }
@@ -73,8 +86,24 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
     }
     case "advance/clear":
       return { ...c, advance: null };
-    case "wc/setup":
-      return { ...c, wholeClass: { problems: [...a.problems], examples: a.examples, slide: 0, view: "unmarked", status: "setup" } };
+    case "wc/setup": {
+      const mode = a.mode ?? "frozen";
+      return { ...c, wholeClass: { problems: [...a.problems], examples: a.examples, slide: 0, view: "unmarked", status: "setup", modes: Object.fromEntries(a.problems.map((id) => [id, mode])), ink: {} } };
+    }
+    case "wc/mode":
+      return c.wholeClass ? { ...c, wholeClass: { ...c.wholeClass, modes: { ...(c.wholeClass.modes ?? {}), [a.problem]: a.mode } } } : c;
+    case "wc/stroke": {
+      const w = c.wholeClass;
+      if (!w) return c;
+      return { ...c, wholeClass: { ...w, ink: { ...(w.ink ?? {}), [a.problem]: [...(w.ink?.[a.problem] ?? []), a.stroke] } } };
+    }
+    case "wc/ink-undo": {
+      const w = c.wholeClass;
+      if (!w) return c;
+      return { ...c, wholeClass: { ...w, ink: { ...(w.ink ?? {}), [a.problem]: (w.ink?.[a.problem] ?? []).slice(0, -1) } } };
+    }
+    case "wc/ink-clear":
+      return c.wholeClass ? { ...c, wholeClass: { ...c.wholeClass, ink: { ...(c.wholeClass.ink ?? {}), [a.problem]: [] } } } : c;
     case "wc/project": {
       if (!c.wholeClass) return c;
       const at = a.at ?? 0;
@@ -104,11 +133,12 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
 
 export const isProjecting = (c: ClassroomState | null | undefined) => c?.wholeClass?.status === "active";
 /** The problem id on the board right now, if projecting. */
-export function currentSlide(c: ClassroomState | null | undefined): { problemId: string; view: BoardView; index: number; total: number } | null {
+export function currentSlide(c: ClassroomState | null | undefined): { problemId: string; view: BoardView; index: number; total: number; mode: FollowMode; teacherInk: Stroke[] } | null {
   const w = c?.wholeClass;
   if (!w || w.status !== "active") return null;
   const problemId = w.problems[w.slide];
-  return problemId ? { problemId, view: w.view, index: w.slide, total: w.problems.length } : null;
+  // Older stored sessions have no modes or ink: frozen, nothing written.
+  return problemId ? { problemId, view: w.view, index: w.slide, total: w.problems.length, mode: w.modes?.[problemId] ?? "frozen", teacherInk: w.ink?.[problemId] ?? [] } : null;
 }
 
 /** True while an advance is counting down. */

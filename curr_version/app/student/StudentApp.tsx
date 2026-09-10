@@ -84,7 +84,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
         {session.stage === "working" && <WorkingScreen session={session} dispatch={dispatch} />}
         {session.stage === "feedback" && <FeedbackScreen session={session} dispatch={dispatch} />}
         {session.stage === "waiting" && <WaitingScreen />}
-        {session.stage === "frozen" && <FrozenScreen session={session} />}
+        {session.stage === "frozen" && <FrozenScreen session={session} dispatch={dispatch} />}
         {session.stage === "group-pass" && <GroupPassScreen session={session} dispatch={dispatch} />}
         {session.stage === "group-discuss" && <GroupDiscussScreen session={session} dispatch={dispatch} />}
         {session.stage === "report" && <ReportScreen session={session} dispatch={dispatch} />}

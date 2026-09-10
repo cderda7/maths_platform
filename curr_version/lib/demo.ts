@@ -43,7 +43,7 @@ export function skipFixture(target: SkipTarget, now: number): { session: Student
         .map((r) => r.problem.id);
       const ordered = ASSIGNMENT.problems.map((p) => p.id).filter((id) => problems.includes(id));
       const examples = Object.fromEntries(ordered.map((id) => [id, suggestExamples(candidatesFor(id, session))]));
-      classroom = classroomReducer(classroom, { type: "wc/setup", problems: ordered, examples });
+      classroom = classroomReducer(classroom, { type: "wc/setup", problems: ordered, examples, mode: "frozen" });
       classroom = classroomReducer(classroom, { type: "wc/project", at: now - GRACE_MS - 1000 });
       return { session, classroom };
     }

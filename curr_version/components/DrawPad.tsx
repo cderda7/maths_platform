@@ -20,12 +20,15 @@ export default function DrawPad({
   onStrokesChange,
   onBurstEnd,
   onPenDown,
+  readOnly = false,
   className = "",
 }: {
   strokes: Stroke[];
   onStrokesChange: (next: Stroke[]) => void;
   onBurstEnd: (strokeCount: number) => void;
   onPenDown?: () => void;
+  /** Draws `strokes` and ignores the pointer: a mirror of someone else's writing. */
+  readOnly?: boolean;
   className?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -73,6 +76,7 @@ export default function DrawPad({
   };
 
   const onPointerDown = (e: React.PointerEvent) => {
+    if (readOnly) return;
     if (e.button !== 0 && e.pointerType === "mouse") return;
     e.currentTarget.setPointerCapture(e.pointerId);
     clearIdle();
