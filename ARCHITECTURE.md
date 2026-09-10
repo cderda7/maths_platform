@@ -187,6 +187,7 @@ data static under `data/`. The Sept 7 mockup was removed on 10 Sep 2026 (ticket 
 | 59 | Class view: "see dot skills" beside a name opens the row's full breakdown, every group open to its skills | `/teacher` grid | — | [architecture/59-row-see-dot-skills-full-breakdown.md](architecture/59-row-see-dot-skills-full-breakdown.md) |
 | 60 | Repo flatten: the app is the repo root, the Sept 7 mockup deleted | — | — | [architecture/60-repo-flatten.md](architecture/60-repo-flatten.md) |
 | 61 | Teacher side: the arrow cursor everywhere, never the hand | `/teacher/**` | — | [architecture/61-teacher-arrow-cursor.md](architecture/61-teacher-arrow-cursor.md) |
+| 62 | Mistakes view: students side by side, one click opens every student's work in columns | `/teacher/mistakes` | — | [architecture/62-mistakes-side-by-side.md](architecture/62-mistakes-side-by-side.md) |
 
 ## Conventions
 

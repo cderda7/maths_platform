@@ -621,3 +621,14 @@ appends it here (see `CLAUDE.md`).
 - **A tall row on a small screen.** With every group open a row's drill runs to ~14 skills across
   six columns; on a laptop the class list below it moves a long way. A "collapse all" chip in
   the drill, or remembering which groups the teacher closed, would ease that.
+
+## Mistakes view: students side by side (from ticket 62, 2026-09-11)
+
+- **Marking the clicked student.** One click opens every column of a problem; the tile the teacher
+  clicked is not distinguished from the others. A ring or a scroll-into-view on the clicked column
+  would help on a problem with more students than fit across the screen.
+- **Wide problems scroll sideways.** Columns are at least 230px, so a problem with eight or more
+  students scrolls horizontally inside its card; a wrap into a second row of columns, or narrower
+  columns with smaller maths, is a possible alternative once real class sizes are known.
+- **Two-line working in a column.** A long line (a surd answer, a quadratic-formula step) is wider
+  than a 230px column at 17px and wraps inside its card; no fixture line does today.
