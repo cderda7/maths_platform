@@ -650,3 +650,30 @@ appends it here (see `CLAUDE.md`).
 - **No keyboard path to "close all".** The button is reachable by Tab (focus-within shows it), but
   the armed state is cleared on mouse leave only; a keyboard-only teacher never sees "close all".
 - **Open questions are not remembered across a reload** or a visit to the compare view and back.
+
+## Help chat (from ticket 69, 2026-09-11)
+
+- **The two ways in as tappable choices.** The tutor asks "which one makes more sense to you?" in
+  prose; a structured reply could render the two ways as buttons under the bubble so a tap answers.
+  Deferred: the user asked for a conversation, and buttons would turn the question back into a menu.
+- **A tutor's opening turn from the model.** The opener is fixed copy ("What's got you stuck?") so
+  opening the chat costs nothing; a model-written opener could lay out the two ways before the
+  student types. Deferred: it would speak before knowing what the student is stuck on.
+- **The chat on the set's problems.** Only the practice pad has the chat; "I need help" on a problem
+  in the set still goes to the skill picker and isolated practice. The brief would need the set
+  problem's solution steps and the marked lines. Deferred until the practice-pad chat has been used.
+- **Teacher's-eye view of the chats.** The lines are on the run per problem, so a teacher page could
+  show what each student asked and where the tutor sent them; nothing reads them yet.
+- **Ink read live into the chat.** The tutor sees the lines as read at the moment the student sends;
+  a line written while a reply streams is only seen on the next turn.
+- **A partial reply on a dropped connection is thrown away** and the bubble says "I lost that one";
+  keeping the partial text would need a marker that it was cut short.
+- **Ways in on the three single-way problems** (fractions, null factor law, conclusions) are left
+  empty on purpose; the tutor is told there is one way. If a teacher wants a second framing there
+  (e.g. "undo the division" vs "multiply both sides"), it is one more fixture line.
+- **Prompt caching and effort tuning.** The brief is short enough that caching likely never kicks in;
+  effort is the API default. Worth measuring once real transcripts exist.
+- **No rate limit or abuse guard on the route.** Anyone who can reach the app can spend on the key;
+  fine for a demo on a laptop, not for a deployment.
+- **The chat is not cleared by "Reset demo"?** It is: the run is part of the session, which the
+  reset drops. Noted so nobody adds a second reset.

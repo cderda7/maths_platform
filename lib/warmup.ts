@@ -1,4 +1,4 @@
-import type { PracticeProblem, Problem } from "@/data/types";
+import type { ChatMessage, PracticeProblem, Problem } from "@/data/types";
 import { ASSIGNMENT } from "@/data/assignment";
 import { isolatable, PRACTICE, PRACTICES } from "@/data/practice";
 import { groupOf, studentLeafName, type LeafId } from "@/data/taxonomy";
@@ -11,10 +11,7 @@ import { problemLeaves } from "./hierarchy";
  * easiest first. Pure, so every rule is unit-tested and the screens only render.
  */
 
-export interface WarmupMessage {
-  from: "student" | "tutor";
-  text: string;
-}
+export type WarmupMessage = ChatMessage;
 
 /** A skill as the chat says it: the student-facing name, lowercase, as the confidence list shows it. */
 const skillWord = (l: LeafId) => studentLeafName(l).name.toLowerCase();

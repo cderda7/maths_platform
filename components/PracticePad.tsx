@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import HelpChat from "@/components/HelpChat";
 import HintCard from "@/components/HintCard";
 import M from "@/components/Math";
 import type { HintTerm, PracticeProblem, Stroke } from "@/data/types";
@@ -17,9 +18,10 @@ import { Scrim } from "@/app/student/screens/PracticePrompt";
 
 /**
  * Practice on the pad, for the warm-up and the mid-set isolated practice alike: the working
- * screen's own layout with one unmarked problem. "I need help" offers a hint, a worked example or a
- * video. The worked example plays where the pad was; once it is complete a follow-up opens beside
- * it, the example staying in view on the left. `header` sits above the problem (the warm-up's chip
+ * screen's own layout with one unmarked problem. "I need help" offers a hint, a worked example, a
+ * video or a chat. The worked example plays where the pad was; once it is complete a follow-up opens
+ * beside it, the example staying in view on the left. The chat takes the right column in place of
+ * the read-back until closed. `header` sits above the problem (the warm-up's chip
  * strip, the overlay's skill name); `footer` is the right column's buttons; `finished` is the
  * button after a worked example with no follow-up left.
  */
@@ -48,8 +50,10 @@ export default function PracticePad({
   const strokes = run.ink[p.id] ?? [];
   const [recognising, setRecognising] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const hinted = run.hinted.includes(p.id);
   const exampled = run.exampled.includes(p.id);
+  const chat = run.chat[p.id] ?? [];
   /** The hint word under the pointer; lights its fragments of the problem while it stays there. */
   const [lit, setLit] = useState<HintTerm | null>(null);
   const litTerm = hinted ? p.hintTerms?.find((t) => t.phrase === lit?.phrase) : undefined;
@@ -128,7 +132,11 @@ export default function PracticePad({
       )}
 
       <aside className="flex min-h-0 flex-col border-l border-line px-6 py-6">
-        <ReadAs lines={lines} recognising={recognising} empty="Lines appear here as you write." className="flex-1" />
+        {chatOpen ? (
+          <HelpChat key={p.id} problem={p} lines={lines.map((l) => l.tex)} messages={chat} runKey={runKey} dispatch={dispatch} onClose={() => setChatOpen(false)} />
+        ) : (
+          <ReadAs lines={lines} recognising={recognising} empty="Lines appear here as you write." className="flex-1" />
+        )}
         <div className="mt-4 flex items-center justify-end gap-2 border-t border-line pt-4">{footer}</div>
       </aside>
 
@@ -136,6 +144,11 @@ export default function PracticePad({
         <HelpMenu
           hinted={hinted}
           exampled={exampled}
+          chatted={chat.length > 0}
+          onChat={() => {
+            setHelpOpen(false);
+            setChatOpen(true);
+          }}
           onHint={() => {
             setHelpOpen(false);
             dispatch({ type: "run/hint", run: runKey });
@@ -151,12 +164,29 @@ export default function PracticePad({
   );
 }
 
-/** "I need help" on the pad: pick how much help. The video is listed so the shape is visible; it goes nowhere yet. */
-function HelpMenu({ hinted, exampled, onHint, onExample, onClose }: { hinted: boolean; exampled: boolean; onHint: () => void; onExample: () => void; onClose: () => void }) {
+/** "I need help" on the pad: pick how much help. The video is listed so the shape is visible; it goes nowhere yet. The chat can always be reopened. */
+function HelpMenu({
+  hinted,
+  exampled,
+  chatted,
+  onHint,
+  onExample,
+  onChat,
+  onClose,
+}: {
+  hinted: boolean;
+  exampled: boolean;
+  chatted: boolean;
+  onHint: () => void;
+  onExample: () => void;
+  onChat: () => void;
+  onClose: () => void;
+}) {
   const options: { key: string; title: string; onPick?: () => void; note?: string }[] = [
     { key: "hint", title: "hint", onPick: hinted ? undefined : onHint, note: hinted ? "Shown" : undefined },
     { key: "example", title: "worked example", onPick: exampled ? undefined : onExample, note: exampled ? "Seen" : undefined },
     { key: "video", title: "video", note: "Not available yet" },
+    { key: "chat", title: "chat", onPick: onChat, note: chatted ? "Continue →" : "Open →" },
   ];
   const row = "relative block w-full rounded-xl border border-line bg-paper px-4 py-3 text-center";
   return (

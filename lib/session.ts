@@ -1,4 +1,4 @@
-import type { Confidence, Pathway, Stage, Stroke } from "@/data/types";
+import type { ChatMessage, Confidence, Pathway, Stage, Stroke } from "@/data/types";
 import { groupOf, type LeafId } from "@/data/taxonomy";
 import { PRACTICES } from "@/data/practice";
 import { byEase, concernsAnswered, focusLeaves, practiceFor, warmupSequence, type WarmupMessage } from "./warmup";
@@ -50,9 +50,11 @@ export interface PracticeRun {
   /** Recognised lines and the ink behind them, per practice problem id. */
   lines: Record<string, RevealedLine[]>;
   ink: Record<string, Stroke[]>;
+  /** The help chat per practice problem id, oldest first; the tutor's fixed opener is not stored. */
+  chat: Record<string, ChatMessage[]>;
 }
 
-export const INITIAL_RUN: PracticeRun = { problem: "first", example: false, exampleShown: 0, hinted: [], exampled: [], lines: {}, ink: {} };
+export const INITIAL_RUN: PracticeRun = { problem: "first", example: false, exampleShown: 0, hinted: [], exampled: [], lines: {}, ink: {}, chat: {} };
 
 /** Which run an action is about: the warm-up before the set, or the isolated practice over it. */
 export type RunKey = "warmup" | "overlay";
@@ -148,6 +150,8 @@ export type SessionAction =
   | { type: "run/example-step"; run: RunKey }
   /** After the first problem's worked example: the follow-up, with that example still in view. */
   | { type: "run/next"; run: RunKey }
+  /** The help menu's "chat": one line of it, the student's or the tutor's, on the problem it was said on (a reply can land after a move to the follow-up). */
+  | { type: "run/chat"; run: RunKey; problem: string; message: ChatMessage }
   /** The current skill is finished: on to the next not yet done (wrapping round), or the set once every skill is. */
   | { type: "warmup/skill-done" }
   /** A tap on a skill chip: that step of the sequence, done or not. */
@@ -300,7 +304,8 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     case "run/hint":
     case "run/example":
     case "run/example-step":
-    case "run/next": {
+    case "run/next":
+    case "run/chat": {
       const run = runOf(s, a.run);
       const first = runFirst(s, a.run);
       if (!first) return s;
@@ -516,6 +521,11 @@ function runReducer(r: PracticeRun, a: RunAction, first: { id: string; steps: un
     case "run/next":
       if (r.problem !== "first" || !first.followUp || !r.exampled.includes(first.id)) return r;
       return { ...r, problem: "second", example: false, exampleShown: 0 };
+    case "run/chat": {
+      const text = a.message.text.trim();
+      if (!text) return r;
+      return { ...r, chat: { ...r.chat, [a.problem]: [...(r.chat[a.problem] ?? []), { from: a.message.from, text }] } };
+    }
   }
 }
 

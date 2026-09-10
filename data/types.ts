@@ -112,6 +112,22 @@ export interface HintTerm {
   insert?: { before: string; tex: string };
 }
 
+/** One line of a chat between the student and the tutor: the warm-up's concerns chat and the help chat on the pad. */
+export interface ChatMessage {
+  from: "student" | "tutor";
+  text: string;
+}
+
+/**
+ * One way into a practice problem, for the help chat: the name a student would know it by and
+ * a one-sentence hint that names the move without carrying it out. A problem with two or more
+ * is one the chat offers a choice on ("which makes more sense to you?").
+ */
+export interface Approach {
+  name: string;
+  hint: string;
+}
+
 /** A short isolated problem on one leaf: the pre-set warm-up and the mid-set practices. */
 export interface PracticeProblem {
   id: string;
@@ -128,6 +144,12 @@ export interface PracticeProblem {
    * Warm-up only; the mid-set practice card shows the hint plain.
    */
   hintTerms?: HintTerm[];
+  /**
+   * The ways in a student at this stage could sensibly take, for the help chat. Two or more and
+   * the chat lays them out and asks which makes more sense; none, and there is one way, which
+   * the hint already names.
+   */
+  approaches?: Approach[];
   /** A fresh problem on the same leaf, offered once this one's worked example has been seen. */
   followUp?: PracticeProblem;
 }

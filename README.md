@@ -28,6 +28,12 @@ npm run lint && npx tsc --noEmit && npm run build
 npx next start -p 3121 & npm run check:laptop   # every teacher route at 1440×900 and 1280×800, fails on horizontal overflow
 ```
 
+The help chat on the practice pad ("I need help" → chat, ticket 69) is the one thing that leaves the
+browser: `POST /api/help-chat` streams a reply from Claude through the Anthropic SDK. Put an
+`ANTHROPIC_API_KEY=…` in `.env.local` (gitignored) before `npm run dev` or `next start` to connect
+it; without one the route answers 503 and the tutor's bubble says the chat isn't connected on this
+device. Everything else in the demo still runs offline.
+
 Open **/** and pick a side. Use tabs of the same browser: the student iPad in one, the teacher in
 another, the board in a third when projecting. Or open **/split** to see any one, two or all
 three of them in one tab, fitted to the window (toggles in the dashed toolbar; stacked, the

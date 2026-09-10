@@ -1085,3 +1085,58 @@ Recovering the mockup means a checkout of an old commit rather than a folder ope
 **Defence.** The repo is one Next app and now looks like one: `npm ci`, `npm run dev` and every
 path in every doc work from the root, worktrees are plain checkouts, and rename detection keeps
 `git log --follow` intact for every moved file.
+
+## 2026-09-11 · The help chat is the one live model call; the ways in are fixture data, the rules are the prompt
+
+**Decision.** The "chat" option under "I need help" on the practice pad talks to a real model:
+`POST /api/help-chat` (a Next route handler) streams `claude-opus-5` through the Anthropic SDK,
+with the server-side refusal fallback on, and the pad reads plain-text chunks. The tutor's brief is
+built server-side in `lib/helpChat.ts` from the problem id the pad sends: the problem, its skill, the
+reference working, the pad's hint, the lines read so far, and a per-problem list of **ways in**
+(`PracticeProblem.approaches`) written into `data/practice.ts` by hand. The rules that make it a
+hint chat (never the answer or the next line; where two ways in exist, lay out two and ask which
+makes more sense, then stay on that one; the smallest next nudge; two or three sentences) live in
+the prompt text and are pinned by tests. The chat's lines are session state on the run
+(`PracticeRun.chat`, per problem id) through the same reducer as everything else; the tutor's opener
+is fixed app copy and is not stored. With no credentials on the server the route answers 503 and
+the pad says the chat is not connected; nothing else in the demo depends on the network.
+
+**Context.** Everything else in the demo is simulated from fixtures (recognition is scripted,
+evaluation is a lookup table). The user asked for a chat "where the student can just talk in natural
+language", hint-oriented, and for problems with several approaches "at least expose the student to
+the 2 possible options at that stage & ask 'which hint makes more sense to you?' & then continue
+down that path". A scripted chat cannot do the first; the second is the part most worth making
+reliable.
+
+**Alternatives considered.**
+- *A scripted chat like the warm-up's concerns chat.* Keeps the demo offline, but the student's
+  words would only be pattern-matched; "talk in natural language & resolve their issues" is exactly
+  what a script cannot do.
+- *Call the API from the browser.* No server code, but the key would ship to every iPad; the SDK
+  refuses this by default for that reason.
+- *Let the model invent the approaches every time.* Simpler data, but the choice of two ways is
+  the feature; hand-written ways in per problem make it dependable and reviewable by a teacher, and
+  the prompt still lets the model add ways it knows.
+- *A first model turn when the chat opens.* Would let the tutor open with the two ways straight
+  away, but costs a call per open and speaks before it knows what the student is stuck on. The fixed
+  opener asks; the ways come in the first reply.
+- *Structured output (a JSON of approaches, a chosen approach id).* Would let the pad render the two
+  ways as buttons. Deferred to FUTURE_FEATURES: the user asked for a conversation, and buttons would
+  turn "which makes more sense to you?" back into a menu.
+- *A modal chat over the pad.* Blocks writing; the right column keeps the pad in reach and the
+  tutor reads the lines anyway.
+
+**Tradeoffs.** The demo now has one network dependency and one secret to configure (documented in
+the README; `.env*` is gitignored). Replies cost money and take seconds; the pad streams so the
+first words arrive quickly. The rules are prose in a prompt, so they are enforced by the model, not
+by code; the tests pin the prompt's wording, not the model's behaviour, and the real conversation
+was not exercised in this ticket (no credentials on the build machine). The problem is looked up
+server-side from its id, so the route cannot be fed an arbitrary problem, but a student who edits
+the request can still send any transcript; the brief keeps the tutor on the problem regardless.
+
+**Defense.** The user's ask is a conversation, so a model is the right tool, and one narrow route
+that receives an id and returns text is the smallest honest way to add it. Keeping the brief, the
+ways in and the transcript mapping pure and tested means the tutor's rules are readable in one file
+and change without touching the route or the UI. Storing the chat on the run through the reducer
+gives reload, reopen and a future teacher's-eye view for free. Failing to a clear 503 keeps the
+offline demo intact on any laptop without a key.

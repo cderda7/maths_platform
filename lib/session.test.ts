@@ -183,6 +183,28 @@ describe("the warm-up on the pad", () => {
     expect(s.warmup.hinted).toEqual(["w-monic", "w-monic-2"]);
   });
 
+  it("the help chat is kept per problem, oldest first, blank lines dropped, and a reply lands on the problem it was asked on", () => {
+    let s = sessionReducer(start, { type: "run/chat", run: "warmup", problem: "w-monic", message: { from: "student", text: "  where do I start?  " } });
+    expect(s.warmup.chat).toEqual({ "w-monic": [{ from: "student", text: "where do I start?" }] });
+    expect(sessionReducer(s, { type: "run/chat", run: "warmup", problem: "w-monic", message: { from: "student", text: "   " } })).toBe(s);
+    s = sessionReducer(s, { type: "run/example", run: "warmup" });
+    for (let i = 0; i < 4; i++) s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
+    s = sessionReducer(s, { type: "run/next", run: "warmup" });
+    // The reply to the first problem arrives after the move to the follow-up: it stays with the first.
+    s = sessionReducer(s, { type: "run/chat", run: "warmup", problem: "w-monic", message: { from: "tutor", text: "Two ways in…" } });
+    s = sessionReducer(s, { type: "run/chat", run: "warmup", problem: "w-monic-2", message: { from: "student", text: "same again?" } });
+    expect(s.warmup.chat["w-monic"].map((m) => m.from)).toEqual(["student", "tutor"]);
+    expect(s.warmup.chat["w-monic-2"]).toEqual([{ from: "student", text: "same again?" }]);
+    expect(s.lines).toEqual({});
+  });
+
+  it("a snapshot saved before the chat existed hydrates with an empty chat on both runs", () => {
+    const without = (run: object) => Object.fromEntries(Object.entries(run).filter(([k]) => k !== "chat"));
+    const old = hydrateSession({ ...start, warmup: without(start.warmup), overlayRun: without(start.overlayRun) });
+    expect(old.warmup.chat).toEqual({});
+    expect(old.overlayRun.chat).toEqual({});
+  });
+
   it("the worked example reveals one step at a time, and only its completion unlocks the follow-up", () => {
     expect(sessionReducer(start, { type: "run/next", run: "warmup" })).toBe(start);
     let s = sessionReducer(start, { type: "run/example", run: "warmup" });

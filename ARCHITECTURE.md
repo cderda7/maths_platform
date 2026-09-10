@@ -2,8 +2,9 @@
 
 Running architecture record for the closed-loop demo. One row per completed ticket, in build
 order (01–16 spec v2, 17–25 spec v3); per-ticket detail lives in `architecture/<nn>-<slug>.md`. Paths below are
-relative to the repo root. Next.js 16 App Router, React 19, Tailwind 4, KaTeX; no backend, all
-data static under `data/`. The Sept 7 mockup was removed on 10 Sep 2026 (ticket 60).
+relative to the repo root. Next.js 16 App Router, React 19, Tailwind 4, KaTeX; no backend beyond
+the one route the help chat streams through (`/api/help-chat`, ticket 69), all data static under
+`data/`. The Sept 7 mockup was removed on 10 Sep 2026 (ticket 60).
 
 ## System diagram
 
@@ -22,7 +23,8 @@ data static under `data/`. The Sept 7 mockup was removed on 10 Sep 2026 (ticket 
  │            └▶ screens/            │               └──────────────┬───────────────────┘
  │               Overview ▶ Confidence│                              │ reads every 3 s
  │               ▶ WarmupChat (the ticked skills → one concern question each → answers → focus → warmupSequence, easiest first)│
- │               ▶ Practice (pad · skill buttons: dark once on or through, tap opens · HelpMenu: hint · worked example · video · follow-up split pane)│
+ │               ▶ Practice (pad · skill buttons: dark once on or through, tap opens · HelpMenu: hint · worked example · video · chat · follow-up split pane)│
+ │                   HelpChat (ticket 69): the right column while open · lines said → run.chat · POST /api/help-chat streams claude-opus-5 (lib/helpChat.ts brief: hints only, two ways in, "which makes more sense?")│
  │                   HintCard: linked hint words light the expression (termTex) — practices only│
  │               ▶ Working ─▶ DrawPad (canvas ink)                  │
  │                                  ├▶ "Read as" column             │
@@ -65,6 +67,8 @@ data static under `data/`. The Sept 7 mockup was removed on 10 Sep 2026 (ticket 
  │ lib/session.ts      StudentSession · sessionReducer(s, a, env) · sessionAt (pure)   │
  │ lib/recognition.ts  nextLine · afterUndo  (burst of strokes → scripted line)        │
  │ lib/hint.ts         hintSegments · findFragment · termTex (\htmlClass wraps, no layout change)│
+ │ lib/helpChat.ts     findPractice · parseHelpChatRequest · helpChatSystem (the tutor's brief) · helpChatMessages · chatSegments│
+ │   app/api/help-chat/route.ts  the one live model call: Anthropic SDK stream → text/plain; 503 with no credentials│
  │   session.ink / reworkInk: strokes per problem, popped with lines on undo/clear      │
  │ lib/evaluate.ts     evaluateLine(problem, tex) → ok | wrong | unclear               │
  │ lib/escalation.ts   recordMistake · requestHelp → { trigger, cautioned }            │
@@ -194,6 +198,7 @@ data static under `data/`. The Sept 7 mockup was removed on 10 Sep 2026 (ticket 
 | 66 | Mistakes view: more room between the student's name and the slip pill | `/teacher/mistakes` | 64 | [architecture/66-mistakes-pill-spacing.md](architecture/66-mistakes-pill-spacing.md) |
 | 67 | Mistakes view: the slip pill starts under the avatar, not the name | `/teacher/mistakes` | 66 | [architecture/67-mistakes-pill-avatar.md](architecture/67-mistakes-pill-avatar.md) |
 | 68 | Teacher side: the bar never rides the rubber-band; the window stops scrolling and only the content region does | `/teacher/**` | 65 | [architecture/68-teacher-fixed-header-frame.md](architecture/68-teacher-fixed-header-frame.md) |
+| 69 | Help chat: a fourth option under "I need help", a tutor that only hints and offers a choice of ways in | `/student?stage=practice`, the practice overlay, `POST /api/help-chat` | — | [architecture/69-help-chat.md](architecture/69-help-chat.md) |
 
 ## Conventions
 
