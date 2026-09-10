@@ -4,15 +4,19 @@ import M from "@/components/Math";
 import PadSection from "@/components/PadSection";
 import { Eyebrow } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
+import type { Stroke } from "@/data/types";
 import { boardContent, type BoardContent } from "@/lib/board";
-import { useClassroom } from "@/lib/classroom-store";
+import { FOLLOW_MODE_WORD, type FollowMode } from "@/lib/classroom";
+import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { lineMarks } from "@/lib/examples";
 import { useLiveSession, useNow } from "@/lib/store";
 import Leaderboard from "./Leaderboard";
 
 /**
  * The smartboard: opened once at the start of the lesson and left on the projector. Display
- * only: no button, no link, no pad that takes the pen. What it shows per stage is `boardContent`;
+ * only, except in whole-class review, where the teacher stands at the board: the working pad
+ * takes the pen there (mirrored to frozen students and to the laptop) and a toggle switches the
+ * students' screens between frozen and write with me. What it shows per stage is `boardContent`;
  * this file only draws it. Nothing here names a student or shows a difficulty.
  */
 export default function SmartBoard() {
@@ -65,20 +69,38 @@ function Race({ content }: { content: Extract<BoardContent, { kind: "group" | "h
   );
 }
 
-/** One projected problem: the statement, 2–3 anonymous examples, and a mirror of the teacher's working. */
+/**
+ * One projected problem: the statement, 2–3 anonymous examples, and the teacher's working. The
+ * pad is live: the teacher writes on the smartboard and every frozen student's pad shows the same
+ * strokes (`wc/stroke`, the same action the laptop sends). The toggle in the header sets the
+ * students' mode for this problem.
+ */
 function Slide({ content }: { content: Extract<BoardContent, { kind: "whole-class" }> }) {
-  const { problem: p, examples, view, teacherInk, index, total } = content;
+  const { problem: p, examples, view, teacherInk, mode, index } = content;
+  const pid = p.id;
+  const addStroke = (next: Stroke[]) => dispatchClassroom({ type: "wc/stroke", problem: pid, stroke: next[next.length - 1] });
   return (
     <>
       <header className="flex items-center justify-between px-10 py-6" data-slide={index} data-view={view}>
-        <div className="flex items-baseline gap-5">
+        <div className="flex items-center gap-5">
           <span className="font-display text-[34px] text-ink">{p.label}</span>
-          <span className="text-[15px] text-ink-muted" data-position>
-            problem {index + 1} of {total}
+          <span className="math-lg text-[30px] text-ink">
+            <M tex={p.tex} />
           </span>
         </div>
-        <div className="math-lg text-[30px] text-ink">
-          <M tex={p.tex} />
+        <div className="flex items-center rounded-full border border-line bg-paper p-1" role="group" aria-label="Student screens" data-mode-toggle>
+          {(["frozen", "write-with-me"] as FollowMode[]).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => dispatchClassroom({ type: "wc/mode", problem: pid, mode: m })}
+              aria-pressed={mode === m}
+              data-mode={m}
+              className={`rounded-full px-5 py-2 text-[16px] transition-colors ${mode === m ? "bg-ink text-white" : "text-ink-soft hover:text-ink"}`}
+            >
+              {FOLLOW_MODE_WORD[m]}
+            </button>
+          ))}
         </div>
       </header>
       <p className="px-10 text-[20px] text-ink-soft">{p.stem}</p>
@@ -113,8 +135,8 @@ function Slide({ content }: { content: Extract<BoardContent, { kind: "whole-clas
             );
           })}
         </div>
-        <section className="flex min-h-0 flex-col rounded-3xl border border-line bg-paper shadow-card" data-teacher-mirror>
-          <PadSection title={`${ASSIGNMENT.teacher}'s working`} strokes={teacherInk} onStrokesChange={() => undefined} onBurstEnd={() => undefined} onPenDown={() => undefined} onUndo={() => undefined} onClear={() => undefined} readOnly />
+        <section className="flex min-h-0 flex-col rounded-3xl border border-line bg-paper shadow-card" data-teacher-pad data-mode={mode}>
+          <PadSection title={`${ASSIGNMENT.teacher}'s working`} strokes={teacherInk} onStrokesChange={addStroke} onBurstEnd={() => undefined} onPenDown={() => undefined} onUndo={() => dispatchClassroom({ type: "wc/ink-undo", problem: pid })} onClear={() => dispatchClassroom({ type: "wc/ink-clear", problem: pid })} />
         </section>
       </main>
     </>

@@ -56,6 +56,7 @@ describe("what the board shows per stage", () => {
     expect(first.total).toBe(2);
     expect(first.view).toBe("unmarked");
     expect(first.teacherInk).toEqual([]);
+    expect(first.mode).toBe("frozen");
     expect(first.examples.length).toBeGreaterThanOrEqual(2);
     for (const e of first.examples) {
       expect(e.letter).toMatch(/^[ABC]$/);
@@ -72,9 +73,16 @@ describe("what the board shows per stage", () => {
     expect(marked.teacherInk).toEqual([[{ x: 1, y: 2 }]]);
     expect(boardWord(marked)).toBe(`${first.problem.label} · 1 of 2 · marks`);
 
+    // The board's toggle: the same action the laptop sends, per problem.
+    classroom = classroomReducer(classroom, { type: "wc/mode", problem: first.problem.id, mode: "write-with-me" });
+    const writing = boardContent(classroom, session);
+    if (writing.kind !== "whole-class") throw new Error("expected the board");
+    expect(writing.mode).toBe("write-with-me");
+
     classroom = classroomReducer(classroom, { type: "wc/next" });
     const second = boardContent(classroom, session);
     if (second.kind !== "whole-class") throw new Error("expected the board");
+    expect(second.mode).toBe("frozen");
     expect(second.index).toBe(1);
     expect(second.problem.id).toBe(classroom.wholeClass!.problems[1]);
     expect(second.view).toBe("unmarked");

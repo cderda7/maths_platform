@@ -1,7 +1,7 @@
 import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
 import type { Problem, Stage, Stroke } from "@/data/types";
 import { activeAssignment } from "./assignment";
-import { currentSlide, pathwayOf, type BoardView, type ClassroomState } from "./classroom";
+import { currentSlide, pathwayOf, type BoardView, type ClassroomState, type FollowMode } from "./classroom";
 import { boardExamples, type BoardExample } from "./examples";
 import { nextStage } from "./pathway";
 import type { StudentSession } from "./session";
@@ -9,8 +9,9 @@ import { leaderboardAt, type RankedStanding } from "./standings";
 
 /**
  * What the smartboard shows. The board is the third surface: opened once at the start of the
- * lesson, left on the projector, never touched. It reads the classroom state and the pathway and
- * decides per stage; nothing on it is a control, and nothing on it names a student.
+ * lesson and left on the projector. It reads the classroom state and the pathway and decides per
+ * stage; nothing on it names a student. Its only controls are in whole-class review, where the
+ * teacher is standing at it: the working pad and the frozen / write-with-me toggle.
  *
  *  - `blank` while students work and through individual review: the class and the assignment
  *    title, so a projector that is on doesn't read as broken, and nothing else. Also after
@@ -20,8 +21,8 @@ import { leaderboardAt, type RankedStanding } from "./standings";
  *  - `holding` once group review is over and the teacher has not advanced: the same standings,
  *    final, held on the wall until the teacher projects or ends.
  *  - `whole-class` while the teacher is projecting: the current problem, its anonymous examples
- *    with "n/m students" (marks only in the marked view) and a read-only mirror of the teacher's
- *    working.
+ *    with "n/m students" (marks only in the marked view), the teacher's working (a pad the
+ *    teacher writes on at the board, or a mirror of the laptop's) and the students' mode.
  *
  * The run on the classroom is the class's clock for group review; the demo student's session
  * still says when their group review is over (the pathway's next stage), which is the holding
@@ -47,6 +48,8 @@ export type BoardContent =
       view: BoardView;
       examples: BoardExample[];
       teacherInk: Stroke[];
+      /** What the students' screens are doing: mirroring `teacherInk`, or writing along. */
+      mode: FollowMode;
     } & Lesson);
 
 /** Stages a student can only be in once their group review is behind them (or the whole lesson is). */
@@ -67,7 +70,7 @@ export function boardContent(c: ClassroomState | null | undefined, session: Stud
   if (slide) {
     const problem = PROBLEM_MAP[slide.problemId];
     const refs = c?.wholeClass?.examples[slide.problemId] ?? [];
-    return { kind: "whole-class", ...lesson, problem, index: slide.index, total: slide.total, view: slide.view, examples: boardExamples(refs, slide.problemId, session), teacherInk: slide.teacherInk };
+    return { kind: "whole-class", ...lesson, problem, index: slide.index, total: slide.total, view: slide.view, examples: boardExamples(refs, slide.problemId, session), teacherInk: slide.teacherInk, mode: slide.mode };
   }
   if (c?.wholeClass?.status === "ended") return { kind: "blank", ...lesson };
   if (c?.group && !c.group.done) return { kind: "group", ...lesson, standings: leaderboardAt(c, session, now) };

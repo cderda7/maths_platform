@@ -42,9 +42,6 @@ export default function FrozenScreen({ session, dispatch }: { session: StudentSe
             <span className="math-lg text-ink">
               <M tex={v.problem.tex} />
             </span>
-            <span className="text-[13px] text-ink-muted">
-              {v.index + 1} of {v.total}
-            </span>
           </div>
           <div className={`mt-3 grid min-h-0 flex-1 gap-4 ${v.versions.length >= 3 ? "grid-cols-[2fr_1fr]" : "grid-cols-2"}`} data-split={v.versions.length >= 3 ? "2/3" : "1/2"}>
             {v.attempted ? (

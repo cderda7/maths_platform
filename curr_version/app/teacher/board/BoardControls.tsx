@@ -17,8 +17,9 @@ import { useBatchedSession } from "@/lib/store";
  * The teacher's side of whole-class review, on the laptop: the controls and the pad, nothing
  * projected. The examples are on the smartboard (`/board`); this page says which problem is up
  * and what the board is showing, takes the teacher's writing (mirrored to frozen students and
- * to the board), and steps the session: previous · screens frozen / write with me · marks · End ·
- * next.
+ * to the board, and the board's own writing shows here), and steps the session: previous ·
+ * screens frozen / write with me · marks · End · next. Where the slide sits in the set is on the
+ * board indicator above.
  */
 export default function BoardControls() {
   const router = useRouter();
@@ -72,9 +73,6 @@ export default function BoardControls() {
             <M tex={p.tex} />
           </span>
           <span className="min-w-0 flex-1 truncate text-[14px] text-ink-soft">{p.stem}</span>
-          <span className="shrink-0 text-[13.5px] text-ink-muted" data-position>
-            problem {slide.index + 1} of {slide.total}
-          </span>
         </Card>
 
         <Card className="flex h-[560px] min-h-0 flex-col" data-teacher-pad>

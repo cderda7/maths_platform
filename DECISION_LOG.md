@@ -991,3 +991,34 @@ tested to the character and can change without migrating stored sessions; the re
 screen, decides when the warm-up starts, so a reload mid-chat resumes at the right question; and
 the pad's buttons cannot disagree with what the student has done because they read the record of
 it. The removed page took a component (`ProblemCard`'s selection) and two actions with it.
+
+## 2026-09-10 · The smartboard takes the pen in whole-class review; it stays a reader of the same classroom actions
+
+**Decision.** In whole-class review the board's working pane is a live pad, and the board's
+header carries the students' screens frozen / write with me toggle. The board dispatches the
+exact classroom actions the laptop does (`wc/stroke`, `wc/ink-undo`, `wc/ink-clear`, `wc/mode`)
+into the one classroom store; nothing about how students or the laptop read the ink changes.
+The board remains display-only in every other stage, and previous / next / marks / End stay on
+the laptop.
+
+**Context.** The teacher stands at the board while reviewing with the class. The pane on the
+wall was a mirror of the laptop's pad, so writing meant walking back to the laptop, and so did
+changing the students' mode. The user asked for drawing on the board to project to frozen
+students, and for the mode toggle on the board.
+
+**Alternatives considered.** A separate `boardInk` beside the laptop's, composed on read: two
+arrays to undo and clear, and the laptop would show a mirror of the board's writing beside its
+own pad, which is not what a teacher expects from "my working". Moving every control to the
+board: the wall would then show "Show marks" and "End" to the class. Making the board the only
+writer and the laptop the mirror: a teacher seated at the laptop (ticket 38's original case)
+loses the pen.
+
+**Tradeoffs.** Two surfaces append to one stroke list, so Undo on either removes the last stroke
+regardless of which surface drew it (logged as a future feature). The board's doc comment and
+`lib/board.ts` had promised "nothing on it is a control"; that promise is now scoped to the
+stages outside whole-class review. `BoardContent` grows a `mode` field so the board can render
+the pressed pill.
+
+**Defence.** One store, one set of actions, one reducer: the board became an input surface by
+adding four dispatch calls and no new state, so every existing test of the ink and the mode
+covers the board's writing too, and the student's mirror cannot disagree with the wall.

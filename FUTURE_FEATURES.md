@@ -537,3 +537,20 @@ appends it here (see `CLAUDE.md`).
   with 6 px vertical padding, `the group got it · you wrote it` 12.5 px with 4 px, so the right
   edge of the header changes height by 3 px across the check. One chip style for the slot would
   remove the last flicker there.
+
+## Whole-class review: writing on the smartboard (from ticket 54, 2026-09-10)
+
+- **Two writers, one ink.** The board and the laptop both append to the same stroke array, so a
+  teacher writing on the board while a colleague writes on the laptop interleave, and Undo on
+  either surface removes the last stroke whoever drew it. Fine for one teacher with a pen in one
+  hand; a per-surface undo (strokes tagged with their origin) was not built.
+- **Board-sized toolbar.** Undo and Clear on the board reuse `PadSection`'s ghost buttons at the
+  laptop's size, small for a wall. A larger toolbar variant for the board (and a pen colour or
+  thickness for the projector) is deferred until the board is tried on a real smartboard.
+- **The rest of the controls on the board.** Only the pad and the mode toggle moved to the board;
+  previous / next, show marks and End stay on the laptop so the wall shows nothing the class
+  need not see. If teaching from the board sticks, a small strip of those four could join the
+  header.
+- **Position text.** "1 of 2" was removed from the student screen, the board and the laptop's
+  problem card; it lives on only in the teacher's board indicator ("Q2 · 1 of 2"). A quiet dot
+  strip on the board (one dot per projected problem) would say where the class is without words.
