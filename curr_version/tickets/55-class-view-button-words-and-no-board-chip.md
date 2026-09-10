@@ -23,6 +23,7 @@ Three screenshots from the user (2026-09-10): the "Board · blank" chip under th
 - [x] No "Board · …" chip on `/teacher` or `/teacher/board`; the component is gone
 - [x] Header hover: "see skills" / "full breakdown" (a two-layer category: "see skills" only)
 - [x] see skills open: "close" / "full breakdown"; full breakdown open: "close" alone; close clears the column
+- [x] Follow-up: the lone "close" is as tall as the two-button stack it stands in for (same top and height)
 - [x] Column open: hovering the drill row under a name shows "see dot skills" / "student report"
 - [x] Row open (by the button or a dot): the button reads "close" and closes the row
 - [x] vitest, eslint, tsc, `next build`; headless-Chrome click-through on port 3131; architecture note and root docs

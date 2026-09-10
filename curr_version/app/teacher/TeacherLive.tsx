@@ -31,9 +31,11 @@ const DOUBLE_MS = 350;
 const LABEL = "pointer-events-none absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink-muted";
 
 /** The stacked pair of small buttons beside a student's name and over a column header: light blue, dark indigo text, one width. */
-const STACK_BUTTON = "block w-[96px] rounded-md px-2 py-[3px] text-[11px] font-medium leading-snug transition-colors";
+const STACK_BUTTON = "w-[96px] rounded-md px-2 py-[3px] text-[11px] font-medium leading-snug transition-colors";
 const STACK_IDLE = `${STACK_BUTTON} bg-standout-soft text-accent-deep hover:bg-standout-line`;
 const STACK_ACTIVE = `${STACK_BUTTON} bg-accent text-white hover:bg-accent-deep`;
+/** The lone "close" over an open full breakdown: as tall as the two-button stack it stands in for (two 11 px × 1.375 lines with 3 px above and below, and the 4 px gap). */
+const STACK_TALL = `${STACK_ACTIVE} grid h-[calc(2*(1.375*11px_+_6px)_+_4px)] place-items-center`;
 
 function confidenceWord(c: Confidence | null): { text: string; tone: string } {
   const text = confidenceLabel(c);
@@ -196,8 +198,9 @@ export default function TeacherLive() {
                 {columns.map((c) => {
                   const openHere = column?.category === c;
                   const all: { level: "groups" | "expanded"; word: string }[] = isFlat(c) ? [{ level: "groups", word: "see skills" }] : [{ level: "groups", word: "see skills" }, { level: "expanded", word: "full breakdown" }];
-                  // The full breakdown open: one button, "close".
-                  const levels = openHere && column.level === "expanded" ? all.filter((l) => l.level === "expanded") : all;
+                  // The full breakdown open: one button, "close", filling the stack's height.
+                  const tall = openHere && column.level === "expanded";
+                  const levels = tall ? all.filter((l) => l.level === "expanded") : all;
                   return (
                     <th key={c} className={`group/head relative select-none px-1 py-4 text-center font-semibold leading-tight ${openHere ? "text-ink" : ""}`} data-column={c} data-column-open={openHere ? column.level : undefined}>
                       <span className="relative inline-block">
@@ -210,7 +213,7 @@ export default function TeacherLive() {
                                 type="button"
                                 key={level}
                                 onClick={() => setColumnLevel(c, level)}
-                                className={`${active ? STACK_ACTIVE : STACK_IDLE} shadow-sm`}
+                                className={`${active ? (tall ? STACK_TALL : STACK_ACTIVE) : STACK_IDLE} shadow-sm`}
                                 data-expand={c}
                                 data-level={level}
                                 aria-pressed={active}
