@@ -26,6 +26,36 @@ export interface ProblemMistakes {
   rows: MistakeRow[];
 }
 
+/** Students who slipped on the same leaves, adjacent, so the view can draw one pill across them. */
+export interface SlipGroup {
+  slips: LeafId[];
+  /** Index of the group's first student in the ordered rows. */
+  start: number;
+  rows: MistakeRow[];
+}
+
+/**
+ * Orders a problem's students so those who slipped on the same leaves sit next to each other
+ * (groups in order of first appearance, students in their original order within a group) and
+ * returns the groups; the flat order is the groups' rows concatenated.
+ */
+export function groupBySlip(rows: MistakeRow[]): SlipGroup[] {
+  const groups: SlipGroup[] = [];
+  for (const r of rows) {
+    const slips = [...new Set(r.slips)];
+    const key = slips.join("|");
+    const g = groups.find((x) => x.slips.join("|") === key);
+    if (g) g.rows.push(r);
+    else groups.push({ slips, start: 0, rows: [r] });
+  }
+  let start = 0;
+  for (const g of groups) {
+    g.start = start;
+    start += g.rows.length;
+  }
+  return groups;
+}
+
 const evaluateAll = (pid: string, texs: string[]) => texs.map((tex) => ({ tex, verdict: evaluateLine(pid, tex) }));
 const slipsOf = (lines: { verdict: Verdict }[]) => lines.flatMap((l) => (l.verdict.verdict === "wrong" ? [l.verdict.tags[0].leaf] : []));
 

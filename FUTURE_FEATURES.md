@@ -632,3 +632,12 @@ appends it here (see `CLAUDE.md`).
   columns with smaller maths, is a possible alternative once real class sizes are known.
 - **Two-line working in a column.** A long line (a surd answer, a quadratic-formula step) is wider
   than a 230px column at 17px and wraps inside its card; no fixture line does today.
+
+## Mistakes view: shared pills (from ticket 63, 2026-09-11)
+
+- **The student count is gone from the problem header.** A teacher scanning for the worst problem
+  now counts columns; a small count beside the difficulty tag, or ordering the problems by how
+  many slipped, would give that back if it is missed.
+- **A student with two different slips on one problem** gets their own group and pill pair. No
+  fixture student does today; if it happens the pills sit side by side in the cell, which may need
+  a stacked layout.
