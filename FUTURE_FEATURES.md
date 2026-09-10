@@ -641,3 +641,12 @@ appends it here (see `CLAUDE.md`).
 - **A student with two different slips on one problem** gets their own group and pill pair. No
   fixture student does today; if it happens the pills sit side by side in the cell, which may need
   a stacked layout.
+
+## Mistakes view: expand / close / close all (from ticket 64, 2026-09-11)
+
+- **"close all" only while something else is open.** Closing the only open question goes straight
+  back to "expand" rather than offering a dead "close all". If the teacher expects the word to
+  appear every time, it could show disabled instead.
+- **No keyboard path to "close all".** The button is reachable by Tab (focus-within shows it), but
+  the armed state is cleared on mouse leave only; a keyboard-only teacher never sees "close all".
+- **Open questions are not remembered across a reload** or a visit to the compare view and back.

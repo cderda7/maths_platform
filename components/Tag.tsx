@@ -27,10 +27,10 @@ export function LeafChip({ id, status, after, student = false, className = "", .
   );
 }
 
-/** The step a student got wrong, named by its leaf: a white pill with a dark red border, under the student's name on the teacher's mistakes view. */
+/** The step a student got wrong, named by its leaf: a light red pill with a dark red border, under the student's name on the teacher's mistakes view. */
 export function SlipChip({ id, className = "", ...rest }: { id: LeafId; className?: string } & React.HTMLAttributes<HTMLSpanElement>) {
   return (
-    <span className={`inline-flex items-center rounded-full border border-wrong-deep bg-white px-2.5 py-0.5 text-[11.5px] font-medium text-wrong-deep ${className}`} data-slip={id} {...rest}>
+    <span className={`inline-flex items-center rounded-full border border-wrong-deep bg-wrong-soft px-3.5 py-1 text-[17px] font-medium text-wrong-deep ${className}`} data-slip={id} {...rest}>
       {leafName(id).short}
     </span>
   );

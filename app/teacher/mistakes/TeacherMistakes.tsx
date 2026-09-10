@@ -11,16 +11,32 @@ import { groupBySlip, mistakesByProblem } from "@/lib/mistakes";
 import { useBatchedSession } from "@/lib/store";
 import { useAssignment } from "@/lib/classroom-store";
 
+// The same button as the class view's row actions ("see dot skills" / "close").
+const ACTION = "w-[96px] rounded-md px-2 py-[3px] text-[11px] font-medium leading-snug transition-colors";
+const ACTION_IDLE = `${ACTION} bg-standout-soft text-accent-deep hover:bg-standout-line`;
+const ACTION_ACTIVE = `${ACTION} bg-accent text-white hover:bg-accent-deep`;
+
 /**
  * Mistakes by problem. Under each problem the students who slipped sit side by side, those who
- * slipped on the same step next to each other under one pill that spans them. Clicking any
- * student opens every student's working for that problem at once, a column each, the wrong
- * line in red.
+ * slipped on the same step next to each other under one pill that spans them. Any number of
+ * problems can be open at once: clicking the problem's header, any student, or the "expand"
+ * button that shows on hover opens every student's working for that problem in columns, the
+ * wrong line in red. An open problem carries a "close" button; once pressed, the button reads
+ * "close all" (while other problems are still open) until the pointer leaves the card.
  */
 export default function TeacherMistakes() {
   const { session } = useBatchedSession(3000);
   const problems = mistakesByProblem(session);
-  const [open, setOpen] = useState<string | null>(null);
+  const [open, setOpen] = useState<string[]>([]);
+  /** The problem just closed by hand: its button offers "close all" until the pointer leaves it. */
+  const [armed, setArmed] = useState<string | null>(null);
+
+  const show = (id: string) => setOpen((o) => (o.includes(id) ? o : [...o, id]));
+  const hide = (id: string) => {
+    setOpen((o) => o.filter((x) => x !== id));
+    setArmed(id);
+  };
+  const toggle = (id: string) => (open.includes(id) ? hide(id) : show(id));
 
   return (
     <TeacherChrome>
@@ -31,18 +47,51 @@ export default function TeacherMistakes() {
 
       <div className="mt-10 space-y-6">
         {problems.map(({ problem, rows }) => {
-          const isOpen = open === problem.id;
+          const isOpen = open.includes(problem.id);
+          const othersOpen = open.some((id) => id !== problem.id);
           const groups = groupBySlip(rows);
           const ordered = groups.flatMap((g) => g.rows);
           const column = (i: number) => (i === 0 ? "" : "border-l border-line");
+          // Hover shows "expand"; open shows "close" until pressed; just closed shows "close all" while others are open.
+          const action: { word: "expand" | "close" | "close all"; cls: string; visible: boolean } = isOpen
+            ? { word: "close", cls: ACTION_ACTIVE, visible: true }
+            : armed === problem.id && othersOpen
+              ? { word: "close all", cls: ACTION_ACTIVE, visible: true }
+              : { word: "expand", cls: ACTION_IDLE, visible: false };
+          const act = () => {
+            if (action.word === "close all") {
+              setOpen([]);
+              setArmed(null);
+            } else toggle(problem.id);
+          };
           return (
-            <Card key={problem.id} className="overflow-hidden" data-problem={problem.id} data-open={isOpen || undefined}>
-              <div className="flex items-center justify-between gap-4 border-b border-line px-6 py-4">
+            <Card
+              key={problem.id}
+              className="group/q overflow-hidden"
+              data-problem={problem.id}
+              data-open={isOpen || undefined}
+              onMouseLeave={() => armed === problem.id && setArmed(null)}
+            >
+              <div className="flex items-center justify-between gap-4 border-b border-line px-6 py-4" onClick={() => toggle(problem.id)} data-problem-header={problem.id}>
                 <div className="flex items-center gap-4">
                   <span className="font-display text-[24px] text-ink">{problem.label}</span>
                   <span className="math-lg text-ink">
                     <M tex={problem.tex} />
                   </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // A mouse click leaves focus on the button, which would keep it visible after the pointer leaves; keyboard activation (detail 0) keeps it.
+                      if (e.detail) e.currentTarget.blur();
+                      act();
+                    }}
+                    className={`${action.cls} ${action.visible ? "" : "invisible group-hover/q:visible group-focus-within/q:visible"}`}
+                    aria-expanded={isOpen}
+                    data-problem-action={problem.id}
+                  >
+                    {action.word}
+                  </button>
                 </div>
                 <DifficultyTag d={problem.difficulty} />
               </div>
@@ -54,7 +103,7 @@ export default function TeacherMistakes() {
                       <button
                         key={r.id}
                         type="button"
-                        onClick={() => setOpen(isOpen ? null : problem.id)}
+                        onClick={() => toggle(problem.id)}
                         aria-expanded={isOpen}
                         className={`row-start-1 flex min-w-0 items-center gap-3 px-5 pt-4 pb-1.5 text-left transition-colors hover:bg-cream-deep/40 ${column(i)} ${isOpen ? "bg-accent-soft/30" : ""}`}
                         style={{ gridColumn: i + 1 }}
