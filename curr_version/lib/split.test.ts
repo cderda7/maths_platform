@@ -193,14 +193,22 @@ describe("frameFor", () => {
     expect(f.width).toBe(2880);
     expect(f.height).toBe(1620);
   });
+  it("the teacher pane is a 1280 × 800 laptop: a short pane shrinks it, a big pane is filled at scale 1", () => {
+    const teacher = design("teacher");
+    expect(teacher).toEqual({ width: 1280, height: 800, fit: "fill" });
+    // The stacked layout's default: half a laptop-high window, the laptop at half scale across the pane.
+    expect(frameFor({ width: 1900, height: 400 }, teacher)).toEqual({ scale: 0.5, width: 3800, height: 800, left: 0, top: 0 });
+    // A pane at least the laptop's size takes the teacher at full size, nothing letterboxed.
+    expect(frameFor({ width: 1900, height: 1000 }, teacher)).toEqual({ scale: 1, width: 1900, height: 1000, left: 0, top: 0 });
+  });
   it("is safe before the pane has been measured", () => {
     expect(frameFor({ width: 0, height: 0 }, fill)).toEqual({ scale: 1, width: 0, height: 0, left: 0, top: 0 });
   });
   it("the student pane fills, at the stage's own width and height, so the device lands at scale 1 inside", () => {
     expect(design("student")).toEqual({ width: DEVICE_W + STAGE_MARGIN, height: DEVICE_H + STAGE_MARGIN, fit: "fill" });
   });
-  it("the teacher view, which scrolls, is the one surface without a design height; the board is the one letterboxed", () => {
-    expect(PANES.filter((p) => !p.design.height).map((p) => p.id)).toEqual(["teacher"]);
+  it("every surface has a design height, so a short pane shrinks it rather than cropping it; the board is the one letterboxed", () => {
+    expect(PANES.filter((p) => !p.design.height).map((p) => p.id)).toEqual([]);
     expect(PANES.filter((p) => p.design.fit === "letterbox").map((p) => p.id)).toEqual(["board"]);
     expect(PANES.map((p) => p.href)).toEqual(["/student", "/teacher", "/board"]);
   });
