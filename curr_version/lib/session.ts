@@ -1,7 +1,7 @@
 import type { Confidence, Pathway, Stage, Stroke } from "@/data/types";
 import { groupOf, type LeafId } from "@/data/taxonomy";
 import { PRACTICES } from "@/data/practice";
-import { byEase, focusLeaves, practiceFor, tutorReply, warmupSequence, type WarmupMessage } from "./warmup";
+import { byEase, concernsAnswered, focusLeaves, practiceFor, warmupSequence, type WarmupMessage } from "./warmup";
 import type { DebriefNote, DebriefPrompt } from "./debrief";
 import type { AdvanceKind } from "./classroom";
 import type { Diagnostic } from "@/data/diagnostic";
@@ -57,17 +57,17 @@ export const INITIAL_RUN: PracticeRun = { problem: "first", example: false, exam
 /** Which run an action is about: the warm-up before the set, or the isolated practice over it. */
 export type RunKey = "warmup" | "overlay";
 
-/** The warm-up's slice: a run plus the chooser's answers and the sequence position. */
+/** The warm-up's slice: a run plus the concerns chat's answers and the sequence position. */
 export interface WarmupState extends PracticeRun {
-  /** Problems the student marked as ones they don't feel confident in. */
-  selected: string[];
-  /** The chooser's chat, oldest first: the student's words and the tutor's replies. */
+  /** The student's answers in the concerns chat, oldest first, one per question. The questions are derived (`concernTranscript`). */
   messages: WarmupMessage[];
   /** Index into the warm-up sequence (one skill each, easiest first): the skill being warmed up. */
   step: number;
+  /** Ids of the warm-up problems the student has worked through ("Next skill"), in that order. */
+  done: string[];
 }
 
-export const INITIAL_WARMUP: WarmupState = { ...INITIAL_RUN, selected: [], messages: [], step: 0 };
+export const INITIAL_WARMUP: WarmupState = { ...INITIAL_RUN, messages: [], step: 0, done: [] };
 
 export interface StudentSession {
   stage: Stage;
@@ -134,10 +134,8 @@ export type SessionAction =
   | { type: "practice/decline" }
   | { type: "practice/finish" }
   | { type: "confidence/set"; confidence: Confidence }
-  /** The chooser: toggle a problem, send a message (the tutor answers at once), begin the warm-up. */
-  | { type: "warmup/select"; problem: string }
+  /** The concerns chat: answer the current question. The last answer starts the warm-up. */
   | { type: "warmup/say"; text: string }
-  | { type: "warmup/begin" }
   /** Practice on the pad, for either run: the warm-up or the mid-set overlay. */
   | { type: "run/reveal"; run: RunKey; problem: string; line: RevealedLine }
   | { type: "run/stroke"; run: RunKey; problem: string; stroke: Stroke }
@@ -150,8 +148,10 @@ export type SessionAction =
   | { type: "run/example-step"; run: RunKey }
   /** After the first problem's worked example: the follow-up, with that example still in view. */
   | { type: "run/next"; run: RunKey }
-  /** The current skill is finished: on to the next in the sequence, or the set after the last. */
+  /** The current skill is finished: on to the next not yet done (wrapping round), or the set once every skill is. */
   | { type: "warmup/skill-done" }
+  /** A tap on a skill chip: that step of the sequence, done or not. */
+  | { type: "warmup/goto"; step: number }
   | { type: "problem/goto"; index: number }
   | { type: "line/reveal"; problem: string; line: RevealedLine }
   | { type: "ink/stroke"; problem: string; stroke: Stroke }
@@ -230,8 +230,8 @@ export const INITIAL_SESSION: StudentSession = {
 
 /**
  * A stored snapshot brought up to the current shape: fields added since it was written fall back to
- * their initial value, one level down as well (a warm-up saved before the chooser had no
- * `selected` or `messages`). Anything unreadable is ignored.
+ * their initial value, one level down as well (a warm-up saved before the concerns chat had no
+ * `messages` or `done`). Anything unreadable is ignored.
  */
 export function hydrateSession(raw: unknown): StudentSession {
   const snap = (raw && typeof raw === "object" ? raw : {}) as Partial<StudentSession>;
@@ -283,22 +283,16 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     case "practice/decline":
       return { ...s, practice: "declined", stage: "confidence" };
     case "confidence/set":
-      return { ...s, confidence: a.confidence, stage: s.practice === "taken" ? "warmup-pick" : "working" };
+      return { ...s, confidence: a.confidence, stage: s.practice === "taken" ? "warmup-chat" : "working" };
     case "practice/finish":
       return { ...s, stage: "working" };
-    case "warmup/select": {
-      const on = s.warmup.selected.includes(a.problem);
-      return warm(s, { selected: on ? s.warmup.selected.filter((p) => p !== a.problem) : [...s.warmup.selected, a.problem] });
-    }
     case "warmup/say": {
       const text = a.text.trim();
-      if (!text) return s;
+      if (!text || s.stage !== "warmup-chat") return s;
       const messages: WarmupMessage[] = [...s.warmup.messages, { from: "student", text }];
-      const reply = tutorReply(text, focusLeaves(s.warmup.selected, messages));
-      return warm(s, { messages: [...messages, { from: "tutor", text: reply }] });
+      const next = warm(s, { messages });
+      return concernsAnswered(warmupSeed(s), messages) ? { ...next, stage: "practice" } : next;
     }
-    case "warmup/begin":
-      return warmupFocus(s).length === 0 ? s : { ...s, stage: "practice" };
     case "run/reveal":
     case "run/stroke":
     case "run/undo":
@@ -315,9 +309,17 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     }
     case "warmup/skill-done": {
       if (s.stage !== "practice") return s;
-      const last = warmupSequence(warmupFocus(s)).length - 1;
-      if (s.warmup.step >= last) return { ...s, stage: "working", warmup: { ...s.warmup, step: last + 1 } };
-      return warm(s, { step: s.warmup.step + 1, problem: "first", example: false, exampleShown: 0 });
+      const seq = warmupSequence(warmupFocus(s));
+      const cur = warmupStep(s).id;
+      const done = s.warmup.done.includes(cur) ? s.warmup.done : [...s.warmup.done, cur];
+      // The next skill not yet done, looking past the current one and wrapping round to any skipped over.
+      const next = seq.map((_, i) => (s.warmup.step + 1 + i) % seq.length).find((i) => !done.includes(seq[i].id));
+      if (next === undefined) return { ...s, stage: "working", warmup: { ...s.warmup, done } };
+      return warm(s, { done, step: next, problem: "first", example: false, exampleShown: 0 });
+    }
+    case "warmup/goto": {
+      if (s.stage !== "practice" || a.step === s.warmup.step || a.step < 0 || a.step >= warmupSequence(warmupFocus(s)).length) return s;
+      return warm(s, { step: a.step, problem: "first", example: false, exampleShown: 0 });
     }
     case "problem/goto":
       return { ...s, problemIndex: a.index };
@@ -444,7 +446,7 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
   }
 }
 
-const BEFORE_HAND_IN: Stage[] = ["overview", "confidence", "warmup-pick", "practice", "working"];
+const BEFORE_HAND_IN: Stage[] = ["overview", "confidence", "warmup-chat", "practice", "working"];
 
 /** The leaf to practise for a mistake: its own practice, else another leaf in the same group that has one; never a whole-task leaf. */
 export function practiceLeaf(leaf: LeafId): LeafId | null {
@@ -516,8 +518,11 @@ function runReducer(r: PracticeRun, a: RunAction, first: { id: string; steps: un
   }
 }
 
-/** The leaves the chooser has settled on so far. */
-export const warmupFocus = (s: StudentSession): LeafId[] => focusLeaves(s.warmup.selected, s.warmup.messages);
+/** The skills the student ticked under "not confident with…": what the concerns chat asks about, in that order. Empty for an overall answer. */
+export const warmupSeed = (s: StudentSession): LeafId[] => (s.confidence?.level === "low-when" ? s.confidence.leaves : []);
+
+/** The leaves the warm-up is about so far: the ticked skills plus anything the answers named. */
+export const warmupFocus = (s: StudentSession): LeafId[] => focusLeaves(warmupSeed(s), s.warmup.messages);
 
 /** The current step's problem (the sequence's last once the warm-up is over). */
 export function warmupStep(s: StudentSession) {
@@ -536,7 +541,7 @@ function roundStroke(s: Stroke): Stroke {
   return s.map((p) => ({ x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10 }));
 }
 
-const ORDER: Stage[] = ["overview", "confidence", "warmup-pick", "practice", "working", "feedback", "waiting", "frozen", "class-wait", "group", "report", "peers", "history"];
+const ORDER: Stage[] = ["overview", "confidence", "warmup-chat", "practice", "working", "feedback", "waiting", "frozen", "class-wait", "group", "report", "peers", "history"];
 
 /** Fixed times for deep-linked runs: handed in at 3:48 pm, rework done at 4:07 pm, today. */
 const todayAt = (h: number, m: number) => {
@@ -547,6 +552,16 @@ const todayAt = (h: number, m: number) => {
 
 /** The demo student's answer: not confident when factorising comes up. Shown to the teacher; it never changes when practice is offered. */
 export const DEMO_CONFIDENCE: Confidence = { level: "low-when", leaves: ["algebra.expand-factor.monic"] };
+
+/** The answer behind the warm-up deep links: three skills ticked, so the concerns chat and the chip strip show their shape. */
+export const DEMO_WARMUP_CONFIDENCE: Confidence = { level: "low-when", leaves: ["algebra.expand-factor.monic", "algebra.number.fractions", "unit.u1.nfl"] };
+
+/** The demo's answers in the concerns chat, one per ticked skill: the second names Q2, which adds non-monic factorising to the warm-up. */
+export const DEMO_CONCERNS: WarmupMessage[] = [
+  { from: "student", text: "i mix up the signs when i factorise, and Q2 looks harder than the others" },
+  { from: "student", text: "i forget which way the fraction flips when i divide" },
+  { from: "student", text: "i sometimes forget to set each bracket to zero" },
+];
 
 /** Which scripted run a deep link plays: the default weak run, or a strong one (every step held). */
 export type RunKindParam = "weak" | "strong";
@@ -605,9 +620,9 @@ export function sessionAt(stage: Stage, run: RunKindParam = "weak"): StudentSess
   return {
     ...INITIAL_SESSION,
     stage,
-    practice: i === ORDER.indexOf("warmup-pick") || i === ORDER.indexOf("practice") ? "taken" : i >= ORDER.indexOf("confidence") ? "declined" : null,
-    confidence: i >= ORDER.indexOf("warmup-pick") ? DEMO_CONFIDENCE : null,
-    // A deep link straight to the pad needs something to warm up on: Q2, monic factorising and fractions, the demo's own worries.
-    warmup: i === ORDER.indexOf("practice") ? { ...INITIAL_WARMUP, selected: ["q2"], messages: [{ from: "student", text: "monic factorising and fractions" }] } : INITIAL_WARMUP,
+    practice: i === ORDER.indexOf("warmup-chat") || i === ORDER.indexOf("practice") ? "taken" : i >= ORDER.indexOf("confidence") ? "declined" : null,
+    confidence: i === ORDER.indexOf("warmup-chat") || i === ORDER.indexOf("practice") ? DEMO_WARMUP_CONFIDENCE : i > ORDER.indexOf("practice") ? DEMO_CONFIDENCE : null,
+    // A deep link straight to the pad has the chat behind it: the three answers, so the warm-up is fractions, factorising, the null factor law, then non-monic.
+    warmup: i === ORDER.indexOf("practice") ? { ...INITIAL_WARMUP, messages: DEMO_CONCERNS } : INITIAL_WARMUP,
   };
 }

@@ -5,15 +5,49 @@ import { groupOf, studentLeafName, type LeafId } from "@/data/taxonomy";
 import { problemLeaves } from "./hierarchy";
 
 /**
- * The warm-up chooser's brain, simulated: what a student's message means, which skills the
- * selection and the message add up to, and the order those skills are warmed up in, one short
- * problem each, easiest first. Pure, so every rule is unit-tested and the screen only renders.
+ * The warm-up's brain, simulated: the concerns chat that follows the confidence answer (one
+ * question per skill the student ticked), what a student's answer means, which skills the answer
+ * and the answers add up to, and the order those skills are warmed up in, one short problem each,
+ * easiest first. Pure, so every rule is unit-tested and the screens only render.
  */
 
 export interface WarmupMessage {
   from: "student" | "tutor";
   text: string;
 }
+
+/** A skill as the chat says it: the student-facing name, lowercase, as the confidence list shows it. */
+const skillWord = (l: LeafId) => studentLeafName(l).name.toLowerCase();
+/** "a", "a & b", "a, b, & c". */
+const amp = (xs: string[]) => (xs.length <= 1 ? xs.join("") : xs.length === 2 ? `${xs[0]} & ${xs[1]}` : `${xs.slice(0, -1).join(", ")}, & ${xs[xs.length - 1]}`);
+
+/**
+ * The concerns chat's questions, one per seed skill in the order the student ticked them. The
+ * first names every skill; each answer is followed by the next skill's question. No seed (the
+ * student answered "confident" or "not confident" overall) asks one open question.
+ */
+export function concernPrompts(seed: LeafId[]): string[] {
+  const w = seed.map(skillWord);
+  if (w.length === 0) return ["Let's do a warm up. Tell me a little bit about what you'd like to warm up on."];
+  if (w.length === 1) return [`Let's do a warm up on ${w[0]}. Tell me a little bit about your concerns with ${w[0]}.`];
+  return [`Let's do a warm up on ${amp(w)}. First, tell me a little bit about your concerns with ${w[0]}.`, ...w.slice(1).map((x) => `Next, tell me about your concerns with ${x}.`)];
+}
+
+/** The chat so far: each question, then the student's answer to it, up to the first question still unanswered. Only the student's lines are stored; the questions are derived. */
+export function concernTranscript(seed: LeafId[], messages: WarmupMessage[]): WarmupMessage[] {
+  const answers = messages.filter((m) => m.from === "student");
+  const out: WarmupMessage[] = [];
+  concernPrompts(seed).some((text, i) => {
+    out.push({ from: "tutor", text });
+    if (!answers[i]) return true;
+    out.push(answers[i]);
+    return false;
+  });
+  return out;
+}
+
+/** True once every question has its answer: the warm-up starts. */
+export const concernsAnswered = (seed: LeafId[], messages: WarmupMessage[]): boolean => messages.filter((m) => m.from === "student").length >= concernPrompts(seed).length;
 
 /** A skill word or phrase a student might use, mapped to the leaves it means. First match wins per leaf. */
 const SKILL_WORDS: [RegExp, LeafId[]][] = [
@@ -49,14 +83,14 @@ export function interpret(text: string, problems: Problem[] = ASSIGNMENT.problem
   return { leaves, problems: refs };
 }
 
-/** Leaves the warm-up is about: the selected problems' leaves, then anything the messages named, in first-mention order. Only moves (`isolatable`). */
-export function focusLeaves(selected: string[], messages: WarmupMessage[], problems: Problem[] = ASSIGNMENT.problems): LeafId[] {
+/** Leaves the warm-up is about: the skills the student ticked, then anything the answers named (a skill word, or a question's skills), in first-mention order. Only moves (`isolatable`). */
+export function focusLeaves(seed: LeafId[], messages: WarmupMessage[], problems: Problem[] = ASSIGNMENT.problems): LeafId[] {
   const out: LeafId[] = [];
   const add = (l: LeafId) => {
     if (isolatable(l) && !out.includes(l)) out.push(l);
   };
   const byId = (id: string) => problems.find((p) => p.id === id);
-  for (const id of selected) for (const l of problemLeaves(byId(id) ?? { solution: [] } as unknown as Problem)) add(l);
+  for (const l of seed) add(l);
   for (const m of messages) {
     if (m.from !== "student") continue;
     const { leaves, problems: refs } = interpret(m.text, problems);
@@ -115,20 +149,6 @@ export function warmupSequence(focus: LeafId[]): PracticeProblem[] {
     if (p && !out.some((q) => q.id === p.id)) out.push(p);
   }
   return out.length > 0 ? out : [PRACTICE];
-}
-
-const names = (ls: LeafId[]) => ls.map((l) => studentLeafName(l).short);
-const list = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
-
-/** The tutor's reply to a student message, given the whole focus after it. */
-export function tutorReply(message: string, focus: LeafId[], problems: Problem[] = ASSIGNMENT.problems): string {
-  const { leaves, problems: refs } = interpret(message, problems);
-  if (leaves.length === 0 && refs.length === 0) {
-    return focus.length === 0
-      ? "I couldn't match that to a skill in this set. Try naming one, like \"fractions\", or a question, like \"Q2\"."
-      : `I couldn't add anything from that. Still warming up on ${list(names(focus))}.`;
-  }
-  return "Got it. Let's get started.";
 }
 
 /** What the pad reads for a warm-up problem, one line per burst: its own model steps. */

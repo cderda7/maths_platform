@@ -49,7 +49,7 @@ export function skipFixture(target: SkipTarget, now: number): { session: Student
     case "start":
       return { session: INITIAL_SESSION, classroom };
     case "warm-up":
-      return { session: sessionAt("warmup-pick"), classroom };
+      return { session: sessionAt("warmup-chat"), classroom };
     case "working":
       return { session: sessionAt("working"), classroom };
     case "indiv review":

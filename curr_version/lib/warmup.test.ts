@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { byEase, EASE, focusLeaves, interpret, practiceFor, tutorReply, warmupScript, warmupSequence } from "./warmup";
+import { byEase, concernPrompts, concernsAnswered, concernTranscript, EASE, focusLeaves, interpret, practiceFor, warmupScript, warmupSequence } from "./warmup";
 import { isolatable, PRACTICE, WARMUP_BANK } from "@/data/practice";
 import { ASSIGNMENT } from "@/data/assignment";
 import { leavesTouched } from "./hierarchy";
@@ -21,20 +21,20 @@ describe("interpreting the student's words", () => {
 });
 
 describe("the focus", () => {
-  it("is the selected problems' leaves plus what the words named, communication excluded, in first-mention order", () => {
-    const f = focusLeaves(["q4"], [{ from: "student", text: "fractions and Q1" }, { from: "tutor", text: "monic" }]);
+  it("is the ticked skills plus what the answers named (a skill, a question's skills), communication excluded, in first-mention order", () => {
+    const f = focusLeaves(["unit.u1.discriminant", "algebra.equations.quadratic"], [{ from: "student", text: "fractions and Q1" }, { from: "tutor", text: "monic" }]);
     expect(f).toEqual(["unit.u1.discriminant", "algebra.number.fractions", "algebra.expand-factor.monic", "unit.u1.nfl"]);
     expect(f.some((l) => l.startsWith("communication."))).toBe(false);
     expect(f).not.toContain("algebra.equations.quadratic");
   });
-  it("is empty with nothing selected and nothing said", () => {
+  it("is empty with nothing ticked and nothing said", () => {
     expect(focusLeaves([], [])).toEqual([]);
   });
 });
 
 describe("the warm-up sequence", () => {
   it("walks the focus easiest first: fractions, monic, null factor law, non-monic (quadratic equations is never isolated)", () => {
-    const focus = focusLeaves(["q2"], [{ from: "student", text: "monic factorising and fractions" }]);
+    const focus = focusLeaves(["algebra.expand-factor.monic"], [{ from: "student", text: "fractions, and Q2 looks hard" }]);
     expect(warmupSequence(focus).map((p) => p.leaf)).toEqual(["algebra.number.fractions", "algebra.expand-factor.monic", "unit.u1.nfl", "algebra.expand-factor.nonmonic"]);
   });
   it("nothing in focus → the default warm-up alone", () => {
@@ -65,13 +65,32 @@ describe("the warm-up sequence", () => {
   });
 });
 
-describe("the tutor's reply", () => {
-  it("is short when something matched", () => {
-    const focus = focusLeaves([], [{ from: "student", text: "factoring and fractions" }]);
-    expect(tutorReply("factoring and fractions", focus)).toBe("Got it. Let's get started.");
+describe("the concerns chat", () => {
+  const three = ["algebra.expand-factor.monic", "algebra.number.fractions", "unit.u1.nfl"] as const;
+  it("asks one question per ticked skill, the first naming them all, in the order they were ticked", () => {
+    expect(concernPrompts([...three])).toEqual([
+      "Let's do a warm up on factorising, fractions, & null factor law. First, tell me a little bit about your concerns with factorising.",
+      "Next, tell me about your concerns with fractions.",
+      "Next, tell me about your concerns with null factor law.",
+    ]);
+    expect(concernPrompts(["algebra.number.fractions", "algebra.expand-factor.monic"])[0]).toBe("Let's do a warm up on fractions & factorising. First, tell me a little bit about your concerns with fractions.");
+    expect(concernPrompts(["algebra.expand-factor.monic"])).toEqual(["Let's do a warm up on factorising. Tell me a little bit about your concerns with factorising."]);
+    expect(concernPrompts([])).toEqual(["Let's do a warm up. Tell me a little bit about what you'd like to warm up on."]);
   });
-  it("asks again when nothing matched", () => {
-    expect(tutorReply("hmm", [])).toMatch(/^I couldn't match/);
-    expect(tutorReply("hmm", ["algebra.number.fractions"])).toBe("I couldn't add anything from that. Still warming up on fractions.");
+  it("shows each question followed by its answer, up to the first still unanswered, ignoring any stored tutor lines", () => {
+    const a = { from: "student", text: "signs" } as const;
+    const b = { from: "student", text: "dividing" } as const;
+    expect(concernTranscript([...three], []).map((m) => m.from)).toEqual(["tutor"]);
+    expect(concernTranscript([...three], [a, { from: "tutor", text: "old reply" }, b])).toEqual([
+      { from: "tutor", text: concernPrompts([...three])[0] },
+      a,
+      { from: "tutor", text: concernPrompts([...three])[1] },
+      b,
+      { from: "tutor", text: concernPrompts([...three])[2] },
+    ]);
+    expect(concernsAnswered([...three], [a, b])).toBe(false);
+    expect(concernsAnswered([...three], [a, b, a])).toBe(true);
+    expect(concernsAnswered([], [])).toBe(false);
+    expect(concernsAnswered([], [a])).toBe(true);
   });
 });

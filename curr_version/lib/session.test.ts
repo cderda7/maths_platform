@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { INITIAL_RUN, INITIAL_SESSION, INITIAL_WARMUP, hydrateSession, runProblem, sessionAt, sessionReducer, warmupFocus, warmupProblem, type StudentSession } from "./session";
+import { DEMO_CONFIDENCE, INITIAL_RUN, INITIAL_SESSION, INITIAL_WARMUP, hydrateSession, runProblem, sessionAt, sessionReducer, warmupFocus, warmupProblem, warmupSeed, type StudentSession } from "./session";
 import { PRACTICE, WARMUP_BANK } from "@/data/practice";
 import { warmupScript } from "./warmup";
 import { allPathways } from "./pathway";
@@ -15,34 +15,45 @@ describe("student session flow", () => {
     expect(s.confidence).toEqual({ level: "low-when", leaves: ["algebra.number.fractions"] });
   });
 
-  it("accepting practice asks about confidence first, then opens the chooser, then the warm-up, then the set", () => {
+  it("accepting practice asks about confidence first, then the concerns chat, one question per ticked skill, then the warm-up, then the set", () => {
     let s = sessionReducer(INITIAL_SESSION, { type: "practice/accept" });
     expect(s.stage).toBe("confidence");
     expect(s.practice).toBe("taken");
-    s = sessionReducer(s, { type: "confidence/set", confidence: { level: "confident" } });
-    expect(s.stage).toBe("warmup-pick");
-    expect(sessionReducer(s, { type: "warmup/begin" })).toBe(s);
-    s = sessionReducer(s, { type: "warmup/select", problem: "q2" });
-    s = sessionReducer(s, { type: "warmup/begin" });
+    s = sessionReducer(s, { type: "confidence/set", confidence: { level: "low-when", leaves: ["algebra.expand-factor.monic", "algebra.number.fractions"] } });
+    expect(s.stage).toBe("warmup-chat");
+    expect(warmupSeed(s)).toEqual(["algebra.expand-factor.monic", "algebra.number.fractions"]);
+    expect(sessionReducer(s, { type: "warmup/say", text: "   " })).toBe(s);
+    s = sessionReducer(s, { type: "warmup/say", text: "i mix up the signs" });
+    expect(s.stage).toBe("warmup-chat");
+    expect(s.warmup.messages).toEqual([{ from: "student", text: "i mix up the signs" }]);
+    s = sessionReducer(s, { type: "warmup/say", text: "dividing them" });
     expect(s.stage).toBe("practice");
+    expect(s.warmup.messages.map((m) => m.text)).toEqual(["i mix up the signs", "dividing them"]);
+    expect(sessionReducer(s, { type: "warmup/say", text: "more" })).toBe(s);
+    expect(warmupProblem(s).id).toBe("w-fractions");
     s = sessionReducer(s, { type: "practice/finish" });
     expect(s.stage).toBe("working");
   });
 
-  it("the chooser keeps the selection and the chat, and the tutor answers each message", () => {
-    let s = sessionAt("warmup-pick");
-    s = sessionReducer(s, { type: "warmup/select", problem: "q1" });
-    s = sessionReducer(s, { type: "warmup/select", problem: "q4" });
-    s = sessionReducer(s, { type: "warmup/select", problem: "q1" });
-    expect(s.warmup.selected).toEqual(["q4"]);
-    expect(sessionReducer(s, { type: "warmup/say", text: "   " })).toBe(s);
-    s = sessionReducer(s, { type: "warmup/say", text: "fractions, and Q2" });
-    expect(s.warmup.messages.map((m) => m.from)).toEqual(["student", "tutor"]);
-    expect(s.warmup.messages[1].text).toBe("Got it. Let's get started.");
-    expect(warmupProblem(s).id).toBe("w-fractions");
+  it("an overall answer asks one open question, and what it names is the warm-up (nothing named: the default)", () => {
+    let s = sessionReducer(sessionReducer(INITIAL_SESSION, { type: "practice/accept" }), { type: "confidence/set", confidence: { level: "low" } });
+    expect(s.stage).toBe("warmup-chat");
+    expect(warmupSeed(s)).toEqual([]);
+    const named = sessionReducer(s, { type: "warmup/say", text: "fractions and Q2" });
+    expect(named.stage).toBe("practice");
+    expect(warmupFocus(named)).toEqual(["algebra.number.fractions", "algebra.expand-factor.nonmonic", "unit.u1.nfl"]);
+    s = sessionReducer(s, { type: "warmup/say", text: "not sure really" });
+    expect(s.stage).toBe("practice");
+    expect(warmupProblem(s).id).toBe(PRACTICE.id);
   });
 
-  it("the warm-up walks its skills one at a time and hands over to the set after the last", () => {
+  it("an answer that names a question adds that question's skills to the warm-up", () => {
+    const s = sessionAt("practice");
+    expect(warmupSeed(s)).toEqual(["algebra.expand-factor.monic", "algebra.number.fractions", "unit.u1.nfl"]);
+    expect(warmupFocus(s)).toEqual(["algebra.expand-factor.monic", "algebra.number.fractions", "unit.u1.nfl", "algebra.expand-factor.nonmonic"]);
+  });
+
+  it("the warm-up walks its skills one at a time, marks each done, and hands over to the set after the last", () => {
     let s = sessionAt("practice");
     expect(s.warmup.step).toBe(0);
     expect(warmupProblem(s).id).toBe("w-fractions");
@@ -50,6 +61,7 @@ describe("student session flow", () => {
     s = sessionReducer(s, { type: "warmup/skill-done" });
     expect(s.stage).toBe("practice");
     expect(s.warmup.step).toBe(1);
+    expect(s.warmup.done).toEqual(["w-fractions"]);
     expect(warmupProblem(s).id).toBe("w-monic");
     expect(s.warmup.hinted).toEqual(["w-fractions"]);
     s = sessionReducer(s, { type: "warmup/skill-done" });
@@ -58,7 +70,35 @@ describe("student session flow", () => {
     expect(warmupProblem(s).id).toBe("w-nonmonic");
     s = sessionReducer(s, { type: "warmup/skill-done" });
     expect(s.stage).toBe("working");
+    expect(s.warmup.done).toEqual(["w-fractions", "w-monic", "w-nfl", "w-nonmonic"]);
     expect(sessionReducer(s, { type: "warmup/skill-done" })).toBe(s);
+  });
+
+  it("a tap on a chip opens that skill; Next then goes to the nearest skill not yet done, wrapping round, and the set only once all are", () => {
+    let s = sessionAt("practice");
+    expect(sessionReducer(s, { type: "warmup/goto", step: 0 })).toBe(s);
+    expect(sessionReducer(s, { type: "warmup/goto", step: 4 })).toBe(s);
+    expect(sessionReducer(s, { type: "warmup/goto", step: -1 })).toBe(s);
+    s = sessionReducer(s, { type: "warmup/goto", step: 2 });
+    expect(warmupProblem(s).id).toBe("w-nfl");
+    expect(s.warmup.done).toEqual([]);
+    s = sessionReducer(s, { type: "warmup/skill-done" });
+    expect(s.warmup.done).toEqual(["w-nfl"]);
+    expect(warmupProblem(s).id).toBe("w-nonmonic");
+    s = sessionReducer(s, { type: "warmup/skill-done" });
+    expect(warmupProblem(s).id).toBe("w-fractions");
+    s = sessionReducer(s, { type: "warmup/skill-done" });
+    expect(warmupProblem(s).id).toBe("w-monic");
+    // Back to a finished skill: it stays done, and finishing it again does not list it twice.
+    s = sessionReducer(s, { type: "warmup/goto", step: 0 });
+    expect(warmupProblem(s).id).toBe("w-fractions");
+    s = sessionReducer(s, { type: "warmup/skill-done" });
+    expect(s.warmup.done).toEqual(["w-nfl", "w-nonmonic", "w-fractions"]);
+    expect(warmupProblem(s).id).toBe("w-monic");
+    expect(s.stage).toBe("practice");
+    s = sessionReducer(s, { type: "warmup/skill-done" });
+    expect(s.stage).toBe("working");
+    expect(sessionReducer(s, { type: "warmup/goto", step: 1 })).toBe(s);
   });
 
   it("deep-linking past the survey fills in earlier answers", () => {
@@ -66,8 +106,10 @@ describe("student session flow", () => {
     expect(sessionAt("working").practice).toBe("declined");
     expect(sessionAt("practice").confidence).not.toBeNull();
     expect(sessionAt("practice").practice).toBe("taken");
-    expect(sessionAt("warmup-pick").practice).toBe("taken");
-    expect(sessionAt("warmup-pick").warmup.selected).toEqual([]);
+    expect(sessionAt("warmup-chat").practice).toBe("taken");
+    expect(sessionAt("warmup-chat").warmup.messages).toEqual([]);
+    expect(warmupSeed(sessionAt("warmup-chat"))).toHaveLength(3);
+    expect(sessionAt("working").confidence).toEqual(DEMO_CONFIDENCE);
     expect(warmupProblem(sessionAt("practice")).id).toBe("w-fractions");
     expect(sessionAt("confidence").confidence).toBeNull();
     expect(sessionAt("overview")).toEqual(INITIAL_SESSION);
@@ -91,11 +133,11 @@ describe("student session flow", () => {
 
 describe("hydrating a stored session", () => {
   it("fills in fields added since the snapshot, including inside the warm-up slice", () => {
-    const old = { stage: "warmup-pick", practice: "taken", warmup: { problem: "first", example: false, exampleShown: 0, hinted: [], exampled: [], lines: {}, ink: {} } };
+    const old = { stage: "warmup-chat", practice: "taken", warmup: { problem: "first", example: false, exampleShown: 0, hinted: [], exampled: [], lines: {}, ink: {} } };
     const s = hydrateSession(old);
-    expect(s.stage).toBe("warmup-pick");
-    expect(s.warmup.selected).toEqual([]);
+    expect(s.stage).toBe("warmup-chat");
     expect(s.warmup.messages).toEqual([]);
+    expect(s.warmup.done).toEqual([]);
     expect(warmupFocus(s)).toEqual([]);
     expect(hydrateSession({ stage: "overview" }).warmup).toEqual(INITIAL_WARMUP);
     expect(hydrateSession(null)).toEqual(INITIAL_SESSION);
@@ -106,8 +148,8 @@ describe("hydrating a stored session", () => {
 });
 
 describe("the warm-up on the pad", () => {
-  // The default warm-up (monic) on the pad: a chooser run that named factorising only.
-  const start = sessionReducer({ ...sessionAt("practice"), warmup: INITIAL_WARMUP }, { type: "warmup/say", text: "monic factorising" });
+  // The default warm-up (monic) on the pad: a run whose only ticked skill is factorising.
+  const start: StudentSession = { ...sessionAt("practice"), confidence: DEMO_CONFIDENCE, warmup: INITIAL_WARMUP };
   it("that run's warm-up is the monic problem", () => expect(warmupProblem(start).id).toBe("w-monic"));
   const reveal = (s: ReturnType<typeof sessionAt>, problem: string, tex: string, strokeCount: number) =>
     sessionReducer(s, { type: "run/reveal", run: "warmup", problem, line: { tex, strokeCount } });

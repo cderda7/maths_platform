@@ -452,3 +452,37 @@ appends it here (see `CLAUDE.md`).
 - **The band between the tiles and the buttons.** Ten squares leave about 120 px empty above
   the button row. A line of set-level information (how many problems, expected time, whether a
   warm-up is suggested) could sit there; nothing was put there so the screen stays quiet.
+
+## Warm-up concerns chat (from ticket 48, 2026-09-10)
+
+- **The chooser page.** Removed on 2026-09-10 at the user's request: the problem cards to tick,
+  the skills-by-category panel and "warm up on these →". The confidence screen's ticks are the
+  seed now. If picking by problem is wanted again, an answer in the chat can already name a
+  question ("Q2") and its skills join the warm-up; a row of tappable problem labels under the
+  textarea would make that visible without bringing the page back.
+- **Skipping a question, or the chat.** Every question must be answered before the warm-up
+  starts; a student with nothing to say about a skill has to type something. A "nothing in
+  particular" tap that records an empty answer, or "skip to the warm-up" on the chat, was not
+  built so the screen has one thing on it.
+- **The chat reading the answers.** The questions are scripted from the ticked skills; the
+  answers are stored and only mined for skill words and "Qn" references (`interpret`). Nothing
+  replies to what the student actually said. A real tutor would pick the warm-up problem's
+  difficulty, or its hint, from the concern ("I mix up the signs" → the hint about sign pairs),
+  and the teacher could read the concerns on the individual view.
+- **Concerns on the teacher's side.** The student's own words about each skill are in
+  `warmup.messages` and shown nowhere. The individual view (ticket 43) shows the confidence
+  answer; the concerns beside it, one line per skill, would be the natural place.
+- **The open question for an overall answer.** A student who answered "confident" or "not
+  confident" overall and still chose to warm up gets "Let's do a warm up. Tell me a little bit
+  about what you'd like to warm up on." and, if the answer names nothing, the default factorising
+  problem alone. The confidence screen could instead send an overall answer straight to a default
+  sequence, or ask for skills at that point.
+- **Question order.** The chat asks about the skills in the order they were ticked; the pad then
+  walks them easiest first. Asking in ease order too would make the two match; not changed
+  because the user specified "{1}, {2}, & {3}" as the ticked order.
+- **Chip size on the pad.** The strip's buttons keep the 11.5 px chip size the rest of the pad
+  uses; the user's mock drew them larger (about 14 px). Left as is so the strip and the overlay's
+  single chip match.
+- **A done skill reopened.** A tap on a dark chip reopens that problem with its working still
+  there; finishing it again keeps it done and moves on. There is no way to un-do a skill, and no
+  fresh copy of the problem; a "try it again" that clears the pad for that problem was not built.

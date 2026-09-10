@@ -8,8 +8,8 @@ import { useAssignment } from "@/lib/classroom-store";
 /**
  * The start screen: the set's title, then every problem as one square tile in a five-wide grid so
  * the whole set sits on the iPad at once. No skill words anywhere on this screen (no summary panel,
- * no chips on the tiles); the warm-up chooser is where the set's skills are laid out. "WARM UP" and
- * "START" sit in the bottom-right corner.
+ * no chips on the tiles); the skills a student ticks under "not confident with…" are what the
+ * warm-up is about. "WARM UP" and "START" sit in the bottom-right corner.
  */
 export default function OverviewScreen({ onPractice, onStart }: { onPractice: () => void; onStart: () => void }) {
   const active = useAssignment();

@@ -78,8 +78,8 @@ export type Stroke = Point[];
 export type Stage =
   | "overview"
   | "confidence"
-  /** The warm-up chooser: pick problems, say it in words, get one warm-up problem. */
-  | "warmup-pick"
+  /** The concerns chat after the confidence answer: one question per ticked skill, then the warm-up. */
+  | "warmup-chat"
   | "practice"
   | "working"
   | "feedback"

@@ -950,3 +950,44 @@ flows.
 picture from the same state and clock; the lock and the medals cannot disagree with the order
 because they are the order; the demo's fast-forward is a one-field edit of `startedAt`; and the
 whole race is tested against exact percentages and finishing times.
+
+## 2026-09-10 · The warm-up's focus is the confidence answer; the chat's questions are derived, only the answers are stored
+
+**Decision.** Drop the warm-up chooser page. The skills a student ticks under "not confident
+with…" are the seed of the warm-up; the only screen between that answer and the pad is a chat
+whose questions are a pure function of the seed (`concernPrompts`), one per skill in the order
+ticked. The session stores the student's answers alone (`warmup.messages`, all `from: "student"`),
+and the transcript is rebuilt from seed and answers on every render. The last answer moves the
+stage to `practice` in the reducer; there is no "begin" button. On the pad, the sequence buttons
+read a `done` list of problem ids rather than a position: "Next" opens the nearest skill not yet
+done, wrapping, and the set opens only once every skill is done.
+
+**Context.** The user asked to skip the picker page: the confidence screen already collects the
+skills, and the page asked for them a second time as problems and words. They wanted to keep the
+chat, with exact wording per skill ("Let's do a warm up on a, b, & c. First, tell me a little bit
+about your concerns with a." … "Next, tell me about your concerns with b."), the warm-up starting
+after the last skill is addressed, and the pad's skill chips as buttons that go dark blue as each
+skill is worked through.
+
+**Alternatives considered.** Storing tutor lines in the session as before (the transcript as data):
+a scripted question would then be frozen at the moment it was generated, so a change of wording, or
+of the seed on a reload of an older snapshot, would leave stale or mismatched lines; the transcript
+already had to filter them. Keeping the `warmup-pick` stage name and swapping the screen: a stage
+named for a picker that no longer exists, read by the teacher's before-hand-in lists and the URL.
+A "start warm-up" button after the last answer: one more tap that changes nothing the student
+decides. Keeping `step` as the only position with done = "before step": a tap back to an earlier
+skill would have un-done every skill after it, and the strip would lie.
+
+**Tradeoffs.** A student with nothing to say about a skill must still type something; there is no
+skip on the chat (deferred, see FUTURE_FEATURES). An overall "confident" / "not confident" answer
+has no seed, so the chat asks one open question and the warm-up is whatever the answer names, or
+the default problem; that path is real but thin. The seed order is the tick order on the confidence
+screen, so the first question is about whichever skill was ticked first, not the easiest. The
+`done` list plus `step` is two fields where one index used to do; both are needed and both are
+tested.
+
+**Defence.** Every line the chat shows is reproducible from two small inputs, so the wording is
+tested to the character and can change without migrating stored sessions; the reducer, not the
+screen, decides when the warm-up starts, so a reload mid-chat resumes at the right question; and
+the pad's buttons cannot disagree with what the student has done because they read the record of
+it. The removed page took a component (`ProblemCard`'s selection) and two actions with it.

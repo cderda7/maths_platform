@@ -55,7 +55,7 @@ function liveLines(session: StudentSession, problemId: string): string[] {
   return (rw.length > 0 ? rw : (session.lines[problemId] ?? [])).map((l) => l.tex);
 }
 
-const HANDED_IN = ["overview", "confidence", "warmup-pick", "practice", "working"];
+const HANDED_IN = ["overview", "confidence", "warmup-chat", "practice", "working"];
 
 export function candidatesFor(problemId: string, session: StudentSession | null): Candidate[] {
   const index = ASSIGNMENT.problems.findIndex((p) => p.id === problemId);

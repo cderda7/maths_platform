@@ -21,8 +21,8 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
  │       └▶ IpadStage ▶ StudentChrome│               │   classmates (19: 6 full, 13 light) · seating groups (5 colours)│
  │            └▶ screens/            │               └──────────────┬───────────────────┘
  │               Overview ▶ Confidence│                              │ reads every 3 s
- │               ▶ WarmupPick (select problems · skills by category · chat → focus → warmupSequence, easiest first)│
- │               ▶ Practice (pad · HelpMenu: hint · worked example · video · follow-up split pane)│
+ │               ▶ WarmupChat (the ticked skills → one concern question each → answers → focus → warmupSequence, easiest first)│
+ │               ▶ Practice (pad · skill buttons: dark once on or through, tap opens · HelpMenu: hint · worked example · video · follow-up split pane)│
  │                   HintCard: linked hint words light the expression (termTex) — practices only│
  │               ▶ Working ─▶ DrawPad (canvas ink)                  │
  │                                  ├▶ "Read as" column             │
@@ -172,6 +172,7 @@ data static under `data/`. The Sept 7 mockup's record is in `roughdraft_sept7/AR
 | 45 | The teacher pane scales with its height: a 1280 × 800 laptop, fitted like the iPad | `/split` teacher pane | — | [curr_version/architecture/45-teacher-pane-scales-with-its-height.md](curr_version/architecture/45-teacher-pane-scales-with-its-height.md) |
 | 46 | Class view polish: row buttons, header skills/sub-skills control, New skills, no timestamps, a missing student | `/teacher` grid | — | [curr_version/architecture/46-class-view-polish.md](curr_version/architecture/46-class-view-polish.md) |
 | 47 | Start screen as a grid of tiles: ten square cards, no chips, WARM UP / START bottom right | `/student` overview | — | [curr_version/architecture/47-start-screen-tiles.md](curr_version/architecture/47-start-screen-tiles.md) |
+| 48 | Warm-up concerns chat: the picker page gone, one question per ticked skill, then the pad with skill buttons | `/student?stage=warmup-chat`, `…=practice` | — | [curr_version/architecture/48-warm-up-concerns-chat.md](curr_version/architecture/48-warm-up-concerns-chat.md) |
 
 ## Conventions
 
