@@ -101,9 +101,11 @@ appends it here (see `CLAUDE.md`).
   the classroom store if setup gets longer.
 - **Frozen screen layout toggle**: versions are side by side on the landscape iPad; the spec said
   stacked. Offer stacked as an option if the ink blocks get tall.
-- **Star semantics under detective mode.** The star now reads "not sure about this one" on the
-  feedback screen while the report still calls starred problems "right, but worth coming back to"
-  for the teacher; decide whether a star on a wrong problem should be shown differently.
+- **Star semantics under detective mode.** The star is now a bare marker (no caption) the student
+  can set while working through the set and again in review (2026-09-10); the feedback list and
+  the report show which problems carry one. The teacher's report still calls starred problems
+  "right, but worth coming back to"; decide whether a star on a wrong problem should be shown
+  differently, and whether the star should carry a one-word reason later.
 - **Group review after a forced hand-in** uses whatever lines exist; a student handed in with
   nothing on a problem counts as "not attempted" in feedback but as correct-by-absence in the
   group's quick-pass set. Decide how not-attempted should count.

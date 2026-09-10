@@ -3,6 +3,7 @@
 import { useState } from "react";
 import M from "@/components/Math";
 import { Button, Card, Eyebrow } from "@/components/ui";
+import StarButton from "@/components/StarButton";
 import { DifficultyTag } from "@/components/Tag";
 import { useAssignment } from "@/lib/classroom-store";
 import { feedbackSummary } from "@/lib/feedback";
@@ -85,9 +86,7 @@ export default function FeedbackScreen({ session, dispatch }: { session: Student
         </ol>
 
         <div className="mt-auto flex justify-end pt-5">
-          <Button variant={starred ? "accent" : "secondary"} className="whitespace-nowrap" onClick={() => dispatch({ type: "star/toggle", problem: cur.id })} aria-pressed={starred} data-star>
-            {starred ? "★ Starred" : "☆ Not sure about this one"}
-          </Button>
+          <StarButton on={starred} onToggle={() => dispatch({ type: "star/toggle", problem: cur.id })} />
         </div>
       </section>
     </div>

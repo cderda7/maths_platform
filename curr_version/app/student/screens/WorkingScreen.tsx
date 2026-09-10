@@ -6,6 +6,7 @@ import type { Stroke } from "@/data/types";
 import PadSection from "@/components/PadSection";
 import ReadAs from "@/components/ReadAs";
 import { Button, Eyebrow } from "@/components/ui";
+import StarButton from "@/components/StarButton";
 import Figure from "@/components/Figure";
 import { RECOGNITION } from "@/data/recognition";
 import { useAssignment } from "@/lib/classroom-store";
@@ -48,7 +49,10 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
   return (
     <div className="grid h-full min-h-0 grid-cols-[300px_1fr_320px]">
       <aside className="flex min-h-0 flex-col overflow-y-auto border-r border-line px-7 py-6">
-        <span className="font-display text-[26px] text-ink">{p.label}</span>
+        <div className="flex items-center justify-between">
+          <span className="font-display text-[26px] text-ink">{p.label}</span>
+          <StarButton on={session.stars.includes(p.id)} onToggle={() => dispatch({ type: "star/toggle", problem: p.id })} />
+        </div>
         <p className="mt-3 text-[14px] text-ink-soft">{p.stem}</p>
         <div className="math-lg mt-3 text-ink">
           <M tex={p.tex} display />
