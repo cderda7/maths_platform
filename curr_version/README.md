@@ -17,15 +17,16 @@ classroom.
 cd curr_version
 npm install
 npm run dev        # http://localhost:3000
-npm test           # vitest: 201 tests over the pure logic in lib/
+npm test           # vitest: 208 tests over the pure logic in lib/
 npm run lint && npx tsc --noEmit && npm run build
 ```
 
 Open **/** and pick a side. Use tabs of the same browser: the student iPad in one, the teacher in
 another, the board in a third when projecting. Or open **/split** to see any one, two or all
 three of them in one tab, fitted to the window (toggles in the dashed toolbar; stacked, the
-student over the teacher with the board down the right, or side by side); the panes are the real
-routes and stay in step with each other and with any other tab. The dashed "Reset demo"
+student over the teacher with the board down the right, or side by side; drag the handle on any
+boundary to resize, double-click it to reset); the panes are the real routes and stay in step
+with each other and with any other tab. The dashed "Reset demo"
 pinned bottom-right on the entry page and every teacher page (and in the split view's toolbar)
 restarts everything in every tab; it is a presenter control, not part of the product.
 

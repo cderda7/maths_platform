@@ -256,13 +256,14 @@ appends it here (see `CLAUDE.md`).
 
 ## Split view (from ticket 35, 2026-09-10)
 
-- **Draggable dividers.** Side by side splits the window evenly. A drag handle between panes (and
-  a remembered split) would let a presenter give the iPad most of the width.
+- **Divider extras.** Boundaries drag and double-click to reset (2026-09-10). Not yet: keyboard
+  nudging of a focused handle (arrow keys), a "reset all sizes" button on the toolbar, sizes in
+  the URL for a shareable exact setup, and snapping to the defaults when a drag comes close.
 - **Other fitted arrangements.** Stacked is fixed at student over teacher (3/5) with the board
   down the right (2/5), fitted to the window (2026-09-10). Two earlier layouts were dropped and
   could return as options: "two over one" with the board across the bottom, and a scrolling
-  stack of full-size rows (the iPad at true size). A ratio control for the column split would
-  cover a presenter who wants a bigger board.
+  stack of full-size rows (the iPad at true size). The column split is now draggable, which
+  covers a presenter who wants a bigger board.
 - **Scale override.** Panes scale to fit their design viewport. A per-pane "1:1" or a zoom
   slider would trade overview for legibility when one pane is the focus.
 - **Route per pane.** The teacher pane always opens on Class; the tabs inside it navigate. A

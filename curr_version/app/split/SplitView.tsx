@@ -1,13 +1,31 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type PointerEvent as ReactPointerEvent, type RefObject } from "react";
 import Brand from "@/components/Brand";
 import { resetSession } from "@/lib/store";
-import { frameFor, PANES, parseLayout, parsePanes, placeFor, serialisePanes, togglePane, type Layout, type Pane, type PaneId } from "@/lib/split";
+import {
+  DEFAULT_SIZES,
+  frameFor,
+  GUTTER,
+  PANES,
+  parseLayout,
+  parsePanes,
+  parseSizes,
+  placeFor,
+  resetSize,
+  resize,
+  serialisePanes,
+  togglePane,
+  type Divider,
+  type Layout,
+  type Pane,
+  type PaneId,
+  type Sizes,
+} from "@/lib/split";
 
 const KEY = "edexia-demo-split";
 
-type Choice = { panes: PaneId[]; layout: Layout };
+type Choice = { panes: PaneId[]; layout: Layout; sizes: Sizes };
 
 /**
  * The last choice, kept in localStorage so plain /split reopens it, read as an external store:
@@ -34,17 +52,18 @@ const unknown = () => undefined;
 const parseStored = (raw: string | null | undefined): Choice | null => {
   if (!raw) return null;
   try {
-    const parsed = JSON.parse(raw) as { panes?: string; layout?: string };
+    const parsed = JSON.parse(raw) as { panes?: string; layout?: string; sizes?: unknown };
     const panes = parsePanes(parsed.panes);
-    return panes ? { panes, layout: parseLayout(parsed.layout) } : null;
+    return panes ? { panes, layout: parseLayout(parsed.layout), sizes: parseSizes(parsed.sizes) } : null;
   } catch {
     return null;
   }
 };
 
+/** The URL carries the panes and layout (a link reproduces the setup); the sizes are a local preference. */
 const store = (c: Choice) => {
   try {
-    localStorage.setItem(KEY, JSON.stringify({ panes: serialisePanes(c.panes), layout: c.layout }));
+    localStorage.setItem(KEY, JSON.stringify({ panes: serialisePanes(c.panes), layout: c.layout, sizes: c.sizes }));
   } catch {
     // Storage blocked: the URL still carries the choice.
   }
@@ -70,28 +89,66 @@ function useSize(ref: RefObject<HTMLElement | null>) {
   return size;
 }
 
+const gutterCount = (tracks: string) => (tracks.match(/px/g) ?? []).length;
+
 /**
  * The student iPad, the teacher view and the board in one tab, fitted to the window, a presenter
  * page rather than a product screen: the dashed toolbar picks which of the three to show and how
- * to arrange them (`placeFor`), and each pane is the real route in an iframe, laid out at its
- * design viewport and scaled to fit (`frameFor`). Same origin, so the demo stores keep the panes
- * in step exactly as they keep tabs.
+ * to arrange them (`placeFor`), a handle in every gutter drags the boundary (`resize`, double-click
+ * to reset), and each pane is the real route in an iframe, laid out at its design viewport and
+ * scaled to fit (`frameFor`). Same origin, so the demo stores keep the panes in step exactly as
+ * they keep tabs.
  */
 export default function SplitView({ init, explicit, initLayout }: { init: PaneId[]; explicit: boolean; initLayout: Layout }) {
-  // A named URL is used as given until the first toggle; from then on, and for plain /split, the stored
+  // A named URL is used as given until the first change; from then on, and for plain /split, the stored
   // choice is the truth. Nothing is drawn until it is known, so no pane loads twice.
   const raw = useSyncExternalStore(subscribe, readRaw, unknown);
   const storedChoice = useMemo(() => parseStored(raw), [raw]);
   const [touched, setTouched] = useState(false);
   const fromUrl = explicit && !touched;
-  const choice: Choice | null = fromUrl ? { panes: init, layout: initLayout } : raw === undefined ? null : (storedChoice ?? { panes: init, layout: initLayout });
+  const fallback: Choice = { panes: init, layout: initLayout, sizes: storedChoice?.sizes ?? DEFAULT_SIZES };
+  const choice: Choice | null = fromUrl ? fallback : raw === undefined ? null : (storedChoice ?? fallback);
   const choose = (next: Choice) => {
     setTouched(true);
     store(next);
   };
+
+  // A drag shows its sizes live and stores them once on release.
+  const mainRef = useRef<HTMLElement>(null);
+  const [live, setLive] = useState<{ sizes: Sizes; axis: Divider["axis"] } | null>(null);
+  const drag = useRef<{ divider: Divider; x: number; y: number; from: Sizes; extent: number } | null>(null);
   const panes = choice?.panes ?? [];
   const layout = choice?.layout ?? initLayout;
-  const placement = placeFor(panes, layout);
+  const sizes = live?.sizes ?? choice?.sizes ?? DEFAULT_SIZES;
+  const placement = placeFor(panes, layout, sizes);
+
+  const startDrag = (divider: Divider) => (e: ReactPointerEvent<HTMLDivElement>) => {
+    const main = mainRef.current;
+    if (!choice || !main || e.button !== 0) return;
+    const rect = main.getBoundingClientRect();
+    const pad = parseFloat(getComputedStyle(main).paddingLeft) * 2;
+    const extent = divider.axis === "column" ? rect.width - pad - GUTTER * gutterCount(placement.columns) : rect.height - pad - GUTTER * gutterCount(placement.rows);
+    drag.current = { divider, x: e.clientX, y: e.clientY, from: choice.sizes, extent: Math.max(1, extent) };
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setLive({ sizes: choice.sizes, axis: divider.axis });
+  };
+  const moveDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const d = drag.current;
+    if (!d) return;
+    const px = d.divider.axis === "column" ? e.clientX - d.x : e.clientY - d.y;
+    setLive({ sizes: resize(d.from, d.divider, px / d.extent, panes), axis: d.divider.axis });
+  };
+  const endDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const d = drag.current;
+    if (!d || !choice) return;
+    drag.current = null;
+    const px = d.divider.axis === "column" ? e.clientX - d.x : e.clientY - d.y;
+    const final = resize(d.from, d.divider, px / d.extent, panes);
+    setLive(null);
+    choose({ ...choice, sizes: final });
+  };
+  const reset = (divider: Divider) => () => choice && choose({ ...choice, sizes: resetSize(choice.sizes, divider) });
+
   return (
     <div className="flex h-screen flex-col bg-cream" data-split>
       <header className="flex h-12 shrink-0 items-center justify-between border-b border-dashed border-line-strong bg-paper/80 px-4 backdrop-blur">
@@ -126,14 +183,63 @@ export default function SplitView({ init, explicit, initLayout }: { init: PaneId
         </div>
       </header>
       <main
-        className="grid min-h-0 flex-1 gap-3 p-3"
-        style={{ gridTemplateColumns: placement.columns, gridTemplateRows: `repeat(${placement.rows}, minmax(0, 1fr))` }}
+        ref={mainRef}
+        // While a handle is held the iframes must not take the pointer, or the drag stops at their edge.
+        className={`grid min-h-0 flex-1 p-3 ${live ? `select-none [&_iframe]:pointer-events-none ${live.axis === "row" ? "cursor-row-resize" : "cursor-col-resize"}` : ""}`}
+        style={{ gridTemplateColumns: placement.columns, gridTemplateRows: placement.rows }}
         data-layout={layout}
+        data-dragging={live ? "" : undefined}
       >
         {placement.cells.map((cell) => (
           <PaneFrame key={cell.id} pane={PANES.find((p) => p.id === cell.id)!} area={cell.area} />
         ))}
+        {placement.dividers.map((d) => (
+          <DividerHandle key={d.key} divider={d} onPointerDown={startDrag(d)} onPointerMove={moveDrag} onPointerUp={endDrag} onDoubleClick={reset(d)} />
+        ))}
       </main>
+    </div>
+  );
+}
+
+/**
+ * The boundary between two panes: the gutter track, a bar along it and an arrowed handle at its
+ * middle. Drag to move the boundary; double-click to put it back.
+ */
+function DividerHandle({
+  divider,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
+  onDoubleClick,
+}: {
+  divider: Divider;
+  onPointerDown: (e: ReactPointerEvent<HTMLDivElement>) => void;
+  onPointerMove: (e: ReactPointerEvent<HTMLDivElement>) => void;
+  onPointerUp: (e: ReactPointerEvent<HTMLDivElement>) => void;
+  onDoubleClick: () => void;
+}) {
+  const column = divider.axis === "column";
+  return (
+    <div
+      role="separator"
+      aria-orientation={column ? "vertical" : "horizontal"}
+      aria-label={`Resize ${divider.before} and ${divider.after}`}
+      title="Drag to resize · double-click to reset"
+      data-divider={divider.key}
+      style={{ gridArea: divider.area }}
+      className={`group relative z-10 flex touch-none select-none items-center justify-center ${column ? "cursor-col-resize" : "cursor-row-resize"}`}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      onDoubleClick={onDoubleClick}
+    >
+      <span className={`rounded-full bg-line-strong transition-colors group-hover:bg-accent-line group-active:bg-accent ${column ? "h-full w-[3px]" : "h-[3px] w-full"}`} />
+      <span className="absolute grid h-6 w-6 place-items-center rounded-full border border-dashed border-line-strong bg-paper text-ink-muted shadow-card transition-colors group-hover:border-accent-line group-hover:text-accent-deep group-active:bg-accent-soft">
+        <svg viewBox="0 0 16 16" className={`h-3.5 w-3.5 ${column ? "" : "rotate-90"}`} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M6 4 2 8l4 4M10 4l4 4-4 4" />
+        </svg>
+      </span>
     </div>
   );
 }

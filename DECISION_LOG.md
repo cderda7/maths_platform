@@ -728,3 +728,13 @@ on a pad works, but a very small pane makes the pen fiddly.
 
 **Defence.** One page, no new state to sync, the product's real screens at true proportions,
 and a link that reproduces a presenter's setup.
+
+**Addendum, 2026-09-10 · dividers.** Every boundary is draggable (a handle in a 12 px gutter
+track), with the sizes kept in localStorage beside the pane choice but not in the URL: a link
+should reproduce which surfaces are shown and how they are arranged, while how wide someone
+dragged a pane on their monitor is theirs. The stacked layout keeps two shares (column, row);
+side by side keeps a weight per pane, so a drag moves width between its two neighbours only and
+the setting survives toggling a pane off and on. Shares are clamped at 15 % so a pane can be
+made small but never disappear; double-click restores a boundary. Alternatives: sizes in the
+URL (long, and wrong for another screen size); CSS `resize` on the panes (one-sided, no gutter,
+no minimum); a library splitter (a dependency for a hundred lines).

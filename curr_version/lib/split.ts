@@ -63,29 +63,98 @@ export const parseLayout = (raw: string | undefined): Layout => (raw === "beside
 
 /** A pane's cell as a CSS `grid-area`: row start / column start / row end / column end. */
 export type Cell = { id: PaneId; area: string };
-export type Placement = { columns: string; rows: number; cells: Cell[] };
-
-const area = (r1: number, c1: number, r2: number, c2: number) => `${r1} / ${c1} / ${r2} / ${c2}`;
 
 /**
- * Where the chosen panes go, the whole window and nothing scrolling. Beside: one window-high
- * column per pane. Stacked: the student over the teacher in a left column of three fifths, each
- * half the height, and the board down the right at two fifths, the whole height; without the
- * board the left column is the width, without the others the board is.
+ * A draggable boundary in a gutter track. `adjust` names what it moves: the stacked layout's
+ * `column` split (left column against the board) or `row` split (student against teacher), or the
+ * `weights` of the two panes either side of it when beside. `before`/`after` are those panes.
  */
-export function placeFor(panes: readonly PaneId[], layout: Layout): Placement {
+export type Divider = { key: string; axis: "column" | "row"; area: string; adjust: "column" | "row" | "weights"; before: PaneId; after: PaneId };
+export type Placement = { columns: string; rows: string; cells: Cell[]; dividers: Divider[] };
+
+/**
+ * The presenter's sizes, kept with the pane choice: the stacked layout's left-column share and
+ * student-row share, and a weight per pane for the side-by-side columns. Dividers move them;
+ * no share ever goes under `MIN_SHARE`, so a pane can be made small but never lost.
+ */
+export type Sizes = { column: number; row: number; weights: Record<PaneId, number> };
+export const DEFAULT_SIZES: Sizes = { column: 0.6, row: 0.5, weights: { student: 1, teacher: 1, board: 1 } };
+export const MIN_SHARE = 0.15;
+/** The gutter track between panes, in px; the divider handle lives in it. */
+export const GUTTER = 12;
+
+const clampShare = (v: number) => Math.min(1 - MIN_SHARE, Math.max(MIN_SHARE, v));
+const area = (r1: number, c1: number, r2: number, c2: number) => `${r1} / ${c1} / ${r2} / ${c2}`;
+/** Pane tracks separated by gutter tracks: `a` → lines 1–2, gutter 2–3, `b` → lines 3–4 … */
+const tracks = (shares: number[]) => shares.map((s) => `minmax(0, ${Number(s.toFixed(4))}fr)`).join(` ${GUTTER}px `);
+const paneLine = (i: number) => 2 * i + 1;
+
+/**
+ * Where the chosen panes go, the whole window and nothing scrolling, with a divider in every
+ * gutter. Beside: one window-high column per pane, widths by weight. Stacked: the student over
+ * the teacher in a left column (`sizes.column` of the width, the student `sizes.row` of its
+ * height) and the board down the right, the whole height; without the board the left column is
+ * the width, without the others the board is.
+ */
+export function placeFor(panes: readonly PaneId[], layout: Layout, sizes: Sizes = DEFAULT_SIZES): Placement {
   const shown = ordered(panes);
   if (layout === "beside") {
-    return { columns: `repeat(${Math.max(1, shown.length)}, minmax(0, 1fr))`, rows: 1, cells: shown.map((id, i) => ({ id, area: area(1, i + 1, 2, i + 2) })) };
+    const cells = shown.map((id, i) => ({ id, area: area(1, paneLine(i), 2, paneLine(i) + 1) }));
+    const dividers: Divider[] = shown.slice(1).map((id, i) => ({ key: `${shown[i]}-${id}`, axis: "column", area: area(1, paneLine(i) + 1, 2, paneLine(i) + 2), adjust: "weights", before: shown[i], after: id }));
+    return { columns: tracks(shown.map((id) => sizes.weights[id])), rows: "minmax(0, 1fr)", cells, dividers };
   }
   const left = shown.filter((id) => id !== "board");
   const board = shown.includes("board");
-  if (!board) return { columns: "minmax(0, 1fr)", rows: Math.max(1, left.length), cells: left.map((id, i) => ({ id, area: area(i + 1, 1, i + 2, 2) })) };
-  if (!left.length) return { columns: "minmax(0, 1fr)", rows: 1, cells: [{ id: "board", area: area(1, 1, 2, 2) }] };
+  const row = clampShare(sizes.row);
+  const rowShares = left.length === 2 ? [row, 1 - row] : [1];
+  const rowDividers: Divider[] = left.length === 2 ? [{ key: "student-teacher", axis: "row", area: area(2, 1, 3, 2), adjust: "row", before: left[0], after: left[1] }] : [];
+  const leftCells = left.map((id, i) => ({ id, area: area(paneLine(i), 1, paneLine(i) + 1, 2) }));
+  if (!board) return { columns: "minmax(0, 1fr)", rows: tracks(rowShares), cells: leftCells, dividers: rowDividers };
+  if (!left.length) return { columns: "minmax(0, 1fr)", rows: "minmax(0, 1fr)", cells: [{ id: "board", area: area(1, 1, 2, 2) }], dividers: [] };
+  const column = clampShare(sizes.column);
+  const lastRow = paneLine(left.length - 1) + 1;
   return {
-    columns: "minmax(0, 3fr) minmax(0, 2fr)",
-    rows: left.length,
-    cells: [...left.map((id, i) => ({ id, area: area(i + 1, 1, i + 2, 2) })), { id: "board", area: area(1, 2, left.length + 1, 3) }],
+    columns: tracks([column, 1 - column]),
+    rows: tracks(rowShares),
+    cells: [...leftCells, { id: "board", area: area(1, 3, lastRow, 4) }],
+    dividers: [...rowDividers, { key: "left-board", axis: "column", area: area(1, 2, lastRow, 3), adjust: "column", before: left[left.length - 1], after: "board" }],
+  };
+}
+
+/**
+ * The sizes after a divider is dragged by `delta`, a fraction of the axis's resizable extent
+ * (the grid's width or height less its gutters). The stacked splits move directly; a beside
+ * divider moves weight from the pane after it to the pane before it, both kept above
+ * `MIN_SHARE` of the shown panes' total.
+ */
+export function resize(sizes: Sizes, divider: Divider, delta: number, shown: readonly PaneId[]): Sizes {
+  if (divider.adjust === "column") return { ...sizes, column: clampShare(sizes.column + delta) };
+  if (divider.adjust === "row") return { ...sizes, row: clampShare(sizes.row + delta) };
+  const total = shown.reduce((sum, id) => sum + sizes.weights[id], 0);
+  const before = sizes.weights[divider.before];
+  const after = sizes.weights[divider.after];
+  const min = MIN_SHARE * total;
+  const shift = Math.max(min - before, Math.min(after - min, delta * total));
+  return { ...sizes, weights: { ...sizes.weights, [divider.before]: before + shift, [divider.after]: after - shift } };
+}
+
+/** A divider's dimension back to its default; the others keep theirs. */
+export function resetSize(sizes: Sizes, divider: Divider): Sizes {
+  if (divider.adjust === "column") return { ...sizes, column: DEFAULT_SIZES.column };
+  if (divider.adjust === "row") return { ...sizes, row: DEFAULT_SIZES.row };
+  return { ...sizes, weights: { ...sizes.weights, [divider.before]: DEFAULT_SIZES.weights[divider.before], [divider.after]: DEFAULT_SIZES.weights[divider.after] } };
+}
+
+/** Stored sizes, checked: any missing or malformed part falls back to its default. */
+export function parseSizes(raw: unknown): Sizes {
+  const o = (raw ?? {}) as Partial<{ column: unknown; row: unknown; weights: Partial<Record<PaneId, unknown>> }>;
+  const share = (v: unknown, d: number) => (typeof v === "number" && v >= MIN_SHARE && v <= 1 - MIN_SHARE ? v : d);
+  const weight = (v: unknown, d: number) => (typeof v === "number" && v > 0 && Number.isFinite(v) ? v : d);
+  const w = o.weights ?? {};
+  return {
+    column: share(o.column, DEFAULT_SIZES.column),
+    row: share(o.row, DEFAULT_SIZES.row),
+    weights: { student: weight(w.student, 1), teacher: weight(w.teacher, 1), board: weight(w.board, 1) },
   };
 }
 
