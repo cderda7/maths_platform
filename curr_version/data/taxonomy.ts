@@ -40,7 +40,7 @@ export const TAXONOMY = {
         name: "Number & fractions",
         short: "Number",
         leaves: {
-          fractions: leaf("Fractions, decimals & percentages", "fractions", "Clearing denominators, fractional coefficients, exact fractional answers."),
+          fractions: leaf("Fractions", "fractions","Clearing denominators, fractional coefficients, exact fractional answers."),
           indices: leaf("Index laws", "indices", "Multiplying, dividing and raising powers."),
           surds: leaf("Surds", "surds", "Simplifying and leaving roots exact."),
         },

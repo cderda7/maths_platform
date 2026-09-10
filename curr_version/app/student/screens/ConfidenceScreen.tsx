@@ -10,10 +10,19 @@ import { relevantSkills } from "@/lib/hierarchy";
 type Level = Confidence["level"];
 
 /**
- * Three answers, lowercase: "confident", "not confident with…" over the set's seven most relevant
- * skills (always visible, stacked, tick any number; ticking one is the answer), and "not confident"
- * overall.
+ * Three answers, lowercase: "confident", "not confident" overall, then "not confident with…" over
+ * the set's seven most relevant skills (always visible, stacked, tick any number; ticking one is
+ * the answer).
  */
+/** The radio dot at the head of each answer, filled when that answer is picked. */
+function Radio({ on }: { on: boolean }) {
+  return (
+    <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border ${on ? "border-white" : "border-line-strong"}`} aria-hidden>
+      {on && <span className="h-2.5 w-2.5 rounded-full bg-white" />}
+    </span>
+  );
+}
+
 export default function ConfidenceScreen({ practice, onSubmit }: { practice: "taken" | "declined" | null; onSubmit: (c: Confidence) => void }) {
   const [level, setLevel] = useState<Level | null>(null);
   const [leaves, setLeaves] = useState<LeafId[]>([]);
@@ -33,11 +42,6 @@ export default function ConfidenceScreen({ practice, onSubmit }: { practice: "ta
     setLeaves((ls) => (ls.includes(id) ? ls.filter((l) => l !== id) : [...ls, id]));
   };
 
-  const Radio = ({ on }: { on: boolean }) => (
-    <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border ${on ? "border-white" : "border-line-strong"}`} aria-hidden>
-      {on && <span className="h-2.5 w-2.5 rounded-full bg-white" />}
-    </span>
-  );
   const head = (on: boolean) => `flex w-full items-center gap-4 px-5 py-4 text-left transition-colors ${on ? "bg-ink text-white" : "bg-paper text-ink hover:bg-cream-deep"}`;
 
   return (
@@ -49,6 +53,11 @@ export default function ConfidenceScreen({ practice, onSubmit }: { practice: "ta
         <button type="button" onClick={() => pick("confident")} aria-pressed={level === "confident"} className={`rounded-2xl border ${level === "confident" ? "border-ink" : "border-line"} ${head(level === "confident")}`}>
           <Radio on={level === "confident"} />
           <span className="text-[16px] font-medium">confident</span>
+        </button>
+
+        <button type="button" onClick={() => pick("low")} aria-pressed={level === "low"} className={`rounded-2xl border ${level === "low" ? "border-ink" : "border-line"} ${head(level === "low")}`}>
+          <Radio on={level === "low"} />
+          <span className="text-[16px] font-medium">not confident</span>
         </button>
 
         <div className={`overflow-hidden rounded-2xl border ${level === "low-when" ? "border-ink" : "border-line"}`} data-skill-picker>
@@ -72,11 +81,6 @@ export default function ConfidenceScreen({ practice, onSubmit }: { practice: "ta
             })}
           </ul>
         </div>
-
-        <button type="button" onClick={() => pick("low")} aria-pressed={level === "low"} className={`rounded-2xl border ${level === "low" ? "border-ink" : "border-line"} ${head(level === "low")}`}>
-          <Radio on={level === "low"} />
-          <span className="text-[16px] font-medium">not confident</span>
-        </button>
       </div>
 
       <div className="mt-auto flex items-center justify-end pt-6">
