@@ -5,6 +5,7 @@ import { candidatesFor, problemsByStruggle, suggestExamples } from "./examples";
 import { INITIAL_SESSION, reworkedSession, sessionAt, type StudentSession } from "./session";
 import { LAST_ARRIVAL_MS } from "./readiness";
 import { groupPlan } from "./group";
+import { beginRun, type GroupRun } from "./groupReview";
 
 /**
  * Presenter shortcuts, not product: jump the demo to a moment in Sam's run. Every jump rebuilds the
@@ -25,6 +26,23 @@ const everyoneIn = (c: ClassroomState, now: number) => classroomReducer(c, { typ
 /** How many problems the whole-class jump projects: the two the class struggled with most. */
 const PROJECTED = 2;
 
+/** The report jump's group review, already run: begun ten minutes ago, every problem resolved a minute apart, finished six minutes in. */
+export const REPORT_RUN_STARTED_AGO_MS = 10 * 60_000;
+export const REPORT_RUN_FINISHED_AGO_MS = 4 * 60_000;
+function finishedRun(session: StudentSession, now: number): GroupRun {
+  const plan = groupPlan(session);
+  const problems = plan.discussion.problems.map((p) => p.id);
+  const startedAt = now - REPORT_RUN_STARTED_AGO_MS;
+  const finishedAt = now - REPORT_RUN_FINISHED_AGO_MS;
+  const step = problems.length > 1 ? (finishedAt - startedAt) / problems.length : 0;
+  const run = beginRun(
+    plan.members.map((m) => m.id),
+    problems,
+    startedAt,
+  );
+  return { ...run, index: Math.max(0, problems.length - 1), resolved: problems, resolvedAt: Object.fromEntries(problems.map((p, i) => [p, i === problems.length - 1 ? finishedAt : Math.round(startedAt + step * (i + 1))])), turnStartedAt: finishedAt, done: true };
+}
+
 export function skipFixture(target: SkipTarget, now: number): { session: StudentSession; classroom: ClassroomState } {
   let classroom = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: ASSIGNMENT.title, problemIds: ASSIGNMENT.problems.map((p) => p.id), pathway: DEMO_PATHWAY, at: now });
   switch (target) {
@@ -44,8 +62,11 @@ export function skipFixture(target: SkipTarget, now: number): { session: Student
       const c = everyoneIn(classroom, now);
       return { session, classroom: classroomReducer(c, { type: "group/begin", members: groupPlan(session).members.map((m) => m.id), problems: groupPlan(session).discussion.problems.map((p) => p.id), at: now }) };
     }
-    case "report":
-      return { session: sessionAt("report"), classroom: everyoneIn(classroom, now) };
+    case "report": {
+      // Group review is behind the class: the standings hold on the board with the demo group's run finished.
+      const session = sessionAt("report");
+      return { session, classroom: { ...everyoneIn(classroom, now), group: finishedRun(session, now) } };
+    }
     case "whole-class review": {
       // The teacher's setup, as it would be done from the reworked run: the most-struggled problems, suggested examples, projected with the grace already over.
       const session = { ...reworkedSession(), stage: "frozen" as const };

@@ -93,7 +93,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
     if (!holder || holder === DEMO_STUDENT.id) return;
     const events = turnScript(board.problems[board.index]);
     const next = events[board.scriptDone];
-    if (next && now >= board.turnStartedAt + next.at) dispatchClassroom({ type: "group/scripted", index: board.scriptDone, event: next });
+    if (next && now >= board.turnStartedAt + next.at) dispatchClassroom({ type: "group/scripted", index: board.scriptDone, event: next, at: board.turnStartedAt + next.at });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onBoard, board, now]);
   const projecting = isProjecting(classroom);

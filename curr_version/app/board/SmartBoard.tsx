@@ -7,7 +7,8 @@ import { ASSIGNMENT } from "@/data/assignment";
 import { boardContent, type BoardContent } from "@/lib/board";
 import { useClassroom } from "@/lib/classroom-store";
 import { lineMarks } from "@/lib/examples";
-import { useLiveSession } from "@/lib/store";
+import { useLiveSession, useNow } from "@/lib/store";
+import Leaderboard from "./Leaderboard";
 
 /**
  * The smartboard: opened once at the start of the lesson and left on the projector. Display
@@ -18,10 +19,12 @@ export default function SmartBoard() {
   const classroom = useClassroom();
   // Live, not batched: the room sees the board change the moment the class does.
   const session = useLiveSession();
-  const content = boardContent(classroom, session);
+  // The clock drives the other groups' scripted race; a tick a second is plenty for a bar that eases.
+  const now = useNow();
+  const content = boardContent(classroom, session, now);
   return (
     <div className="flex h-screen min-h-0 flex-col bg-cream select-none" data-board data-board-state={content.kind}>
-      {content.kind === "whole-class" ? <Slide content={content} /> : content.kind === "holding" ? <Holding content={content} /> : <Blank content={content} />}
+      {content.kind === "whole-class" ? <Slide content={content} /> : content.kind === "group" || content.kind === "holding" ? <Race content={content} /> : <Blank content={content} />}
     </div>
   );
 }
@@ -40,25 +43,24 @@ function Blank({ content }: { content: BoardContent }) {
   );
 }
 
-/** Group review is over and the teacher hasn't moved the class on. Ticket 42 puts the final standings here. */
-function Holding({ content }: { content: BoardContent }) {
+/** Group review: the race while it runs, the final standings held once it is over until the teacher moves the class on. */
+function Race({ content }: { content: Extract<BoardContent, { kind: "group" | "holding" }> }) {
+  const live = content.kind === "group";
   return (
     <>
       <header className="flex items-center justify-between px-10 py-6">
-        <Eyebrow className="text-[13px] tracking-[0.16em]">{content.className}</Eyebrow>
-        <span className="font-display text-[20px] text-ink-muted" data-board-title>
-          {content.title}
+        <div className="flex items-baseline gap-5">
+          <Eyebrow className="text-[13px] tracking-[0.16em]">{content.className}</Eyebrow>
+          <span className="font-display text-[20px] text-ink-muted" data-board-title>
+            {content.title}
+          </span>
+        </div>
+        <span className="flex items-center gap-3 font-display text-[30px] leading-none text-ink" data-board-holding={live ? undefined : true}>
+          {live && <span className="h-3 w-3 animate-pulse rounded-full bg-accent" aria-hidden />}
+          Group review
         </span>
       </header>
-      <div className="grid flex-1 place-items-center text-center">
-        <div>
-          <Eyebrow className="text-[15px] tracking-[0.18em]">Group review</Eyebrow>
-          <p className="mt-4 flex items-center justify-center gap-3 font-display text-[44px] leading-tight text-ink-muted/60" data-board-holding>
-            <span className="h-3 w-3 animate-pulse rounded-full bg-accent" aria-hidden />
-            Standings
-          </p>
-        </div>
-      </div>
+      <Leaderboard standings={content.standings} live={live} />
     </>
   );
 }

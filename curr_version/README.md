@@ -81,9 +81,12 @@ Teacher, during the lesson (`/teacher`):
   write with me · Show marks · End · Next.
 
 Smartboard (`/board`, left on the projector, nothing to press): blank (class and title) through
-submission and individual review; a holding placeholder once group review is over; during
-whole-class review one slide per problem, examples A/B/C with "n/m students", no names, no marks
-until the teacher shows them, and a mirror of the teacher's working.
+submission and individual review; during group review the race, five rows of four first names
+with a colour, a large bar and the percentage, re-ordered as bars move, gold, silver and bronze
+for the first three groups home (the other four groups run a scripted ten-minute race; the demo
+student's is live); the final standings held once group review is over; during whole-class
+review one slide per problem, examples A/B/C with "n/m students", no names, no marks until the
+teacher shows them, and a mirror of the teacher's working.
 - **Mistakes**, **Groups** (only when the pathway has group review), **Report**,
   **/teacher/compare**.
 

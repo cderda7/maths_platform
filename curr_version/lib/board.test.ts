@@ -18,8 +18,8 @@ describe("what the board shows per stage", () => {
     expect(boardWord(b)).toBe("blank");
   });
 
-  it("follows the demo's skips: blank through individual and group review, the board while projecting, holding once group review is over", () => {
-    const kinds = { start: "blank", "warm-up": "blank", working: "blank", "indiv review": "blank", "class wait": "blank", "group review": "blank", "whole-class review": "whole-class", report: "holding" } as const;
+  it("follows the demo's skips: blank through individual review and the gate, the standings during group review, the board while projecting, holding once group review is over", () => {
+    const kinds = { start: "blank", "warm-up": "blank", working: "blank", "indiv review": "blank", "class wait": "blank", "group review": "group", "whole-class review": "whole-class", report: "holding" } as const;
     for (const t of SKIP_TARGETS) {
       const { session, classroom } = skipFixture(t, now);
       expect(boardContent(classroom, session).kind, t).toBe(kinds[t]);
@@ -95,6 +95,32 @@ describe("what the board shows per stage", () => {
       const text = JSON.stringify(boardContent(classroom, session));
       for (const n of names) expect(text, `${t}: ${n}`).not.toContain(n);
     }
-    expect(Object.keys(boardContent(skipFixture("report", now).classroom, sessionAt("report")))).toEqual(["kind", "className", "title"]);
+    expect(Object.keys(boardContent(skipFixture("report", now).classroom, sessionAt("report")))).toEqual(["kind", "className", "title", "standings"]);
+    expect(Object.keys(boardContent(skipFixture("group review", now).classroom, sessionAt("group")))).toEqual(["kind", "className", "title", "standings"]);
+  });
+
+  it("during group review: five standings, the demo group live with the pen, the word 'standings'; once the run is done the same standings hold, final", () => {
+    const { classroom, session } = skipFixture("group review", now);
+    const live = boardContent(classroom, session, now);
+    if (live.kind !== "group") throw new Error("expected the race");
+    expect(live.standings).toHaveLength(5);
+    expect(live.standings.map((s) => s.percent)).toEqual([0, 0, 0, 0, 0]);
+    expect(live.standings.find((s) => s.live)?.pen).toBe("sam");
+    expect(boardWord(live)).toBe("standings");
+    // Every row names four first names and no surname.
+    for (const s of live.standings) {
+      expect(s.names).toHaveLength(4);
+      for (const n of s.names) expect(n).not.toContain(" ");
+    }
+    const done = boardContent({ ...classroom, group: { ...classroom.group!, done: true } }, session, now);
+    expect(done.kind).toBe("holding");
+    expect(boardWord(done)).toBe("holding");
+    // The report jump: the run long finished, everyone across the line, three medals.
+    const held = boardContent(skipFixture("report", now).classroom, sessionAt("report"), now);
+    if (held.kind !== "holding") throw new Error("expected the final standings");
+    expect(held.standings.map((s) => s.percent)).toEqual([100, 100, 100, 100, 100]);
+    expect(held.standings.map((s) => s.medal)).toEqual(["gold", "silver", "bronze", null, null]);
+    // Projecting replaces the standings; ending goes blank.
+    expect(boardContent(skipFixture("whole-class review", now).classroom, session, now).kind).toBe("whole-class");
   });
 });

@@ -5,6 +5,7 @@ import Link from "next/link";
 import TeacherChrome from "./TeacherChrome";
 import DiagnosticPush from "./DiagnosticPush";
 import ForceSubmit from "./ForceSubmit";
+import GroupProgressCard from "./GroupProgressCard";
 import WholeClassCard from "./WholeClassCard";
 import BoardIndicator from "./BoardIndicator";
 import { RowDrill, type ColumnBox, type RowMode } from "@/components/HierarchyDrill";
@@ -355,6 +356,7 @@ export default function TeacherLive() {
             </ol>
           </Card>
           <ForceSubmit session={live} />
+          <GroupProgressCard session={live} />
           <WholeClassCard />
           <Card className={`p-6 ${caution.length ? "border-gap-line" : ""}`}>
             <Eyebrow className={caution.length ? "text-gap" : ""}>Worth a look</Eyebrow>
