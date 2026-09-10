@@ -4,7 +4,6 @@ import { useRef, useState } from "react";
 import M from "@/components/Math";
 import InkView from "@/components/InkView";
 import { Button, Eyebrow } from "@/components/ui";
-import { DifficultyTag } from "@/components/Tag";
 import { useAssignment } from "@/lib/classroom-store";
 import type { StudentSession } from "@/lib/session";
 import { alignVersions, versionsOf, type AlignedProblem, type Version } from "@/lib/versions";
@@ -97,7 +96,6 @@ function Column({
           <section key={a.problem.id} className="border-b border-line px-4 py-3 last:border-b-0">
             <div className="flex h-8 items-center gap-3">
               <span className="font-display text-[18px] text-ink">{a.problem.label}</span>
-              <DifficultyTag d={a.problem.difficulty} />
               {comparing && a.changed && version.id === "final" && <span className="text-[11.5px] text-accent-deep">reworked</span>}
             </div>
             {(version.ink[a.problem.id]?.length ?? 0) > 0 && (

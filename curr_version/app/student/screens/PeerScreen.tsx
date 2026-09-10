@@ -2,7 +2,6 @@
 
 import M from "@/components/Math";
 import { Button, Card, Eyebrow } from "@/components/ui";
-import { DifficultyTag } from "@/components/Tag";
 import { studentLeafName } from "@/data/taxonomy";
 import { peerStruggles } from "@/lib/peers";
 
@@ -39,7 +38,6 @@ export default function PeerScreen({ onBack }: { onBack: () => void }) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className="font-display text-[22px] text-ink">{x.problem.label}</span>
-                  <DifficultyTag d={x.problem.difficulty} />
                 </div>
                 <span className="whitespace-nowrap text-[13px] text-ink-muted">
                   missed by {x.missed} of {p.classSize}

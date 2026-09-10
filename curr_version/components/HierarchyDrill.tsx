@@ -140,7 +140,7 @@ export const SkillTree = forwardRef<HTMLUListElement, TreeProps>(function SkillT
 /* ---------- the work behind a skill ---------- */
 
 /** The student's work on the problems that invoke a leaf: marked lines, a left rule on the lines tagged to that leaf, and a ⚠ chip on a red line whose mistake belongs to another skill. */
-export function WorkPanel({ leaf, lines, problems, status, wide, onGoTo }: { leaf: LeafId; lines: Record<string, string[]>; problems: Problem[]; status: Status; wide: boolean; onGoTo: (l: LeafId) => void }) {
+export function WorkPanel({ leaf, lines, problems, status, wide, onGoTo, student = false }: { leaf: LeafId; lines: Record<string, string[]>; problems: Problem[]; status: Status; wide: boolean; onGoTo: (l: LeafId) => void; /** The student's own report: no difficulty tags. */ student?: boolean }) {
   const invoking = problemsForLeaf(leaf, problems);
   return (
     <div className={wide ? "w-full" : "min-w-0 flex-1"} data-col="work" data-leaf={leaf}>
@@ -156,7 +156,7 @@ export function WorkPanel({ leaf, lines, problems, status, wide, onGoTo }: { lea
             <section key={p.id} className="rounded-xl border border-line bg-paper p-3" data-work-problem={p.id}>
               <div className="flex items-center gap-2.5">
                 <span className="font-display text-[16px] text-ink">{p.label}</span>
-                <DifficultyTag d={p.difficulty} />
+                {!student && <DifficultyTag d={p.difficulty} />}
                 <span className="ml-auto text-[13px] text-ink-soft">
                   <M tex={p.tex} />
                 </span>
@@ -309,7 +309,7 @@ export function RowDrill({
 /* ---------- the reports' browse drill ---------- */
 
 /** Categories at the top level, groups nested, skills nested; work to the right, or beneath when it won't fit. */
-export default function HierarchyDrill({ result, lines, problems, unit = 1 }: { result: HierarchyResult; lines: Record<string, string[]>; problems: Problem[]; unit?: 1 | 2 | 3 | 4 }) {
+export default function HierarchyDrill({ result, lines, problems, unit = 1, student = false }: { result: HierarchyResult; lines: Record<string, string[]>; problems: Problem[]; unit?: 1 | 2 | 3 | 4; /** The student's own report: no difficulty tags anywhere. */ student?: boolean }) {
   const [category, setCategory] = useState<CategoryId | null>(null);
   const [group, setGroup] = useState<GroupId | null>(null);
   const [leaf, setLeaf] = useState<LeafId | null>(null);
@@ -369,7 +369,7 @@ export default function HierarchyDrill({ result, lines, problems, unit = 1 }: { 
           </li>
         ))}
       </ul>
-      {leaf && <WorkPanel leaf={leaf} lines={lines} problems={problems} status={result.leaves[leaf]!} wide={below} onGoTo={goTo} />}
+      {leaf && <WorkPanel leaf={leaf} lines={lines} problems={problems} status={result.leaves[leaf]!} wide={below} onGoTo={goTo} student={student} />}
     </div>
   );
 }

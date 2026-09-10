@@ -245,3 +245,11 @@ appends it here (see `CLAUDE.md`).
   in" and "Reworked" ever appear. Decide whether group review writes a version.
 - **Marks on the frozen screen's split lines.** A two-case line now shows as two boxes there; a
   red mark colours both. Decide whether a mark can point at one branch.
+- **Right answer, wrong route.** "Check" in group review judges every known line and lets the
+  final line decide (2026-09-10). A student can reach the correct final answer by a dysfunctional
+  or incorrect strategy; a novel route is neither right nor wrong to the evaluator. Decide how to
+  catch and surface that (a route check against known methods, a teacher flag, a prompt to
+  explain the route).
+- **Difficulty tags are teacher-only.** Every student surface is now free of them (sweep of
+  2026-09-10: working, review, whole-class, peers, group, history, the student report's drill).
+  The rule is in `components/ProblemCard.tsx` and `HierarchyDrill`'s `student` flag; keep it.

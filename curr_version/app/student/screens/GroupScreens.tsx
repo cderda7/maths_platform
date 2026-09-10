@@ -2,7 +2,6 @@
 
 import M from "@/components/Math";
 import { Avatar, Button, Card, Eyebrow } from "@/components/ui";
-import { DifficultyTag } from "@/components/Tag";
 import { groupPlan } from "@/lib/group";
 import type { SessionAction, StudentSession } from "@/lib/session";
 
@@ -37,7 +36,6 @@ export function GroupPassScreen({ session, dispatch }: { session: StudentSession
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className="font-display text-[22px] text-ink">{p.label}</span>
-                <DifficultyTag d={p.difficulty} />
               </div>
               <span className="math-lg text-ink">
                 <M tex={p.tex} />
@@ -99,7 +97,6 @@ export function GroupDiscussScreen({ session, dispatch }: { session: StudentSess
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <span className="font-display text-[22px] text-ink">{p.label}</span>
-                    <DifficultyTag d={p.difficulty} />
                     <span className="ml-2 text-[18px] text-ink">
                       <M tex={p.tex} />
                     </span>
