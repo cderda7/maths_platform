@@ -245,6 +245,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 112 | The confidence screen's "not confident with…" list has one "factorising" row that opens "monic" and "non-monic" under it; the row alone means both kinds (`lib/confidence.ts`); the deep-linked survey offers the warm-up | `…?stage=confidence` | 110, 48 | [architecture/112-factorising-subskills.md](architecture/112-factorising-subskills.md) |
 | 113 | The confidence screen's spacing is tightened so the list fits the window with factorising's two kinds open (was 80px over) | `…?stage=confidence` | 112 | [architecture/113-confidence-fit.md](architecture/113-confidence-fit.md) |
 | 114 | The "full sentence" box is the chat's text field: muted placeholder "Provide your final answer as a full sentence.", the cursor in it as it appears, Enter ends the typing, the sentence kept per problem in `session.answers` | `…?stage=working`, Q9 after its three lines | 111, 74 | [architecture/114-answer-field.md](architecture/114-answer-field.md) |
+| 115 | The hand-in check: Hand in over a blank problem opens a card bottom right ("Hand in with Q7 blank?" / "Return to Q7" / "Confirm submit", or "Return to Q2, Q3, Q4" with a blue box under the pointer) instead of handing in; returning puts Hand in in the footer with "Jump to Qn" to its left while another blank remains; a starred problem's tile is the star alone | `/student` while working | — | [architecture/115-hand-in-check.md](architecture/115-hand-in-check.md) |
 
 ## Conventions
 

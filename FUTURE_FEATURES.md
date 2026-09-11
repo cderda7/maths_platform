@@ -1241,6 +1241,36 @@ agents add sections above it and leave it alone.
 - **The rework pad.** The individual-review pad passes no `answer`; Q10's rework script ends in
   the sentence, so it was not needed there.
 
+## The hand-in check and the star tiles (from ticket 115, 2026-09-11)
+
+- **The blue box needs a pointer.** The "Return to Q2, Q3, Q4" labels box in blue under the mouse;
+  an iPad has no hover, so on the device they are accent-coloured text that responds to a tap and the
+  box only ever shows on a laptop. If the tap target should read as a box on touch too, the labels
+  would need a resting outline (or the box on `:active`).
+- **No way to close the card and stay put.** The card closes on a way back (a label, a tile, the
+  jump), a pen stroke on the pad, or Confirm submit; there is no ✕ or Escape. A student on a blank Q10
+  who wants to write it has to start writing, which does close it.
+- **"Confirm submit" beside "Hand in".** The user asked for those words; every other button on the
+  student side says "Hand in". "Confirm hand in" would match if that matters.
+- **The card's heading is new copy.** "Hand in with Q7 blank?" / "Hand in with blanks?" was not
+  asked for; the user named only the buttons. It could go, leaving the buttons alone.
+- **Blank means no recognised line.** A problem with ink the recogniser has not turned into a line
+  (a stray mark) counts as blank and is listed. Counting strokes instead would treat any mark as an
+  attempt.
+- **The jump order wraps round.** From Q7 with Q2 and Q9 blank, the jump offers Q9 then Q2. Set
+  order from the top (Q2 first) is the other choice.
+- **The feedback screen's list still shows "Q1 ★".** The star-only tile is the working screen's
+  Problems list only; the rework list on the feedback screen keeps the label with a star beside it,
+  as does the teacher's report.
+- **The "← Q9" back button stays while returning.** With "Jump to Qn" and "Hand in" beside it the
+  three fit the column at 12px side padding; if the labels ever grow (Q100), the back button would be
+  the one to lose its label.
+- **Not-attempted problems are recorded, not shown.** Confirm submit puts the blank problems in the
+  session's `notAttempted` (as the teacher's force submit does); no screen reads it yet. The feedback
+  screen's rework list says "not attempted" from the lines themselves.
+- **The check does not run for the rework hand-in.** The feedback screen's own hand-in (rework/done)
+  has its guard and no blank check; a student who never reworks a broken problem is not asked.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

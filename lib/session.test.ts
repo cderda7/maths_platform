@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEMO_CONFIDENCE, INITIAL_RUN, INITIAL_SESSION, INITIAL_WARMUP, hydrateSession, runProblem, sessionAt, sessionReducer, warmupFocus, warmupOffered, warmupProblem, warmupSeed, type StudentSession } from "./session";
+import { DEMO_CONFIDENCE, INITIAL_RUN, INITIAL_SESSION, INITIAL_WARMUP, blankProblems, hydrateSession, runProblem, sessionAt, sessionReducer, warmupFocus, warmupOffered, warmupProblem, warmupSeed, type StudentSession } from "./session";
 import { PRACTICE, WARMUP_BANK } from "@/data/practice";
 import { warmupScript } from "./warmup";
 import { allPathways } from "./pathway";
@@ -497,9 +497,11 @@ describe("diagnostic push", () => {
 
 describe("routing by pathway", () => {
   const under = (pathway: Pathway) => (s: ReturnType<typeof sessionAt>, a: Parameters<typeof sessionReducer>[1]) => sessionReducer(s, a, { pathway });
+  // Every problem attempted, still on the pad: a plain Hand in goes through (a blank one would open the hand-in check instead).
+  const attempted = (): StudentSession => ({ ...sessionAt("feedback"), stage: "working" });
 
   it("without an env the reducer follows the build's default pathway", () => {
-    let s = sessionReducer(sessionAt("working"), { type: "hand-in", at: 7 });
+    let s = sessionReducer(attempted(), { type: "hand-in", at: 7 });
     expect(s.stage).toBe("feedback");
     expect(s.handedInAt).toBe(7);
     s = sessionReducer({ ...s, stage: "feedback" }, { type: "rework/done" });
@@ -512,7 +514,7 @@ describe("routing by pathway", () => {
     const entry = { individual: "feedback", group: "class-wait", "whole-class": "waiting" } as const;
     for (const pathway of allPathways()) {
       const r = under(pathway);
-      let s = r(sessionAt("working"), { type: "hand-in" });
+      let s = r(attempted(), { type: "hand-in" });
       const expected = pathway.map((st) => entry[st]);
       expect(s.stage, pathway.join(",")).toBe(expected[0] ?? "report");
       if (pathway.includes("individual")) {
@@ -541,7 +543,7 @@ describe("routing by pathway", () => {
   });
 
   it("submit-only lands on the report with the first attempt as the only version", () => {
-    const s = under([])(sessionAt("working"), { type: "hand-in", at: 3 });
+    const s = under([])(attempted(), { type: "hand-in", at: 3 });
     expect(s.stage).toBe("report");
     expect(s.rework).toEqual({});
   });
@@ -708,5 +710,78 @@ describe("teacher-written diagnostic", () => {
     expect(s.diagnostic?.question).toEqual(q);
     s = sessionReducer(s, { type: "diagnostic/answer", option: "b" });
     expect(s.diagnosticAnswers[0]).toEqual({ questionId: "custom-1", recorded: true, question: q, option: "b" });
+  });
+});
+
+describe("the hand-in check (ticket 115)", () => {
+  const line = (s: StudentSession, problem: string) => sessionReducer(s, { type: "line/reveal", problem, line: { tex: "x = 1", strokeCount: 1 } });
+  /** Every problem but the given ones written on, the pad on the last problem. */
+  const allBut = (...skip: string[]): StudentSession => {
+    let s = { ...sessionAt("working"), problemIndex: 9 };
+    for (const id of blankProblems(s)) if (!skip.includes(id)) s = line(s, id);
+    return s;
+  };
+
+  it("lists the blank problems in set order", () => {
+    expect(blankProblems(sessionAt("working"))).toEqual(["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"]);
+    expect(blankProblems(allBut("q4", "q1"))).toEqual(["q1", "q4"]);
+    expect(blankProblems(allBut())).toEqual([]);
+  });
+
+  it("Hand in over a blank problem opens the check instead of handing in; with none blank it goes through", () => {
+    const s = sessionReducer(allBut("q4"), { type: "hand-in", at: 5 });
+    expect(s.stage).toBe("working");
+    expect(s.handInCheck).toBe("open");
+    expect(s.handedInAt).toBe(0);
+    const done = sessionReducer(allBut(), { type: "hand-in", at: 5 });
+    expect(done.stage).toBe("feedback");
+    expect(done.handedInAt).toBe(5);
+    expect(done.handInCheck).toBeNull();
+    expect(done.notAttempted).toEqual([]);
+  });
+
+  it("Confirm submit hands in as it stands with the blanks recorded as not attempted", () => {
+    let s = sessionReducer(allBut("q1", "q4"), { type: "hand-in" });
+    s = sessionReducer(s, { type: "hand-in/confirm", at: 8 }, { pathway: [] });
+    expect(s.stage).toBe("report");
+    expect(s.handedInAt).toBe(8);
+    expect(s.notAttempted).toEqual(["q1", "q4"]);
+    expect(s.handInCheck).toBeNull();
+  });
+
+  it("Return to Qn closes the check onto that problem and the run is 'returning' until it is handed in", () => {
+    let s = sessionReducer(allBut("q4"), { type: "hand-in" });
+    s = sessionReducer(s, { type: "hand-in/return", index: 3 });
+    expect(s.problemIndex).toBe(3);
+    expect(s.handInCheck).toBe("returning");
+    s = sessionReducer(s, { type: "problem/goto", index: 5 });
+    expect(s.handInCheck).toBe("returning");
+    // Hand in from Q6 with Q4 still blank asks again; once Q4 has a line it goes through.
+    expect(sessionReducer(s, { type: "hand-in" }).handInCheck).toBe("open");
+    s = sessionReducer(line(s, "q4"), { type: "hand-in", at: 9 });
+    expect(s.stage).toBe("feedback");
+    expect(s.handInCheck).toBeNull();
+  });
+
+  it("a problem tile or a pen stroke under the open check is a way back too", () => {
+    const open = sessionReducer(allBut("q2", "q3"), { type: "hand-in" });
+    expect(sessionReducer(open, { type: "problem/goto", index: 2 }).handInCheck).toBe("returning");
+    const stroke = sessionReducer(open, { type: "ink/stroke", problem: "q10", stroke: [{ x: 1, y: 1 }, { x: 2, y: 2 }] });
+    expect(stroke.handInCheck).toBe("returning");
+    expect(stroke.problemIndex).toBe(9);
+  });
+
+  it("the teacher's force submit clears an open check", () => {
+    const open = sessionReducer(allBut("q2"), { type: "hand-in" });
+    const s = sessionReducer(open, { type: "advance/apply", id: "f", kind: "force-submit", at: 3 });
+    expect(s.stage).toBe("feedback");
+    expect(s.handInCheck).toBeNull();
+    expect(s.notAttempted).toEqual(["q2"]);
+  });
+
+  it("a session stored before the check existed hydrates with it closed", () => {
+    const { handInCheck: _omitted, ...old } = sessionAt("working");
+    void _omitted;
+    expect(hydrateSession(old).handInCheck).toBeNull();
   });
 });

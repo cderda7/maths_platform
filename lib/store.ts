@@ -82,7 +82,7 @@ export function setSession(next: StudentSession | null) {
  */
 export function dispatch(action: SessionAction) {
   const stamped: SessionAction =
-    action.type === "hand-in" || (action.type === "goto" && action.stage === "feedback") || action.type === "rework/done" ? { ...action, at: Date.now() } : action;
+    action.type === "hand-in" || action.type === "hand-in/confirm" || (action.type === "goto" && action.stage === "feedback") || action.type === "rework/done" ? { ...action, at: Date.now() } : action;
   setSession(sessionReducer(getSnapshot() ?? INITIAL_SESSION, stamped, { pathway: pathwayOf(getClassroom()) }));
 }
 

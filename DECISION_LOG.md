@@ -2068,3 +2068,37 @@ it as before. Nothing reads the sentence yet.
 text where everything else the student writes lives; the classes are copied from the chat, so a
 later change to the chat's box is a one-line change here too; the click-through pins the focus,
 the typing, Enter, the reload and the undo.
+
+## 2026-09-11 · The hand-in check is a reducer rule with a persisted mode, not a screen-local dialog
+
+**Decision.** `hand-in` over a set with a blank problem does not hand in: the reducer sets
+`handInCheck: "open"` and the working screen shows the card (ticket 115). "Confirm submit" is its
+own action (`hand-in/confirm`) that records the blanks as not attempted; a way back sets
+`handInCheck: "returning"`, which the footer reads to offer Hand in on every problem with a jump to
+the next blank one, until the set is handed in. The field is part of the stored session.
+
+**Context.** The user asked for a pop-up on Hand in when problems were skipped, a way back to each,
+and a different footer once the student has gone back ("hand in as it would appear normally when
+doing Q10", plus "jump to Q2"). The footer's state has to outlive the pop-up and any number of
+tile presses, and the teacher's force submit already computes the same blank list.
+
+**Alternatives considered.**
+- *A `useState` in the working screen.* The card would close on a reload and the "returning" footer
+  would be forgotten with it; the teacher's force submit, which must dismiss the card, could not
+  reach it; and the rule "a blank set asks first" would be tested only through the DOM.
+- *A blocking scrim modal (like the practice prompt).* The user asked for a card in the bottom
+  right; a scrim would also stop the student from answering the card by writing on the pad or
+  pressing a tile, which are natural ways back.
+- *Refusing Hand in until every problem has a line.* Simpler, but the user wants "Confirm submit" to
+  exist, and a student who cannot do Q7 must be able to hand in.
+
+**Tradeoffs.** One more field in the session shape (hydrated to `null` for older snapshots) and
+two more actions. The screen still holds a little logic of its own: which blank problem the jump
+goes to (the next after this, wrapping) and whether the three footer buttons fit the column.
+`hand-in` no longer hands in unconditionally, so the routing tests start from a set with every
+problem attempted; anything else that dispatches `hand-in` over a blank set now gets the card.
+
+**Defense.** The rule lives where the blank list and the force submit already live, the card and
+the footer survive a reload, every state is reachable through the reducer in seven tests, and the
+headless click-through drives the whole flow from Q1 to feedback the way a student would.
+

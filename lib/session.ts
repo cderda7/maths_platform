@@ -117,8 +117,15 @@ export interface StudentSession {
   reworkedAt: number;
   /** A one-line notice shown over the next screen until dismissed (post-rework sentence, teacher advances). */
   notice: string | null;
-  /** Problems with no lines when the teacher handed in for the class. */
+  /** Problems with no lines when the set was handed in for the student (the teacher's force submit, or the student's own "Confirm submit" over blanks). */
   notAttempted: string[];
+  /**
+   * The hand-in check (ticket 115): Hand in was pressed with problems still blank. "open" while
+   * the pop-up offers a way back to them or "Confirm submit"; "returning" once the student went
+   * back, when the footer offers Hand in on every problem with a jump to the next blank one.
+   * null before, and again after the set is handed in.
+   */
+  handInCheck: "open" | "returning" | null;
   /** What the student wrote along with the teacher during whole-class review, per problem. Never marked, never a version. */
   followInk: Record<string, Stroke[]>;
   /** The debrief after each group rework: the prompt, the student's note, when the marks opened, whether they moved on. Teacher-only reading. */
@@ -132,7 +139,12 @@ export interface StudentSession {
 }
 
 export type SessionAction =
+  /** Hand in. With a problem still blank it opens the hand-in check instead (`hand-in/confirm` goes through regardless). */
   | { type: "hand-in"; at?: number }
+  /** "Confirm submit" on the hand-in check: hands in as it stands, the blank problems recorded as not attempted. */
+  | { type: "hand-in/confirm"; at?: number }
+  /** "Return to Qn" on the hand-in check: the pop-up closes and the pad shows that problem. */
+  | { type: "hand-in/return"; index: number }
   /** A teacher advance whose grace has run out. Idempotent by id. */
   | { type: "advance/apply"; id: string; kind: AdvanceKind; at?: number }
   /** START on the overview: on to the confidence question. */
@@ -215,6 +227,9 @@ export type SessionAction =
 /** True while the warm-up offer is open: a not-confident answer is in and the student has not yet chosen. */
 export const warmupOffered = (s: StudentSession): boolean => s.stage === "confidence" && s.confidence !== null && s.confidence.level !== "confident" && s.practice === null;
 
+/** The set's problems with nothing written on them yet, in set order: what the hand-in check asks about, and what a hand-in over them records as not attempted. */
+export const blankProblems = (s: Pick<StudentSession, "lines">): string[] => ASSIGNMENT.problems.map((p) => p.id).filter((id) => (s.lines[id]?.length ?? 0) === 0);
+
 export const INITIAL_SESSION: StudentSession = {
   stage: "overview",
   practice: null,
@@ -240,6 +255,7 @@ export const INITIAL_SESSION: StudentSession = {
   reworkedAt: 0,
   notice: null,
   notAttempted: [],
+  handInCheck: null,
   followInk: {},
   debrief: {},
   appliedAdvances: [],
@@ -294,7 +310,13 @@ export const DEFAULT_ENV: SessionEnv = { pathway: DEFAULT_PATHWAY };
 export function sessionReducer(s: StudentSession, a: SessionAction, env: SessionEnv = DEFAULT_ENV): StudentSession {
   switch (a.type) {
     case "hand-in":
-      return { ...s, stage: nextStage(env.pathway, "handed-in"), handedInAt: a.at ?? s.handedInAt };
+      // A blank problem: ask first (the pop-up on the working screen) rather than hand in past it.
+      if (blankProblems(s).length > 0) return { ...s, handInCheck: "open" };
+      return { ...s, stage: nextStage(env.pathway, "handed-in"), handedInAt: a.at ?? s.handedInAt, handInCheck: null };
+    case "hand-in/confirm":
+      return { ...s, stage: nextStage(env.pathway, "handed-in"), handedInAt: a.at ?? s.handedInAt, notAttempted: blankProblems(s), handInCheck: null };
+    case "hand-in/return":
+      return { ...s, problemIndex: a.index, handInCheck: "returning" };
     case "advance/apply": {
       if (s.appliedAdvances.includes(a.id)) return s;
       const applied = { ...s, appliedAdvances: [...s.appliedAdvances, a.id] };
@@ -307,12 +329,12 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       }
       if (a.kind === "force-submit") {
         if (!BEFORE_HAND_IN.includes(s.stage)) return applied;
-        const notAttempted = ASSIGNMENT.problems.map((p) => p.id).filter((id) => (s.lines[id]?.length ?? 0) === 0);
         return {
           ...applied,
           stage: nextStage(env.pathway, "handed-in"),
           handedInAt: a.at ?? s.handedInAt,
-          notAttempted,
+          notAttempted: blankProblems(s),
+          handInCheck: null,
           prompt: null,
           overlay: null,
           notice: FORCED_HAND_IN_TEXT,
@@ -368,7 +390,8 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       return warm(s, { step: a.step, problem: "first", example: false, exampleShown: 0 });
     }
     case "problem/goto":
-      return { ...s, problemIndex: a.index };
+      // A tile pressed under the open hand-in check is a way back too.
+      return { ...s, problemIndex: a.index, handInCheck: s.handInCheck === "open" ? "returning" : s.handInCheck };
     case "line/reveal": {
       const prev = s.lines[a.problem] ?? [];
       const next: StudentSession = { ...s, lines: { ...s.lines, [a.problem]: [...prev, a.line] } };
@@ -386,7 +409,8 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       };
     }
     case "ink/stroke":
-      return { ...s, ink: { ...s.ink, [a.problem]: [...(s.ink[a.problem] ?? []), roundStroke(a.stroke)] } };
+      // Writing on under the open hand-in check answers it: the student is going on with the set.
+      return { ...s, ink: { ...s.ink, [a.problem]: [...(s.ink[a.problem] ?? []), roundStroke(a.stroke)] }, handInCheck: s.handInCheck === "open" ? "returning" : s.handInCheck };
     case "lines/undo": {
       const strokes = s.ink[a.problem] ?? [];
       const count = a.strokeCount ?? Math.max(0, strokes.length - 1);

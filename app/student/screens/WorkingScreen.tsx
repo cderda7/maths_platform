@@ -12,7 +12,8 @@ import { RECOGNITION } from "@/data/recognition";
 import { useAssignment } from "@/lib/classroom-store";
 import { nextLine, scriptDone } from "@/lib/recognition";
 import { HelpPicker, PracticeOverlay, PromptModal } from "./PracticePrompt";
-import type { SessionAction, StudentSession } from "@/lib/session";
+import HandInCheck from "./HandInCheck";
+import { blankProblems, type SessionAction, type StudentSession } from "@/lib/session";
 
 /**
  * The working screen: problem on the left, the drawpad in the middle, and the transcription
@@ -47,6 +48,16 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
     setRecognising(false);
     dispatch({ type: "problem/goto", index: i });
   };
+  const returnTo = (i: number) => {
+    setRecognising(false);
+    dispatch({ type: "hand-in/return", index: i });
+  };
+  // The hand-in check (ticket 115): the blank problems, in set order. While the student is returning to them the
+  // footer offers Hand in on every problem, with a jump to the next blank one after this (wrapping round) when there is one.
+  const blank = blankProblems(session).map((id) => ({ problem: problems.find((q) => q.id === id)!, index: problems.findIndex((q) => q.id === id) })).filter((b) => b.index >= 0);
+  const returning = session.handInCheck === "returning";
+  const last = session.problemIndex === problems.length - 1;
+  const jump = returning ? problems.map((_, k) => (session.problemIndex + 1 + k) % problems.length).find((i) => i !== session.problemIndex && blank.some((b) => b.index === i)) : undefined;
 
   return (
     <div className="grid h-full min-h-0 grid-cols-[300px_1fr_320px]">
@@ -73,17 +84,21 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
             {problems.map((q, i) => {
               const active = i === session.problemIndex;
               const started = (session.lines[q.id]?.length ?? 0) > 0;
+              // A starred problem's tile is the star alone (ticket 115); its colour still says whether it was started.
+              const starred = session.stars.includes(q.id);
               return (
                 <li key={q.id}>
                   <button
                     type="button"
                     onClick={() => go(i)}
                     aria-current={active ? "step" : undefined}
-                    className={`h-9 w-10 rounded-lg border text-[13px] font-medium transition-colors ${
+                    aria-label={starred ? `${q.label}, starred` : undefined}
+                    data-starred={starred || undefined}
+                    className={`h-9 w-10 rounded-lg border font-medium transition-colors ${starred ? "text-[16px] leading-none" : "text-[13px]"} ${
                       active ? "border-ink bg-ink text-white" : started ? "border-accent-line bg-accent-soft text-accent-deep" : "border-line bg-paper text-ink-soft hover:border-ink-muted"
                     }`}
                   >
-                    {q.label}
+                    {starred ? "★" : q.label}
                   </button>
                 </li>
               );
@@ -108,19 +123,31 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
 
       <aside className="flex min-h-0 flex-col border-l border-line px-6 py-6">
         <ReadAs lines={lines} recognising={recognising} empty="Lines appear here as you write." className="flex-1" />
-        <div className="mt-4 flex items-center justify-between gap-2 border-t border-line pt-4">
-          <Button variant="ghost" onClick={() => go(session.problemIndex - 1)} className={session.problemIndex === 0 ? "invisible" : ""}>
+        <div className={`mt-4 flex items-center justify-between border-t border-line pt-4 ${jump !== undefined ? "gap-1.5" : "gap-2"}`}>
+          {/* Three buttons in a 320px column while a jump shows: the back button loses 4px of padding a side (inline, as the Button's own px-4 outranks a utility on it) and the gaps tighten, so nothing wraps or spills. */}
+          <Button variant="ghost" onClick={() => go(session.problemIndex - 1)} className={`whitespace-nowrap ${session.problemIndex === 0 ? "invisible" : ""}`} style={jump !== undefined ? { paddingInline: 12 } : undefined}>
             ← {problems[session.problemIndex - 1]?.label ?? ""}
           </Button>
-          {session.problemIndex < problems.length - 1 ? (
-            <Button onClick={() => go(session.problemIndex + 1)}>Next: {problems[session.problemIndex + 1].label} →</Button>
+          {returning || last ? (
+            <div className={`flex items-center ${jump !== undefined ? "gap-1.5" : "gap-2"}`}>
+              {jump !== undefined && (
+                <Button variant="secondary" onClick={() => go(jump)} data-jump={problems[jump].id} className="whitespace-nowrap">
+                  Jump to {problems[jump].label}
+                </Button>
+              )}
+              <Button variant="accent" onClick={() => dispatch({ type: "hand-in" })} data-hand-in className="whitespace-nowrap">
+                Hand in
+              </Button>
+            </div>
           ) : (
-            <Button variant="accent" onClick={() => dispatch({ type: "hand-in" })}>
-              Hand in
-            </Button>
+            <Button onClick={() => go(session.problemIndex + 1)}>Next: {problems[session.problemIndex + 1].label} →</Button>
           )}
         </div>
       </aside>
+
+      {session.handInCheck === "open" && blank.length > 0 && !helpOpen && !session.overlay && (
+        <HandInCheck blank={blank} onReturn={returnTo} onConfirm={() => dispatch({ type: "hand-in/confirm" })} />
+      )}
 
       {helpOpen && (
         <HelpPicker
