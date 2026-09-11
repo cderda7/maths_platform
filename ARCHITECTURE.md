@@ -222,6 +222,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 89 | The concerns chat's skill names sit in a light blue box (the standout blue's soft fill and line), not bold | `…?stage=warmup-chat` | 84 | [architecture/89-chat-skill-boxes.md](architecture/89-chat-skill-boxes.md) |
 | 91 | The skill box's text is ink, so the chat line reads in one colour | `…?stage=warmup-chat` | 89 | [architecture/91-chat-skill-box-ink.md](architecture/91-chat-skill-box-ink.md) |
 | 90 | The worked example is maths alone, every step at the problem's size and centred under it, no captions, no "Guess the next step"; while it plays the right column is the chat headed "Question about a step?" (opener "Which step, and what about it?"), and each turn tells the tutor which steps are on screen | `…?stage=practice`, the practice overlay, `POST /api/help-chat` | 69, 79 | [architecture/90-example-chat.md](architecture/90-example-chat.md) |
+| 92 | The help chat sits under the read-as lines instead of replacing them: the read-as list is capped at under half the column while the chat is open (it scrolls), the bubbles gather just above the box to write in | `…?stage=practice`, the practice overlay | 86, 69 | [architecture/92-chat-below-read-as.md](architecture/92-chat-below-read-as.md) |
 
 ## Conventions
 

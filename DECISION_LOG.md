@@ -1615,3 +1615,30 @@ like the rest of the brief. The captions are lost as on-screen text for a studen
 the brief's example variant is pinned by tests alongside a test that the pad brief is unchanged. The
 card is simpler than before (one branch fewer, no width for a caption), and the browser check
 measures every step and the problem at one size on one axis.
+
+## 2026-09-11 · The help chat shares the right column with the read-as lines rather than replacing them
+
+**Decision.** While the chat is open, the read-as column stays at the top of the pad's right column,
+capped at 45% of it (its own list scrolls), and the chat takes the rest below a "Chat · close" strip.
+The bubbles gather at the foot of the chat, directly above the box to write in, and grow upwards.
+
+**Context.** Since ticket 69 the chat replaced the read-as column while open. Ticket 86 opens the
+chat on a hint that points at the student's own line, which the chat then hid. The user (ticket 92):
+keep the student's transcribed work in view; put the chat lower, right above the message box.
+
+**Alternatives considered.**
+- *Chat as a floating panel over the pad* or a fourth column. Keeps every line visible, but covers
+  the ink or squeezes the pad the student is writing on; the right column is the help column already.
+- *Collapse the read-as list to its last line while chatting.* Loses exactly the lines a hint's
+  linked words point at.
+- *Split the column half and half.* Wastes the chat's room when there is one line and the read-as
+  room when there are many; a cap that yields to few lines and holds against many does both.
+
+**Tradeoffs.** A long read-as list scrolls behind a hard edge while the chat is open, and a lit line
+may be scrolled out of view (logged). The chat has less height than before, so a longer conversation
+scrolls sooner.
+
+**Defense.** Two layout changes, no logic: `ReadAs` swaps `flex-1` for a cap, `HelpChat` takes a
+class and anchors its list to the bottom with an empty first item. The browser check shows the one
+line still in place with the chat open, the bubble against the box, and five lines capped and
+scrolling; a hint word still lights the line above the chat.

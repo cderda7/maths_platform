@@ -926,6 +926,21 @@ agents add sections above it and leave it alone.
   taps it first; a Return key on the iPad keyboard sends (Enter without shift). Fine on hardware
   keyboards, worth a look on the on-screen one.
 
+## The chat under the read-as lines (from ticket 92, 2026-09-11)
+
+- **The read-as cap is a fixed 45%.** With many lines read and the chat open, the read-as list
+  scrolls behind a hard edge (the fifth fraction line is cut mid-way). A fade at the edge, or a cap
+  that follows how many bubbles there are, would look better; not asked for.
+- **The chat does not auto-close when a line is read.** The tutor sends the student back to the
+  pad, and their new line appears above the chat, which is the point of keeping the column; the
+  chat stays open until "close". Closing it on a read line, or shrinking it to a strip, is an
+  option if it crowds the lines.
+- **No scroll-into-view for a lit line.** With the read-as list capped, a hint word can light a
+  line that is scrolled out of the visible part of the list; the tint is there but unseen. The
+  earlier note (ticket 82) about scrolling the lit line into view applies more now.
+- **The overlay's narrower column.** The mid-set practice overlay shares this pad; with the chat
+  and five lines in its 320px column both halves are tight. Not measured on a real iPad yet.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

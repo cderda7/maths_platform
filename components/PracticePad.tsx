@@ -161,17 +161,30 @@ export default function PracticePad({
         {run.example ? (
           // Beside the worked example there is nothing to read back, so the column is the chat, headed "Question about a step?".
           <HelpChat key={p.id} problem={p} lines={lines.map((l) => l.tex)} messages={chat} runKey={runKey} dispatch={dispatch} exampleShown={run.exampleShown} />
-        ) : chatOpen ? (
-          <HelpChat key={p.id} problem={p} lines={lines.map((l) => l.tex)} messages={chat} runKey={runKey} dispatch={dispatch} onClose={() => setChatOpen(false)} />
         ) : (
-          <ReadAs
-            lines={lines}
-            recognising={recognising}
-            empty="Lines appear here as you write."
-            decorate={(tex, i) => termTex(tex, termsAt(i + 1), litAt(i + 1))}
-            highlight={litAnchor > 0 ? litAnchor - 1 : undefined}
-            className="flex-1"
-          />
+          <>
+            {/* The student's read lines stay put while the chat is open: the chat sits under them, its bubbles gathered just above the box to write in. */}
+            <ReadAs
+              lines={lines}
+              recognising={recognising}
+              empty="Lines appear here as you write."
+              decorate={(tex, i) => termTex(tex, termsAt(i + 1), litAt(i + 1))}
+              highlight={litAnchor > 0 ? litAnchor - 1 : undefined}
+              className={chatOpen ? "max-h-[45%] shrink-0" : "flex-1"}
+            />
+            {chatOpen && (
+              <HelpChat
+                key={p.id}
+                problem={p}
+                lines={lines.map((l) => l.tex)}
+                messages={chat}
+                runKey={runKey}
+                dispatch={dispatch}
+                onClose={() => setChatOpen(false)}
+                className="mt-5 border-t border-line pt-4"
+              />
+            )}
+          </>
         )}
         <div className="mt-4 flex items-center justify-end gap-2 border-t border-line pt-4">{footer}</div>
       </aside>
