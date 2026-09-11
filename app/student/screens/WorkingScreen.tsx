@@ -10,7 +10,7 @@ import StarButton from "@/components/StarButton";
 import Figure from "@/components/Figure";
 import { RECOGNITION } from "@/data/recognition";
 import { useAssignment } from "@/lib/classroom-store";
-import { nextLine } from "@/lib/recognition";
+import { nextLine, scriptDone } from "@/lib/recognition";
 import { HelpPicker, PracticeOverlay, PromptModal } from "./PracticePrompt";
 import type { SessionAction, StudentSession } from "@/lib/session";
 
@@ -26,6 +26,8 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
   const [recognising, setRecognising] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const strokes = session.ink[p.id] ?? [];
+  // A worded problem, every line of the working read: the pad asks for the answer in a sentence (ticket 111). Undo below the last line takes it away again.
+  const askSentence = p.answerAs === "sentence" && scriptDone(RECOGNITION[p.id] ?? [], lines);
   const addStroke = (next: Stroke[]) => dispatch({ type: "ink/stroke", problem: p.id, stroke: next[next.length - 1] });
 
   const onBurstEnd = (strokeCount: number) => {
@@ -90,7 +92,15 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
         </div>
       </aside>
 
-      <PadSection strokes={strokes} onStrokesChange={addStroke} onBurstEnd={onBurstEnd} onPenDown={() => setRecognising(true)} onUndo={undo} onClear={clear} />
+      <PadSection
+        strokes={strokes}
+        onStrokesChange={addStroke}
+        onBurstEnd={onBurstEnd}
+        onPenDown={() => setRecognising(true)}
+        onUndo={undo}
+        onClear={clear}
+        note={askSentence ? "Provide your final answer as a full sentence." : undefined}
+      />
 
       <aside className="flex min-h-0 flex-col border-l border-line px-6 py-6">
         <ReadAs lines={lines} recognising={recognising} empty="Lines appear here as you write." className="flex-1" />

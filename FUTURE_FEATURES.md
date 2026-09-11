@@ -1179,6 +1179,27 @@ agents add sections above it and leave it alone.
 - **The short forms are still "-ing".** "monic factorising" and "non-monic factorising" in chips,
   the feedback sentence and the confidence copy (see ticket 108's notes).
 
+## The "full sentence" box at the foot of the pad (from ticket 111, 2026-09-11)
+
+- **Only the two worded problems ask.** `answerAs: "sentence"` is set on Q9 and Q10 by hand. A
+  rule that reads it off the problem (a stem ending in a question mark, or a solution step tagged
+  `reasoning.interpret.worded` / `reasoning.justify.conclusions`) would cover a new set without
+  a flag; deferred until there is a second assignment to check it against.
+- **The box asks and nothing answers.** The pad reads no fourth line for Q9 (the script ends at
+  "turning point at x = 3"), so a sentence the student writes under the box is ink the read-as
+  column never shows, and the report still marks Q9 as the compounded step. A scripted sentence
+  ("The ball lands 6 m away and reaches 9 m.") revealed by the next burst, and the report reading
+  it, was not asked for.
+- **The rework pad does not ask.** The individual-review pad ("If needed, correct it here") uses
+  the same `PadSection` but passes no note; Q10's rework script ends in a sentence already.
+- **A box the student can dismiss.** The note has no close; it stays until a line is undone. A
+  tap to dismiss it (remembered per problem in the session) was not asked for.
+- **A typed answer.** "Text box" was read as a box of text on the paper, not an input: the pad is
+  handwriting and the read-as column is its transcript. A typed sentence field under the pad,
+  read into the report as the final answer, is the other reading.
+- **Every problem.** If the box should appear after every problem's working (a sentence for
+  "Solve for x" too), it is the flag on the other eight problems and nothing else.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

@@ -23,3 +23,8 @@ export function nextLine(script: string[], revealed: RevealedLine[], strokeCount
 export function afterUndo(revealed: RevealedLine[], strokeCount: number): RevealedLine[] {
   return revealed.filter((l) => l.strokeCount <= strokeCount);
 }
+
+/** Every scripted line has been revealed: the working is finished, as far as the pad can read it. */
+export function scriptDone(script: string[], revealed: RevealedLine[]): boolean {
+  return script.length > 0 && revealed.length >= script.length;
+}

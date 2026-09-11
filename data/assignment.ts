@@ -118,6 +118,7 @@ export const PROBLEMS: Problem[] = [
     difficulty: "complex unfamiliar",
     stem: "A ball's height after travelling x metres is given below. Where does it land, and what is its greatest height?",
     tex: "h = -x^2 + 6x",
+    answerAs: "sentence",
     solution: [
       { tex: "-x(x - 6) = 0", label: "Height zero, factorised", tags: [tag("reasoning.interpret.worded"), tag("algebra.expand-factor.expand")] },
       { tex: "x = 0 \\;\\text{or}\\; x = 6", label: "Lands at x = 6", tags: [tag("unit.u1.nfl"), tag("functions.zeros.zero-finding")] },
@@ -131,6 +132,7 @@ export const PROBLEMS: Problem[] = [
     difficulty: "complex unfamiliar",
     stem: "Show that the following has no real solutions, and say what that means for the graph of y = x² + 4x + 5.",
     tex: "x^2 + 4x + 5 = 0",
+    answerAs: "sentence",
     solution: [
       { tex: "b^2 - 4ac = 16 - 20 = -4", label: "Discriminant", tags: [tag("unit.u1.discriminant")] },
       { tex: "\\Delta < 0 \\Rightarrow \\text{no real solutions}", label: "Justified", tags: [tag("reasoning.justify.formal")] },

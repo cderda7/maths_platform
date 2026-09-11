@@ -42,6 +42,12 @@ export interface Problem {
   tex: string;
   solution: SolutionStep[];
   figure?: FigureId;
+  /**
+   * A problem asked in words wants its answer in words: once every line of the working has been
+   * read, the pad asks for the final answer as a full sentence (ticket 111). Unset on a "Solve
+   * for x", where the last line is the answer.
+   */
+  answerAs?: "sentence";
 }
 
 /** QCAA unit and topic, rendered to the eyebrow by `unitLabel`. */

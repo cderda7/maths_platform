@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { afterUndo, nextLine } from "./recognition";
+import { afterUndo, nextLine, scriptDone } from "./recognition";
 
 const script = ["a", "b", "c"];
 
@@ -35,5 +35,16 @@ describe("simulated recognition bookkeeping", () => {
     expect(afterUndo(rev, 7)).toEqual(rev);
     expect(afterUndo(rev, 0)).toEqual([]);
     expect(nextLine(script, afterUndo(rev, 6), 7)!.tex).toBe("b");
+  });
+
+  it("knows when the script is finished, and not before, and never for a problem with no script", () => {
+    const rev = [
+      { tex: "a", strokeCount: 2 },
+      { tex: "b", strokeCount: 4 },
+    ];
+    expect(scriptDone(script, rev)).toBe(false);
+    expect(scriptDone(script, [...rev, { tex: "c", strokeCount: 6 }])).toBe(true);
+    expect(scriptDone(script, afterUndo([...rev, { tex: "c", strokeCount: 6 }], 5))).toBe(false);
+    expect(scriptDone([], [])).toBe(false);
   });
 });

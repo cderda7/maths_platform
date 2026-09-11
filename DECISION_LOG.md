@@ -1963,3 +1963,36 @@ middle of. The stall for that hint now spans three lines, so it releases one lin
 the hint machinery needed no code change, only the `at` lists; the tests pin the working and the
 lists, and the sweep passes with the new line written.
 
+## 2026-09-11 · The "full sentence" ask is a per-problem flag and a derived box, not stored state
+
+**Decision.** `Problem.answerAs?: "sentence"` marks the problems asked in words (Q9, Q10). The
+working screen shows the box when the flag is set and `scriptDone` holds for the problem's read
+lines; nothing about the box is stored. It lives in `PadSection` as a `note` prop at the foot of
+the pad card, the canvas giving up the height (ticket 111).
+
+**Context.** The user, on Q9 with its three lines read: "after this student has finished their
+work, add a text box into the draw pad (at the bottom) that says 'Provide your final answer as a
+full sentence.'" "Finished" on this pad means the scripted recognition is exhausted; the question
+was which problems ask, how "finished" is known, and where the box goes.
+
+**Alternatives considered.**
+- *Every problem.* "Provide your final answer as a full sentence" under "Solve for x" asks for a
+  sentence no marker wants; the box would lose its meaning by Q2. A flag on the two worded
+  problems reads as the user's screenshot does.
+- *Inferring wordedness from the stem or the tags.* One assignment is too little to trust a rule
+  with; a flag is read at a glance in `data/assignment.ts`. Logged in FUTURE_FEATURES.
+- *A stored "done" flag set by the reducer on the last reveal.* It would need clearing on undo
+  and clear, a second source of truth for what `lines.length` already says.
+- *An overlay on the canvas (absolute, pointer-events none).* Ink would pass under the box; and
+  a box the pen writes through is not a box. The flex column keeps the paper and the box apart.
+- *Shrinking the canvas moves the ink?* No: strokes are stored in canvas coordinates from the
+  top-left and redrawn on resize, so the rows above stay where they were; only paper at the foot
+  is given up, and the click-through pins the canvas top.
+
+**Tradeoffs.** A student who has undone their last line loses the box until they write it again,
+which is the derived-state rule working as intended. The box is per-problem data a new assignment
+has to set by hand. The pad's ruled lines end 44px above the box rather than under it.
+
+**Defense.** The user's ask is met exactly on the screen they showed; the two worded problems are
+the only ones whose answer is a sentence; derived state means undo, clear and reload need no new
+code; and every other `PadSection` caller is unchanged.

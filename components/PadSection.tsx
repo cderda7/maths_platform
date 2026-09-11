@@ -14,6 +14,7 @@ export default function PadSection({
   onClear,
   readOnly = false,
   padded = true,
+  note,
 }: {
   title?: string;
   strokes: Stroke[];
@@ -26,6 +27,8 @@ export default function PadSection({
   readOnly?: boolean;
   /** `false` when the pad sits in a grid beside other columns: no inset, so its eyebrow lines up with theirs. */
   padded?: boolean;
+  /** A line pinned to the foot of the pad, inside its border: "Provide your final answer as a full sentence." once a worded problem's working is read (ticket 111). */
+  note?: string;
 }) {
   return (
     <section className={`flex h-full min-h-0 flex-1 flex-col ${padded ? "px-6 py-6" : ""}`}>
@@ -43,8 +46,16 @@ export default function PadSection({
           </div>
         )}
       </div>
-      <div className="mt-3 min-h-0 flex-1 overflow-hidden rounded-2xl border border-line bg-paper shadow-card">
-        <DrawPad strokes={strokes} onStrokesChange={onStrokesChange} onBurstEnd={onBurstEnd} onPenDown={onPenDown} readOnly={readOnly} />
+      <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-line bg-paper shadow-card">
+        <div className="min-h-0 flex-1">
+          <DrawPad strokes={strokes} onStrokesChange={onStrokesChange} onBurstEnd={onBurstEnd} onPenDown={onPenDown} readOnly={readOnly} />
+        </div>
+        {/* The note takes the foot of the paper and the canvas gives it up; the ink above is redrawn in place (its coordinates are from the top), so nothing written moves. */}
+        {note && (
+          <p className="offer-in mx-6 mb-5 rounded-xl border border-accent-line bg-accent-soft/60 px-4 py-3 text-[14px] font-medium text-accent-deep" data-pad-note>
+            {note}
+          </p>
+        )}
       </div>
     </section>
   );

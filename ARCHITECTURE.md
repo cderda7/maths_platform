@@ -241,6 +241,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 109 | The practice prompt's card reads "2 minutes on factorising?" (a numeral) with its two sentences in sentence case on two lines: "This is your second mistake on factorising." then "Let's do a short problem to review." | `/student` while working, a second mistake on a group | 31 | [architecture/109-prompt-copy.md](architecture/109-prompt-copy.md) |
 | 106 | The fractions worked example writes the 6 as 12/2 ("x/4 + x/2 = 9/2 + 12/2") before combining the numbers: seven steps, the hints after the first placed one line later, the common-denominator hint covering the new line | `…?stage=practice`, the practice overlay | 90, 86 | [architecture/106-six-as-twelve-halves.md](architecture/106-six-as-twelve-halves.md) |
 | 110 | The `algebra.expand-factor.monic` leaf's full name is "Monic factorisation" (short form "monic factorising" and the student's "Factorising" override unchanged): the teacher's skills tree | `/teacher/report?student=<id>` | 108 | [architecture/110-monic-rename.md](architecture/110-monic-rename.md) |
+| 111 | Once every line of a worded problem's working is read (Q9, Q10), a box at the foot of the pad reads "Provide your final answer as a full sentence."; gone again on undo, never on a "Solve for x" | `…?stage=working`, Q9 after its three lines | 03, 18 | [architecture/111-final-sentence.md](architecture/111-final-sentence.md) |
 
 ## Conventions
 
