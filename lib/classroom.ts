@@ -4,6 +4,7 @@ import { moveStudent, seatingOf } from "./seating";
 import { beginRun, checkBoard, currentProblem, type GroupRun, type TurnEvent } from "./groupReview";
 import type { ExampleRef } from "./examples";
 import { DEFAULT_PATHWAY } from "./pathway";
+import type { ReviewedQuestion, ReviewState } from "./review";
 
 /**
  * Teacher-owned state shared by every tab: the created assignment and, from later tickets, the
@@ -19,6 +20,11 @@ export interface CreatedAssignment {
   /** The confirmed QCAA unit for Unit Focus. */
   unit: 1 | 2 | 3 | 4;
   createdAt: number;
+  /**
+   * The finalised set as the teacher typed and reviewed it (ticket 120), every question whether
+   * or not the bank holds it; `problemIds` is the part of it the student side can run.
+   */
+  questions?: ReviewedQuestion[];
 }
 
 /** A teacher-driven move of the whole class, applied by every student tab when the deadline passes. */
@@ -75,6 +81,8 @@ export interface ClassroomState {
   assignment: CreatedAssignment | null;
   /** The teacher's draft on the create screen; kept across reloads, cleared by reset. */
   draft?: AssignmentDraft | null;
+  /** The review step's decisions about the draft (ticket 120): labels, answers, pathway, the step reached. */
+  review?: ReviewState | null;
   advance: PendingAdvance | null;
   wholeClass: WholeClassSession | null;
   /** The teacher's seating groups, per class; absent in older stored state (read through `seatingOf`). */
@@ -86,9 +94,11 @@ export interface ClassroomState {
 }
 
 export type ClassroomAction =
-  | { type: "assignment/create"; title: string; problemIds: string[]; pathway: Pathway; unit?: 1 | 2 | 3 | 4; at?: number }
+  | { type: "assignment/create"; title: string; problemIds: string[]; pathway: Pathway; unit?: 1 | 2 | 3 | 4; questions?: ReviewedQuestion[]; at?: number }
   /** The create screen's draft as typed; null clears it. */
   | { type: "draft/set"; draft: AssignmentDraft | null }
+  /** The review step's decisions; null clears them. */
+  | { type: "review/set"; review: ReviewState | null }
   /** The groups page: move one student to a colour. */
   | { type: "groups/move"; student: string; to: GroupColour }
   | { type: "groups/reset" }
@@ -130,8 +140,10 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
   switch (a.type) {
     case "draft/set":
       return { ...c, draft: a.draft };
+    case "review/set":
+      return { ...c, review: a.review };
     case "assignment/create":
-      return { ...c, assignment: { title: a.title, problemIds: [...a.problemIds], pathway: [...a.pathway], unit: a.unit ?? 1, createdAt: a.at ?? 0 } };
+      return { ...c, assignment: { title: a.title, problemIds: [...a.problemIds], pathway: [...a.pathway], unit: a.unit ?? 1, createdAt: a.at ?? 0, ...(a.questions ? { questions: a.questions.map((q) => ({ ...q })) } : {}) } };
     case "advance/start": {
       const at = a.at ?? 0;
       return { ...c, advance: { id: `${a.kind}@${at}`, kind: a.kind, deadline: at + GRACE_MS } };

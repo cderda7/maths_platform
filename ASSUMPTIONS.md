@@ -1,2 +1,5 @@
 -**STUDENT ON** ipad; **TEACHER ON** laptop; **BOARD** smartboard (teacher can click).
 -**TYPED QUESTIONS FIT THEIR TILE** on the create screen: a tile is a fixed square in the five-wide grid and clips; no tile scrolls or grows (ticket 119, 2026-09-11).
+-**THE STUDENT SIDE RUNS THE BANK'S Q1** (`x^2 - 5x + 6 = 0`) whatever the teacher decides about the review step's first recommendation: keeping `x^2 + 5x + 6 = 0` leaves it in the assignment's `questions` but the student's set is the bank's (the user, 2026-09-11: "we're just gonna override & change back to -5x anyways"). Likewise a typed question the bank does not hold is carried on the assignment and never reaches a student (ticket 120).
+-**THE CLASS IS TWENTY** on the review step's evidence line ("7 of 20 students") although the fixture roster elsewhere is eight classmates (the user, 2026-09-11: "we have 20 students") (ticket 120).
+-**THE ASSESSMENT IS SCRIPTED**: the three recommendations are fixtures matched to the draft by expression; a relabel never changes them, and a draft without the +5x Q1 or the repeated Q9 simply gets fewer cards (ticket 120).

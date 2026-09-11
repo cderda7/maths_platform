@@ -197,6 +197,27 @@ body {
   animation: shimmer 1.1s linear infinite;
 }
 
+/* The review step (ticket 120): a difficulty pill arriving (`.label-in`, delayed per tile so they land one after another) and the assessing bar filling steadily over its duration (`.assess-fill`, the duration set inline). */
+@keyframes label-rise {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.label-in {
+  animation: label-rise 380ms ease-out both;
+}
+@keyframes assess-grow {
+  from { width: 0; }
+  to { width: 100%; }
+}
+.assess-fill {
+  animation: assess-grow 5s linear both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .label-in {
+    animation: none;
+  }
+}
+
 /* The create screen's question box grows with its text (ticket 119): the wrapper's ::after mirrors the value in the same cell, so the textarea takes the height of the text without a script. */
 .grow-wrap {
   display: grid;

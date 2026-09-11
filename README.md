@@ -52,7 +52,14 @@ Teacher, before the lesson (`/teacher/assignments/create`, then the older `/teac
    grid, each tile the editor: the typed text on top, the rendered question beneath as you type
    (`x**2 + 5x + 6 = 0`, `1/3x**2`, `sqrt(2)` as KaTeX), Enter for the next tile, Shift+Enter to
    put the expression under the prose, × or Backspace to remove ("Q2 removed. Undo"). Continue
-   saves the draft and opens the review screen, a stub for now.
+   saves the draft and opens the review step.
+0b. **Review** (ticket 120, `…/create/review`): the same tiles with a difficulty label on each
+   (simple / complex × familiar / unfamiliar, from the bank or a heuristic; tap a label to change
+   it) and the counts above. "Assess set" runs a bar for five seconds and returns three
+   recommendations matched to the set: change Q1 to `x² − 5x + 6 = 0` (the class's sign slip),
+   remove the repeat of Q3, add a problem in a context (Try another cycles three). Accept or Keep
+   as is, Undo, the grid follows. "Finalise set" opens the pathway screen: the unit focus to
+   confirm above the review-pathway map, then Create.
 1. **New assignment** (the older screen, reachable by URL): title, problems from the bank, the inferred QCAA unit to confirm (or
    describe the focus and reassess), and the review pathway on the map. Every
    pathway starts at student submission; then any of individual review, group review and

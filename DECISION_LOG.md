@@ -2259,3 +2259,76 @@ alone sees a +5x Q1 that is not the bank's, which the fixture's comment explains
 
 **Defence.** One fixture, two readers, no round-trip; the screen the user sees on arrival is the
 one they asked for; the blank flow of ticket 119 is unchanged once the draft has been emptied.
+
+## 2026-09-11 · The review step matches the draft by expression, never by position
+
+**Decision.** Labels and recommendations (ticket 120) are keyed by the normalised TeX of a
+question's expression (`normTex`: spacing, braces and `\tfrac`/`\dfrac` removed): a typed
+question gets the bank problem's label when its expression matches one, a fixture label for the
+two draft-only expressions, and a heuristic otherwise; a change or removal fires on the question
+whose expression it names and is not shown when none does; the addition always applies. The
+finalised set maps to bank ids the same way.
+
+**Context.** The create screen is a free-text editor with no link to the bank, and its draft
+(seeded by ticket 121, or typed) can be in any order with anything added or removed. The demo
+needs the three recommendations to land on the +5x Q1 and the repeated Q9.
+
+**Alternatives considered.** *By position* (always Q1, always Q9): breaks the moment a teacher
+reorders or removes a tile, and recommends changing whatever happens to be first. *By question
+id* (the seed's `seed-1`, `seed-9`): breaks for a pasted or retyped draft, which has fresh ids.
+*A small model call*: the real thing, out of scope for a fixture demo.
+
+**Tradeoffs.** Two questions with the same expression and different stems get the same label
+and the same card; a bank match trusts the expression alone (a "Show that" over `x^2+4x+5=0`
+and a "Solve" over it would both map to Q10). Normalisation is a short list and can miss a
+spelling (`\frac` versus `\tfrac` is handled; `x^{2}` versus `x²` relies on `toTex`).
+
+**Defence.** Expression matching is the only rule that survives reordering, retyping and
+pasting, keeps the student side on bank problems it can run, and degrades to "fewer cards"
+rather than wrong cards.
+
+## 2026-09-11 · The review's decisions live in the classroom store, keyed to the draft
+
+**Decision.** `classroom.review` holds the step reached, the relabels, the answers, the
+alternative shown, the pathway, the reassessed unit and the confirmation, with `forDraft`, a
+hash of the questions as typed. `reviewFor` returns the stored review only when the hash
+matches; otherwise a fresh one carrying over the relabels (by question id) and the pathway.
+The assessing run is local component state and never stored.
+
+**Context.** A reload mid-review should land on the same step with the same decisions (the
+user's answer to "persisting the review step"); a teacher who goes back and edits the questions
+should not see answers about a set that no longer exists.
+
+**Alternatives considered.** *Local state only*: a reload restarts at labels. *URL state*
+(`?step=`): the answers do not fit, and a shared link would carry decisions. *Reset on every
+`draft/set`*: the create screen dispatches on every keystroke and again on Continue, so the
+review would reset whenever the teacher so much as opened the create screen.
+
+**Tradeoffs.** The hash is of ids and text, so retyping a question identically keeps the
+decisions while the seed's stable ids mean the relabels survive a round trip; an edit anywhere
+clears the answers even when the recommendations' targets are untouched. The store is mirrored
+to every tab, so two tabs on the review step follow each other.
+
+**Defence.** The same home as the draft, with the same lifetime, and one rule (the hash) that
+decides when decisions still apply.
+
+## 2026-09-11 · Create carries the finalised questions beside the bank ids
+
+**Decision.** `assignment/create` stores `questions: ReviewedQuestion[]` (the set as typed and
+reviewed, each with its label and origin) alongside `problemIds`, the bank ids the finalised
+expressions match, in bank order. The student side still runs `problemIds` only.
+
+**Context.** A finalised set can hold questions the bank does not: the +5x Q1 if the change is
+kept as is, the garden or rocket alternative, anything the teacher typed. The student flow needs
+a bank problem (solution, hints, scripted slips) for every problem it runs.
+
+**Alternatives considered.** *Bank ids only, unmatched dropped silently*: the teacher's view
+loses questions with no trace. *The student side running on typed questions*: needs a model
+solution per typed question, a separate back-end concern (FUTURE_FEATURES).
+
+**Tradeoffs.** Two lists that can disagree in length; nothing on the teacher's views reads
+`questions` yet. Keeping the change as is leaves the +5x question on the assignment while the
+student sees −5x (ASSUMPTIONS).
+
+**Defence.** Nothing the teacher decided is lost, the student side keeps its guarantee, and the
+gap between the two lists is visible data rather than a silent drop.

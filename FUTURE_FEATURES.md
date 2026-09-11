@@ -1436,6 +1436,52 @@ agents add sections above it and leave it alone.
 - **One fixture, two readers.** The review step's branch carried its own copy of the paste when
   this landed; it should import `DEMO_PASTE` from `data/draft-seed.ts` so the two never drift.
 
+## The review step: difficulty, assessment, recommendations, pathway (from ticket 120, 2026-09-11)
+
+- **Real labelling.** The difficulty labels come from matching a question's expression to the
+  bank, then a fixture for the two draft-only questions, then a twenty-line heuristic (words in
+  the stem, a context, a fraction or a root, "show that" or "exact"). A model that reads the
+  question is the real thing; the popover to relabel is the correction either way.
+- **Real assessment.** The three recommendations are scripted fixtures matched by expression. A
+  real assessment would read the set against the unit's leaves and the class's current gaps and
+  write its own reasons; the card shape (what, why, the evidence line, Accept / Keep as is, Undo)
+  is what it would fill. The bar's three lines are the honest outline of what it would do.
+- **Recommendations that react to the teacher.** A relabel never changes the assessment, and
+  reassessing after Back replays the same three (with the answers cleared). Deferred: a live
+  assessment would take the labels as input.
+- **The QCAA 60-20-20 split.** Considered as a bar on the recommendations step and dropped: the
+  user (2026-09-11) "that's only for final assessment, not necessarily practice -- we're going
+  for a blend of problem difficulties, but not aiming for the 60-20-20 idea". A practice set has
+  no target split; if one is ever wanted it is a teacher setting, not a rule.
+- **Editing a proposed problem.** The addition offers three alternatives and Try another; a
+  teacher cannot edit the proposed text or write their own on the card. An Edit that turns the
+  stem into the create screen's text box, or "add my own", would sit beside Try another.
+- **The decline that is not honoured.** Keeping `x^2 + 5x + 6 = 0` leaves it in the assignment's
+  `questions` but the student still runs the bank's −5x (see ASSUMPTIONS). Honouring it means the
+  bank holding both variants with full solutions, hints and scripted slips, or the student side
+  running on typed questions with a model solution generated for each.
+- **Typed questions that reach students.** Create stores the finalised questions as typed beside
+  the bank ids; only the bank ids run. A question the bank does not hold (anything the teacher
+  writes, the garden or the rocket alternative) is on the assignment and never on a student's
+  screen. The teacher's views do not yet list `assignment.questions` either; the class view's
+  title line could.
+- **The class is twenty.** The evidence line counts a class of twenty; the fixture roster is
+  eight. A single class-size constant, or the roster grown to twenty, would reconcile the peer
+  screen's "of 8" with it.
+- **The evidence behind the change.** "7 of 20 students slipped on the sign of the factor pair in
+  monic factorising" is a fixture sentence. The real line comes from the leaf statuses the
+  mistakes view already computes, for the previous set.
+- **The old screen.** `/teacher/assignments/new` still renders, unlinked, sharing `PathwayMap` and
+  `UnitFocus` from `app/teacher/assignments/`. Now that the review step has both, it can go.
+- **Animation.** The pills arrive 90ms apart on the difficulty step, every time the step is
+  entered (including a reload); the bar is a CSS animation timed to `ASSESS_MS`. Reduced-motion
+  users get the pills without the rise; the bar still fills.
+- **Step persistence and two tabs.** The review lives in the classroom store like the draft, so a
+  second tab sees the step change live; the assessing run is local to the tab that pressed it.
+- **Removed tiles vanish.** Accepting the removal drops the tile and renumbers at once (the card's
+  line says "Q9 removed" with Undo). A greyed tile in place was considered and not built: the
+  numbering would jump at Finalise.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
