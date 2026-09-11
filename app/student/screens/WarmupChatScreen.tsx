@@ -58,7 +58,7 @@ export default function WarmupChatScreen({ session, dispatch }: { session: Stude
         {from === "tutor"
           ? skillRuns(text).map((run, k) =>
               run.skill ? (
-                <span key={k} className="rounded-md border border-standout-line bg-standout-soft px-1.5 py-px text-standout" data-skill>
+                <span key={k} className="rounded-md border border-standout-line bg-standout-soft px-1.5 py-px text-ink" data-skill>
                   {run.text}
                 </span>
               ) : (

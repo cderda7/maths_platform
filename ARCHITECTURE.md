@@ -22,7 +22,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
  │       └▶ IpadStage ▶ StudentChrome│               │   classmates (19: 6 full, 13 light) · seating groups (5 colours)│
  │            └▶ screens/            │               └──────────────┬───────────────────┘
  │               Overview ▶ Confidence ▶ (not confident: a callout, offerLines: Warm up | Start the set)│                              │ reads every 3 s
- │               ▶ WarmupChat (the ticked skills → concernTurns, the skill in a light blue box in each ask, later ones "How about…?"; one bubble at a time to turnSteps, the box off while the tutor "writes" → answers → focus → warmupSequence, easiest first)│
+ │               ▶ WarmupChat (the ticked skills → concernTurns, the skill in a light blue box (ink text) in each ask, later ones "How about…?"; one bubble at a time to turnSteps, the box off while the tutor "writes" → answers → focus → warmupSequence, easiest first)│
  │               ▶ Practice (pad · skill buttons: dark once on or through, tap opens · HelpMenu: hint · worked example · video · chat · follow-up split pane)│
  │                   HelpChat (ticket 69): the right column while open · lines said → run.chat · POST /api/help-chat streams claude-opus-5 (lib/helpChat.ts brief: hints only, two ways in, "which makes more sense?")│
  │                   HintCard: linked hint words light the expression (termTex) — practices only│
@@ -220,6 +220,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 87 | The factorising warm-up's second hint no longer lists the pairs to try | `…?stage=practice` | 85 | [architecture/87-monic-hint-trim.md](architecture/87-monic-hint-trim.md) |
 | 88 | The factorising hints say "factors" not "brackets"; two abutting lit fragments get a 0.7em gap so their boxes sit clear of each other | `…?stage=practice`, the practice overlay and read-as column | 83, 85 | [architecture/88-factors-boxes.md](architecture/88-factors-boxes.md) |
 | 89 | The concerns chat's skill names sit in a light blue box (the standout blue's soft fill and line), not bold | `…?stage=warmup-chat` | 84 | [architecture/89-chat-skill-boxes.md](architecture/89-chat-skill-boxes.md) |
+| 91 | The skill box's text is ink, so the chat line reads in one colour | `…?stage=warmup-chat` | 89 | [architecture/91-chat-skill-box-ink.md](architecture/91-chat-skill-box-ink.md) |
 
 ## Conventions
 

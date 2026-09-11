@@ -1558,3 +1558,20 @@ share a screen.
 
 **Defense.** One class string on one span, tokens the app already ships, and the script untouched:
 the wording tests from ticket 84 still pin every sentence.
+
+## 2026-09-11 · The skill box's text is ink, the box is fill and edge only
+
+**Decision.** The chat's skill box (ticket 89) keeps `bg-standout-soft` and `border-standout-line`
+but its text is `text-ink`, the bubble's own colour, not `text-standout` (ticket 91).
+
+**Context.** The user: "have the actual text be black to make reading the line more seamless."
+
+**Alternatives considered.**
+- *Blue text, as shipped in 89.* Read as a chip, which broke the sentence into two colours.
+- *Ink text and a stronger fill* to keep the box visible without the blue text. The soft fill and
+  the line already outline the word; a darker fill would fight the ink.
+
+**Tradeoffs.** The box is now the only cue, and at the bubble's size it is a subtle one; the point is
+that the sentence reads first and the box second, which is what was asked.
+
+**Defense.** One utility class swapped on one span; the box tokens still come from the palette.

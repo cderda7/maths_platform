@@ -893,6 +893,15 @@ agents add sections above it and leave it alone.
   terms") on purpose: there the student is expanding a bracket, not reading a factor. If the
   vocabulary should be one word everywhere, that is a separate pass over `data/practice.ts`.
 
+## Ink text in the skill box (from ticket 91, 2026-09-11)
+
+- **The box is a subtle cue at 15px.** With ink text the soft fill and the line are all that mark
+  the skill. If it proves too quiet on the iPad, a slightly stronger line (`standout-line` is
+  #c3d7ee) or a touch more padding is the lever; the text stays ink.
+- **The same box could name the skill elsewhere.** The closing line ("Thanks. Let's start with
+  fractions.") and the pad's skill buttons use no box; one shared `SkillBox` span would keep the
+  three consistent if the cue is kept.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
