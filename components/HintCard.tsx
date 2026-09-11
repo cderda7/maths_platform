@@ -16,6 +16,7 @@ import { hintSegments } from "@/lib/hint";
 export default function HintCard({
   hint,
   label,
+  note,
   lit,
   onLit,
   collapsed = false,
@@ -24,18 +25,27 @@ export default function HintCard({
 }: {
   hint: Hint;
   label: string;
+  /** Beside the label, muted: the piece of the pad the linked words point at ("your line 3"). */
+  note?: string;
   lit: HintTerm | null;
   onLit: (term: HintTerm | null) => void;
   collapsed?: boolean;
   onToggle?: () => void;
   className?: string;
 }) {
+  const focus = "rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-standout-line";
+  const heading = (
+    <span className="flex items-baseline gap-2">
+      <Eyebrow>{label}</Eyebrow>
+      {note && <span className="text-[12px] text-ink-muted">{note}</span>}
+    </span>
+  );
   if (collapsed) {
     return (
       <Card tone="soft" className={`p-0 ${className}`} data-hint data-collapsed>
-        <button type="button" onClick={onToggle} className="block w-full px-4 py-3 text-left" aria-expanded={false}>
+        <button type="button" onClick={onToggle} className={`block w-full px-4 py-3 text-left ${focus}`} aria-expanded={false}>
           <span className="flex items-baseline gap-2">
-            <Eyebrow>{label}</Eyebrow>
+            {heading}
             <span className="min-w-0 flex-1 truncate text-[13px] text-ink-muted">{hint.text}</span>
           </span>
         </button>
@@ -45,11 +55,11 @@ export default function HintCard({
   return (
     <Card tone="soft" className={`p-4 ${className}`} data-hint>
       {onToggle ? (
-        <button type="button" onClick={onToggle} className="block w-full text-left" aria-expanded>
-          <Eyebrow>{label}</Eyebrow>
+        <button type="button" onClick={onToggle} className={`block w-full text-left ${focus}`} aria-expanded>
+          {heading}
         </button>
       ) : (
-        <Eyebrow>{label}</Eyebrow>
+        heading
       )}
       <p className="mt-1.5 text-[14px] leading-snug text-ink">
         {hintSegments(hint.text, hint.terms).map((seg, i) => {

@@ -177,22 +177,40 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
           },
         ],
       },
+      // From here the linked words point at the student's own line in the read-as column (hintAnchor), so the fragments are written against that line.
       {
         text: "The x terms have the same denominator now, so they can be one fraction: the numerators combine and the denominator stays.",
         at: [3],
-        terms: [{ phrase: "x terms", tex: ["\\dfrac{x}{4}", "\\dfrac{x}{2}"] }],
+        terms: [
+          { phrase: "x terms", tex: ["\\dfrac{x}{4}", "\\dfrac{2x}{4}"] },
+          {
+            phrase: "same denominator",
+            tex: [
+              { tex: "4", within: "\\dfrac{x}{4}" },
+              { tex: "4", within: "\\dfrac{2x}{4}" },
+            ],
+          },
+          {
+            phrase: "numerators",
+            tex: [
+              { tex: "x", within: "\\dfrac{x}{4}" },
+              { tex: "2x", within: "\\dfrac{2x}{4}" },
+            ],
+          },
+        ],
       },
       {
         text: "One fraction on each side. Whatever you do to clear the 4 from under the x, the other side gets too.",
         at: [4],
         terms: [
-          { phrase: "4", tex: [{ tex: "4", within: "\\dfrac{x}{4}" }] },
-          { phrase: "other side", tex: ["\\dfrac{9}{2}"] },
+          { phrase: "4", tex: [{ tex: "4", within: "\\dfrac{3x}{4}" }] },
+          { phrase: "other side", tex: ["\\dfrac{21}{2}"] },
         ],
       },
       {
         text: "Only the 3 in front of x is left. Undo what it is doing to x.",
         at: [5],
+        terms: [{ phrase: "3", tex: ["3"] }],
       },
     ],
   },

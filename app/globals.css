@@ -79,6 +79,8 @@ body {
 
 /* A fragment of a problem linked from its hint (lib/hint.ts). Lit while its word is hovered. */
 .katex .hint-term {
+  /* An inline box paints only the line's height; inline-block paints the whole fragment, a fraction's numerator and denominator included. */
+  display: inline-block;
   border-radius: 3px;
   /* A little air on both sides, taken back with margin so the layout is unchanged: the fragment sits centred in its box. */
   padding: 0 0.1em;

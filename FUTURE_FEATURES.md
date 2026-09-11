@@ -786,6 +786,25 @@ agents add sections above it and leave it alone.
 - **No "why this hint" for the teacher.** The session stores which hints each student was given and
   in what order, which is enough for a teacher view of "who needed what where"; nothing shows it yet.
 
+## Hints pointing at the student's line (from ticket 82, 2026-09-11)
+
+- **A hint's line can vanish under it.** A hint given at line 4 points at read-as line 4; if the
+  student undoes back to two lines, `hintAnchor` falls to the latest of the hint's lines that still
+  exists, or to the problem, and the fragments (written for line 4) may not resolve there, so the
+  linked words go quiet. Picked over storing the anchor in the session: a line that is gone should
+  not be pointed at. A reworded fallback ("this was about a line you have undone") is one option.
+- **Fragments are written against the reference working's line.** On the pad that is what the
+  student's line is; with real ink the line may be equivalent but differently written, and the
+  fragment lookup would need to match by meaning, not string.
+- **The tint on the read-as line is the only cross-column cue.** On the iPad the read-as column is
+  the far side of the screen from the hint; a lit word that points there could also scroll the line
+  into view when the column is long.
+- **"Reference back to the student work in text."** The user's phrase; taken as the eyebrow's "your
+  line 4" plus the lit fragment in that line. A fuller version would write the line into the hint
+  ("In 3x/4 = 21/2, …"), which would let the hint read on its own in a transcript.
+- **Collapsed hints lose their linked words until reopened** (from ticket 80) still holds, now for
+  the read-as line as well as the problem.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

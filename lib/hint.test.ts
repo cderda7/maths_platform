@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import katex from "katex";
 import { PRACTICES } from "@/data/practice";
 import type { PracticeProblem } from "@/data/types";
-import { findFragment, hintSegments, hoistSpacing, locateFragment, pickHint, positionOf, termTex } from "./hint";
+import { findFragment, hintAnchor, hintSegments, hoistSpacing, locateFragment, pickHint, positionOf, termTex } from "./hint";
 
 const constant = { phrase: "constant", tex: ["12"] };
 const middle = { phrase: "middle coefficient", tex: ["7"] };
@@ -156,14 +156,38 @@ describe("hoistSpacing", () => {
 });
 
 describe("warm-up hint terms", () => {
-  it("every phrase is found whole in its hint, every fragment in its TeX", () => {
+  it("every phrase is found whole in its hint, every fragment in the TeX its hint points at (the problem, or each of the hint's lines)", () => {
     for (const p of every()) {
       expect(p.hints.length, p.id).toBeGreaterThan(0);
-      for (const h of p.hints) for (const t of h.terms ?? []) {
-        expect(hintSegments(h.text, [t]).some((s) => s.term === t), `${p.id}: "${t.phrase}"`).toBe(true);
-        expect(t.tex.length > 0 || !!t.insert, `${p.id}: "${t.phrase}"`).toBe(true);
-        for (const f of t.tex) expect(locateFragment(p.tex, f), `${p.id}: ${JSON.stringify(f)}`).toBeGreaterThanOrEqual(0);
-        if (t.insert) expect(findFragment(p.tex, t.insert.before), `${p.id}: ${t.insert.before}`).toBeGreaterThanOrEqual(0);
+      for (const h of p.hints) {
+        // A hint for a point in the working points at the student's line there, which on the pad is that step of the reference working.
+        const targets = h.at?.some((k) => k >= 1) ? h.at.filter((k) => k >= 1).map((k) => p.steps[k - 1].tex) : [p.tex];
+        for (const t of h.terms ?? []) {
+          expect(hintSegments(h.text, [t]).some((s) => s.term === t), `${p.id}: "${t.phrase}"`).toBe(true);
+          expect(t.tex.length > 0 || !!t.insert, `${p.id}: "${t.phrase}"`).toBe(true);
+          for (const target of targets) {
+            for (const f of t.tex) expect(locateFragment(target, f), `${p.id}: ${JSON.stringify(f)} in ${target}`).toBeGreaterThanOrEqual(0);
+            if (t.insert) expect(findFragment(target, t.insert.before), `${p.id}: ${t.insert.before}`).toBeGreaterThanOrEqual(0);
+          }
+        }
+      }
+    }
+  });
+
+  it("lighting changes no spacing in a read line either", () => {
+    const spacing = (t: string) => {
+      const html = katex.renderToString(t, { trust: true, strict: false });
+      return [...html.matchAll(/mspace" style="margin-right:([^;"]+)/g)].map((m) => m[1]).join(" ") + " | " + (html.match(/mbin|mrel|mopen|mclose/g) ?? []).join(" ");
+    };
+    for (const p of every()) {
+      for (const h of p.hints) {
+        if (!h.terms || !h.at?.some((k) => k >= 1)) continue;
+        for (const k of h.at.filter((k) => k >= 1)) {
+          const line = p.steps[k - 1].tex;
+          const rest = termTex(line, h.terms);
+          if (!rest.includes("\\;\\htmlClass")) expect(spacing(rest), `${p.id} line ${k}`).toBe(spacing(line));
+          for (const lit of h.terms) expect(spacing(termTex(line, h.terms, lit)), `${p.id} line ${k}: ${lit.phrase}`).toBe(spacing(rest));
+        }
       }
     }
   });
@@ -177,30 +201,54 @@ describe("warm-up hint terms", () => {
     ]);
   });
 
-  it("the fractions warm-up's first hint moves the 6, its second finds a denominator the two x terms share; the pad wraps both hints' terms together", () => {
+  it("the fractions warm-up's first hint moves the 6 in the problem; the later ones point at the student's own line", () => {
     const p = PRACTICES["algebra.number.fractions"]!;
     expect(p.tex).toBe("\\dfrac{x}{4} + \\dfrac{x}{2} - 6 = \\dfrac{9}{2}");
-    const [first, second] = p.hints;
+    const [first, second, third, fourth, fifth] = p.hints;
     expect(first.text).toMatch(/move the 6/);
     expect(first.text).not.toMatch(/add|subtract/i);
     expect(second.text).toMatch(/common denominator/);
     expect(second.text).toMatch(/whole line/);
     const [six, otherSide, xTerms] = first.terms!;
-    const [, common] = second.terms!;
-    const both = [...first.terms!, ...second.terms!];
-    const x4 = "\\htmlClass{hint-term}{\\dfrac{x}{\\htmlClass{hint-term}{4}}}";
-    const x2 = "\\htmlClass{hint-term}{\\dfrac{x}{\\htmlClass{hint-term}{2}}}";
-    expect(termTex(p.tex, both)).toBe(`${x4} + ${x2} - \\htmlClass{hint-term}{6} = \\htmlClass{hint-term}{\\dfrac{9}{2}}`);
-    expect(termTex(p.tex, both, six)).toContain("- \\htmlClass{hint-term hint-term-lit}{6} =");
-    expect(termTex(p.tex, both, otherSide)).toContain("= \\htmlClass{hint-term hint-term-lit}{\\dfrac{9}{2}}");
-    expect(termTex(p.tex, both, xTerms)).toBe(
-      `\\htmlClass{hint-term hint-term-lit}{\\dfrac{x}{\\htmlClass{hint-term}{4}}} + \\htmlClass{hint-term hint-term-lit}{\\dfrac{x}{\\htmlClass{hint-term}{2}}} - \\htmlClass{hint-term}{6} = \\htmlClass{hint-term}{\\dfrac{9}{2}}`,
-    );
-    expect(termTex(p.tex, both, common)).toBe(
-      `\\htmlClass{hint-term}{\\dfrac{x}{\\htmlClass{hint-term hint-term-lit}{4}}} + \\htmlClass{hint-term}{\\dfrac{x}{\\htmlClass{hint-term hint-term-lit}{2}}} - \\htmlClass{hint-term}{6} = \\htmlClass{hint-term}{\\dfrac{9}{2}}`,
-    );
-    // With only the first hint showing, nothing inside the fractions is wrapped yet.
     expect(termTex(p.tex, first.terms)).toBe("\\htmlClass{hint-term}{\\dfrac{x}{4}} + \\htmlClass{hint-term}{\\dfrac{x}{2}} - \\htmlClass{hint-term}{6} = \\htmlClass{hint-term}{\\dfrac{9}{2}}");
+    expect(termTex(p.tex, first.terms, six)).toContain("- \\htmlClass{hint-term hint-term-lit}{6} =");
+    expect(termTex(p.tex, first.terms, otherSide)).toContain("= \\htmlClass{hint-term hint-term-lit}{\\dfrac{9}{2}}");
+    expect(termTex(p.tex, first.terms, xTerms)).toMatch(/^\\htmlClass\{hint-term hint-term-lit\}\{\\dfrac\{x\}\{4\}\} \+ \\htmlClass\{hint-term hint-term-lit\}\{\\dfrac\{x\}\{2\}\}/);
+    // The second hint is for the student's first or second line: its common denominator is the 4 and 2 under the x's there.
+    const line2 = p.steps[1].tex;
+    const [, common] = second.terms!;
+    expect(termTex(line2, second.terms, common)).toBe(
+      "\\htmlClass{hint-term}{\\dfrac{x}{\\htmlClass{hint-term hint-term-lit}{4}}} + \\htmlClass{hint-term}{\\dfrac{x}{\\htmlClass{hint-term hint-term-lit}{2}}} = \\dfrac{21}{2}",
+    );
+    // The third is for line 3, where the x terms are x/4 and 2x/4: lighting "numerators" lights x and 2x, nothing else.
+    const line3 = p.steps[2].tex;
+    const numerators = third.terms!.find((t) => t.phrase === "numerators")!;
+    expect(termTex(line3, third.terms, numerators)).toBe(
+      "\\htmlClass{hint-term}{\\dfrac{\\htmlClass{hint-term hint-term-lit}{x}}{\\htmlClass{hint-term}{4}}} + \\htmlClass{hint-term}{\\dfrac{\\htmlClass{hint-term hint-term-lit}{2x}}{\\htmlClass{hint-term}{4}}} = \\dfrac{21}{2}",
+    );
+    // The fourth is for line 4 (3x/4 = 21/2): the 4 under the 3x, and 21/2 as the other side.
+    const line4 = p.steps[3].tex;
+    const [four, other] = fourth.terms!;
+    expect(termTex(line4, fourth.terms, four)).toBe("\\dfrac{3x}{\\htmlClass{hint-term hint-term-lit}{4}} = \\htmlClass{hint-term}{\\dfrac{21}{2}}");
+    expect(termTex(line4, fourth.terms, other)).toBe("\\dfrac{3x}{\\htmlClass{hint-term}{4}} = \\htmlClass{hint-term hint-term-lit}{\\dfrac{21}{2}}");
+    // The fifth is for line 5 (3x = 42): the 3.
+    expect(termTex(p.steps[4].tex, fifth.terms, fifth.terms![0])).toBe("\\htmlClass{hint-term hint-term-lit}{3}x = 42");
+  });
+});
+
+describe("hintAnchor", () => {
+  it("a hint for a blank pad, a general hint, or one given ahead of its point points at the problem (0)", () => {
+    expect(hintAnchor({ at: [0] }, 0)).toBe(0);
+    expect(hintAnchor({ at: [0] }, 5)).toBe(0);
+    expect(hintAnchor({}, 3)).toBe(0);
+    expect(hintAnchor({ at: [3] }, 2)).toBe(0);
+  });
+
+  it("a hint for a point in the working points at the latest of its lines the student has written", () => {
+    expect(hintAnchor({ at: [1, 2] }, 1)).toBe(1);
+    expect(hintAnchor({ at: [1, 2] }, 2)).toBe(2);
+    expect(hintAnchor({ at: [1, 2] }, 6)).toBe(2);
+    expect(hintAnchor({ at: [4] }, 4)).toBe(4);
   });
 });
 

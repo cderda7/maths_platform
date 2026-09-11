@@ -1,4 +1,4 @@
-import type { HintTerm, PracticeProblem, TexFragment } from "@/data/types";
+import type { Hint, HintTerm, PracticeProblem, TexFragment } from "@/data/types";
 
 const sameTex = (a: string, b: string) => a.replace(/\s+/g, "") === b.replace(/\s+/g, "");
 
@@ -12,6 +12,17 @@ export function positionOf(problem: Pick<PracticeProblem, "steps">, lines: strin
   if (last === undefined) return 0;
   const step = problem.steps.findIndex((s) => sameTex(s.tex, last));
   return step >= 0 ? step + 1 : lines.length;
+}
+
+/**
+ * Which piece of the pad a hint's linked words point at: 0 the problem statement, k the
+ * student's k-th read line. A hint for a point in the working points at the latest of its lines
+ * the student has written; a hint for a blank pad, a general hint, or one given ahead of its point
+ * points at the problem.
+ */
+export function hintAnchor(hint: Pick<Hint, "at">, lineCount: number): number {
+  const written = (hint.at ?? []).filter((k) => k >= 1 && k <= lineCount);
+  return written.length ? Math.max(...written) : 0;
 }
 
 /**

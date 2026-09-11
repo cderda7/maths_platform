@@ -212,6 +212,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 79 | Every warm-up line is one step and two cases branch side by side: graph features and sketch split into one row per step, the pair checks one fact per row, the worked example card boxes a two-case step like the read-back; a guard test over the bank | `…?stage=practice`, the practice overlay | 75, 29 | [architecture/79-warmup-step-rows.md](architecture/79-warmup-step-rows.md) |
 | 80 | Hints that read the student's work: each hint names the point in the working it fits (`at`), "hint" picks by where the lines have got, never for a point passed, "None for this step" when nothing fits; earlier hints collapse to a line | `…?stage=practice`, the practice overlay, `POST /api/help-chat` | 78, 03 | [architecture/80-responsive-hints.md](architecture/80-responsive-hints.md) |
 | 81 | Q5's turning point is two lines, the height then the point: the model solution, the scripted read-back and the evaluation table all list five lines | `…?stage=working`, `…?stage=feedback`, `…?stage=history`, the teacher's mirror | 79 | [architecture/81-q5-turning-point-rows.md](architecture/81-q5-turning-point-rows.md) |
+| 82 | A hint's linked words point at the student's own line in the read-as column ("your line 4", the line tinted while lit); a lit fraction is boxed whole | `…?stage=practice`, the practice overlay | 80, 77 | [architecture/82-hint-anchors.md](architecture/82-hint-anchors.md) |
 
 ## Conventions
 

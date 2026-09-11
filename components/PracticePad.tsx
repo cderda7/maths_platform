@@ -10,7 +10,7 @@ import PracticeCard from "@/components/PracticeCard";
 import ReadAs from "@/components/ReadAs";
 import { Button, Eyebrow } from "@/components/ui";
 import { LeafChip } from "@/components/Tag";
-import { pickHint, termTex } from "@/lib/hint";
+import { hintAnchor, pickHint, termTex } from "@/lib/hint";
 import { nextLine } from "@/lib/recognition";
 import type { PracticeRun, RunKey, SessionAction } from "@/lib/session";
 import { warmupScript } from "@/lib/warmup";
@@ -56,6 +56,9 @@ export default function PracticePad({
   const hints = shown.map((i) => p.hints[i]).filter((h) => h !== undefined);
   const terms = hints.flatMap((h) => h.terms ?? []);
   const nextHint = pickHint(p, lines.map((l) => l.tex), shown) !== null;
+  /** Per shown hint, what its linked words point at: 0 the problem, k the student's k-th read line. The problem and each line wrap only the terms anchored to them. */
+  const anchors = hints.map((h) => hintAnchor(h, lines.length));
+  const termsAt = (k: number) => hints.flatMap((h, i) => (anchors[i] === k ? (h.terms ?? []) : []));
   /** Earlier hints (every one but the latest) collapse to a line; these are the ones the student has opened back up. */
   const [reopened, setReopened] = useState<number[]>([]);
   const toggle = (i: number) => setReopened((r) => (r.includes(i) ? r.filter((x) => x !== i) : [...r, i]));
@@ -64,6 +67,7 @@ export default function PracticePad({
   /** The hint word under the pointer; lights its fragments of the problem while it stays there. */
   const [lit, setLit] = useState<HintTerm | null>(null);
   const litTerm = lit && terms.includes(lit) ? lit : undefined;
+  const litAnchor = litTerm ? anchors[hints.findIndex((h) => h.terms?.includes(litTerm))] : 0;
 
   const addStroke = (next: Stroke[]) => dispatch({ type: "run/stroke", run: runKey, problem: p.id, stroke: next[next.length - 1] });
   const onBurstEnd = (strokeCount: number) => {
@@ -98,7 +102,7 @@ export default function PracticePad({
         {!second && header}
         <p className="mt-3 text-[14px] text-ink-soft">{p.stem}</p>
         <div className="math-lg mt-3 text-ink">
-          <M tex={termTex(p.tex, terms, litTerm)} display />
+          <M tex={termTex(p.tex, termsAt(0), litTerm)} display />
         </div>
         {second && (
           <div className="mt-4 flex flex-wrap justify-center gap-1.5">
@@ -110,6 +114,7 @@ export default function PracticePad({
             key={shown[i]}
             hint={h}
             label={p.hints.length > 1 ? `Hint ${i + 1}` : "Hint"}
+            note={anchors[i] > 0 ? `your line ${anchors[i]}` : undefined}
             lit={litTerm ?? null}
             onLit={setLit}
             collapsed={i < hints.length - 1 && !reopened.includes(shown[i])}
@@ -153,7 +158,14 @@ export default function PracticePad({
         {chatOpen ? (
           <HelpChat key={p.id} problem={p} lines={lines.map((l) => l.tex)} messages={chat} runKey={runKey} dispatch={dispatch} onClose={() => setChatOpen(false)} />
         ) : (
-          <ReadAs lines={lines} recognising={recognising} empty="Lines appear here as you write." className="flex-1" />
+          <ReadAs
+            lines={lines}
+            recognising={recognising}
+            empty="Lines appear here as you write."
+            decorate={(tex, i) => termTex(tex, termsAt(i + 1), litTerm)}
+            highlight={litAnchor > 0 ? litAnchor - 1 : undefined}
+            className="flex-1"
+          />
         )}
         <div className="mt-4 flex items-center justify-end gap-2 border-t border-line pt-4">{footer}</div>
       </aside>

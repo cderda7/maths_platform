@@ -1394,3 +1394,37 @@ on every branch and driven end to end with pen strokes. It gives a real-feeling 
 mockup with no model call, keeps the chat brief honest about which hint fits where, and leaves a
 clean seam (the same `pickHint` signature) for a version that reads the lines more deeply.
 
+## 2026-09-11 · A hint's linked words point at the student's line it is for, derived from the lines, not stored
+
+**Decision.** `hintAnchor(hint, lineCount)` decides what a hint's linked words point at: the problem
+statement (0) for a blank-pad hint, a general hint, or one given ahead of its point; otherwise the
+latest of the hint's `at` lines the student has written (k). The problem wraps only the terms
+anchored to it and each read-as line wraps only the terms anchored to it; the fixture writes a hint's
+fragments against the line it is for. The anchor is computed from the current lines on every render,
+never saved in the session.
+
+**Context.** Four hints in, "4" and "other side" lit pieces of the original problem the student had
+rewritten three lines ago (ticket 82). The user: reference the student's work, in the read-as column.
+
+**Alternatives considered.**
+- *Keep lighting the problem statement.* What the user rejected: after the first move the problem is
+  no longer what the student is looking at.
+- *Store the anchor line with the shown hint* (`hinted[id] = [{ hint, at }]`). Exact, and survives
+  an undo; but then a hint can point at a line that no longer exists, and the session's `hinted`
+  would change shape a third time in a day. Deriving it means a hint always points at something on
+  the screen.
+- *Write the student's line into the hint text.* Reads on its own, but the hint would have to be
+  written per line, and the pad already shows the line; the eyebrow's "your line 4" is the text
+  reference, the lit fragment the pointer.
+
+**Tradeoffs.** A hint whose lines are all undone falls back to the problem, where its fragments may
+not resolve, so its words light nothing (logged). Fragments are written against the reference
+working's TeX, which is exactly the student's line only while recognition is scripted. `ReadAs`
+gains two props for one caller.
+
+**Defense.** The rule is four lines of pure code with tests, and every hint's fragments are checked
+against the TeX they point at by the fixture test, so a hint that points at nothing cannot ship.
+The first hint still lights the problem, the later ones light the student's own line, and the tint
+on that line makes the far column findable. The fraction fix is one CSS declaration: an inline box
+paints a line's height, an inline-block paints its content.
+
