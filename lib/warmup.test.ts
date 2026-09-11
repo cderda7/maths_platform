@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { byEase, CHAT_BEAT_MS, CHAT_DOTS_MS, closingLine, concernsAnswered, concernTranscript, concernTurns, EASE, focusLeaves, interpret, offerLines, practiceFor, turnSteps, warmupScript, warmupSequence } from "./warmup";
-import { isolatable, PRACTICE, WARMUP_BANK } from "@/data/practice";
+import { isolatable, PRACTICE, PRACTICES, WARMUP_BANK } from "@/data/practice";
+import { branchesOf } from "./branches";
 import { ASSIGNMENT } from "@/data/assignment";
 import { leavesTouched } from "./hierarchy";
 
@@ -75,6 +76,19 @@ describe("the warm-up sequence", () => {
       expect(warmupScript(p)).toEqual(p.steps.map((s) => s.tex));
       if (p.followUp) expect(p.followUp.leaf).toBe(p.leaf);
     }
+  });
+  it("every scripted line is one step: two cases always branch, and no line chains an implication or a second fact onto another step", () => {
+    const all = WARMUP_BANK.flatMap((p) => [p, ...(p.followUp ? [p.followUp] : [])]);
+    for (const p of all) {
+      for (const st of p.steps) {
+        if (st.tex.includes("\\text{or}")) expect(branchesOf(st.tex), `${p.id}: ${st.tex}`).toHaveLength(2);
+        expect(st.tex, `${p.id}: ${st.tex}`).not.toMatch(/\\Rightarrow[^]*=[^]*=/);
+        expect(st.tex, `${p.id}: ${st.tex}`).not.toContain("\\quad");
+      }
+    }
+    const features = PRACTICES["graphing.quadratics.features"]!;
+    expect(warmupScript(features)).toEqual(["x^2 - 2x - 8 = 0", "(x - 4)(x + 2) = 0", "x = 4 \\;\\text{or}\\; x = -2", "x = \\tfrac{4 + (-2)}{2} = 1", "y = 1 - 2 - 8 = -9", "(1, -9)"]);
+    expect(branchesOf(features.steps[2].tex)).toEqual(["x = 4", "x = -2"]);
   });
 });
 

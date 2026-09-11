@@ -217,7 +217,7 @@ describe("the warm-up on the pad", () => {
     expect(s.warmup.hinted).toEqual({ "w-monic": 1 });
     expect(sessionReducer(s, { type: "run/hint", run: "warmup" })).toBe(s);
     s = sessionReducer(s, { type: "run/example", run: "warmup" });
-    for (let i = 0; i < 4; i++) s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
+    for (let i = 0; i < PRACTICE.steps.length; i++) s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
     s = sessionReducer(s, { type: "run/next", run: "warmup" });
     s = sessionReducer(s, { type: "run/hint", run: "warmup" });
     expect(s.warmup.hinted).toEqual({ "w-monic": 1, "w-monic-2": 1 });
@@ -262,11 +262,12 @@ describe("the warm-up on the pad", () => {
     expect(s.warmup.exampleShown).toBe(2);
     expect(s.warmup.exampled).toEqual([]);
     expect(sessionReducer(s, { type: "run/next", run: "warmup" })).toBe(s);
-    s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
-    s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
-    expect(s.warmup.exampleShown).toBe(4);
+    const all = PRACTICE.steps.length;
+    expect(all).toBe(5);
+    for (let i = 2; i < all; i++) s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
+    expect(s.warmup.exampleShown).toBe(all);
     expect(s.warmup.exampled).toEqual(["w-monic"]);
-    expect(sessionReducer(s, { type: "run/example-step", run: "warmup" }).warmup.exampleShown).toBe(4);
+    expect(sessionReducer(s, { type: "run/example-step", run: "warmup" }).warmup.exampleShown).toBe(all);
     s = sessionReducer(s, { type: "run/next", run: "warmup" });
     expect(s.warmup.problem).toBe("second");
     expect(s.warmup.example).toBe(false);
@@ -274,7 +275,7 @@ describe("the warm-up on the pad", () => {
     expect(warmupProblem(s).id).toBe("w-monic-2");
     expect(sessionReducer(s, { type: "run/next", run: "warmup" })).toBe(s);
     s = sessionReducer(s, { type: "run/example", run: "warmup" });
-    for (let i = 0; i < 3; i++) s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
+    for (let i = 0; i < PRACTICE.followUp!.steps.length; i++) s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
     expect(s.warmup.exampled).toEqual(["w-monic", "w-monic-2"]);
     expect(sessionReducer(s, { type: "practice/finish" }).stage).toBe("working");
   });
@@ -307,7 +308,7 @@ describe("the isolated practice on the pad", () => {
     expect(s.warmup.lines).toEqual({});
     expect(s.lines.q1 ?? []).toEqual([]);
     s = sessionReducer(s, { type: "run/example", run: "overlay" });
-    for (let i = 0; i < 4; i++) s = sessionReducer(s, { type: "run/example-step", run: "overlay" });
+    for (let i = 0; i < PRACTICE.steps.length; i++) s = sessionReducer(s, { type: "run/example-step", run: "overlay" });
     s = sessionReducer(s, { type: "run/next", run: "overlay" });
     expect(runProblem(s, "overlay")?.id).toBe("w-monic-2");
     s = sessionReducer(s, { type: "overlay/done" });

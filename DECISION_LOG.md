@@ -1320,3 +1320,39 @@ now a number the teacher's side could show. The pedagogy the user asked for (mov
 denominator only for the terms being combined) is expressed purely as data, with the worked example
 following the same path.
 
+
+## 2026-09-11 · A warm-up's scripted lines are one step each, and two cases are always an "or" line
+
+**Decision.** Every step in the warm-up bank (`data/practice.ts`) is one row of working: one
+equation, one chain of equalities, or one point. A step with two cases is written as `A
+\;\text{or}\; B` with nothing in front of it, so the read-back and the worked example card both
+show the two boxes side by side. A test over the whole bank and every follow-up enforces it (any
+"or" branches in two, no "⇒ … = … = …" chain, no `\quad`). The card learned the branch layout;
+`lib/branches.ts` and its rule ("an or behind a ⇒ stays whole") did not change.
+
+**Context.** The graph-features warm-up read back `(x − 4)(x + 2) = 0 ⇒ x = 4 or x = −2` as one
+row, which neither split into steps nor branched, and the user asked that every warm-up problem
+read one step per row with two solutions side by side (ticket 79). The sketch, monic, follow-up and
+non-monic problems had the same shape on other lines.
+
+**Alternatives considered.**
+- *Change the read-back rule so an "or" behind a "⇒" splits too.* Would have branched the row
+  without splitting it; the factorisation would have sat inside the left box. The row was two
+  steps mushed, so the fix belongs in the data.
+- *Keep the pair check as one row ("3 × 4 = 12, 3 + 4 = 7").* It is one thought, and the set's
+  Q7 still writes it that way. Rejected for the warm-up: the user's rule is one step per row, and
+  the guard is simpler with no `\quad` at all. The set's rows are keyed into the evaluation table,
+  the classmates' scripts and the group review, so they stay (FUTURE_FEATURES).
+- *Leave the worked example card inline ("x = 4 or x = −2").* The card and the read-back would then
+  show the same step two ways. The card now boxes the cases too.
+
+**Tradeoffs.** Longer scripts: graph features is six bursts instead of three, sketch seven, the
+default warm-up five; a student writing the warm-up draws more bursts before the pad is "done".
+The session tests that step through the example count from the data instead of a literal. The
+guard forbids `\quad` in any warm-up step, so a future step that wants two facts on one line must
+argue with the test.
+
+**Defense.** A row per step is what the pad's whole reading of the student depends on (each burst
+is one line, each line is one evaluation key), so a fixture that packs two steps into one row is
+the pad reading two things it cannot tell apart. Putting the rule in a test over the bank means the
+next problem written follows it without anyone remembering the screenshot.

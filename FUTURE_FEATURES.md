@@ -747,6 +747,24 @@ agents add sections above it and leave it alone.
 - **The worked example does not know which hints were shown.** Its steps follow the hints' path for
   the fractions problem by construction only; nothing checks the two agree.
 
+## Every warm-up line is one step (from ticket 79, 2026-09-11)
+
+- **The set's own rows still pack two facts on a line.** Q5's turning point reads
+  `y = 4 − 8 − 5 = −9, (2, −9)` and Q2's and Q7's pair checks `ac = −8, 8 + (−1) = 7` and
+  `2 × 4 = 8, 2 + 4 = 6`. Left as they are: those exact strings are keys in the evaluation table,
+  lines in the classmates' scripts, Sam's Q7 rework and the group review's versions, so splitting
+  them is a data change across every fixture and the versions diff. The warm-up bank follows the
+  one-step rule and a test guards it; the set could follow once the evaluation table is keyed by
+  step rather than by string.
+- **The pad has no idea a row is "two steps".** The recognition is scripted, so the row shape is
+  whatever the fixture says. A real recogniser would produce one line per burst of ink and the
+  question of which rows to merge would be its own.
+- **Three-case lines.** `branchesOf` splits only two cases; a line with three ("x = 0 or x = 2 or
+  x = −2") stays whole. No fixture has one yet.
+- **A branch box that overflows.** The read-back's two boxes are half-width each and scroll
+  sideways inside if a case is long (`x = \tfrac{1}{2}` fits; a surd might not). The worked
+  example card's boxes only wrap the flex row.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
