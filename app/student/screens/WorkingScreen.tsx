@@ -26,7 +26,7 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
   const [recognising, setRecognising] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const strokes = session.ink[p.id] ?? [];
-  // A worded problem, every line of the working read: the pad asks for the answer in a sentence (ticket 111). Undo below the last line takes it away again.
+  // A worded problem, every line of the working read: a field under the working asks for the answer in a sentence (tickets 111, 114). Undo below the last line takes it away again; what was typed is kept.
   const askSentence = p.answerAs === "sentence" && scriptDone(RECOGNITION[p.id] ?? [], lines);
   const addStroke = (next: Stroke[]) => dispatch({ type: "ink/stroke", problem: p.id, stroke: next[next.length - 1] });
 
@@ -99,7 +99,11 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
         onPenDown={() => setRecognising(true)}
         onUndo={undo}
         onClear={clear}
-        note={askSentence ? "Provide your final answer as a full sentence." : undefined}
+        answer={
+          askSentence
+            ? { placeholder: "Provide your final answer as a full sentence.", value: session.answers[p.id] ?? "", onChange: (text) => dispatch({ type: "answer/set", problem: p.id, text }) }
+            : undefined
+        }
       />
 
       <aside className="flex min-h-0 flex-col border-l border-line px-6 py-6">

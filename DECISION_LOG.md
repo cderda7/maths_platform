@@ -2034,3 +2034,37 @@ ticked, which is what the answer means. Any future rule that folds other leaves 
 offer and the sequence were verified on a bare factorising tick without a line of theirs
 touched. The session shape is stable across the change, so stored sessions load as before.
 
+## 2026-09-11 · The final-answer field is the chat's box, focused on mount, its text in the session
+
+**Decision.** Ticket 111's tinted card becomes a textarea with the chat box's classes and the
+instruction as its placeholder; it takes focus in a mount effect; Enter blurs; the text lives in
+`session.answers[problemId]` via `answer/set`, untouched by undo and clear (ticket 114).
+
+**Context.** The user could not type into the card and asked for "same functionality as here"
+(the warm-up chat's box: the cursor already in it) and "same visual … the faded grey
+instructions", the only difference the placeholder's wording. "Text box" meant an input.
+
+**Alternatives considered.**
+- *Local component state for the text.* Lost on a reload and on a move to another problem; the
+  rest of the working survives both, so the sentence should too.
+- *A shared `ChatBox` component for the three textareas.* The warm-up and help boxes carry their
+  own disabled states, send pills and key handling; a fourth prop set for the pad's field would
+  be more surface than the one class string it shares. Deferred until a fourth box appears.
+- *`autoFocus` on the textarea.* React's `autoFocus` fires only on the initial client render of
+  the element, which is the same moment here, but the mount effect is explicit and is what the
+  chats already do (`box.current?.focus()`).
+- *Enter inserts a newline (the default).* A full sentence is one line; a newline in a sentence
+  field reads as a slip. Enter ending the typing matches the chat's Enter-sends without a send.
+- *Clearing the sentence on `lines/clear`.* A clear restarts the working, not the conclusion; if
+  the student's answer was right it should still be there when they get back. Logged.
+
+**Tradeoffs.** The field is focused the moment the last line is read, so a student mid-scribble
+who lifts the pen for 850ms sees the cursor jump into the field; the next pen-down on the paper
+takes it back. After a reload with the working already read, the field mounts with the page and
+takes the cursor again, right for a student coming back to finish; a pen-down on the paper blurs
+it as before. Nothing reads the sentence yet.
+
+**Defense.** The user's two asks are met exactly (cursor there, same look); the session keeps the
+text where everything else the student writes lives; the classes are copied from the chat, so a
+later change to the chat's box is a one-line change here too; the click-through pins the focus,
+the typing, Enter, the reload and the undo.

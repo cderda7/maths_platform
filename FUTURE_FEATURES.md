@@ -1226,6 +1226,21 @@ agents add sections above it and leave it alone.
 - **Opening the kinds pushes the rows below down.** The list grows in place; a slide-open of the
   two kind rows (height transition) would make the shift read as an expansion.
 
+## The answer field under the working (from ticket 114, 2026-09-11)
+
+- **Nothing reads the sentence yet.** `session.answers[q]` is typed and kept, but the report, the
+  teacher's mistake view and the marking (`evaluate`) do not look at it; Q9 still reads as the
+  compounded step whatever is typed. Showing it under the working on the history and teacher
+  screens, and letting a complete sentence clear the communication slip, are the next steps.
+- **No "done" signal.** The chat box has "send"; this field has Enter, which only ends the typing.
+  If the sentence should be submitted (and the field lock), a pill or the hand-in could do it.
+- **Kept through clear.** Clearing the working leaves the typed sentence, which comes back when
+  the last line is read again. If a clear should also empty the sentence, `lines/clear` drops it.
+- **One sentence, one line.** Enter blurs rather than breaking the line (Shift+Enter still does).
+  A student who wants two sentences types them on one line; the field grows with them anyway.
+- **The rework pad.** The individual-review pad passes no `answer`; Q10's rework script ends in
+  the sentence, so it was not needed there.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

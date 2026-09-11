@@ -97,6 +97,8 @@ export interface StudentSession {
   practices: PracticeEntry[];
   /** Problems the student got right but wasn't sure about. */
   stars: string[];
+  /** The final answer typed as a sentence under the working, per problem: only the worded problems ask for one (ticket 114). */
+  answers: Record<string, string>;
   /**
    * The independent rework: a second version of the working per problem. `lines` is the
    * original and is never changed after hand-in, so both versions are preserved.
@@ -174,6 +176,8 @@ export type SessionAction =
   | { type: "prompt/decline"; problem: string }
   | { type: "overlay/done" }
   | { type: "star/toggle"; problem: string }
+  /** The sentence typed in the answer field under the pad, as typed (kept through undo and clear). */
+  | { type: "answer/set"; problem: string; text: string }
   | { type: "rework/goto"; index: number }
   | { type: "rework/reveal"; problem: string; line: RevealedLine }
   | { type: "rework/stroke"; problem: string; stroke: Stroke }
@@ -226,6 +230,7 @@ export const INITIAL_SESSION: StudentSession = {
   overlayRun: INITIAL_RUN,
   practices: [],
   stars: [],
+  answers: {},
   rework: {},
   reworkInk: {},
   reworkIndex: 0,
@@ -470,6 +475,8 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       return { ...s, stage: "report" };
     case "star/toggle":
       return { ...s, stars: s.stars.includes(a.problem) ? s.stars.filter((p) => p !== a.problem) : [...s.stars, a.problem] };
+    case "answer/set":
+      return { ...s, answers: { ...s.answers, [a.problem]: a.text } };
     case "goto":
       return { ...s, stage: a.stage, handedInAt: a.stage === "feedback" && a.at ? a.at : s.handedInAt };
     case "diagnostic/push":

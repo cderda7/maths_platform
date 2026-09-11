@@ -446,6 +446,21 @@ describe("group review stage", () => {
   });
 });
 
+describe("final answer in a sentence", () => {
+  it("is kept per problem as typed, through undo and clear, and an old snapshot hydrates to none", () => {
+    let s = sessionAt("working");
+    s = sessionReducer(s, { type: "answer/set", problem: "q9", text: "The ball lands 6 m away" });
+    s = sessionReducer(s, { type: "answer/set", problem: "q9", text: "The ball lands 6 m away and reaches 9 m." });
+    s = sessionReducer(s, { type: "answer/set", problem: "q10", text: "The graph never meets the x-axis." });
+    expect(s.answers).toEqual({ q9: "The ball lands 6 m away and reaches 9 m.", q10: "The graph never meets the x-axis." });
+    s = sessionReducer(s, { type: "lines/undo", problem: "q9" });
+    s = sessionReducer(s, { type: "lines/clear", problem: "q10" });
+    expect(s.answers.q9).toMatch(/reaches 9 m/);
+    expect(s.answers.q10).toMatch(/never meets/);
+    expect(hydrateSession({ stage: "working" }).answers).toEqual({});
+  });
+});
+
 describe("final report", () => {
   it("keeps the reflection and marks the report sent", () => {
     let s = sessionAt("report");
