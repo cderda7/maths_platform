@@ -28,18 +28,29 @@ const named = (word: string) => `**${word}**`;
 export const howAbout = (word: string): string => (/^the\b|\b(laws?|rule|identity|formula|distribution)$/.test(word) ? `How about the ${named(word.replace(/^the /, ""))}?` : `How about with ${named(word)}?`);
 
 /**
+ * Reflective listening, fixed for the demo: the bubble the tutor opens its next turn with after
+ * each of the student's answers, in answer order; the last line repeats for every later answer.
+ * The first trails off ("It sounds like…") as the demo's sign that this is the place a live
+ * restatement of the student's own words goes (see FUTURE_FEATURES, ticket 102).
+ */
+export const REFLECTIONS = ["Gotcha. It sounds like…", "Agreed: that's a tricky skill.", "A lot of students share that struggle."] as const;
+/** The reflection after the student's answer number `i` (0-based). */
+export const reflection = (i: number): string => REFLECTIONS[Math.min(Math.max(i, 0), REFLECTIONS.length - 1)];
+
+/**
  * The concerns chat's turns, one per seed skill in the order the student ticked them, each a list
  * of bubbles the tutor sends one at a time. The opening is two bubbles: the setup naming every
- * skill, then the ask. Each later question is one bubble. No seed (the student answered
- * "confident" or "not confident" overall) asks one open question. Every bubble that is about one
- * skill carries that skill's name marked (`**…**`, boxed on screen) so the student sees which
- * skill is up; the setup, which names them all, does not.
+ * skill, then the ask. Each later turn is two: the reflection on the answer just given, then the
+ * next question. No seed (the student answered "confident" or "not confident" overall) asks one
+ * open question. Every bubble that is about one skill carries that skill's name marked (`**…**`,
+ * boxed on screen) so the student sees which skill is up; the setup, which names them all, and
+ * the reflections do not.
  */
 export function concernTurns(seed: LeafId[]): string[][] {
   const w = seed.map(skillWord);
   if (w.length === 0) return [["Let's do a warm up.", "Tell me a little bit about what you'd like to warm up on."]];
   if (w.length === 1) return [[`Let's do a warm up on ${w[0]}.`, `Tell me a little bit about your concerns with ${named(w[0])}.`]];
-  return [[`Let's do a warm up on ${amp(w)}.`, `First, tell me a little bit about your concerns with ${named(w[0])}.`], ...w.slice(1).map((x) => [howAbout(x)])];
+  return [[`Let's do a warm up on ${amp(w)}.`, `First, tell me a little bit about your concerns with ${named(w[0])}.`], ...w.slice(1).map((x, i) => [reflection(i), howAbout(x)])];
 }
 
 /** A tutor line split for rendering: plain runs and `**skill**` runs, in order. The student's lines are never split. */
@@ -49,8 +60,14 @@ export const skillRuns = (text: string): { text: string; skill: boolean }[] =>
     .filter((s) => s !== "")
     .map((s) => (s.startsWith("**") && s.endsWith("**") ? { text: s.slice(2, -2), skill: true } : { text: s, skill: false }));
 
-/** The chat's last bubble, after the final answer: thanks, and the skill the warm-up opens on. */
-export const closingLine = (first: LeafId | undefined): string => (first ? `Thanks. Let's start with ${skillWord(first)}.` : "Thanks. Let's start.");
+/**
+ * The chat's closing turn, after the final answer: the reflection on that answer, then thanks for
+ * the student's insight (one answer) or insights (more) and the skill the warm-up opens on.
+ */
+export const closingTurn = (first: LeafId | undefined, answers: number): string[] => [
+  reflection(answers - 1),
+  `Thank you for ${answers === 1 ? "that insight" : "those insights"}. Let's start${first ? ` with ${skillWord(first)}` : ""}.`,
+];
 
 /** The chat's rhythm: a beat after the student's bubble before the dots, the dots' length, and the wait after the closing bubble before the pad. */
 export const CHAT_BEAT_MS = 400;

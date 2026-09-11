@@ -1832,3 +1832,44 @@ hint. The notice's sentence is fixed copy on the pad, like the opener it leads t
 decides what the press shows. The click-through checks that a stalled press gives no second hint,
 that the notice's copy is exact, and that the opener is stored once whichever pill opened the chat.
 
+
+## 2026-09-11 · The concerns chat reflects before it asks; the reflections are fixed lines, derived like every tutor line
+
+**Decision.** After each of the student's answers the tutor's next turn opens with a
+reflective-listening bubble and only then asks the next question: "Gotcha. It sounds like…",
+"Agreed: that's a tricky skill.", "A lot of students share that struggle.", in answer order, the
+third line repeating for every later answer. The closing turn is the reflection on the last
+answer, then "Thank you for those insights. Let's start with ___." ("that insight" when there was
+exactly one answer). The lines live in `lib/warmup.ts` (`REFLECTIONS`, `reflection`), are folded
+into `concernTurns` and `closingTurn`, and are never stored: the session keeps only the student's
+lines, as before.
+
+**Context.** The user (ticket 102): "this chat doesn't feel very responsive for a student that's
+low confidence. i want to incorporate an empathetic model. that framework involves reflective
+listening… after each student response -- a restatement in their own words. for the demo, this
+will just be fixed." The live version, a model restating the student's actual words, waits on an
+API key.
+
+**Alternatives considered.**
+- *A reflection-only turn that reopens the box.* The student could then reply to "Gotcha" and
+  the turn count would drift from the skill count. The reflection is the head of the question's
+  turn instead, so the box stays off until the question lands (the chat's "your move" sign, ticket
+  74, is unchanged).
+- *A canned restatement naming the skill* ("It sounds like factorising is a sticking point").
+  Rejected by the user: the trailing "It sounds like…" is the demo's visible marker that a live
+  restatement plugs in there.
+- *Cycling the three lines, or no reflection after the third answer.* "Gotcha" twice reads as
+  a loop; the most general line repeating is the least jarring for a student who ticked five.
+- *Storing the reflections as tutor messages.* Every other tutor line is derived from the seed
+  and the answer count, so a reload replays the same chat; storing some lines and deriving
+  others would give two sources of truth. When the reflection is live it will be stored, since
+  it cannot be re-derived (see FUTURE_FEATURES).
+
+**Tradeoffs.** Each later turn is a beat and a dots pause longer (2.8s to the question instead
+of 1.4s), and the closing turn likewise, so a five-skill chat is about seven seconds slower.
+"Gotcha. It sounds like…" is a sentence that does not finish; a reviewer who does not know the
+demo's intent may read it as a bug.
+
+**Defense.** The chat now has the shape of a conversation (acknowledge, then ask) with a
+one-line change to the turn model and no change to the store, the reducer or the teacher side,
+and the live version drops in by replacing `reflection(i)` with a stored line.

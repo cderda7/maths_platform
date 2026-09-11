@@ -1061,6 +1061,33 @@ agents add sections above it and leave it alone.
   notice) ever feels like a detour, the sentence and its pill could replace the menu's contents
   in place, keeping one card on the scrim.
 
+## Reflective listening in the concerns chat (from ticket 102, 2026-09-11)
+
+- **A live reflection, not a fixed line.** The three reflections are fixed for the demo
+  ("Gotcha. It sounds like…" is deliberately unfinished as the marker). The user: "add to F_F
+  making this dynamic; i'll add API keys later." The live version: after each answer, one model
+  call that restates the student's own words in a sentence or two (reflective listening from the
+  empathetic-tutor framework), the skill name boxed as the questions do; then the fixed question.
+  The reflection would be stored with the answer (it cannot be re-derived on reload, unlike every
+  other tutor line), with the fixed line as the fallback while the call is out or fails, and the
+  typing dots held until it arrives. Needs an API key and a server route; see the decision log.
+- **A live closing line.** "Thank you for those insights. Let's start with ___." could likewise
+  sum up what the student said across all their answers before naming the first skill.
+- **The plain "not confident" student who names a skill mid-chat.** The user (ticket 102):
+  "later i'll have it refactor after the general not confident student mentions a skill or two,
+  & then iterate back through the questions & reflective listening." Today a student who ticked
+  no skill gets one open question and, if the answer names skills (`interpret`), those skills go
+  into the warm-up's focus, but the chat closes after that one answer. The future shape: after
+  the open answer, the tutor reflects, then walks the named skills one by one ("How about with
+  fractions?") with a reflection after each, then closes; the turn list becomes a function of the
+  answers so far, not only of the seed.
+- **More than three fixed lines.** A fourth answer and beyond reuse "A lot of students share
+  that struggle." If a demo seeds five or more skills and the repeat shows, a fourth and fifth
+  line could be added to `REFLECTIONS`.
+- **Reflection length and the chat's pace.** Each later turn now takes 2.8s to reach its
+  question. If the chat feels slow with many skills, the reflection's dots could be shorter than
+  the question's (`turnSteps` takes one dots length for every bubble today).
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

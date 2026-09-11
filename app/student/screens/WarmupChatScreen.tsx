@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Button, Eyebrow } from "@/components/ui";
 import { warmupFocus, warmupSeed, type SessionAction, type StudentSession } from "@/lib/session";
-import { byEase, CHAT_CLOSE_MS, closingLine, concernTurns, skillRuns, turnSteps, type PlayStep } from "@/lib/warmup";
+import { byEase, CHAT_CLOSE_MS, closingTurn, concernTurns, skillRuns, turnSteps, type PlayStep } from "@/lib/warmup";
 
 /**
  * The concerns chat, between the confidence answer and the warm-up. The tutor's turns are derived
- * (`concernTurns`): the opening is two bubbles, each later question one, and after the last answer
- * a closing bubble that names the first skill, then the pad. Only the student's answers are stored.
+ * (`concernTurns`): the opening is two bubbles, each later turn a reflection on the answer just
+ * given then the next question, and after the last answer a closing turn (`closingTurn`): the
+ * reflection, then thanks naming the first skill, then the pad. Only the student's answers are stored.
  *
  * The turn being played (the one after the last answer) arrives bubble by bubble to `turnSteps`:
  * a beat, the typing dots, the bubble. While it plays the box is off (cream, no caret, "the tutor
@@ -20,7 +21,7 @@ export default function WarmupChatScreen({ session, dispatch }: { session: Stude
   const answers = session.warmup.messages.filter((m) => m.from === "student");
   const turnIndex = answers.length;
   const closing = turnIndex >= turns.length;
-  const current = closing ? [closingLine(byEase(warmupFocus(session))[0])] : turns[turnIndex];
+  const current = closing ? closingTurn(byEase(warmupFocus(session))[0], answers.length) : turns[turnIndex];
   const steps = turnSteps(current.length, turnIndex === 0);
   // The step reached, tagged with its turn: a step from an earlier turn means this turn is at its first step.
   const [played, setPlayed] = useState<{ turn: number; step: PlayStep }>({ turn: turnIndex, step: steps[0] });

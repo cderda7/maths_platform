@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { byEase, CHAT_BEAT_MS, CHAT_DOTS_MS, closingLine, concernsAnswered, concernTranscript, concernTurns, EASE, focusLeaves, howAbout, interpret, offerLines, practiceFor, skillRuns, turnSteps, warmupScript, warmupSequence } from "./warmup";
+import { byEase, CHAT_BEAT_MS, CHAT_DOTS_MS, closingTurn, concernsAnswered, concernTranscript, concernTurns, EASE, focusLeaves, howAbout, interpret, offerLines, practiceFor, reflection, REFLECTIONS, skillRuns, turnSteps, warmupScript, warmupSequence } from "./warmup";
 import { isolatable, PRACTICE, PRACTICES, WARMUP_BANK } from "@/data/practice";
 import { branchesOf } from "./branches";
 import { ASSIGNMENT } from "@/data/assignment";
@@ -94,12 +94,14 @@ describe("the warm-up sequence", () => {
 
 describe("the concerns chat", () => {
   const three = ["algebra.expand-factor.monic", "algebra.number.fractions", "unit.u1.nfl"] as const;
-  it("asks one turn per ticked skill, the opening in two bubbles naming them all, in the order they were ticked", () => {
+  it("asks one turn per ticked skill, the opening in two bubbles naming them all, each later turn a reflection then the question, in the order they were ticked", () => {
     expect(concernTurns([...three])).toEqual([
       ["Let's do a warm up on factorising, fractions, & null factor law.", "First, tell me a little bit about your concerns with **factorising**."],
-      ["How about with **fractions**?"],
-      ["How about the **null factor law**?"],
+      ["Gotcha. It sounds like…", "How about with **fractions**?"],
+      ["Agreed: that's a tricky skill.", "How about the **null factor law**?"],
     ]);
+    const five = [...three, "unit.u1.discriminant", "algebra.equations.linear"] as const;
+    expect(concernTurns([...five]).map((t) => t[0])).toEqual([expect.stringMatching(/^Let's do a warm up on /), "Gotcha. It sounds like…", "Agreed: that's a tricky skill.", "A lot of students share that struggle.", "A lot of students share that struggle."]);
     expect(concernTurns(["algebra.number.fractions", "algebra.expand-factor.monic"])[0]).toEqual(["Let's do a warm up on fractions & factorising.", "First, tell me a little bit about your concerns with **fractions**."]);
     expect(concernTurns(["algebra.expand-factor.monic"])).toEqual([["Let's do a warm up on factorising.", "Tell me a little bit about your concerns with **factorising**."]]);
     expect(concernTurns([])).toEqual([["Let's do a warm up.", "Tell me a little bit about what you'd like to warm up on."]]);
@@ -133,9 +135,15 @@ describe("the concerns chat", () => {
       { text: "b", skill: true },
     ]);
   });
-  it("closes by naming the skill the warm-up opens on", () => {
-    expect(closingLine("algebra.number.fractions")).toBe("Thanks. Let's start with fractions.");
-    expect(closingLine(undefined)).toBe("Thanks. Let's start.");
+  it("reflects on each answer in turn, the last line for every later answer", () => {
+    expect(REFLECTIONS).toEqual(["Gotcha. It sounds like…", "Agreed: that's a tricky skill.", "A lot of students share that struggle."]);
+    expect([0, 1, 2, 3, 7].map(reflection)).toEqual([REFLECTIONS[0], REFLECTIONS[1], REFLECTIONS[2], REFLECTIONS[2], REFLECTIONS[2]]);
+  });
+  it("closes with the reflection on the last answer, then thanks for that insight or those insights, naming the skill the warm-up opens on", () => {
+    expect(closingTurn("algebra.number.fractions", 1)).toEqual(["Gotcha. It sounds like…", "Thank you for that insight. Let's start with fractions."]);
+    expect(closingTurn("algebra.number.fractions", 2)).toEqual(["Agreed: that's a tricky skill.", "Thank you for those insights. Let's start with fractions."]);
+    expect(closingTurn("algebra.number.fractions", 4)).toEqual(["A lot of students share that struggle.", "Thank you for those insights. Let's start with fractions."]);
+    expect(closingTurn(undefined, 1)).toEqual(["Gotcha. It sounds like…", "Thank you for that insight. Let's start."]);
   });
   it("plays the opening's first bubble at once with the dots straight after, and every other bubble after a beat and the dots", () => {
     expect(turnSteps(2, true)).toEqual([
@@ -164,9 +172,11 @@ describe("the concerns chat", () => {
       { from: "tutor", text: turns[0][0] },
       { from: "tutor", text: turns[0][1] },
       a,
-      { from: "tutor", text: turns[1][0] },
+      { from: "tutor", text: "Gotcha. It sounds like…" },
+      { from: "tutor", text: turns[1][1] },
       b,
-      { from: "tutor", text: turns[2][0] },
+      { from: "tutor", text: "Agreed: that's a tricky skill." },
+      { from: "tutor", text: turns[2][1] },
     ]);
     expect(concernsAnswered([...three], [a, b])).toBe(false);
     expect(concernsAnswered([...three], [a, b, a])).toBe(true);
