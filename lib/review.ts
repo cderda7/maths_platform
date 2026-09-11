@@ -15,6 +15,11 @@ import { inferUnitFromProblems } from "./unit";
 
 export const DIFFICULTIES: Difficulty[] = ["simple familiar", "simple unfamiliar", "complex familiar", "complex unfamiliar"];
 
+/** The label after this one when a pill is tapped: the four in order, round again after the last (ticket 122). */
+export function nextDifficulty(d: Difficulty): Difficulty {
+  return DIFFICULTIES[(DIFFICULTIES.indexOf(d) + 1) % DIFFICULTIES.length];
+}
+
 /** The expression with nothing that varies between how it was typed and how the bank writes it. */
 export function normTex(tex: string | null | undefined): string {
   if (!tex) return "";

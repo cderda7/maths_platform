@@ -5,7 +5,7 @@ import { ADD_CONTEXT, CHANGE_SIGNS, REMOVE_REPEAT } from "@/data/review";
 import type { DraftQuestion } from "./classroom";
 import { classroomReducer, INITIAL_CLASSROOM } from "./classroom";
 import { parseQuestion, splitPaste, stemText } from "./mathInput";
-import { applyReview, bankMatch, bankProblemsOf, countByDifficulty, defaultLabel, draftKey, heuristicLabel, inferUnitFromReviewed, initialReview, labelsOf, normTex, recommendationsFor, reviewFor, type ReviewState } from "./review";
+import { applyReview, bankMatch, bankProblemsOf, countByDifficulty, defaultLabel, draftKey, heuristicLabel, inferUnitFromReviewed, initialReview, labelsOf, nextDifficulty, normTex, recommendationsFor, reviewFor, type ReviewState } from "./review";
 
 /** The demo paste as the create screen stores it. */
 function pasted(): DraftQuestion[] {
@@ -43,6 +43,13 @@ describe("labels", () => {
     expect(heuristicLabel("Find the turning point of the graph of", "y = 2x^{2} - 8x")).toBe("simple unfamiliar");
     expect(heuristicLabel("A farmer has 60 metres of fence and wants the largest rectangular paddock against a wall. Find the maximum area.", null)).toBe("complex unfamiliar");
     expect(defaultLabel({ stem: "Factorise.", tex: "\\frac{1}{2}x^{2} + x" })).toBe("complex familiar");
+  });
+
+  it("a tap on a pill rotates through the four labels in order and round again", () => {
+    expect(nextDifficulty("simple familiar")).toBe("simple unfamiliar");
+    expect(nextDifficulty("simple unfamiliar")).toBe("complex familiar");
+    expect(nextDifficulty("complex familiar")).toBe("complex unfamiliar");
+    expect(nextDifficulty("complex unfamiliar")).toBe("simple familiar");
   });
 
   it("keeps the teacher's relabel over the system's", () => {

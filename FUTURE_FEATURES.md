@@ -1482,6 +1482,16 @@ agents add sections above it and leave it alone.
   line says "Q9 removed" with Undo). A greyed tile in place was considered and not built: the
   numbering would jump at Finalise.
 
+## The difficulty pill rotates on tap (from ticket 122, 2026-09-11)
+
+- **The popover, reverted.** Ticket 120 opened the four labels under the pill; the user chose a
+  single tap that moves to the next label in the fixed order instead. Deferred with it: any way
+  to jump straight to a label (a long press opening the four, or a keyboard's arrow keys), and
+  any sign on the pill that it is tappable beyond the hover shadow and the helper line.
+- **Rotation on the recommendations grid.** The pills there are static; a relabel is the
+  difficulty step's business. If a teacher wants to relabel a changed or added question, the
+  addition's label is the fixture's and cannot be changed anywhere.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

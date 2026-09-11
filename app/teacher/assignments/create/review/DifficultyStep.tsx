@@ -10,7 +10,8 @@ import { countByDifficulty, DIFFICULTIES, labelsOf } from "@/lib/review";
 
 /**
  * The difficulty step: the draft's tiles, each with its label, and the count of each label
- * above the grid. A label is tapped to change it. "Assess set" bottom right runs the assessment.
+ * above the grid. A tap on a label rotates it to the next of the four. "Assess set" bottom right
+ * runs the assessment.
  */
 export default function DifficultyStep({ questions, overrides, onLabel, onAssess }: { questions: DraftQuestion[]; overrides: Record<string, Difficulty>; onLabel: (id: string, d: Difficulty) => void; onAssess: () => void }) {
   const labels = labelsOf(questions, overrides);
