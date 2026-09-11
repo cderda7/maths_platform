@@ -1801,3 +1801,34 @@ reducer still refuses `run/hint` while stalled); only the door to the chat moved
 hint is. The menu now matches the spec's rule of labels over sentences: four words, no helper
 text, and disabled state carried by greying alone.
 
+## 2026-09-11 · "hint" while the previous hint is unacted on is answered with a notice, not a greyed pill
+
+**Decision.** The help menu's first pill reads "hint" always (never "another hint"), and while the
+latest hint is stalled it stays live. Pressing it then shows a notice over the pad, "Let's talk
+through the previous hint before giving you another.", with one pill, "Talk it through", wired to
+the same `talkHint` as the hint card's pill: the pad's opener stored once, the chat open. Escape
+or the scrim closes the notice with nothing said. The help overlay is one three-way state
+(`closed | menu | stall`) rather than two booleans.
+
+**Context.** The user, on ticket 99's greyed row: "if the student clicks on hint in the setting
+currently analogous to 'you can't have one…', a pop up says 'let's talk through the previous
+hint before giving you another'. then that opens the same thing that 'talk it through' would."
+A greyed pill told the student nothing; a live pill that answers with the reason and the way on
+does.
+
+**Alternatives considered.**
+- *Open the chat straight from the "hint" press* (ticket 86's behaviour, without the relabel).
+  The student asked for a hint and gets a chat with no word between; the notice is that word.
+- *Put the sentence inside the menu* (swap the pills for the sentence and one button). The menu
+  would change shape under the pointer; a second, smaller card reads as an answer to the press.
+- *Auto-open the chat after a pause on the notice.* Motion the student did not ask for, and the
+  notice would need a timer; one press is clearer.
+
+**Tradeoffs.** Reaching the chat from the menu is now three presses (help, hint, talk it through)
+against ticket 86's two; the hint card's pill remains one press for a student who has read the
+hint. The notice's sentence is fixed copy on the pad, like the opener it leads to.
+
+**Defense.** The stall rule and the reducer's refusal of `run/hint` are untouched; the pad only
+decides what the press shows. The click-through checks that a stalled press gives no second hint,
+that the notice's copy is exact, and that the opener is stored once whichever pill opened the chat.
+

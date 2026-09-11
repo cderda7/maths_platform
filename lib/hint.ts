@@ -46,7 +46,7 @@ export function pickHint(problem: Pick<PracticeProblem, "steps" | "hints">, line
  * The shown hint the student has not yet acted on, as an index into `problem.hints`, or null.
  * It is the latest hint shown, while the lines have not moved past every point it is written for:
  * a hint for line 3 asks for a line 4, a blank-pad hint asks for a first line. A general hint (no
- * `at`) cannot be judged and never stalls. While a hint is stalled, "another hint" opens the chat
+ * `at`) cannot be judged and never stalls. While a hint is stalled, "hint" leads into the chat
  * on it instead of giving the next one, so a hint is used, not clicked past.
  */
 export function stalledHint(problem: Pick<PracticeProblem, "steps" | "hints">, lines: string[], shown: number[]): number | null {

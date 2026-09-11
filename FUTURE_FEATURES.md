@@ -1048,6 +1048,19 @@ agents add sections above it and leave it alone.
   if that reads as cramped, the fraction box could take 0.2em at the sides too, but the "+" has
   its own 0.22em of spacing to give, so it was left.
 
+## The stall notice behind "hint" (from ticket 101, 2026-09-11)
+
+- **Ticket 99's greyed "another hint" is superseded**: the row reads "hint" and answers a stalled
+  press with the notice. The note above about a helper line under the pills no longer applies.
+- **The notice could name the hint** ("hint 2") or quote its first words when several are
+  stacked; the sentence is fixed for now ("the previous hint").
+- **A stalled press when no further hint exists** shows the notice too ("before giving you
+  another" is then not quite true); once the student moves past the hint the pill greys as
+  before. A variant sentence for the last hint was not asked for.
+- **The notice is a second card, not the menu reshaped.** If the two-card sequence (menu, then
+  notice) ever feels like a detour, the sentence and its pill could replace the menu's contents
+  in place, keeping one card on the scrim.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

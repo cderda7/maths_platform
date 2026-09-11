@@ -51,14 +51,16 @@ export default function PracticePad({
   const lines = run.lines[p.id] ?? [];
   const strokes = run.ink[p.id] ?? [];
   const [recognising, setRecognising] = useState(false);
-  const [helpOpen, setHelpOpen] = useState(false);
+  /** The help overlay: the "I'd like a…" menu, or the notice shown when "hint" is pressed while the previous hint is still to be acted on. */
+  const [help, setHelp] = useState<"closed" | "menu" | "stall">("closed");
+  const setHelpOpen = (open: boolean) => setHelp(open ? "menu" : "closed");
   const [chatOpen, setChatOpen] = useState(false);
   /** The hints shown so far, in the order they were given (each picked for where the lines were); their terms together are what the problem wraps. */
   const shown = run.hinted[p.id] ?? [];
   const hints = shown.map((i) => p.hints[i]).filter((h) => h !== undefined);
   const terms = hints.flatMap((h) => h.terms ?? []);
   const nextHint = pickHint(p, lines.map((l) => l.tex), shown) !== null;
-  /** The latest hint, while the lines have not moved past what it asks for: "another hint" then opens the chat on it instead. */
+  /** The latest hint, while the lines have not moved past what it asks for: "hint" then shows the stall notice, which leads into the chat on it. */
   const stalled = stalledHint(p, lines.map((l) => l.tex), shown) !== null;
   /** Per shown hint, what its linked words point at: 0 the problem, k the student's k-th read line. The problem and each line wrap only the terms anchored to them. */
   const anchors = hints.map((h) => hintAnchor(h, lines.length));
@@ -201,15 +203,17 @@ export default function PracticePad({
         <div className="mt-4 flex items-center justify-end gap-2 border-t border-line pt-4">{footer}</div>
       </aside>
 
-      {helpOpen && (
+      {help === "menu" && (
         <HelpMenu
-          hints={{ shown: hints.length, next: nextHint, stalled }}
+          hints={{ next: nextHint, stalled }}
           exampled={exampled}
           onChat={() => {
             setHelpOpen(false);
             setChatOpen(true);
           }}
           onHint={() => {
+            // "hint" while the previous one is still to be acted on: the notice, which leads into the chat on it.
+            if (stalled) return setHelp("stall");
             setHelpOpen(false);
             dispatch({ type: "run/hint", run: runKey });
           }}
@@ -220,11 +224,26 @@ export default function PracticePad({
           onClose={() => setHelpOpen(false)}
         />
       )}
+      {help === "stall" && <StallNotice onTalk={talkHint} onClose={() => setHelpOpen(false)} />}
     </div>
   );
 }
 
-/** "I need help" on the pad: pick how much help. Four bare pills, one word each, no side notes. Hints come one per ask, each picked for where the student's lines have got (`next` says one is available), "another hint" once one is showing; while the latest hint is `stalled` (the lines have not moved past what it asks for) the row is greyed: the way on is the "Talk it through" pill on the hint itself. A seen worked example greys its row. The video is listed so the shape is visible; it goes nowhere yet. The chat can always be reopened. */
+/** "hint" pressed while the previous hint is still to be acted on (ticket 86's stall): one sentence and the one way on, the same chat the hint card's "Talk it through" opens. */
+function StallNotice({ onTalk, onClose }: { onTalk: () => void; onClose: () => void }) {
+  return (
+    <Scrim onDismiss={onClose}>
+      <div className="w-[300px] rounded-3xl bg-paper p-7 shadow-lift" data-stall-notice>
+        <p className="font-display text-[22px] leading-snug text-ink">Let&rsquo;s talk through the previous hint before giving you another.</p>
+        <button type="button" onClick={onTalk} className="mt-5 inline-flex items-center rounded-full border border-accent-deep bg-paper px-6 py-2.5 text-[15px] font-medium text-ink transition-colors hover:bg-accent-soft" data-stall-talk>
+          Talk it through
+        </button>
+      </div>
+    </Scrim>
+  );
+}
+
+/** "I need help" on the pad: pick how much help. Four bare pills, one word each, no side notes. Hints come one per ask, each picked for where the student's lines have got (`next` says one is available), the row always reading "hint"; while the latest hint is `stalled` (the lines have not moved past what it asks for) the row stays live and the caller shows the stall notice instead of a hint. A seen worked example greys its row. The video is listed so the shape is visible; it goes nowhere yet. The chat can always be reopened. */
 function HelpMenu({
   hints,
   exampled,
@@ -233,7 +252,7 @@ function HelpMenu({
   onChat,
   onClose,
 }: {
-  hints: { shown: number; next: boolean; stalled: boolean };
+  hints: { next: boolean; stalled: boolean };
   exampled: boolean;
   onHint: () => void;
   onExample: () => void;
@@ -241,7 +260,7 @@ function HelpMenu({
   onClose: () => void;
 }) {
   const options: { key: string; title: string; onPick?: () => void }[] = [
-    { key: "hint", title: hints.shown > 0 ? "another hint" : "hint", onPick: hints.next && !hints.stalled ? onHint : undefined },
+    { key: "hint", title: "hint", onPick: hints.next || hints.stalled ? onHint : undefined },
     { key: "example", title: "worked example", onPick: exampled ? undefined : onExample },
     { key: "video", title: "video" },
     { key: "chat", title: "chat", onPick: onChat },
