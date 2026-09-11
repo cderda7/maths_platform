@@ -697,6 +697,19 @@ agents add sections above it and leave it alone.
 - **The chat is not cleared by "Reset demo"?** It is: the run is part of the session, which the
   reset drops. Noted so nobody adds a second reset.
 
+## Fractions warm-up and the help button (from ticket 75, 2026-09-11)
+
+- **A hint term can only light the first occurrence of a fragment.** "denominators" on the new
+  fractions problem lights the 4 and the 2 of $\frac{x}{2}$ but not the 2 of $\frac{9}{2}$, because
+  `termTex` wraps the first whole occurrence of each fragment and there is no way to name "the second
+  2". Deferred: it needs an occurrence index (or a `within` scope, as the hint phrases have) on the
+  TeX side of `HintTerm`; the two lit denominators already make the point.
+- **The fractions problem has no second way in for the help chat.** Clearing denominators is the one
+  route the tutor is told about; "work with the fractions as they are" (collect $\frac{3x}{4}$) is a
+  legitimate second framing a teacher might want offered.
+- **The other warm-up problems were not re-graded for difficulty.** The user found the fractions one
+  too easy; monic, null factor law and the rest are unchanged and may deserve the same look.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

@@ -205,6 +205,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 72 | The offer callout: the tutor's question naming the ticked skills, one short problem per skill, a rise and one ring pulse over the dimmed list | `…?stage=confidence` | 71 | [architecture/72-offer-callout.md](architecture/72-offer-callout.md) |
 | 73 | Offer callout: "Start the set" in the accent outline, a pinch stronger than a secondary button | `…?stage=confidence` | 72 | [architecture/73-offer-start-the-set-outline.md](architecture/73-offer-start-the-set-outline.md) |
 | 74 | Concerns chat rhythm: the opening in two bubbles a second apart, typing dots, a box that is plainly off while the tutor writes and pulses on for the student's turn, a closing bubble before the pad | `…?stage=warmup-chat` | 48, 72 | [architecture/74-chat-rhythm.md](architecture/74-chat-rhythm.md) |
+| 75 | Practice pad: "I need help" straight under the question, not at the foot of the column; the fractions warm-up is x/4 + x/2 − 6 = 9/2 with a clearing-denominators hint | `…?stage=practice`, the practice overlay | 69, 29 | [architecture/75-warmup-fractions-help-under-question.md](architecture/75-warmup-fractions-help-under-question.md) |
 
 ## Conventions
 

@@ -171,4 +171,14 @@ describe("warm-up hint terms", () => {
       { phrase: "middle coefficient", tex: ["7"] },
     ]);
   });
+
+  it("the fractions warm-up lights every term, and the denominators inside the two x fractions", () => {
+    const p = PRACTICES["algebra.number.fractions"]!;
+    const [every, denominators] = p.hintTerms!;
+    expect(p.tex).toBe("\\dfrac{x}{4} + \\dfrac{x}{2} - 6 = \\dfrac{9}{2}");
+    expect(termTex(p.tex, p.hintTerms, denominators)).toBe(
+      "\\htmlClass{hint-term}{\\dfrac{x}{\\htmlClass{hint-term hint-term-lit}{4}}} + \\htmlClass{hint-term}{\\dfrac{x}{\\htmlClass{hint-term hint-term-lit}{2}}} - \\htmlClass{hint-term}{6} = \\htmlClass{hint-term}{\\dfrac{9}{2}}",
+    );
+    expect(termTex(p.tex, p.hintTerms, every)).toContain("\\htmlClass{hint-term hint-term-lit}{6}");
+  });
 });

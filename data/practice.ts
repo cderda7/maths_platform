@@ -117,17 +117,19 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
   "algebra.number.fractions": {
     id: "w-fractions",
     leaf: "algebra.number.fractions",
-    stem: "Solve, leaving the answer exact.",
-    tex: "\\dfrac{x^2}{3} = 12",
+    stem: "Solve.",
+    tex: "\\dfrac{x}{4} + \\dfrac{x}{2} - 6 = \\dfrac{9}{2}",
     steps: [
-      { tex: "x^2 = 36", label: "Multiplied both sides by 3", tags: [tag("algebra.number.fractions")] },
-      { tex: "x = \\pm 6", label: "Square root, both signs", tags: [tag("algebra.equations.quadratic")] },
+      { tex: "x + 2x - 24 = 18", label: "Multiplied every term by 4", tags: [tag("algebra.number.fractions")] },
+      { tex: "3x - 24 = 18", label: "Collected the x terms", tags: [tag("algebra.equations.linear")] },
+      { tex: "3x = 42", label: "Added 24 to both sides", tags: [tag("algebra.equations.linear")] },
+      { tex: "x = 14", label: "Divided by 3", tags: [tag("algebra.equations.linear")] },
     ],
-    why: "Whatever you do to one term you do to every term, on both sides.",
-    hint: "Whatever you do to one side, do to the whole of the other side.",
+    why: "One multiplication by the lowest common denominator, applied to every term on both sides, and the fractions are gone.",
+    hint: "Multiply every term by a number that clears all the denominators.",
     hintTerms: [
-      { phrase: "one side", tex: ["\\dfrac{x^2}{3}"] },
-      { phrase: "other side", tex: ["12"] },
+      { phrase: "every term", tex: ["\\dfrac{x}{4}", "\\dfrac{x}{2}", "6", "\\dfrac{9}{2}"] },
+      { phrase: "denominators", tex: ["4", "2"] },
     ],
   },
   "unit.u1.nfl": {

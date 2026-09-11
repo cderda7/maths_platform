@@ -99,7 +99,7 @@ export default function PracticePad({
           </div>
         )}
         {hinted && <HintCard problem={p} lit={litTerm ?? null} onLit={setLit} className="mt-5" />}
-        <div className="mt-auto pt-6">
+        <div className="mt-5">
           <Button variant="secondary" className="w-full" onClick={() => setHelpOpen(true)} disabled={run.example}>
             I need help
           </Button>
