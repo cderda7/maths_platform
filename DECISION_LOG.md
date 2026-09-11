@@ -1575,3 +1575,43 @@ but its text is `text-ink`, the bubble's own colour, not `text-standout` (ticket
 that the sentence reads first and the box second, which is what was asked.
 
 **Defense.** One utility class swapped on one span; the box tokens still come from the palette.
+
+## 2026-09-11 · The worked example is maths alone, and the chat beside it may explain the steps on screen
+
+**Decision.** A worked example step is the maths only, set in display mode at the problem's size and
+centred under it; the caption that named the move is gone from every worked example (the one playing
+in place of the pad and the compact one beside the follow-up). While the example plays, the pad's
+right column is the help chat headed "Question about a step?", not the read-as column, with its own
+opener ("Which step, and what about it?") and no close. Each chat turn sent from there carries
+`shown`, the number of steps on screen, and the tutor's brief marks each step "(on screen)" or "(not
+yet shown)": a step on screen may be explained in full, hints-only holds for the rest. The step
+`label` stays on the data, since the brief still reads it.
+
+**Context.** The user (2026-09-11): delete the captions, make every step the same size and aligned,
+put a chat headed "question about a step?" to the right, drop the read-as column while in the example,
+and delete "Guess the next step before you show it". The captions had made each step a two-column
+row with inline-sized maths, so a step with fractions was smaller than the problem and the column
+did not line up; the read-as was an empty box while nothing was being written.
+
+**Alternatives considered.**
+- *Keep the captions in a tooltip or on tap.* The user asked for them gone; the chat is now where
+  "what does this step do?" is answered, in the student's own words and at the student's own pace.
+- *Align the steps on their equals signs (one KaTeX `aligned` block).* The proper typeset column, but
+  one block cannot reveal a step at a time, box a two-case step, or take a per-step hover later;
+  centring each display-mode step under the centred problem gives one axis for the same eye.
+- *Leave the chat's brief as it is (the working "for your eyes only").* The tutor would refuse to
+  discuss a step the student can see, which is the one thing this chat is for. Sending `shown` is
+  the smallest honest signal: the tutor knows exactly what is on the screen and nothing more.
+- *Store the example opener like the hint opener (ticket 86).* Nothing about it is per problem, so
+  it is a fixed line like "What's got you stuck?", derived from the mode, never stored.
+
+**Tradeoffs.** The chat now has two openers and two briefs, chosen by a flag; a transcript begun on
+the pad continues beside the example with the pad's opener already stored, which is right (the
+transcript is the student's) but means the opener bubble does not change with the heading. The
+brief's freedom to explain a shown step is a rule the model is briefed on, not enforced server-side,
+like the rest of the brief. The captions are lost as on-screen text for a student who never asks.
+
+**Defense.** One prop on `HelpChat` and one optional field on the request, validated like the rest;
+the brief's example variant is pinned by tests alongside a test that the pad brief is unchanged. The
+card is simpler than before (one branch fewer, no width for a caption), and the browser check
+measures every step and the problem at one size on one axis.

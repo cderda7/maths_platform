@@ -22,7 +22,8 @@ import { Scrim } from "@/app/student/screens/PracticePrompt";
  * screen's own layout with one unmarked problem. "I need help" offers a hint, a worked example, a
  * video or a chat. The worked example plays where the pad was; once it is complete a follow-up opens
  * beside it, the example staying in view on the left. The chat takes the right column in place of
- * the read-back until closed. `header` sits above the problem (the warm-up's chip
+ * the read-back until closed; while the example plays the column is the chat, headed "Question
+ * about a step?", since there is no read-back. `header` sits above the problem (the warm-up's chip
  * strip, the overlay's skill name); `footer` is the right column's buttons; `finished` is the
  * button after a worked example with no follow-up left.
  */
@@ -136,10 +137,7 @@ export default function PracticePad({
 
       {run.example ? (
         <section className="flex min-h-0 flex-col overflow-y-auto px-6 py-6" data-example>
-          <div className="flex items-center justify-between">
-            <Eyebrow>Worked example</Eyebrow>
-            <span className="text-[12.5px] text-ink-muted">Guess the next step before you show it</span>
-          </div>
+          <Eyebrow>Worked example</Eyebrow>
           <div className="mt-3">
             <PracticeCard practice={p} shown={run.exampleShown} onReveal={() => dispatch({ type: "run/example-step", run: runKey })} />
           </div>
@@ -160,7 +158,10 @@ export default function PracticePad({
       )}
 
       <aside className="flex min-h-0 flex-col border-l border-line px-6 py-6">
-        {chatOpen ? (
+        {run.example ? (
+          // Beside the worked example there is nothing to read back, so the column is the chat, headed "Question about a step?".
+          <HelpChat key={p.id} problem={p} lines={lines.map((l) => l.tex)} messages={chat} runKey={runKey} dispatch={dispatch} exampleShown={run.exampleShown} />
+        ) : chatOpen ? (
           <HelpChat key={p.id} problem={p} lines={lines.map((l) => l.tex)} messages={chat} runKey={runKey} dispatch={dispatch} onClose={() => setChatOpen(false)} />
         ) : (
           <ReadAs

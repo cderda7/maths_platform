@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { PRACTICE, PRACTICES, WARMUP_BANK } from "@/data/practice";
 import { studentLeafName } from "@/data/taxonomy";
 import type { PracticeProblem } from "@/data/types";
-import { CHAT_OPENER, chatOpener, chatSegments, findPractice, helpChatMessages, helpChatSystem, HINT_OPENER_START, hintOpener, parseHelpChatRequest } from "./helpChat";
+import { CHAT_OPENER, chatOpener, chatSegments, EXAMPLE_OPENER, findPractice, helpChatMessages, helpChatSystem, HINT_OPENER_START, hintOpener, parseHelpChatRequest } from "./helpChat";
 
 const every = (): PracticeProblem[] => WARMUP_BANK.flatMap((p) => (p.followUp ? [p, p.followUp] : [p]));
 
@@ -80,6 +80,36 @@ describe("helpChatSystem", () => {
     expect(s).not.toContain("(nothing yet)");
   });
 
+  it("beside the worked example: opens by asking which step, marks the steps on screen, and frees the tutor to explain those and only those", () => {
+    expect(chatOpener([], true)).toBe(EXAMPLE_OPENER);
+    expect(chatOpener([{ from: "tutor", text: hintOpener(1) }], true)).toBe(hintOpener(1));
+    expect(EXAMPLE_OPENER).toBe("Which step, and what about it?");
+    const s = helpChatSystem(p, [], [], 2);
+    expect(s).toContain(`"${EXAMPLE_OPENER}"`);
+    expect(s).not.toContain(`"${CHAT_OPENER}"`);
+    expect(s).toContain('headed "Question about a step?"');
+    expect(s).toContain("Steps 1 to 2 are on screen");
+    expect(s).toContain(`1. (on screen) ${p.steps[0].label}: ${p.steps[0].tex}`);
+    expect(s).toContain(`2. (on screen) ${p.steps[1].label}: ${p.steps[1].tex}`);
+    expect(s).toContain(`3. (not yet shown) ${p.steps[2].label}: ${p.steps[2].tex}`);
+    expect(s).toContain("a step on screen you may explain in full");
+    expect(s).toContain("Never show, paste or paraphrase a step not yet shown");
+    expect(s).not.toContain("for your eyes only. Never show it");
+    expect(helpChatSystem(p, [], [], 0)).toContain("No step is on screen yet");
+    expect(helpChatSystem(p, [], [], 1)).toContain("Step 1 is on screen");
+    // A count past the end (a stale reload) still reads as the whole working shown.
+    expect(helpChatSystem(p, [], [], 99)).toContain(`Steps 1 to ${p.steps.length} are on screen`);
+  });
+
+  it("on the pad (no step count) the brief is unchanged: the working is the tutor's alone and no step is marked", () => {
+    const s = helpChatSystem(p, []);
+    expect(s).toContain("for your eyes only. Never show it");
+    expect(s).not.toContain("(on screen)");
+    expect(s).not.toContain("(not yet shown)");
+    expect(s).not.toContain("Question about a step?");
+    expect(s).not.toContain("explain in full");
+  });
+
   it("says there is one way in when the problem lists none", () => {
     expect(helpChatSystem(PRACTICES["unit.u1.nfl"]!, [])).toContain("(one way in; the hints above name it)");
   });
@@ -138,6 +168,15 @@ describe("parseHelpChatRequest", () => {
   it("accepts a well-formed turn", () => {
     expect(parseHelpChatRequest(good)).toEqual(good);
     expect(parseHelpChatRequest({ ...good, lines: [] })).toEqual({ ...good, lines: [] });
+  });
+
+  it("carries the worked example's step count when sent, and only a whole non-negative one", () => {
+    expect(parseHelpChatRequest({ ...good, shown: 2 })).toEqual({ ...good, shown: 2 });
+    expect(parseHelpChatRequest({ ...good, shown: 0 })).toEqual({ ...good, shown: 0 });
+    expect(parseHelpChatRequest(good)).not.toHaveProperty("shown");
+    expect(parseHelpChatRequest({ ...good, shown: -1 })).toBeNull();
+    expect(parseHelpChatRequest({ ...good, shown: 1.5 })).toBeNull();
+    expect(parseHelpChatRequest({ ...good, shown: "2" })).toBeNull();
   });
 
   it("refuses a missing or malformed field", () => {

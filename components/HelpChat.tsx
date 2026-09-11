@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import M from "@/components/Math";
 import { Button, Eyebrow } from "@/components/ui";
 import type { ChatMessage, PracticeProblem } from "@/data/types";
-import { CHAT_OPENER, chatSegments } from "@/lib/helpChat";
+import { chatOpener, chatSegments } from "@/lib/helpChat";
 import type { RunKey, SessionAction } from "@/lib/session";
 
 /** What the tutor's bubble says when a turn fails. Shown, never stored. */
@@ -16,7 +16,10 @@ const FAILED = "I lost that one. Say it again?";
  * the chat so far on this problem, the reply streaming in, and a box to write in. Each line said
  * is dispatched into the run as it happens, so the chat survives a reload and a reopen; a reply
  * lands on the problem it was asked on even if the pad has moved to the follow-up. Mount one per
- * problem (key it by the problem id): unmounting drops the turn in flight.
+ * problem (key it by the problem id): unmounting drops the turn in flight. While the worked
+ * example plays, the chat is headed "Question about a step?", opens by asking which step, has no
+ * close (there is no read-back to go back to) and sends the number of steps on screen with each
+ * turn, so the tutor may explain those and only those.
  */
 export default function HelpChat({
   problem,
@@ -25,6 +28,7 @@ export default function HelpChat({
   runKey,
   dispatch,
   onClose,
+  exampleShown,
 }: {
   problem: PracticeProblem;
   /** The lines the pad has read on this problem, as TeX. */
@@ -32,8 +36,12 @@ export default function HelpChat({
   messages: ChatMessage[];
   runKey: RunKey;
   dispatch: (a: SessionAction) => void;
-  onClose: () => void;
+  /** Back to the read-back; absent beside the worked example, which has no read-back to go back to. */
+  onClose?: () => void;
+  /** Set while the worked example is playing beside the chat: how many of its steps are on screen. */
+  exampleShown?: number;
 }) {
+  const example = exampleShown !== undefined;
   const [draft, setDraft] = useState("");
   /** The reply streaming in: "" once the turn is sent, the text so far after that, null between turns. */
   const [pending, setPending] = useState<string | null>(null);
@@ -46,9 +54,10 @@ export default function HelpChat({
     end.current?.scrollIntoView({ block: "end" });
   }, [messages.length, pending, note]);
   useEffect(() => {
-    box.current?.focus();
+    // Beside the worked example the student's next tap is "Next step", so the box waits for them.
+    if (!example) box.current?.focus();
     return () => inFlight.current?.abort();
-  }, []);
+  }, [example]);
 
   const send = async () => {
     const text = draft.trim();
@@ -65,7 +74,7 @@ export default function HelpChat({
       const res = await fetch("/api/help-chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ problem: problem.id, lines, messages: [...messages, said] }),
+        body: JSON.stringify({ problem: problem.id, lines, messages: [...messages, said], ...(example ? { shown: exampleShown } : {}) }),
         signal: ctl.signal,
       });
       if (!res.ok || !res.body) {
@@ -93,17 +102,19 @@ export default function HelpChat({
     }
   };
 
-  // The pad's own tutor line (the chat opened on a hint) is stored first and is the opener; otherwise the fixed one, never stored.
-  const transcript: ChatMessage[] = messages[0]?.from === "tutor" ? messages : [{ from: "tutor", text: CHAT_OPENER }, ...messages];
+  // The pad's own tutor line (the chat opened on a hint) is stored first and is the opener; otherwise the fixed one for where the chat is, never stored.
+  const transcript: ChatMessage[] = messages[0]?.from === "tutor" ? messages : [{ from: "tutor", text: chatOpener(messages, example) }, ...messages];
   const tutor = "border border-line bg-paper text-ink";
   const student = "bg-ink text-white";
   return (
-    <div className="flex min-h-0 flex-1 flex-col" data-help-chat>
+    <div className="flex min-h-0 flex-1 flex-col" data-help-chat data-example-chat={example ? "" : undefined}>
       <div className="flex items-center justify-between">
-        <Eyebrow>Chat</Eyebrow>
-        <button type="button" onClick={onClose} className="text-[12.5px] text-ink-soft hover:text-ink" data-chat-close>
-          close
-        </button>
+        <Eyebrow>{example ? "Question about a step?" : "Chat"}</Eyebrow>
+        {onClose && (
+          <button type="button" onClick={onClose} className="text-[12.5px] text-ink-soft hover:text-ink" data-chat-close>
+            close
+          </button>
+        )}
       </div>
       <ol className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1" data-chat>
         {transcript.map((m, i) => (

@@ -29,8 +29,11 @@ export const CHAT_OPENER = "What's got you stuck?";
 export const HINT_OPENER_START = "Let's talk more about hint ";
 export const hintOpener = (n: number): string => `${HINT_OPENER_START}${n} before another one. What is it asking you to do here, in your own words?`;
 
-/** What the chat opened with, as the student saw it: the pad's stored tutor line when there is one first, else the fixed opener. */
-export const chatOpener = (messages: ChatMessage[]): string => (messages[0]?.from === "tutor" ? messages[0].text : CHAT_OPENER);
+/** The tutor's fixed first line beside the worked example, under the heading "Question about a step?". Not stored. */
+export const EXAMPLE_OPENER = "Which step, and what about it?";
+
+/** What the chat opened with, as the student saw it: the pad's stored tutor line when there is one first, else the fixed opener for where the chat is (`example`: beside the worked example). */
+export const chatOpener = (messages: ChatMessage[], example = false): string => (messages[0]?.from === "tutor" ? messages[0].text : example ? EXAMPLE_OPENER : CHAT_OPENER);
 
 /** What the tutor says when the model declines the turn, so the student is never left with an empty bubble. */
 export const CHAT_DECLINED = "Let's stay with the problem. Tell me the last line you're sure about.";
@@ -45,11 +48,12 @@ export function findPractice(id: string): PracticeProblem | null {
   return null;
 }
 
-/** What the pad sends for one turn: the problem, the lines read so far, and the chat so far, the student's newest message last. */
+/** What the pad sends for one turn: the problem, the lines read so far, and the chat so far, the student's newest message last. `shown` is sent while the worked example is playing beside the chat: how many of its steps are on the student's screen. */
 export interface HelpChatRequest {
   problem: string;
   lines: string[];
   messages: ChatMessage[];
+  shown?: number;
 }
 
 const isMessage = (m: unknown): m is ChatMessage =>
@@ -58,29 +62,41 @@ const isMessage = (m: unknown): m is ChatMessage =>
 /** A request body checked field by field, or null. The transcript must end with the student. */
 export function parseHelpChatRequest(raw: unknown): HelpChatRequest | null {
   if (!raw || typeof raw !== "object") return null;
-  const { problem, lines, messages } = raw as Record<string, unknown>;
+  const { problem, lines, messages, shown } = raw as Record<string, unknown>;
   if (typeof problem !== "string") return null;
   if (!Array.isArray(lines) || !lines.every((l) => typeof l === "string")) return null;
   if (!Array.isArray(messages) || !messages.every(isMessage)) return null;
+  if (shown !== undefined && (typeof shown !== "number" || !Number.isInteger(shown) || shown < 0)) return null;
   const last = messages[messages.length - 1];
   if (!last || last.from !== "student" || last.text.trim() === "") return null;
-  return { problem, lines: lines as string[], messages: messages as ChatMessage[] };
+  const out: HelpChatRequest = { problem, lines: lines as string[], messages: messages as ChatMessage[] };
+  return shown === undefined ? out : { ...out, shown };
 }
 
 /**
  * The tutor's brief for one problem. The reference working and the pad's own hint are in it so
  * the tutor knows the ground; the rules below are what make it a hint chat rather than an answer
- * machine, and what make it offer a choice of ways in before it settles on one.
+ * machine, and what make it offer a choice of ways in before it settles on one. With `shown`
+ * the worked example is playing beside the chat with that many steps on screen: those steps
+ * are open to talk about, the rest stay the tutor's alone.
  */
-export function helpChatSystem(p: PracticeProblem, lines: string[], messages: ChatMessage[] = []): string {
+export function helpChatSystem(p: PracticeProblem, lines: string[], messages: ChatMessage[] = [], shown?: number): string {
   const skill = studentLeafName(p.leaf).name;
-  const opener = chatOpener(messages);
-  const steps = p.steps.map((s, i) => `${i + 1}. ${s.label}: ${s.tex}`).join("\n");
+  const example = shown !== undefined;
+  const opener = chatOpener(messages, example);
+  const onScreen = (i: number) => (example ? (i < shown ? " (on screen)" : " (not yet shown)") : "");
+  const steps = p.steps.map((s, i) => `${i + 1}.${onScreen(i)} ${s.label}: ${s.tex}`).join("\n");
   const ways = p.approaches?.length ? p.approaches.map((a) => `- ${a.name}: ${a.hint}`).join("\n") : "(one way in; the hints above name it)";
   const where = (h: Hint) => (!h.at ? "anywhere" : h.at.includes(0) ? "on a blank pad" : `after line ${h.at.join(" or ")} of the reference working`);
   const hints = p.hints.map((h, i) => `${i + 1}. (${where(h)}) ${h.text}`).join("\n");
   const written = lines.length ? lines.map((l, i) => `${i + 1}. ${l}`).join("\n") : "(nothing yet)";
-  return `You are the tutor inside Edexia's maths practice pad. A Year 11 Mathematical Methods student (QCE Unit 1) is doing one short practice problem on one skill, writing by hand on the pad, and has opened a chat beside it because they are stuck. You are talking to one student in a narrow chat panel.
+  const situation = example
+    ? `is watching the worked example for it, one step at a time in place of the pad, and has a chat beside it headed "Question about a step?". You are talking to one student in a narrow chat panel.`
+    : "writing by hand on the pad, and has opened a chat beside it because they are stuck. You are talking to one student in a narrow chat panel.";
+  const working = example
+    ? `The reference working, which the worked example shows one step at a time. ${shown === 0 ? "No step is on screen yet" : shown === 1 ? "Step 1 is on screen" : `Steps 1 to ${Math.min(shown, p.steps.length)} are on screen`}; the rest are for your eyes only. Talk about a step on screen as freely as the student needs (what the move is, why it is the move, what it does to the line before it, each written as maths where that helps). Never show, paste or paraphrase a step not yet shown, and never confirm or deny a final answer against one; if they ask what comes next, tell them to show the next step and ask about it.`
+    : "The reference working, for your eyes only. Never show it, never paste a step from it, never confirm or deny a final answer against it.";
+  return `You are the tutor inside Edexia's maths practice pad. A Year 11 Mathematical Methods student (QCE Unit 1) is doing one short practice problem on one skill, ${situation}
 
 The problem
 Skill: ${skill}
@@ -88,7 +104,7 @@ ${p.stem}
 ${p.tex}
 (TeX as the pad shows it.)
 
-The reference working, for your eyes only. Never show it, never paste a step from it, never confirm or deny a final answer against it.
+${working}
 ${steps}
 
 The hints the pad already offers, one per ask, each picked for where the student's lines have got:
@@ -108,7 +124,7 @@ How you help
 - If they ask for the answer outright, say warmly that you will not give it, then give the smallest nudge instead.
 - If they are simply right, say so and stop; do not add a nudge they do not need.
 - Two or three short sentences. Plain words, Australian spelling (factorise, not factorize). Maths goes inside $...$ as TeX, nothing else does. No headings, no lists, no bold.
-- The chat opened with your line "${opener}"; the student's first message is their answer to it. Stay with this problem; if they ask about something else, bring them back to it.
+${example ? "- The worked example is the exception to hints-only: a step on screen you may explain in full, in the student's terms, and say why it follows from the step before. Hints-only still holds for every step not yet shown.\n" : ""}- The chat opened with your line "${opener}"; the student's first message is their answer to it. Stay with this problem; if they ask about something else, bring them back to it.
 - A line of yours beginning "${HINT_OPENER_START}" was said for you by the pad: the student asked for another hint while their lines had not moved past what that hint asks for, so the pad opened this chat instead of giving the next hint. Talk that hint through. Ask what it is asking them to do with their lines, in their own words; if they have it, send them back to the pad to write that line; if they have not, help them read the hint, one piece at a time. Do not say what the next hint would say until they have used this one.`;
 }
 

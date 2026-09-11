@@ -902,6 +902,30 @@ agents add sections above it and leave it alone.
   fractions.") and the pad's skill buttons use no box; one shared `SkillBox` span would keep the
   three consistent if the cue is kept.
 
+## The worked example as one column with a chat beside it (from ticket 90, 2026-09-11)
+
+- **Aligning on the equals sign.** The steps are centred under the problem; a true working column
+  lines the equals signs up (KaTeX `aligned`, or a per-step measure of the `=` glyph's x and a
+  translate). Deferred: one `aligned` block cannot reveal a step at a time or box a two-case step,
+  and centring already puts every step on the problem's axis.
+- **Asking about a step by tapping it.** "Question about a step?" still needs the student to say
+  which; a tap on a step could open the box with "step 2:" typed, or light the step the tutor is
+  talking about (the `data-step` hooks are there). Not asked for.
+- **The captions as a hover.** The step labels are still on the data (the brief reads them). A
+  hover or long-press on a step could show its caption for a student who wants the one-liner
+  without a chat turn. Deferred: the user asked for the captions gone.
+- **A "why this step?" quick ask.** One tap that sends "why step n?" for the latest step revealed
+  would save the typing on an iPad. Deferred until the chat is seen used beside the example.
+- **The example chat's opener when a pad chat already exists.** A transcript begun on the pad keeps
+  its stored opener beside the example (the heading changes, the first bubble does not). A pad line
+  for the tutor marking the switch ("Now the worked example…") would read better; not asked for.
+- **Enforcing "shown" server-side.** The brief tells the tutor which steps are on screen; nothing
+  checks a reply against the unshown steps' TeX. A post-filter that blanks a pasted unshown step is
+  possible if the model is seen leaking one.
+- **The chat's `Enter` on an iPad.** With the box not autofocused beside the example, the student
+  taps it first; a Return key on the iPad keyboard sends (Enter without shift). Fine on hardware
+  keyboards, worth a look on the on-screen one.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
