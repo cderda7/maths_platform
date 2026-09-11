@@ -112,8 +112,10 @@ export function hintSegments(hint: string, terms: HintTerm[] = []): HintSegment[
  * "10x"; two terms naming the same piece share one box, lit when either is the lit term; a
  * fragment the TeX does not contain is left alone. Two fragments that abut, like the two factors of a product, get a gap
  * (`\\kern0.7em`) between them so each reads as its own box: wide enough that the two boxes, each
- * padded and ringed beyond its fragment (`.hint-term` in app/globals.css), sit clear of each other. Needs KaTeX's `trust` option, which
- * `components/Math` sets.
+ * padded beyond its fragment (`.hint-term` in app/globals.css), sit clear of each other; a fragment
+ * typeset flush against a glyph that is not wrapped (the 7 of 7x) gets a thin space (`\\,`) on that
+ * side, so its box stops short of the neighbour. Both gaps are there at rest too. Needs KaTeX's
+ * `trust` option, which `components/Math` sets.
  */
 export function termTex(tex: string, terms: HintTerm[] = [], lit?: HintTerm): string {
   const keyOf = (f: TexFragment): string | null => {
@@ -144,10 +146,10 @@ export function locateFragment(tex: string, f: TexFragment): number {
   return inner < 0 ? -1 : outer + inner;
 }
 
-/** Puts a lit fragment the problem does not write (the 1 in front of x²) just before `before`, or leaves the TeX alone when `before` is absent. */
+/** Puts a lit fragment the problem does not write (the 1 in front of x²) just before `before`, a thin space between so its box clears the x, or leaves the TeX alone when `before` is absent. */
 function conjure(tex: string, insert: { before: string; tex: string }): string {
   const at = findFragment(tex, insert.before);
-  return at < 0 ? tex : `${tex.slice(0, at)}\\htmlClass{hint-term hint-term-lit}{${insert.tex}}${tex.slice(at)}`;
+  return at < 0 ? tex : `${tex.slice(0, at)}\\htmlClass{hint-term hint-term-lit}{${insert.tex}}${GLUE}${tex.slice(at)}`;
 }
 
 const alnum = (c: string | undefined) => c !== undefined && /[a-z0-9]/i.test(c);
@@ -171,6 +173,23 @@ interface Span {
   lit: boolean;
 }
 
+/** The gap between two wrapped fragments that abut, wide enough that their boxes sit clear of each other. */
+const ABUT = "\\kern0.7em";
+/**
+ * The air between a wrapped fragment and a glyph typeset flush against it (the x of 7x). A thin
+ * space: the box reaches 0.12em beyond its fragment (`.hint-term` in app/globals.css), so the
+ * neighbour's ink stays outside it. Written at rest as well as lit, so lighting moves nothing.
+ */
+const GLUE = "\\,";
+
+/** Whether the TeX after a span, spaces skipped, begins with a glyph that would sit flush against the span's box: a letter, digit or bracket. An operator, relation or brace has spacing (or nothing to paint) of its own. */
+const flushAfter = (side: string) => /^\s*[a-z0-9()[\]]/i.test(side);
+/** The same for the TeX before a span: its last glyph, unless that letter is the end of a command name (`\dfrac`), which paints something else entirely. */
+const flushBefore = (side: string) => {
+  const m = side.match(/(\\?[a-z]+|[0-9()[\]])\s*$/i);
+  return !!m && !m[1].startsWith("\\");
+};
+
 /** Wraps each span in order; a span inside a longer one is wrapped inside it, positions shifted to the outer span's text. */
 function wrap(tex: string, spans: Span[]): string {
   const sorted = [...spans].sort((a, b) => a.at - b.at || b.end - a.end);
@@ -182,8 +201,10 @@ function wrap(tex: string, spans: Span[]): string {
     const text = tex.slice(s.at, s.end);
     const inner = sorted.filter((x) => x !== s && x.at >= s.at && x.end <= s.end).map((x) => ({ at: x.at - s.at, end: x.end - s.at, lit: x.lit }));
     const body = inner.length ? wrap(text, inner) : text;
-    const gap = s.at === lastEnd ? "\\kern0.7em" : "";
-    out += tex.slice(cursor, s.at) + gap + `\\htmlClass{${s.lit ? "hint-term hint-term-lit" : "hint-term"}}{${body}}`;
+    const before = s.at === lastEnd ? ABUT : flushBefore(tex.slice(cursor, s.at)) ? GLUE : "";
+    const next = sorted.find((x) => x.at >= s.end);
+    const after = next?.at === s.end ? "" : flushAfter(tex.slice(s.end)) ? GLUE : "";
+    out += tex.slice(cursor, s.at) + before + `\\htmlClass{${s.lit ? "hint-term hint-term-lit" : "hint-term"}}{${body}}` + after;
     cursor = s.end;
     lastEnd = s.end;
   }

@@ -973,6 +973,20 @@ agents add sections above it and leave it alone.
   hint, not the chat, has to finish the example first. The "Question about a step?" chat is the
   intended route; if it is not enough, the example's card could carry a small "hint" of its own.
 
+## The lit hint box beside a flush glyph (from ticket 96, 2026-09-11)
+
+- **The thin space shows at rest.** 7x, 3x² and 10x in a hinted problem now read with a
+  0.1667em gap after the coefficient, lit or not, because moving the x only while the word is
+  hovered was ruled out (ticket 30: lighting never moves the layout). If the resting gap reads as
+  "7 x" to a teacher, the alternatives are a narrower box (the sides at 0.06em, which crowds a
+  fraction) or letting the x shift on hover.
+- **Only letters, digits and brackets count as flush.** A fragment followed by a superscript
+  (`\htmlClass{}{x}^2`) or by a glyph command (`\Delta`, `\sqrt`) gets no gap; no warm-up has
+  one yet. Add the case to `flushAfter` when a problem needs it.
+- **The ring is gone.** The 2px box-shadow in the box's own colour only enlarged the box; its
+  size is now all padding, in em, so the box scales with the read-as lines. A visible ring in a
+  second colour (an outline round the fill) would be a new look, not a return.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

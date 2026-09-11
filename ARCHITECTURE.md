@@ -226,6 +226,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 93 | The worked example card is left-justified: the problem, every step, a two-case step's boxes and the reveal button on the card's left edge (`math-left`, an unlayered override of KaTeX's centring) | `…?stage=practice`, the practice overlay | 90 | [architecture/93-example-left.md](architecture/93-example-left.md) |
 | 94 | Every worked example step is a ruled row: the same grey rule and the same air (24px each side, 16 compact) between steps as between the problem and the first step; the reveal button keeps the gap, no rule | `…?stage=practice`, the practice overlay | 93 | [architecture/94-example-rows.md](architecture/94-example-rows.md) |
 | 95 | "I need help" is gone, not greyed, while the worked example plays; back wherever the pad is live again | `…?stage=practice`, the practice overlay | 90 | [architecture/95-help-hidden-in-example.md](architecture/95-help-hidden-in-example.md) |
+| 96 | The lit hint box stops short of the glyph next to it: a thin space between a fragment and a glyph typeset flush against it, at rest as well as lit, and the box padded inside it | `…?stage=practice`, the practice overlay | 88, 83 | [architecture/96-lit-box-clears-neighbour.md](architecture/96-lit-box-clears-neighbour.md) |
 
 ## Conventions
 

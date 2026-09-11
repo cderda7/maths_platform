@@ -1667,3 +1667,35 @@ next person finds it. Nothing else opts in yet.
 
 **Defense.** Two selectors, one place, and the browser check measures the first glyph of the
 problem and of every step on the card's content edge, in both sizes of the card.
+
+## 2026-09-11 · A wrapped hint fragment gets a thin space beside a flush glyph, at rest as well as lit
+
+**Decision.** `termTex` writes `\,` between a wrapped fragment and a glyph typeset flush against
+it (a letter, digit or bracket on either side, not a command name), whether or not the fragment is
+lit. The box's sides (`.hint-term` padding, 0.12em) stay inside that space, so the lit box never
+covers the neighbour; the same-colour 2px ring is folded into the padding.
+
+**Context.** The user's screenshot of the monic warm-up: the lit 7 of 7x had the x a third inside
+its box. Ticket 30 set the rule that lighting changes colour only, never the layout, and the
+sweeps in `lib/hint.test.ts` hold every warm-up to it; ticket 88 already writes a permanent
+`\kern0.7em` between two wrapped fragments that abut.
+
+**Alternatives considered.**
+- *Add the gap only while lit.* Keeps the resting problem exactly as typeset, but the x jumps
+  right when the word is hovered and back when it leaves, the very flicker ticket 30 ruled out.
+- *Shrink the box to the glyph.* No padding at the sides, the box hugs the 7: no overlap, but the
+  12, the fractions and the factors lose the air that makes the box read as a box.
+- *Paint the box under the neighbour (z-order).* The x would sit in ink over blue; still an overlap
+  to the eye.
+- *An exact kern (`0.1em` plus `2px`).* Two kerns per side or a px unit in TeX; the thin space is
+  one token, idiomatic, and within 1px of exact once the ring is padding in em.
+
+**Tradeoffs.** A hinted problem shows "7 x" with a thin space at rest, where an unhinted one shows
+"7x". Noticeable to a typesetter, not to a student; the gap is the same one TeX authors write by
+hand between a coefficient and a function. The box's total size changes by well under a pixel at
+either text size.
+
+**Defense.** One rule in one function, named (`GLUE`), tested on both sides and for the cases that
+get no gap, with the layout sweeps still holding lit against rest for every warm-up and read line;
+the browser measurement shows 1px of air before the x.
+

@@ -87,18 +87,16 @@ body {
   /* An inline box paints only the line's height; inline-block paints the whole fragment, a fraction's numerator and denominator included. */
   display: inline-block;
   border-radius: 3px;
-  /* A little air on every side, taken back with margin so the layout is unchanged: the fragment sits centred in its box, a fraction's numerator and denominator clear of the edge. */
-  padding: 0.12em 0.1em;
-  margin: -0.12em -0.1em;
+  /* A little air on every side, taken back with margin so the layout is unchanged: the fragment sits centred in its box, a fraction's numerator and denominator clear of the edge. The sides stay inside the thin space lib/hint.ts writes before a glyph typeset flush against the fragment (the x of 7x), so the lit box never covers a neighbour. */
+  padding: 0.2em 0.12em;
+  margin: -0.2em -0.12em;
   transition:
     color 120ms,
-    background-color 120ms,
-    box-shadow 120ms;
+    background-color 120ms;
 }
 .katex .hint-term-lit {
   color: #fff;
   background: var(--color-standout);
-  box-shadow: 0 0 0 2px var(--color-standout);
 }
 
 .hero-glow {
