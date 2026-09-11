@@ -106,6 +106,13 @@ body {
   margin-top: 0;
   margin-bottom: 0;
 }
+/* A fragment that is itself a fraction: its box is exactly the numerator's top to the denominator's bottom (a digit's cell has air of its own, a fraction's vlist has none), so it gets more above and below. */
+.katex .hint-term-tall {
+  padding-top: 0.2em;
+  padding-bottom: 0.2em;
+  margin-top: -0.2em;
+  margin-bottom: -0.2em;
+}
 .katex .hint-term-lit {
   color: #fff;
   background: var(--color-standout);

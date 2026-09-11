@@ -230,6 +230,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 97 | The lit hint box is no wider than its fragment (padding above and below only) and 7x keeps its typeset spacing: ticket 96's thin space reversed, 7x is one term | `…?stage=practice`, the practice overlay | 96 | [architecture/97-lit-box-narrow.md](architecture/97-lit-box-narrow.md) |
 | 98 | The lit hint box fits its surroundings per axis (side air unless a glyph, superscript or the other factor is flush; air above and below unless a numerator or denominator) and the maths keeps its own spacing everywhere (ticket 88's kern reversed; `termTex` never changes the TeX); touching lit boxes parted by a hairline | `…?stage=practice`, the practice overlay | 97, 88, 83 | [architecture/98-factors-no-gap.md](architecture/98-factors-no-gap.md) |
 | 99 | "Talk it through" is a pill on the latest hint card (opens the chat on that hint with the pad's stored opener); the help menu is four bare pills (another hint, worked example, video, chat), deep purple borders, the width of the widest, a narrower popup; "another hint" greyed while stalled | `…?stage=practice`, the practice overlay | 86, 95 | [architecture/99-talk-pill.md](architecture/99-talk-pill.md) |
+| 100 | A lit box around a whole fraction has 0.2em of air above and below (`hint-term-tall`), where a digit's box keeps 0.08em | `…?stage=practice`, the practice overlay | 98 | [architecture/100-fraction-box-tall.md](architecture/100-fraction-box-tall.md) |
 
 ## Conventions
 

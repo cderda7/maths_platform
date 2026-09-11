@@ -72,18 +72,19 @@ describe("termTex", () => {
     expect(termTex(tex, [constant, middle], constant)).toBe("x^2 + \\htmlClass{hint-term hint-term-tight-x}{7}x + \\htmlClass{hint-term hint-term-lit}{12} = 0");
   });
 
-  it("says per axis where the box may have air: tight at the sides beside a flush glyph, a superscript or the other factor; tight above and below in a numerator or denominator; neither beside an operator, relation or brace", () => {
+  it("says per axis where the box may have air: tight at the sides beside a flush glyph, a superscript or the other factor; tight above and below in a numerator or denominator; tall for a fraction; neither beside an operator, relation or brace", () => {
     const wrapOf = (tex: string, f: string) => termTex(tex, [{ phrase: f, tex: [f] }]).match(/\\htmlClass\{([^}]*)\}/)![1];
     expect(wrapOf("x^2 + 7x + 12 = 0", "12")).toBe("hint-term");
     expect(wrapOf("x^2 + 7x + 12 = 0", "7")).toBe("hint-term hint-term-tight-x");
     expect(wrapOf("y = x^2 - 9", "x")).toBe("hint-term hint-term-tight-x");
     expect(wrapOf("2(x + 1)", "(x + 1)")).toBe("hint-term hint-term-tight-x");
     expect(wrapOf("\\Delta = 3", "3")).toBe("hint-term");
-    expect(wrapOf("\\dfrac{x}{4} + 6", "\\dfrac{x}{4}")).toBe("hint-term");
+    expect(wrapOf("\\dfrac{x}{4} + 6", "\\dfrac{x}{4}")).toBe("hint-term hint-term-tall");
+    expect(wrapOf("y = \\tfrac{1 + 3}{2}", "\\tfrac{1 + 3}{2}")).toBe("hint-term hint-term-tall");
     expect(termTex("\\dfrac{x}{4} + 6", [{ phrase: "n", tex: [{ tex: "x", within: "\\dfrac{x}{4}" }] }])).toBe("\\dfrac{\\htmlClass{hint-term hint-term-tight-y}{x}}{4} + 6");
     expect(termTex("\\dfrac{2x}{4} + 6", [{ phrase: "d", tex: [{ tex: "4", within: "\\dfrac{2x}{4}" }] }])).toBe("\\dfrac{2x}{\\htmlClass{hint-term hint-term-tight-y}{4}} + 6");
-    // Inside a wrapped fraction the same: the inner box is tight against the bar, the outer one is not.
-    expect(termTex("\\dfrac{x}{4} + 6", [{ phrase: "f", tex: ["\\dfrac{x}{4}"] }, { phrase: "d", tex: [{ tex: "4", within: "\\dfrac{x}{4}" }] }])).toBe("\\htmlClass{hint-term}{\\dfrac{x}{\\htmlClass{hint-term hint-term-tight-y}{4}}} + 6");
+    // Inside a wrapped fraction the same: the inner box is tight against the bar, the outer one is tall.
+    expect(termTex("\\dfrac{x}{4} + 6", [{ phrase: "f", tex: ["\\dfrac{x}{4}"] }, { phrase: "d", tex: [{ tex: "4", within: "\\dfrac{x}{4}" }] }])).toBe("\\htmlClass{hint-term hint-term-tall}{\\dfrac{x}{\\htmlClass{hint-term hint-term-tight-y}{4}}} + 6");
   });
 
   it("lights every fragment of a term with several; two that abut get no gap (the TeX's spacing is never changed), the second marked so its box starts a hairline in", () => {
@@ -226,27 +227,27 @@ describe("warm-up hint terms", () => {
     expect(second.text).toMatch(/common denominator/);
     expect(second.text).toMatch(/whole line/);
     const [six, otherSide, xTerms] = first.terms!;
-    expect(termTex(p.tex, first.terms)).toBe("\\htmlClass{hint-term}{\\dfrac{x}{4}} + \\htmlClass{hint-term}{\\dfrac{x}{2}} - \\htmlClass{hint-term}{6} = \\htmlClass{hint-term}{\\dfrac{9}{2}}");
+    expect(termTex(p.tex, first.terms)).toBe("\\htmlClass{hint-term hint-term-tall}{\\dfrac{x}{4}} + \\htmlClass{hint-term hint-term-tall}{\\dfrac{x}{2}} - \\htmlClass{hint-term}{6} = \\htmlClass{hint-term hint-term-tall}{\\dfrac{9}{2}}");
     expect(termTex(p.tex, first.terms, six)).toContain("- \\htmlClass{hint-term hint-term-lit}{6} =");
-    expect(termTex(p.tex, first.terms, otherSide)).toContain("= \\htmlClass{hint-term hint-term-lit}{\\dfrac{9}{2}}");
-    expect(termTex(p.tex, first.terms, xTerms)).toMatch(/^\\htmlClass\{hint-term hint-term-lit\}\{\\dfrac\{x\}\{4\}\} \+ \\htmlClass\{hint-term hint-term-lit\}\{\\dfrac\{x\}\{2\}\}/);
+    expect(termTex(p.tex, first.terms, otherSide)).toContain("= \\htmlClass{hint-term hint-term-lit hint-term-tall}{\\dfrac{9}{2}}");
+    expect(termTex(p.tex, first.terms, xTerms)).toMatch(/^\\htmlClass\{hint-term hint-term-lit hint-term-tall\}\{\\dfrac\{x\}\{4\}\} \+ \\htmlClass\{hint-term hint-term-lit hint-term-tall\}\{\\dfrac\{x\}\{2\}\}/);
     // The second hint is for the student's first or second line: its common denominator is the 4 and 2 under the x's there.
     const line2 = p.steps[1].tex;
     const [, common] = second.terms!;
     expect(termTex(line2, second.terms, common)).toBe(
-      "\\htmlClass{hint-term}{\\dfrac{x}{\\htmlClass{hint-term hint-term-lit hint-term-tight-y}{4}}} + \\htmlClass{hint-term}{\\dfrac{x}{\\htmlClass{hint-term hint-term-lit hint-term-tight-y}{2}}} = \\dfrac{21}{2}",
+      "\\htmlClass{hint-term hint-term-tall}{\\dfrac{x}{\\htmlClass{hint-term hint-term-lit hint-term-tight-y}{4}}} + \\htmlClass{hint-term hint-term-tall}{\\dfrac{x}{\\htmlClass{hint-term hint-term-lit hint-term-tight-y}{2}}} = \\dfrac{21}{2}",
     );
     // The third is for line 3, where the x terms are x/4 and 2x/4: lighting "numerators" lights x and 2x, nothing else.
     const line3 = p.steps[2].tex;
     const numerators = third.terms!.find((t) => t.phrase === "numerators")!;
     expect(termTex(line3, third.terms, numerators)).toBe(
-      "\\htmlClass{hint-term}{\\dfrac{\\htmlClass{hint-term hint-term-lit hint-term-tight-y}{x}}{\\htmlClass{hint-term hint-term-tight-y}{4}}} + \\htmlClass{hint-term}{\\dfrac{\\htmlClass{hint-term hint-term-lit hint-term-tight-y}{2x}}{\\htmlClass{hint-term hint-term-tight-y}{4}}} = \\dfrac{21}{2}",
+      "\\htmlClass{hint-term hint-term-tall}{\\dfrac{\\htmlClass{hint-term hint-term-lit hint-term-tight-y}{x}}{\\htmlClass{hint-term hint-term-tight-y}{4}}} + \\htmlClass{hint-term hint-term-tall}{\\dfrac{\\htmlClass{hint-term hint-term-lit hint-term-tight-y}{2x}}{\\htmlClass{hint-term hint-term-tight-y}{4}}} = \\dfrac{21}{2}",
     );
     // The fourth is for line 4 (3x/4 = 21/2): the 4 under the 3x, and 21/2 as the other side.
     const line4 = p.steps[3].tex;
     const [four, other] = fourth.terms!;
-    expect(termTex(line4, fourth.terms, four)).toBe("\\dfrac{3x}{\\htmlClass{hint-term hint-term-lit hint-term-tight-y}{4}} = \\htmlClass{hint-term}{\\dfrac{21}{2}}");
-    expect(termTex(line4, fourth.terms, other)).toBe("\\dfrac{3x}{\\htmlClass{hint-term hint-term-tight-y}{4}} = \\htmlClass{hint-term hint-term-lit}{\\dfrac{21}{2}}");
+    expect(termTex(line4, fourth.terms, four)).toBe("\\dfrac{3x}{\\htmlClass{hint-term hint-term-lit hint-term-tight-y}{4}} = \\htmlClass{hint-term hint-term-tall}{\\dfrac{21}{2}}");
+    expect(termTex(line4, fourth.terms, other)).toBe("\\dfrac{3x}{\\htmlClass{hint-term hint-term-tight-y}{4}} = \\htmlClass{hint-term hint-term-lit hint-term-tall}{\\dfrac{21}{2}}");
     // The fifth is for line 5 (3x = 42): the 3.
     expect(termTex(p.steps[4].tex, fifth.terms, fifth.terms![0])).toBe("\\htmlClass{hint-term hint-term-lit hint-term-tight-x}{3}x = 42");
   });

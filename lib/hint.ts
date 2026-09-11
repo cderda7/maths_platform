@@ -115,9 +115,12 @@ export function hintSegments(hint: string, terms: HintTerm[] = []): HintSegment[
  * sides unless a glyph is typeset flush against the fragment on either side (the x of 7x, a
  * superscript, the other factor of a product), when it carries `hint-term-tight-x` and stops at
  * the fragment's own edge; air above and below unless the fragment is a numerator or a
- * denominator, when it carries `hint-term-tight-y` and stops short of the fraction bar. The second
- * of two abutting fragments also carries `hint-term-abut`, whose lit box starts a hairline in, so
- * the two read as two boxes. Needs KaTeX's `trust` option, which `components/Math` sets.
+ * denominator, when it carries `hint-term-tight-y` and stops short of the fraction bar; more air
+ * above and below when the fragment is itself a fraction (`hint-term-tall`), whose box would
+ * otherwise hug the numerator's top and the denominator's bottom, since a fraction's box is
+ * exactly its glyphs where a digit's cell has air of its own. The second of two abutting fragments
+ * also carries `hint-term-abut`, whose lit box starts a hairline in, so the two read as two
+ * boxes. Needs KaTeX's `trust` option, which `components/Math` sets.
  */
 export function termTex(tex: string, terms: HintTerm[] = [], lit?: HintTerm): string {
   const keyOf = (f: TexFragment): string | null => {
@@ -182,6 +185,8 @@ const flushBefore = (side: string) => {
   const m = side.match(/(\\?[a-z]+|[0-9()[\]])\s*$/i);
   return !!m && !m[1].startsWith("\\");
 };
+/** Whether a fragment is itself a fraction, whose box would otherwise hug the numerator's top and the denominator's bottom. */
+const isFraction = (text: string) => /^\s*\\[dt]?frac\s*\{/.test(text);
 /** Whether a fragment is the whole numerator or the whole denominator of a fraction, so a fraction bar sits right against it. */
 const inFraction = (before: string, after: string) =>
   (/\\[dt]?frac\s*\{\s*$/.test(before) && /^\s*\}\s*\{/.test(after)) || (/\\[dt]?frac\s*\{[^{}]*\}\s*\{\s*$/.test(before) && /^\s*\}/.test(after));
@@ -205,6 +210,7 @@ function wrap(tex: string, spans: Span[]): string {
       ...(s.lit ? ["hint-term-lit"] : []),
       ...(abuts || flushBefore(before) || flushAfter(after) ? ["hint-term-tight-x"] : []),
       ...(inFraction(before, after) ? ["hint-term-tight-y"] : []),
+      ...(isFraction(text) ? ["hint-term-tall"] : []),
       ...(s.at === lastEnd ? ["hint-term-abut"] : []),
     ].join(" ");
     out += tex.slice(cursor, s.at) + `\\htmlClass{${classes}}{${body}}`;

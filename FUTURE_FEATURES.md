@@ -1036,6 +1036,18 @@ agents add sections above it and leave it alone.
   padding); a longer option label later (a fifth row, a two-word video label) widens every pill.
   If the menu grows, a fixed 280px with left-aligned pills may read better than fit-width.
 
+## The tall box round a whole fraction (from ticket 100, 2026-09-11)
+
+- **0.2em above and below is by eye** on x/4 at the problem's size and 21/2 on a read line. A
+  fraction with a taller numerator (a squared term, a nested fraction) gets the same 0.2em; the
+  box grows with the fraction, so it should hold.
+- **Only `\frac`, `\dfrac` and `\tfrac` count.** A radical, a binomial or a matrix as a whole
+  fragment would get the digit's 0.08em; add it to `isFraction` (rename it) when a warm-up first
+  wraps one.
+- **The side air is unchanged (0.14em).** In the screenshot the x/4 box sits 0.08em from the "+";
+  if that reads as cramped, the fraction box could take 0.2em at the sides too, but the "+" has
+  its own 0.22em of spacing to give, so it was left.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
