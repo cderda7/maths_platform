@@ -1492,6 +1492,15 @@ agents add sections above it and leave it alone.
   difficulty step's business. If a teacher wants to relabel a changed or added question, the
   addition's label is the fixture's and cannot be changed anywhere.
 
+## No Confirm on the unit focus (from ticket 123, 2026-09-12)
+
+- **The confirmation, reverted.** The review step's unit focus no longer asks to be confirmed
+  and Create is on at once (the user: "messes up workflow. leave the option to clarify though").
+  The old screen keeps its Confirm; when it goes, `UnitFocus`'s `onConfirm` goes with it.
+- **Reassess by note only.** The only way to change the unit is to describe the focus and
+  Reassess, by keyword. A unit picker (the four units as pills) beside the note would be the
+  direct correction; deferred, the note is the demo's story.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

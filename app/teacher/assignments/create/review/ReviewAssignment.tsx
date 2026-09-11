@@ -42,7 +42,7 @@ export default function ReviewAssignment({ assessMs }: { assessMs: number }) {
   }, []);
 
   const create = () => {
-    if (!draft || !review.confirmed) return;
+    if (!draft) return;
     const final = applyReview(questions, review);
     dispatchClassroom({
       type: "assignment/create",

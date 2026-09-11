@@ -5,15 +5,17 @@ import { Button, Card, Eyebrow } from "@/components/ui";
 import { inferUnitFromText, UNIT_TITLES } from "@/lib/unit";
 
 /**
- * The "Unit focus" card: the unit the set points at, to confirm, or to describe in a note and
- * reassess (the reassessed unit replaces the inferred one until the note changes it again). The
- * old create screen and the review step's pathway screen share it (ticket 120); the caller owns
- * the reassessed unit and the confirmation, so a reload keeps them where the caller keeps them.
+ * The "Unit focus" card: the unit the set points at, or described in a note and reassessed (the
+ * reassessed unit replaces the inferred one until the note changes it again). The old create
+ * screen and the review step's pathway screen share it (ticket 120); the caller owns the
+ * reassessed unit, so a reload keeps it where the caller keeps it. With `onConfirm` the card
+ * also asks for a confirmation (the old screen); without it there is nothing to confirm, the
+ * unit stands unless the teacher says otherwise (the review step, ticket 123).
  */
 export default function UnitFocus({
   inferred,
   reassessed,
-  confirmed,
+  confirmed = false,
   onConfirm,
   onReassess,
 }: {
@@ -21,8 +23,8 @@ export default function UnitFocus({
   inferred: 1 | 2 | 3 | 4;
   /** The unit reassessed from the teacher's note, if they wrote one. */
   reassessed: 1 | 2 | 3 | 4 | null;
-  confirmed: boolean;
-  onConfirm: () => void;
+  confirmed?: boolean;
+  onConfirm?: () => void;
   onReassess: (unit: 1 | 2 | 3 | 4) => void;
 }) {
   const [note, setNote] = useState("");
@@ -40,9 +42,11 @@ export default function UnitFocus({
           </div>
           <div className="text-[13px] text-ink-soft">{UNIT_TITLES[unit]}</div>
         </div>
-        <Button variant={confirmed ? "accent" : "secondary"} onClick={onConfirm} aria-pressed={confirmed} data-unit-confirm>
-          {confirmed ? "✓ Confirmed" : "Confirm"}
-        </Button>
+        {onConfirm && (
+          <Button variant={confirmed ? "accent" : "secondary"} onClick={onConfirm} aria-pressed={confirmed} data-unit-confirm>
+            {confirmed ? "✓ Confirmed" : "Confirm"}
+          </Button>
+        )}
       </div>
       <div className="mt-3 flex items-center gap-2">
         <input

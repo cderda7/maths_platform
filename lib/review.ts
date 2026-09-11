@@ -81,9 +81,8 @@ export interface ReviewState {
   /** Which alternative the addition shows. */
   addition: number;
   pathway: Pathway;
-  /** The unit reassessed from the teacher's note, when they wrote one. */
+  /** The unit reassessed from the teacher's note, when they wrote one; otherwise the inferred unit stands, nothing to confirm (ticket 123). */
   unit?: 1 | 2 | 3 | 4;
-  confirmed: boolean;
 }
 
 /** A short signature of the questions as typed, so decisions made about one draft are not shown over another. */
@@ -95,7 +94,7 @@ export function draftKey(questions: DraftQuestion[]): string {
 }
 
 export function initialReview(questions: DraftQuestion[]): ReviewState {
-  return { step: "difficulty", forDraft: draftKey(questions), labels: {}, answers: {}, addition: 0, pathway: DEFAULT_PATHWAY, confirmed: false };
+  return { step: "difficulty", forDraft: draftKey(questions), labels: {}, answers: {}, addition: 0, pathway: DEFAULT_PATHWAY };
 }
 
 /** The stored review if it was made about these questions, else a fresh one (the relabels kept: they are by id). */
