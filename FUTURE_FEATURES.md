@@ -805,6 +805,21 @@ agents add sections above it and leave it alone.
 - **Collapsed hints lose their linked words until reopened** (from ticket 80) still holds, now for
   the read-as line as well as the problem.
 
+## The chat's emphasis and "How about…?" (from ticket 84, 2026-09-11)
+
+- **Emphasis in the closing line and the help chat.** Only the concerns chat's tutor bubbles split
+  `**…**` into bold. "Thanks. Let's start with fractions." and the pad's help chat render plain; the
+  same `emphasis` could bold the skill there too, and the help chat's replies could name the move.
+- **The "How about the / with" rule is a suffix heuristic.** Named rules are picked by their last
+  word (law, rule, identity, formula, distribution) or a leading "the". A skill added later that is
+  a thing without such a word ("sampling", "gradient") gets "How about with …?"; a per-leaf phrasing
+  in the taxonomy would make it exact. Deferred: two shapes cover every skill the warm-up serves.
+- **A student typing `**` sees it as typed.** Deliberate; if the chat ever grows rich text for the
+  student's side (markdown, maths), the split would move to a shared renderer.
+- **The setup bubble stays plain by design** ("Let's do a warm up on a, b, & c."): the user asked
+  for the emphasis only in the bubble about one skill. A variant that bolds the *current* skill in a
+  pinned strip, rather than in the bubble, was not asked for.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

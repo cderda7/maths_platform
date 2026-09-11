@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button, Eyebrow } from "@/components/ui";
 import { warmupFocus, warmupSeed, type SessionAction, type StudentSession } from "@/lib/session";
-import { byEase, CHAT_CLOSE_MS, closingLine, concernTurns, turnSteps, type PlayStep } from "@/lib/warmup";
+import { byEase, CHAT_CLOSE_MS, closingLine, concernTurns, emphasis, turnSteps, type PlayStep } from "@/lib/warmup";
 
 /**
  * The concerns chat, between the confidence answer and the warm-up. The tutor's turns are derived
@@ -54,7 +54,9 @@ export default function WarmupChatScreen({ session, dispatch }: { session: Stude
   const student = "bg-ink text-white";
   const bubble = (from: "tutor" | "student", text: string, key: string) => (
     <li key={key} className={`flex ${from === "student" ? "justify-end" : "justify-start"}`} data-from={from}>
-      <span className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-[15px] leading-snug ${from === "student" ? student : tutor}`}>{text}</span>
+      <span className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-[15px] leading-snug ${from === "student" ? student : tutor}`}>
+        {from === "tutor" ? emphasis(text).map((run, k) => (run.bold ? <strong key={k} className="font-semibold">{run.text}</strong> : <span key={k}>{run.text}</span>)) : text}
+      </span>
     </li>
   );
 

@@ -22,7 +22,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
  │       └▶ IpadStage ▶ StudentChrome│               │   classmates (19: 6 full, 13 light) · seating groups (5 colours)│
  │            └▶ screens/            │               └──────────────┬───────────────────┘
  │               Overview ▶ Confidence ▶ (not confident: a callout, offerLines: Warm up | Start the set)│                              │ reads every 3 s
- │               ▶ WarmupChat (the ticked skills → concernTurns, one bubble at a time to turnSteps, the box off while the tutor "writes" → answers → focus → warmupSequence, easiest first)│
+ │               ▶ WarmupChat (the ticked skills → concernTurns, the skill bold in each ask, later ones "How about…?"; one bubble at a time to turnSteps, the box off while the tutor "writes" → answers → focus → warmupSequence, easiest first)│
  │               ▶ Practice (pad · skill buttons: dark once on or through, tap opens · HelpMenu: hint · worked example · video · chat · follow-up split pane)│
  │                   HelpChat (ticket 69): the right column while open · lines said → run.chat · POST /api/help-chat streams claude-opus-5 (lib/helpChat.ts brief: hints only, two ways in, "which makes more sense?")│
  │                   HintCard: linked hint words light the expression (termTex) — practices only│
@@ -214,6 +214,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 81 | Q5's turning point is two lines, the height then the point: the model solution, the scripted read-back and the evaluation table all list five lines | `…?stage=working`, `…?stage=feedback`, `…?stage=history`, the teacher's mirror | 79 | [architecture/81-q5-turning-point-rows.md](architecture/81-q5-turning-point-rows.md) |
 | 82 | A hint's linked words point at the student's own line in the read-as column ("your line 4", the line tinted while lit); a lit fraction is boxed whole | `…?stage=practice`, the practice overlay | 80, 77 | [architecture/82-hint-anchors.md](architecture/82-hint-anchors.md) |
 | 83 | A lit hint word lights only the line its hint points at, never the same fragment elsewhere; the lit box has a touch more room above and below | `…?stage=practice`, the practice overlay | 82 | [architecture/83-hint-lit-scope.md](architecture/83-hint-lit-scope.md) |
+| 84 | The concerns chat names the skill in bold in each ask, and asks the later skills "How about with fractions?" / "How about the null factor law?" | `…?stage=warmup-chat` | 48, 74 | [architecture/84-chat-skill-emphasis.md](architecture/84-chat-skill-emphasis.md) |
 
 ## Conventions
 

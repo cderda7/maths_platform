@@ -1428,3 +1428,35 @@ The first hint still lights the problem, the later ones light the student's own 
 on that line makes the far column findable. The fraction fix is one CSS declaration: an inline box
 paints a line's height, an inline-block paints its content.
 
+
+## 2026-09-11 · The chat's tutor lines carry their emphasis as `**…**` in the string
+
+**Decision.** `concernTurns` keeps returning plain strings, with the skill's name wrapped in `**…**`
+where the bubble is about one skill; `emphasis(text)` splits a tutor line into plain and bold runs
+and the screen renders the bold runs as `<strong>`. Student lines are never split. The later
+skills are asked by `howAbout(word)`: "How about the **null factor law**?" for a named rule (a word
+ending in law, rule, identity, formula or distribution, or already starting with "the"), "How about
+with **fractions**?" for everything else.
+
+**Context.** Ticket 84: the user wants the skill under discussion bold in each ask so the student
+sees which skill the question is about, and the second and third asks reworded to "How about with
+fractions?" / "How about the null factor law?", two shapes that depend on the skill's name.
+
+**Alternatives considered.**
+- *A structured bubble type* (`{ text, skill }` or a list of runs) from `concernTurns`. Typed, no
+  parsing; but `concernTranscript` builds `ChatMessage`s (whose `text` is a string) from the same
+  turns, the tests read as prose, and every consumer would carry the shape for one bold word.
+- *One follow-up shape for every skill* ("How about fractions?" / "How about null factor law?").
+  Uniform, but the user wrote two shapes and "How about null factor law?" reads wrong without its
+  article; "How about with the null factor law?" reads wrong with the preposition.
+- *A per-skill phrasing in the taxonomy* (each leaf declares how it is asked about). Exact, but
+  forty entries to write for two shapes a short suffix rule separates.
+
+**Tradeoffs.** `**` is a convention the rest of the app does not use; a student who types `**x**`
+sees it as typed because only tutor lines are split. The suffix rule is a heuristic: a future skill
+name that is a thing without one of those suffixes gets "How about with …?", and the fix is one
+more word in the regex, pinned by a test.
+
+**Defense.** The string convention keeps the chat's script readable as sentences in the code and the
+tests, keeps `ChatMessage` a string, and costs one four-line splitter. The rule is pure, tested over
+every shape in the taxonomy that matters today, and lives beside the script it serves.

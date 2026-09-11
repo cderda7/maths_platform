@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { byEase, CHAT_BEAT_MS, CHAT_DOTS_MS, closingLine, concernsAnswered, concernTranscript, concernTurns, EASE, focusLeaves, interpret, offerLines, practiceFor, turnSteps, warmupScript, warmupSequence } from "./warmup";
+import { byEase, CHAT_BEAT_MS, CHAT_DOTS_MS, closingLine, concernsAnswered, concernTranscript, concernTurns, EASE, emphasis, focusLeaves, howAbout, interpret, offerLines, practiceFor, turnSteps, warmupScript, warmupSequence } from "./warmup";
 import { isolatable, PRACTICE, PRACTICES, WARMUP_BANK } from "@/data/practice";
 import { branchesOf } from "./branches";
 import { ASSIGNMENT } from "@/data/assignment";
@@ -96,13 +96,42 @@ describe("the concerns chat", () => {
   const three = ["algebra.expand-factor.monic", "algebra.number.fractions", "unit.u1.nfl"] as const;
   it("asks one turn per ticked skill, the opening in two bubbles naming them all, in the order they were ticked", () => {
     expect(concernTurns([...three])).toEqual([
-      ["Let's do a warm up on factorising, fractions, & null factor law.", "First, tell me a little bit about your concerns with factorising."],
-      ["Next, tell me about your concerns with fractions."],
-      ["Next, tell me about your concerns with null factor law."],
+      ["Let's do a warm up on factorising, fractions, & null factor law.", "First, tell me a little bit about your concerns with **factorising**."],
+      ["How about with **fractions**?"],
+      ["How about the **null factor law**?"],
     ]);
-    expect(concernTurns(["algebra.number.fractions", "algebra.expand-factor.monic"])[0]).toEqual(["Let's do a warm up on fractions & factorising.", "First, tell me a little bit about your concerns with fractions."]);
-    expect(concernTurns(["algebra.expand-factor.monic"])).toEqual([["Let's do a warm up on factorising.", "Tell me a little bit about your concerns with factorising."]]);
+    expect(concernTurns(["algebra.number.fractions", "algebra.expand-factor.monic"])[0]).toEqual(["Let's do a warm up on fractions & factorising.", "First, tell me a little bit about your concerns with **fractions**."]);
+    expect(concernTurns(["algebra.expand-factor.monic"])).toEqual([["Let's do a warm up on factorising.", "Tell me a little bit about your concerns with **factorising**."]]);
     expect(concernTurns([])).toEqual([["Let's do a warm up.", "Tell me a little bit about what you'd like to warm up on."]]);
+  });
+  it("asks a named rule as a thing and a topic as a place, the skill in bold either way", () => {
+    expect(howAbout("fractions")).toBe("How about with **fractions**?");
+    expect(howAbout("factorising")).toBe("How about with **factorising**?");
+    expect(howAbout("surds")).toBe("How about with **surds**?");
+    expect(howAbout("null factor law")).toBe("How about the **null factor law**?");
+    expect(howAbout("chain rule")).toBe("How about the **chain rule**?");
+    expect(howAbout("index laws")).toBe("How about the **index laws**?");
+    expect(howAbout("binomial expansion identity")).toBe("How about the **binomial expansion identity**?");
+    expect(howAbout("the discriminant")).toBe("How about the **discriminant**?");
+    expect(howAbout("normal distribution")).toBe("How about the **normal distribution**?");
+  });
+  it("splits a tutor line into plain and bold runs, and leaves a line without emphasis whole", () => {
+    expect(emphasis("How about with **fractions**?")).toEqual([
+      { text: "How about with ", bold: false },
+      { text: "fractions", bold: true },
+      { text: "?", bold: false },
+    ]);
+    expect(emphasis("First, tell me a little bit about your concerns with **factorising**.")).toEqual([
+      { text: "First, tell me a little bit about your concerns with ", bold: false },
+      { text: "factorising", bold: true },
+      { text: ".", bold: false },
+    ]);
+    expect(emphasis("Let's do a warm up.")).toEqual([{ text: "Let's do a warm up.", bold: false }]);
+    expect(emphasis("**a** and **b**")).toEqual([
+      { text: "a", bold: true },
+      { text: " and ", bold: false },
+      { text: "b", bold: true },
+    ]);
   });
   it("closes by naming the skill the warm-up opens on", () => {
     expect(closingLine("algebra.number.fractions")).toBe("Thanks. Let's start with fractions.");
