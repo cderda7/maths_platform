@@ -70,9 +70,9 @@ Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the 
    sentence reports what still contains a mistake: the scripted rework fixes Q1–Q3 and Q10 but
    slips on Q7 a second way (every term scaled by 3, the third never put back).
 5. **Group review** with three mock groupmates: quick pass over the all-correct problem, then the
-   union of wrongs with a shared count. On Liam's Q7 the group gets it wrong first; "we're stuck"
-   shows everyone's earlier work cut at the first mistake (both of Sam's versions), and the debrief
-   after the group's rework asks Sam to describe his own mistake.
+   union of wrongs with a shared count. On Liam's Q7 the group gets it wrong first, the board's
+   transcription shown up to the first mistake, and the debrief after the group's rework asks Sam to
+   describe his own mistake.
 6. **Whole-class review**: the teacher projects; a one-minute countdown shows on every student
    screen; then the iPad freezes on the student's own work for the problem on the board, ink and
    transcription, both versions, nothing to tap. When the teacher shows marks on the board, the

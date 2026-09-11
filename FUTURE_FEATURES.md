@@ -1271,6 +1271,32 @@ agents add sections above it and leave it alone.
 - **The check does not run for the rework hand-in.** The feedback screen's own hand-in (rework/done)
   has its guard and no blank check; a student who never reworks a broken problem is not asked.
 
+## The "we're stuck" mode is gone (from ticket 117, 2026-09-11)
+
+- **Removed, not fixed.** The user (2026-09-11): "let's delete the we're stuck mode. it's fucked up --
+  just shows the right answer if somebody in the group got it wrong. remove it entirely". The
+  reveal put every member's handed-in work side by side, and a member who never slipped on the
+  problem (Jordan on Q3, who never reached it) had the model solution standing in for their work,
+  so the group was handed the answer the moment anyone pressed it. The button, the reveal, the
+  `group/stuck` action, the run's `stuck` list, `earlierVersions` and the script's `stuckAfter`
+  are all deleted rather than left behind a flag.
+- **A stuck mode that does not give the answer away.** If a group really stalls, the useful things
+  are a hint on the board (the practice pad's hint machinery, ticket 85/86, applied to the group's
+  problem), a nudge to the teacher (the pen-holder's group shows on the teacher's live view as
+  stalled, ticket 42's race already knows the timing), or the pen passing to another member. Any of
+  these could take the freed spot at the left of the action row.
+- **Showing earlier work without the model solution.** The reveal's first-mistake cut was sound; the
+  give-away was the stand-in for a member with no attempt. A version that shows only members who
+  actually slipped, and says "not attempted" (which it already could) for the rest, would be a
+  smaller ask than the mode was. Deferred: the user wants it gone, and the debrief after a correct
+  check already puts three versions side by side.
+- **Historical docs keep the old behaviour.** Tickets 40, 52 and 76 and their architecture notes and
+  decision-log entries still describe the button, the reveal and the scripted Q3 press as they
+  were built; only the root README, ARCHITECTURE.md and the code changed.
+- **Stored runs from before this ticket still carry `stuck: []`.** The classroom store's `GroupRun`
+  no longer has the field; a run persisted in localStorage before the change keeps an extra key
+  nothing reads. Harmless; a store version bump would clear it if the shape ever needs one.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

@@ -4,17 +4,16 @@ import { useState } from "react";
 import M from "@/components/Math";
 import PadSection from "@/components/PadSection";
 import { Avatar, Button, Eyebrow } from "@/components/ui";
-import { ASSIGNMENT, DEMO_STUDENT, PROBLEM_MAP } from "@/data/assignment";
+import { DEMO_STUDENT, PROBLEM_MAP } from "@/data/assignment";
 import { CLASSMATE_MAP } from "@/data/classmates";
 import { GROUP_HEX } from "@/data/groups";
 import type { Stroke } from "@/data/types";
 import { branchesOf } from "@/lib/branches";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
-import { attemptsOn, cutAtFirstMistake, currentProblem, earlierVersions, lastAttempt, ownAttemptScript, penHolder, resolvedCurrent, type CutView } from "@/lib/groupReview";
+import { attemptsOn, cutAtFirstMistake, currentProblem, lastAttempt, ownAttemptScript, penHolder, resolvedCurrent, type CutView } from "@/lib/groupReview";
 import { nextLine, type RevealedLine } from "@/lib/recognition";
 import { groupOfStudent, seatingOf } from "@/lib/seating";
 import type { SessionAction, StudentSession } from "@/lib/session";
-import { Scrim } from "./PracticePrompt";
 import GroupDebrief from "./GroupDebrief";
 import { pendingDebrief } from "@/lib/debrief";
 import GroupHeader from "./GroupHeader";
@@ -24,14 +23,12 @@ const first = (id: string) => (id === DEMO_STUDENT.id ? "You" : CLASSMATE_MAP[id
 /**
  * Group review on one shared whiteboard. The board alone while the pen-holder writes (a live
  * mirror for the other three); Check for the pen-holder only. A wrong check shows the board's
- * transcription up to the first mistake with the rest as a count, the board kept. Any member can
- * press "we're stuck" to see everyone's earlier work cut the same way. A correct check opens
- * "next" (the debrief of ticket 41 will sit here).
+ * transcription up to the first mistake with the rest as a count, the board kept. A correct check
+ * opens the debrief.
  */
 export default function GroupBoardScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
   const classroom = useClassroom();
   const run = classroom.group ?? null;
-  const [stuckOpen, setStuckOpen] = useState(false);
   const [recognising, setRecognising] = useState(false);
   if (!run) return <p className="mt-16 text-center text-[15px] text-ink-muted">Setting up the whiteboard…</p>;
   // A resolved problem the student has not yet moved on from: their debrief, whether or not the group has moved on.
@@ -108,10 +105,7 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
         />
       </div>
 
-      <div className="mt-3 flex items-center justify-between">
-        <Button variant="ghost" onClick={() => setStuckOpen(true)} disabled={resolved} data-stuck>
-          we&rsquo;re stuck
-        </Button>
+      <div className="mt-3 flex items-center justify-end">
         {mine && !resolved && (
           <Button variant="accent" onClick={() => dispatchClassroom({ type: "group/check" })} disabled={run.lines.length === 0 || recognising} data-check>
             Check
@@ -119,54 +113,6 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
         )}
         {!mine && !resolved && <span className="text-[12.5px] text-ink-muted">{first(holder)} checks when ready</span>}
       </div>
-
-      {(stuckOpen || run.stuck.includes(pid)) && !resolved && (
-        <Scrim onDismiss={() => setStuckOpen(false)}>
-          <div className="max-h-[80%] w-[900px] overflow-y-auto rounded-3xl bg-paper p-7 shadow-lift" data-stuck-reveal>
-            <div className="flex items-center justify-between">
-              <h2 className="font-display text-[26px] leading-tight text-ink">where each of you went wrong on {problem.label}</h2>
-              <span className="text-[12px] text-ink-muted">up to the first mistake</span>
-            </div>
-            <div className="mt-4 grid grid-cols-4 gap-3">
-              {earlierVersions(run, pid, { lines: (session.lines[pid] ?? []).map((l) => l.tex), rework: (session.rework[pid] ?? []).map((l) => l.tex) }, ASSIGNMENT.problems.find((p) => p.id === pid)!.solution.map((s) => s.tex)).map((m) => (
-                <section key={m.id} className="rounded-2xl border border-line p-3" data-member={m.id}>
-                  <div className="text-[13.5px] font-medium text-ink">{m.name}</div>
-                  {m.versions.map((v) => (
-                    <div key={v.label} className="mt-2">
-                      <Eyebrow>{v.label}</Eyebrow>
-                      {v.view.shown.length === 0 ? <p className="mt-1 text-[12px] text-ink-muted">not attempted</p> : <Lines view={v.view} compact />}
-                    </div>
-                  ))}
-                </section>
-              ))}
-            </div>
-            {!run.stuck.includes(pid) && (
-              <div className="mt-5 flex justify-end gap-2">
-                <Button variant="ghost" onClick={() => setStuckOpen(false)}>
-                  never mind
-                </Button>
-                <Button
-                  variant="accent"
-                  onClick={() => {
-                    dispatchClassroom({ type: "group/stuck" });
-                    setStuckOpen(false);
-                  }}
-                  data-stuck-confirm
-                >
-                  show the group
-                </Button>
-              </div>
-            )}
-            {run.stuck.includes(pid) && (
-              <div className="mt-5 flex justify-end">
-                <Button variant="secondary" onClick={() => setStuckOpen(false)}>
-                  back to the board
-                </Button>
-              </div>
-            )}
-          </div>
-        </Scrim>
-      )}
     </div>
   );
 }

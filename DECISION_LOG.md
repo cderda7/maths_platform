@@ -2102,3 +2102,34 @@ problem attempted; anything else that dispatches `hand-in` over a blank set now 
 the footer survive a reload, every state is reachable through the reducer in seven tests, and the
 headless click-through drives the whole flow from Q1 to feedback the way a student would.
 
+## 2026-09-11 · The "we're stuck" mode is deleted outright, not fixed or hidden
+
+**Decision.** The group board's "we're stuck" button, the reveal of everyone's earlier work, the
+`group/stuck` action and the run's `stuck` list, `earlierVersions`, the `"stuck"` turn event and the
+scripts' `stuckAfter` are removed. The action row under the board is Check alone (the pen-holder) or
+"… checks when ready" (everyone else), at the right.
+
+**Context.** Ticket 117. The user: "it's fucked up -- just shows the right answer if somebody in the
+group got it wrong. remove it entirely". `earlierVersions` stood the model solution in for a member
+with no recorded attempt on the problem, so the reveal handed the group the answer whenever one
+member had never slipped on it; on the scripted Q3 that member is Jordan, who never reached Q3.
+
+**Alternatives considered.**
+- *Fix the stand-in: show "not attempted" for a member with no slip.* Keeps the mode. Rejected: the
+  user asked for it gone, and with the give-away removed the reveal shows at most one or two
+  members' wrong first lines, which the debrief after a correct check already does better with
+  three versions side by side.
+- *Hide the button behind a flag and keep the code.* Leaves a `stuck` list in every stored run, a
+  reducer case, a turn event and a script field that nothing exercises, and a reveal that would rot.
+  Rejected: dead code in the run's shape is the kind of thing the next ticket trips over.
+- *Keep the scripted press on Jordan's Q3 turn without the button.* Would show a presenter the
+  reveal with no way to reach it themselves. Rejected with the rest.
+
+**Tradeoffs.** A group with no way to ask for help while the pen-holder is wrong; the wrong check's
+first-mistake view and the pen-holder's next attempt are all there is until the teacher steps in.
+The freed spot at the left of the action row is noted in FUTURE_FEATURES for a stuck mode that does
+not give the answer away. Runs persisted before this change keep a `stuck` key nothing reads.
+
+**Defence.** The mode's one behaviour was to reveal, and its reveal was wrong in the common case.
+Deleting it is smaller than fixing it, the run's shape loses a field, and the peer turn loses a
+seven-second pause that only existed for the reveal.

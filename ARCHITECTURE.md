@@ -31,7 +31,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
  │                                  └▶ PromptModal · HelpPicker (this problem's moves) · PracticeOverlay = PracticePad (shared with the warm-up)
  │               ▶ Feedback = individual review (detective sentence · star · what you submitted · pad · guard · hand in) · Waiting│
  │               ▶ Frozen (versions beside a pad: teacher-ink mirror or write-with-me; marks follow the board)│
- │               ▶ ClassWait (gate: n of 20 · teacher start) ▶ GroupBoard (one shared whiteboard · the pen by shuffle · check · we're stuck) ▶ GroupDebrief (three versions · a note · marks · 20 s hold)│
+ │               ▶ ClassWait (gate: n of 20 · teacher start) ▶ GroupBoard (one shared whiteboard · the pen by shuffle · check) ▶ GroupDebrief (three versions · a note · marks · 20 s hold)              │
  │                 └─ both under one GroupHeader (problem · GroupBar centred in a 3-column grid · pen chip or "the group got it")                                        │
  │               ▶ Report (teacher's colours + reflection → sent)   │
  │               ▶ Peers (mastery only: class struggles, counts)    │
@@ -246,6 +246,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 113 | The confidence screen's spacing is tightened so the list fits the window with factorising's two kinds open (was 80px over) | `…?stage=confidence` | 112 | [architecture/113-confidence-fit.md](architecture/113-confidence-fit.md) |
 | 114 | The "full sentence" box is the chat's text field: muted placeholder "Provide your final answer as a full sentence.", the cursor in it as it appears, Enter ends the typing, the sentence kept per problem in `session.answers` | `…?stage=working`, Q9 after its three lines | 111, 74 | [architecture/114-answer-field.md](architecture/114-answer-field.md) |
 | 115 | The hand-in check: Hand in over a blank problem opens a card bottom right ("Hand in with Q7 blank?" / "Return to Q7" / "Confirm submit", or "Return to Q2, Q3, Q4" with a blue box under the pointer) instead of handing in; returning puts Hand in in the footer with "Jump to Qn" to its left while another blank remains; a starred problem's tile is the star alone | `/student` while working | — | [architecture/115-hand-in-check.md](architecture/115-hand-in-check.md) |
+| 117 | The group board's "we're stuck" mode is removed: no button, no reveal of everyone's earlier work, no scripted press on Jordan's Q3 turn; the action row is Check alone (or "checks when ready") at the right | `…?stage=group` | 40, 76 | [architecture/117-remove-stuck.md](architecture/117-remove-stuck.md) |
 
 ## Conventions
 

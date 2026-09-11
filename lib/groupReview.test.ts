@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { beginRun, checkBoard, cutAtFirstMistake, DEMO_SEED, earlierVersions, groupProgress, ownAttemptScript, penHolder, penOrder, shuffle, turnScript } from "./groupReview";
+import { beginRun, checkBoard, cutAtFirstMistake, DEMO_SEED, groupProgress, ownAttemptScript, penHolder, penOrder, shuffle, turnScript } from "./groupReview";
 import { classroomReducer, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
 import { PROBLEM_MAP } from "@/data/assignment";
 import { GROUP_SCRIPTS } from "@/data/group-scripts";
@@ -41,19 +41,6 @@ describe("check and the first-mistake cut", () => {
     expect(clean.shown.every((l) => l.mark === null)).toBe(true);
     expect(clean.hidden).toBe(0);
   });
-  it("everyone's earlier work on a problem: the demo student from the session, classmates from the fixture", () => {
-    const run = beginRun(MEMBERS, UNION, 0);
-    const v = earlierVersions(run, "q3", { lines: RECOGNITION.q3, rework: RECOGNITION_REWORK.q3 }, ["x"]);
-    expect(v.map((m) => m.name)).toEqual(["You", "Jordan", "Zara", "Liam"]);
-    expect(v[0].versions.map((x) => x.label)).toEqual(["Handed in", "Reworked"]);
-    expect(v[0].versions[0].view.hidden).toBe(1);
-    expect(v[0].versions[1].view.hidden).toBe(0);
-    expect(v[2].versions[0].view.shown.some((l) => l.mark === "wrong")).toBe(true); // Zara slipped on Q3
-    expect(v[1].versions[0].view.shown).toEqual([{ tex: "x", mark: null }]); // Jordan never reached Q3: the model line stands in
-  });
-});
-
-describe("the demo scripts", () => {
   it("every attempt of every union problem is readable line by line, wrong attempts before right ones", () => {
     for (const pid of UNION) {
       const s = GROUP_SCRIPTS[pid];
@@ -66,22 +53,20 @@ describe("the demo scripts", () => {
     expect(ownAttemptScript("q9", 0)).toEqual(GROUP_SCRIPTS.q9.attempts[0]);
     expect(ownAttemptScript("q9", 5)).toEqual(GROUP_SCRIPTS.q9.attempts[1]);
   });
-  it("a peer's turn scribbles each line, reads it, checks, and on Q3 gets stuck between attempts", () => {
+  it("a peer's turn scribbles each line, reads it, checks, and on Q3 checks twice", () => {
     const q2 = turnScript("q2");
     expect(q2.filter((e) => e.kind === "check")).toHaveLength(1);
     expect(q2.filter((e) => e.kind === "line").map((e) => e.kind === "line" && e.tex)).toEqual(RECOGNITION_REWORK.q2);
     expect(q2.every((e, i) => i === 0 || e.at >= q2[i - 1].at)).toBe(true);
     const q3 = turnScript("q3");
     expect(q3.filter((e) => e.kind === "check")).toHaveLength(2);
-    expect(q3.filter((e) => e.kind === "stuck")).toHaveLength(1);
-    expect(q3.findIndex((e) => e.kind === "stuck")).toBeGreaterThan(q3.findIndex((e) => e.kind === "check"));
+    expect(q3.filter((e) => e.kind === "line")).toHaveLength(RECOGNITION.q3.length + RECOGNITION_REWORK.q3.length);
     expect(turnScript("q4")).toEqual([]);
   });
-  it("Liam's Q7 turn checks wrong once, the fraction cleared from two terms, then writes the model solution without getting stuck", () => {
+  it("Liam's Q7 turn checks wrong once, the fraction cleared from two terms, then writes the model solution", () => {
     const q7 = turnScript("q7");
     const checks = q7.filter((e) => e.kind === "check");
     expect(checks).toHaveLength(2);
-    expect(q7.filter((e) => e.kind === "stuck")).toHaveLength(0);
     const [firstGo, secondGo] = GROUP_SCRIPTS.q7.attempts;
     expect(checkBoard("q7", firstGo)).toEqual({ correct: false, cut: 0 });
     expect(cutAtFirstMistake("q7", firstGo)).toEqual({ shown: [{ tex: firstGo[0], mark: "wrong" }], hidden: 2 });
@@ -119,7 +104,7 @@ describe("the run on the classroom", () => {
     expect(c.group?.turnStartedAt).toBe(200);
   });
 
-  it("a wrong check keeps the board and starts the next attempt's lines afresh; stuck is per problem; next needs a correct check; the last next finishes", () => {
+  it("a wrong check keeps the board and starts the next attempt's lines afresh; next needs a correct check; the last next finishes", () => {
     let c = begin();
     c = r(c, { type: "group/next", at: 1 });
     expect(c.group?.index).toBe(0);
@@ -130,9 +115,6 @@ describe("the run on the classroom", () => {
     expect(c.group?.attempts.q3?.[0].correct).toBe(false);
     expect(c.group?.strokes).toHaveLength(1);
     expect(c.group?.lines).toEqual([]);
-    c = r(c, { type: "group/stuck" });
-    c = r(c, { type: "group/stuck" });
-    expect(c.group?.stuck).toEqual(["q3"]);
     for (const tex of RECOGNITION_REWORK.q3) c = r(c, { type: "group/line", tex });
     c = r(c, { type: "group/check" });
     expect(c.group?.resolved).toEqual(["q3"]);

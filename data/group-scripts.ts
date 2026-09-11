@@ -12,8 +12,6 @@ import { RECOGNITION, RECOGNITION_REWORK } from "./recognition";
  */
 export interface TurnScript {
   attempts: string[][];
-  /** After this attempt (0-based) checks wrong, a peer presses "we're stuck" before the next attempt. */
-  stuckAfter?: number;
 }
 
 const solution = (id: string) => ASSIGNMENT.problems.find((p) => p.id === id)!.solution.map((s) => s.tex);
@@ -21,7 +19,7 @@ const solution = (id: string) => ASSIGNMENT.problems.find((p) => p.id === id)!.s
 export const GROUP_SCRIPTS: Record<string, TurnScript> = {
   q1: { attempts: [RECOGNITION_REWORK.q1] },
   q2: { attempts: [RECOGNITION_REWORK.q2] },
-  q3: { attempts: [RECOGNITION.q3, RECOGNITION_REWORK.q3], stuckAfter: 0 },
+  q3: { attempts: [RECOGNITION.q3, RECOGNITION_REWORK.q3] },
   q7: { attempts: [SLIPS.q7, solution("q7")] },
   q9: { attempts: [SLIPS.q9, solution("q9")] },
   q10: { attempts: [RECOGNITION_REWORK.q10] },

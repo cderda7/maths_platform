@@ -168,7 +168,7 @@ describe("the demo group's moments", () => {
     // No moment given: the turn's start stands in.
     const bare = classroomReducer({ ...classroom, group: { ...classroom.group!, index: 0, lines: ownAttemptScript("q1", 0) } }, { type: "group/check" });
     expect(bare.group!.resolvedAt?.q1).toBe(now + 10_000);
-    const old = { members: ["sam"], problems: ["q1"], pen: { q1: "sam" }, index: 0, strokes: [], lines: [], attempts: {}, stuck: [], resolved: ["q1"], turnStartedAt: 5, scriptDone: 0, done: false } as GroupRun;
+    const old = { members: ["sam"], problems: ["q1"], pen: { q1: "sam" }, index: 0, strokes: [], lines: [], attempts: {}, resolved: ["q1"], turnStartedAt: 5, scriptDone: 0, done: false } as GroupRun;
     expect(runStartedAt(old)).toBe(5);
     expect(resolvedMoment(old, "q1")).toBe(5);
   });
