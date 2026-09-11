@@ -267,7 +267,7 @@ export function studentLeafName(l: LeafId): { name: string; short: string } {
   return STUDENT_NAMES[l] ?? leafName(l);
 }
 
-/** The plain word for a group in a sentence to the student ("this is your second mistake on factorising"). */
+/** The plain word for a group in a sentence to the student ("This is your second mistake on factorising."). */
 const GROUP_WORDS: Partial<Record<GroupId, string>> = {
   "algebra.equations": "solving equations",
   "algebra.expand-factor": "factorising",

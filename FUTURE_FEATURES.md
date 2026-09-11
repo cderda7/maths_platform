@@ -1144,6 +1144,18 @@ agents add sections above it and leave it alone.
   reads "Non-monic factorisation". If the noun form should carry through, the short would
   change too (and the fixtures and tests that quote it).
 
+## The practice prompt's copy (from ticket 109, 2026-09-11)
+
+- **"2 minutes" is a fixed claim.** The heading promises two minutes whatever the practice; the
+  isolated practices are one problem each, so it is roughly right, but nothing measures it. A
+  heading that reads the practice's actual length (or a timer on the overlay) was not asked for.
+- **The line break is hard-coded.** The body breaks after the first sentence with a `<br />`,
+  which is right at the card's fixed 560px width on the iPad stage. If the card ever becomes
+  fluid, two `<p>`s (or `white-space: pre-line` on a `\n`) would carry the break the same way.
+- **Only this card changed case.** The help picker ("Which skill?") and the overlay's chips keep
+  their existing casing; ticket 31's lowercase "in the student's words" rule now applies only to
+  the skill names inside the sentences, not the sentences themselves.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

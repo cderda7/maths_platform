@@ -36,8 +36,12 @@ export function PromptModal({ prompt, onAccept, onDecline }: { prompt: Prompt; p
   return (
     <Scrim>
       <div className="w-[560px] rounded-3xl bg-paper p-8 shadow-lift" data-prompt={prompt.reason}>
-        <h2 className="font-display text-[28px] leading-tight text-ink">two minutes on {s.short}?</h2>
-        <p className="mt-3 text-[14px] text-ink-soft">this is your second mistake on {word}. let&rsquo;s do a short problem to review.</p>
+        <h2 className="font-display text-[28px] leading-tight text-ink">2 minutes on {s.short}?</h2>
+        <p className="mt-3 text-[14px] text-ink-soft">
+          This is your second mistake on {word}.
+          <br />
+          Let&rsquo;s do a short problem to review.
+        </p>
         <div className="mt-6 flex justify-end gap-2">
           <Button variant="secondary" size="lg" onClick={onDecline}>
             Not now
