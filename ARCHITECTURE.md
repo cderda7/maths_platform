@@ -203,6 +203,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 70 | Split view: a divider drag lasts exactly as long as the button is held; the window hears the release, a move with the button up ends it | `/split` | 35 | [architecture/70-divider-drag-release.md](architecture/70-divider-drag-release.md) |
 | 71 | Start alone, Submit, and the fork: the warm-up is offered on the confidence screen to the student who says they are not confident | `/student` overview, `…?stage=confidence` | 48 | [architecture/71-start-alone-submit-and-the-fork.md](architecture/71-start-alone-submit-and-the-fork.md) |
 | 72 | The offer callout: the tutor's question naming the ticked skills, one short problem per skill, a rise and one ring pulse over the dimmed list | `…?stage=confidence` | 71 | [architecture/72-offer-callout.md](architecture/72-offer-callout.md) |
+| 73 | Offer callout: "Start the set" in the accent outline, a pinch stronger than a secondary button | `…?stage=confidence` | 72 | [architecture/73-offer-start-the-set-outline.md](architecture/73-offer-start-the-set-outline.md) |
 
 ## Conventions
 

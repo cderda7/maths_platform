@@ -16,7 +16,7 @@ type Level = Confidence["level"];
  * the answer). One button, "Submit", whatever the answer: "confident" opens Q1; either other
  * answer keeps the student here (`answered` set), dims and locks the list, and a callout rises
  * just above the spot Submit occupied (the tutor's question naming the ticked skills, the size of
- * the warm-up, "Warm up" / "Start the set"). The spot itself is left empty so reaching either
+ * the warm-up, "Warm up" in the accent fill / "Start the set" in the accent outline). The spot itself is left empty so reaching either
  * choice is a deliberate move rather than a second tap in the same place.
  */
 /** The radio dot at the head of each answer, filled when that answer is picked. */
@@ -120,7 +120,7 @@ export default function ConfidenceScreen({
                 <Button variant="accent" size="lg" onClick={onWarmup} data-warmup-accept>
                   Warm up
                 </Button>
-                <Button variant="secondary" size="lg" onClick={onStart} data-warmup-decline>
+                <Button variant="outline" size="lg" onClick={onStart} data-warmup-decline>
                   Start the set
                 </Button>
               </div>
