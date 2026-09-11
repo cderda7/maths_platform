@@ -1642,3 +1642,28 @@ scrolls sooner.
 class and anchors its list to the bottom with an empty first item. The browser check shows the one
 line still in place with the chat open, the bubble against the box, and five lines capped and
 scrolling; a hint word still lights the line above the chat.
+
+## 2026-09-11 · Left-aligned display maths is an unlayered rule, not a utility
+
+**Decision.** The worked example card is left-justified by a `math-left` class whose rules live
+unlayered in `app/globals.css` (`.math-left .katex-display` and `.math-left .katex-display > .katex`
+are `text-align: left`), beside the existing KaTeX overrides. The card's flex rows (the two-case
+boxes, the reveal button) simply drop `justify-center`.
+
+**Context.** The user asked for the example "all left justified". KaTeX centres display maths with
+two rules of its own, on the display wrapper and on the `.katex` block inside it, in an unlayered
+stylesheet.
+
+**Alternatives considered.**
+- *A Tailwind arbitrary variant on the wrapper (`[&_.katex-display]:text-left`).* Generated into the
+  utilities layer, which any unlayered rule beats regardless of specificity; it would not take.
+- *Render the steps inline (`display={false}`) and left-align the line.* Loses display-mode
+  fraction sizing, which ticket 90 chose for the one-size column.
+- *A `text-align` on `.katex-display` only.* Tried first; it moves nothing, since the `.katex`
+  block inside is full-width and centres its own content. The glyph measurement caught it.
+
+**Tradeoffs.** One more global class to know about; it sits with the other KaTeX overrides so the
+next person finds it. Nothing else opts in yet.
+
+**Defense.** Two selectors, one place, and the browser check measures the first glyph of the
+problem and of every step on the card's content edge, in both sizes of the card.

@@ -73,6 +73,11 @@ body {
 .katex-display {
   margin: 0;
 }
+/* Display maths set against the left edge (the worked example card): KaTeX centres a display block, and the .katex block inside it, by its own unlayered rules, so these are too. */
+.math-left .katex-display,
+.math-left .katex-display > .katex {
+  text-align: left;
+}
 .math-lg .katex {
   font-size: 1.35em;
 }

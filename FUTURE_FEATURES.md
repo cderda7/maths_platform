@@ -941,6 +941,17 @@ agents add sections above it and leave it alone.
 - **The overlay's narrower column.** The mid-set practice overlay shares this pad; with the chat
   and five lines in its 320px column both halves are tight. Not measured on a real iPad yet.
 
+## The worked example left-justified (from ticket 93, 2026-09-11)
+
+- **The pad's own problem is still centred.** The left column's problem statement (and the
+  follow-up's "One more") keep KaTeX's centring; only the worked example card carries
+  `math-left`. If the two should match, the same class on the pad's problem wrapper does it.
+- **Aligning on the equals sign is now closer.** With every step on the left edge, lining the
+  equals signs up is a per-step left padding measured from the `=` glyph; the ticket 90 note
+  about `aligned` still applies.
+- **`math-left` is a global class.** Any display maths that wants the left edge can use it; the
+  read-as column, the model solution and the board all centre today, by KaTeX's default.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
