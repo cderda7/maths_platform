@@ -1,4 +1,4 @@
-import type { HintTerm } from "@/data/types";
+import type { HintTerm, TexFragment } from "@/data/types";
 
 /** A run of hint text: plain, or one of the problem's linked terms. */
 export interface HintSegment {
@@ -50,16 +50,41 @@ export function hintSegments(hint: string, terms: HintTerm[] = []): HintSegment[
  * `hint-term-lit` to the fragments of the lit term. Every fragment is always wrapped so lighting
  * one changes colour only, never the typeset layout (KaTeX gives the group no spacing of its
  * own). First whole occurrence of each fragment: not a superscript or subscript, not part of a
- * longer number or of a command name, so "2" in `x^2 + 2x` is the coefficient. A fragment inside
- * a longer one is wrapped inside it, so "10" can light within "10x"; a fragment the TeX does not
- * contain is left alone. Two fragments that abut, like the two factors of a product, get a thin
+ * longer number or of a command name, so "2" in `x^2 + 2x` is the coefficient; a scoped fragment
+ * (`{ tex, within }`) is the first whole occurrence inside its `within`, which is how a later
+ * "2" is named. A fragment inside a longer one is wrapped inside it, so "10" can light within
+ * "10x"; two terms naming the same piece share one box, lit when either is the lit term; a
+ * fragment the TeX does not contain is left alone. Two fragments that abut, like the two factors of a product, get a thin
  * space (`\\;`) between them so each reads as its own box. Needs KaTeX's `trust` option, which
  * `components/Math` sets.
  */
 export function termTex(tex: string, terms: HintTerm[] = [], lit?: HintTerm): string {
-  const fragments = [...new Set(terms.flatMap((t) => t.tex))];
-  const wrapped = fragments.length ? wrap(tex, fragments, new Set(lit?.tex ?? [])) : tex;
+  const keyOf = (f: TexFragment): string | null => {
+    const at = locateFragment(tex, f);
+    return at < 0 ? null : `${at}:${at + fragmentTex(f).length}`;
+  };
+  const litKeys = new Set((lit?.tex ?? []).map(keyOf));
+  const spans = new Map<string, Span>();
+  for (const f of terms.flatMap((t) => t.tex)) {
+    const key = keyOf(f);
+    if (!key) continue;
+    const [at, end] = key.split(":").map(Number);
+    spans.set(key, { at, end, lit: litKeys.has(key) || !!spans.get(key)?.lit });
+  }
+  const wrapped = spans.size ? wrap(tex, [...spans.values()]) : tex;
   return lit?.insert ? conjure(wrapped, lit.insert) : wrapped;
+}
+
+/** The text a fragment stands for, as written in the TeX. */
+export const fragmentTex = (f: TexFragment): string => (typeof f === "string" ? f : f.tex);
+
+/** Where a fragment sits in the TeX: its first whole occurrence, or for the scoped form the first whole occurrence inside the first occurrence of `within`; -1 when either is absent. */
+export function locateFragment(tex: string, f: TexFragment): number {
+  if (typeof f === "string") return findFragment(tex, f);
+  const outer = findFragment(tex, f.within);
+  if (outer < 0) return -1;
+  const inner = findFragment(f.within, f.tex);
+  return inner < 0 ? -1 : outer + inner;
 }
 
 /** Puts a lit fragment the problem does not write (the 1 in front of x²) just before `before`, or leaves the TeX alone when `before` is absent. */
@@ -82,23 +107,28 @@ export function findFragment(tex: string, f: string): number {
   return -1;
 }
 
-function wrap(tex: string, fragments: string[], lit: Set<string>): string {
-  const found = fragments
-    .map((f) => ({ f, at: findFragment(tex, f) }))
-    .filter((x) => x.at >= 0)
-    .sort((a, b) => a.at - b.at || b.f.length - a.f.length);
+/** One located fragment: `[at, end)` in the TeX it was found in, and whether it is lit. */
+interface Span {
+  at: number;
+  end: number;
+  lit: boolean;
+}
+
+/** Wraps each span in order; a span inside a longer one is wrapped inside it, positions shifted to the outer span's text. */
+function wrap(tex: string, spans: Span[]): string {
+  const sorted = [...spans].sort((a, b) => a.at - b.at || b.end - a.end);
   let out = "";
   let cursor = 0;
   let lastEnd = -1;
-  for (const { f, at } of found) {
-    if (at < cursor) continue;
-    const end = at + f.length;
-    const inner = found.filter((x) => x.f !== f && x.at >= at && x.at + x.f.length <= end).map((x) => x.f);
-    const body = inner.length ? wrap(f, inner, lit) : f;
-    const gap = at === lastEnd ? "\\;" : "";
-    out += tex.slice(cursor, at) + gap + `\\htmlClass{${lit.has(f) ? "hint-term hint-term-lit" : "hint-term"}}{${body}}`;
-    cursor = end;
-    lastEnd = end;
+  for (const s of sorted) {
+    if (s.at < cursor) continue;
+    const text = tex.slice(s.at, s.end);
+    const inner = sorted.filter((x) => x !== s && x.at >= s.at && x.end <= s.end).map((x) => ({ at: x.at - s.at, end: x.end - s.at, lit: x.lit }));
+    const body = inner.length ? wrap(text, inner) : text;
+    const gap = s.at === lastEnd ? "\\;" : "";
+    out += tex.slice(cursor, s.at) + gap + `\\htmlClass{${s.lit ? "hint-term hint-term-lit" : "hint-term"}}{${body}}`;
+    cursor = s.end;
+    lastEnd = s.end;
   }
   return out + tex.slice(cursor);
 }

@@ -129,7 +129,14 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     hint: "Multiply every term by a number that clears all the denominators.",
     hintTerms: [
       { phrase: "every term", tex: ["\\dfrac{x}{4}", "\\dfrac{x}{2}", "6", "\\dfrac{9}{2}"] },
-      { phrase: "denominators", tex: ["4", "2"] },
+      {
+        phrase: "denominators",
+        tex: [
+          { tex: "4", within: "\\dfrac{x}{4}" },
+          { tex: "2", within: "\\dfrac{x}{2}" },
+          { tex: "2", within: "\\dfrac{9}{2}" },
+        ],
+      },
     ],
   },
   "unit.u1.nfl": {

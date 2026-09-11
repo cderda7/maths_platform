@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import katex from "katex";
 import { PRACTICES } from "@/data/practice";
 import type { PracticeProblem } from "@/data/types";
-import { findFragment, hintSegments, hoistSpacing, termTex } from "./hint";
+import { findFragment, hintSegments, hoistSpacing, locateFragment, termTex } from "./hint";
 
 const constant = { phrase: "constant", tex: ["12"] };
 const middle = { phrase: "middle coefficient", tex: ["7"] };
@@ -159,7 +159,7 @@ describe("warm-up hint terms", () => {
       for (const t of p.hintTerms ?? []) {
         expect(hintSegments(p.hint, [t]).some((s) => s.term === t), `${p.id}: "${t.phrase}"`).toBe(true);
         expect(t.tex.length > 0 || !!t.insert, `${p.id}: "${t.phrase}"`).toBe(true);
-        for (const f of t.tex) expect(findFragment(p.tex, f), `${p.id}: ${f}`).toBeGreaterThanOrEqual(0);
+        for (const f of t.tex) expect(locateFragment(p.tex, f), `${p.id}: ${JSON.stringify(f)}`).toBeGreaterThanOrEqual(0);
         if (t.insert) expect(findFragment(p.tex, t.insert.before), `${p.id}: ${t.insert.before}`).toBeGreaterThanOrEqual(0);
       }
     }
@@ -172,13 +172,36 @@ describe("warm-up hint terms", () => {
     ]);
   });
 
-  it("the fractions warm-up lights every term, and the denominators inside the two x fractions", () => {
+  it("the fractions warm-up lights every term, and all three denominators, the 9/2's included", () => {
     const p = PRACTICES["algebra.number.fractions"]!;
     const [every, denominators] = p.hintTerms!;
     expect(p.tex).toBe("\\dfrac{x}{4} + \\dfrac{x}{2} - 6 = \\dfrac{9}{2}");
     expect(termTex(p.tex, p.hintTerms, denominators)).toBe(
-      "\\htmlClass{hint-term}{\\dfrac{x}{\\htmlClass{hint-term hint-term-lit}{4}}} + \\htmlClass{hint-term}{\\dfrac{x}{\\htmlClass{hint-term hint-term-lit}{2}}} - \\htmlClass{hint-term}{6} = \\htmlClass{hint-term}{\\dfrac{9}{2}}",
+      "\\htmlClass{hint-term}{\\dfrac{x}{\\htmlClass{hint-term hint-term-lit}{4}}} + \\htmlClass{hint-term}{\\dfrac{x}{\\htmlClass{hint-term hint-term-lit}{2}}} - \\htmlClass{hint-term}{6} = \\htmlClass{hint-term}{\\dfrac{9}{\\htmlClass{hint-term hint-term-lit}{2}}}",
     );
     expect(termTex(p.tex, p.hintTerms, every)).toContain("\\htmlClass{hint-term hint-term-lit}{6}");
+    expect(termTex(p.tex, p.hintTerms, every)).not.toContain("hint-term-lit}{2}");
+  });
+});
+
+describe("locateFragment", () => {
+  const tex = "\\dfrac{x}{4} + \\dfrac{x}{2} - 6 = \\dfrac{9}{2}";
+
+  it("a bare fragment is its first whole occurrence; a scoped one is found inside its `within`, later occurrences included", () => {
+    expect(locateFragment(tex, "2")).toBe(findFragment(tex, "2"));
+    expect(locateFragment(tex, { tex: "2", within: "\\dfrac{x}{2}" })).toBe(findFragment(tex, "2"));
+    expect(locateFragment(tex, { tex: "2", within: "\\dfrac{9}{2}" })).toBe(tex.lastIndexOf("2"));
+  });
+
+  it("is -1 when the scope or the fragment inside it is absent", () => {
+    expect(locateFragment(tex, { tex: "2", within: "\\dfrac{7}{2}" })).toBe(-1);
+    expect(locateFragment(tex, { tex: "3", within: "\\dfrac{9}{2}" })).toBe(-1);
+  });
+
+  it("two terms naming the same piece share one box, lit when either is the lit term", () => {
+    const a = { phrase: "a", tex: ["6"] };
+    const b = { phrase: "b", tex: [{ tex: "6", within: "- 6" }] };
+    expect(termTex(tex, [a, b])).toBe("\\dfrac{x}{4} + \\dfrac{x}{2} - \\htmlClass{hint-term}{6} = \\dfrac{9}{2}");
+    expect(termTex(tex, [a, b], b)).toBe("\\dfrac{x}{4} + \\dfrac{x}{2} - \\htmlClass{hint-term hint-term-lit}{6} = \\dfrac{9}{2}");
   });
 });

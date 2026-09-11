@@ -699,16 +699,14 @@ agents add sections above it and leave it alone.
 
 ## Fractions warm-up and the help button (from ticket 75, 2026-09-11)
 
-- **A hint term can only light the first occurrence of a fragment.** "denominators" on the new
-  fractions problem lights the 4 and the 2 of $\frac{x}{2}$ but not the 2 of $\frac{9}{2}$, because
-  `termTex` wraps the first whole occurrence of each fragment and there is no way to name "the second
-  2". Deferred: it needs an occurrence index (or a `within` scope, as the hint phrases have) on the
-  TeX side of `HintTerm`; the two lit denominators already make the point.
+- **A hint term can only light the first occurrence of a fragment.** Done in ticket 77 (2026-09-11):
+  a fragment can be `{ tex, within }`, the first occurrence inside an enclosing fragment.
 - **The fractions problem has no second way in for the help chat.** Clearing denominators is the one
   route the tutor is told about; "work with the fractions as they are" (collect $\frac{3x}{4}$) is a
   legitimate second framing a teacher might want offered.
 - **The other warm-up problems were not re-graded for difficulty.** The user found the fractions one
   too easy; monic, null factor law and the rest are unchanged and may deserve the same look.
+
 ## The fraction problem stays wrong after the individual review (from ticket 76, 2026-09-11)
 
 - **Picked up:** the report note from ticket 58 ("a demo that leaves one wrong after the rework (Q7,

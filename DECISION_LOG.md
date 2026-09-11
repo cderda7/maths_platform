@@ -1259,3 +1259,32 @@ the natural next mistake after the first (the student fixes the scaling and forg
 so the two versions read as one student learning, and the group's Q7 is now the one place in the
 demo where a student meets their own still-wrong work beside a right one.
 
+## 2026-09-11 · A hint term names a repeated piece of the problem by scope, not by count
+
+**Decision.** A `HintTerm`'s TeX fragments are `TexFragment = string | { tex, within }`. The string
+form is unchanged (first whole occurrence). The object form is the first whole occurrence of `tex`
+inside the first occurrence of `within`: `{ tex: "2", within: "\dfrac{9}{2}" }` is the 2 under the 9
+even though two 2s come before it. `termTex` resolves every fragment to a `[at, end)` span first and
+wraps by position; two terms that resolve to the same span share one box.
+
+**Context.** The fractions warm-up writes 2 twice as a denominator; "denominators" could light only
+the first, and the user asked for all three (ticket 77).
+
+**Alternatives considered.**
+- *An occurrence index* (`{ tex: "2", nth: 2 }`). Shortest to write, but it counts occurrences the
+  reader has to count too, and a later edit to the TeX silently moves it to a different 2.
+- *Every occurrence* (`{ tex: "2", all: true }`). Right for this problem, wrong in general: "2" in
+  `2x + 2` would light the coefficient with the constant, and nothing in the data would say which
+  was meant.
+- *A regex or TeX-position literal.* Precise and unreadable; the data is hand-written by teachers.
+
+**Tradeoffs.** One more shape in the fixture data, and `termTex` now works on positions rather than
+re-finding strings, which is a rewrite of a function that was working. A scope has to be a fragment
+the problem writes, so a piece that repeats inside identical scopes (two `\dfrac{x}{2}`) still
+cannot be told apart; nothing in the set needs that.
+
+**Defense.** The scope reads like the hint's own `within` on the phrase side ("a" inside "4ac"), so
+the two halves of a `HintTerm` now use one idea. A scoped fragment says which piece it means in the
+problem's own notation, survives edits elsewhere in the line, and resolves to -1 (left alone) rather
+than a wrong piece when its scope is gone.
+
