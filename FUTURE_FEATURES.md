@@ -1217,6 +1217,15 @@ agents add sections above it and leave it alone.
 - **The row's rank.** The row sits where the first factorising leaf ranked; ranking it by the two
   leaves' combined count would move it up a place or two on some sets.
 
+## The confidence list's room (from ticket 113, 2026-09-11)
+
+- **Fixed spacing, not a fit rule.** The screen fits seven skills plus two kinds at the iPad size
+  by tightened spacing; an eighth skill, a second row with kinds, or a shorter window would
+  scroll again. A layout that sizes the rows to the window (or lists the skills in two columns
+  when there are many) would hold for any set.
+- **Opening the kinds pushes the rows below down.** The list grows in place; a slide-open of the
+  two kind rows (height transition) would make the shift read as an expansion.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

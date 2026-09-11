@@ -67,14 +67,14 @@ export default function ConfidenceScreen({
   };
   const tick = (on: boolean) => `grid h-4.5 w-4.5 shrink-0 place-items-center rounded-[5px] border text-[11px] ${on ? "border-accent bg-accent text-white" : "border-line-strong bg-paper text-transparent"}`;
 
-  const head = (on: boolean) => `flex w-full items-center gap-4 px-5 py-4 text-left transition-colors ${on ? "bg-ink text-white" : "bg-paper text-ink hover:bg-cream-deep"}`;
+  const head = (on: boolean) => `flex w-full items-center gap-4 px-5 py-3 text-left transition-colors ${on ? "bg-ink text-white" : "bg-paper text-ink hover:bg-cream-deep"}`;
 
   return (
-    <div className="mx-auto flex h-full max-w-3xl flex-col px-9 py-9">
+    <div className="mx-auto flex h-full max-w-3xl flex-col px-9 py-6">
       <Eyebrow>Before you start</Eyebrow>
-      <h1 className="font-display mt-3 text-[32px] leading-tight text-ink">How confident are you?</h1>
+      <h1 className="font-display mt-2 text-[32px] leading-tight text-ink">How confident are you?</h1>
 
-      <div className={`mt-7 min-h-0 space-y-3 overflow-y-auto pb-2 transition-opacity duration-300 ${locked ? "pointer-events-none opacity-50" : ""}`} aria-disabled={locked} data-answers>
+      <div className={`mt-5 min-h-0 space-y-3 overflow-y-auto pb-2 transition-opacity duration-300 ${locked ? "pointer-events-none opacity-50" : ""}`} aria-disabled={locked} data-answers>
         <button type="button" onClick={() => pick("confident")} aria-pressed={level === "confident"} className={`rounded-2xl border ${level === "confident" ? "border-ink" : "border-line"} ${head(level === "confident")}`}>
           <Radio on={level === "confident"} />
           <span className="text-[16px] font-medium">confident</span>
@@ -95,7 +95,7 @@ export default function ConfidenceScreen({
               const on = picked.includes(id);
               return (
                 <li key={id}>
-                  <button type="button" onClick={() => toggle(id)} aria-pressed={on} data-skill={id} className="flex w-full items-center gap-4 px-5 py-2.5 text-left transition-colors hover:bg-cream-deep">
+                  <button type="button" onClick={() => toggle(id)} aria-pressed={on} data-skill={id} className="flex w-full items-center gap-4 px-5 py-2 text-left transition-colors hover:bg-cream-deep">
                     <span className={`ml-9 ${tick(on)}`} aria-hidden>
                       ✓
                     </span>
@@ -107,7 +107,7 @@ export default function ConfidenceScreen({
                         const onC = picked.includes(c.id);
                         return (
                           <li key={c.id}>
-                            <button type="button" onClick={() => toggle(c.id)} aria-pressed={onC} data-skill={c.id} className="flex w-full items-center gap-4 px-5 py-1.5 text-left transition-colors hover:bg-cream-deep">
+                            <button type="button" onClick={() => toggle(c.id)} aria-pressed={onC} data-skill={c.id} className="flex w-full items-center gap-4 px-5 py-1 text-left transition-colors hover:bg-cream-deep">
                               <span className={`ml-[4.75rem] ${tick(onC)}`} aria-hidden>
                                 ✓
                               </span>
@@ -125,7 +125,7 @@ export default function ConfidenceScreen({
         </div>
       </div>
 
-      <div className="relative mt-auto flex flex-col items-end pt-6">
+      <div className="relative mt-auto flex flex-col items-end pt-4">
         {answered ? (
           <>
             {/* Floats over the dimmed list rather than pushing it, so nothing on the screen moves but the callout. */}

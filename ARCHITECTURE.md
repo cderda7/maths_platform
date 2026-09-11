@@ -243,6 +243,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 110 | The `algebra.expand-factor.monic` leaf's full name is "Monic factorisation" (short form "monic factorising" and the student's "Factorising" override unchanged): the teacher's skills tree | `/teacher/report?student=<id>` | 108 | [architecture/110-monic-rename.md](architecture/110-monic-rename.md) |
 | 111 | Once every line of a worded problem's working is read (Q9, Q10), a box at the foot of the pad reads "Provide your final answer as a full sentence."; gone again on undo, never on a "Solve for x" | `…?stage=working`, Q9 after its three lines | 03, 18 | [architecture/111-final-sentence.md](architecture/111-final-sentence.md) |
 | 112 | The confidence screen's "not confident with…" list has one "factorising" row that opens "monic" and "non-monic" under it; the row alone means both kinds (`lib/confidence.ts`); the deep-linked survey offers the warm-up | `…?stage=confidence` | 110, 48 | [architecture/112-factorising-subskills.md](architecture/112-factorising-subskills.md) |
+| 113 | The confidence screen's spacing is tightened so the list fits the window with factorising's two kinds open (was 80px over) | `…?stage=confidence` | 112 | [architecture/113-confidence-fit.md](architecture/113-confidence-fit.md) |
 
 ## Conventions
 
