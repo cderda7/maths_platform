@@ -727,6 +727,26 @@ agents add sections above it and leave it alone.
   wrong). Not re-checked pixel by pixel in this ticket; the data shape (two versions, one wrong line
   each) is the same as any other reworked problem.
 
+## Several hints per problem (from ticket 78, 2026-09-11)
+
+- **Hints that read the student's work.** The user (2026-09-11): "i also wonder how we can make hints
+  responsive to the student, at least for this mockup. like not prescriptive hints (for instance, i
+  hate that about Leibniz) -- but reading student work, & a hint that will help them from there."
+  Today's hints are a fixed ordered list per problem; the only thing on the pad that reads the
+  student's lines is the help chat. Sketched: (1) for the mockup, a hint chosen by rule from the
+  read-back rather than by count: each hint carries a `when` (no lines yet / the 6 still on the left /
+  x terms together but unlike denominators / a slip on a line) and "hint" picks the first whose
+  condition holds, falling back to the next in order; (2) for the product, the same one-line hint
+  written by the model from the brief the help chat already has, with the fixed list as the fallback
+  and the guardrails from the chat prompt. Not started: the user asked for thoughts first.
+- **Every other problem still has one hint.** Only the fractions warm-up has two; the shape allows
+  any number and the menu counts them, so the rest can grow as the pedagogy is written.
+- **Hint labels count from 1 even when the second never comes.** A one-hint problem shows plain
+  "Hint"; two or more show "Hint 1", "Hint 2". A problem whose second hint is conditional (above)
+  would need the label to stop implying a fixed sequence.
+- **The worked example does not know which hints were shown.** Its steps follow the hints' path for
+  the fractions problem by construction only; nothing checks the two agree.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

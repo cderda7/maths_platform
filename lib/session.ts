@@ -43,8 +43,8 @@ export interface PracticeRun {
   example: boolean;
   /** Steps of the current problem's worked example revealed so far. */
   exampleShown: number;
-  /** Ids of the warm-up problems whose hint has been asked for. */
-  hinted: string[];
+  /** Hints shown so far per practice problem id; each ask on the help menu shows the problem's next one. */
+  hinted: Record<string, number>;
   /** Ids of the warm-up problems whose worked example has been seen in full. */
   exampled: string[];
   /** Recognised lines and the ink behind them, per practice problem id. */
@@ -54,7 +54,7 @@ export interface PracticeRun {
   chat: Record<string, ChatMessage[]>;
 }
 
-export const INITIAL_RUN: PracticeRun = { problem: "first", example: false, exampleShown: 0, hinted: [], exampled: [], lines: {}, ink: {}, chat: {} };
+export const INITIAL_RUN: PracticeRun = { problem: "first", example: false, exampleShown: 0, hinted: {}, exampled: [], lines: {}, ink: {}, chat: {} };
 
 /** Which run an action is about: the warm-up before the set, or the isolated practice over it. */
 export type RunKey = "warmup" | "overlay";
@@ -253,7 +253,20 @@ export function hydrateSession(raw: unknown): StudentSession {
   // A "low-when" answer saved as a category (before skills were listed) keeps its level with no skills named.
   const c = snap.confidence as ({ level: string; leaves?: unknown } | null | undefined);
   const confidence: Confidence | null = c && c.level === "low-when" && !Array.isArray(c.leaves) ? { level: "low-when", leaves: [] } : ((c ?? null) as Confidence | null);
-  return { ...INITIAL_SESSION, ...snap, confidence, warmup: { ...INITIAL_WARMUP, ...warmup }, overlayRun: { ...INITIAL_RUN, ...overlayRun } };
+  return {
+    ...INITIAL_SESSION,
+    ...snap,
+    confidence,
+    warmup: { ...INITIAL_WARMUP, ...warmup, hinted: hydrateHinted(warmup) },
+    overlayRun: { ...INITIAL_RUN, ...overlayRun, hinted: hydrateHinted(overlayRun) },
+  };
+}
+
+/** A run's `hinted` was a list of problem ids before hints were counted (ticket 78): each of those is one hint shown. */
+function hydrateHinted(run: { hinted?: unknown }): Record<string, number> {
+  const h = run.hinted;
+  if (Array.isArray(h)) return Object.fromEntries(h.filter((id): id is string => typeof id === "string").map((id) => [id, 1]));
+  return h && typeof h === "object" ? (h as Record<string, number>) : {};
 }
 
 /** What the reducer needs from outside the session: the pathway in force. */
@@ -506,8 +519,8 @@ export function runProblem(s: StudentSession, key: RunKey) {
 type RunAction = Extract<SessionAction, { run: RunKey }>;
 
 /** The pad rules for one run, the same for the warm-up and the overlay. Returns the same object when nothing changes. */
-function runReducer(r: PracticeRun, a: RunAction, first: { id: string; steps: unknown[]; followUp?: unknown }): PracticeRun {
-  const cur = r.problem === "second" && first.followUp ? (first.followUp as { id: string; steps: unknown[] }) : first;
+function runReducer(r: PracticeRun, a: RunAction, first: { id: string; steps: unknown[]; hints: unknown[]; followUp?: unknown }): PracticeRun {
+  const cur = r.problem === "second" && first.followUp ? (first.followUp as { id: string; steps: unknown[]; hints: unknown[] }) : first;
   switch (a.type) {
     case "run/reveal":
       return { ...r, lines: { ...r.lines, [a.problem]: [...(r.lines[a.problem] ?? []), a.line] } };
@@ -520,8 +533,10 @@ function runReducer(r: PracticeRun, a: RunAction, first: { id: string; steps: un
     }
     case "run/clear":
       return { ...r, ink: { ...r.ink, [a.problem]: [] }, lines: { ...r.lines, [a.problem]: [] } };
-    case "run/hint":
-      return r.hinted.includes(cur.id) ? r : { ...r, hinted: [...r.hinted, cur.id] };
+    case "run/hint": {
+      const shown = r.hinted[cur.id] ?? 0;
+      return shown >= cur.hints.length ? r : { ...r, hinted: { ...r.hinted, [cur.id]: shown + 1 } };
+    }
     case "run/example":
       return r.example ? r : { ...r, example: true, exampleShown: 0 };
     case "run/example-step": {

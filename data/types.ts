@@ -119,6 +119,13 @@ export interface HintTerm {
   insert?: { before: string; tex: string };
 }
 
+/** One hint on a practice problem: a sentence that names a move, never the answer, and the words in it that point at parts of the problem. */
+export interface Hint {
+  text: string;
+  /** Words in the hint that point at parts of the problem: hovering "constant" lights the 12. */
+  terms?: HintTerm[];
+}
+
 /** One line of a chat between the student and the tutor: the warm-up's concerns chat and the help chat on the pad. */
 export interface ChatMessage {
   from: "student" | "tutor";
@@ -144,13 +151,8 @@ export interface PracticeProblem {
   steps: SolutionStep[];
   /** One friendly line about why this warm-up is worth two minutes. */
   why: string;
-  /** One sentence of help that names the move, never the answer. */
-  hint: string;
-  /**
-   * Words in the hint that point at parts of the problem: hovering "constant" lights the 12.
-   * Warm-up only; the mid-set practice card shows the hint plain.
-   */
-  hintTerms?: HintTerm[];
+  /** Hints in the order the help menu gives them, one per ask, each shown under the problem; each names a move, never the answer. */
+  hints: Hint[];
   /**
    * The ways in a student at this stage could sensibly take, for the help chat. Two or more and
    * the chat lays them out and asks which makes more sense; none, and there is one way, which

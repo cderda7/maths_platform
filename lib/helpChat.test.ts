@@ -51,7 +51,7 @@ describe("helpChatSystem", () => {
     expect(s).toContain(p.tex);
     expect(s).toContain(`Skill: ${studentLeafName(p.leaf).name}`);
     for (const st of p.steps) expect(s).toContain(`${st.label}: ${st.tex}`);
-    expect(s).toContain(p.hint);
+    for (const h of p.hints) expect(s).toContain(h.text);
     expect(s).toContain("- factorise: ");
     expect(s).toContain("- the quadratic formula: ");
     expect(s).toContain(`"${CHAT_OPENER}"`);
@@ -65,7 +65,7 @@ describe("helpChatSystem", () => {
   });
 
   it("says there is one way in when the problem lists none", () => {
-    expect(helpChatSystem(PRACTICES["unit.u1.nfl"]!, [])).toContain("(one way in; the hint above names it)");
+    expect(helpChatSystem(PRACTICES["unit.u1.nfl"]!, [])).toContain("(one way in; the hints above name it)");
   });
 
   it("holds the tutor to hints, to a choice of two ways, and to short replies", () => {

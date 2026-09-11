@@ -120,11 +120,13 @@ describe("termTex", () => {
       return [...html.matchAll(/mspace" style="margin-right:([^;"]+)/g)].map((m) => m[1]).join(" ") + " | " + (html.match(/mbin|mrel|mopen|mclose/g) ?? []).join(" ");
     };
     for (const p of every()) {
-      if (!p.hintTerms) continue;
-      const rest = termTex(p.tex, p.hintTerms);
+      // The pad wraps the terms of every hint shown so far together; all of them is the widest case.
+      const terms = p.hints.flatMap((h) => h.terms ?? []);
+      if (!terms.length) continue;
+      const rest = termTex(p.tex, terms);
       const abutting = rest.includes("\\;\\htmlClass");
       if (!abutting) expect(spacing(rest), p.id).toBe(spacing(p.tex));
-      for (const lit of p.hintTerms) if (!lit.insert) expect(spacing(termTex(p.tex, p.hintTerms, lit)), `${p.id}: ${lit.phrase}`).toBe(spacing(rest));
+      for (const lit of terms) if (!lit.insert) expect(spacing(termTex(p.tex, terms, lit)), `${p.id}: ${lit.phrase}`).toBe(spacing(rest));
     }
   });
 });
@@ -156,8 +158,9 @@ describe("hoistSpacing", () => {
 describe("warm-up hint terms", () => {
   it("every phrase is found whole in its hint, every fragment in its TeX", () => {
     for (const p of every()) {
-      for (const t of p.hintTerms ?? []) {
-        expect(hintSegments(p.hint, [t]).some((s) => s.term === t), `${p.id}: "${t.phrase}"`).toBe(true);
+      expect(p.hints.length, p.id).toBeGreaterThan(0);
+      for (const h of p.hints) for (const t of h.terms ?? []) {
+        expect(hintSegments(h.text, [t]).some((s) => s.term === t), `${p.id}: "${t.phrase}"`).toBe(true);
         expect(t.tex.length > 0 || !!t.insert, `${p.id}: "${t.phrase}"`).toBe(true);
         for (const f of t.tex) expect(locateFragment(p.tex, f), `${p.id}: ${JSON.stringify(f)}`).toBeGreaterThanOrEqual(0);
         if (t.insert) expect(findFragment(p.tex, t.insert.before), `${p.id}: ${t.insert.before}`).toBeGreaterThanOrEqual(0);
@@ -165,22 +168,39 @@ describe("warm-up hint terms", () => {
     }
   });
 
-  it("the monic warm-up links its constant and middle coefficient", () => {
-    expect(PRACTICES["algebra.expand-factor.monic"]?.hintTerms).toEqual([
-      { phrase: "constant", tex: ["12"] },
-      { phrase: "middle coefficient", tex: ["7"] },
+  it("the monic warm-up has one hint linking its constant and middle coefficient", () => {
+    expect(PRACTICES["algebra.expand-factor.monic"]?.hints.map((h) => h.terms)).toEqual([
+      [
+        { phrase: "constant", tex: ["12"] },
+        { phrase: "middle coefficient", tex: ["7"] },
+      ],
     ]);
   });
 
-  it("the fractions warm-up lights every term, and all three denominators, the 9/2's included", () => {
+  it("the fractions warm-up's first hint moves the 6, its second finds a denominator the two x terms share; the pad wraps both hints' terms together", () => {
     const p = PRACTICES["algebra.number.fractions"]!;
-    const [every, denominators] = p.hintTerms!;
     expect(p.tex).toBe("\\dfrac{x}{4} + \\dfrac{x}{2} - 6 = \\dfrac{9}{2}");
-    expect(termTex(p.tex, p.hintTerms, denominators)).toBe(
-      "\\htmlClass{hint-term}{\\dfrac{x}{\\htmlClass{hint-term hint-term-lit}{4}}} + \\htmlClass{hint-term}{\\dfrac{x}{\\htmlClass{hint-term hint-term-lit}{2}}} - \\htmlClass{hint-term}{6} = \\htmlClass{hint-term}{\\dfrac{9}{\\htmlClass{hint-term hint-term-lit}{2}}}",
+    const [first, second] = p.hints;
+    expect(first.text).toMatch(/move the 6/);
+    expect(first.text).not.toMatch(/add|subtract/i);
+    expect(second.text).toMatch(/common denominator/);
+    expect(second.text).toMatch(/whole line/);
+    const [six, otherSide, xTerms] = first.terms!;
+    const [, common] = second.terms!;
+    const both = [...first.terms!, ...second.terms!];
+    const x4 = "\\htmlClass{hint-term}{\\dfrac{x}{\\htmlClass{hint-term}{4}}}";
+    const x2 = "\\htmlClass{hint-term}{\\dfrac{x}{\\htmlClass{hint-term}{2}}}";
+    expect(termTex(p.tex, both)).toBe(`${x4} + ${x2} - \\htmlClass{hint-term}{6} = \\htmlClass{hint-term}{\\dfrac{9}{2}}`);
+    expect(termTex(p.tex, both, six)).toContain("- \\htmlClass{hint-term hint-term-lit}{6} =");
+    expect(termTex(p.tex, both, otherSide)).toContain("= \\htmlClass{hint-term hint-term-lit}{\\dfrac{9}{2}}");
+    expect(termTex(p.tex, both, xTerms)).toBe(
+      `\\htmlClass{hint-term hint-term-lit}{\\dfrac{x}{\\htmlClass{hint-term}{4}}} + \\htmlClass{hint-term hint-term-lit}{\\dfrac{x}{\\htmlClass{hint-term}{2}}} - \\htmlClass{hint-term}{6} = \\htmlClass{hint-term}{\\dfrac{9}{2}}`,
     );
-    expect(termTex(p.tex, p.hintTerms, every)).toContain("\\htmlClass{hint-term hint-term-lit}{6}");
-    expect(termTex(p.tex, p.hintTerms, every)).not.toContain("hint-term-lit}{2}");
+    expect(termTex(p.tex, both, common)).toBe(
+      `\\htmlClass{hint-term}{\\dfrac{x}{\\htmlClass{hint-term hint-term-lit}{4}}} + \\htmlClass{hint-term}{\\dfrac{x}{\\htmlClass{hint-term hint-term-lit}{2}}} - \\htmlClass{hint-term}{6} = \\htmlClass{hint-term}{\\dfrac{9}{2}}`,
+    );
+    // With only the first hint showing, nothing inside the fractions is wrapped yet.
+    expect(termTex(p.tex, first.terms)).toBe("\\htmlClass{hint-term}{\\dfrac{x}{4}} + \\htmlClass{hint-term}{\\dfrac{x}{2}} - \\htmlClass{hint-term}{6} = \\htmlClass{hint-term}{\\dfrac{9}{2}}");
   });
 });
 

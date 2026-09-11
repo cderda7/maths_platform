@@ -51,12 +51,14 @@ export default function PracticePad({
   const [recognising, setRecognising] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
-  const hinted = run.hinted.includes(p.id);
+  /** The problem's hints shown so far, in order; their terms together are what the problem wraps. */
+  const hints = p.hints.slice(0, run.hinted[p.id] ?? 0);
+  const terms = hints.flatMap((h) => h.terms ?? []);
   const exampled = run.exampled.includes(p.id);
   const chat = run.chat[p.id] ?? [];
   /** The hint word under the pointer; lights its fragments of the problem while it stays there. */
   const [lit, setLit] = useState<HintTerm | null>(null);
-  const litTerm = hinted ? p.hintTerms?.find((t) => t.phrase === lit?.phrase) : undefined;
+  const litTerm = lit && terms.includes(lit) ? lit : undefined;
 
   const addStroke = (next: Stroke[]) => dispatch({ type: "run/stroke", run: runKey, problem: p.id, stroke: next[next.length - 1] });
   const onBurstEnd = (strokeCount: number) => {
@@ -91,14 +93,16 @@ export default function PracticePad({
         {!second && header}
         <p className="mt-3 text-[14px] text-ink-soft">{p.stem}</p>
         <div className="math-lg mt-3 text-ink">
-          <M tex={termTex(p.tex, p.hintTerms, litTerm)} display />
+          <M tex={termTex(p.tex, terms, litTerm)} display />
         </div>
         {second && (
           <div className="mt-4 flex flex-wrap justify-center gap-1.5">
             <LeafChip student id={p.leaf} />
           </div>
         )}
-        {hinted && <HintCard problem={p} lit={litTerm ?? null} onLit={setLit} className="mt-5" />}
+        {hints.map((h, i) => (
+          <HintCard key={i} hint={h} label={p.hints.length > 1 ? `Hint ${i + 1}` : "Hint"} lit={litTerm ?? null} onLit={setLit} className={i === 0 ? "mt-5" : "mt-3"} />
+        ))}
         <div className="mt-5">
           <Button variant="secondary" className="w-full" onClick={() => setHelpOpen(true)} disabled={run.example}>
             I need help
@@ -142,7 +146,7 @@ export default function PracticePad({
 
       {helpOpen && (
         <HelpMenu
-          hinted={hinted}
+          hints={{ shown: hints.length, total: p.hints.length }}
           exampled={exampled}
           chatted={chat.length > 0}
           onChat={() => {
@@ -164,9 +168,9 @@ export default function PracticePad({
   );
 }
 
-/** "I need help" on the pad: pick how much help. The video is listed so the shape is visible; it goes nowhere yet. The chat can always be reopened. */
+/** "I need help" on the pad: pick how much help. Hints come one per ask, in the problem's order, "another hint" once one is showing. The video is listed so the shape is visible; it goes nowhere yet. The chat can always be reopened. */
 function HelpMenu({
-  hinted,
+  hints,
   exampled,
   chatted,
   onHint,
@@ -174,7 +178,7 @@ function HelpMenu({
   onChat,
   onClose,
 }: {
-  hinted: boolean;
+  hints: { shown: number; total: number };
   exampled: boolean;
   chatted: boolean;
   onHint: () => void;
@@ -182,8 +186,10 @@ function HelpMenu({
   onChat: () => void;
   onClose: () => void;
 }) {
+  const hintsLeft = hints.total - hints.shown;
+  const hintNote = hintsLeft === 0 ? (hints.total > 1 ? "All shown" : "Shown") : hints.shown > 0 ? `Show ${hints.shown + 1} of ${hints.total} →` : undefined;
   const options: { key: string; title: string; onPick?: () => void; note?: string }[] = [
-    { key: "hint", title: "hint", onPick: hinted ? undefined : onHint, note: hinted ? "Shown" : undefined },
+    { key: "hint", title: hints.shown > 0 ? "another hint" : "hint", onPick: hintsLeft > 0 ? onHint : undefined, note: hintNote },
     { key: "example", title: "worked example", onPick: exampled ? undefined : onExample, note: exampled ? "Seen" : undefined },
     { key: "video", title: "video", note: "Not available yet" },
     { key: "chat", title: "chat", onPick: onChat, note: chatted ? "Continue →" : "Open →" },

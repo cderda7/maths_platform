@@ -68,9 +68,10 @@ describe("the warm-up sequence", () => {
     expect(byEase(["stats.data.summary", "algebra.number.fractions"])).toEqual(["algebra.number.fractions", "stats.data.summary"]);
     expect(new Set(EASE).size).toBe(EASE.length);
   });
-  it("every practice has a hint and a script the pad can read", () => {
+  it("every practice has at least one hint and a script the pad can read", () => {
     for (const p of WARMUP_BANK) {
-      expect(p.hint.length).toBeGreaterThan(0);
+      expect(p.hints.length).toBeGreaterThan(0);
+      for (const h of p.hints) expect(h.text.length, p.id).toBeGreaterThan(0);
       expect(warmupScript(p)).toEqual(p.steps.map((s) => s.tex));
       if (p.followUp) expect(p.followUp.leaf).toBe(p.leaf);
     }

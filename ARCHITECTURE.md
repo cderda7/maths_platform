@@ -208,6 +208,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 75 | Practice pad: "I need help" straight under the question, not at the foot of the column; the fractions warm-up is x/4 + x/2 − 6 = 9/2 with a clearing-denominators hint | `…?stage=practice`, the practice overlay | 69, 29 | [architecture/75-warmup-fractions-help-under-question.md](architecture/75-warmup-fractions-help-under-question.md) |
 | 76 | The fraction problem stays wrong after the individual review: Sam's Q7 rework is a second slip, so the group's Q7 is a real struggle | `/student` group, `…?stage=report` | 52 | [architecture/76-q7-rework-still-wrong.md](architecture/76-q7-rework-still-wrong.md) |
 | 77 | Hint terms can name a later occurrence of a fragment (`{ tex, within }`); `termTex` works on positioned spans | `…?stage=practice`, the practice overlay | 75 | [architecture/77-hint-fragment-within.md](architecture/77-hint-fragment-within.md) |
+| 78 | Several hints per problem, one per ask ("another hint · Show 2 of 2 →", "All shown"), stacked under the problem; the fractions warm-up teaches like terms first: move the 6, then a denominator the two x terms share | `…?stage=practice`, the practice overlay, `POST /api/help-chat` | 77, 69 | [architecture/78-multiple-hints.md](architecture/78-multiple-hints.md) |
 
 ## Conventions
 

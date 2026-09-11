@@ -1288,3 +1288,35 @@ the two halves of a `HintTerm` now use one idea. A scoped fragment says which pi
 problem's own notation, survives edits elsewhere in the line, and resolves to -1 (left alone) rather
 than a wrong piece when its scope is gone.
 
+## 2026-09-11 · A problem's hints are an ordered list given one per ask, and the session keeps only the count
+
+**Decision.** `PracticeProblem.hints: Hint[]` (each `{ text, terms? }`) replaces the single `hint` and
+`hintTerms`. A run stores `hinted[problemId] = n`, the number shown; "hint" on the help menu shows
+hint `n + 1` and is a no-op at the end. The shown hints stack under the problem and the problem
+wraps the terms of all of them together.
+
+**Context.** The user wants the fractions warm-up to teach like terms first (move the 6) and a
+shared denominator second, and asked for "multiple hints" generally (ticket 78).
+
+**Alternatives considered.**
+- *Keep one hint and make it longer.* Two moves in one sentence is the prescriptive hint the user
+  dislikes; the point of a second ask is that the student chose to hear more.
+- *Store which hints were shown as a set of indices.* Allows skipping, which nothing offers; the
+  count is the whole state and hydrates from the old id list trivially (each id → 1).
+- *Replace the first card with the second.* Loses the first hint just when the second builds on it;
+  the column has room and both stay hoverable.
+- *A tree keyed on the student's lines* (the user's later question). The right long-term shape, but
+  it needs a reader of the lines that today only the help chat has; the ordered list is the fallback
+  such a tree would need anyway. Logged in FUTURE_FEATURES.
+
+**Tradeoffs.** Every fixture changed shape (a one-off script did the migration; the terms moved
+inside the hint object). Wrapping all shown hints' terms at once means a second hint can add boxes
+inside pieces the first already boxed; the spacing test covers the union, and lighting still moves
+nothing. Labels "Hint 1 / Hint 2" imply a fixed sequence, which a conditional hint would break.
+
+**Defense.** One field, one count, one reducer case: the menu, the cards, the chat brief and the
+hydration all read the same list in the same order, and "how many has this student asked for" is
+now a number the teacher's side could show. The pedagogy the user asked for (move first, then a
+denominator only for the terms being combined) is expressed purely as data, with the worked example
+following the same path.
+
