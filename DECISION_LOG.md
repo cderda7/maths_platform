@@ -1356,3 +1356,41 @@ argue with the test.
 is one line, each line is one evaluation key), so a fixture that packs two steps into one row is
 the pad reading two things it cannot tell apart. Putting the rule in a test over the bank means the
 next problem written follows it without anyone remembering the screenshot.
+## 2026-09-11 · A hint is chosen by where the student's lines have got, by rule, with the ordered list as the fallback
+
+**Decision.** `Hint.at?: number[]` says how many lines of the reference working the student has
+written when the hint fits (`[0]` a blank pad). `pickHint` finds the position from the last line the
+pad placed and gives, in order of preference: an unshown hint for that position; an unshown general
+hint (no `at`); the first unshown hint for a later position; nothing. A hint for a position already
+passed is never offered. The session keeps the indices shown, in the order shown, so the cards and
+their labels follow the order the student received them.
+
+**Context.** The user asked for hints that read the student's work instead of a prescriptive list
+(ticket 80). The pad's recognition is scripted (each burst reveals the next line of the reference
+working), so the lines are always a prefix of the steps and the position is exact.
+
+**Alternatives considered.**
+- *A predicate per hint* (`when: (lines) => boolean`). Most general, and the only option that
+  would survive a real recogniser producing lines the script did not write. Rejected for now:
+  fixtures become code a teacher cannot write, and there is no recogniser to justify it.
+- *Attach each hint to the step it follows* (`steps[k].hint`). Reads well, but a hint that fits two
+  points (the denominator hint after line 1 or 2) would be duplicated, and the opening hint has no
+  step to live on.
+- *A model-written hint from the help chat's brief.* The product answer; deferred to a ticket of
+  its own so the mockup works offline and deterministically. The list built here is the fallback
+  that version would need.
+- *Fall back to the nearest earlier hint when nothing fits here.* Rejected: a hint about a move the
+  student has already made is the prescriptive hint the user dislikes; falling forward is at least
+  about what comes next, and "None for this step" is honest when nothing does.
+
+**Tradeoffs.** `at` counts lines, which is only as meaningful as the recogniser: with real ink,
+`positionOf` matches the last line to a step and otherwise trusts the count, so a wrong line puts the
+student "at" its position. The five fractions hints are hand-written for one path; a student on a
+different valid path (clearing every denominator first) gets hints for a path they are not on.
+Every problem but fractions still has one general hint, so nothing changes there.
+
+**Defense.** The whole mechanism is one pure function with a five-line preference order, unit-tested
+on every branch and driven end to end with pen strokes. It gives a real-feeling "read my work" on the
+mockup with no model call, keeps the chat brief honest about which hint fits where, and leaves a
+clean seam (the same `pickHint` signature) for a version that reads the lines more deeply.
+

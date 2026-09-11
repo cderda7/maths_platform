@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import katex from "katex";
 import { PRACTICES } from "@/data/practice";
 import type { PracticeProblem } from "@/data/types";
-import { findFragment, hintSegments, hoistSpacing, locateFragment, termTex } from "./hint";
+import { findFragment, hintSegments, hoistSpacing, locateFragment, pickHint, positionOf, termTex } from "./hint";
 
 const constant = { phrase: "constant", tex: ["12"] };
 const middle = { phrase: "middle coefficient", tex: ["7"] };
@@ -223,5 +223,50 @@ describe("locateFragment", () => {
     const b = { phrase: "b", tex: [{ tex: "6", within: "- 6" }] };
     expect(termTex(tex, [a, b])).toBe("\\dfrac{x}{4} + \\dfrac{x}{2} - \\htmlClass{hint-term}{6} = \\dfrac{9}{2}");
     expect(termTex(tex, [a, b], b)).toBe("\\dfrac{x}{4} + \\dfrac{x}{2} - \\htmlClass{hint-term hint-term-lit}{6} = \\dfrac{9}{2}");
+  });
+});
+
+describe("pickHint", () => {
+  const p = PRACTICES["algebra.number.fractions"]!;
+  const step = (i: number) => p.steps[i].tex;
+
+  it("reads the position from the last line the pad placed, by the step it matches, spacing aside", () => {
+    expect(positionOf(p, [])).toBe(0);
+    expect(positionOf(p, [step(0)])).toBe(1);
+    expect(positionOf(p, [step(0), step(1).replace(/ /g, "")])).toBe(2);
+    expect(positionOf(p, ["junk", "more junk"])).toBe(2);
+  });
+
+  it("the fractions hints are written one per point in the working", () => {
+    expect(p.hints.map((h) => h.at)).toEqual([[0], [1, 2], [3], [4], [5]]);
+    for (const h of p.hints) for (const at of h.at!) expect(at, h.text).toBeLessThanOrEqual(p.steps.length);
+  });
+
+  it("gives the hint written for where the student is, whatever was shown before", () => {
+    expect(pickHint(p, [], [])).toBe(0);
+    expect(pickHint(p, [step(0)], [])).toBe(1);
+    expect(pickHint(p, [step(0), step(1)], [])).toBe(1);
+    expect(pickHint(p, [step(0), step(1), step(2)], [0, 1])).toBe(2);
+    expect(pickHint(p, p.steps.slice(0, 4).map((s) => s.tex), [])).toBe(3);
+  });
+
+  it("falls forward to the first hint for a later point when the one for here is spent, never back to a point already passed", () => {
+    expect(pickHint(p, [], [0])).toBe(1);
+    expect(pickHint(p, [step(0)], [1])).toBe(2);
+    expect(pickHint(p, p.steps.slice(0, 4).map((s) => s.tex), [3])).toBe(4);
+    expect(pickHint(p, p.steps.slice(0, 4).map((s) => s.tex), [3, 4])).toBeNull();
+    expect(pickHint(p, p.steps.map((s) => s.tex), [])).toBeNull();
+  });
+
+  it("a general hint (no `at`) is offered wherever the student is, once", () => {
+    const monic = PRACTICES["algebra.expand-factor.monic"]!;
+    expect(monic.hints.every((h) => !h.at)).toBe(true);
+    expect(pickHint(monic, [], [])).toBe(0);
+    expect(pickHint(monic, ["x^2 + 7x + 12 = 0", "anything"], [])).toBe(0);
+    expect(pickHint(monic, [], [0])).toBeNull();
+    // A general hint yields to one written for the point, and is offered after it.
+    const mixed = { steps: p.steps, hints: [{ text: "general" }, { text: "here", at: [1] }] };
+    expect(pickHint(mixed, [step(0)], [])).toBe(1);
+    expect(pickHint(mixed, [step(0)], [1])).toBe(0);
   });
 });

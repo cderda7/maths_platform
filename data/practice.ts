@@ -152,9 +152,11 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "x = 14", label: "Divided by 3", tags: [tag("algebra.equations.linear")] },
     ],
     why: "Like terms first: the number goes across, and the two x fractions only need a denominator they share, not one for the whole line.",
+    // One hint per point in the working, picked by where the student's lines have got (`at` counts lines of the steps above).
     hints: [
       {
         text: "Get the like terms together: move the 6 across to the other side, away from the x terms.",
+        at: [0],
         terms: [
           { phrase: "6", tex: ["6"] },
           { phrase: "other side", tex: ["\\dfrac{9}{2}"] },
@@ -163,6 +165,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       },
       {
         text: "To combine the x terms they need a common denominator, but only one those two share. It doesn't have to work for the whole line.",
+        at: [1, 2],
         terms: [
           { phrase: "x terms", tex: ["\\dfrac{x}{4}", "\\dfrac{x}{2}"] },
           {
@@ -173,6 +176,23 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
             ],
           },
         ],
+      },
+      {
+        text: "The x terms have the same denominator now, so they can be one fraction: the numerators combine and the denominator stays.",
+        at: [3],
+        terms: [{ phrase: "x terms", tex: ["\\dfrac{x}{4}", "\\dfrac{x}{2}"] }],
+      },
+      {
+        text: "One fraction on each side. Whatever you do to clear the 4 from under the x, the other side gets too.",
+        at: [4],
+        terms: [
+          { phrase: "4", tex: [{ tex: "4", within: "\\dfrac{x}{4}" }] },
+          { phrase: "other side", tex: ["\\dfrac{9}{2}"] },
+        ],
+      },
+      {
+        text: "Only the 3 in front of x is left. Undo what it is doing to x.",
+        at: [5],
       },
     ],
   },

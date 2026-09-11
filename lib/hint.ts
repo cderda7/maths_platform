@@ -1,4 +1,35 @@
-import type { HintTerm, TexFragment } from "@/data/types";
+import type { HintTerm, PracticeProblem, TexFragment } from "@/data/types";
+
+const sameTex = (a: string, b: string) => a.replace(/\s+/g, "") === b.replace(/\s+/g, "");
+
+/**
+ * How far into the reference working the student's lines have got: the step their last read line
+ * matches, plus one; 0 with nothing written. A last line that matches no step counts by its
+ * position, so a student who has written three lines the pad could not place is still "at 3".
+ */
+export function positionOf(problem: Pick<PracticeProblem, "steps">, lines: string[]): number {
+  const last = lines[lines.length - 1];
+  if (last === undefined) return 0;
+  const step = problem.steps.findIndex((s) => sameTex(s.tex, last));
+  return step >= 0 ? step + 1 : lines.length;
+}
+
+/**
+ * The hint to give next, as an index into `problem.hints`, or null when there is none for where
+ * the student is. Reads the lines first: an unshown hint written for this position wins; failing
+ * that a general hint (no `at`); failing that the first unshown hint written for a later position,
+ * which is at least about what comes next. A hint for a position already passed is never offered.
+ */
+export function pickHint(problem: Pick<PracticeProblem, "steps" | "hints">, lines: string[], shown: number[]): number | null {
+  const pos = positionOf(problem, lines);
+  const unshown = problem.hints.map((h, i) => ({ h, i })).filter(({ i }) => !shown.includes(i));
+  const here = unshown.find(({ h }) => h.at?.includes(pos));
+  if (here) return here.i;
+  const general = unshown.find(({ h }) => !h.at);
+  if (general) return general.i;
+  const ahead = unshown.find(({ h }) => Math.min(...h.at!) > pos);
+  return ahead ? ahead.i : null;
+}
 
 /** A run of hint text: plain, or one of the problem's linked terms. */
 export interface HintSegment {

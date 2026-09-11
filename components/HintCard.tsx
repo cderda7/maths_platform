@@ -8,13 +8,49 @@ import { hintSegments } from "@/lib/hint";
  * One of a practice problem's hints with its linked words: light blue at rest, dark blue while
  * hovered (or focused). The hovered term is reported through `onLit`; the caller lights the
  * matching fragment in its own rendering of the problem with `termTex`. `label` is the eyebrow:
- * "Hint" when the problem has one, "Hint 1", "Hint 2" when it has several and they stack.
- * Practice problems only, the warm-up and the mid-set "one move": a problem in the set never shows one.
+ * "Hint" when the problem has one, "Hint 1", "Hint 2" when several stack. A hint the student has
+ * moved past is `collapsed`: one muted line, no linked words, and the whole card is a button that
+ * opens it (`onToggle`); the latest hint is never collapsed. Practice problems only, the warm-up
+ * and the mid-set "one move": a problem in the set never shows one.
  */
-export default function HintCard({ hint, label, lit, onLit, className = "" }: { hint: Hint; label: string; lit: HintTerm | null; onLit: (term: HintTerm | null) => void; className?: string }) {
+export default function HintCard({
+  hint,
+  label,
+  lit,
+  onLit,
+  collapsed = false,
+  onToggle,
+  className = "",
+}: {
+  hint: Hint;
+  label: string;
+  lit: HintTerm | null;
+  onLit: (term: HintTerm | null) => void;
+  collapsed?: boolean;
+  onToggle?: () => void;
+  className?: string;
+}) {
+  if (collapsed) {
+    return (
+      <Card tone="soft" className={`p-0 ${className}`} data-hint data-collapsed>
+        <button type="button" onClick={onToggle} className="block w-full px-4 py-3 text-left" aria-expanded={false}>
+          <span className="flex items-baseline gap-2">
+            <Eyebrow>{label}</Eyebrow>
+            <span className="min-w-0 flex-1 truncate text-[13px] text-ink-muted">{hint.text}</span>
+          </span>
+        </button>
+      </Card>
+    );
+  }
   return (
     <Card tone="soft" className={`p-4 ${className}`} data-hint>
-      <Eyebrow>{label}</Eyebrow>
+      {onToggle ? (
+        <button type="button" onClick={onToggle} className="block w-full text-left" aria-expanded>
+          <Eyebrow>{label}</Eyebrow>
+        </button>
+      ) : (
+        <Eyebrow>{label}</Eyebrow>
+      )}
       <p className="mt-1.5 text-[14px] leading-snug text-ink">
         {hintSegments(hint.text, hint.terms).map((seg, i) => {
           const term = seg.term;

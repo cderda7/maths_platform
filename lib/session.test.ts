@@ -95,7 +95,7 @@ describe("student session flow", () => {
     expect(s.warmup.step).toBe(1);
     expect(s.warmup.done).toEqual(["w-fractions"]);
     expect(warmupProblem(s).id).toBe("w-monic");
-    expect(s.warmup.hinted).toEqual({ "w-fractions": 1 });
+    expect(s.warmup.hinted).toEqual({ "w-fractions": [0] });
     s = sessionReducer(s, { type: "warmup/skill-done" });
     expect(warmupProblem(s).id).toBe("w-nfl");
     s = sessionReducer(s, { type: "warmup/skill-done" });
@@ -178,12 +178,13 @@ describe("hydrating a stored session", () => {
     expect(hydrateSession({ confidence: { level: "low" } }).confidence).toEqual({ level: "low" });
   });
 
-  it("a run's hinted saved as a list of ids (before hints were counted) becomes one hint shown each", () => {
+  it("a run's hinted in its earlier shapes: a list of ids is the first hint each, a count per id is the first n in order, indices stay", () => {
     const old = { stage: "practice", warmup: { hinted: ["w-monic", "w-fractions"] }, overlayRun: { hinted: [] } };
     const s = hydrateSession(old);
-    expect(s.warmup.hinted).toEqual({ "w-monic": 1, "w-fractions": 1 });
+    expect(s.warmup.hinted).toEqual({ "w-monic": [0], "w-fractions": [0] });
     expect(s.overlayRun.hinted).toEqual({});
-    expect(hydrateSession({ overlayRun: { hinted: { "w-nfl": 1 } } }).overlayRun.hinted).toEqual({ "w-nfl": 1 });
+    expect(hydrateSession({ overlayRun: { hinted: { "w-nfl": 1, "w-fractions": 2 } } }).overlayRun.hinted).toEqual({ "w-nfl": [0], "w-fractions": [0, 1] });
+    expect(hydrateSession({ overlayRun: { hinted: { "w-fractions": [1, 3], junk: "x" } } }).overlayRun.hinted).toEqual({ "w-fractions": [1, 3] });
   });
 });
 
@@ -212,22 +213,34 @@ describe("the warm-up on the pad", () => {
     expect(s.warmup.ink["w-monic"]).toEqual([]);
   });
 
-  it("hints are counted per problem, one per ask, and stop at the problem's last", () => {
+  it("hints are picked per problem for where the lines have got, remembered as indices in the order shown, and stop when none fits", () => {
     let s = sessionReducer(start, { type: "run/hint", run: "warmup" });
-    expect(s.warmup.hinted).toEqual({ "w-monic": 1 });
+    expect(s.warmup.hinted).toEqual({ "w-monic": [0] });
     expect(sessionReducer(s, { type: "run/hint", run: "warmup" })).toBe(s);
     s = sessionReducer(s, { type: "run/example", run: "warmup" });
     for (let i = 0; i < PRACTICE.steps.length; i++) s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
     s = sessionReducer(s, { type: "run/next", run: "warmup" });
     s = sessionReducer(s, { type: "run/hint", run: "warmup" });
-    expect(s.warmup.hinted).toEqual({ "w-monic": 1, "w-monic-2": 1 });
-    // The fractions warm-up has two hints: the second ask shows the second, the third is a no-op.
+    expect(s.warmup.hinted).toEqual({ "w-monic": [0], "w-monic-2": [0] });
+    // The fractions warm-up: on a blank pad the "move the 6" hint; once the pad has read the first
+    // step, the next ask is the common-denominator hint written for that point, not the third in the list.
     let f = sessionAt("practice");
-    expect(warmupProblem(f).id).toBe("w-fractions");
+    const p = warmupProblem(f);
+    expect(p.id).toBe("w-fractions");
     f = sessionReducer(f, { type: "run/hint", run: "warmup" });
+    expect(f.warmup.hinted).toEqual({ "w-fractions": [0] });
+    f = sessionReducer(f, { type: "run/reveal", run: "warmup", problem: "w-fractions", line: { tex: p.steps[0].tex, strokeCount: 3 } });
     f = sessionReducer(f, { type: "run/hint", run: "warmup" });
-    expect(f.warmup.hinted).toEqual({ "w-fractions": 2 });
-    expect(sessionReducer(f, { type: "run/hint", run: "warmup" })).toBe(f);
+    expect(f.warmup.hinted).toEqual({ "w-fractions": [0, 1] });
+    // Skipping ahead: with the fourth step read and nothing else asked, the hint is the one for that point.
+    let g = sessionAt("practice");
+    for (const st of p.steps.slice(0, 4)) g = sessionReducer(g, { type: "run/reveal", run: "warmup", problem: "w-fractions", line: { tex: st.tex, strokeCount: 1 } });
+    g = sessionReducer(g, { type: "run/hint", run: "warmup" });
+    expect(g.warmup.hinted).toEqual({ "w-fractions": [3] });
+    // Then the one for the step after; then nothing fits and the ask is a no-op.
+    g = sessionReducer(g, { type: "run/hint", run: "warmup" });
+    expect(g.warmup.hinted).toEqual({ "w-fractions": [3, 4] });
+    expect(sessionReducer(g, { type: "run/hint", run: "warmup" })).toBe(g);
   });
 
   it("the help chat is kept per problem, oldest first, blank lines dropped, and a reply lands on the problem it was asked on", () => {
@@ -304,7 +317,7 @@ describe("the isolated practice on the pad", () => {
     s = sessionReducer(s, { type: "run/reveal", run: "overlay", problem: "w-monic", line: { tex: "a", strokeCount: 1 } });
     s = sessionReducer(s, { type: "run/hint", run: "overlay" });
     expect(s.overlayRun.lines["w-monic"].map((l) => l.tex)).toEqual(["a"]);
-    expect(s.overlayRun.hinted).toEqual({ "w-monic": 1 });
+    expect(s.overlayRun.hinted).toEqual({ "w-monic": [0] });
     expect(s.warmup.lines).toEqual({});
     expect(s.lines.q1 ?? []).toEqual([]);
     s = sessionReducer(s, { type: "run/example", run: "overlay" });

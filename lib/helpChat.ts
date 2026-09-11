@@ -1,7 +1,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { PRACTICES } from "@/data/practice";
 import { studentLeafName } from "@/data/taxonomy";
-import type { ChatMessage, PracticeProblem } from "@/data/types";
+import type { ChatMessage, Hint, PracticeProblem } from "@/data/types";
 
 /**
  * The help chat on the practice pad: the fourth option under "I need help", a conversation with
@@ -64,7 +64,8 @@ export function helpChatSystem(p: PracticeProblem, lines: string[]): string {
   const skill = studentLeafName(p.leaf).name;
   const steps = p.steps.map((s, i) => `${i + 1}. ${s.label}: ${s.tex}`).join("\n");
   const ways = p.approaches?.length ? p.approaches.map((a) => `- ${a.name}: ${a.hint}`).join("\n") : "(one way in; the hints above name it)";
-  const hints = p.hints.map((h, i) => `${i + 1}. ${h.text}`).join("\n");
+  const where = (h: Hint) => (!h.at ? "anywhere" : h.at.includes(0) ? "on a blank pad" : `after line ${h.at.join(" or ")} of the reference working`);
+  const hints = p.hints.map((h, i) => `${i + 1}. (${where(h)}) ${h.text}`).join("\n");
   const written = lines.length ? lines.map((l, i) => `${i + 1}. ${l}`).join("\n") : "(nothing yet)";
   return `You are the tutor inside Edexia's maths practice pad. A Year 11 Mathematical Methods student (QCE Unit 1) is doing one short practice problem on one skill, writing by hand on the pad, and has opened a chat beside it because they are stuck. You are talking to one student in a narrow chat panel.
 
@@ -77,7 +78,7 @@ ${p.tex}
 The reference working, for your eyes only. Never show it, never paste a step from it, never confirm or deny a final answer against it.
 ${steps}
 
-The hints the pad already offers, in the order it gives them, one per ask:
+The hints the pad already offers, one per ask, each picked for where the student's lines have got:
 ${hints}
 
 Ways in at this stage. Offer these before inventing your own; each is a name and the hint that goes with it.

@@ -10,7 +10,7 @@ import PracticeCard from "@/components/PracticeCard";
 import ReadAs from "@/components/ReadAs";
 import { Button, Eyebrow } from "@/components/ui";
 import { LeafChip } from "@/components/Tag";
-import { termTex } from "@/lib/hint";
+import { pickHint, termTex } from "@/lib/hint";
 import { nextLine } from "@/lib/recognition";
 import type { PracticeRun, RunKey, SessionAction } from "@/lib/session";
 import { warmupScript } from "@/lib/warmup";
@@ -51,9 +51,14 @@ export default function PracticePad({
   const [recognising, setRecognising] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
-  /** The problem's hints shown so far, in order; their terms together are what the problem wraps. */
-  const hints = p.hints.slice(0, run.hinted[p.id] ?? 0);
+  /** The hints shown so far, in the order they were given (each picked for where the lines were); their terms together are what the problem wraps. */
+  const shown = run.hinted[p.id] ?? [];
+  const hints = shown.map((i) => p.hints[i]).filter((h) => h !== undefined);
   const terms = hints.flatMap((h) => h.terms ?? []);
+  const nextHint = pickHint(p, lines.map((l) => l.tex), shown) !== null;
+  /** Earlier hints (every one but the latest) collapse to a line; these are the ones the student has opened back up. */
+  const [reopened, setReopened] = useState<number[]>([]);
+  const toggle = (i: number) => setReopened((r) => (r.includes(i) ? r.filter((x) => x !== i) : [...r, i]));
   const exampled = run.exampled.includes(p.id);
   const chat = run.chat[p.id] ?? [];
   /** The hint word under the pointer; lights its fragments of the problem while it stays there. */
@@ -101,7 +106,16 @@ export default function PracticePad({
           </div>
         )}
         {hints.map((h, i) => (
-          <HintCard key={i} hint={h} label={p.hints.length > 1 ? `Hint ${i + 1}` : "Hint"} lit={litTerm ?? null} onLit={setLit} className={i === 0 ? "mt-5" : "mt-3"} />
+          <HintCard
+            key={shown[i]}
+            hint={h}
+            label={p.hints.length > 1 ? `Hint ${i + 1}` : "Hint"}
+            lit={litTerm ?? null}
+            onLit={setLit}
+            collapsed={i < hints.length - 1 && !reopened.includes(shown[i])}
+            onToggle={i < hints.length - 1 ? () => toggle(shown[i]) : undefined}
+            className={i === 0 ? "mt-5" : "mt-2"}
+          />
         ))}
         <div className="mt-5">
           <Button variant="secondary" className="w-full" onClick={() => setHelpOpen(true)} disabled={run.example}>
@@ -146,7 +160,7 @@ export default function PracticePad({
 
       {helpOpen && (
         <HelpMenu
-          hints={{ shown: hints.length, total: p.hints.length }}
+          hints={{ shown: hints.length, total: p.hints.length, next: nextHint }}
           exampled={exampled}
           chatted={chat.length > 0}
           onChat={() => {
@@ -168,7 +182,7 @@ export default function PracticePad({
   );
 }
 
-/** "I need help" on the pad: pick how much help. Hints come one per ask, in the problem's order, "another hint" once one is showing. The video is listed so the shape is visible; it goes nowhere yet. The chat can always be reopened. */
+/** "I need help" on the pad: pick how much help. Hints come one per ask, each picked for where the student's lines have got (`next` says one is available), "another hint" once one is showing. The video is listed so the shape is visible; it goes nowhere yet. The chat can always be reopened. */
 function HelpMenu({
   hints,
   exampled,
@@ -178,7 +192,7 @@ function HelpMenu({
   onChat,
   onClose,
 }: {
-  hints: { shown: number; total: number };
+  hints: { shown: number; total: number; next: boolean };
   exampled: boolean;
   chatted: boolean;
   onHint: () => void;
@@ -186,10 +200,9 @@ function HelpMenu({
   onChat: () => void;
   onClose: () => void;
 }) {
-  const hintsLeft = hints.total - hints.shown;
-  const hintNote = hintsLeft === 0 ? (hints.total > 1 ? "All shown" : "Shown") : hints.shown > 0 ? `Show ${hints.shown + 1} of ${hints.total} →` : undefined;
+  const hintNote = hints.next ? undefined : hints.shown === hints.total ? (hints.total > 1 ? "All shown" : "Shown") : "None for this step";
   const options: { key: string; title: string; onPick?: () => void; note?: string }[] = [
-    { key: "hint", title: hints.shown > 0 ? "another hint" : "hint", onPick: hintsLeft > 0 ? onHint : undefined, note: hintNote },
+    { key: "hint", title: hints.shown > 0 ? "another hint" : "hint", onPick: hints.next ? onHint : undefined, note: hintNote },
     { key: "example", title: "worked example", onPick: exampled ? undefined : onExample, note: exampled ? "Seen" : undefined },
     { key: "video", title: "video", note: "Not available yet" },
     { key: "chat", title: "chat", onPick: onChat, note: chatted ? "Continue →" : "Open →" },

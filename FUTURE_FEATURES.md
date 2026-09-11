@@ -738,12 +738,12 @@ agents add sections above it and leave it alone.
   x terms together but unlike denominators / a slip on a line) and "hint" picks the first whose
   condition holds, falling back to the next in order; (2) for the product, the same one-line hint
   written by the model from the brief the help chat already has, with the fixed list as the fallback
-  and the guardrails from the chat prompt. Not started: the user asked for thoughts first.
-- **Every other problem still has one hint.** Only the fractions warm-up has two; the shape allows
-  any number and the menu counts them, so the rest can grow as the pedagogy is written.
-- **Hint labels count from 1 even when the second never comes.** A one-hint problem shows plain
-  "Hint"; two or more show "Hint 1", "Hint 2". A problem whose second hint is conditional (above)
-  would need the label to stop implying a fixed sequence.
+  and the guardrails from the chat prompt. (1) done in ticket 80 (2026-09-11): `Hint.at` and
+  `pickHint`; (2) still open, below.
+- **Every other problem still has one hint.** Only the fractions warm-up has several; the shape allows
+  any number, so the rest can grow as the pedagogy is written, each with an `at`.
+- **Hint labels count from 1 even when the second never comes.** Done in ticket 80: the cards are
+  labelled in the order the student received them, whichever hints those were.
 - **The worked example does not know which hints were shown.** Its steps follow the hints' path for
   the fractions problem by construction only; nothing checks the two agree.
 
@@ -764,6 +764,27 @@ agents add sections above it and leave it alone.
 - **A branch box that overflows.** The read-back's two boxes are half-width each and scroll
   sideways inside if a case is long (`x = \tfrac{1}{2}` fits; a surd might not). The worked
   example card's boxes only wrap the flex row.
+## Hints that read the student's work (from ticket 80, 2026-09-11)
+
+- **A model-written hint from the brief.** The product version of ticket 80: one sentence written
+  from the help chat's brief (problem, reference working, the read lines, the fixed hints as
+  material) under the chat prompt's guardrails, with `pickHint`'s answer as the offline fallback and
+  the thing to show while it streams. Deferred: the mockup should work without a key.
+- **Hints for a slip, not just a position.** `positionOf` places the student by the step their last
+  line matches; it cannot say "line 2 is wrong". The set's problems have evaluation verdicts per line
+  (`lib/evaluate`) and the warm-up does not; once it does, a hint could carry `on: "slip"` and point
+  at the line to check rather than the next move.
+- **Hints for a path the reference working does not take.** The fractions hints follow one path
+  (move the 6 first). A student who clears every denominator first is on a valid path with no hints
+  written for it; `positionOf` will count their lines and offer whatever fits that count. A second
+  hint list per approach (the help chat already has `approaches`) would fix it.
+- **Real ink.** With a recogniser that reads what was actually written, `positionOf` should match any
+  line, not only the last, and `at` may want to become a predicate on the lines. The `pickHint`
+  signature is the seam.
+- **Collapsed hints lose their linked words until reopened.** The one-line form is plain text; the
+  problem still wraps their fragments (so the layout never moves) but nothing lights them.
+- **No "why this hint" for the teacher.** The session stores which hints each student was given and
+  in what order, which is enough for a teacher view of "who needed what where"; nothing shows it yet.
 
 ## Carson's notes
 

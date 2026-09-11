@@ -124,6 +124,12 @@ export interface Hint {
   text: string;
   /** Words in the hint that point at parts of the problem: hovering "constant" lights the 12. */
   terms?: HintTerm[];
+  /**
+   * Where in the working this hint fits, as lines of the reference working the student has
+   * written: `[0]` is a blank pad, `[1, 2]` a student whose last line is the first or second step.
+   * Absent: a general hint, offered wherever the student is. See `pickHint` in `lib/hint`.
+   */
+  at?: number[];
 }
 
 /** One line of a chat between the student and the tutor: the warm-up's concerns chat and the help chat on the pad. */

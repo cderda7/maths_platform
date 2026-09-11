@@ -1,4 +1,5 @@
-import type { ChatMessage, Confidence, Pathway, Stage, Stroke } from "@/data/types";
+import type { ChatMessage, Confidence, Pathway, PracticeProblem, Stage, Stroke } from "@/data/types";
+import { pickHint } from "./hint";
 import { groupOf, type LeafId } from "@/data/taxonomy";
 import { PRACTICES } from "@/data/practice";
 import { byEase, concernsAnswered, focusLeaves, practiceFor, warmupSequence, type WarmupMessage } from "./warmup";
@@ -43,8 +44,8 @@ export interface PracticeRun {
   example: boolean;
   /** Steps of the current problem's worked example revealed so far. */
   exampleShown: number;
-  /** Hints shown so far per practice problem id; each ask on the help menu shows the problem's next one. */
-  hinted: Record<string, number>;
+  /** Hints shown so far per practice problem id, as indices into the problem's hints in the order shown; each ask picks by where the lines have got (`pickHint`). */
+  hinted: Record<string, number[]>;
   /** Ids of the warm-up problems whose worked example has been seen in full. */
   exampled: string[];
   /** Recognised lines and the ink behind them, per practice problem id. */
@@ -262,11 +263,21 @@ export function hydrateSession(raw: unknown): StudentSession {
   };
 }
 
-/** A run's `hinted` was a list of problem ids before hints were counted (ticket 78): each of those is one hint shown. */
-function hydrateHinted(run: { hinted?: unknown }): Record<string, number> {
+/**
+ * A run's `hinted` in its earlier shapes: a list of problem ids (one hint each, before ticket 78),
+ * a count per id (hints in order, ticket 78), or the current indices per id (ticket 80).
+ */
+function hydrateHinted(run: { hinted?: unknown }): Record<string, number[]> {
   const h = run.hinted;
-  if (Array.isArray(h)) return Object.fromEntries(h.filter((id): id is string => typeof id === "string").map((id) => [id, 1]));
-  return h && typeof h === "object" ? (h as Record<string, number>) : {};
+  if (Array.isArray(h)) return Object.fromEntries(h.filter((id): id is string => typeof id === "string").map((id) => [id, [0]]));
+  if (!h || typeof h !== "object") return {};
+  return Object.fromEntries(
+    Object.entries(h as Record<string, unknown>).flatMap(([id, v]) => {
+      if (typeof v === "number") return [[id, Array.from({ length: v }, (_, i) => i)]];
+      if (Array.isArray(v)) return [[id, v.filter((i): i is number => typeof i === "number")]];
+      return [];
+    }),
+  );
 }
 
 /** What the reducer needs from outside the session: the pathway in force. */
@@ -519,8 +530,8 @@ export function runProblem(s: StudentSession, key: RunKey) {
 type RunAction = Extract<SessionAction, { run: RunKey }>;
 
 /** The pad rules for one run, the same for the warm-up and the overlay. Returns the same object when nothing changes. */
-function runReducer(r: PracticeRun, a: RunAction, first: { id: string; steps: unknown[]; hints: unknown[]; followUp?: unknown }): PracticeRun {
-  const cur = r.problem === "second" && first.followUp ? (first.followUp as { id: string; steps: unknown[]; hints: unknown[] }) : first;
+function runReducer(r: PracticeRun, a: RunAction, first: PracticeProblem): PracticeRun {
+  const cur = r.problem === "second" && first.followUp ? first.followUp : first;
   switch (a.type) {
     case "run/reveal":
       return { ...r, lines: { ...r.lines, [a.problem]: [...(r.lines[a.problem] ?? []), a.line] } };
@@ -534,8 +545,9 @@ function runReducer(r: PracticeRun, a: RunAction, first: { id: string; steps: un
     case "run/clear":
       return { ...r, ink: { ...r.ink, [a.problem]: [] }, lines: { ...r.lines, [a.problem]: [] } };
     case "run/hint": {
-      const shown = r.hinted[cur.id] ?? 0;
-      return shown >= cur.hints.length ? r : { ...r, hinted: { ...r.hinted, [cur.id]: shown + 1 } };
+      const shown = r.hinted[cur.id] ?? [];
+      const next = pickHint(cur, (r.lines[cur.id] ?? []).map((l) => l.tex), shown);
+      return next === null ? r : { ...r, hinted: { ...r.hinted, [cur.id]: [...shown, next] } };
     }
     case "run/example":
       return r.example ? r : { ...r, example: true, exampleShown: 0 };
