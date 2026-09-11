@@ -68,6 +68,8 @@ export default function PracticePad({
   const [lit, setLit] = useState<HintTerm | null>(null);
   const litTerm = lit && terms.includes(lit) ? lit : undefined;
   const litAnchor = litTerm ? anchors[hints.findIndex((h) => h.terms?.includes(litTerm))] : 0;
+  /** The lit term is passed only to the piece its hint points at: the same fragment on another line (an earlier hint's x/4) stays unlit. */
+  const litAt = (k: number) => (litTerm && litAnchor === k ? litTerm : undefined);
 
   const addStroke = (next: Stroke[]) => dispatch({ type: "run/stroke", run: runKey, problem: p.id, stroke: next[next.length - 1] });
   const onBurstEnd = (strokeCount: number) => {
@@ -102,7 +104,7 @@ export default function PracticePad({
         {!second && header}
         <p className="mt-3 text-[14px] text-ink-soft">{p.stem}</p>
         <div className="math-lg mt-3 text-ink">
-          <M tex={termTex(p.tex, termsAt(0), litTerm)} display />
+          <M tex={termTex(p.tex, termsAt(0), litAt(0))} display />
         </div>
         {second && (
           <div className="mt-4 flex flex-wrap justify-center gap-1.5">
@@ -162,7 +164,7 @@ export default function PracticePad({
             lines={lines}
             recognising={recognising}
             empty="Lines appear here as you write."
-            decorate={(tex, i) => termTex(tex, termsAt(i + 1), litTerm)}
+            decorate={(tex, i) => termTex(tex, termsAt(i + 1), litAt(i + 1))}
             highlight={litAnchor > 0 ? litAnchor - 1 : undefined}
             className="flex-1"
           />
