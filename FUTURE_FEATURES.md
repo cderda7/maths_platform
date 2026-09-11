@@ -1169,6 +1169,16 @@ agents add sections above it and leave it alone.
 - **Every whole number in a fraction working.** The same intermediate line would help the
   mid-set overlay problems that add a whole number to a fraction; none does today.
 
+## The monic skill's name (from ticket 110, 2026-09-11)
+
+- **The student still sees "Factorising".** The teacher's tree reads "Monic factorisation" next
+  to "Non-monic factorisation"; the student-name override in `data/taxonomy.ts` keeps the
+  student's picker, confidence and peer screens at plain "Factorising" so the qualifier only
+  appears when they meet the non-monic case. If the student should see the full name too, the
+  override goes and the warm-up chat's "Let's start with ___." would say "monic factorisation".
+- **The short forms are still "-ing".** "monic factorising" and "non-monic factorising" in chips,
+  the feedback sentence and the confidence copy (see ticket 108's notes).
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

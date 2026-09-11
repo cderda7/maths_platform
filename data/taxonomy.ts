@@ -31,7 +31,7 @@ export const TAXONOMY = {
         short: "Expand & factor",
         leaves: {
           expand: leaf("Distributive expansion", "expansion", "Expanding (x + a)(x + b) and collecting terms; expanding back to check."),
-          monic: leaf("Monic trinomials", "monic factorising", "Factorising x² + bx + c by finding the pair."),
+          monic: leaf("Monic factorisation", "monic factorising", "Factorising x² + bx + c by finding the pair."),
           nonmonic: leaf("Non-monic factorisation", "non-monic factorising", "Factorising ax² + bx + c with a ≠ 1: the split, grouping, or a checked pair."),
           special: leaf("Special products", "special products", "Difference of two squares and perfect squares."),
         },
