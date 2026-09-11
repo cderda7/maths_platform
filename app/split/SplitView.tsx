@@ -5,6 +5,7 @@ import Brand from "@/components/Brand";
 import { resetSession } from "@/lib/store";
 import {
   DEFAULT_SIZES,
+  dragStep,
   frameFor,
   GUTTER,
   PANES,
@@ -13,10 +14,10 @@ import {
   parseSizes,
   placeFor,
   resetSize,
-  resize,
   serialisePanes,
   togglePane,
   type Divider,
+  type Drag,
   type Layout,
   type Pane,
   type PaneId,
@@ -94,7 +95,7 @@ const gutterCount = (tracks: string) => (tracks.match(/px/g) ?? []).length;
 /**
  * The student iPad, the teacher view and the board in one tab, fitted to the window, a presenter
  * page rather than a product screen: the dashed toolbar picks which of the three to show and how
- * to arrange them (`placeFor`), a handle in every gutter drags the boundary (`resize`, double-click
+ * to arrange them (`placeFor`), a handle in every gutter drags the boundary (`dragStep`, double-click
  * to reset), and each pane is the real route in an iframe, laid out at its design viewport and
  * scaled to fit (`frameFor`). Same origin, so the demo stores keep the panes in step exactly as
  * they keep tabs.
@@ -116,37 +117,76 @@ export default function SplitView({ init, explicit, initLayout }: { init: PaneId
   // A drag shows its sizes live and stores them once on release.
   const mainRef = useRef<HTMLElement>(null);
   const [live, setLive] = useState<{ sizes: Sizes; axis: Divider["axis"] } | null>(null);
-  const drag = useRef<{ divider: Divider; x: number; y: number; from: Sizes; extent: number } | null>(null);
+  const drag = useRef<Drag | null>(null);
   const panes = choice?.panes ?? [];
   const layout = choice?.layout ?? initLayout;
   const sizes = live?.sizes ?? choice?.sizes ?? DEFAULT_SIZES;
   const placement = placeFor(panes, layout, sizes);
 
+  // The latest choice and panes for the window listeners, which are registered once per drag.
+  const current = useRef({ choice, panes, choose });
+  useEffect(() => {
+    current.current = { choice, panes, choose };
+  });
+  // Removes the listeners of the drag in progress; kept so an unmount mid-drag can call it too.
+  const unlisten = useRef<() => void>(() => {});
+  useEffect(() => {
+    return () => {
+      unlisten.current();
+    };
+  }, []);
+
+  // The drag is held only while the primary button is down. From the press on, every pointer event
+  // on the window feeds `dragStep`: a move with the button up (the release happened over another
+  // window, or capture was lost) ends it at once, as do pointerup, pointercancel, the window
+  // losing focus and the tab being hidden. Nothing depends on the handle itself hearing the release.
   const startDrag = (divider: Divider) => (e: ReactPointerEvent<HTMLDivElement>) => {
     const main = mainRef.current;
-    if (!choice || !main || e.button !== 0) return;
+    if (!choice || !main || e.button !== 0 || drag.current) return;
     const rect = main.getBoundingClientRect();
     const pad = parseFloat(getComputedStyle(main).paddingLeft) * 2;
     const extent = divider.axis === "column" ? rect.width - pad - GUTTER * gutterCount(placement.columns) : rect.height - pad - GUTTER * gutterCount(placement.rows);
-    drag.current = { divider, x: e.clientX, y: e.clientY, from: choice.sizes, extent: Math.max(1, extent) };
-    e.currentTarget.setPointerCapture(e.pointerId);
+    drag.current = { divider, pointerId: e.pointerId, x: e.clientX, y: e.clientY, from: choice.sizes, extent: Math.max(1, extent), sizes: choice.sizes };
+    // Capture keeps the moves coming over the iframes; the window listeners do not depend on it.
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // Already released: the listeners still see every move.
+    }
+    const end = (final: Sizes) => {
+      unlisten.current();
+      drag.current = null;
+      setLive(null);
+      const { choice: now, choose: pick } = current.current;
+      if (now) pick({ ...now, sizes: final });
+    };
+    const onPointer = (ev: PointerEvent) => {
+      const d = drag.current;
+      if (!d) return;
+      const step = dragStep(d, ev, current.current.panes);
+      if (step.kind === "move") {
+        d.sizes = step.sizes;
+        setLive({ sizes: step.sizes, axis: d.divider.axis });
+      } else if (step.kind === "end") end(step.sizes);
+    };
+    const letGo = () => drag.current && end(drag.current.sizes);
+    const onHidden = () => document.visibilityState === "hidden" && letGo();
+    window.addEventListener("pointermove", onPointer, true);
+    window.addEventListener("pointerup", onPointer, true);
+    window.addEventListener("pointercancel", onPointer, true);
+    window.addEventListener("blur", letGo);
+    document.addEventListener("visibilitychange", onHidden);
+    unlisten.current = () => {
+      window.removeEventListener("pointermove", onPointer, true);
+      window.removeEventListener("pointerup", onPointer, true);
+      window.removeEventListener("pointercancel", onPointer, true);
+      window.removeEventListener("blur", letGo);
+      document.removeEventListener("visibilitychange", onHidden);
+      unlisten.current = () => {};
+    };
     setLive({ sizes: choice.sizes, axis: divider.axis });
   };
-  const moveDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
-    const d = drag.current;
-    if (!d) return;
-    const px = d.divider.axis === "column" ? e.clientX - d.x : e.clientY - d.y;
-    setLive({ sizes: resize(d.from, d.divider, px / d.extent, panes), axis: d.divider.axis });
-  };
-  const endDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
-    const d = drag.current;
-    if (!d || !choice) return;
-    drag.current = null;
-    const px = d.divider.axis === "column" ? e.clientX - d.x : e.clientY - d.y;
-    const final = resize(d.from, d.divider, px / d.extent, panes);
-    setLive(null);
-    choose({ ...choice, sizes: final });
-  };
+
   const reset = (divider: Divider) => () => choice && choose({ ...choice, sizes: resetSize(choice.sizes, divider) });
 
   return (
@@ -194,7 +234,7 @@ export default function SplitView({ init, explicit, initLayout }: { init: PaneId
           <PaneFrame key={cell.id} pane={PANES.find((p) => p.id === cell.id)!} area={cell.area} />
         ))}
         {placement.dividers.map((d) => (
-          <DividerHandle key={d.key} divider={d} onPointerDown={startDrag(d)} onPointerMove={moveDrag} onPointerUp={endDrag} onDoubleClick={reset(d)} />
+          <DividerHandle key={d.key} divider={d} onPointerDown={startDrag(d)} onDoubleClick={reset(d)} />
         ))}
       </main>
     </div>
@@ -208,14 +248,10 @@ export default function SplitView({ init, explicit, initLayout }: { init: PaneId
 function DividerHandle({
   divider,
   onPointerDown,
-  onPointerMove,
-  onPointerUp,
   onDoubleClick,
 }: {
   divider: Divider;
   onPointerDown: (e: ReactPointerEvent<HTMLDivElement>) => void;
-  onPointerMove: (e: ReactPointerEvent<HTMLDivElement>) => void;
-  onPointerUp: (e: ReactPointerEvent<HTMLDivElement>) => void;
   onDoubleClick: () => void;
 }) {
   const column = divider.axis === "column";
@@ -229,9 +265,6 @@ function DividerHandle({
       style={{ gridArea: divider.area }}
       className={`group relative z-10 flex touch-none select-none items-center justify-center ${column ? "cursor-col-resize" : "cursor-row-resize"}`}
       onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
       onDoubleClick={onDoubleClick}
     >
       <span className={`rounded-full bg-line-strong transition-colors group-hover:bg-accent-line group-active:bg-accent ${column ? "h-full w-[3px]" : "h-[3px] w-full"}`} />

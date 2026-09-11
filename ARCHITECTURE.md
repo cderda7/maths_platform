@@ -119,7 +119,8 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
  │ app/layout.tsx  fonts · katex.css · globals.css (@theme tokens, .ipad-bezel/.screen)│
  │ app/page.tsx    entry: student iPad, teacher view, smartboard, or all three in /split│
  │ app/split/      SplitView: /student, /teacher, /board in scaled iframes, any of them  │
- │                 (lib/split.ts: panes, a design size each · placeFor · frameFor)      │
+ │                 (lib/split.ts: panes, a design size each · placeFor · frameFor ·     │
+ │                  dragStep: a divider drag ends the moment the button is not held)   │
  │ scripts/laptop-check.mjs  every teacher route at two laptop widths, no x-overflow    │
  └────────────────────────────────────────────────────────────────────────────────────┘
 
@@ -199,6 +200,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 67 | Mistakes view: the slip pill starts under the avatar, not the name | `/teacher/mistakes` | 66 | [architecture/67-mistakes-pill-avatar.md](architecture/67-mistakes-pill-avatar.md) |
 | 68 | Teacher side: the bar never rides the rubber-band; the window stops scrolling and only the content region does | `/teacher/**` | 65 | [architecture/68-teacher-fixed-header-frame.md](architecture/68-teacher-fixed-header-frame.md) |
 | 69 | Help chat: a fourth option under "I need help", a tutor that only hints and offers a choice of ways in | `/student?stage=practice`, the practice overlay, `POST /api/help-chat` | — | [architecture/69-help-chat.md](architecture/69-help-chat.md) |
+| 70 | Split view: a divider drag lasts exactly as long as the button is held; the window hears the release, a move with the button up ends it | `/split` | 35 | [architecture/70-divider-drag-release.md](architecture/70-divider-drag-release.md) |
 
 ## Conventions
 

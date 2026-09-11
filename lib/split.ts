@@ -160,6 +160,35 @@ export function parseSizes(raw: unknown): Sizes {
   };
 }
 
+/**
+ * A drag of a divider in progress: which pointer holds it, where it pressed, the sizes it started
+ * from, the axis's resizable extent in px, and the sizes last shown (what a lost release commits).
+ */
+export type Drag = { divider: Divider; pointerId: number; x: number; y: number; from: Sizes; extent: number; sizes: Sizes };
+
+/** The parts of a pointer event a drag reads. `buttons` bit 1 is the primary button, held or not. */
+export type DragPointer = { type: string; pointerId: number; buttons: number; clientX: number; clientY: number };
+
+/** What one pointer event does to a drag: nothing (another pointer), a move, or the end with the sizes to keep. */
+export type DragStep = { kind: "ignore" } | { kind: "move"; sizes: Sizes } | { kind: "end"; sizes: Sizes };
+
+/**
+ * A drag follows the pointer only while its primary button is held: a `pointerup` ends it at the
+ * release point; a `pointercancel`, or any move that arrives with the button up (the release went to
+ * another window, the page lost focus, capture was lost) ends it at the sizes last shown, so the
+ * view never keeps adjusting after the hand has let go. Other pointers are ignored.
+ */
+export function dragStep(d: Drag, e: DragPointer, shown: readonly PaneId[]): DragStep {
+  if (e.pointerId !== d.pointerId) return { kind: "ignore" };
+  const at = () => {
+    const px = d.divider.axis === "column" ? e.clientX - d.x : e.clientY - d.y;
+    return resize(d.from, d.divider, px / d.extent, shown);
+  };
+  if (e.type === "pointerup") return { kind: "end", sizes: at() };
+  if (e.type === "pointercancel" || (e.buttons & 1) === 0) return { kind: "end", sizes: d.sizes };
+  return { kind: "move", sizes: at() };
+}
+
 export type Frame = { scale: number; width: number; height: number; left: number; top: number };
 
 /**

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ALL_PANES, DEFAULT_SIZES, frameFor, MIN_SHARE, PANES, parseLayout, parsePanes, parseSizes, placeFor, resetSize, resize, serialisePanes, togglePane, type Design } from "./split";
+import { ALL_PANES, DEFAULT_SIZES, dragStep, frameFor, MIN_SHARE, PANES, parseLayout, parsePanes, parseSizes, placeFor, resetSize, resize, serialisePanes, togglePane, type Design, type Drag } from "./split";
 import { DEVICE_H, DEVICE_W, STAGE_MARGIN } from "./ipad";
 
 const design = (id: string) => PANES.find((p) => p.id === id)!.design;
@@ -211,5 +211,38 @@ describe("frameFor", () => {
     expect(PANES.filter((p) => !p.design.height).map((p) => p.id)).toEqual([]);
     expect(PANES.filter((p) => p.design.fit === "letterbox").map((p) => p.id)).toEqual(["board"]);
     expect(PANES.map((p) => p.href)).toEqual(["/student", "/teacher", "/board"]);
+  });
+});
+
+describe("dragStep", () => {
+  const divider = placeFor(["student", "teacher", "board"], "stacked").dividers.find((d) => d.key === "left-board")!;
+  const shown = ["student", "teacher", "board"] as const;
+  const drag: Drag = { divider, pointerId: 7, x: 600, y: 300, from: DEFAULT_SIZES, extent: 1000, sizes: DEFAULT_SIZES };
+  const ev = (type: string, clientX: number, buttons = 1, pointerId = 7) => ({ type, pointerId, buttons, clientX, clientY: 300 });
+
+  it("moves with the pointer while the primary button is held", () => {
+    expect(dragStep(drag, ev("pointermove", 700), shown)).toEqual({ kind: "move", sizes: { ...DEFAULT_SIZES, column: 0.7 } });
+    expect(dragStep(drag, ev("pointermove", 500, 3), shown)).toEqual({ kind: "move", sizes: { ...DEFAULT_SIZES, column: 0.5 } });
+  });
+  it("ends at the release point on pointerup", () => {
+    expect(dragStep(drag, ev("pointerup", 650, 0), shown)).toEqual({ kind: "end", sizes: { ...DEFAULT_SIZES, column: 0.65 } });
+  });
+  it("ends at the sizes last shown when a move arrives with the button up: the release was missed", () => {
+    const last = { ...DEFAULT_SIZES, column: 0.55 };
+    expect(dragStep({ ...drag, sizes: last }, ev("pointermove", 900, 0), shown)).toEqual({ kind: "end", sizes: last });
+    // The right button alone does not count as holding the handle.
+    expect(dragStep({ ...drag, sizes: last }, ev("pointermove", 900, 2), shown)).toEqual({ kind: "end", sizes: last });
+  });
+  it("ends at the sizes last shown on pointercancel", () => {
+    const last = { ...DEFAULT_SIZES, column: 0.4 };
+    expect(dragStep({ ...drag, sizes: last }, ev("pointercancel", 100, 0), shown)).toEqual({ kind: "end", sizes: last });
+  });
+  it("ignores another pointer", () => {
+    expect(dragStep(drag, ev("pointermove", 900, 1, 8), shown)).toEqual({ kind: "ignore" });
+    expect(dragStep(drag, ev("pointerup", 900, 0, 8), shown)).toEqual({ kind: "ignore" });
+  });
+  it("reads the row axis from clientY", () => {
+    const row = placeFor(["student", "teacher"], "stacked").dividers[0];
+    expect(dragStep({ ...drag, divider: row }, { type: "pointermove", pointerId: 7, buttons: 1, clientX: 0, clientY: 400 }, shown)).toEqual({ kind: "move", sizes: { ...DEFAULT_SIZES, row: 0.6 } });
   });
 });
