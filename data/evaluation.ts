@@ -107,7 +107,8 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
     "(x - 5)(x + 1) = 0": ok(T(MONIC), "Factorised"),
     "x = 5 \\;\\text{or}\\; x = -1": ok(T(NFL, ZERO), "x-intercepts"),
     "x = \\tfrac{5 + (-1)}{2} = 2": ok(T(FEAT, FRAC), "Axis of symmetry"),
-    "y = 4 - 8 - 5 = -9,\\quad (2, -9)": ok(T(FEAT, SKETCH), "Turning point"),
+    "y = 4 - 8 - 5 = -9": ok(T(FEAT), "Height on the axis"),
+    "(2, -9)": ok(T(FEAT, SKETCH), "Turning point"),
     "x = -5 \\;\\text{or}\\; x = 1": wrong(
       T(QUAD),
       "x-intercepts",

@@ -749,13 +749,13 @@ agents add sections above it and leave it alone.
 
 ## Every warm-up line is one step (from ticket 79, 2026-09-11)
 
-- **The set's own rows still pack two facts on a line.** Q5's turning point reads
-  `y = 4 − 8 − 5 = −9, (2, −9)` and Q2's and Q7's pair checks `ac = −8, 8 + (−1) = 7` and
-  `2 × 4 = 8, 2 + 4 = 6`. Left as they are: those exact strings are keys in the evaluation table,
-  lines in the classmates' scripts, Sam's Q7 rework and the group review's versions, so splitting
-  them is a data change across every fixture and the versions diff. The warm-up bank follows the
-  one-step rule and a test guards it; the set could follow once the evaluation table is keyed by
-  step rather than by string.
+- **The set's pair-check rows still pack two facts on a line.** Q2's and Q7's `ac = −8, 8 + (−1) = 7`
+  and `2 × 4 = 8, 2 + 4 = 6`. Left as they are: those exact strings are keys in the evaluation
+  table, lines in the classmates' scripts, Sam's Q7 rework and the group review's versions, so
+  splitting them is a data change across every fixture and the versions diff. (Q5's turning point
+  row was split into the height and the point in ticket 81, 2026-09-11, at the user's ask.) The
+  warm-up bank follows the one-step rule and a test guards it; the set could follow once the
+  evaluation table is keyed by step rather than by string.
 - **The pad has no idea a row is "two steps".** The recognition is scripted, so the row shape is
   whatever the fixture says. A real recogniser would produce one line per burst of ink and the
   question of which rows to merge would be its own.

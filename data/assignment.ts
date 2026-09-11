@@ -72,7 +72,8 @@ export const PROBLEMS: Problem[] = [
       { tex: "(x - 5)(x + 1) = 0", label: "Factorised", tags: [tag("algebra.expand-factor.monic")] },
       { tex: "x = 5 \\;\\text{or}\\; x = -1", label: "x-intercepts", tags: [tag("unit.u1.nfl"), tag("functions.zeros.zero-finding")] },
       { tex: "x = \\tfrac{5 + (-1)}{2} = 2", label: "Axis of symmetry", tags: [tag("graphing.quadratics.features"), tag("algebra.number.fractions")] },
-      { tex: "y = 4 - 8 - 5 = -9,\\quad (2, -9)", label: "Turning point", tags: [tag("graphing.quadratics.features"), tag("graphing.quadratics.sketch")] },
+      { tex: "y = 4 - 8 - 5 = -9", label: "Height on the axis", tags: [tag("graphing.quadratics.features")] },
+      { tex: "(2, -9)", label: "Turning point", tags: [tag("graphing.quadratics.features"), tag("graphing.quadratics.sketch")] },
     ],
   },
   {

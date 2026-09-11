@@ -54,6 +54,13 @@ describe("scripted evaluation", () => {
     expect(compounded).toEqual(["q9"]);
   });
 
+  it("Q5 reads the turning point's height and the point as two lines, each a correct step", () => {
+    expect(RECOGNITION.q5.slice(-2)).toEqual(["y = 4 - 8 - 5 = -9", "(2, -9)"]);
+    expect(PROBLEMS.find((p) => p.id === "q5")!.solution.slice(-2).map((st) => st.label)).toEqual(["Height on the axis", "Turning point"]);
+    expect(evaluateLine("q5", "y = 4 - 8 - 5 = -9").verdict).toBe("ok");
+    expect(evaluateLine("q5", "(2, -9)").verdict).toBe("ok");
+    for (const tex of RECOGNITION.q5) expect(tex).not.toContain("\\quad");
+  });
   it("an unknown line is unclear, never wrong", () => {
     expect(evaluateLine("q1", "x = 42").verdict).toBe("unclear");
   });

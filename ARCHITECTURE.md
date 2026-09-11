@@ -210,6 +210,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 77 | Hint terms can name a later occurrence of a fragment (`{ tex, within }`); `termTex` works on positioned spans | `…?stage=practice`, the practice overlay | 75 | [architecture/77-hint-fragment-within.md](architecture/77-hint-fragment-within.md) |
 | 78 | Several hints per problem, one per ask ("another hint · Show 2 of 2 →", "All shown"), stacked under the problem; the fractions warm-up teaches like terms first: move the 6, then a denominator the two x terms share | `…?stage=practice`, the practice overlay, `POST /api/help-chat` | 77, 69 | [architecture/78-multiple-hints.md](architecture/78-multiple-hints.md) |
 | 79 | Every warm-up line is one step and two cases branch side by side: graph features and sketch split into one row per step, the pair checks one fact per row, the worked example card boxes a two-case step like the read-back; a guard test over the bank | `…?stage=practice`, the practice overlay | 75, 29 | [architecture/79-warmup-step-rows.md](architecture/79-warmup-step-rows.md) |
+| 81 | Q5's turning point is two lines, the height then the point: the model solution, the scripted read-back and the evaluation table all list five lines | `…?stage=working`, `…?stage=feedback`, `…?stage=history`, the teacher's mirror | 79 | [architecture/81-q5-turning-point-rows.md](architecture/81-q5-turning-point-rows.md) |
 
 ## Conventions
 
