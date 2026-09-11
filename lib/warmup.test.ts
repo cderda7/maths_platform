@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { byEase, CHAT_BEAT_MS, CHAT_DOTS_MS, closingTurn, concernsAnswered, concernTranscript, concernTurns, EASE, focusLeaves, howAbout, interpret, offerLines, practiceFor, reflection, REFLECTIONS, skillRuns, turnSteps, warmupScript, warmupSequence } from "./warmup";
+import { byEase, CHAT_BEAT_MS, CHAT_CLOSE_MS, CHAT_DOTS_MS, closingTurn, concernsAnswered, concernTranscript, concernTurns, EASE, focusLeaves, howAbout, interpret, offerLines, practiceFor, reflection, REFLECTIONS, skillRuns, turnSteps, warmupScript, warmupSequence } from "./warmup";
 import { isolatable, PRACTICE, PRACTICES, WARMUP_BANK } from "@/data/practice";
 import { branchesOf } from "./branches";
 import { ASSIGNMENT } from "@/data/assignment";
@@ -144,6 +144,10 @@ describe("the concerns chat", () => {
     expect(closingTurn("algebra.number.fractions", 2)).toEqual(["Agreed: that's a tricky skill.", "Thank you for those insights. Let's start with fractions."]);
     expect(closingTurn("algebra.number.fractions", 4)).toEqual(["A lot of students share that struggle.", "Thank you for those insights. Let's start with fractions."]);
     expect(closingTurn(undefined, 1)).toEqual(["Gotcha. It sounds like…", "Thank you for that insight. Let's start."]);
+  });
+  it("holds the closing bubble for the length of a whole two-bubble turn before the pad", () => {
+    expect(CHAT_CLOSE_MS).toBe(2800);
+    expect(CHAT_CLOSE_MS).toBe(2 * (CHAT_BEAT_MS + CHAT_DOTS_MS));
   });
   it("plays the opening's first bubble at once with the dots straight after, and every other bubble after a beat and the dots", () => {
     expect(turnSteps(2, true)).toEqual([

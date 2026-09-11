@@ -235,6 +235,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 102 | The concerns chat reflects on every answer before the next question ("Gotcha. It sounds like…", "Agreed: that's a tricky skill.", "A lot of students share that struggle.", the last repeating), and closes with the reflection then "Thank you for that insight / those insights. Let's start with ___." | `…?stage=warmup-chat` | 74, 84 | [architecture/102-reflective-listening.md](architecture/102-reflective-listening.md) |
 | 103 | The chat under the read-as lines takes only the height it needs, capped at 42% of the column (about the bottom third of the page), and scrolls kept at its end so the latest exchange shows; the read-as list keeps the rest | `…?stage=practice`, the practice overlay | 69, 90 | [architecture/103-chat-bottom-third.md](architecture/103-chat-bottom-third.md) |
 | 105 | "Talk it through" is centred under the hint text in the latest hint card | `…?stage=practice`, the practice overlay | 99 | [architecture/105-talk-pill-centred.md](architecture/105-talk-pill-centred.md) |
+| 107 | The concerns chat's closing bubble ("Thank you for those insights. Let's start with ___.") stays up 2.8s before the pad, the length of a whole tutor turn, instead of 1.2s | `…?stage=warmup-chat` | 102, 74 | [architecture/107-close-wait.md](architecture/107-close-wait.md) |
 
 ## Conventions
 

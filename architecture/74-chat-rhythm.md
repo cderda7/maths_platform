@@ -6,7 +6,7 @@ Route: `/student?stage=warmup-chat`.
 
 | File | What it does |
 |---|---|
-| `lib/warmup.ts` (+ test) | `concernTurns(seed)`: the turns as lists of bubbles (the opening two: setup then ask; later questions one). `closingLine(first)`: "Thanks. Let's start with fractions." `turnSteps(bubbles, opening)`: the playback as `PlayStep`s `{ at, shown, dots }`, with `CHAT_BEAT_MS` 400, `CHAT_DOTS_MS` 1000, `CHAT_CLOSE_MS` 1200. `concernTranscript` emits one tutor line per bubble; `concernsAnswered` counts turns |
+| `lib/warmup.ts` (+ test) | `concernTurns(seed)`: the turns as lists of bubbles (the opening two: setup then ask; later questions one). `closingLine(first)`: "Thanks. Let's start with fractions." `turnSteps(bubbles, opening)`: the playback as `PlayStep`s `{ at, shown, dots }`, with `CHAT_BEAT_MS` 400, `CHAT_DOTS_MS` 1000, `CHAT_CLOSE_MS` 1200 (2800 since ticket 107). `concernTranscript` emits one tutor line per bubble; `concernsAnswered` counts turns |
 | `lib/session.ts` (+ test) | `warmup/say` no longer opens the pad and is ignored once every question has its answer; new `warmup/begin` opens the pad only then |
 | `app/student/screens/WarmupChatScreen.tsx` | Renders answered turns in full, then the current turn's bubbles up to the step reached, then the dots; timers step through `turnSteps` for the turn after the last answer (keyed on the answer count, so a reload replays only that turn) and send `warmup/begin` after the closing bubble. The box is disabled, cream and "the tutor is writing…" until the turn's last bubble; then paper, focused, "in your own words…", with `pulse-once` on its wrapper |
 | `app/globals.css` | The ring pulse moves from `.offer-in::after` to `.pulse-once::after`; `.offer-in` keeps the rise. Both off under reduced motion |

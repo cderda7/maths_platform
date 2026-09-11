@@ -69,10 +69,15 @@ export const closingTurn = (first: LeafId | undefined, answers: number): string[
   `Thank you for ${answers === 1 ? "that insight" : "those insights"}. Let's start${first ? ` with ${skillWord(first)}` : ""}.`,
 ];
 
-/** The chat's rhythm: a beat after the student's bubble before the dots, the dots' length, and the wait after the closing bubble before the pad. */
+/**
+ * The chat's rhythm: a beat after the student's bubble before the dots, the dots' length, and the
+ * wait after the closing bubble before the pad. The closing wait is the length of a whole tutor
+ * turn (beat, dots, beat, dots): the thanks stays up as long as the student waited for it, so it
+ * can be read before the pad replaces the chat (ticket 107).
+ */
 export const CHAT_BEAT_MS = 400;
 export const CHAT_DOTS_MS = 1000;
-export const CHAT_CLOSE_MS = 1200;
+export const CHAT_CLOSE_MS = 2 * (CHAT_BEAT_MS + CHAT_DOTS_MS);
 
 /** One moment in a tutor turn's playback: how many of its bubbles are on screen, and whether the typing dots are. */
 export interface PlayStep {

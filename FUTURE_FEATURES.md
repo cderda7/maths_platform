@@ -1109,6 +1109,15 @@ agents add sections above it and leave it alone.
 - **The collapsed hint's line has no pill**; a reopened earlier hint has none either (ticket 99).
   If earlier hints ever get one, the same centred row applies.
 
+## The closing bubble's hold (from ticket 107, 2026-09-11)
+
+- **A hold tied to reading time, not the turn.** The thanks stays up 2.8s, the length of a whole
+  tutor turn. When the closing line is live (a summary of the student's answers, see ticket 102's
+  notes) it will be longer, and the hold could scale with its word count, or the pad could wait
+  for a "let's go" press instead of a timer.
+- **The same hold for the pad's own closings.** Other timed hand-offs (the practice prompt, the
+  debrief) keep their own waits; if 2.8s reads right here, the others could be checked against it.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
