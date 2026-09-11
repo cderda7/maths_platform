@@ -11,6 +11,8 @@ describe("the debrief prompt", () => {
     expect(debriefPrompt("q3", { lines: RECOGNITION.q3, rework: RECOGNITION_REWORK.q3 })).toBe("peers");
     expect(debriefPrompt("q1", { lines: RECOGNITION_REWORK.q1, rework: [] })).toBe("peers");
     expect(debriefPrompt("q1", { lines: [], rework: [] })).toBe("own");
+    // The demo's Q7: handed in wrong, reworked wrong a different way, so the debrief asks for the student's own mistake.
+    expect(debriefPrompt("q7", { lines: RECOGNITION.q7, rework: RECOGNITION_REWORK.q7 })).toBe("own");
   });
 });
 

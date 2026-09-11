@@ -562,9 +562,9 @@ describe("rework hand-in and the guard", () => {
   });
 
   it("the post-rework notice reads the final version and can be dismissed", () => {
-    let s = sessionAt("group"); // fully corrected rework
+    let s = sessionAt("group"); // the rework: every slip corrected but Q7
     s = sessionReducer({ ...s, stage: "feedback" }, { type: "rework/done" });
-    expect(s.notice).toBe("Every problem holds now.");
+    expect(s.notice).toBe("1 of your problems still contains a mistake. Double-check fractions.");
     expect(sessionReducer(s, { type: "notice/dismiss" }).notice).toBeNull();
   });
 });

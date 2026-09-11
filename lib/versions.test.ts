@@ -30,8 +30,8 @@ describe("before / after", () => {
   it("counts the lines that changed between handed-in and final", () => {
     const [original, final] = versionsOf(sessionAt("history"));
     const aligned = alignVersions(original, final);
-    // Q1: 3 rows; Q2: 5; Q3: 4; Q7: 2 of 3; Q10: 2 of 3; Q4–Q6, Q8, Q9 unchanged.
-    expect(changedRowCount(aligned)).toBe(16);
+    // Q1: 3 rows; Q2: 5; Q3: 4; Q7: 1 of 3 (the second slip keeps the pair and the brackets); Q10: 2 of 3; Q4–Q6, Q8, Q9 unchanged.
+    expect(changedRowCount(aligned)).toBe(15);
     expect(aligned.find((a) => a.problem.id === "q4")!.rows.some(rowChanged)).toBe(false);
   });
 });

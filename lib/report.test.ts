@@ -16,17 +16,17 @@ describe("problem outcomes", () => {
     expect(cols.map((c) => c.label)).toEqual(["Correct first try", "Correct after individual review", "Correct after group review", "Incorrect"]);
   });
 
-  it("reads the demo's reworked run: five right first try, the five reworked all right after individual review", () => {
+  it("reads the demo's reworked run: five right first try, four right after individual review, Q7 still wrong", () => {
     const by = labels(outcomeColumns(reworked, ["individual"], null));
     expect(by.first).toEqual(["Q4", "Q5", "Q6", "Q8", "Q9"]);
-    expect(by.individual).toEqual(["Q1", "Q2", "Q3", "Q7", "Q10"]);
-    expect(by.wrong).toEqual([]);
+    expect(by.individual).toEqual(["Q1", "Q2", "Q3", "Q10"]);
+    expect(by.wrong).toEqual(["Q7"]);
   });
 
   it("counts a problem the group's rework checked as correct after group review, once group review is in the pathway", () => {
-    const { session: fixture, classroom } = skipFixture("report", 1_000_000);
-    // Q7 without its own rework: still wrong on the student's side, resolved by the group.
-    const session = { ...fixture, rework: { ...fixture.rework, q7: [] } };
+    const { session, classroom } = skipFixture("report", 1_000_000);
+    // Q7: slipped again in the student's own rework, resolved by the group.
+    expect(session.rework.q7?.length).toBeGreaterThan(0);
     expect(classroom.group?.resolved).toContain("q7");
     const with_ = labels(outcomeColumns(session, ["individual", "group"], classroom.group));
     expect(with_.individual).toEqual(["Q1", "Q2", "Q3", "Q10"]);

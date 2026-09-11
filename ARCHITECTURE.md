@@ -206,6 +206,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 73 | Offer callout: "Start the set" in the accent outline, a pinch stronger than a secondary button | `…?stage=confidence` | 72 | [architecture/73-offer-start-the-set-outline.md](architecture/73-offer-start-the-set-outline.md) |
 | 74 | Concerns chat rhythm: the opening in two bubbles a second apart, typing dots, a box that is plainly off while the tutor writes and pulses on for the student's turn, a closing bubble before the pad | `…?stage=warmup-chat` | 48, 72 | [architecture/74-chat-rhythm.md](architecture/74-chat-rhythm.md) |
 | 75 | Practice pad: "I need help" straight under the question, not at the foot of the column; the fractions warm-up is x/4 + x/2 − 6 = 9/2 with a clearing-denominators hint | `…?stage=practice`, the practice overlay | 69, 29 | [architecture/75-warmup-fractions-help-under-question.md](architecture/75-warmup-fractions-help-under-question.md) |
+| 76 | The fraction problem stays wrong after the individual review: Sam's Q7 rework is a second slip, so the group's Q7 is a real struggle | `/student` group, `…?stage=report` | 52 | [architecture/76-q7-rework-still-wrong.md](architecture/76-q7-rework-still-wrong.md) |
 
 ## Conventions
 

@@ -87,8 +87,8 @@ describe("detective feedback summary", () => {
 
   it("the final version reads the rework and says 'still'", async () => {
     const { feedbackSummary } = await import("./feedback");
-    const reworked = sessionAt("group"); // scripted run with every slipped problem corrected
-    expect(feedbackSummary(reworked, "final").sentence).toBe("Every problem holds now.");
+    const reworked = sessionAt("group"); // scripted run with every slipped problem corrected but Q7, which slipped again
+    expect(feedbackSummary(reworked, "final").sentence).toBe("1 of your problems still contains a mistake. Double-check fractions.");
     expect(feedbackSummary(reworked, "original").count).toBe(5);
     let partial = sessionAt("feedback");
     partial = sessionReducer(partial, { type: "rework/reveal", problem: "q1", line: { tex: "(x - 2)(x - 3) = 0", strokeCount: 1 } });

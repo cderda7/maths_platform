@@ -144,6 +144,12 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Whatever you do to one term you do to every term. One of them didn't get the same treatment.",
       "You multiplied by 3. Did every term get multiplied by 3?",
     ),
+    "x^2 + 6x + 8": wrong(
+      T(FRAC),
+      "Multiplied through by 3",
+      "Multiplying an expression by 3 makes a different expression. Whatever you scale by has to come back out at the end.",
+      "You multiplied every term by 3 this time. Where did the 3 go?",
+    ),
     "(x + 2)(x + 4)": ok(T(NONMONIC), "Factorised", true),
   },
   q8: {

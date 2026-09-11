@@ -709,6 +709,25 @@ agents add sections above it and leave it alone.
   legitimate second framing a teacher might want offered.
 - **The other warm-up problems were not re-graded for difficulty.** The user found the fractions one
   too easy; monic, null factor law and the rest are unchanged and may deserve the same look.
+## The fraction problem stays wrong after the individual review (from ticket 76, 2026-09-11)
+
+- **Picked up:** the report note from ticket 58 ("a demo that leaves one wrong after the rework (Q7,
+  say) would show all four columns filled") is now the demo: Q7 sits under "Correct after group
+  review".
+- **Liam's Q7 turn never presses "we're stuck".** The reveal of everyone's earlier work on Q7 only
+  appears if Sam presses it himself (the script has `stuckAfter` on Q3 only). A scripted stuck on
+  Q7 would show the reveal to a presenter who just watches; deferred so Q3 stays the one scripted
+  stuck and Q7 stays the one the student chooses.
+- **A second slip in the rework is only on Q7.** Q1–Q3 and Q10 are still correct on the first rework.
+  A rework that slips on a second problem (Q2's non-monic, say) would put two problems in the group
+  column and make the notice plural; one is enough to see the struggle.
+- **The clue for the new slip is not shown to the student.** "Multiplied through by 3" and its clue
+  are in the evaluation table for the teacher's views and the marks; the rework has no individual
+  feedback screen after it, so the student meets the mistake in the group. If a second individual
+  pass is ever added, the clue is ready.
+- **The teacher's mistakes and compare views now show Q7 twice for Sam** (handed in, reworked, both
+  wrong). Not re-checked pixel by pixel in this ticket; the data shape (two versions, one wrong line
+  each) is the same as any other reworked problem.
 
 ## Carson's notes
 

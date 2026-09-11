@@ -1223,3 +1223,39 @@ constants, untuned. A keystroke while the box is off is lost.
 keeps recording exactly what it did (answers) and learns one honest fact (the chat is over), so the
 teacher's mirror, reload and the demo fixtures are unchanged. The "your move" pulse reuses the
 offer's, so the flow teaches one cue.
+
+## 2026-09-11 · The demo's Q7 rework is a second, different slip, and the group's correct version is the model solution
+
+**Decision.** `RECOGNITION_REWORK.q7` is no longer the corrected path but a new wrong one: every
+term scaled by 3 (fixing the first slip, which scaled two of three), then the third never put back.
+The evaluation table carries the new first line as a fractions slip. The group script's second Q7
+attempt reads the model solution directly rather than the rework constant, so Liam still resolves
+the problem.
+
+**Context.** The scripted rework fixed all five slipped problems, so nothing of Sam's reached the
+group column on the report, the Q7 debrief always asked about peers' mistakes, and the stuck reveal
+never showed a reworked version that was still wrong. The user wants to see the struggle the group
+review is for.
+
+**Alternatives considered.**
+- *Leave Q7 with no rework at all.* Simplest, and the report test already simulated it. Rejected:
+  a student who skips a problem in the rework is a different story from one who tries again and
+  slips again, and the debrief and reveal would show one own version, not two.
+- *Rework Q7 with the same slip again.* Shows persistence, not struggle; the two panes would be
+  identical and the "Reworked" label would add nothing.
+- *Slip on a second problem too (Q2 or Q10).* Makes the notice plural and fills the group column
+  with two. Deferred (FUTURE_FEATURES): one is enough to see every screen change.
+- *Script "we're stuck" on Liam's Q7 turn.* Would put the reveal in front of a presenter who only
+  watches. Left as the student's own press so Q3 stays the one scripted stuck.
+
+**Tradeoffs.** `RECOGNITION_REWORK` now means "what the rework reads" rather than "the corrected
+path", so its doc comment carries the exception and anything wanting Q7's correct lines must read
+the model solution. Five tests changed expectations; the post-rework sentence in the demo is no
+longer "Every problem holds now.", which was the nicer line to end the individual review on.
+
+**Defense.** The whole change is data: no screen or rule moved, which is the test that the group
+review, debrief, report and history were already reading the outcomes honestly. The second slip is
+the natural next mistake after the first (the student fixes the scaling and forgets to undo it),
+so the two versions read as one student learning, and the group's Q7 is now the one place in the
+demo where a student meets their own still-wrong work beside a right one.
+

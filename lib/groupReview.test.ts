@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { beginRun, checkBoard, cutAtFirstMistake, DEMO_SEED, earlierVersions, groupProgress, ownAttemptScript, penHolder, penOrder, shuffle, turnScript } from "./groupReview";
 import { classroomReducer, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
+import { PROBLEM_MAP } from "@/data/assignment";
 import { GROUP_SCRIPTS } from "@/data/group-scripts";
 import { RECOGNITION, RECOGNITION_REWORK } from "@/data/recognition";
 import { evaluateLine } from "./evaluate";
@@ -76,15 +77,18 @@ describe("the demo scripts", () => {
     expect(q3.findIndex((e) => e.kind === "stuck")).toBeGreaterThan(q3.findIndex((e) => e.kind === "check"));
     expect(turnScript("q4")).toEqual([]);
   });
-  it("Liam's Q7 turn checks wrong once, the fraction cleared from two terms, then checks right without getting stuck", () => {
+  it("Liam's Q7 turn checks wrong once, the fraction cleared from two terms, then writes the model solution without getting stuck", () => {
     const q7 = turnScript("q7");
     const checks = q7.filter((e) => e.kind === "check");
     expect(checks).toHaveLength(2);
     expect(q7.filter((e) => e.kind === "stuck")).toHaveLength(0);
-    const [firstGo] = GROUP_SCRIPTS.q7.attempts;
+    const [firstGo, secondGo] = GROUP_SCRIPTS.q7.attempts;
     expect(checkBoard("q7", firstGo)).toEqual({ correct: false, cut: 0 });
     expect(cutAtFirstMistake("q7", firstGo)).toEqual({ shown: [{ tex: firstGo[0], mark: "wrong" }], hidden: 2 });
-    expect(q7.filter((e) => e.kind === "line").map((e) => e.kind === "line" && e.tex)).toEqual([...firstGo, ...RECOGNITION_REWORK.q7]);
+    // The demo student's own Q7 rework is a second slip, so the group's correct version is the model solution, not the rework path.
+    expect(secondGo).toEqual(PROBLEM_MAP.q7.solution.map((s) => s.tex));
+    expect(checkBoard("q7", RECOGNITION_REWORK.q7).correct).toBe(false);
+    expect(q7.filter((e) => e.kind === "line").map((e) => e.kind === "line" && e.tex)).toEqual([...firstGo, ...secondGo]);
   });
 });
 

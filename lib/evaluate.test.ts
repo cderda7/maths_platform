@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { RECOGNITION } from "@/data/recognition";
+import { RECOGNITION, RECOGNITION_REWORK } from "@/data/recognition";
 import { PROBLEMS } from "@/data/assignment";
 import { evaluateLine } from "./evaluate";
 
@@ -27,6 +27,19 @@ describe("scripted evaluation", () => {
       ["q7", "algebra.number.fractions"],
       ["q10", "reasoning.justify.formal"],
     ]);
+  });
+
+  it("the rework path corrects every slip but Q7, which slips again on the fraction: every term scaled this time, the third never put back", () => {
+    const wrongs = Object.entries(RECOGNITION_REWORK).flatMap(([pid, lines]) =>
+      lines.map((tex) => evaluateLine(pid, tex)).filter((v) => v.verdict === "wrong").map((v) => [pid, v.verdict === "wrong" && v.tags[0].leaf]),
+    );
+    expect(wrongs).toEqual([
+      ["q4", "algebra.equations.quadratic"],
+      ["q7", "algebra.number.fractions"],
+    ]);
+    expect(RECOGNITION_REWORK.q7[0]).not.toBe(RECOGNITION.q7[0]);
+    const v = evaluateLine("q7", RECOGNITION_REWORK.q7[0]);
+    expect(v.verdict === "wrong" && v.label).toBe("Multiplied through by 3");
   });
 
   it("the one compounded line in the scripted run is Q9's turning point without its height", () => {
