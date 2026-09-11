@@ -1546,3 +1546,11 @@ reformat or move anything below it.
   that already got that problem right?
 
 -**ADD API KEY** for real chat simulation (in 'i need help')
+
+-**REFINING REVIEW** -- consider if we want students doing group review with same questions,
+  or if we should start setting up pathways to differnet problems or activities dependent
+  on group performance/understanding.
+
+-**ASSIGNMENT CREATION** tiles moveable --rn deleteable, but can't reorder.
+
+-**DIAGNOSTIC QUESTIONS** add to teacher mistakes panel.
