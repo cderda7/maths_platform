@@ -3,7 +3,8 @@
 Deferred ideas, kept deliberately generous: if it came up and was not built, it goes here. Each
 entry says where it came from and why it was deferred, so a later decision has its context.
 Newest at the bottom of each section. Policy: every work session that scopes something out
-appends it here (see `CLAUDE.md`).
+appends it here (see `CLAUDE.md`). Hand-written notes live in `## Carson's notes` at the bottom;
+agents add sections above it and leave it alone.
 
 ## Review pathways
 

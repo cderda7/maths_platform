@@ -10,3 +10,4 @@ The Sept 7 design mockup (`roughdraft_sept7/`) was deleted on 10 Sep 2026; its l
 
 ## Future features policy
 Maintain `FUTURE_FEATURES.md` at the repo root. Every time an idea is scoped out, deferred, or mentioned as "later", append it there with the date and why it was deferred. Err on the side of putting too much in rather than too little.
+The file ends with a `## Carson's notes` section that is hand-written: add new sections *above* that heading and never edit, reformat or move anything below it.
