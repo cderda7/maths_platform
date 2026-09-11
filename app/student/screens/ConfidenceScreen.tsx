@@ -109,7 +109,7 @@ export default function ConfidenceScreen({
         {answered ? (
           <>
             {/* Floats over the dimmed list rather than pushing it, so nothing on the screen moves but the callout. */}
-            <div className="offer-in absolute right-0 bottom-[60px] rounded-2xl border border-accent-line bg-paper px-5 py-4 shadow-lift" role="group" aria-label="Warm up?" data-warmup-offer>
+            <div className="offer-in pulse-once absolute right-0 bottom-[60px] rounded-2xl border border-accent-line bg-paper px-5 py-4 shadow-lift" role="group" aria-label="Warm up?" data-warmup-offer>
               <p className="text-[16px] font-medium text-ink" data-offer-question>
                 {offerLines(answered).question}
               </p>

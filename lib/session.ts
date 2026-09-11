@@ -140,8 +140,10 @@ export type SessionAction =
   | { type: "warmup/accept" }
   | { type: "warmup/decline" }
   | { type: "practice/finish" }
-  /** The concerns chat: answer the current question. The last answer starts the warm-up. */
+  /** The concerns chat: answer the current question. Ignored once every question has its answer. */
   | { type: "warmup/say"; text: string }
+  /** After the closing bubble: on to the warm-up pad. Only once every question has its answer. */
+  | { type: "warmup/begin" }
   /** Practice on the pad, for either run: the warm-up or the mid-set overlay. */
   | { type: "run/reveal"; run: RunKey; problem: string; line: RevealedLine }
   | { type: "run/stroke"; run: RunKey; problem: string; stroke: Stroke }
@@ -302,11 +304,11 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       return { ...s, stage: "working" };
     case "warmup/say": {
       const text = a.text.trim();
-      if (!text || s.stage !== "warmup-chat") return s;
-      const messages: WarmupMessage[] = [...s.warmup.messages, { from: "student", text }];
-      const next = warm(s, { messages });
-      return concernsAnswered(warmupSeed(s), messages) ? { ...next, stage: "practice" } : next;
+      if (!text || s.stage !== "warmup-chat" || concernsAnswered(warmupSeed(s), s.warmup.messages)) return s;
+      return warm(s, { messages: [...s.warmup.messages, { from: "student", text }] });
     }
+    case "warmup/begin":
+      return s.stage === "warmup-chat" && concernsAnswered(warmupSeed(s), s.warmup.messages) ? { ...s, stage: "practice" } : s;
     case "run/reveal":
     case "run/stroke":
     case "run/undo":

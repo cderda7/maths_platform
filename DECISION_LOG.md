@@ -1186,3 +1186,40 @@ on the same screen means the answer they just gave is still in view, dimmed, so 
 a consequence of it. Leaving Submit's spot empty makes the choice a deliberate reach without
 adding a confirmation. Holding the state in the session keeps reload, the teacher's mirror and the
 demo fixtures honest for free, and `warmupOffered` is a one-line predicate the tests pin.
+
+## 2026-09-11 · The chat's rhythm is played by the screen from pure steps; the session records only answers and the "begin"
+
+**Decision.** The tutor's turns are derived lists of bubbles (`concernTurns`), and how a turn plays
+(bubble, beat, dots, bubble) is a pure function of its bubble count (`turnSteps`). The screen runs
+timers over those steps for the one turn after the last answer and derives "your turn" from the
+step reached; the box is disabled until then. The session stores only the student's answers plus
+one new action, `warmup/begin`, sent by the screen after the closing bubble. Timers and the step
+reached are component state, keyed on the answer count.
+
+**Context.** The user wants the opening in two bubbles a second apart, the typing dots between
+bubbles, an unmistakable off/on state on the box, and a closing line before the pad. The
+session-mirrors-everything rule (ticket 05) raised the question of whether the playback position
+belongs in the session.
+
+**Alternatives considered.**
+- *Playback position in the session (a `bubblesShown` counter advanced by timed actions).* Would
+  let the teacher's mirror see the dots. Rejected: it writes a dozen actions per turn into a store
+  that is persisted and broadcast, for a cue nobody but the student needs; a reload replaying the
+  current turn from its start is the better behaviour anyway.
+- *Storing the tutor's bubbles as messages.* Would make the transcript a plain list. Rejected in
+  ticket 48 already: the wording is derived so it can change without migrating stored runs.
+- *The reducer opening the pad on the last answer, the closing bubble shown on the pad.* Keeps
+  the reducer as it was, but the closing line belongs in the chat, and the pad would need its own
+  timer. One explicit `warmup/begin` after the bubble is simpler and testable.
+- *Send button only (the help chat's convention).* Rejected by the user: the whole box must read
+  as off while the student should be reading.
+
+**Tradeoffs.** Two conventions now coexist (the help chat keeps its box open while a reply streams;
+noted in FUTURE_FEATURES). The reducer has one more action and one more guard. The timings are
+constants, untuned. A keystroke while the box is off is lost.
+
+**Defense.** Everything that decides what is said and when is pure and unit-tested (`concernTurns`,
+`turnSteps`, `closingLine`, the reducer's guards); the screen only schedules and renders. The session
+keeps recording exactly what it did (answers) and learns one honest fact (the chat is over), so the
+teacher's mirror, reload and the demo fixtures are unchanged. The "your move" pulse reuses the
+offer's, so the flow teaches one cue.

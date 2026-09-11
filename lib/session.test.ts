@@ -53,10 +53,15 @@ describe("student session flow", () => {
     s = sessionReducer(s, { type: "warmup/say", text: "i mix up the signs" });
     expect(s.stage).toBe("warmup-chat");
     expect(s.warmup.messages).toEqual([{ from: "student", text: "i mix up the signs" }]);
+    expect(sessionReducer(s, { type: "warmup/begin" })).toBe(s);
     s = sessionReducer(s, { type: "warmup/say", text: "dividing them" });
-    expect(s.stage).toBe("practice");
+    // Every question answered: the chat stays for its closing bubble, takes no more answers, then "begin" opens the pad.
+    expect(s.stage).toBe("warmup-chat");
     expect(s.warmup.messages.map((m) => m.text)).toEqual(["i mix up the signs", "dividing them"]);
     expect(sessionReducer(s, { type: "warmup/say", text: "more" })).toBe(s);
+    s = sessionReducer(s, { type: "warmup/begin" });
+    expect(s.stage).toBe("practice");
+    expect(sessionReducer(s, { type: "warmup/begin" })).toBe(s);
     expect(warmupProblem(s).id).toBe("w-fractions");
     s = sessionReducer(s, { type: "practice/finish" });
     expect(s.stage).toBe("working");
@@ -66,10 +71,10 @@ describe("student session flow", () => {
     let s = sessionReducer(sessionReducer(sessionReducer(INITIAL_SESSION, { type: "overview/start" }), { type: "confidence/set", confidence: { level: "low" } }), { type: "warmup/accept" });
     expect(s.stage).toBe("warmup-chat");
     expect(warmupSeed(s)).toEqual([]);
-    const named = sessionReducer(s, { type: "warmup/say", text: "fractions and Q2" });
+    const named = sessionReducer(sessionReducer(s, { type: "warmup/say", text: "fractions and Q2" }), { type: "warmup/begin" });
     expect(named.stage).toBe("practice");
     expect(warmupFocus(named)).toEqual(["algebra.number.fractions", "algebra.expand-factor.nonmonic", "unit.u1.nfl"]);
-    s = sessionReducer(s, { type: "warmup/say", text: "not sure really" });
+    s = sessionReducer(sessionReducer(s, { type: "warmup/say", text: "not sure really" }), { type: "warmup/begin" });
     expect(s.stage).toBe("practice");
     expect(warmupProblem(s).id).toBe(PRACTICE.id);
   });

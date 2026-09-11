@@ -26,6 +26,23 @@ appends it here (see `CLAUDE.md`). Hand-written notes live in `## The warm-up of
   needs to re-read what they ticked, the question line names the skills; a taller stage could show
   both.
 
+## The concerns chat's rhythm (from ticket 74, 2026-09-11)
+
+- **Timings are constants, not tuned.** A 400 ms beat, 1 s of dots, 1.2 s after the closing bubble.
+  Real students will tell whether a second of dots reads as "thinking" or as lag; a per-bubble
+  duration scaled to the bubble's length is the obvious refinement.
+- **The help chat on the pad keeps its own convention.** There the reply streams from the model and
+  only the send button disables; the box stays open. Bringing the two chats to one rule (box off
+  while the tutor writes, pulse when it's your move) is one change in `HelpChat` once the rhythm
+  here has been seen in use.
+- **Keystrokes while the box is off are dropped.** A student who starts typing before the question
+  has landed loses those letters. Buffering them into the draft would let a fast student get ahead
+  of the tutor, which is what the disabled box is there to prevent; noted in case it frustrates.
+- **A "skip the pause" for the demo.** Presenters walking the flow several times may want the
+  bubbles at once; `?fast=1` or a Reset-demo option is a one-line switch on the constants.
+- **The closing bubble names the first skill by ease.** It uses the first leaf of the focus by
+  `EASE`; if a later ticket lets the student pick which skill to open on, the line should follow.
+
 ## Carson's notes` at the bottom;
 agents add sections above it and leave it alone.
 

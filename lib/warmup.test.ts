@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { byEase, concernPrompts, concernsAnswered, concernTranscript, EASE, focusLeaves, interpret, offerLines, practiceFor, warmupScript, warmupSequence } from "./warmup";
+import { byEase, CHAT_BEAT_MS, CHAT_DOTS_MS, closingLine, concernsAnswered, concernTranscript, concernTurns, EASE, focusLeaves, interpret, offerLines, practiceFor, turnSteps, warmupScript, warmupSequence } from "./warmup";
 import { isolatable, PRACTICE, WARMUP_BANK } from "@/data/practice";
 import { ASSIGNMENT } from "@/data/assignment";
 import { leavesTouched } from "./hierarchy";
@@ -79,26 +79,50 @@ describe("the warm-up sequence", () => {
 
 describe("the concerns chat", () => {
   const three = ["algebra.expand-factor.monic", "algebra.number.fractions", "unit.u1.nfl"] as const;
-  it("asks one question per ticked skill, the first naming them all, in the order they were ticked", () => {
-    expect(concernPrompts([...three])).toEqual([
-      "Let's do a warm up on factorising, fractions, & null factor law. First, tell me a little bit about your concerns with factorising.",
-      "Next, tell me about your concerns with fractions.",
-      "Next, tell me about your concerns with null factor law.",
+  it("asks one turn per ticked skill, the opening in two bubbles naming them all, in the order they were ticked", () => {
+    expect(concernTurns([...three])).toEqual([
+      ["Let's do a warm up on factorising, fractions, & null factor law.", "First, tell me a little bit about your concerns with factorising."],
+      ["Next, tell me about your concerns with fractions."],
+      ["Next, tell me about your concerns with null factor law."],
     ]);
-    expect(concernPrompts(["algebra.number.fractions", "algebra.expand-factor.monic"])[0]).toBe("Let's do a warm up on fractions & factorising. First, tell me a little bit about your concerns with fractions.");
-    expect(concernPrompts(["algebra.expand-factor.monic"])).toEqual(["Let's do a warm up on factorising. Tell me a little bit about your concerns with factorising."]);
-    expect(concernPrompts([])).toEqual(["Let's do a warm up. Tell me a little bit about what you'd like to warm up on."]);
+    expect(concernTurns(["algebra.number.fractions", "algebra.expand-factor.monic"])[0]).toEqual(["Let's do a warm up on fractions & factorising.", "First, tell me a little bit about your concerns with fractions."]);
+    expect(concernTurns(["algebra.expand-factor.monic"])).toEqual([["Let's do a warm up on factorising.", "Tell me a little bit about your concerns with factorising."]]);
+    expect(concernTurns([])).toEqual([["Let's do a warm up.", "Tell me a little bit about what you'd like to warm up on."]]);
   });
-  it("shows each question followed by its answer, up to the first still unanswered, ignoring any stored tutor lines", () => {
+  it("closes by naming the skill the warm-up opens on", () => {
+    expect(closingLine("algebra.number.fractions")).toBe("Thanks. Let's start with fractions.");
+    expect(closingLine(undefined)).toBe("Thanks. Let's start.");
+  });
+  it("plays the opening's first bubble at once with the dots straight after, and every other bubble after a beat and the dots", () => {
+    expect(turnSteps(2, true)).toEqual([
+      { at: 0, shown: 1, dots: true },
+      { at: CHAT_DOTS_MS, shown: 2, dots: false },
+    ]);
+    expect(turnSteps(1, false)).toEqual([
+      { at: 0, shown: 0, dots: false },
+      { at: CHAT_BEAT_MS, shown: 0, dots: true },
+      { at: CHAT_BEAT_MS + CHAT_DOTS_MS, shown: 1, dots: false },
+    ]);
+    expect(turnSteps(3, true)).toEqual([
+      { at: 0, shown: 1, dots: true },
+      { at: CHAT_DOTS_MS, shown: 2, dots: false },
+      { at: CHAT_DOTS_MS + CHAT_BEAT_MS, shown: 2, dots: true },
+      { at: 2 * CHAT_DOTS_MS + CHAT_BEAT_MS, shown: 3, dots: false },
+    ]);
+    expect(turnSteps(1, true)).toEqual([{ at: 0, shown: 1, dots: false }]);
+  });
+  it("shows each turn's bubbles followed by its answer, up to the first still unanswered, ignoring any stored tutor lines", () => {
     const a = { from: "student", text: "signs" } as const;
     const b = { from: "student", text: "dividing" } as const;
-    expect(concernTranscript([...three], []).map((m) => m.from)).toEqual(["tutor"]);
+    const turns = concernTurns([...three]);
+    expect(concernTranscript([...three], []).map((m) => m.from)).toEqual(["tutor", "tutor"]);
     expect(concernTranscript([...three], [a, { from: "tutor", text: "old reply" }, b])).toEqual([
-      { from: "tutor", text: concernPrompts([...three])[0] },
+      { from: "tutor", text: turns[0][0] },
+      { from: "tutor", text: turns[0][1] },
       a,
-      { from: "tutor", text: concernPrompts([...three])[1] },
+      { from: "tutor", text: turns[1][0] },
       b,
-      { from: "tutor", text: concernPrompts([...three])[2] },
+      { from: "tutor", text: turns[2][0] },
     ]);
     expect(concernsAnswered([...three], [a, b])).toBe(false);
     expect(concernsAnswered([...three], [a, b, a])).toBe(true);

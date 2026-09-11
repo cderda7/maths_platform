@@ -129,7 +129,7 @@ body {
   cursor: text;
 }
 
-/* The warm-up offer on the confidence screen: rises into place, then one ring pulse to catch an eye already looking away. */
+/* Two attention cues, used together on the warm-up offer and apart elsewhere: `.offer-in` rises into place; `.pulse-once` gives one accent ring, the flow's sign for "your move" (the offer landing, the chat box turning on). */
 @keyframes offer-rise {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: translateY(0); }
@@ -142,8 +142,8 @@ body {
 .offer-in {
   animation: offer-rise 200ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
-/* The ring on a layer of its own, so the card keeps its lift shadow once the pulse has faded. */
-.offer-in::after {
+/* The ring on a layer of its own, so the element keeps its own shadow once the pulse has faded. The element must be positioned. */
+.pulse-once::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -153,7 +153,7 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .offer-in,
-  .offer-in::after {
+  .pulse-once::after {
     animation: none;
   }
 }

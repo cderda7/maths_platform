@@ -19,16 +19,67 @@ const skillWord = (l: LeafId) => studentLeafName(l).name.toLowerCase();
 const amp = (xs: string[]) => (xs.length <= 1 ? xs.join("") : xs.length === 2 ? `${xs[0]} & ${xs[1]}` : `${xs.slice(0, -1).join(", ")}, & ${xs[xs.length - 1]}`);
 
 /**
- * The concerns chat's questions, one per seed skill in the order the student ticked them. The
- * first names every skill; each answer is followed by the next skill's question. No seed (the
- * student answered "confident" or "not confident" overall) asks one open question.
+ * The concerns chat's turns, one per seed skill in the order the student ticked them, each a list
+ * of bubbles the tutor sends one at a time. The opening is two bubbles: the setup naming every
+ * skill, then the ask. Each later question is one bubble. No seed (the student answered
+ * "confident" or "not confident" overall) asks one open question.
  */
-export function concernPrompts(seed: LeafId[]): string[] {
+export function concernTurns(seed: LeafId[]): string[][] {
   const w = seed.map(skillWord);
-  if (w.length === 0) return ["Let's do a warm up. Tell me a little bit about what you'd like to warm up on."];
-  if (w.length === 1) return [`Let's do a warm up on ${w[0]}. Tell me a little bit about your concerns with ${w[0]}.`];
-  return [`Let's do a warm up on ${amp(w)}. First, tell me a little bit about your concerns with ${w[0]}.`, ...w.slice(1).map((x) => `Next, tell me about your concerns with ${x}.`)];
+  if (w.length === 0) return [["Let's do a warm up.", "Tell me a little bit about what you'd like to warm up on."]];
+  if (w.length === 1) return [[`Let's do a warm up on ${w[0]}.`, `Tell me a little bit about your concerns with ${w[0]}.`]];
+  return [[`Let's do a warm up on ${amp(w)}.`, `First, tell me a little bit about your concerns with ${w[0]}.`], ...w.slice(1).map((x) => [`Next, tell me about your concerns with ${x}.`])];
 }
+
+/** The chat's last bubble, after the final answer: thanks, and the skill the warm-up opens on. */
+export const closingLine = (first: LeafId | undefined): string => (first ? `Thanks. Let's start with ${skillWord(first)}.` : "Thanks. Let's start.");
+
+/** The chat's rhythm: a beat after the student's bubble before the dots, the dots' length, and the wait after the closing bubble before the pad. */
+export const CHAT_BEAT_MS = 400;
+export const CHAT_DOTS_MS = 1000;
+export const CHAT_CLOSE_MS = 1200;
+
+/** One moment in a tutor turn's playback: how many of its bubbles are on screen, and whether the typing dots are. */
+export interface PlayStep {
+  at: number;
+  shown: number;
+  dots: boolean;
+}
+
+/**
+ * How a tutor turn of `bubbles` bubbles plays out, from the moment the turn begins (the screen
+ * opening, or the student's send). The opening turn's first bubble is already there at 0 and the
+ * dots start at once; otherwise a beat, then the dots, then the bubble, for each bubble in turn.
+ */
+export function turnSteps(bubbles: number, opening: boolean): PlayStep[] {
+  const first = opening ? 1 : 0;
+  const steps: PlayStep[] = [];
+  let t = 0;
+  for (let i = first; i < bubbles; i++) {
+    if (!opening || i > first) t += CHAT_BEAT_MS;
+    steps.push({ at: t, shown: i, dots: true });
+    t += CHAT_DOTS_MS;
+    steps.push({ at: t, shown: i + 1, dots: false });
+  }
+  if (steps.length === 0 || steps[0].at > 0) steps.unshift({ at: 0, shown: first, dots: false });
+  return steps;
+}
+
+/** The chat so far: each turn's bubbles, then the student's answer to it, up to the first turn still unanswered. Only the student's lines are stored; the tutor's are derived. */
+export function concernTranscript(seed: LeafId[], messages: WarmupMessage[]): WarmupMessage[] {
+  const answers = messages.filter((m) => m.from === "student");
+  const out: WarmupMessage[] = [];
+  concernTurns(seed).some((turn, i) => {
+    for (const text of turn) out.push({ from: "tutor", text });
+    if (!answers[i]) return true;
+    out.push(answers[i]);
+    return false;
+  });
+  return out;
+}
+
+/** True once every turn has its answer: the closing bubble, then the warm-up. */
+export const concernsAnswered = (seed: LeafId[], messages: WarmupMessage[]): boolean => messages.filter((m) => m.from === "student").length >= concernTurns(seed).length;
 
 /**
  * The warm-up offer's two lines, on the confidence screen after a not-confident answer: the tutor's
@@ -40,22 +91,6 @@ export function offerLines(confidence: Confidence): { question: string; size: st
   if (w.length === 0) return { question: "Warm up before the set?", size: "a few short problems, then the set" };
   return { question: `Warm up on ${amp(w)} first?`, size: `${w.length} short problem${w.length === 1 ? "" : "s"}, then the set` };
 }
-
-/** The chat so far: each question, then the student's answer to it, up to the first question still unanswered. Only the student's lines are stored; the questions are derived. */
-export function concernTranscript(seed: LeafId[], messages: WarmupMessage[]): WarmupMessage[] {
-  const answers = messages.filter((m) => m.from === "student");
-  const out: WarmupMessage[] = [];
-  concernPrompts(seed).some((text, i) => {
-    out.push({ from: "tutor", text });
-    if (!answers[i]) return true;
-    out.push(answers[i]);
-    return false;
-  });
-  return out;
-}
-
-/** True once every question has its answer: the warm-up starts. */
-export const concernsAnswered = (seed: LeafId[], messages: WarmupMessage[]): boolean => messages.filter((m) => m.from === "student").length >= concernPrompts(seed).length;
 
 /** A skill word or phrase a student might use, mapped to the leaves it means. First match wins per leaf. */
 const SKILL_WORDS: [RegExp, LeafId[]][] = [

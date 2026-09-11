@@ -22,7 +22,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
  │       └▶ IpadStage ▶ StudentChrome│               │   classmates (19: 6 full, 13 light) · seating groups (5 colours)│
  │            └▶ screens/            │               └──────────────┬───────────────────┘
  │               Overview ▶ Confidence ▶ (not confident: a callout, offerLines: Warm up | Start the set)│                              │ reads every 3 s
- │               ▶ WarmupChat (the ticked skills → one concern question each → answers → focus → warmupSequence, easiest first)│
+ │               ▶ WarmupChat (the ticked skills → concernTurns, one bubble at a time to turnSteps, the box off while the tutor "writes" → answers → focus → warmupSequence, easiest first)│
  │               ▶ Practice (pad · skill buttons: dark once on or through, tap opens · HelpMenu: hint · worked example · video · chat · follow-up split pane)│
  │                   HelpChat (ticket 69): the right column while open · lines said → run.chat · POST /api/help-chat streams claude-opus-5 (lib/helpChat.ts brief: hints only, two ways in, "which makes more sense?")│
  │                   HintCard: linked hint words light the expression (termTex) — practices only│
@@ -204,6 +204,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 71 | Start alone, Submit, and the fork: the warm-up is offered on the confidence screen to the student who says they are not confident | `/student` overview, `…?stage=confidence` | 48 | [architecture/71-start-alone-submit-and-the-fork.md](architecture/71-start-alone-submit-and-the-fork.md) |
 | 72 | The offer callout: the tutor's question naming the ticked skills, one short problem per skill, a rise and one ring pulse over the dimmed list | `…?stage=confidence` | 71 | [architecture/72-offer-callout.md](architecture/72-offer-callout.md) |
 | 73 | Offer callout: "Start the set" in the accent outline, a pinch stronger than a secondary button | `…?stage=confidence` | 72 | [architecture/73-offer-start-the-set-outline.md](architecture/73-offer-start-the-set-outline.md) |
+| 74 | Concerns chat rhythm: the opening in two bubbles a second apart, typing dots, a box that is plainly off while the tutor writes and pulses on for the student's turn, a closing bubble before the pad | `…?stage=warmup-chat` | 48, 72 | [architecture/74-chat-rhythm.md](architecture/74-chat-rhythm.md) |
 
 ## Conventions
 
