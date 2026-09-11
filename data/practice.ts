@@ -19,13 +19,40 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "x = -3 \\;\\text{or}\\; x = -4", label: "Null factor law", tags: [tag("unit.u1.nfl")] },
     ],
     why: "Most of this set leans on factorising. Two minutes here makes it quicker.",
+    // One hint per point in the working (`at` counts lines of the steps above); from the second on, the linked words point at the student's own line.
     hints: [
       {
         text: "Look for two numbers that multiply to the constant and add to the middle coefficient.",
+        at: [0],
         terms: [
           { phrase: "constant", tex: ["12"] },
           { phrase: "middle coefficient", tex: ["7"] },
         ],
+      },
+      {
+        text: "Once you have a pair that multiplies to 12, check it adds to 7 as well. The pairs to try: 1 and 12, 2 and 6, 3 and 4.",
+        at: [1],
+        terms: [
+          { phrase: "pair", tex: ["3", "4"] },
+          { phrase: "12", tex: ["12"] },
+        ],
+      },
+      {
+        text: "Once the pair checks out, those are your two numbers. Each bracket is x plus one of them, and the whole thing still equals 0.",
+        at: [2],
+        terms: [{ phrase: "two numbers", tex: ["3", "4"] }],
+      },
+      {
+        text: "The two brackets multiply to give 0. A product is only zero when one of its factors is zero, so set each bracket equal to zero on its own.",
+        at: [3],
+        terms: [
+          { phrase: "brackets", tex: ["(x + 3)", "(x + 4)"] },
+          { phrase: "0", tex: ["0"] },
+        ],
+      },
+      {
+        text: "Each bracket equal to zero is its own small equation: x + 3 = 0 and x + 4 = 0. Solve both, and mind the signs.",
+        at: [4],
       },
     ],
     approaches: [
@@ -47,9 +74,31 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       hints: [
         {
           text: "The constant is positive and the middle term negative, so both numbers are negative.",
+          at: [0],
           terms: [
             { phrase: "constant", tex: ["10"] },
             { phrase: "middle term", tex: ["- 7x"] },
+          ],
+        },
+        {
+          text: "Once you have a pair that multiplies to 10, check it adds to -7 as well. Two negatives multiply to a positive and add to a negative, which is what you need.",
+          at: [1],
+          terms: [
+            { phrase: "pair", tex: ["(-2)", "(-5)"] },
+            { phrase: "positive", tex: ["10"] },
+          ],
+        },
+        {
+          text: "Once the pair checks out, those are your two numbers. Each bracket is x with one of them, so both brackets are x minus something.",
+          at: [2],
+          terms: [{ phrase: "two numbers", tex: ["(-2)", "(-5)"] }],
+        },
+        {
+          text: "The two brackets multiply to give 0, so one of them must be zero. Set each bracket equal to zero on its own; this time the answers come out positive.",
+          at: [3],
+          terms: [
+            { phrase: "brackets", tex: ["(x - 2)", "(x - 5)"] },
+            { phrase: "0", tex: ["0"] },
           ],
         },
       ],

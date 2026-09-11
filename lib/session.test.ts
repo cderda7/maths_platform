@@ -216,12 +216,15 @@ describe("the warm-up on the pad", () => {
   it("hints are picked per problem for where the lines have got, remembered as indices in the order shown, and stop when none fits", () => {
     let s = sessionReducer(start, { type: "run/hint", run: "warmup" });
     expect(s.warmup.hinted).toEqual({ "w-monic": [0] });
+    // On a blank pad the opening hint is the only one for here; the next asks fall forward through the hints for later points, then stop.
+    for (let i = 0; i < PRACTICE.hints.length - 1; i++) s = sessionReducer(s, { type: "run/hint", run: "warmup" });
+    expect(s.warmup.hinted).toEqual({ "w-monic": [0, 1, 2, 3, 4] });
     expect(sessionReducer(s, { type: "run/hint", run: "warmup" })).toBe(s);
     s = sessionReducer(s, { type: "run/example", run: "warmup" });
     for (let i = 0; i < PRACTICE.steps.length; i++) s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
     s = sessionReducer(s, { type: "run/next", run: "warmup" });
     s = sessionReducer(s, { type: "run/hint", run: "warmup" });
-    expect(s.warmup.hinted).toEqual({ "w-monic": [0], "w-monic-2": [0] });
+    expect(s.warmup.hinted).toEqual({ "w-monic": [0, 1, 2, 3, 4], "w-monic-2": [0] });
     // The fractions warm-up: on a blank pad the "move the 6" hint; once the pad has read the first
     // step, the next ask is the common-denominator hint written for that point, not the third in the list.
     let f = sessionAt("practice");
@@ -317,7 +320,8 @@ describe("the isolated practice on the pad", () => {
     s = sessionReducer(s, { type: "run/reveal", run: "overlay", problem: "w-monic", line: { tex: "a", strokeCount: 1 } });
     s = sessionReducer(s, { type: "run/hint", run: "overlay" });
     expect(s.overlayRun.lines["w-monic"].map((l) => l.tex)).toEqual(["a"]);
-    expect(s.overlayRun.hinted).toEqual({ "w-monic": [0] });
+    // One line written, so the hint for after the first line (check the pair adds up), not the opening one.
+    expect(s.overlayRun.hinted).toEqual({ "w-monic": [1] });
     expect(s.warmup.lines).toEqual({});
     expect(s.lines.q1 ?? []).toEqual([]);
     s = sessionReducer(s, { type: "run/example", run: "overlay" });

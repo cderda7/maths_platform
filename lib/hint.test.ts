@@ -192,13 +192,16 @@ describe("warm-up hint terms", () => {
     }
   });
 
-  it("the monic warm-up has one hint linking its constant and middle coefficient", () => {
-    expect(PRACTICES["algebra.expand-factor.monic"]?.hints.map((h) => h.terms)).toEqual([
-      [
-        { phrase: "constant", tex: ["12"] },
-        { phrase: "middle coefficient", tex: ["7"] },
-      ],
+  it("the monic warm-up's opening hint links the problem's constant and middle coefficient; its later hints cover every point in the working to the null factor law", () => {
+    const monic = PRACTICES["algebra.expand-factor.monic"]!;
+    expect(monic.hints[0].terms).toEqual([
+      { phrase: "constant", tex: ["12"] },
+      { phrase: "middle coefficient", tex: ["7"] },
     ]);
+    // One hint per point: blank pad, the product found, the sum checked, the brackets written, the check done. None once solved.
+    expect(monic.hints.map((h) => h.at)).toEqual([[0], [1], [2], [3], [4]]);
+    expect(monic.hints[3].terms?.[0]).toEqual({ phrase: "brackets", tex: ["(x + 3)", "(x + 4)"] });
+    expect(monic.followUp!.hints.map((h) => h.at)).toEqual([[0], [1], [2], [3]]);
   });
 
   it("the fractions warm-up's first hint moves the 6 in the problem; the later ones point at the student's own line", () => {
@@ -306,12 +309,32 @@ describe("pickHint", () => {
     expect(pickHint(p, p.steps.map((s) => s.tex), [])).toBeNull();
   });
 
-  it("a general hint (no `at`) is offered wherever the student is, once", () => {
+  it("the factorising warm-up has a hint for every point: the pair, the sum, the brackets, and past the brackets to the null factor law", () => {
     const monic = PRACTICES["algebra.expand-factor.monic"]!;
-    expect(monic.hints.every((h) => !h.at)).toBe(true);
+    const lines = (n: number) => monic.steps.slice(0, n).map((s) => s.tex);
     expect(pickHint(monic, [], [])).toBe(0);
-    expect(pickHint(monic, ["x^2 + 7x + 12 = 0", "anything"], [])).toBe(0);
-    expect(pickHint(monic, [], [0])).toBeNull();
+    expect(pickHint(monic, lines(1), [0])).toBe(1);
+    // A pair the pad could not place still counts as one line written.
+    expect(pickHint(monic, ["2 \\times 6 = 12"], [0])).toBe(1);
+    expect(pickHint(monic, lines(2), [0, 1])).toBe(2);
+    // Stuck at (x + 3)(x + 4) = 0: the null factor law hint, then the spelt-out one written for after the check.
+    expect(pickHint(monic, lines(3), [])).toBe(3);
+    expect(pickHint(monic, lines(3), [3])).toBe(4);
+    expect(pickHint(monic, lines(4), [3])).toBe(4);
+    expect(pickHint(monic, lines(5), [])).toBeNull();
+    expect(hintAnchor(monic.hints[3], 3)).toBe(3);
+    expect(hintAnchor(monic.hints[4], 3)).toBe(0);
+    const followUp = monic.followUp!;
+    expect(pickHint(followUp, followUp.steps.slice(0, 3).map((s) => s.tex), [])).toBe(3);
+    expect(pickHint(followUp, followUp.steps.map((s) => s.tex), [])).toBeNull();
+  });
+
+  it("a general hint (no `at`) is offered wherever the student is, once", () => {
+    const nfl = PRACTICES["unit.u1.nfl"]!;
+    expect(nfl.hints.every((h) => !h.at)).toBe(true);
+    expect(pickHint(nfl, [], [])).toBe(0);
+    expect(pickHint(nfl, ["x - 2 = 0", "anything"], [])).toBe(0);
+    expect(pickHint(nfl, [], [0])).toBeNull();
     // A general hint yields to one written for the point, and is offered after it.
     const mixed = { steps: p.steps, hints: [{ text: "general" }, { text: "here", at: [1] }] };
     expect(pickHint(mixed, [step(0)], [])).toBe(1);

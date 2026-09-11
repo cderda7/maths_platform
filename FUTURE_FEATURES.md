@@ -820,6 +820,28 @@ agents add sections above it and leave it alone.
   for the emphasis only in the bubble about one skill. A variant that bolds the *current* skill in a
   pinned strip, rather than in the bubble, was not asked for.
 
+## Every point in the factorising warm-up has a hint (from ticket 85, 2026-09-11)
+
+- **Only the two factorising problems and the fractions one have hints per point.** The other
+  warm-ups (null factor law, discriminant, non-monic, the graph ones) still carry one general hint;
+  a student stuck mid-way on those gets "Shown" and nothing more, the very gap this ticket closed
+  for factorising. Same shape, one afternoon of writing.
+- **A hint for the wrong pair.** A student who writes 2 × 6 = 12 is at position 1 and gets "check
+  it adds to 7 as well", which is right, but the pad cannot say "2 and 6 add to 8, not 7": the
+  reference working has one path and the pad only knows the line was not on it. A per-line
+  diagnosis would need the pad to read the line, not just place it.
+- **The spelt-out hint gives the two equations, not the answers.** One more ask could give the
+  answers with the working ("x = −3 or x = −4, because …"), as a last resort before the worked
+  example; deferred because the worked example already does that, step by step.
+- **Hints ahead of their point read as forecasts.** A blank-pad student asking five times is walked
+  through the method one hint at a time. If that is too much, the "ahead" fallback in `pickHint`
+  could stop after one hint ahead and point at the worked example instead.
+- **The hint texts hard-code the fixture's numbers.** "x + 3 = 0 and x + 4 = 0" is written for this
+  problem; a generated warm-up would need the hints generated too, from the steps.
+- **Sign trap in the follow-up.** Its last hint says "the answers come out positive" but does not
+  link the minus signs in the brackets; a lit "− 2" and "− 5" (fragment `- 2` inside `(x - 2)`)
+  would make the point visually.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

@@ -215,6 +215,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 82 | A hint's linked words point at the student's own line in the read-as column ("your line 4", the line tinted while lit); a lit fraction is boxed whole | `…?stage=practice`, the practice overlay | 80, 77 | [architecture/82-hint-anchors.md](architecture/82-hint-anchors.md) |
 | 83 | A lit hint word lights only the line its hint points at, never the same fragment elsewhere; the lit box has a touch more room above and below | `…?stage=practice`, the practice overlay | 82 | [architecture/83-hint-lit-scope.md](architecture/83-hint-lit-scope.md) |
 | 84 | The concerns chat names the skill in bold in each ask, and asks the later skills "How about with fractions?" / "How about the null factor law?" | `…?stage=warmup-chat` | 48, 74 | [architecture/84-chat-skill-emphasis.md](architecture/84-chat-skill-emphasis.md) |
+| 85 | The factorising warm-up has a hint for every point in the working: the pair, the sum, the brackets, then past the brackets to the null factor law (set each bracket to zero; then x + 3 = 0 and x + 4 = 0 spelt out); the follow-up likewise | `…?stage=practice`, the practice overlay | 80, 82 | [architecture/85-monic-hints.md](architecture/85-monic-hints.md) |
 
 ## Conventions
 

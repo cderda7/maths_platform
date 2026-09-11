@@ -1460,3 +1460,37 @@ more word in the regex, pinned by a test.
 **Defense.** The string convention keeps the chat's script readable as sentences in the code and the
 tests, keeps `ChatMessage` a string, and costs one four-line splitter. The rule is pure, tested over
 every shape in the taxonomy that matters today, and lives beside the script it serves.
+
+## 2026-09-11 · A warm-up's hints cover every point in its working, each readable ahead of its point, and the last one is spelt out
+
+**Decision.** Every point in a warm-up's reference working gets a hint of its own (`at: [k]`), the
+factorising warm-up included: five hints for five lines, the follow-up four. Two rules for writing
+them: (1) a hint reads on its own ahead of its point ("Once you have a pair that multiplies to
+12, …"), because `pickHint` falls forward to the next hint when the one for here is spent; (2) the
+hint for the last point before the answer spells the move out (x + 3 = 0 and x + 4 = 0), since it is
+also the second hint a student stuck at the brackets receives. A linked phrase is written once and
+paraphrased elsewhere ("0" boxed once, "zero" after), since every whole-word occurrence is boxed.
+
+**Context.** The factorising warm-up had one hint (ticket 30's), about finding the pair; a student
+with (x + 3)(x + 4) = 0 on the pad and no idea what to do next got "another hint · Shown" (ticket 85).
+The user: "even once the student has figured out (x+4)(x+3), they might get stuck there".
+
+**Alternatives considered.**
+- *One hint spanning the brackets and the check (`at: [3, 4]`).* One fewer hint, but the fixture
+  test requires a hint's fragments to locate in every line it names, and the check line has no
+  brackets; and a student stuck at the brackets would get one hint then "None for this step".
+- *Add only the null-factor-law hint.* Covers the case in the screenshot, but leaves a student stuck
+  after the pair ("do these add to 7?") or the sum ("where do the numbers go?") with nothing, and
+  the fractions warm-up already set the one-hint-per-point shape.
+- *Let the pad's hint fallback reword an ahead-of-point hint.* Machinery for a wording problem;
+  writing the hint so it stands alone costs nothing.
+
+**Tradeoffs.** A blank-pad student who asks five times is walked through the whole method one hint at
+a time, which is what "another hint" promises but is more than before. The spelt-out hint has no
+linked words: it is written for after the check and offered ahead of it, where its fragments would
+point at nothing. The hint texts name the fixture's numbers, so they are per problem, not per skill.
+
+**Defense.** No code changed: `pickHint` and `hintAnchor` already do the work, and the fixture tests
+(fragments locate, spacing unchanged, `at` lists) hold every hint to the same standard. The rules are
+recorded here so the next warm-up's hints are written the same way.
+
