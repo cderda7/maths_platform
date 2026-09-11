@@ -2227,3 +2227,35 @@ in force; the draft does not, by design.
 
 **Defence.** The smallest change that gives the teacher the new flow from the pill and the other
 agent an untouched reference.
+
+## 2026-09-11 · The create screen seeds the demo draft from one shared fixture
+
+**Decision.** With no draft in the classroom store, the create screen seeds one from
+`data/draft-seed.ts`: the title and the demo teacher's ten questions in the typed shorthand. The
+seed is written to the store on mount like any edit. A draft that exists but is empty is not
+reseeded. The review step (ticket 120) pastes the same lines, so the fixture is one file both
+import.
+
+**Context.** Ticket 121. The user, on the blank first load: "i don't want this blank view -- i
+want it prefilled for now, & for genuine assignment creation to be a next round concern". The
+phase-2 session had already written the paste with two deliberate differences from the bank (Q1
+with +5x, a repeat in the ball problem's slot) for its recommendations to act on.
+
+**Alternatives considered.**
+- *Seed from the bank (`PROBLEMS`) by rendering each problem's stem and TeX back into the
+  shorthand.* Round-trips TeX to shorthand, a second grammar to maintain, and the review step
+  wants the two differences anyway. Rejected.
+- *Keep the blank screen and let the review step's fixture be pasted by hand.* The user asked
+  for prefilled. Rejected.
+- *Seed in the store's `INITIAL_CLASSROOM`.* Would put ten typed questions into every tab's
+  initial state, including the student's. Rejected: the seed is the create screen's.
+- *Reseed whenever the draft is empty.* A teacher who removes every tile would watch them come
+  back. Rejected: only a missing draft seeds.
+
+**Tradeoffs.** The seed's ids (`seed-1…10`) are stable across reseeds, so a stale tile key is
+never an issue, but the same ids reappear after Reset demo in every tab. The seed's two
+differences from the bank are the review step's premise; a presenter reading the create screen
+alone sees a +5x Q1 that is not the bank's, which the fixture's comment explains.
+
+**Defence.** One fixture, two readers, no round-trip; the screen the user sees on arrival is the
+one they asked for; the blank flow of ticket 119 is unchanged once the draft has been emptied.

@@ -47,7 +47,8 @@ restarts everything in every tab; it is a presenter control, not part of the pro
 
 Teacher, before the lesson (`/teacher/assignments/create`, then the older `/teacher/assignments/new`):
 
-0. **Create** (ticket 119): a title, then the questions typed into tiles in the student's five-wide
+0. **Create** (tickets 119, 121): opens prefilled with the demo set (`data/draft-seed.ts`: the title
+   and ten typed questions, Q1 with +5x and a repeated Q9 for the review step); a title, then the questions typed into tiles in the student's five-wide
    grid, each tile the editor: the typed text on top, the rendered question beneath as you type
    (`x**2 + 5x + 6 = 0`, `1/3x**2`, `sqrt(2)` as KaTeX), Enter for the next tile, Shift+Enter to
    put the expression under the prose, × or Backspace to remove ("Q2 removed. Undo"). Continue

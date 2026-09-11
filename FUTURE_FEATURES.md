@@ -1416,6 +1416,26 @@ agents add sections above it and leave it alone.
   as far as `reset` clears it (it does). A teacher with two tabs open on the create screen would
   see the last writer win on reload, not live.
 
+## Genuine assignment creation, from nothing (from ticket 121, 2026-09-11)
+
+- **The create screen is prefilled for now.** The user (2026-09-11): "i don't want this blank
+  view -- i want it prefilled for now, & for genuine assignment creation to be a next round
+  concern." With no draft in the store the screen seeds the demo set from `data/draft-seed.ts`
+  (ten typed lines, Q1 with +5x and a repeated Q9 for the review step's recommendations). The
+  blank flow of ticket 119 (one ghost tile, type, Enter, paste) still exists once the draft is
+  emptied, and is what a real teacher would start from.
+- **From-nothing creation, next round.** What the blank flow needs before it is the product:
+  where the questions come from (typing is one source; a photo of a textbook page, a paste from a
+  PDF, "three more like Q4", the bank searched by skill, last term's set cloned), the typing
+  convention taught (see "The create screen: typing questions into tiles"), sub-parts, figures,
+  worked solutions or at least an answer per question so the marking has something to run on, and
+  a real bank behind it (see "A real problem bank" under Data and platform). The seed should then
+  go, or become a "start from the demo set" choice.
+- **The seed's ids are fixed.** `seed-1…10` reappear after every Reset demo, in every tab; fine
+  for a demo, wrong once drafts are listed or shared.
+- **One fixture, two readers.** The review step's branch carried its own copy of the paste when
+  this landed; it should import `DEMO_PASTE` from `data/draft-seed.ts` so the two never drift.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

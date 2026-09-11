@@ -6,6 +6,7 @@ import TeacherChrome from "../../TeacherChrome";
 import QuestionTile, { type TileHandlers } from "./QuestionTile";
 import { Button, Eyebrow } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
+import { DEMO_DRAFT_TITLE, DEMO_PASTE_LINES } from "@/data/draft-seed";
 import type { AssignmentDraft, DraftQuestion } from "@/lib/classroom";
 import { dispatchClassroom, getClassroom } from "@/lib/classroom-store";
 import { parseQuestion, stemText } from "@/lib/mathInput";
@@ -48,13 +49,24 @@ export default function CreateAssignment() {
 }
 
 const noSubscribe = () => () => {};
+
+/**
+ * The draft in the store, or, when there is none (first visit, or after Reset demo), the demo
+ * teacher's set from `data/draft-seed` so the screen opens mid-creation with the tiles filled
+ * rather than blank (ticket 121). A draft the teacher has emptied is kept empty.
+ */
+function storedOrSeed(): { title: string; questions: { id: string; text: string }[] } {
+  const d = getClassroom().draft;
+  if (d) return d;
+  return { title: DEMO_DRAFT_TITLE, questions: DEMO_PASTE_LINES.map((text, i) => ({ id: `seed-${i + 1}`, text })) };
+}
 const isClient = () => true;
 const isServer = () => false;
 
 function Editor() {
   const router = useRouter();
-  const [title, setTitle] = useState(() => getClassroom().draft?.title ?? "");
-  const [qs, setQs] = useState<Q[]>(() => withGhost((getClassroom().draft?.questions ?? []).map((q) => ({ id: q.id, text: q.text }))));
+  const [title, setTitle] = useState(() => storedOrSeed().title);
+  const [qs, setQs] = useState<Q[]>(() => withGhost(storedOrSeed().questions.map((q) => ({ id: q.id, text: q.text }))));
   const [focusId, setFocusId] = useState<string | null>(() => qs[qs.length - 1].id);
   const [removed, setRemoved] = useState<{ q: Q; index: number } | null>(null);
 

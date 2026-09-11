@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseQuestion, splitPaste, stemText, toTex, typesets } from "./mathInput";
+import { DEMO_PASTE_LINES } from "@/data/draft-seed";
+import { PROBLEMS } from "@/data/assignment";
 
 const text = (t: string) => ({ kind: "text", text: t });
 const math = (tex: string, raw: string) => ({ kind: "math", tex, raw });
@@ -95,5 +97,24 @@ describe("one typed question as the student's card", () => {
 
   it("a pasted block is one question per non-empty line", () => {
     expect(splitPaste("Solve for x. x**2 = 4\r\n\n  Factorise fully. x**2 - 9  \n")).toEqual(["Solve for x. x**2 = 4", "Factorise fully. x**2 - 9"]);
+  });
+});
+
+describe("the demo draft against the bank", () => {
+  /** Braces, spaces and tfrac/frac aside, the same TeX. */
+  const norm = (t: string) => t.replace(/\\tfrac/g, "\\frac").replace(/[{}\s]/g, "");
+
+  it("every seeded line but Q1 (+5x on purpose) and Q9 (the repeat) parses to the bank's stem and expression", () => {
+    expect(DEMO_PASTE_LINES).toHaveLength(10);
+    for (const [i, line] of DEMO_PASTE_LINES.entries()) {
+      if (i === 0 || i === 8) continue;
+      const q = parseQuestion(line);
+      const bank = PROBLEMS[i];
+      expect(norm(q.tex ?? ""), bank.label).toBe(norm(bank.tex));
+      if (i !== 9) expect(stemText(q.stem), bank.label).toBe(bank.stem);
+    }
+    expect(parseQuestion(DEMO_PASTE_LINES[0]).tex).toBe("x^{2} + 5x + 6 = 0");
+    expect(parseQuestion(DEMO_PASTE_LINES[8]).tex).toBe("(x+1)(x-4) = 6");
+    expect(stemText(parseQuestion(DEMO_PASTE_LINES[9]).stem)).toBe("Show that the following has no real solutions, and say what that means for the graph of $y = x^{2} + 4x + 5$.");
   });
 });
