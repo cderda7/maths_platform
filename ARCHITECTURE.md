@@ -224,6 +224,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 90 | The worked example is maths alone, every step at the problem's size and centred under it, no captions, no "Guess the next step"; while it plays the right column is the chat headed "Question about a step?" (opener "Which step, and what about it?"), and each turn tells the tutor which steps are on screen | `…?stage=practice`, the practice overlay, `POST /api/help-chat` | 69, 79 | [architecture/90-example-chat.md](architecture/90-example-chat.md) |
 | 92 | The help chat sits under the read-as lines instead of replacing them: the read-as list is capped at under half the column while the chat is open (it scrolls), the bubbles gather just above the box to write in | `…?stage=practice`, the practice overlay | 86, 69 | [architecture/92-chat-below-read-as.md](architecture/92-chat-below-read-as.md) |
 | 93 | The worked example card is left-justified: the problem, every step, a two-case step's boxes and the reveal button on the card's left edge (`math-left`, an unlayered override of KaTeX's centring) | `…?stage=practice`, the practice overlay | 90 | [architecture/93-example-left.md](architecture/93-example-left.md) |
+| 94 | Every worked example step is a ruled row: the same grey rule and the same air (24px each side, 16 compact) between steps as between the problem and the first step; the reveal button keeps the gap, no rule | `…?stage=practice`, the practice overlay | 93 | [architecture/94-example-rows.md](architecture/94-example-rows.md) |
 
 ## Conventions
 

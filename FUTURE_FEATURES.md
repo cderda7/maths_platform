@@ -952,6 +952,18 @@ agents add sections above it and leave it alone.
 - **`math-left` is a global class.** Any display maths that wants the left edge can use it; the
   read-as column, the model solution and the board all centre today, by KaTeX's default.
 
+## Ruled rows in the worked example (from ticket 94, 2026-09-11)
+
+- **No rule above the reveal button.** The rule marks a step; the button sits 24px under the last
+  step without one. A rule above the button would read as "the next step goes here", which is a
+  fair alternative if the bare button looks unfinished.
+- **The rows are taller now.** Six fraction steps at 24 + rule + 24 each run to about 400px under
+  the problem; the card scrolls inside the centre column. A tighter compact rhythm (the 16px one)
+  for the full card on a short iPad is the lever if it feels long.
+- **The read-as column has no rules.** The student's own lines beside the pad are boxed rows with
+  8px between; the worked example's ruled rows are a different rhythm. Matching them one way or
+  the other was not asked for.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

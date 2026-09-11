@@ -41,6 +41,8 @@ export default function PracticeCard({
   };
   /** The problem and every step share one size, so the column reads as one piece of working. */
   const size = compact ? "text-[20px]" : "math-lg";
+  /** Every step is a row under a rule, the same air above and below the rule as between the problem and the first step. */
+  const row = compact ? "mt-4 border-t border-line pt-4" : "mt-6 border-t border-line pt-6";
   return (
     <Card className={`math-left ${compact ? "p-5" : "p-7"}`}>
       <div className="flex items-center justify-between gap-3">
@@ -50,11 +52,11 @@ export default function PracticeCard({
       <div className={`${size} ${compact ? "mt-2" : "mt-3"} text-ink`}>
         <M tex={practice.tex} display />
       </div>
-      <ol className={`${compact ? "mt-4 space-y-4 pt-4" : "mt-6 space-y-5 pt-6"} border-t border-line`}>
+      <ol>
         {practice.steps.slice(0, shown).map((st, i) => {
           const branches = branchesOf(st.tex);
           return (
-            <li key={i} className={`${size} text-ink`} data-step={i + 1}>
+            <li key={i} className={`${row} ${size} text-ink`} data-step={i + 1}>
               {branches.length === 2 ? (
                 <span className="flex gap-2" data-branches>
                   {branches.map((b, j) => (
@@ -70,7 +72,7 @@ export default function PracticeCard({
           );
         })}
         {!all && (
-          <li>
+          <li className={compact ? "mt-4" : "mt-6"}>
             <Button variant="secondary" onClick={reveal}>
               {shown === 0 ? "First step" : "Next step"}
             </Button>
