@@ -234,6 +234,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 101 | The help menu's first pill always reads "hint"; pressed while the previous hint is unacted on it shows a notice ("Let's talk through the previous hint before giving you another." + "Talk it through") that opens the same chat as the hint card's pill | `…?stage=practice`, the practice overlay | 99, 86 | [architecture/101-hint-stall-popup.md](architecture/101-hint-stall-popup.md) |
 | 102 | The concerns chat reflects on every answer before the next question ("Gotcha. It sounds like…", "Agreed: that's a tricky skill.", "A lot of students share that struggle.", the last repeating), and closes with the reflection then "Thank you for that insight / those insights. Let's start with ___." | `…?stage=warmup-chat` | 74, 84 | [architecture/102-reflective-listening.md](architecture/102-reflective-listening.md) |
 | 103 | The chat under the read-as lines takes only the height it needs, capped at 42% of the column (about the bottom third of the page), and scrolls kept at its end so the latest exchange shows; the read-as list keeps the rest | `…?stage=practice`, the practice overlay | 69, 90 | [architecture/103-chat-bottom-third.md](architecture/103-chat-bottom-third.md) |
+| 105 | "Talk it through" is centred under the hint text in the latest hint card | `…?stage=practice`, the practice overlay | 99 | [architecture/105-talk-pill-centred.md](architecture/105-talk-pill-centred.md) |
 
 ## Conventions
 

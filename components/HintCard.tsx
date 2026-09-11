@@ -88,14 +88,17 @@ export default function HintCard({
         })}
       </p>
       {onTalk && (
-        <button
-          type="button"
-          onClick={onTalk}
-          className="mt-3 inline-flex items-center rounded-full border border-accent-deep bg-paper px-3.5 py-1 text-[12.5px] font-medium text-accent-deep transition-colors hover:bg-accent-soft"
-          data-talk-hint
-        >
-          Talk it through
-        </button>
+        // Centred under the text: the pill is the card's one action, not a continuation of the prose.
+        <div className="mt-3 flex justify-center">
+          <button
+            type="button"
+            onClick={onTalk}
+            className="inline-flex items-center rounded-full border border-accent-deep bg-paper px-3.5 py-1 text-[12.5px] font-medium text-accent-deep transition-colors hover:bg-accent-soft"
+            data-talk-hint
+          >
+            Talk it through
+          </button>
+        </div>
       )}
     </Card>
   );

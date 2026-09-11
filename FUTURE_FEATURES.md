@@ -1101,6 +1101,14 @@ agents add sections above it and leave it alone.
 - **Ticket 90's 45% cap on the read-as list is gone**: the read-as list scrolls on its own once
   the chat takes its share. The note above about the read-back staying in view still holds.
 
+## The centred "Talk it through" pill (from ticket 105, 2026-09-11)
+
+- **Centred, not full width.** The pill keeps its content width under the text. A full-width
+  pill (like "I need help" below the card) would match that button's shape but make the hint
+  card read as a second button; not done, and the two would then compete.
+- **The collapsed hint's line has no pill**; a reopened earlier hint has none either (ticket 99).
+  If earlier hints ever get one, the same centred row applies.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
