@@ -14,7 +14,7 @@ Route: `/teacher/assignments/create` (step one), `/teacher/assignments/create/re
 | `lib/classroom.ts` | `DraftQuestion { id, text, stem, tex }`, `AssignmentDraft { title, questions, updatedAt }`, `draft?` on `ClassroomState`, the `draft/set` action and reducer case. |
 | `app/teacher/TeacherChrome.tsx` | The pill links to `/teacher/assignments/create`, lit on any `/teacher/assignments/*` path. |
 | `app/globals.css` | `.grow-wrap`: a grid whose `::after` mirrors the textarea's value, so the box is as tall as its text; the focus border colour lives here because an unlayered rule beats a utility. |
-| `data/assignment.ts`, `data/evaluation.ts`, `data/recognition.ts`, `data/classmates.ts`, nine `lib/*.test.ts` | Q1 mirrored: `x^2 + 5x + 6 = 0`, correct `(x+2)(x+3)` and `x = -2 or x = -3`, the sign slip `(x-2)(x-3)` and `x = 2 or x = 3`. |
+| `data/assignment.ts`, `data/evaluation.ts`, `data/recognition.ts`, `data/classmates.ts`, nine `lib/*.test.ts` | Unchanged in the end: the first commit mirrored Q1 to `x^2 + 5x + 6 = 0` (correct `(x+2)(x+3)`, slip `(x-2)(x-3)`); the follow-up commit restored the thirteen files exactly, the student side staying on `x^2 - 5x + 6 = 0`. The +5x problem is the teacher's typed draft only. |
 | `lib/mathInput.test.ts`, `lib/classroom.test.ts` | The grammar, the run detection, the split and the override, the stem string, the paste split; the draft reducer. |
 
 ## How it connects

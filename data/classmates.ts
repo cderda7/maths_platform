@@ -41,10 +41,10 @@ const Q10_TWICE = ["b^2 - 4ac = 16 - 20 = -4", "\\Delta < 0 \\Rightarrow \\text{
 const Q5_HEIGHT = ["(x - 5)(x + 1) = 0", "x = 5 \\;\\text{or}\\; x = -1", "x = \\tfrac{5 + (-1)}{2} = 2", "(2, -5)"];
 const Q9_RUSHED = ["-x(x - 6) = 0", "\\text{turning point at } x = 3", "h = 6"];
 /** Right, but in one jump each: what a student who skips steps hands in. */
-const Q1_JUMP = ["x^2 + 5x + 6 = 0", "x = -2, -3"];
+const Q1_JUMP = ["x^2 - 5x + 6 = 0", "x = 2, 3"];
 const Q2_JUMP = ["2x^2 + 7x - 4 = (2x - 1)(x + 4)", "x = \\tfrac{1}{2} \\;\\text{or}\\; x = -4"];
 const Q3_JUMP = ["x^2 - x - 12 = 0 \\Rightarrow x = 4, -3"];
-const Q1_SIGNS = ["x^2 + 5x + 6 = 0", "(x - 2)(x - 3) = 0", "x = 2 \\;\\text{or}\\; x = 3"];
+const Q1_SIGNS = ["x^2 - 5x + 6 = 0", "(x + 2)(x + 3) = 0", "x = -2 \\;\\text{or}\\; x = -3"];
 
 /** One known slip per problem, every line in the evaluation table: what a lightweight classmate wrote when they got it wrong. */
 export const SLIPS: Record<string, string[]> = { q1: Q1_SIGNS, q2: Q2_GUESSED, q3: Q3_NFL, q4: Q4_OVER_A, q5: Q5_SIGNS, q6: Q6_TWICE, q7: Q7_TWO_TERMS, q8: Q8_MIRROR, q9: Q9_HEIGHT, q10: Q10_TWICE };

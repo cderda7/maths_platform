@@ -1,6 +1,6 @@
-# 119: The create screen: questions typed into tiles, and Q1 in the bank mirrored
+# 119: The create screen: questions typed into tiles
 
-**What to build:** A new first screen for a new assignment at `/teacher/assignments/create`, where the teacher types the questions and nothing else: a title, then the questions as tiles in the five-wide grid the student's overview uses. Each tile is one question and the grid is the editor. Maths is typed the way a calculator or a programming language takes it (`x**2`, `1/3`, `sqrt(2)`) and renders as KaTeX live. Continue saves the draft and opens the review screen, a stub for the screen that decides the unit, the pathway and the rest. The old screen at `/teacher/assignments/new` is left untouched for that work to reference. Separately, the bank's Q1 becomes `x^2 + 5x + 6 = 0`.
+**What to build:** A new first screen for a new assignment at `/teacher/assignments/create`, where the teacher types the questions and nothing else: a title, then the questions as tiles in the five-wide grid the student's overview uses. Each tile is one question and the grid is the editor. Maths is typed the way a calculator or a programming language takes it (`x**2`, `1/3`, `sqrt(2)`) and renders as KaTeX live. Continue saves the draft and opens the review screen, a stub for the screen that decides the unit, the pathway and the rest. The old screen at `/teacher/assignments/new` is left untouched for that work to reference. The bank's Q1 was mirrored to `x^2 + 5x + 6 = 0` in the first commit and put back the same evening: the +5x version lives only in the teacher's typed draft.
 
 **Blocked by:** 19 (the old screen), 117 (last ticket on main).
 
@@ -16,7 +16,7 @@ The user (2026-09-11), on the old screen: "new assignment view sucks. eliminate 
 
 The interview settled: one free-text box per question with the maths detected rather than delimited; the tile is the editor (typed text on top, the rendered question beneath, live; blurred tiles show only the rendered question); the last tile is a ghost; Enter, Backspace-on-empty, × and paste-splits; a "Q3 removed. Undo" line plus Cmd+Z, last removal only; five across, fixed size, the page scrolls, nothing inside a tile scrolls or grows; no convention hint on screen; title optional; Continue pinned bottom right; the draft in the classroom store; a stub review route.
 
-And, before starting: "change the first problem to x**2 + 5x + 6 = 0".
+And, before starting: "change the first problem to x**2 + 5x + 6 = 0". Later the same evening, relayed by the phase-2 session (ticket 120): the bank's Q1 goes back to `x^2 - 5x + 6 = 0` on the student side; the +5x problem is the teacher's draft only, which the review step reads from the pasted fixture.
 
 ## Solution
 
@@ -26,7 +26,7 @@ And, before starting: "change the first problem to x**2 + 5x + 6 = 0".
 - `lib/classroom.ts`: `AssignmentDraft`, `DraftQuestion` (`id`, `text`, `stem` with inline maths as `$…$`, `tex`), `draft` on the state, the `draft/set` action.
 - `app/teacher/TeacherChrome.tsx`: the "New assignment" pill points at the create route and is lit on either create route.
 - `app/globals.css`: `.grow-wrap`, the text box that takes its text's height.
-- Q1 mirrored through `data/assignment.ts`, `data/evaluation.ts`, `data/recognition.ts`, `data/classmates.ts` and nine test files: the correct factorisation is `(x+2)(x+3)`, roots −2 and −3; the scripted sign slip is now `(x-2)(x-3)` with roots 2 and 3; Grace's jump is `x = -2, -3`.
+- Q1 in the bank: mirrored to `x^2 + 5x + 6 = 0` through `data/assignment.ts`, `data/evaluation.ts`, `data/recognition.ts`, `data/classmates.ts` and nine test files in the first commit (580bfad), then restored exactly to their pre-ticket state in the follow-up commit once the user chose to keep the student side on `x^2 - 5x + 6 = 0`.
 - Tests: `lib/mathInput.test.ts` (14), a `draft/set` case in `lib/classroom.test.ts`. Docs: this ticket, the architecture note, `ARCHITECTURE.md`, `DECISION_LOG.md`, `FUTURE_FEATURES.md`, `ASSUMPTIONS.md`, `README.md`.
 
 ## Acceptance

@@ -75,7 +75,7 @@ describe("board examples", () => {
 describe("marked view", () => {
   it("marks wrong steps red and curated standouts blue, by run kind", async () => {
     const { lineMarks } = await import("./examples");
-    expect(lineMarks("q1", ["x^2 + 5x + 6 = 0", "(x - 2)(x - 3) = 0", "x = 2 \\;\\text{or}\\; x = 3"])).toEqual([null, "wrong", null]);
+    expect(lineMarks("q1", ["x^2 - 5x + 6 = 0", "(x + 2)(x + 3) = 0", "x = -2 \\;\\text{or}\\; x = -3"])).toEqual([null, "wrong", null]);
     const q4 = lineMarks("q4", ["a = 3,\\; b = -5,\\; c = -1", "b^2 - 4ac = 25 + 12 = 37", "x = \\dfrac{5 \\pm \\sqrt{37}}{6}"]);
     expect(q4.filter((m) => m === "standout").length).toBeGreaterThan(0);
     expect(q4).not.toContain("wrong");
