@@ -11,16 +11,18 @@ import { LeafChip } from "@/components/Tag";
 import { RECOGNITION_REWORK } from "@/data/recognition";
 import { useAssignment } from "@/lib/classroom-store";
 import { branchesOf } from "@/lib/branches";
-import { feedbackSummary } from "@/lib/feedback";
+import { feedbackSummary, progressOf } from "@/lib/feedback";
 import { GUARD_TEXT, guardFor, trippedProblems } from "@/lib/guard";
 import { nextLine } from "@/lib/recognition";
 import type { SessionAction, StudentSession } from "@/lib/session";
 
 /**
- * Individual review: detective feedback after handing in, and the place to correct it. One
- * conversational sentence (how many problems contain a mistake, which subskills to double-check);
- * for the chosen problem, what was submitted (no marks of any kind), a pad, and the lines read
- * from it. Corrections are the rework version. The one signal in the whole flow: a correction that
+ * Individual review: detective feedback after handing in, and the place to correct it. Two soft
+ * boxes: how many problems are incomplete (reading the rework too, so it counts down as they are
+ * finished and goes when none is), then the detective sentence (how many problems in the first
+ * hand-in contain a mistake, which subskills to double-check; the first hand-in only, so finishing
+ * a problem badly changes nothing here). For the chosen problem, what was submitted (no marks of
+ * any kind), a pad, and the lines read from it. Corrections are the rework version. The one signal in the whole flow: a correction that
  * breaks a problem whose first attempt was correct gets a banner the moment the line is read, with
  * a way back, and hand-in waits until it is restored or cleared. The star is the student's own marker.
  */
@@ -60,7 +62,12 @@ export default function FeedbackScreen({ session, dispatch }: { session: Student
       <aside className="flex min-h-0 flex-col border-r border-line px-7 py-7">
         <Eyebrow>Handed in</Eyebrow>
         <h1 className="font-display mt-2 text-[28px] leading-tight text-ink">How it held up</h1>
-        <Card tone="soft" className="mt-4 p-4" data-summary>
+        {summary.incompleteHead && (
+          <Card tone="soft" className="mt-4 p-4" data-incomplete>
+            <p className="text-[15px] leading-relaxed text-ink">{summary.incompleteHead}</p>
+          </Card>
+        )}
+        <Card tone="soft" className={`${summary.incompleteHead ? "mt-2" : "mt-4"} p-4`} data-summary>
           <p className="text-[15px] leading-relaxed text-ink">{summary.head}</p>
           {summary.hint.length > 0 && (
             <p className="mt-2 flex flex-wrap items-center gap-1.5 text-[15px] leading-relaxed text-ink" data-hint>
@@ -74,6 +81,10 @@ export default function FeedbackScreen({ session, dispatch }: { session: Student
         <ol className="mt-5 min-h-0 flex-1 space-y-2 overflow-y-auto pb-1">
           {problems.map((p, i) => {
             const active = i === sel;
+            const progress = progressOf(session, p.id);
+            // The count of lines that got it there: the first hand-in's, or the rework's for a problem blank at hand-in.
+            const written = (session.lines[p.id]?.length ?? 0) || (session.rework[p.id]?.length ?? 0);
+            const label = progress === "not-attempted" ? "not attempted" : progress === "unfinished" ? "unfinished" : `${written} lines`;
             return (
               <li key={p.id}>
                 <button
@@ -86,7 +97,9 @@ export default function FeedbackScreen({ session, dispatch }: { session: Student
                 >
                   <span className="flex items-center gap-3">
                     <span className="font-display text-[18px]">{p.label}</span>
-                    <span className={`text-[12.5px] ${active ? "text-white/75" : "text-ink-muted"}`}>{(session.lines[p.id]?.length ?? 0) === 0 ? "not attempted" : `${session.lines[p.id].length} lines`}</span>
+                    <span className={`text-[12.5px] ${active ? "text-white/75" : "text-ink-muted"}`} data-progress={progress}>
+                      {label}
+                    </span>
                   </span>
                   <span className="flex items-center gap-2">
                     {tripped.includes(p.id) && <span className="h-2.5 w-2.5 rounded-full bg-wrong" aria-label="broken" data-broken />}

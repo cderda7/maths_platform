@@ -2101,6 +2101,43 @@ problem attempted; anything else that dispatches `hand-in` over a blank set now 
 **Defense.** The rule lives where the blank list and the force submit already live, the card and
 the footer survive a reload, every state is reachable through the reducer in seven tests, and the
 headless click-through drives the whole flow from Q1 to feedback the way a student would.
+## 2026-09-11 · "Finished" is a flag on answer lines in the marking table, read from both versions; the mistakes count reads the first hand-in only
+
+**Decision.** A problem is finished when any of its lines, in the first hand-in or the rework,
+carries `answer: true` in `EVALUATION`, or a sentence is typed under its working (ticket 114's
+field; ticket 116). The incomplete count and the row labels derive from that live. The mistakes count, the double-check chips and the post-rework notice keep
+reading the first hand-in's problems; a problem blank at hand-in is skipped by the notice even
+though the rework may have put wrong lines on it.
+
+**Context.** A student who hands in with problems untouched read "Every problem held.", which was
+true of the lines and false of the set. The user wants "N problems are incomplete." that resolves
+as problems are finished on the rework pad, and a slip made while finishing one to add nothing
+to the mistakes.
+
+**Alternatives considered.**
+- *Incomplete = no lines at all.* Matches the stored `notAttempted` list, but Q2 with one line of
+  working would count as complete, which the user rejected.
+- *Compare the latest line with the model solution's last step.* Misses answers written in
+  another form ("x = 2, 3", the roots in the wrong sign after a wrong factorisation) and undoes
+  itself when a check is written after the answer (Q8). The marking table already knows every
+  line the pad can read, so a flag beside its verdict is one place, per line, reviewable.
+- *A separate `ANSWER_LINES` table.* Two tables to keep in step for the same keys.
+- *Count rework slips on blank problems in the mistakes box and the notice.* The user said not
+  to; and the student would be told of a mistake in a box that says "first submission".
+- *Skip every problem without a first-hand-in mistake in the final notice.* Would also drop a
+  problem with correct working that the rework broke under a forced hand-in, which the guard
+  (ticket 12) deliberately surfaces there; so only problems blank at hand-in are skipped.
+
+**Tradeoffs.** Every new problem must mark its answer lines or it can never be finished (a test
+checks every model solution reaches one). The scripted demo run now shows "2 problems are
+incomplete." because Q9 and Q10 stop at working (ticket 111's premise), and Q9 has no rework
+script, so the demo's box never reaches zero. A wrong answer counts as finished, so a student who
+answers everything wrongly sees no incomplete box and every slip in the mistakes box, which is
+the division the user asked for.
+
+**Defense.** One predicate (`progressOf`) feeds the box and the rows, so they cannot disagree. The
+summary's copy is a pure function with the outstanding flag as an input, tested for every branch.
+The marking table's flag is data, not inference, and reads beside the verdict it qualifies.
 
 ## 2026-09-11 · The "we're stuck" mode is deleted outright, not fixed or hidden
 

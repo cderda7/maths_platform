@@ -64,18 +64,21 @@ describe("detective feedback summary", () => {
   });
 
   it("the scripted run: five problems, leaves in first-occurrence order, hint capped at three", async () => {
-    const { feedbackSummary } = await import("./feedback");
+    const { feedbackSummary, summarySentence } = await import("./feedback");
     const s = feedbackSummary(scriptedSession());
     expect(s.count).toBe(5);
     expect(s.subskills).toEqual(["algebra.expand-factor.monic", "algebra.expand-factor.nonmonic", "unit.u1.nfl", "algebra.number.fractions", "reasoning.justify.formal"]);
-    expect(s.sentence).toBe("5 of your problems contain a mistake. Double-check factorising, non-monic factorising and null factor law.");
+    // Q9 and Q10 stop short of a final answer in the scripted run (ticket 111), so the clause names the first submission.
+    expect(s.sentence).toBe("5 problems in your first submission contain a mistake. Double-check factorising, non-monic factorising and null factor law.");
+    expect(summarySentence(5, s.subskills)).toBe("5 of your problems contain a mistake. Double-check factorising, non-monic factorising and null factor law.");
   });
 
   it("splits the sentence into the count clause and the capped hint leaves for the chips", async () => {
     const { feedbackSummary, summaryParts } = await import("./feedback");
     const s = feedbackSummary(scriptedSession());
-    expect(s.head).toBe("5 of your problems contain a mistake.");
+    expect(s.head).toBe("5 problems in your first submission contain a mistake.");
     expect(s.hint).toEqual(["algebra.expand-factor.monic", "algebra.expand-factor.nonmonic", "unit.u1.nfl"]);
+    expect(summaryParts(5, s.subskills).head).toBe("5 of your problems contain a mistake.");
     expect(summaryParts(0, ["algebra.number.fractions"])).toEqual({ head: "Every problem held.", hint: [], sentence: "Every problem held." });
     expect(summaryParts(2, [], "final")).toEqual({ head: "2 of your problems still contain a mistake.", hint: [], sentence: "2 of your problems still contain a mistake." });
   });
@@ -96,5 +99,105 @@ describe("detective feedback summary", () => {
     const f = feedbackSummary(partial, "final");
     expect(f.count).toBe(4);
     expect(f.sentence).toMatch(/^4 of your problems still contain a mistake\./);
+  });
+});
+
+describe("incomplete work", () => {
+  const OR = " \\;\\text{or}\\; ";
+  /** Handed in with one line of working on Q2 and nothing else, as a student who ran out of time. */
+  const thinHandIn = (): StudentSession => {
+    let s = sessionAt("working");
+    s = sessionReducer(s, { type: "line/reveal", problem: "q2", line: { tex: "2x^2 + 7x - 4 = 0", strokeCount: 5 } });
+    return { ...s, stage: "feedback" };
+  };
+  const rework = (s: StudentSession, problem: string, texs: string[]) => texs.reduce((acc, tex, n) => sessionReducer(acc, { type: "rework/reveal", problem, line: { tex, strokeCount: (n + 1) * 5 } }), s);
+
+  it("every problem's model solution reaches an answer line", async () => {
+    const { evaluateLine } = await import("./evaluate");
+    for (const p of PROBLEMS) {
+      const flags = p.solution.map((st) => {
+        const v = evaluateLine(p.id, st.tex);
+        return v.verdict !== "unclear" && v.answer === true;
+      });
+      expect(flags.some(Boolean), p.id).toBe(true);
+    }
+  });
+
+  it("the scripted run finishes Q1 to Q8, right or wrong, and stops short on the two worded problems", async () => {
+    const { progressOf, incompleteProblems, feedbackSummary } = await import("./feedback");
+    const s = scriptedSession();
+    expect(PROBLEMS.map((p) => progressOf(s, p.id))).toEqual(["finished", "finished", "finished", "finished", "finished", "finished", "finished", "finished", "unfinished", "unfinished"]);
+    expect(incompleteProblems(s)).toEqual(["q9", "q10"]);
+    const f = feedbackSummary(s);
+    expect(f.incomplete).toBe(2);
+    expect(f.incompleteHead).toBe("2 problems are incomplete.");
+    const done = feedbackSummary(modelRun());
+    expect(done.incomplete).toBe(0);
+    expect(done.incompleteHead).toBeNull();
+    expect(done.head).toBe("Every problem held.");
+  });
+
+  it("a thin hand-in: not attempted or unfinished rows, ten incomplete, no mistakes in the first submission", async () => {
+    const { progressOf, feedbackSummary } = await import("./feedback");
+    const s = thinHandIn();
+    expect(progressOf(s, "q1")).toBe("not-attempted");
+    expect(progressOf(s, "q2")).toBe("unfinished");
+    const f = feedbackSummary(s);
+    expect(f.incomplete).toBe(10);
+    expect(f.incompleteHead).toBe("10 problems are incomplete.");
+    expect(f.count).toBe(0);
+    expect(f.head).toBe("No mistakes in your first submission.");
+    expect(f.hint).toEqual([]);
+  });
+
+  it("finishing problems on the rework pad counts the box down; the last one takes the box away", async () => {
+    const { progressOf, feedbackSummary } = await import("./feedback");
+    let s = rework(thinHandIn(), "q1", ["(x - 2)(x - 3) = 0"]);
+    expect(progressOf(s, "q1")).toBe("unfinished");
+    expect(feedbackSummary(s).incomplete).toBe(10);
+    s = rework(s, "q1", ["x = 2" + OR + "x = 3"]);
+    expect(progressOf(s, "q1")).toBe("finished");
+    expect(feedbackSummary(s).incomplete).toBe(9);
+    expect(feedbackSummary(s).incompleteHead).toBe("9 problems are incomplete.");
+    s = rework(s, "q2", ["(2x - 1)(x + 4) = 0", "x = \\tfrac{1}{2}" + OR + "x = -4"]);
+    expect(feedbackSummary(s).incomplete).toBe(8);
+    for (const p of PROBLEMS.slice(2)) s = rework(s, p.id, p.solution.map((st) => st.tex));
+    const f = feedbackSummary(s);
+    expect(f.incomplete).toBe(0);
+    expect(f.incompleteHead).toBeNull();
+    expect(f.head).toBe("Every problem held.");
+  });
+
+  it("a wrong step while finishing a blank problem changes neither box nor the hand-in notice", async () => {
+    const { progressOf, feedbackSummary } = await import("./feedback");
+    let s = rework(thinHandIn(), "q1", ["(x + 2)(x + 3) = 0", "x = -2" + OR + "x = -3"]);
+    expect(progressOf(s, "q1")).toBe("finished");
+    const f = feedbackSummary(s);
+    expect(f).toMatchObject({ count: 0, hint: [], incomplete: 9, head: "No mistakes in your first submission." });
+    expect(feedbackSummary(s, "final").sentence).toBe("Every problem holds now.");
+    s = sessionReducer(s, { type: "rework/done" });
+    expect(s.notice).toBe("Every problem holds now.");
+  });
+
+  it("the sentence typed under a worded problem's working is its answer", async () => {
+    const { progressOf, feedbackSummary } = await import("./feedback");
+    let s = scriptedSession();
+    expect(progressOf(s, "q9")).toBe("unfinished");
+    s = sessionReducer(s, { type: "answer/set", problem: "q9", text: "  " });
+    expect(progressOf(s, "q9")).toBe("unfinished");
+    s = sessionReducer(s, { type: "answer/set", problem: "q9", text: "It lands 6 m away and its greatest height is 9 m." });
+    expect(progressOf(s, "q9")).toBe("finished");
+    expect(feedbackSummary(s).incompleteHead).toBe("1 problem is incomplete.");
+  });
+
+  it("singular forms and the first-submission clause", async () => {
+    const { incompleteHead, summaryParts } = await import("./feedback");
+    expect(incompleteHead(1)).toBe("1 problem is incomplete.");
+    expect(incompleteHead(0)).toBeNull();
+    expect(summaryParts(1, ["algebra.number.fractions"], "original", true).sentence).toBe("1 problem in your first submission contains a mistake. Double-check fractions.");
+    expect(summaryParts(0, [], "original", true).head).toBe("No mistakes in your first submission.");
+    // The clause is the original version's: the post-rework notice keeps "still", whatever is outstanding.
+    expect(summaryParts(2, [], "final", true).head).toBe("2 of your problems still contain a mistake.");
+    expect(summaryParts(0, [], "final", true).head).toBe("Every problem holds now.");
   });
 });

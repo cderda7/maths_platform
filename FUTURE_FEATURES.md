@@ -1270,6 +1270,38 @@ agents add sections above it and leave it alone.
   screen's rework list says "not attempted" from the lines themselves.
 - **The check does not run for the rework hand-in.** The feedback screen's own hand-in (rework/done)
   has its guard and no blank check; a student who never reworks a broken problem is not asked.
+## Incomplete problems on the handed-in screen (from ticket 116, 2026-09-11)
+
+- **A slip made while finishing a problem that was blank at hand-in is never counted.** The
+  user's instruction: finishing Q1 on the rework pad with a wrong step must not add to "N
+  problems in your first submission contain a mistake." So this session tells the student nothing
+  about that slip: not the mistakes box, not the chips, not the post-rework notice ("Every problem
+  holds now." can follow a wrong rework of a blank problem), and the guard cannot fire on it. The
+  teacher's mistake views read the rework as before. Decide later whether such a slip should show
+  somewhere (a third line, a row marker, the notice), and whether the group review's
+  correct-by-absence treatment of blank problems should read the rework too.
+- **The mistakes box could be dynamic across the rework.** It now reads the first hand-in only
+  ("in your first submission" while anything is incomplete). The user: "add to F_F if I want to
+  make this dynamic". A live version would count problems whose latest version contains a mistake
+  (the `final` summary already computes it) and drop the "first submission" clause once the rework
+  covers everything.
+- **Q9 in the scripted demo never finishes.** Its recognition script stops at "turning point at
+  x = 3" and it has no rework script, so the demo's handed-in screen always shows at least "1
+  problem is incomplete." Either give Q9 a rework script ending in the greatest height, or mark
+  that compounded line as an answer.
+- **"Unfinished" on the teacher's side.** The teacher's report and the class views still show
+  line counts and "not attempted"; the three-state progress (`progressOf`) could replace them so
+  the teacher sees who stopped short as well as who never started.
+- **Hand in with work outstanding.** The button stays enabled with incomplete problems (a forced
+  hand-in with blanks is a path the teacher relies on). A confirm ("Hand in with 3 unfinished?")
+  like the working screen's blank check could be offered here too.
+- **The stored `notAttempted` list.** `session.notAttempted` (from a teacher's force-submit) is
+  the blank-at-hand-in list as stored state; `progressOf` now derives the same thing plus
+  "unfinished" from the lines. One could replace the other.
+- **The typed sentence is taken as an answer unread.** Any non-blank text in ticket 114's field
+  finishes a worded problem: "idk" counts. Nothing marks the sentence, so it can add to neither
+  box. When the sentence is read (a model, or a scripted check), the answer flag belongs on it and
+  a wrong one should count as a mistake.
 
 ## The "we're stuck" mode is gone (from ticket 117, 2026-09-11)
 
