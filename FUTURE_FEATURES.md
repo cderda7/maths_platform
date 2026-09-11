@@ -1133,6 +1133,17 @@ agents add sections above it and leave it alone.
   written by hand may contain `\,` or `\kern` but `lib/hint.ts` may not (a grep in a vitest)
   would stop the ticket 96 mistake before a screenshot does.
 
+## The non-monic skill's name (from ticket 108, 2026-09-11)
+
+- **"Monic trinomials" kept its name.** Only the non-monic leaf was renamed ("Non-monic
+  factorisation"); its sibling still reads "Monic trinomials" in the picker, the confidence and
+  peer screens. If the pair should match, it would become "Monic factorisation" in the same
+  place in `data/taxonomy.ts`.
+- **The short form is still "non-monic factorising".** Chips, the feedback sentence and the
+  confidence copy use the `short` form, so they read "non-monic factorising" while the picker
+  reads "Non-monic factorisation". If the noun form should carry through, the short would
+  change too (and the fixtures and tests that quote it).
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

@@ -237,6 +237,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 104 | The conjured 1 hangs in the margin (`\llap`, zero width) so lighting moves nothing anywhere; the lit box pixel sweep is `scripts/hint-box-sweep.mjs` (`npm run sweep:hint-boxes`), part of done for the box | `…?stage=practice`, the practice overlay; `scripts/` | 98, 100 | [architecture/104-conjured-llap-sweep.md](architecture/104-conjured-llap-sweep.md) |
 | 105 | "Talk it through" is centred under the hint text in the latest hint card | `…?stage=practice`, the practice overlay | 99 | [architecture/105-talk-pill-centred.md](architecture/105-talk-pill-centred.md) |
 | 107 | The concerns chat's closing bubble ("Thank you for those insights. Let's start with ___.") stays up 2.8s before the pad, the length of a whole tutor turn, instead of 1.2s | `…?stage=warmup-chat` | 102, 74 | [architecture/107-close-wait.md](architecture/107-close-wait.md) |
+| 108 | The `algebra.expand-factor.nonmonic` leaf's full name is "Non-monic factorisation" (the short form "non-monic factorising" unchanged): the "Which skill?" picker, the confidence and peer screens, the warm-up and help chats | `…?stage=working`, "I need help" | 26 | [architecture/108-nonmonic-rename.md](architecture/108-nonmonic-rename.md) |
 
 ## Conventions
 
