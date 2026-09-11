@@ -72,10 +72,10 @@ describe("termTex", () => {
     expect(termTex(tex, [constant, middle], constant)).toBe("x^2 + \\htmlClass{hint-term}{7}x + \\htmlClass{hint-term hint-term-lit}{12} = 0");
   });
 
-  it("lights every fragment of a term with several, with a thin space between two that abut", () => {
+  it("lights every fragment of a term with several, with a gap between two that abut, wide enough that their boxes do not touch", () => {
     const factors = { phrase: "factors", tex: ["(x - 2)", "(x + 5)"] };
-    expect(termTex("(x - 2)(x + 5) = 0", [factors], factors)).toBe("\\htmlClass{hint-term hint-term-lit}{(x - 2)}\\;\\htmlClass{hint-term hint-term-lit}{(x + 5)} = 0");
-    expect(termTex("(x - 2)(x + 5) = 0", [factors])).toBe("\\htmlClass{hint-term}{(x - 2)}\\;\\htmlClass{hint-term}{(x + 5)} = 0");
+    expect(termTex("(x - 2)(x + 5) = 0", [factors], factors)).toBe("\\htmlClass{hint-term hint-term-lit}{(x - 2)}\\kern0.7em\\htmlClass{hint-term hint-term-lit}{(x + 5)} = 0");
+    expect(termTex("(x - 2)(x + 5) = 0", [factors])).toBe("\\htmlClass{hint-term}{(x - 2)}\\kern0.7em\\htmlClass{hint-term}{(x + 5)} = 0");
   });
 
   it("conjures an unwritten fragment while its term is lit, and only then", () => {
@@ -124,7 +124,7 @@ describe("termTex", () => {
       const terms = p.hints.flatMap((h) => h.terms ?? []);
       if (!terms.length) continue;
       const rest = termTex(p.tex, terms);
-      const abutting = rest.includes("\\;\\htmlClass");
+      const abutting = rest.includes("\\kern0.7em\\htmlClass");
       if (!abutting) expect(spacing(rest), p.id).toBe(spacing(p.tex));
       for (const lit of terms) if (!lit.insert) expect(spacing(termTex(p.tex, terms, lit)), `${p.id}: ${lit.phrase}`).toBe(spacing(rest));
     }
@@ -185,7 +185,7 @@ describe("warm-up hint terms", () => {
         for (const k of h.at.filter((k) => k >= 1)) {
           const line = p.steps[k - 1].tex;
           const rest = termTex(line, h.terms);
-          if (!rest.includes("\\;\\htmlClass")) expect(spacing(rest), `${p.id} line ${k}`).toBe(spacing(line));
+          if (!rest.includes("\\kern0.7em\\htmlClass")) expect(spacing(rest), `${p.id} line ${k}`).toBe(spacing(line));
           for (const lit of h.terms) expect(spacing(termTex(line, h.terms, lit)), `${p.id} line ${k}: ${lit.phrase}`).toBe(spacing(rest));
         }
       }
@@ -198,9 +198,9 @@ describe("warm-up hint terms", () => {
       { phrase: "constant", tex: ["12"] },
       { phrase: "middle coefficient", tex: ["7"] },
     ]);
-    // One hint per point: blank pad, the product found, the sum checked, the brackets written, the check done. None once solved.
+    // One hint per point: blank pad, the product found, the sum checked, the factors written, the check done. None once solved.
     expect(monic.hints.map((h) => h.at)).toEqual([[0], [1], [2], [3], [4]]);
-    expect(monic.hints[3].terms?.[0]).toEqual({ phrase: "brackets", tex: ["(x + 3)", "(x + 4)"] });
+    expect(monic.hints[3].terms?.[0]).toEqual({ phrase: "factors", tex: ["(x + 3)", "(x + 4)"] });
     expect(monic.followUp!.hints.map((h) => h.at)).toEqual([[0], [1], [2], [3]]);
   });
 
@@ -342,7 +342,7 @@ describe("pickHint", () => {
     expect(pickHint(p, p.steps.map((s) => s.tex), [])).toBeNull();
   });
 
-  it("the factorising warm-up has a hint for every point: the pair, the sum, the brackets, and past the brackets to the null factor law", () => {
+  it("the factorising warm-up has a hint for every point: the pair, the sum, the factors, and past the factors to the null factor law", () => {
     const monic = PRACTICES["algebra.expand-factor.monic"]!;
     const lines = (n: number) => monic.steps.slice(0, n).map((s) => s.tex);
     expect(pickHint(monic, [], [])).toBe(0);

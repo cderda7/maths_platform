@@ -38,25 +38,25 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
         ],
       },
       {
-        text: "Once the pair checks out, those are your two numbers. Each bracket is x plus one of them, and the whole thing still equals 0.",
+        text: "Once the pair checks out, those are your two numbers. Each factor is x plus one of them, and the whole thing still equals 0.",
         at: [2],
         terms: [{ phrase: "two numbers", tex: ["3", "4"] }],
       },
       {
-        text: "The two brackets multiply to give 0. A product is only zero when one of its factors is zero, so set each bracket equal to zero on its own.",
+        text: "The two factors multiply to give 0. A product is only zero when one of them is zero, so set each factor equal to zero on its own.",
         at: [3],
         terms: [
-          { phrase: "brackets", tex: ["(x + 3)", "(x + 4)"] },
+          { phrase: "factors", tex: ["(x + 3)", "(x + 4)"] },
           { phrase: "0", tex: ["0"] },
         ],
       },
       {
-        text: "Each bracket equal to zero is its own small equation: x + 3 = 0 and x + 4 = 0. Solve both, and mind the signs.",
+        text: "Each factor equal to zero is its own small equation: x + 3 = 0 and x + 4 = 0. Solve both, and mind the signs.",
         at: [4],
       },
     ],
     approaches: [
-      { name: "factorise", hint: "Find two numbers that multiply to the constant and add to the middle coefficient, then write the two brackets." },
+      { name: "factorise", hint: "Find two numbers that multiply to the constant and add to the middle coefficient, then write the two factors." },
       { name: "the quadratic formula", hint: "Read off $a$, $b$ and $c$ and put them straight into the formula; the discriminant tells you what the roots look like before you finish." },
     ],
     followUp: {
@@ -89,15 +89,15 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
           ],
         },
         {
-          text: "Once the pair checks out, those are your two numbers. Each bracket is x with one of them, so both brackets are x minus something.",
+          text: "Once the pair checks out, those are your two numbers. Each factor is x with one of them, so both factors are x minus something.",
           at: [2],
           terms: [{ phrase: "two numbers", tex: ["(-2)", "(-5)"] }],
         },
         {
-          text: "The two brackets multiply to give 0, so one of them must be zero. Set each bracket equal to zero on its own; this time the answers come out positive.",
+          text: "The two factors multiply to give 0, so one of them must be zero. Set each factor equal to zero on its own; this time the answers come out positive.",
           at: [3],
           terms: [
-            { phrase: "brackets", tex: ["(x - 2)", "(x - 5)"] },
+            { phrase: "factors", tex: ["(x - 2)", "(x - 5)"] },
             { phrase: "0", tex: ["0"] },
           ],
         },

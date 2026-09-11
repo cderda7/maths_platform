@@ -110,8 +110,9 @@ export function hintSegments(hint: string, terms: HintTerm[] = []): HintSegment[
  * (`{ tex, within }`) is the first whole occurrence inside its `within`, which is how a later
  * "2" is named. A fragment inside a longer one is wrapped inside it, so "10" can light within
  * "10x"; two terms naming the same piece share one box, lit when either is the lit term; a
- * fragment the TeX does not contain is left alone. Two fragments that abut, like the two factors of a product, get a thin
- * space (`\\;`) between them so each reads as its own box. Needs KaTeX's `trust` option, which
+ * fragment the TeX does not contain is left alone. Two fragments that abut, like the two factors of a product, get a gap
+ * (`\\kern0.7em`) between them so each reads as its own box: wide enough that the two boxes, each
+ * padded and ringed beyond its fragment (`.hint-term` in app/globals.css), sit clear of each other. Needs KaTeX's `trust` option, which
  * `components/Math` sets.
  */
 export function termTex(tex: string, terms: HintTerm[] = [], lit?: HintTerm): string {
@@ -181,7 +182,7 @@ function wrap(tex: string, spans: Span[]): string {
     const text = tex.slice(s.at, s.end);
     const inner = sorted.filter((x) => x !== s && x.at >= s.at && x.end <= s.end).map((x) => ({ at: x.at - s.at, end: x.end - s.at, lit: x.lit }));
     const body = inner.length ? wrap(text, inner) : text;
-    const gap = s.at === lastEnd ? "\\;" : "";
+    const gap = s.at === lastEnd ? "\\kern0.7em" : "";
     out += tex.slice(cursor, s.at) + gap + `\\htmlClass{${s.lit ? "hint-term hint-term-lit" : "hint-term"}}{${body}}`;
     cursor = s.end;
     lastEnd = s.end;

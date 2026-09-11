@@ -877,6 +877,22 @@ agents add sections above it and leave it alone.
   (`px-1.5`); a negative right margin on a box that ends a sentence would close the gap.
 - **The closing line and the pad's help chat still render plain** (carried from ticket 84).
 
+## "Factors" in the hints, and the two lit boxes apart (from ticket 88, 2026-09-11)
+
+- **The lit box still hugs what follows it.** A lit `(x + 4)` is followed by `= 0` with KaTeX's
+  relation space (0.28em) between them; the box's padding and ring eat 0.1em plus 2px of it, so
+  the equals sign sits a hair off the ring. Same on the left of a lit fragment after a `+`. A
+  fix would hoist a little extra space around a lit box (in `hoistSpacing`, or a margin on the
+  `mspace` next to a `.hint-term`) without moving the rest of the line; deferred because the
+  line must not shift when a word lights.
+- **The gap between abutting boxes is a fixed 0.7em.** It is sized for the read-as column's font;
+  at the large problem size (`math-lg`) the 2px ring is a smaller share and the gap is roomier
+  than it needs to be. An em-only ring (`box-shadow: 0 0 0 0.12em`) would make the gap exact at
+  every size.
+- **"Bracket" survives in the expanding warm-up's hints** ("the first bracket", "one bracket's
+  terms") on purpose: there the student is expanding a bracket, not reading a factor. If the
+  vocabulary should be one word everywhere, that is a separate pass over `data/practice.ts`.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
