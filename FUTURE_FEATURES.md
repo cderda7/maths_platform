@@ -144,28 +144,6 @@ appends it here (see `CLAUDE.md`).
   the terse version has been used, decide screen by screen where a line of explanation earns its
   place (first-run tooltips, an optional "learn more" per screen, teacher onboarding copy).
 
-
-- **Ask where mistake is** before starting work; in indiv review; student has 3 'tokens' to use
-  in asking 'is this problem one that i made a mistake on?' before revising.
-
-- **Address effiency** in addition to current handling of correctness.
-
-- **No prepractice of subskills**; student self-identifies as 'lacking confidence in {}', &
-  for unconfident student, first error triggers 'additional practice' ; for confident student,
-  this happens upon second error with {}.
-
--**Goal** at beginning -- for now, script from teacher.
-  -Later: student self-identification of goal.
-- **Low confidence students** receive message from teacher.
-  - Motivated by idea that acknowledgement of feelings has positive influence on intrinsic
-    motivation.
-
-- **Diagnostic question** functionality expanded to recommend what diagnostic question to send
-  to class. Opens window based on subskills, & targeted diagnostic question to reveal
-  misconceptions. Ordering of subskill diagnostic questions based on student performance.
-  Questions persist -- that way, if a teacher likes a question but don't immediately use it,
-  they can come back & access it later.
-
 ## Warm-up (from ticket 27, 2026-09-10)
 
 - **Video help.** The help menu lists "A video" as a dead link. Where the clips come from and how
@@ -677,3 +655,49 @@ appends it here (see `CLAUDE.md`).
   fine for a demo on a laptop, not for a deployment.
 - **The chat is not cleared by "Reset demo"?** It is: the run is part of the session, which the
   reset drops. Noted so nobody adds a second reset.
+
+## Carson's notes
+
+Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
+reformat or move anything below it.
+
+- **Ask where mistake is** before starting work; in indiv review; student has 3 'tokens' to use
+  in asking 'is this problem one that i made a mistake on?' before revising.
+
+- **Address effiency** in addition to current handling of correctness.
+
+- **No prepractice of subskills**; student self-identifies as 'lacking confidence in {}', &
+  for unconfident student, first error triggers 'additional practice' ; for confident student,
+  this happens upon second error with {}.
+
+-**Goal** at beginning -- for now, script from teacher.
+  -Later: student self-identification of goal.
+- **Low confidence students** receive message from teacher.
+  - Motivated by idea that acknowledgement of feelings has positive influence on intrinsic
+    motivation.
+
+- **Diagnostic question** functionality expanded to recommend what diagnostic question to send
+  to class. Opens window based on subskills, & targeted diagnostic question to reveal
+  misconceptions. Ordering of subskill diagnostic questions based on student performance.
+  Questions persist -- that way, if a teacher likes a question but don't immediately use it,
+  they can come back & access it later.
+
+-**NEED TO REVISE GROUPING** so that it yes groups students with similar issues in some
+  teacher view (which currently doenst' exist, need to think through that), but that the
+  review groups are a static setting from the teacher -- so that way group review is
+  seamless & doesn't require 'have everybody move around', moreso just work with your
+  table group. STILL, consider identifying highly functional studnets & have them work
+  on reteaching -- oooh but maybe like as the group review work happens, instead of
+  separate from it.
+
+-**NEED TO EDIT TEACHER WORKFLOW TO ADOPT LAPTOP MODEL** -- having teacher working on iPad is
+  dumb assumption.
+
+-**DIAGNOSTIC QUESTION** & revealing to teacher the misconceptions in distractor wrong answers,
+  & when the teacher chooses to online record studnet answers, analytics there -- what
+  misconceptiosn their students hold. look into Eedi
+
+-**TEACHER REVIEW & WRITE WITH ME** -- part of grade, or no? compliance? but what about kids
+  that already got that problem right?
+
+-**ADD API KEY** for real chat simulation (in 'i need help')
