@@ -1,0 +1,1 @@
+-**STUDENT ON** ipad; **TEACHER ON** laptop; **BOARD** smartboard (teacher can click).
