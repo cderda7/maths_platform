@@ -4,7 +4,7 @@
 
 **Blocked by:** 96 (which it reverses).
 
-**Status:** done
+**Status:** done; superseded the same day by ticket 98, which keeps the side air off only where a glyph is flush and takes the top and bottom air off a numerator or denominator
 
 **Triage:** `ready-for-agent`
 

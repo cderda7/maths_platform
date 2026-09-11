@@ -4,7 +4,7 @@
 
 **Blocked by:** 85 (the monic hints), 83 (the lit box's padding).
 
-**Status:** done
+**Status:** done; the 0.7em kern was reversed by ticket 98 on 2026-09-11 (the maths keeps its own spacing; the two lit boxes are parted by a hairline instead)
 
 **Triage:** `ready-for-agent`
 

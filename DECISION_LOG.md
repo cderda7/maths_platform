@@ -1725,3 +1725,44 @@ highlight of exactly that fragment, which is what it is.
 measurement shows the box's right edge on the x's cell edge and the layout sweeps compare lit
 against rest for every warm-up.
 
+## 2026-09-11 · The lit hint box fits its surroundings per axis; `termTex` never changes the TeX's spacing
+
+**Decision.** The hint machinery wraps fragments and nothing else: no kern, no thin space, no
+gap of any kind is written into a problem's or a read line's TeX. The box adapts instead, per
+axis, from what the TeX shows is beside the fragment: it has side air unless a glyph, a
+superscript or another wrapped fragment is typeset flush against it (`hint-term-tight-x`), and
+air above and below unless the fragment is a numerator or denominator, which sit against the
+fraction bar (`hint-term-tight-y`). Two fragments that abut are wrapped flush, the second clipped
+1px on its left so two lit boxes read as two (`hint-term-abut`). Reverses ticket 88's `\kern0.7em`
+and ticket 97's all-boxes-narrow rule.
+
+**Context.** Two corrections in one evening. The null factor law warm-up at rest showed a wide
+gap between the factors: ticket 97 had removed the thin space for 7x on the principle that the
+maths keeps its own spacing, then left ticket 88's kern in place as a future item. Then a
+read-as line showed the lit denominators' boxes, tall and narrow, running up into the fraction
+bar: ticket 97's fix had taken the side air off every box and left the tall top and bottom on
+every box. The user: "we're going back & forth & making rules that are too general that then
+fuck something else up".
+
+**Alternatives considered.**
+- *One box shape for every fragment.* Tickets 83, 96 and 97 each tried one; each fitted the case
+  in the screenshot and broke a neighbour. A single shape cannot both clear the x of 7x and give
+  the 12 air.
+- *A smaller kern between the factors (0.5em), or a gap only while lit.* Still spacing added to
+  the maths, or factors that slide on hover; ticket 30's rule that lighting moves nothing stands.
+- *Let the two factor boxes merge.* One block reads as "the product"; the hint says "factors".
+- *Detect neighbours from the rendered DOM instead of the TeX.* Would need a layout pass after
+  KaTeX renders and a re-render; the TeX already says what is beside a fragment, and the same
+  code runs on the server.
+
+**Tradeoffs.** The classes are one more thing on the wrapped span, but they are decided where the
+fragment is located and used in three CSS rules. "Flush" is a fixed list (letters, digits,
+brackets, scripts; fraction bars); a construct outside it (a radical, a matrix) gets the default
+air until a case is added. A hairline is faint at 1× on a low-density screen.
+
+**Defense.** The TeX rendered is exactly the TeX in `data/practice.ts` for every problem and read
+line, asserted by the layout sweeps in `lib/hint.test.ts` with no exemptions; the classes are
+tested per case; and the browser sweep writes every line of every warm-up on offer, opens every
+hint, hovers every word, and finds no lit box touching a glyph or fraction bar outside it and no
+glyph moving between plain, wrapped and lit.
+

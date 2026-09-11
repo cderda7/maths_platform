@@ -87,16 +87,32 @@ body {
   /* An inline box paints only the line's height; inline-block paints the whole fragment, a fraction's numerator and denominator included. */
   display: inline-block;
   border-radius: 3px;
-  /* Air above and below, taken back with margin so the layout is unchanged: a fraction's numerator and denominator clear of the edge. None at the sides: 7x is typeset as one term with nothing between the 7 and the x, so a box wider than the 7 would cover part of the x. */
-  padding: 0.2em 0;
-  margin: -0.2em 0;
+  /* A little air on every side, taken back with margin so the layout is unchanged. lib/hint.ts drops it per axis where something is typeset flush against the fragment, so the box never covers a neighbour: the sides for 7x (nothing between the 7 and the x), a superscript or the other factor of a product; the top and bottom for a numerator or denominator, which sit right against the fraction bar. */
+  padding: 0.08em 0.14em;
+  margin: -0.08em -0.14em;
   transition:
     color 120ms,
     background-color 120ms;
 }
+.katex .hint-term-tight-x {
+  padding-left: 0;
+  padding-right: 0;
+  margin-left: 0;
+  margin-right: 0;
+}
+.katex .hint-term-tight-y {
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
 .katex .hint-term-lit {
   color: #fff;
   background: var(--color-standout);
+}
+/* The second of two fragments typeset flush against each other, the factors of (x − 2)(x + 5): its box starts a hairline in, so two lit boxes read as two, with the TeX's own spacing (none) between them. The bracket's ink starts 0.11em in, well clear of the clip. */
+.katex .hint-term-abut {
+  clip-path: inset(0 0 0 1px);
 }
 
 .hero-glow {

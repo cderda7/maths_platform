@@ -110,12 +110,14 @@ export function hintSegments(hint: string, terms: HintTerm[] = []): HintSegment[
  * (`{ tex, within }`) is the first whole occurrence inside its `within`, which is how a later
  * "2" is named. A fragment inside a longer one is wrapped inside it, so "10" can light within
  * "10x"; two terms naming the same piece share one box, lit when either is the lit term; a
- * fragment the TeX does not contain is left alone. Two fragments that abut, like the two factors of a product, get a gap
- * (`\\kern0.7em`) between them so each reads as its own box: wide enough that the two boxes, each
- * padded beyond its fragment (`.hint-term` in app/globals.css), sit clear of each other. A fragment
- * typeset flush against a glyph that is not wrapped (the 7 of 7x) gets no gap: 7x is one term, so
- * the box has no side padding and stops at the fragment's own edge. Needs KaTeX's `trust` option,
- * which `components/Math` sets.
+ * fragment the TeX does not contain is left alone. The TeX's own spacing is never changed; the
+ * box fits its surroundings instead (`.hint-term` in app/globals.css): it has a little air at the
+ * sides unless a glyph is typeset flush against the fragment on either side (the x of 7x, a
+ * superscript, the other factor of a product), when it carries `hint-term-tight-x` and stops at
+ * the fragment's own edge; air above and below unless the fragment is a numerator or a
+ * denominator, when it carries `hint-term-tight-y` and stops short of the fraction bar. The second
+ * of two abutting fragments also carries `hint-term-abut`, whose lit box starts a hairline in, so
+ * the two read as two boxes. Needs KaTeX's `trust` option, which `components/Math` sets.
  */
 export function termTex(tex: string, terms: HintTerm[] = [], lit?: HintTerm): string {
   const keyOf = (f: TexFragment): string | null => {
@@ -146,10 +148,10 @@ export function locateFragment(tex: string, f: TexFragment): number {
   return inner < 0 ? -1 : outer + inner;
 }
 
-/** Puts a lit fragment the problem does not write (the 1 in front of x²) just before `before`, or leaves the TeX alone when `before` is absent. */
+/** Puts a lit fragment the problem does not write (the 1 in front of x²) just before `before`, its box tight at the sides since it stands flush against `before`, or leaves the TeX alone when `before` is absent. */
 function conjure(tex: string, insert: { before: string; tex: string }): string {
   const at = findFragment(tex, insert.before);
-  return at < 0 ? tex : `${tex.slice(0, at)}\\htmlClass{hint-term hint-term-lit}{${insert.tex}}${tex.slice(at)}`;
+  return at < 0 ? tex : `${tex.slice(0, at)}\\htmlClass{hint-term hint-term-lit hint-term-tight-x}{${insert.tex}}${tex.slice(at)}`;
 }
 
 const alnum = (c: string | undefined) => c !== undefined && /[a-z0-9]/i.test(c);
@@ -173,10 +175,18 @@ interface Span {
   lit: boolean;
 }
 
-/** The gap between two wrapped fragments that abut, wide enough that their boxes sit clear of each other. */
-const ABUT = "\\kern0.7em";
+/** Whether the TeX after a fragment, spaces skipped, begins with something typeset flush against it: a letter, digit or bracket, or a superscript or subscript. An operator, relation or brace has spacing (or nothing to paint) of its own. */
+const flushAfter = (side: string) => /^\s*[a-z0-9()[\]^_]/i.test(side);
+/** The same for the TeX before a fragment: its last glyph, unless that letter is the end of a command name (`\dfrac`), which paints something else entirely. */
+const flushBefore = (side: string) => {
+  const m = side.match(/(\\?[a-z]+|[0-9()[\]])\s*$/i);
+  return !!m && !m[1].startsWith("\\");
+};
+/** Whether a fragment is the whole numerator or the whole denominator of a fraction, so a fraction bar sits right against it. */
+const inFraction = (before: string, after: string) =>
+  (/\\[dt]?frac\s*\{\s*$/.test(before) && /^\s*\}\s*\{/.test(after)) || (/\\[dt]?frac\s*\{[^{}]*\}\s*\{\s*$/.test(before) && /^\s*\}/.test(after));
 
-/** Wraps each span in order; a span inside a longer one is wrapped inside it, positions shifted to the outer span's text. */
+/** Wraps each span in order; a span inside a longer one is wrapped inside it, positions shifted to the outer span's text. Each span's classes say how its box fits: see `termTex`. */
 function wrap(tex: string, spans: Span[]): string {
   const sorted = [...spans].sort((a, b) => a.at - b.at || b.end - a.end);
   let out = "";
@@ -187,8 +197,17 @@ function wrap(tex: string, spans: Span[]): string {
     const text = tex.slice(s.at, s.end);
     const inner = sorted.filter((x) => x !== s && x.at >= s.at && x.end <= s.end).map((x) => ({ at: x.at - s.at, end: x.end - s.at, lit: x.lit }));
     const body = inner.length ? wrap(text, inner) : text;
-    const gap = s.at === lastEnd ? ABUT : "";
-    out += tex.slice(cursor, s.at) + gap + `\\htmlClass{${s.lit ? "hint-term hint-term-lit" : "hint-term"}}{${body}}`;
+    const before = tex.slice(0, s.at);
+    const after = tex.slice(s.end);
+    const abuts = s.at === lastEnd || sorted.some((x) => x.at === s.end);
+    const classes = [
+      "hint-term",
+      ...(s.lit ? ["hint-term-lit"] : []),
+      ...(abuts || flushBefore(before) || flushAfter(after) ? ["hint-term-tight-x"] : []),
+      ...(inFraction(before, after) ? ["hint-term-tight-y"] : []),
+      ...(s.at === lastEnd ? ["hint-term-abut"] : []),
+    ].join(" ");
+    out += tex.slice(cursor, s.at) + `\\htmlClass{${classes}}{${body}}`;
     cursor = s.end;
     lastEnd = s.end;
   }

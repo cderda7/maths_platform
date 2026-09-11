@@ -993,12 +993,28 @@ agents add sections above it and leave it alone.
   no side padding the lit 7 touches the box's right edge while the 12 and the 10 sit with a little
   air (their glyphs have bearings). Air on the left only (the "+" side has room) would centre the
   7 better but make every box lopsided; not done.
-- **Two-term spacing stays at 0.7em.** The gap between the two lit factors (ticket 88) was sized
-  for boxes 0.1em wider than their fragments each side and could come in to about 0.5em now that
-  the boxes are the fragments' width; left as is until the factors screen is looked at again.
+- **Two-term spacing stayed at 0.7em here; ticket 98 removed it the same day.** The user saw the
+  gap between the factors and called it the same fault.
 - **Ticket 96's thin space is the recorded alternative** if a box that hugs the 7 ever reads as
   too tight: `\,` between the coefficient and the variable, at rest as well as lit. The user
   rejected it because it splits 7x.
+
+## The lit box fitted per axis (from ticket 98, 2026-09-11)
+
+- **The hairline between two touching boxes is 1px of clipped box.** The second of two abutting
+  fragments has its lit box start 1px in (`clip-path`), so the page shows through. At 3× it reads
+  clearly; at 1× on a non-retina screen it is one light pixel. A 2px inset would still clear a
+  bracket's ink (0.11em) but not a glyph with no left bearing; not done.
+- **Only two things count as "flush".** A letter, digit, bracket, superscript or subscript beside
+  the fragment (sides), and a fraction bar above or below it (top and bottom). A radical's bar
+  (`\sqrt`), an overline, a big operator's limits or a matrix would need their own case in
+  `lib/hint.ts` when a warm-up first uses one; the sweep in the ticket's script is the check.
+- **The default air is 0.08em above and below, 0.14em at the sides.** Chosen by eye on the 12
+  and the denominators at the problem's size (21.6px) and the read-as size (16px). Both numbers
+  live in one CSS rule.
+- **No warm-up TeX is altered by the hint machinery now.** The sweeps assert it. If a future
+  hint wants a visible gap between two fragments, put it in the problem's TeX by hand so the
+  problem at rest is what the teacher wrote, never in `termTex`.
 
 ## Carson's notes
 
