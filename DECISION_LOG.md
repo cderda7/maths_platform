@@ -1996,3 +1996,41 @@ has to set by hand. The pad's ruled lines end 44px above the box rather than und
 **Defense.** The user's ask is met exactly on the screen they showed; the two worded problems are
 the only ones whose answer is a sentence; derived state means undo, clear and reload need no new
 code; and every other `PadSection` caller is unchanged.
+
+## 2026-09-11 · The factorising row expands to leaves at submit; the stored answer is unchanged
+
+**Decision.** The "not confident with…" list shows factorising as one row with "monic" and
+"non-monic" under it, but the session still stores `Confidence.leaves: LeafId[]`. The screen's
+draft is a list of row ids (`PickId`, a leaf or the `factorising` row); `pickedLeaves` turns it
+into leaves when the student submits (the row alone means both kinds), and `pickedRows` turns a
+stored answer back into rows for the locked view. Both live in `lib/confidence.ts` with tests.
+
+**Context.** Ticket 112: the user wants the student to name "factorising", then optionally say
+which kind, and a bare "factorising" to warm up both kinds. The concerns chat, the warm-up offer
+and the warm-up sequence all read `Confidence.leaves` as a list of leaves in tick order.
+
+**Alternatives considered.**
+- *Store the row: `leaves: (LeafId | "factorising")[]`.* Every reader of the answer (the chat's
+  turns, the offer's words, `focusLeaves`, the teacher's view of the answer, `hydrateSession`)
+  would have to expand it; a stored "factorising" whose meaning is "both, unless…" is a rule in
+  the data instead of in one function.
+- *A separate `kinds` field beside `leaves`.* Two fields to keep consistent, and the order the
+  student ticked in (which the chat follows) would be split across them.
+- *List both kinds as top-level rows ("monic factorising", "non-monic factorising").* Simpler,
+  but the user's point is that the student names factorising first and the kind second; a
+  student who cannot tell the kinds apart should still be able to say "factorising".
+- *Pre-tick both kinds when the row is ticked.* Then "one kind only" is two taps (untick one)
+  instead of one, and the list can no longer tell "meant both" from "ticked both". Leaving the
+  kinds clear until tapped keeps the tap count at one for every case; the locked view after
+  submit shows both ticked, so the assumption is visible.
+
+**Tradeoffs.** The row's position in the list is where the first factorising leaf ranked, which
+means the non-monic kind is offered even for a set whose top seven has only the monic leaf (as
+this one does). The locked view cannot show "factorising, unspecified": it shows both kinds
+ticked, which is what the answer means. Any future rule that folds other leaves into a row
+("graphs" over sketch and features) goes in the same module.
+
+**Defense.** One pure function each way, tested, and nothing downstream changes: the chat, the
+offer and the sequence were verified on a bare factorising tick without a line of theirs
+touched. The session shape is stable across the change, so stored sessions load as before.
+

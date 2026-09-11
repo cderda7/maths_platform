@@ -673,7 +673,7 @@ export function sessionAt(stage: Stage, run: RunKindParam = "weak"): StudentSess
   return {
     ...INITIAL_SESSION,
     stage,
-    practice: i === ORDER.indexOf("warmup-chat") || i === ORDER.indexOf("practice") ? "taken" : i >= ORDER.indexOf("confidence") ? "declined" : null,
+    practice: i === ORDER.indexOf("warmup-chat") || i === ORDER.indexOf("practice") ? "taken" : i > ORDER.indexOf("confidence") ? "declined" : null,
     confidence: i === ORDER.indexOf("warmup-chat") || i === ORDER.indexOf("practice") ? DEMO_WARMUP_CONFIDENCE : i > ORDER.indexOf("practice") ? DEMO_CONFIDENCE : null,
     // A deep link straight to the pad has the chat behind it: the three answers, so the warm-up is fractions, factorising, the null factor law, then non-monic.
     warmup: i === ORDER.indexOf("practice") ? { ...INITIAL_WARMUP, messages: DEMO_CONCERNS } : INITIAL_WARMUP,

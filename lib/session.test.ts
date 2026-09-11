@@ -144,6 +144,9 @@ describe("student session flow", () => {
     expect(sessionAt("working").confidence).toEqual(DEMO_CONFIDENCE);
     expect(warmupProblem(sessionAt("practice")).id).toBe("w-fractions");
     expect(sessionAt("confidence").confidence).toBeNull();
+    // Nothing answered yet at the survey itself, so a not-confident answer there still gets the warm-up offer.
+    expect(sessionAt("confidence").practice).toBeNull();
+    expect(warmupOffered(sessionReducer(sessionAt("confidence"), { type: "confidence/set", confidence: { level: "low" } }))).toBe(true);
     expect(sessionAt("overview")).toEqual(INITIAL_SESSION);
   });
 

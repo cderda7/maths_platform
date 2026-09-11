@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { Button, Eyebrow } from "@/components/ui";
-import { studentLeafName, type LeafId } from "@/data/taxonomy";
+import type { LeafId } from "@/data/taxonomy";
 import type { Confidence } from "@/data/types";
 import { useAssignment } from "@/lib/classroom-store";
-import { relevantSkills } from "@/lib/hierarchy";
+import { FACTORISING, FACTORISING_KINDS, pickedLeaves, pickedRows, pickerRows, type PickId } from "@/lib/confidence";
 import { offerLines } from "@/lib/warmup";
 
 type Level = Confidence["level"];
@@ -13,7 +13,8 @@ type Level = Confidence["level"];
 /**
  * Three answers, lowercase: "confident", "not confident" overall, then "not confident with…" over
  * the set's seven most relevant skills (always visible, stacked, tick any number; ticking one is
- * the answer). One button, "Submit", whatever the answer: "confident" opens Q1; either other
+ * the answer). Factorising is one row; ticking it opens "monic" and "non-monic" under it to tick
+ * one or both, and neither ticked means both (`lib/confidence.ts`). One button, "Submit", whatever the answer: "confident" opens Q1; either other
  * answer keeps the student here (`answered` set), dims and locks the list, and a callout rises
  * just above the spot Submit occupied (the tutor's question naming the ticked skills, the size of
  * the warm-up, "Warm up" in the accent fill / "Start the set" in the accent outline). The spot itself is left empty so reaching either
@@ -41,28 +42,30 @@ export default function ConfidenceScreen({
   onStart: () => void;
 }) {
   const [draftLevel, setDraftLevel] = useState<Level | null>(null);
-  const [draftLeaves, setDraftLeaves] = useState<LeafId[]>([]);
+  const [draftPicked, setDraftPicked] = useState<PickId[]>([]);
   // Once answered, the screen shows the answer in the session (a reload shows the same offer), not the draft.
   const level = answered ? answered.level : draftLevel;
-  const leaves = answered ? (answered.level === "low-when" ? answered.leaves : []) : draftLeaves;
+  const picked = answered ? (answered.level === "low-when" ? pickedRows(answered.leaves) : []) : draftPicked;
   const locked = answered !== null;
-  const skills = relevantSkills(useAssignment().problems);
-  const ready = level === "low-when" ? leaves.length > 0 : level !== null;
+  const rows = pickerRows(useAssignment().problems);
+  const ready = level === "low-when" ? picked.length > 0 : level !== null;
 
   const submit = () => {
     if (locked || !ready || !level) return;
-    onSubmit(level === "low-when" ? { level, leaves } : { level });
+    onSubmit(level === "low-when" ? { level, leaves: pickedLeaves(picked) } : { level });
   };
   const pick = (l: Level) => {
     if (locked) return;
     setDraftLevel(l);
-    if (l !== "low-when") setDraftLeaves([]);
+    if (l !== "low-when") setDraftPicked([]);
   };
-  const toggle = (id: LeafId) => {
+  // Unticking the factorising row unticks the kinds under it too, so they never outlive the row.
+  const toggle = (id: PickId) => {
     if (locked) return;
     setDraftLevel("low-when");
-    setDraftLeaves((ls) => (ls.includes(id) ? ls.filter((l) => l !== id) : [...ls, id]));
+    setDraftPicked((ps) => (ps.includes(id) ? ps.filter((p) => p !== id && (id !== FACTORISING || !FACTORISING_KINDS.includes(p as LeafId))) : [...ps, id]));
   };
+  const tick = (on: boolean) => `grid h-4.5 w-4.5 shrink-0 place-items-center rounded-[5px] border text-[11px] ${on ? "border-accent bg-accent text-white" : "border-line-strong bg-paper text-transparent"}`;
 
   const head = (on: boolean) => `flex w-full items-center gap-4 px-5 py-4 text-left transition-colors ${on ? "bg-ink text-white" : "bg-paper text-ink hover:bg-cream-deep"}`;
 
@@ -88,16 +91,33 @@ export default function ConfidenceScreen({
             <span className="text-[16px] font-medium">not confident with…</span>
           </button>
           <ul className="divide-y divide-line border-t border-line bg-paper">
-            {skills.map((id) => {
-              const on = leaves.includes(id);
+            {rows.map(({ id, label, children }) => {
+              const on = picked.includes(id);
               return (
                 <li key={id}>
                   <button type="button" onClick={() => toggle(id)} aria-pressed={on} data-skill={id} className="flex w-full items-center gap-4 px-5 py-2.5 text-left transition-colors hover:bg-cream-deep">
-                    <span className={`ml-9 grid h-4.5 w-4.5 shrink-0 place-items-center rounded-[5px] border text-[11px] ${on ? "border-accent bg-accent text-white" : "border-line-strong bg-paper text-transparent"}`} aria-hidden>
+                    <span className={`ml-9 ${tick(on)}`} aria-hidden>
                       ✓
                     </span>
-                    <span className={`text-[15px] ${on ? "font-medium text-ink" : "text-ink-soft"}`}>{studentLeafName(id).name.toLowerCase()}</span>
+                    <span className={`text-[15px] ${on ? "font-medium text-ink" : "text-ink-soft"}`}>{label}</span>
                   </button>
+                  {children && on && (
+                    <ul className="pb-1" data-skill-kinds>
+                      {children.map((c) => {
+                        const onC = picked.includes(c.id);
+                        return (
+                          <li key={c.id}>
+                            <button type="button" onClick={() => toggle(c.id)} aria-pressed={onC} data-skill={c.id} className="flex w-full items-center gap-4 px-5 py-1.5 text-left transition-colors hover:bg-cream-deep">
+                              <span className={`ml-[4.75rem] ${tick(onC)}`} aria-hidden>
+                                ✓
+                              </span>
+                              <span className={`text-[14px] ${onC ? "font-medium text-ink" : "text-ink-soft"}`}>{c.label}</span>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
                 </li>
               );
             })}

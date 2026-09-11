@@ -1200,6 +1200,23 @@ agents add sections above it and leave it alone.
 - **Every problem.** If the box should appear after every problem's working (a sentence for
   "Solve for x" too), it is the flag on the other eight problems and nothing else.
 
+## The factorising row and its kinds (from ticket 112, 2026-09-11)
+
+- **The chat's words for the two kinds.** With both kinds chosen the offer reads "Warm up on
+  factorising & non-monic factorisation first?" and the chat "Let's do a warm up on factorising &
+  non-monic factorisation.", because the student names are still "Factorising" (monic) and
+  "Non-monic factorisation". Now that the student picks "monic" and "non-monic" under
+  "factorising", the names could become "monic factorising" / "non-monic factorising", or the
+  chat could say "factorising (monic and non-monic)" when both are ticked. Left as is until the
+  user says which; the override lives in `STUDENT_NAMES` in `data/taxonomy.ts`.
+- **Other rows with kinds.** The same fold could serve "graphs" (sketching, reading features) or
+  "equations" (linear, quadratic, simultaneous); `pickerRows` is the one place to add a row.
+- **A kind-only warm-up when the student ticks one kind.** Today one kind means one warm-up
+  problem for that kind; the other kind is never offered as a follow-up. If the student slips on
+  the monic problem, the non-monic one could be offered as the next step.
+- **The row's rank.** The row sits where the first factorising leaf ranked; ranking it by the two
+  leaves' combined count would move it up a place or two on some sets.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
