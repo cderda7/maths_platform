@@ -29,8 +29,8 @@ export function debriefPrompt(problem: string, own: { lines: string[]; rework: s
 }
 
 export const PROMPT_TEXT: Record<DebriefPrompt, string> = {
-  own: "describe the mistake you made",
-  peers: "describe the mistake your peers most likely made",
+  own: "Describe the mistake you made.",
+  peers: "Describe the mistake your peers most likely made.",
 };
 
 /** The group's correct rework of a problem, if it has one. */

@@ -1,6 +1,6 @@
 # 39: The whole class enters group review together
 
-**What to build:** After a student hands in their corrections they wait for the class: "waiting for the class · 14 of 20 handed in". Group review starts on its own the moment everyone is in; the teacher's force ends the wait for everyone. There is no such gate between submission and individual review. For the demo the count climbs on a short scripted timeline.
+**What to build:** After a student hands in their corrections they wait for the class: "Waiting for the class · 14 of 20 handed in". Group review starts on its own the moment everyone is in; the teacher's force ends the wait for everyone. There is no such gate between submission and individual review. For the demo the count climbs on a short scripted timeline.
 
 **Blocked by:** 36 (the count needs the class of twenty).
 

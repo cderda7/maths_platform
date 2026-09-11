@@ -37,7 +37,7 @@ vitest (218 tests): the count from nobody to everyone along the scripted offsets
 recorded once, the teacher's start opening the gate after its grace (and a force-submit advance
 not), the session's gate transitions, the eight pathways through the gate, the skip fixtures.
 `tsc --noEmit`, `eslint`, `next build`. CDP, two tabs: hand in corrections from individual review
-→ "waiting for the class · 1 of 20 handed in" → 6 of 20 six seconds later → the teacher's card
+→ "Waiting for the class · 1 of 20 handed in" → 6 of 20 six seconds later → the teacher's card
 reads 9 of 20 with "start group review now" → group review opens on its own about seventeen
 seconds after arrival; skip to class wait → the teacher's start shows "starting · 1:00" with
 Cancel and the student's pill "Group review starts in 1:00" → with the grace over the waiting

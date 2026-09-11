@@ -11,7 +11,7 @@ export default function ClassWaitScreen() {
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col items-center justify-center px-9 py-9 text-center" data-class-wait>
       <Eyebrow>Group review</Eyebrow>
-      <h1 className="font-display mt-3 text-[34px] leading-tight text-ink">waiting for the class</h1>
+      <h1 className="font-display mt-3 text-[34px] leading-tight text-ink">Waiting for the class</h1>
       <p className="mt-3 flex items-center gap-2 text-[15px] text-ink-soft" data-count>
         <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
         {readiness.handedIn} of {readiness.total} handed in
