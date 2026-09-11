@@ -93,11 +93,11 @@ describe("termTex", () => {
     expect(termTex("(x - 2)(x + 5) = 0", [factors])).toBe("\\htmlClass{hint-term hint-term-tight-x}{(x - 2)}\\htmlClass{hint-term hint-term-tight-x hint-term-abut}{(x + 5)} = 0");
   });
 
-  it("conjures an unwritten fragment while its term is lit, and only then", () => {
+  it("conjures an unwritten fragment while its term is lit, and only then, hanging in the margin at zero width so nothing moves", () => {
     const a = { phrase: "a", within: "4ac", tex: [], insert: { before: "x^2", tex: "1" } };
     const c = { phrase: "c", within: "4ac", tex: ["5"] };
     expect(termTex("x^2 + 2x + 5 = 0", [a, c])).toBe("x^2 + 2x + \\htmlClass{hint-term}{5} = 0");
-    expect(termTex("x^2 + 2x + 5 = 0", [a, c], a)).toBe("\\htmlClass{hint-term hint-term-lit hint-term-tight-x}{1}x^2 + 2x + \\htmlClass{hint-term}{5} = 0");
+    expect(termTex("x^2 + 2x + 5 = 0", [a, c], a)).toBe("\\llap{\\htmlClass{hint-term hint-term-lit hint-term-tight-x}{1}}x^2 + 2x + \\htmlClass{hint-term}{5} = 0");
     expect(termTex("x^2 + 2x + 5 = 0", [a, c], c)).toBe("x^2 + 2x + \\htmlClass{hint-term hint-term-lit}{5} = 0");
     expect(termTex("y = 3", [{ phrase: "a", tex: [], insert: { before: "x^2", tex: "1" } }], { phrase: "a", tex: [], insert: { before: "x^2", tex: "1" } })).toBe("y = 3");
   });
@@ -129,7 +129,7 @@ describe("termTex", () => {
     expect(html).toContain('class="enclosing hint-term hint-term-tight-x"');
   });
 
-  it("changes no spacing in any warm-up problem, wrapped at rest or with any term lit, except a conjured fragment", () => {
+  it("changes no spacing in any warm-up problem, wrapped at rest or with any term lit, a conjured fragment included", () => {
     const spacing = (t: string) => {
       const html = katex.renderToString(t, { trust: true, strict: false, displayMode: true });
       return [...html.matchAll(/mspace" style="margin-right:([^;"]+)/g)].map((m) => m[1]).join(" ") + " | " + (html.match(/mbin|mrel|mopen|mclose/g) ?? []).join(" ");
@@ -140,7 +140,7 @@ describe("termTex", () => {
       if (!terms.length) continue;
       const rest = termTex(p.tex, terms);
       expect(spacing(rest), p.id).toBe(spacing(p.tex));
-      for (const lit of terms) if (!lit.insert) expect(spacing(termTex(p.tex, terms, lit)), `${p.id}: ${lit.phrase}`).toBe(spacing(rest));
+      for (const lit of terms) expect(spacing(termTex(p.tex, terms, lit)), `${p.id}: ${lit.phrase}`).toBe(spacing(rest));
     }
   });
 });

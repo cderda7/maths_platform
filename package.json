@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "check:laptop": "node scripts/laptop-check.mjs"
+    "check:laptop": "node scripts/laptop-check.mjs",
+    "sweep:hint-boxes": "node scripts/hint-box-sweep.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",

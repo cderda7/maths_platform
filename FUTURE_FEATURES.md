@@ -1117,6 +1117,21 @@ agents add sections above it and leave it alone.
   for a "let's go" press instead of a timer.
 - **The same hold for the pad's own closings.** Other timed hand-offs (the practice prompt, the
   debrief) keep their own waits; if 2.8s reads right here, the others could be checked against it.
+## The conjured 1 in the margin, the sweep in the repo (from ticket 104, 2026-09-11)
+
+- **The 1 overhangs whatever is to its left.** `\llap` paints the conjured fragment to the left of
+  where it stands; the only use has x² at the start of the line, so it hangs into empty margin. A
+  conjured fragment mid-line (an implied 1 before a later x) would sit on top of the operator
+  before it; `conjure` would need `\mathllap` with a kern-free gap or a raised marker instead.
+- **The sweep runs the warm-ups on offer, not every problem in `data/practice.ts`.** The
+  discriminant, sketching and evaluation problems reach the pad only through the mid-set
+  overlay; the sweep could open the overlay by writing the session's `overlay` leaf into
+  localStorage (see the testing memory note on rewriting the session shape) to cover them.
+- **The sweep's default port is 3121, shared with the laptop check.** Another agent's app on
+  that port makes the sweep read their build; set `HINT_SWEEP_URL` to your own.
+- **The rules could be enforced at build time.** A lint on `data/practice.ts` that any TeX
+  written by hand may contain `\,` or `\kern` but `lib/hint.ts` may not (a grep in a vitest)
+  would stop the ticket 96 mistake before a screenshot does.
 
 ## Carson's notes
 

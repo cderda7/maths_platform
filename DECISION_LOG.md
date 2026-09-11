@@ -1906,3 +1906,35 @@ scrolls on its own once the chat takes its share.
 is two `className`s and the removal of the spacer item that pushed bubbles to the foot. The
 click-through measures the share at one, six and reopened exchanges and checks the latest reply is
 inside the scrolled list.
+## 2026-09-11 · The conjured 1 is painted at zero width; the pixel sweep is part of the repo
+
+**Decision.** The one fragment the hint machinery shows that the problem does not write (the 1 in
+front of x² on the discriminant warm-up) is typeset with `\llap`, so it hangs to the left of x² at
+zero width and no glyph of the problem moves while it shows. "Lighting a hint word moves nothing"
+now holds with no exception, and the test sweep asserts it for every warm-up. The headless-browser
+sweep that checks the lit box against its neighbours pixel by pixel is checked in as
+`scripts/hint-box-sweep.mjs`, run by `npm run sweep:hint-boxes`, and CLAUDE.md names it as part of
+done for any change to `lib/hint.ts` or the box's CSS.
+
+**Context.** Settled in a grilling after tickets 96–100. The user confirmed the two rules (the maths
+keeps its own spacing; lighting moves nothing) as permanent and chose, for the conjured 1, "keep it
+but paint it in the margin with no shift" over keeping the shift or dropping the 1; and chose to
+check the sweep in over leaving it as a scratchpad tool or rewriting it as a jsdom test.
+
+**Alternatives considered.**
+- *Keep the shift (the 1 pushes the equation right while hovered).* The teaching moment survives
+  but it is the very jiggle rule 2 forbids, and the only exemption in the test sweep.
+- *Drop the conjured 1 and light x² with the hint saying a is 1.* Loses the moment where the
+  student sees the invisible coefficient appear.
+- *Position the 1 absolutely with CSS.* Works, but `\llap` is KaTeX's own zero-width primitive,
+  renders on the server, and needs no rule of its own.
+- *A jsdom vitest for the pixels.* jsdom does no layout; the check has to run in a browser.
+
+**Tradeoffs.** `\llap` paints over whatever precedes the fragment; fine at the start of a line,
+which is the only use, and noted for a future mid-line conjure. The sweep needs a production build
+and Chrome, so it is a step a person or agent runs, not part of `npm test`.
+
+**Defense.** The discriminant problem rendered plain, wrapped and lit measures identical glyph
+positions with the 1 in the margin; the checked-in sweep passes every check on the build; and the
+rules are now written where the next agent reads first (CLAUDE.md), not only in a memory file.
+

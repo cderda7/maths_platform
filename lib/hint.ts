@@ -151,10 +151,17 @@ export function locateFragment(tex: string, f: TexFragment): number {
   return inner < 0 ? -1 : outer + inner;
 }
 
-/** Puts a lit fragment the problem does not write (the 1 in front of x²) just before `before`, its box tight at the sides since it stands flush against `before`, or leaves the TeX alone when `before` is absent. */
+/**
+ * Shows a lit fragment the problem does not write (the 1 in front of x²) just before `before`,
+ * hanging in the margin: `\\llap` typesets it at zero width, extending to the left of where it
+ * stands, so the problem's own glyphs do not move while it shows (lighting never moves the
+ * layout). Its box is tight at the sides since it stands flush against `before`. Written for a
+ * `before` at the start of the line; further in, the conjured glyph would overhang whatever
+ * precedes it. Leaves the TeX alone when `before` is absent.
+ */
 function conjure(tex: string, insert: { before: string; tex: string }): string {
   const at = findFragment(tex, insert.before);
-  return at < 0 ? tex : `${tex.slice(0, at)}\\htmlClass{hint-term hint-term-lit hint-term-tight-x}{${insert.tex}}${tex.slice(at)}`;
+  return at < 0 ? tex : `${tex.slice(0, at)}\\llap{\\htmlClass{hint-term hint-term-lit hint-term-tight-x}{${insert.tex}}}${tex.slice(at)}`;
 }
 
 const alnum = (c: string | undefined) => c !== undefined && /[a-z0-9]/i.test(c);
