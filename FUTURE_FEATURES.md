@@ -1016,6 +1016,26 @@ agents add sections above it and leave it alone.
   hint wants a visible gap between two fragments, put it in the problem's TeX by hand so the
   problem at rest is what the teacher wrote, never in `termTex`.
 
+## "Talk it through" on the hint card, the bare help menu (from ticket 99, 2026-09-11)
+
+- **A word on the greyed "another hint".** While the latest hint is stalled the menu's hint pill
+  is greyed with no explanation (the notes are gone by request). If students open the menu and
+  stall there, a one-line helper under the pills ("act on hint 1 first, or talk it through") could
+  come back; not added, the pill on the hint card is meant to be the answer.
+- **The pill on reopened earlier hints.** Only the latest hint carries "Talk it through"; a
+  reopened hint 1 with hint 2 showing has none. If a student wants to talk about an earlier hint,
+  the plain chat is there. A per-hint opener ("Let's go back to hint 1…") would be needed first.
+- **The pill while the worked example plays.** Hidden, like "I need help" (ticket 95); the
+  chat beside the example is headed "Question about a step?" and has no room for the hint
+  opener. If the example's chat should also take a hint question, the opener would need a
+  variant that names the step.
+- **Hover and focus rings on the menu pills.** Hover is accent-soft fill; there is no
+  focus-visible ring beyond the browser default. A keyboard pass over the whole overlay is still
+  owed (see earlier notes on the help chat).
+- **The popup is as narrow as its widest pill.** "worked example" sets the width (248px with
+  padding); a longer option label later (a fifth row, a two-word video label) widens every pill.
+  If the menu grows, a fixed 280px with left-aligned pills may read better than fit-width.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

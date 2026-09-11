@@ -10,7 +10,8 @@ import { hintSegments } from "@/lib/hint";
  * matching fragment in its own rendering of the problem with `termTex`. `label` is the eyebrow:
  * "Hint" when the problem has one, "Hint 1", "Hint 2" when several stack. A hint the student has
  * moved past is `collapsed`: one muted line, no linked words, and the whole card is a button that
- * opens it (`onToggle`); the latest hint is never collapsed. Practice problems only, the warm-up
+ * opens it (`onToggle`); the latest hint is never collapsed. The latest hint carries a "Talk it
+ * through" pill (`onTalk`) that opens the help chat on this hint. Practice problems only, the warm-up
  * and the mid-set "one move": a problem in the set never shows one.
  */
 export default function HintCard({
@@ -21,6 +22,7 @@ export default function HintCard({
   onLit,
   collapsed = false,
   onToggle,
+  onTalk,
   className = "",
 }: {
   hint: Hint;
@@ -31,6 +33,8 @@ export default function HintCard({
   onLit: (term: HintTerm | null) => void;
   collapsed?: boolean;
   onToggle?: () => void;
+  /** Opens the help chat on this hint; the pill is shown only when given (the latest hint). */
+  onTalk?: () => void;
   className?: string;
 }) {
   const focus = "rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-standout-line";
@@ -83,6 +87,16 @@ export default function HintCard({
           );
         })}
       </p>
+      {onTalk && (
+        <button
+          type="button"
+          onClick={onTalk}
+          className="mt-3 inline-flex items-center rounded-full border border-accent-deep bg-paper px-3.5 py-1 text-[12.5px] font-medium text-accent-deep transition-colors hover:bg-accent-soft"
+          data-talk-hint
+        >
+          Talk it through
+        </button>
+      )}
     </Card>
   );
 }

@@ -89,6 +89,14 @@ export default function PracticePad({
     setRecognising(false);
     dispatch({ type: "run/clear", run: runKey, problem: p.id });
   };
+  /** "Talk it through" on the latest hint: opens the chat on it, with the tutor's line about the hint said by the pad and stored, once: a second press on the same hint adds nothing. */
+  const talkHint = () => {
+    setHelpOpen(false);
+    const text = hintOpener(hints.length);
+    const last = chat[chat.length - 1];
+    if (!(last?.from === "tutor" && last.text === text)) dispatch({ type: "run/chat", run: runKey, problem: p.id, message: { from: "tutor", text } });
+    setChatOpen(true);
+  };
 
   return (
     <div className={`grid h-full min-h-0 ${second ? "grid-cols-[400px_1fr_300px]" : "grid-cols-[300px_1fr_320px]"}`} data-run={runKey} data-warmup={run.problem}>
@@ -125,6 +133,7 @@ export default function PracticePad({
             onLit={setLit}
             collapsed={i < hints.length - 1 && !reopened.includes(shown[i])}
             onToggle={i < hints.length - 1 ? () => toggle(shown[i]) : undefined}
+            onTalk={i === hints.length - 1 && !run.example ? talkHint : undefined}
             className={i === 0 ? "mt-5" : "mt-2"}
           />
         ))}
@@ -194,19 +203,10 @@ export default function PracticePad({
 
       {helpOpen && (
         <HelpMenu
-          hints={{ shown: hints.length, total: p.hints.length, next: nextHint, stalled }}
+          hints={{ shown: hints.length, next: nextHint, stalled }}
           exampled={exampled}
-          chatted={chat.length > 0}
           onChat={() => {
             setHelpOpen(false);
-            setChatOpen(true);
-          }}
-          onTalkHint={() => {
-            setHelpOpen(false);
-            // The tutor's line about the hint, said by the pad and stored, once: a reopen on the same stall adds nothing.
-            const text = hintOpener(hints.length);
-            const last = chat[chat.length - 1];
-            if (!(last?.from === "tutor" && last.text === text)) dispatch({ type: "run/chat", run: runKey, problem: p.id, message: { from: "tutor", text } });
             setChatOpen(true);
           }}
           onHint={() => {
@@ -224,52 +224,46 @@ export default function PracticePad({
   );
 }
 
-/** "I need help" on the pad: pick how much help. Hints come one per ask, each picked for where the student's lines have got (`next` says one is available), "another hint" once one is showing; while the latest hint is `stalled` (the lines have not moved past what it asks for) that row opens the chat on it instead ("Talk it through →"). The video is listed so the shape is visible; it goes nowhere yet. The chat can always be reopened. */
+/** "I need help" on the pad: pick how much help. Four bare pills, one word each, no side notes. Hints come one per ask, each picked for where the student's lines have got (`next` says one is available), "another hint" once one is showing; while the latest hint is `stalled` (the lines have not moved past what it asks for) the row is greyed: the way on is the "Talk it through" pill on the hint itself. A seen worked example greys its row. The video is listed so the shape is visible; it goes nowhere yet. The chat can always be reopened. */
 function HelpMenu({
   hints,
   exampled,
-  chatted,
   onHint,
-  onTalkHint,
   onExample,
   onChat,
   onClose,
 }: {
-  hints: { shown: number; total: number; next: boolean; stalled: boolean };
+  hints: { shown: number; next: boolean; stalled: boolean };
   exampled: boolean;
-  chatted: boolean;
   onHint: () => void;
-  onTalkHint: () => void;
   onExample: () => void;
   onChat: () => void;
   onClose: () => void;
 }) {
-  const hintNote = hints.stalled ? "Talk it through →" : hints.next ? undefined : hints.shown === hints.total ? (hints.total > 1 ? "All shown" : "Shown") : "None for this step";
-  const options: { key: string; title: string; onPick?: () => void; note?: string }[] = [
-    { key: "hint", title: hints.shown > 0 ? "another hint" : "hint", onPick: hints.stalled ? onTalkHint : hints.next ? onHint : undefined, note: hintNote },
-    { key: "example", title: "worked example", onPick: exampled ? undefined : onExample, note: exampled ? "Seen" : undefined },
-    { key: "video", title: "video", note: "Not available yet" },
-    { key: "chat", title: "chat", onPick: onChat, note: chatted ? "Continue →" : "Open →" },
+  const options: { key: string; title: string; onPick?: () => void }[] = [
+    { key: "hint", title: hints.shown > 0 ? "another hint" : "hint", onPick: hints.next && !hints.stalled ? onHint : undefined },
+    { key: "example", title: "worked example", onPick: exampled ? undefined : onExample },
+    { key: "video", title: "video" },
+    { key: "chat", title: "chat", onPick: onChat },
   ];
-  const row = "relative block w-full rounded-xl border border-line bg-paper px-4 py-3 text-center";
+  const pill = "block w-full rounded-full border border-accent-deep bg-paper px-6 py-2.5 text-center text-[15px] font-medium text-ink";
   return (
     <Scrim onDismiss={onClose}>
-      <div className="w-[480px] rounded-3xl bg-paper p-8 shadow-lift" data-help-menu>
+      <div className="w-fit min-w-[248px] rounded-3xl bg-paper p-7 shadow-lift" data-help-menu>
         <h2 className="font-display text-[28px] leading-tight text-ink">I&rsquo;d like a…</h2>
-        <ul className="mt-5 space-y-2">
+        {/* A fit-width grid: every pill is the width of the widest one ("worked example"), no wider. */}
+        <ul className="mt-5 grid w-fit gap-2">
           {options.map((o) =>
             o.key === "video" ? (
               <li key={o.key}>
-                <a href="#" aria-disabled onClick={(e) => e.preventDefault()} className={`${row} opacity-60`} data-help-option={o.key}>
-                  <span className="text-[15px] font-medium text-ink">{o.title}</span>
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[13px] text-ink-muted">{o.note}</span>
+                <a href="#" aria-disabled onClick={(e) => e.preventDefault()} className={`${pill} opacity-40`} data-help-option={o.key}>
+                  {o.title}
                 </a>
               </li>
             ) : (
               <li key={o.key}>
-                <button type="button" onClick={o.onPick} disabled={!o.onPick} className={`${row} transition-colors enabled:hover:border-ink-muted disabled:opacity-60`} data-help-option={o.key}>
-                  <span className="text-[15px] font-medium text-ink">{o.title}</span>
-                  <span className={`absolute right-4 top-1/2 -translate-y-1/2 text-[13px] ${o.onPick ? "text-accent-deep" : "text-ink-muted"}`}>{o.note ?? "Show →"}</span>
+                <button type="button" onClick={o.onPick} disabled={!o.onPick} className={`${pill} transition-colors enabled:hover:bg-accent-soft disabled:opacity-40`} data-help-option={o.key}>
+                  {o.title}
                 </button>
               </li>
             ),

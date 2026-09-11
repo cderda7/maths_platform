@@ -1766,3 +1766,38 @@ tested per case; and the browser sweep writes every line of every warm-up on off
 hint, hovers every word, and finds no lit box touching a glyph or fraction bar outside it and no
 glyph moving between plain, wrapped and lit.
 
+## 2026-09-11 · The chat on a hint is reached from the hint itself; the help menu names its four options and nothing else
+
+**Decision.** The latest hint card carries a "Talk it through" pill that opens the help chat on
+that hint with the pad's stored opener (ticket 86's `hintOpener`). The "I'd like a…" menu is four
+bare pills, "another hint", "worked example", "video", "chat", with no side notes; a pill that
+cannot be taken is greyed. While the latest hint is stalled (ticket 86: the student's lines have not
+moved past what it asks for) the "another hint" pill is greyed rather than relabelled to open the
+chat: the chat is one press away on the hint card the student is looking at.
+
+**Context.** The user (ticket 99): "the talk it through option is dumb. it's hidden away in the
+i need help screen. add a pill button to the light purple hint 1 box"; and of the menu, "ONLY
+'another hint', 'worked example', 'video', 'chat'". Ticket 86's row relabelling ("Talk it
+through →") was honest about what the tap did but put the conversation about a hint two taps
+away, behind a button that reads as asking for something else.
+
+**Alternatives considered.**
+- *Keep the stalled row opening the chat, silently.* With the notes gone the row would say
+  "another hint" and open a chat: the surprise ticket 86 rejected.
+- *Hide the hint row while stalled.* The menu would change shape between opens; a greyed pill
+  keeps the four options in place and says the hint is not on offer yet.
+- *Show the pill on every open hint, reopened earlier ones too.* The opener says "hint n before
+  another one", which is only true of the latest; earlier hints have been moved past.
+- *Keep the pill while the worked example plays.* The chat is already on screen there
+  ("Question about a step?") and `chatOpen` has no column to open; like "I need help" (ticket 95)
+  the pill goes while the example plays.
+
+**Tradeoffs.** A stalled student who opens the menu sees a greyed "another hint" with no word
+about why; the pill on the hint card beside it is the explanation. The menu's pills are the
+width of the widest ("worked example"), so the popup is 248px wide and the heading nearly spans it.
+
+**Defense.** The pedagogy of ticket 86 stands (no second hint until the first is acted on; the
+reducer still refuses `run/hint` while stalled); only the door to the chat moved to where the
+hint is. The menu now matches the spec's rule of labels over sentences: four words, no helper
+text, and disabled state carried by greying alone.
+
