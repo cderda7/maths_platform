@@ -56,7 +56,7 @@ Teacher, before the lesson (`/teacher/assignments/new`):
 
 Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the pen):
 
-2. Overview, warm-up offer, confidence. Work Q1–Q10 on the pad; each burst of strokes is read as
+2. Overview, confidence (a not-confident answer is offered the warm-up). Work Q1–Q10 on the pad; each burst of strokes is read as
    one line and the ink is kept. Q1 slips on monic factorising and Q2 on non-monic (a two-minute
    practice is offered on the second), Q3 misuses the null factor law, Q4–Q6 and Q8 hold, Q7
    multiplies only two of three terms by 3, Q9 skips the height (a compounded step, not a

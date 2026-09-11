@@ -1,25 +1,52 @@
 import { describe, expect, it } from "vitest";
-import { DEMO_CONFIDENCE, INITIAL_RUN, INITIAL_SESSION, INITIAL_WARMUP, hydrateSession, runProblem, sessionAt, sessionReducer, warmupFocus, warmupProblem, warmupSeed, type StudentSession } from "./session";
+import { DEMO_CONFIDENCE, INITIAL_RUN, INITIAL_SESSION, INITIAL_WARMUP, hydrateSession, runProblem, sessionAt, sessionReducer, warmupFocus, warmupOffered, warmupProblem, warmupSeed, type StudentSession } from "./session";
 import { PRACTICE, WARMUP_BANK } from "@/data/practice";
 import { warmupScript } from "./warmup";
 import { allPathways } from "./pathway";
 import type { Confidence, Pathway } from "@/data/types";
 
 describe("student session flow", () => {
-  it("declining practice goes to the confidence survey, and the answer starts the set", () => {
-    let s = sessionReducer(INITIAL_SESSION, { type: "practice/decline" });
+  it("START goes to the confidence question, and \"confident\" opens Q1 with no warm-up offered", () => {
+    let s = sessionReducer(INITIAL_SESSION, { type: "overview/start" });
     expect(s.stage).toBe("confidence");
-    expect(s.practice).toBe("declined");
-    s = sessionReducer(s, { type: "confidence/set", confidence: { level: "low-when", leaves: ["algebra.number.fractions"] } });
+    expect(s.practice).toBeNull();
+    expect(warmupOffered(s)).toBe(false);
+    s = sessionReducer(s, { type: "confidence/set", confidence: { level: "confident" } });
     expect(s.stage).toBe("working");
-    expect(s.confidence).toEqual({ level: "low-when", leaves: ["algebra.number.fractions"] });
+    expect(s.practice).toBe("declined");
+    expect(s.confidence).toEqual({ level: "confident" });
   });
 
-  it("accepting practice asks about confidence first, then the concerns chat, one question per ticked skill, then the warm-up, then the set", () => {
-    let s = sessionReducer(INITIAL_SESSION, { type: "practice/accept" });
+  it("a not-confident answer stays on the screen with the warm-up offered; \"Start the set\" opens Q1", () => {
+    let s = sessionReducer(INITIAL_SESSION, { type: "overview/start" });
+    s = sessionReducer(s, { type: "confidence/set", confidence: { level: "low-when", leaves: ["algebra.number.fractions"] } });
     expect(s.stage).toBe("confidence");
-    expect(s.practice).toBe("taken");
+    expect(s.practice).toBeNull();
+    expect(warmupOffered(s)).toBe(true);
+    expect(s.confidence).toEqual({ level: "low-when", leaves: ["algebra.number.fractions"] });
+    // The answer is in: a second answer is ignored.
+    expect(sessionReducer(s, { type: "confidence/set", confidence: { level: "confident" } })).toBe(s);
+    s = sessionReducer(s, { type: "warmup/decline" });
+    expect(s.stage).toBe("working");
+    expect(s.practice).toBe("declined");
+    expect(warmupOffered(s)).toBe(false);
+    expect(sessionReducer(s, { type: "warmup/accept" })).toBe(s);
+  });
+
+  it("the offer is only open after a not-confident answer", () => {
+    expect(sessionReducer(INITIAL_SESSION, { type: "warmup/accept" })).toBe(INITIAL_SESSION);
+    const asked = sessionReducer(INITIAL_SESSION, { type: "overview/start" });
+    expect(sessionReducer(asked, { type: "warmup/accept" })).toBe(asked);
+    expect(sessionReducer(asked, { type: "warmup/decline" })).toBe(asked);
+    expect(sessionReducer(INITIAL_SESSION, { type: "confidence/set", confidence: { level: "low" } })).toBe(INITIAL_SESSION);
+  });
+
+  it("\"Warm up\" after a not-confident answer opens the concerns chat, one question per ticked skill, then the warm-up, then the set", () => {
+    let s = sessionReducer(INITIAL_SESSION, { type: "overview/start" });
     s = sessionReducer(s, { type: "confidence/set", confidence: { level: "low-when", leaves: ["algebra.expand-factor.monic", "algebra.number.fractions"] } });
+    expect(s.stage).toBe("confidence");
+    s = sessionReducer(s, { type: "warmup/accept" });
+    expect(s.practice).toBe("taken");
     expect(s.stage).toBe("warmup-chat");
     expect(warmupSeed(s)).toEqual(["algebra.expand-factor.monic", "algebra.number.fractions"]);
     expect(sessionReducer(s, { type: "warmup/say", text: "   " })).toBe(s);
@@ -36,7 +63,7 @@ describe("student session flow", () => {
   });
 
   it("an overall answer asks one open question, and what it names is the warm-up (nothing named: the default)", () => {
-    let s = sessionReducer(sessionReducer(INITIAL_SESSION, { type: "practice/accept" }), { type: "confidence/set", confidence: { level: "low" } });
+    let s = sessionReducer(sessionReducer(sessionReducer(INITIAL_SESSION, { type: "overview/start" }), { type: "confidence/set", confidence: { level: "low" } }), { type: "warmup/accept" });
     expect(s.stage).toBe("warmup-chat");
     expect(warmupSeed(s)).toEqual([]);
     const named = sessionReducer(s, { type: "warmup/say", text: "fractions and Q2" });

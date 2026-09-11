@@ -21,7 +21,7 @@ import FrozenScreen from "./screens/FrozenScreen";
 import { useNow } from "@/lib/store";
 import { ASSIGNMENT } from "@/data/assignment";
 import type { Pathway, Stage } from "@/data/types";
-import type { RunKindParam } from "@/lib/session";
+import { warmupOffered, type RunKindParam } from "@/lib/session";
 import WaitingScreen from "./screens/WaitingScreen";
 import ClassWaitScreen from "./screens/ClassWaitScreen";
 import { classReadiness } from "@/lib/readiness";
@@ -117,12 +117,17 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
     <IpadStage>
       <StudentChrome crumb={crumb} frozen={frozen}>
         {session.stage === "overview" && (
-          <OverviewScreen onPractice={() => dispatch({ type: "practice/accept" })} onStart={() => dispatch({ type: "practice/decline" })} />
+          <OverviewScreen onStart={() => dispatch({ type: "overview/start" })} />
         )}
         {session.stage === "warmup-chat" && <WarmupChatScreen session={session} dispatch={dispatch} />}
         {session.stage === "practice" && <PracticeScreen session={session} dispatch={dispatch} />}
         {session.stage === "confidence" && (
-          <ConfidenceScreen practice={session.practice} onSubmit={(confidence) => dispatch({ type: "confidence/set", confidence })} />
+          <ConfidenceScreen
+            answered={warmupOffered(session) ? session.confidence : null}
+            onSubmit={(confidence) => dispatch({ type: "confidence/set", confidence })}
+            onWarmup={() => dispatch({ type: "warmup/accept" })}
+            onStart={() => dispatch({ type: "warmup/decline" })}
+          />
         )}
         {session.stage === "working" && <WorkingScreen session={session} dispatch={dispatch} />}
         {session.stage === "feedback" && <FeedbackScreen session={session} dispatch={dispatch} />}

@@ -21,7 +21,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
  │       useStudentSession()        │                │   subskillStatuses · caution     │
  │       └▶ IpadStage ▶ StudentChrome│               │   classmates (19: 6 full, 13 light) · seating groups (5 colours)│
  │            └▶ screens/            │               └──────────────┬───────────────────┘
- │               Overview ▶ Confidence│                              │ reads every 3 s
+ │               Overview ▶ Confidence ▶ (not confident: Warm up | Start the set)│                              │ reads every 3 s
  │               ▶ WarmupChat (the ticked skills → one concern question each → answers → focus → warmupSequence, easiest first)│
  │               ▶ Practice (pad · skill buttons: dark once on or through, tap opens · HelpMenu: hint · worked example · video · chat · follow-up split pane)│
  │                   HelpChat (ticket 69): the right column while open · lines said → run.chat · POST /api/help-chat streams claude-opus-5 (lib/helpChat.ts brief: hints only, two ways in, "which makes more sense?")│
@@ -201,6 +201,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 68 | Teacher side: the bar never rides the rubber-band; the window stops scrolling and only the content region does | `/teacher/**` | 65 | [architecture/68-teacher-fixed-header-frame.md](architecture/68-teacher-fixed-header-frame.md) |
 | 69 | Help chat: a fourth option under "I need help", a tutor that only hints and offers a choice of ways in | `/student?stage=practice`, the practice overlay, `POST /api/help-chat` | — | [architecture/69-help-chat.md](architecture/69-help-chat.md) |
 | 70 | Split view: a divider drag lasts exactly as long as the button is held; the window hears the release, a move with the button up ends it | `/split` | 35 | [architecture/70-divider-drag-release.md](architecture/70-divider-drag-release.md) |
+| 71 | Start alone, Submit, and the fork: the warm-up is offered on the confidence screen to the student who says they are not confident | `/student` overview, `…?stage=confidence` | 48 | [architecture/71-start-alone-submit-and-the-fork.md](architecture/71-start-alone-submit-and-the-fork.md) |
 
 ## Conventions
 

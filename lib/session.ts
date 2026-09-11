@@ -73,7 +73,7 @@ export const INITIAL_WARMUP: WarmupState = { ...INITIAL_RUN, messages: [], step:
 
 export interface StudentSession {
   stage: Stage;
-  /** null until the offer is answered. */
+  /** null until the warm-up offer is answered ("confident" skips the offer: declined). */
   practice: "taken" | "declined" | null;
   confidence: Confidence | null;
   warmup: WarmupState;
@@ -132,10 +132,14 @@ export type SessionAction =
   | { type: "hand-in"; at?: number }
   /** A teacher advance whose grace has run out. Idempotent by id. */
   | { type: "advance/apply"; id: string; kind: AdvanceKind; at?: number }
-  | { type: "practice/accept" }
-  | { type: "practice/decline" }
-  | { type: "practice/finish" }
+  /** START on the overview: on to the confidence question. */
+  | { type: "overview/start" }
+  /** The confidence answer. "confident" opens Q1; either not-confident answer stays on the screen with the warm-up offered. */
   | { type: "confidence/set"; confidence: Confidence }
+  /** The offer after a not-confident answer: "Warm up" opens the concerns chat, "Start the set" opens Q1. */
+  | { type: "warmup/accept" }
+  | { type: "warmup/decline" }
+  | { type: "practice/finish" }
   /** The concerns chat: answer the current question. The last answer starts the warm-up. */
   | { type: "warmup/say"; text: string }
   /** Practice on the pad, for either run: the warm-up or the mid-set overlay. */
@@ -200,6 +204,9 @@ export type SessionAction =
   | { type: "diagnostic/answer"; option: string }
   | { type: "diagnostic/withdraw" }
   | { type: "reset" };
+
+/** True while the warm-up offer is open: a not-confident answer is in and the student has not yet chosen. */
+export const warmupOffered = (s: StudentSession): boolean => s.stage === "confidence" && s.confidence !== null && s.confidence.level !== "confident" && s.practice === null;
 
 export const INITIAL_SESSION: StudentSession = {
   stage: "overview",
@@ -282,12 +289,15 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       }
       return applied;
     }
-    case "practice/accept":
-      return { ...s, practice: "taken", stage: "confidence" };
-    case "practice/decline":
-      return { ...s, practice: "declined", stage: "confidence" };
+    case "overview/start":
+      return s.stage === "overview" ? { ...s, stage: "confidence" } : s;
     case "confidence/set":
-      return { ...s, confidence: a.confidence, stage: s.practice === "taken" ? "warmup-chat" : "working" };
+      if (s.stage !== "confidence" || s.confidence) return s;
+      return a.confidence.level === "confident" ? { ...s, confidence: a.confidence, practice: "declined", stage: "working" } : { ...s, confidence: a.confidence };
+    case "warmup/accept":
+      return warmupOffered(s) ? { ...s, practice: "taken", stage: "warmup-chat" } : s;
+    case "warmup/decline":
+      return warmupOffered(s) ? { ...s, practice: "declined", stage: "working" } : s;
     case "practice/finish":
       return { ...s, stage: "working" };
     case "warmup/say": {

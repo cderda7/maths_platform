@@ -9,9 +9,10 @@ import { useAssignment } from "@/lib/classroom-store";
  * The start screen: the set's title, then every problem as one square tile in a five-wide grid so
  * the whole set sits on the iPad at once. No skill words anywhere on this screen (no summary panel,
  * no chips on the tiles); the skills a student ticks under "not confident with…" are what the
- * warm-up is about. "WARM UP" and "START" sit in the bottom-right corner.
+ * warm-up is about. One button, "START", in the bottom-right corner: the warm-up is offered on
+ * the confidence screen, to the student who says they are not confident.
  */
-export default function OverviewScreen({ onPractice, onStart }: { onPractice: () => void; onStart: () => void }) {
+export default function OverviewScreen({ onStart }: { onStart: () => void }) {
   const active = useAssignment();
   return (
     <div className="flex h-full min-h-0 flex-col px-10 pt-6 pb-5">
@@ -33,10 +34,7 @@ export default function OverviewScreen({ onPractice, onStart }: { onPractice: ()
         ))}
       </ol>
 
-      <div className="mt-auto flex shrink-0 justify-end gap-2 pt-4" data-warmup-offer>
-        <Button variant="accent" size="lg" className="uppercase tracking-[0.08em]" onClick={onPractice}>
-          warm up
-        </Button>
+      <div className="mt-auto flex shrink-0 justify-end pt-4" data-start>
         <Button variant="accent" size="lg" className="uppercase tracking-[0.08em]" onClick={onStart}>
           start
         </Button>

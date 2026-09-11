@@ -12,7 +12,10 @@ type Level = Confidence["level"];
 /**
  * Three answers, lowercase: "confident", "not confident" overall, then "not confident with…" over
  * the set's seven most relevant skills (always visible, stacked, tick any number; ticking one is
- * the answer).
+ * the answer). One button, "Submit", whatever the answer: "confident" opens Q1; either other
+ * answer keeps the student here (`answered` set), locks the list, and offers the warm-up just
+ * above the spot Submit occupied, which is left empty so reaching either choice is a deliberate
+ * move rather than a second tap in the same place.
  */
 /** The radio dot at the head of each answer, filled when that answer is picked. */
 function Radio({ on }: { on: boolean }) {
@@ -23,23 +26,40 @@ function Radio({ on }: { on: boolean }) {
   );
 }
 
-export default function ConfidenceScreen({ practice, onSubmit }: { practice: "taken" | "declined" | null; onSubmit: (c: Confidence) => void }) {
-  const [level, setLevel] = useState<Level | null>(null);
-  const [leaves, setLeaves] = useState<LeafId[]>([]);
+export default function ConfidenceScreen({
+  answered,
+  onSubmit,
+  onWarmup,
+  onStart,
+}: {
+  /** The not-confident answer already in, while the warm-up offer is open; null while the student is still answering. */
+  answered: Confidence | null;
+  onSubmit: (c: Confidence) => void;
+  onWarmup: () => void;
+  onStart: () => void;
+}) {
+  const [draftLevel, setDraftLevel] = useState<Level | null>(null);
+  const [draftLeaves, setDraftLeaves] = useState<LeafId[]>([]);
+  // Once answered, the screen shows the answer in the session (a reload shows the same offer), not the draft.
+  const level = answered ? answered.level : draftLevel;
+  const leaves = answered ? (answered.level === "low-when" ? answered.leaves : []) : draftLeaves;
+  const locked = answered !== null;
   const skills = relevantSkills(useAssignment().problems);
   const ready = level === "low-when" ? leaves.length > 0 : level !== null;
 
   const submit = () => {
-    if (!ready || !level) return;
+    if (locked || !ready || !level) return;
     onSubmit(level === "low-when" ? { level, leaves } : { level });
   };
   const pick = (l: Level) => {
-    setLevel(l);
-    if (l !== "low-when") setLeaves([]);
+    if (locked) return;
+    setDraftLevel(l);
+    if (l !== "low-when") setDraftLeaves([]);
   };
   const toggle = (id: LeafId) => {
-    setLevel("low-when");
-    setLeaves((ls) => (ls.includes(id) ? ls.filter((l) => l !== id) : [...ls, id]));
+    if (locked) return;
+    setDraftLevel("low-when");
+    setDraftLeaves((ls) => (ls.includes(id) ? ls.filter((l) => l !== id) : [...ls, id]));
   };
 
   const head = (on: boolean) => `flex w-full items-center gap-4 px-5 py-4 text-left transition-colors ${on ? "bg-ink text-white" : "bg-paper text-ink hover:bg-cream-deep"}`;
@@ -49,7 +69,7 @@ export default function ConfidenceScreen({ practice, onSubmit }: { practice: "ta
       <Eyebrow>Before you start</Eyebrow>
       <h1 className="font-display mt-3 text-[32px] leading-tight text-ink">How confident are you?</h1>
 
-      <div className="mt-7 min-h-0 space-y-3 overflow-y-auto pb-2">
+      <div className={`mt-7 min-h-0 space-y-3 overflow-y-auto pb-2 ${locked ? "pointer-events-none" : ""}`} aria-disabled={locked} data-answers>
         <button type="button" onClick={() => pick("confident")} aria-pressed={level === "confident"} className={`rounded-2xl border ${level === "confident" ? "border-ink" : "border-line"} ${head(level === "confident")}`}>
           <Radio on={level === "confident"} />
           <span className="text-[16px] font-medium">confident</span>
@@ -83,10 +103,25 @@ export default function ConfidenceScreen({ practice, onSubmit }: { practice: "ta
         </div>
       </div>
 
-      <div className="mt-auto flex items-center justify-end pt-6">
-        <Button size="lg" disabled={!ready} onClick={submit}>
-          {practice === "taken" ? "Warm up" : "Start Q1"}
-        </Button>
+      <div className="mt-auto flex flex-col items-end pt-6">
+        {locked ? (
+          <>
+            <div className="flex items-center gap-2" data-warmup-offer>
+              <Button variant="accent" size="lg" onClick={onWarmup} data-warmup-accept>
+                Warm up
+              </Button>
+              <Button variant="secondary" size="lg" onClick={onStart} data-warmup-decline>
+                Start the set
+              </Button>
+            </div>
+            {/* The spot Submit occupied, left empty on purpose. */}
+            <div className="h-[48px] shrink-0" aria-hidden data-submit-spot />
+          </>
+        ) : (
+          <Button size="lg" disabled={!ready} onClick={submit} data-submit>
+            Submit
+          </Button>
+        )}
       </div>
     </div>
   );
