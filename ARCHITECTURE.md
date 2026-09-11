@@ -227,6 +227,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 94 | Every worked example step is a ruled row: the same grey rule and the same air (24px each side, 16 compact) between steps as between the problem and the first step; the reveal button keeps the gap, no rule | `…?stage=practice`, the practice overlay | 93 | [architecture/94-example-rows.md](architecture/94-example-rows.md) |
 | 95 | "I need help" is gone, not greyed, while the worked example plays; back wherever the pad is live again | `…?stage=practice`, the practice overlay | 90 | [architecture/95-help-hidden-in-example.md](architecture/95-help-hidden-in-example.md) |
 | 96 | The lit hint box stops short of the glyph next to it: a thin space between a fragment and a glyph typeset flush against it, at rest as well as lit, and the box padded inside it | `…?stage=practice`, the practice overlay | 88, 83 | [architecture/96-lit-box-clears-neighbour.md](architecture/96-lit-box-clears-neighbour.md) |
+| 97 | The lit hint box is no wider than its fragment (padding above and below only) and 7x keeps its typeset spacing: ticket 96's thin space reversed, 7x is one term | `…?stage=practice`, the practice overlay | 96 | [architecture/97-lit-box-narrow.md](architecture/97-lit-box-narrow.md) |
 
 ## Conventions
 

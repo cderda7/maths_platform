@@ -87,9 +87,9 @@ body {
   /* An inline box paints only the line's height; inline-block paints the whole fragment, a fraction's numerator and denominator included. */
   display: inline-block;
   border-radius: 3px;
-  /* A little air on every side, taken back with margin so the layout is unchanged: the fragment sits centred in its box, a fraction's numerator and denominator clear of the edge. The sides stay inside the thin space lib/hint.ts writes before a glyph typeset flush against the fragment (the x of 7x), so the lit box never covers a neighbour. */
-  padding: 0.2em 0.12em;
-  margin: -0.2em -0.12em;
+  /* Air above and below, taken back with margin so the layout is unchanged: a fraction's numerator and denominator clear of the edge. None at the sides: 7x is typeset as one term with nothing between the 7 and the x, so a box wider than the 7 would cover part of the x. */
+  padding: 0.2em 0;
+  margin: -0.2em 0;
   transition:
     color 120ms,
     background-color 120ms;

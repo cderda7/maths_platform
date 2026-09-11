@@ -4,7 +4,7 @@
 
 **Blocked by:** 88 (the abutting-fragments gap), 83 (the box's padding).
 
-**Status:** done
+**Status:** done; the thin space was reversed the same day by ticket 97 (7x is one term), which keeps only the narrower box
 
 **Triage:** `ready-for-agent`
 

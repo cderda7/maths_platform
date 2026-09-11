@@ -1699,3 +1699,29 @@ either text size.
 get no gap, with the layout sweeps still holding lit against rest for every warm-up and read line;
 the browser measurement shows 1px of air before the x.
 
+## 2026-09-11 · The lit hint box has no side padding; the problem's TeX gets no extra spacing
+
+**Decision.** Reverses the entry above. `termTex` writes nothing between a wrapped fragment and a
+glyph flush against it; the only gap it ever writes is the one between two wrapped fragments that
+abut (ticket 88). The box instead has no side padding (`.hint-term` `padding: 0.2em 0`), so its
+edge is the fragment's own edge and it cannot reach the x.
+
+**Context.** The user, on the thin space: "too big of a gap; problematic for idea that 7x is 'one
+term' … go back to the og 7x spacing & just make the blue box not as wide". The coefficient and
+the variable are one term in the maths the hint is teaching; a gap between them, however thin,
+says otherwise.
+
+**Alternatives considered.**
+- *A thin space (ticket 96).* Kept the box's side air; rejected by the user for splitting the term.
+- *Side padding only where no glyph is flush.* Two box shapes for one class of thing; the box
+  would be wider round the 12 than round the 7 for no reason a student could see.
+- *Air on the left side only.* The "+" before the 7 leaves room; the box would be lopsided.
+
+**Tradeoffs.** A glyph with no right bearing (Computer Modern's 7) touches the box's edge; a glyph
+with bearings (1, 2, 0) sits with a little air. The box is the fragment's width, so it reads as a
+highlight of exactly that fragment, which is what it is.
+
+**Defense.** The TeX the problem renders is untouched; the fix is one CSS value. The browser
+measurement shows the box's right edge on the x's cell edge and the layout sweeps compare lit
+against rest for every warm-up.
+

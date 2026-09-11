@@ -987,6 +987,19 @@ agents add sections above it and leave it alone.
   size is now all padding, in em, so the box scales with the read-as lines. A visible ring in a
   second colour (an outline round the fill) would be a new look, not a return.
 
+## The lit hint box the width of its fragment (from ticket 97, 2026-09-11)
+
+- **The 7 kisses the box's edge.** Computer Modern's 7 has almost no right side bearing, so with
+  no side padding the lit 7 touches the box's right edge while the 12 and the 10 sit with a little
+  air (their glyphs have bearings). Air on the left only (the "+" side has room) would centre the
+  7 better but make every box lopsided; not done.
+- **Two-term spacing stays at 0.7em.** The gap between the two lit factors (ticket 88) was sized
+  for boxes 0.1em wider than their fragments each side and could come in to about 0.5em now that
+  the boxes are the fragments' width; left as is until the factors screen is looked at again.
+- **Ticket 96's thin space is the recorded alternative** if a box that hugs the 7 ever reads as
+  too tight: `\,` between the coefficient and the variable, at rest as well as lit. The user
+  rejected it because it splits 7x.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

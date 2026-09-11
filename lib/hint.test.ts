@@ -68,19 +68,8 @@ describe("termTex", () => {
   const tex = "x^2 + 7x + 12 = 0";
 
   it("wraps every fragment so the layout never changes, and lights only the hovered term", () => {
-    expect(termTex(tex, [constant, middle])).toBe("x^2 + \\htmlClass{hint-term}{7}\\,x + \\htmlClass{hint-term}{12} = 0");
-    expect(termTex(tex, [constant, middle], constant)).toBe("x^2 + \\htmlClass{hint-term}{7}\\,x + \\htmlClass{hint-term hint-term-lit}{12} = 0");
-  });
-
-  it("puts a thin space between a fragment and a glyph typeset flush against it, on either side, at rest as well as lit, so the lit box stops short of the neighbour; an operator, relation or brace beside it gets none", () => {
-    const seven = { phrase: "middle coefficient", tex: ["7"] };
-    expect(termTex(tex, [seven])).toBe("x^2 + \\htmlClass{hint-term}{7}\\,x + 12 = 0");
-    expect(termTex(tex, [seven], seven)).toBe("x^2 + \\htmlClass{hint-term hint-term-lit}{7}\\,x + 12 = 0");
-    expect(termTex("2(x + 1)", [{ phrase: "2", tex: ["2"] }])).toBe("\\htmlClass{hint-term}{2}\\,(x + 1)");
-    expect(termTex("2(x + 1)", [{ phrase: "bracket", tex: ["(x + 1)"] }])).toBe("2\\,\\htmlClass{hint-term}{(x + 1)}");
-    expect(termTex("\\dfrac{x}{4} + 6 = 12", [{ phrase: "4", tex: [{ tex: "4", within: "\\dfrac{x}{4}" }] }, { phrase: "6", tex: ["6"] }])).toBe("\\dfrac{x}{\\htmlClass{hint-term}{4}} + \\htmlClass{hint-term}{6} = 12");
-    // A command name ending in a letter before the fragment paints something else, not a glyph flush against it.
-    expect(termTex("\\Delta = 3", [{ phrase: "3", tex: ["3"] }])).toBe("\\Delta = \\htmlClass{hint-term}{3}");
+    expect(termTex(tex, [constant, middle])).toBe("x^2 + \\htmlClass{hint-term}{7}x + \\htmlClass{hint-term}{12} = 0");
+    expect(termTex(tex, [constant, middle], constant)).toBe("x^2 + \\htmlClass{hint-term}{7}x + \\htmlClass{hint-term hint-term-lit}{12} = 0");
   });
 
   it("lights every fragment of a term with several, with a gap between two that abut, wide enough that their boxes do not touch", () => {
@@ -93,7 +82,7 @@ describe("termTex", () => {
     const a = { phrase: "a", within: "4ac", tex: [], insert: { before: "x^2", tex: "1" } };
     const c = { phrase: "c", within: "4ac", tex: ["5"] };
     expect(termTex("x^2 + 2x + 5 = 0", [a, c])).toBe("x^2 + 2x + \\htmlClass{hint-term}{5} = 0");
-    expect(termTex("x^2 + 2x + 5 = 0", [a, c], a)).toBe("\\htmlClass{hint-term hint-term-lit}{1}\\,x^2 + 2x + \\htmlClass{hint-term}{5} = 0");
+    expect(termTex("x^2 + 2x + 5 = 0", [a, c], a)).toBe("\\htmlClass{hint-term hint-term-lit}{1}x^2 + 2x + \\htmlClass{hint-term}{5} = 0");
     expect(termTex("x^2 + 2x + 5 = 0", [a, c], c)).toBe("x^2 + 2x + \\htmlClass{hint-term hint-term-lit}{5} = 0");
     expect(termTex("y = 3", [{ phrase: "a", tex: [], insert: { before: "x^2", tex: "1" } }], { phrase: "a", tex: [], insert: { before: "x^2", tex: "1" } })).toBe("y = 3");
   });
@@ -101,8 +90,8 @@ describe("termTex", () => {
   it("nests a fragment inside a longer one", () => {
     const b = { phrase: "b", tex: ["10"] };
     const term = { phrase: "middle term", tex: ["10x"] };
-    expect(termTex("3x^2 + 10x + 8", [b, term], b)).toBe("3x^2 + \\htmlClass{hint-term}{\\htmlClass{hint-term hint-term-lit}{10}\\,x} + 8");
-    expect(termTex("3x^2 + 10x + 8", [b, term], term)).toBe("3x^2 + \\htmlClass{hint-term hint-term-lit}{\\htmlClass{hint-term}{10}\\,x} + 8");
+    expect(termTex("3x^2 + 10x + 8", [b, term], b)).toBe("3x^2 + \\htmlClass{hint-term}{\\htmlClass{hint-term hint-term-lit}{10}x} + 8");
+    expect(termTex("3x^2 + 10x + 8", [b, term], term)).toBe("3x^2 + \\htmlClass{hint-term hint-term-lit}{\\htmlClass{hint-term}{10}x} + 8");
   });
 
   it("skips superscripts, longer numbers and command names when finding a fragment", () => {
@@ -111,7 +100,7 @@ describe("termTex", () => {
     expect(findFragment("x^2 - 7x + 10 = 0", "1")).toBe(-1);
     expect(findFragment("\\alpha + a", "a")).toBe(9);
     expect(findFragment("\\dfrac{x^2}{3} = 12", "\\dfrac{x^2}{3}")).toBe(0);
-    expect(termTex("x^2 + 2x + 5 = 0", [{ phrase: "b", tex: ["2"] }])).toBe("x^2 + \\htmlClass{hint-term}{2}\\,x + 5 = 0");
+    expect(termTex("x^2 + 2x + 5 = 0", [{ phrase: "b", tex: ["2"] }])).toBe("x^2 + \\htmlClass{hint-term}{2}x + 5 = 0");
   });
 
   it("leaves the TeX alone with no terms or a fragment it does not contain", () => {
@@ -125,7 +114,7 @@ describe("termTex", () => {
     expect(html).toContain('class="enclosing hint-term"');
   });
 
-  it("lighting changes no spacing in any warm-up problem, except a conjured fragment; the only change at rest is the gap between abutting fragments or beside a flush glyph", () => {
+  it("lighting changes no spacing in any warm-up problem, except a conjured fragment; the only change at rest is the gap between abutting fragments", () => {
     const spacing = (t: string) => {
       const html = katex.renderToString(t, { trust: true, strict: false, displayMode: true });
       return [...html.matchAll(/mspace" style="margin-right:([^;"]+)/g)].map((m) => m[1]).join(" ") + " | " + (html.match(/mbin|mrel|mopen|mclose/g) ?? []).join(" ");
@@ -135,8 +124,8 @@ describe("termTex", () => {
       const terms = p.hints.flatMap((h) => h.terms ?? []);
       if (!terms.length) continue;
       const rest = termTex(p.tex, terms);
-      const gapped = rest.includes("\\kern0.7em\\htmlClass") || rest.includes("\\,");
-      if (!gapped) expect(spacing(rest), p.id).toBe(spacing(p.tex));
+      const abutting = rest.includes("\\kern0.7em\\htmlClass");
+      if (!abutting) expect(spacing(rest), p.id).toBe(spacing(p.tex));
       for (const lit of terms) if (!lit.insert) expect(spacing(termTex(p.tex, terms, lit)), `${p.id}: ${lit.phrase}`).toBe(spacing(rest));
     }
   });
@@ -196,7 +185,7 @@ describe("warm-up hint terms", () => {
         for (const k of h.at.filter((k) => k >= 1)) {
           const line = p.steps[k - 1].tex;
           const rest = termTex(line, h.terms);
-          if (!rest.includes("\\kern0.7em\\htmlClass") && !rest.includes("\\,")) expect(spacing(rest), `${p.id} line ${k}`).toBe(spacing(line));
+          if (!rest.includes("\\kern0.7em\\htmlClass")) expect(spacing(rest), `${p.id} line ${k}`).toBe(spacing(line));
           for (const lit of h.terms) expect(spacing(termTex(line, h.terms, lit)), `${p.id} line ${k}: ${lit.phrase}`).toBe(spacing(rest));
         }
       }
@@ -246,7 +235,7 @@ describe("warm-up hint terms", () => {
     expect(termTex(line4, fourth.terms, four)).toBe("\\dfrac{3x}{\\htmlClass{hint-term hint-term-lit}{4}} = \\htmlClass{hint-term}{\\dfrac{21}{2}}");
     expect(termTex(line4, fourth.terms, other)).toBe("\\dfrac{3x}{\\htmlClass{hint-term}{4}} = \\htmlClass{hint-term hint-term-lit}{\\dfrac{21}{2}}");
     // The fifth is for line 5 (3x = 42): the 3.
-    expect(termTex(p.steps[4].tex, fifth.terms, fifth.terms![0])).toBe("\\htmlClass{hint-term hint-term-lit}{3}\\,x = 42");
+    expect(termTex(p.steps[4].tex, fifth.terms, fifth.terms![0])).toBe("\\htmlClass{hint-term hint-term-lit}{3}x = 42");
   });
 });
 
