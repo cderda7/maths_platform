@@ -1329,6 +1329,51 @@ agents add sections above it and leave it alone.
   no longer has the field; a run persisted in localStorage before the change keeps an extra key
   nothing reads. Harmless; a store version bump would clear it if the shape ever needs one.
 
+## Teacher assignment creation as the landing screen (from a chat, 2026-09-11)
+
+- **The teacher lands mid-creation, not at a blank.** The user (2026-09-11): "i want to model the
+  teacher going from having no problems to having all of them. well actually that's not exactly
+  true, i'm fine with them jumping into the 10 problems … as if we're encountering them mid
+  assignment creation. so i want the teacher landing screen to be that." So `/teacher` becomes the
+  draft of "Roots of a quadratic — Set 3": the ten problems as the same five-wide tiles the
+  student's start screen shows (ticket 47's `ProblemCard` compact tile), with editing affordances
+  on top. The set the teacher sees is the set the student sees. Not built yet; scoped in the chat.
+- **The from-nothing flow.** A blank draft, then a topic or unit, then problems arriving from
+  somewhere: searching the bank by subskill, typing or pasting one, a photo of a textbook page,
+  "give me three more like Q4", cloning a past set. Deferred 2026-09-11: the user chose to land
+  with the ten already there; the sourcing surfaces are each a screen of their own, and the bank is
+  the fixture (see "A real problem bank" under Data and platform).
+- **The teacher dashboard.** What sits above one assignment: this class's other sets, other
+  classes, what is due, what is being marked. The user: "tomorrow i'll think more through the
+  teacher dashboard & yeah all that." Deferred to 2026-09-12. Until then the class view (today's
+  `/teacher`, `TeacherLive`) needs a home once the draft takes the landing route: a tab in the
+  teacher chrome, or the assignment's own "class" view reached from the draft once it is assigned.
+- **What a tile can do.** Remove; swap for a sibling (same skills, different numbers); edit the
+  stem or the expression in place; drag to reorder, the labels renumbering; a dashed "+" tile at the
+  end. Which of these land first is open. A tile is the student's tile, so any affordance must sit
+  on it without changing the card's size: the grid stays the student's grid.
+- **Coverage beside the grid.** The current form's leaf chips (skills the chosen problems touch)
+  and the unit-focus card (ticket 26's infer / confirm / reassess) move from a form to a rail or
+  footer beside the tiles. Worth adding there: the unit's skills *not* touched by any chosen problem,
+  the difficulty spread (the teacher side may show `DifficultyTag`; the student side never does), a
+  rough time estimate. Deferred: none of it exists as a derivation yet beyond `leavesTouched`.
+- **Pathway, due date and class on the tile screen.** The pathway map (ticket 19) and the due
+  date have no natural spot on a grid of problems. Likely a footer strip, "Assign" at the right where
+  the student's "START" sits. The pathway stays fixed at creation (see Review pathways).
+- **Preview as the student.** Because the tiles are the student's component, a preview is the same
+  screen with the affordances hidden, not a second rendering. Cheap once the draft screen exists.
+- **A draft that survives a reload.** `NewAssignment` keeps title, chosen problems and pathway in
+  component state and dispatches `assignment/create` once. A landing screen that *is* the draft
+  needs the draft in the classroom store (a `draft` beside the active assignment), so a reload, or
+  a walk to the class view and back, keeps the teacher's edits. Same shape as the whole-class setup
+  view's local state (noted under Whole-class review).
+- **More than one assignment.** The classroom store holds one active assignment. A dashboard, a
+  drafts list, or "clone last week's set" all need a list keyed by id, with the student side reading
+  the assigned one. Deferred with the dashboard.
+- **The old form.** Once the tile screen is the landing, `app/teacher/assignments/new` (title
+  field, checklist of problems, unit focus, pathway map) either becomes the tile screen's route or
+  is deleted; the "New assignment" pill in the teacher chrome points at whichever survives.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
