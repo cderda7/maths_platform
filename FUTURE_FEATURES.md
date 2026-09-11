@@ -866,6 +866,17 @@ agents add sections above it and leave it alone.
   warm-ups each have one hint without a point, so "another hint" simply reads "Shown" there. Giving
   them per-point hints (ticket 85's note) brings them under this rule for free.
 
+## The skill box in the chat (from ticket 89, 2026-09-11)
+
+- **The box borrows the standout blue.** The palette's one blue is the curated-correct step mark;
+  the chat chip reuses its soft fill, line and text colours. If the two ever share a screen (a
+  chat beside marked work), the chip wants its own token, a lighter sky blue.
+- **A tappable skill box.** The box names a skill the warm-up will open on; a tap could jump the
+  pad to that skill once the chat is over, or show the skill's one-line description. Not asked for.
+- **The box's padding splits the word from its full stop** ("[factorising] ."). Tight now
+  (`px-1.5`); a negative right margin on a box that ends a sentence would close the gap.
+- **The closing line and the pad's help chat still render plain** (carried from ticket 84).
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

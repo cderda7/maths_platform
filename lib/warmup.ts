@@ -18,36 +18,36 @@ const skillWord = (l: LeafId) => studentLeafName(l).name.toLowerCase();
 /** "a", "a & b", "a, b, & c". */
 const amp = (xs: string[]) => (xs.length <= 1 ? xs.join("") : xs.length === 2 ? `${xs[0]} & ${xs[1]}` : `${xs.slice(0, -1).join(", ")}, & ${xs[xs.length - 1]}`);
 
-/** A skill's name as the chat emphasises it: `**word**`, which the chat bubble renders bold (`emphasis`). */
-const bold = (word: string) => `**${word}**`;
+/** A skill's name as the chat marks it: `**word**`, which the chat bubble renders in a light blue box (`skillRuns`). */
+const named = (word: string) => `**${word}**`;
 /**
  * The follow-up ask for a later skill. A named rule ("null factor law", "chain rule", "the
  * discriminant") is asked as a thing, "How about the null factor law?"; a topic or an activity
  * ("fractions", "factorising") as a place to go, "How about with fractions?".
  */
-export const howAbout = (word: string): string => (/^the\b|\b(laws?|rule|identity|formula|distribution)$/.test(word) ? `How about the ${bold(word.replace(/^the /, ""))}?` : `How about with ${bold(word)}?`);
+export const howAbout = (word: string): string => (/^the\b|\b(laws?|rule|identity|formula|distribution)$/.test(word) ? `How about the ${named(word.replace(/^the /, ""))}?` : `How about with ${named(word)}?`);
 
 /**
  * The concerns chat's turns, one per seed skill in the order the student ticked them, each a list
  * of bubbles the tutor sends one at a time. The opening is two bubbles: the setup naming every
  * skill, then the ask. Each later question is one bubble. No seed (the student answered
  * "confident" or "not confident" overall) asks one open question. Every bubble that is about one
- * skill carries that skill's name in bold (`**…**`) so the student sees which skill is up; the
- * setup, which names them all, does not.
+ * skill carries that skill's name marked (`**…**`, boxed on screen) so the student sees which
+ * skill is up; the setup, which names them all, does not.
  */
 export function concernTurns(seed: LeafId[]): string[][] {
   const w = seed.map(skillWord);
   if (w.length === 0) return [["Let's do a warm up.", "Tell me a little bit about what you'd like to warm up on."]];
-  if (w.length === 1) return [[`Let's do a warm up on ${w[0]}.`, `Tell me a little bit about your concerns with ${bold(w[0])}.`]];
-  return [[`Let's do a warm up on ${amp(w)}.`, `First, tell me a little bit about your concerns with ${bold(w[0])}.`], ...w.slice(1).map((x) => [howAbout(x)])];
+  if (w.length === 1) return [[`Let's do a warm up on ${w[0]}.`, `Tell me a little bit about your concerns with ${named(w[0])}.`]];
+  return [[`Let's do a warm up on ${amp(w)}.`, `First, tell me a little bit about your concerns with ${named(w[0])}.`], ...w.slice(1).map((x) => [howAbout(x)])];
 }
 
-/** A tutor line split for rendering: plain runs and `**bold**` runs, in order. The student's lines are never split. */
-export const emphasis = (text: string): { text: string; bold: boolean }[] =>
+/** A tutor line split for rendering: plain runs and `**skill**` runs, in order. The student's lines are never split. */
+export const skillRuns = (text: string): { text: string; skill: boolean }[] =>
   text
     .split(/(\*\*[^*]+\*\*)/)
     .filter((s) => s !== "")
-    .map((s) => (s.startsWith("**") && s.endsWith("**") ? { text: s.slice(2, -2), bold: true } : { text: s, bold: false }));
+    .map((s) => (s.startsWith("**") && s.endsWith("**") ? { text: s.slice(2, -2), skill: true } : { text: s, skill: false }));
 
 /** The chat's last bubble, after the final answer: thanks, and the skill the warm-up opens on. */
 export const closingLine = (first: LeafId | undefined): string => (first ? `Thanks. Let's start with ${skillWord(first)}.` : "Thanks. Let's start.");

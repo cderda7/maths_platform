@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { byEase, CHAT_BEAT_MS, CHAT_DOTS_MS, closingLine, concernsAnswered, concernTranscript, concernTurns, EASE, emphasis, focusLeaves, howAbout, interpret, offerLines, practiceFor, turnSteps, warmupScript, warmupSequence } from "./warmup";
+import { byEase, CHAT_BEAT_MS, CHAT_DOTS_MS, closingLine, concernsAnswered, concernTranscript, concernTurns, EASE, focusLeaves, howAbout, interpret, offerLines, practiceFor, skillRuns, turnSteps, warmupScript, warmupSequence } from "./warmup";
 import { isolatable, PRACTICE, PRACTICES, WARMUP_BANK } from "@/data/practice";
 import { branchesOf } from "./branches";
 import { ASSIGNMENT } from "@/data/assignment";
@@ -104,7 +104,7 @@ describe("the concerns chat", () => {
     expect(concernTurns(["algebra.expand-factor.monic"])).toEqual([["Let's do a warm up on factorising.", "Tell me a little bit about your concerns with **factorising**."]]);
     expect(concernTurns([])).toEqual([["Let's do a warm up.", "Tell me a little bit about what you'd like to warm up on."]]);
   });
-  it("asks a named rule as a thing and a topic as a place, the skill in bold either way", () => {
+  it("asks a named rule as a thing and a topic as a place, the skill marked either way", () => {
     expect(howAbout("fractions")).toBe("How about with **fractions**?");
     expect(howAbout("factorising")).toBe("How about with **factorising**?");
     expect(howAbout("surds")).toBe("How about with **surds**?");
@@ -115,22 +115,22 @@ describe("the concerns chat", () => {
     expect(howAbout("the discriminant")).toBe("How about the **discriminant**?");
     expect(howAbout("normal distribution")).toBe("How about the **normal distribution**?");
   });
-  it("splits a tutor line into plain and bold runs, and leaves a line without emphasis whole", () => {
-    expect(emphasis("How about with **fractions**?")).toEqual([
-      { text: "How about with ", bold: false },
-      { text: "fractions", bold: true },
-      { text: "?", bold: false },
+  it("splits a tutor line into plain and skill runs, and leaves a line without a skill whole", () => {
+    expect(skillRuns("How about with **fractions**?")).toEqual([
+      { text: "How about with ", skill: false },
+      { text: "fractions", skill: true },
+      { text: "?", skill: false },
     ]);
-    expect(emphasis("First, tell me a little bit about your concerns with **factorising**.")).toEqual([
-      { text: "First, tell me a little bit about your concerns with ", bold: false },
-      { text: "factorising", bold: true },
-      { text: ".", bold: false },
+    expect(skillRuns("First, tell me a little bit about your concerns with **factorising**.")).toEqual([
+      { text: "First, tell me a little bit about your concerns with ", skill: false },
+      { text: "factorising", skill: true },
+      { text: ".", skill: false },
     ]);
-    expect(emphasis("Let's do a warm up.")).toEqual([{ text: "Let's do a warm up.", bold: false }]);
-    expect(emphasis("**a** and **b**")).toEqual([
-      { text: "a", bold: true },
-      { text: " and ", bold: false },
-      { text: "b", bold: true },
+    expect(skillRuns("Let's do a warm up.")).toEqual([{ text: "Let's do a warm up.", skill: false }]);
+    expect(skillRuns("**a** and **b**")).toEqual([
+      { text: "a", skill: true },
+      { text: " and ", skill: false },
+      { text: "b", skill: true },
     ]);
   });
   it("closes by naming the skill the warm-up opens on", () => {

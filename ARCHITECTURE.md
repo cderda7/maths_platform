@@ -22,7 +22,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
  │       └▶ IpadStage ▶ StudentChrome│               │   classmates (19: 6 full, 13 light) · seating groups (5 colours)│
  │            └▶ screens/            │               └──────────────┬───────────────────┘
  │               Overview ▶ Confidence ▶ (not confident: a callout, offerLines: Warm up | Start the set)│                              │ reads every 3 s
- │               ▶ WarmupChat (the ticked skills → concernTurns, the skill bold in each ask, later ones "How about…?"; one bubble at a time to turnSteps, the box off while the tutor "writes" → answers → focus → warmupSequence, easiest first)│
+ │               ▶ WarmupChat (the ticked skills → concernTurns, the skill in a light blue box in each ask, later ones "How about…?"; one bubble at a time to turnSteps, the box off while the tutor "writes" → answers → focus → warmupSequence, easiest first)│
  │               ▶ Practice (pad · skill buttons: dark once on or through, tap opens · HelpMenu: hint · worked example · video · chat · follow-up split pane)│
  │                   HelpChat (ticket 69): the right column while open · lines said → run.chat · POST /api/help-chat streams claude-opus-5 (lib/helpChat.ts brief: hints only, two ways in, "which makes more sense?")│
  │                   HintCard: linked hint words light the expression (termTex) — practices only│
@@ -218,6 +218,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 85 | The factorising warm-up has a hint for every point in the working: the pair, the sum, the brackets, then past the brackets to the null factor law (set each bracket to zero; then x + 3 = 0 and x + 4 = 0 spelt out); the follow-up likewise | `…?stage=practice`, the practice overlay | 80, 82 | [architecture/85-monic-hints.md](architecture/85-monic-hints.md) |
 | 86 | "Another hint" opens the chat on the current hint while the student's lines have not moved past what it asks for ("Talk it through →"; the tutor opens with "Let's talk more about hint 2 before another one…", stored in the chat and explained in the brief); the next hint comes once the line is written | `…?stage=practice`, the practice overlay, `POST /api/help-chat` | 85, 80, 69 | [architecture/86-hint-stall-chat.md](architecture/86-hint-stall-chat.md) |
 | 87 | The factorising warm-up's second hint no longer lists the pairs to try | `…?stage=practice` | 85 | [architecture/87-monic-hint-trim.md](architecture/87-monic-hint-trim.md) |
+| 89 | The concerns chat's skill names sit in a light blue box (the standout blue's soft fill and line), not bold | `…?stage=warmup-chat` | 84 | [architecture/89-chat-skill-boxes.md](architecture/89-chat-skill-boxes.md) |
 
 ## Conventions
 

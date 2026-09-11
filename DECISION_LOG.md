@@ -1536,3 +1536,25 @@ see the same transcript. Tests pin the stall on the two warm-ups with per-point 
 refusal, the brief's opener and rule, and the folded turns; the browser check confirms the bubble
 appears once and the request carries it.
 
+## 2026-09-11 · The skill in a chat ask is a light blue box, in the standout blue
+
+**Decision.** The skill a tutor bubble is about renders in a rounded box (`bg-standout-soft`,
+`border-standout-line`, `text-standout`) at the bubble's normal weight, instead of bold (ticket 89
+replacing ticket 84's rendering). The `**…**` mark in the script stays; only what the mark means on
+screen changed, so `emphasis` became `skillRuns` and its runs say `skill`, not `bold`.
+
+**Context.** The user, on seeing the bold: "unbold them. put each skill in a light blue box."
+
+**Alternatives considered.**
+- *The accent's soft tint* (`accent-soft`, lavender). The app's usual chip colour, but it reads as
+  indigo, not blue, and the user said blue.
+- *A new light-blue token.* The palette already has one blue, the standout mark's, with a soft fill
+  and a line colour; a second blue for one chip would be a palette decision the user did not ask for.
+- *Keep bold as well.* The user said unbold; the box alone carries the signal.
+
+**Tradeoffs.** The standout blue also marks a curated correct step on the pad and the board; a
+student who has seen both may read the chip as a mark. The chat has no marks, so the two never
+share a screen.
+
+**Defense.** One class string on one span, tokens the app already ships, and the script untouched:
+the wording tests from ticket 84 still pin every sentence.
