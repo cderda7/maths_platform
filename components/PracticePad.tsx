@@ -128,11 +128,14 @@ export default function PracticePad({
             className={i === 0 ? "mt-5" : "mt-2"}
           />
         ))}
-        <div className="mt-5">
-          <Button variant="secondary" className="w-full" onClick={() => setHelpOpen(true)} disabled={run.example}>
-            I need help
-          </Button>
-        </div>
+        {/* While the worked example plays the help is on screen already, so the button goes, not greys. */}
+        {!run.example && (
+          <div className="mt-5">
+            <Button variant="secondary" className="w-full" onClick={() => setHelpOpen(true)}>
+              I need help
+            </Button>
+          </div>
+        )}
       </aside>
 
       {run.example ? (

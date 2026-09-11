@@ -964,6 +964,15 @@ agents add sections above it and leave it alone.
   8px between; the worked example's ruled rows are a different rhythm. Matching them one way or
   the other was not asked for.
 
+## No help button during the worked example (from ticket 95, 2026-09-11)
+
+- **Hint cards stay while the example plays.** Hints already shown remain under the problem with
+  no button beneath them; whether they should collapse or go while the example is the help was not
+  asked. Their linked words still light the problem.
+- **No way to ask for a hint mid-example.** A student partway through the steps who wants the pad's
+  hint, not the chat, has to finish the example first. The "Question about a step?" chat is the
+  intended route; if it is not enough, the example's card could carry a small "hint" of its own.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
