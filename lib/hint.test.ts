@@ -231,25 +231,31 @@ describe("warm-up hint terms", () => {
     expect(termTex(p.tex, first.terms, six)).toContain("- \\htmlClass{hint-term hint-term-lit}{6} =");
     expect(termTex(p.tex, first.terms, otherSide)).toContain("= \\htmlClass{hint-term hint-term-lit hint-term-tall}{\\dfrac{9}{2}}");
     expect(termTex(p.tex, first.terms, xTerms)).toMatch(/^\\htmlClass\{hint-term hint-term-lit hint-term-tall\}\{\\dfrac\{x\}\{4\}\} \+ \\htmlClass\{hint-term hint-term-lit hint-term-tall\}\{\\dfrac\{x\}\{2\}\}/);
-    // The second hint is for the student's first or second line: its common denominator is the 4 and 2 under the x's there.
-    const line2 = p.steps[1].tex;
+    // The working writes the 6 as 12/2 before combining the numbers (ticket 106).
+    expect(p.steps.slice(0, 3).map((s) => s.tex)).toEqual([
+      "\\dfrac{x}{4} + \\dfrac{x}{2} = \\dfrac{9}{2} + 6",
+      "\\dfrac{x}{4} + \\dfrac{x}{2} = \\dfrac{9}{2} + \\dfrac{12}{2}",
+      "\\dfrac{x}{4} + \\dfrac{x}{2} = \\dfrac{21}{2}",
+    ]);
+    // The second hint is for the student's first, second or third line: its common denominator is the 4 and 2 under the x's there.
+    const line3 = p.steps[2].tex;
     const [, common] = second.terms!;
-    expect(termTex(line2, second.terms, common)).toBe(
+    expect(termTex(line3, second.terms, common)).toBe(
       "\\htmlClass{hint-term hint-term-tall}{\\dfrac{x}{\\htmlClass{hint-term hint-term-lit hint-term-tight-y}{4}}} + \\htmlClass{hint-term hint-term-tall}{\\dfrac{x}{\\htmlClass{hint-term hint-term-lit hint-term-tight-y}{2}}} = \\dfrac{21}{2}",
     );
-    // The third is for line 3, where the x terms are x/4 and 2x/4: lighting "numerators" lights x and 2x, nothing else.
-    const line3 = p.steps[2].tex;
+    // The third is for line 4, where the x terms are x/4 and 2x/4: lighting "numerators" lights x and 2x, nothing else.
+    const line4 = p.steps[3].tex;
     const numerators = third.terms!.find((t) => t.phrase === "numerators")!;
-    expect(termTex(line3, third.terms, numerators)).toBe(
+    expect(termTex(line4, third.terms, numerators)).toBe(
       "\\htmlClass{hint-term hint-term-tall}{\\dfrac{\\htmlClass{hint-term hint-term-lit hint-term-tight-y}{x}}{\\htmlClass{hint-term hint-term-tight-y}{4}}} + \\htmlClass{hint-term hint-term-tall}{\\dfrac{\\htmlClass{hint-term hint-term-lit hint-term-tight-y}{2x}}{\\htmlClass{hint-term hint-term-tight-y}{4}}} = \\dfrac{21}{2}",
     );
-    // The fourth is for line 4 (3x/4 = 21/2): the 4 under the 3x, and 21/2 as the other side.
-    const line4 = p.steps[3].tex;
+    // The fourth is for line 5 (3x/4 = 21/2): the 4 under the 3x, and 21/2 as the other side.
+    const line5 = p.steps[4].tex;
     const [four, other] = fourth.terms!;
-    expect(termTex(line4, fourth.terms, four)).toBe("\\dfrac{3x}{\\htmlClass{hint-term hint-term-lit hint-term-tight-y}{4}} = \\htmlClass{hint-term hint-term-tall}{\\dfrac{21}{2}}");
-    expect(termTex(line4, fourth.terms, other)).toBe("\\dfrac{3x}{\\htmlClass{hint-term hint-term-tight-y}{4}} = \\htmlClass{hint-term hint-term-lit hint-term-tall}{\\dfrac{21}{2}}");
-    // The fifth is for line 5 (3x = 42): the 3.
-    expect(termTex(p.steps[4].tex, fifth.terms, fifth.terms![0])).toBe("\\htmlClass{hint-term hint-term-lit hint-term-tight-x}{3}x = 42");
+    expect(termTex(line5, fourth.terms, four)).toBe("\\dfrac{3x}{\\htmlClass{hint-term hint-term-lit hint-term-tight-y}{4}} = \\htmlClass{hint-term hint-term-tall}{\\dfrac{21}{2}}");
+    expect(termTex(line5, fourth.terms, other)).toBe("\\dfrac{3x}{\\htmlClass{hint-term hint-term-tight-y}{4}} = \\htmlClass{hint-term hint-term-lit hint-term-tall}{\\dfrac{21}{2}}");
+    // The fifth is for line 6 (3x = 42): the 3.
+    expect(termTex(p.steps[5].tex, fifth.terms, fifth.terms![0])).toBe("\\htmlClass{hint-term hint-term-lit hint-term-tight-x}{3}x = 42");
   });
 });
 
@@ -312,12 +318,13 @@ describe("stalledHint", () => {
     expect(stalledHint(monic, lines(1), [0, 1])).toBe(1);
   });
 
-  it("a hint written for two points stalls until the lines are past both; a general hint never stalls", () => {
+  it("a hint written for three points stalls until the lines are past all of them; a general hint never stalls", () => {
     const f = PRACTICES["algebra.number.fractions"]!;
     const fl = (n: number) => f.steps.slice(0, n).map((s) => s.tex);
     expect(stalledHint(f, fl(1), [0, 1])).toBe(1);
     expect(stalledHint(f, fl(2), [0, 1])).toBe(1);
-    expect(stalledHint(f, fl(3), [0, 1])).toBeNull();
+    expect(stalledHint(f, fl(3), [0, 1])).toBe(1);
+    expect(stalledHint(f, fl(4), [0, 1])).toBeNull();
     const nfl = PRACTICES["unit.u1.nfl"]!;
     expect(nfl.hints[0].at).toBeUndefined();
     expect(stalledHint(nfl, [], [0])).toBeNull();
@@ -336,7 +343,8 @@ describe("pickHint", () => {
   });
 
   it("the fractions hints are written one per point in the working", () => {
-    expect(p.hints.map((h) => h.at)).toEqual([[0], [1, 2], [3], [4], [5]]);
+    // The common-denominator hint covers the three lines before the x terms are put over 4: the 6 moved, the 6 written as 12/2, the numbers combined.
+    expect(p.hints.map((h) => h.at)).toEqual([[0], [1, 2, 3], [4], [5], [6]]);
     for (const h of p.hints) for (const at of h.at!) expect(at, h.text).toBeLessThanOrEqual(p.steps.length);
   });
 
@@ -344,15 +352,16 @@ describe("pickHint", () => {
     expect(pickHint(p, [], [])).toBe(0);
     expect(pickHint(p, [step(0)], [])).toBe(1);
     expect(pickHint(p, [step(0), step(1)], [])).toBe(1);
-    expect(pickHint(p, [step(0), step(1), step(2)], [0, 1])).toBe(2);
-    expect(pickHint(p, p.steps.slice(0, 4).map((s) => s.tex), [])).toBe(3);
+    expect(pickHint(p, [step(0), step(1), step(2)], [])).toBe(1);
+    expect(pickHint(p, [step(0), step(1), step(2), step(3)], [0, 1])).toBe(2);
+    expect(pickHint(p, p.steps.slice(0, 5).map((s) => s.tex), [])).toBe(3);
   });
 
   it("falls forward to the first hint for a later point when the one for here is spent, never back to a point already passed", () => {
     expect(pickHint(p, [], [0])).toBe(1);
     expect(pickHint(p, [step(0)], [1])).toBe(2);
-    expect(pickHint(p, p.steps.slice(0, 4).map((s) => s.tex), [3])).toBe(4);
-    expect(pickHint(p, p.steps.slice(0, 4).map((s) => s.tex), [3, 4])).toBeNull();
+    expect(pickHint(p, p.steps.slice(0, 5).map((s) => s.tex), [3])).toBe(4);
+    expect(pickHint(p, p.steps.slice(0, 5).map((s) => s.tex), [3, 4])).toBeNull();
     expect(pickHint(p, p.steps.map((s) => s.tex), [])).toBeNull();
   });
 

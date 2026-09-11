@@ -194,6 +194,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     tex: "\\dfrac{x}{4} + \\dfrac{x}{2} - 6 = \\dfrac{9}{2}",
     steps: [
       { tex: "\\dfrac{x}{4} + \\dfrac{x}{2} = \\dfrac{9}{2} + 6", label: "Moved the 6 across, so the x terms are together", tags: [tag("algebra.equations.linear")] },
+      { tex: "\\dfrac{x}{4} + \\dfrac{x}{2} = \\dfrac{9}{2} + \\dfrac{12}{2}", label: "Wrote the 6 over 2, to match the other fraction", tags: [tag("algebra.number.fractions")] },
       { tex: "\\dfrac{x}{4} + \\dfrac{x}{2} = \\dfrac{21}{2}", label: "Combined the numbers", tags: [tag("algebra.number.fractions")] },
       { tex: "\\dfrac{x}{4} + \\dfrac{2x}{4} = \\dfrac{21}{2}", label: "A common denominator for the two x terms only", tags: [tag("algebra.number.fractions")] },
       { tex: "\\dfrac{3x}{4} = \\dfrac{21}{2}", label: "Combined like terms", tags: [tag("algebra.number.fractions")] },
@@ -214,7 +215,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       },
       {
         text: "To combine the x terms they need a common denominator, but only one those two share. It doesn't have to work for the whole line.",
-        at: [1, 2],
+        at: [1, 2, 3],
         terms: [
           { phrase: "x terms", tex: ["\\dfrac{x}{4}", "\\dfrac{x}{2}"] },
           {
@@ -229,7 +230,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       // From here the linked words point at the student's own line in the read-as column (hintAnchor), so the fragments are written against that line.
       {
         text: "The x terms have the same denominator now, so they can be one fraction: the numerators combine and the denominator stays.",
-        at: [3],
+        at: [4],
         terms: [
           { phrase: "x terms", tex: ["\\dfrac{x}{4}", "\\dfrac{2x}{4}"] },
           {
@@ -250,7 +251,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       },
       {
         text: "One fraction on each side. Whatever you do to clear the 4 from under the x, the other side gets too.",
-        at: [4],
+        at: [5],
         terms: [
           { phrase: "4", tex: [{ tex: "4", within: "\\dfrac{3x}{4}" }] },
           { phrase: "other side", tex: ["\\dfrac{21}{2}"] },
@@ -258,7 +259,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       },
       {
         text: "Only the 3 in front of x is left. Undo what it is doing to x.",
-        at: [5],
+        at: [6],
         terms: [{ phrase: "3", tex: ["3"] }],
       },
     ],

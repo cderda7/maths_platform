@@ -239,6 +239,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 107 | The concerns chat's closing bubble ("Thank you for those insights. Let's start with ___.") stays up 2.8s before the pad, the length of a whole tutor turn, instead of 1.2s | `…?stage=warmup-chat` | 102, 74 | [architecture/107-close-wait.md](architecture/107-close-wait.md) |
 | 108 | The `algebra.expand-factor.nonmonic` leaf's full name is "Non-monic factorisation" (the short form "non-monic factorising" unchanged): the "Which skill?" picker, the confidence and peer screens, the warm-up and help chats | `…?stage=working`, "I need help" | 26 | [architecture/108-nonmonic-rename.md](architecture/108-nonmonic-rename.md) |
 | 109 | The practice prompt's card reads "2 minutes on factorising?" (a numeral) with its two sentences in sentence case on two lines: "This is your second mistake on factorising." then "Let's do a short problem to review." | `/student` while working, a second mistake on a group | 31 | [architecture/109-prompt-copy.md](architecture/109-prompt-copy.md) |
+| 106 | The fractions worked example writes the 6 as 12/2 ("x/4 + x/2 = 9/2 + 12/2") before combining the numbers: seven steps, the hints after the first placed one line later, the common-denominator hint covering the new line | `…?stage=practice`, the practice overlay | 90, 86 | [architecture/106-six-as-twelve-halves.md](architecture/106-six-as-twelve-halves.md) |
 
 ## Conventions
 

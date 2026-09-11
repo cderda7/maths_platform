@@ -241,14 +241,14 @@ describe("the warm-up on the pad", () => {
     f = sessionReducer(f, { type: "run/reveal", run: "warmup", problem: "w-fractions", line: { tex: p.steps[0].tex, strokeCount: 3 } });
     f = sessionReducer(f, { type: "run/hint", run: "warmup" });
     expect(f.warmup.hinted).toEqual({ "w-fractions": [0, 1] });
-    // Skipping ahead: with the fourth step read and nothing else asked, the hint is the one for that point.
+    // Skipping ahead: with the fifth step (3x/4 = 21/2) read and nothing else asked, the hint is the one for that point.
     let g = sessionAt("practice");
-    for (const st of p.steps.slice(0, 4)) g = sessionReducer(g, { type: "run/reveal", run: "warmup", problem: "w-fractions", line: { tex: st.tex, strokeCount: 1 } });
+    for (const st of p.steps.slice(0, 5)) g = sessionReducer(g, { type: "run/reveal", run: "warmup", problem: "w-fractions", line: { tex: st.tex, strokeCount: 1 } });
     g = sessionReducer(g, { type: "run/hint", run: "warmup" });
     expect(g.warmup.hinted).toEqual({ "w-fractions": [3] });
     // Asking again without writing the line that hint asks for gives nothing (the pad opens the chat on it); once the line is written, the hint for the step after; then nothing fits.
     expect(sessionReducer(g, { type: "run/hint", run: "warmup" })).toBe(g);
-    g = sessionReducer(g, { type: "run/reveal", run: "warmup", problem: "w-fractions", line: { tex: p.steps[4].tex, strokeCount: 5 } });
+    g = sessionReducer(g, { type: "run/reveal", run: "warmup", problem: "w-fractions", line: { tex: p.steps[5].tex, strokeCount: 5 } });
     g = sessionReducer(g, { type: "run/hint", run: "warmup" });
     expect(g.warmup.hinted).toEqual({ "w-fractions": [3, 4] });
     expect(sessionReducer(g, { type: "run/hint", run: "warmup" })).toBe(g);

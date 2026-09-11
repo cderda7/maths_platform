@@ -1156,6 +1156,19 @@ agents add sections above it and leave it alone.
   their existing casing; ticket 31's lowercase "in the student's words" rule now applies only to
   the skill names inside the sentences, not the sentences themselves.
 
+## The 6 written as 12/2 in the fractions working (from ticket 106, 2026-09-11)
+
+- **A hint of its own for the new line.** The common-denominator hint now covers three lines
+  (the 6 moved, the 6 as 12/2, the numbers combined). A student who has moved the 6 but not yet
+  written it over 2 could be told that first ("Write the 6 over the same denominator as the 9/2,
+  then add the tops"), with "6" and "9/2" as its linked words on their own line; the stall rule
+  would then hold them at that line instead of letting the x-terms hint through.
+- **The step's label on screen.** Step labels ("Wrote the 6 over 2, to match the other fraction")
+  reach only the help chat's system prompt; the worked example card shows the maths alone. A
+  student who cannot see why 6 became 12/2 has to ask the chat.
+- **Every whole number in a fraction working.** The same intermediate line would help the
+  mid-set overlay problems that add a whole number to a fraction; none does today.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

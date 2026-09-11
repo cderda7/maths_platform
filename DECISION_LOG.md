@@ -1938,3 +1938,28 @@ and Chrome, so it is a step a person or agent runs, not part of `npm test`.
 positions with the 1 in the margin; the checked-in sweep passes every check on the build; and the
 rules are now written where the next agent reads first (CLAUDE.md), not only in a memory file.
 
+## 2026-09-11 · The fractions working shows the 6 as 12/2; the hint beside it stretches rather than splits
+
+**Decision.** The fractions warm-up's reference working gains "x/4 + x/2 = 9/2 + 12/2" between
+moving the 6 and combining the numbers (ticket 106). No new hint is written for it: the
+common-denominator hint's `at` list grows to `[1, 2, 3]` and the later hints move down one line.
+
+**Context.** The user: "add the step in this worked example of 6 becoming 12/2". Hints are placed
+by line number against the working (`at`), so a step inserted mid-working shifts every hint after
+it; the question was whether the new line also gets a hint of its own.
+
+**Alternatives considered.**
+- *A hint for the new line* ("Write the 6 over 2 first"). It would be the one hint about the
+  numbers on a working whose hints are about the x terms, and it would stall a student at the
+  12/2 line who is happy to add 9/2 + 6 in their head. Deferred (see FUTURE_FEATURES).
+- *Placing hints by step content rather than line number.* Would make inserts free but replace a
+  number the author can read against the working with a match rule; not worth it for one insert.
+
+**Tradeoffs.** A student who writes the 12/2 line and asks for help is told about the common
+denominator of the x terms, which is the next move but skips the addition they are in the
+middle of. The stall for that hint now spans three lines, so it releases one line later.
+
+**Defense.** The worked example is what the user asked for and reads as a student would write it;
+the hint machinery needed no code change, only the `at` lists; the tests pin the working and the
+lists, and the sweep passes with the new line written.
+
