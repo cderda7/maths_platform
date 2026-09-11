@@ -24,7 +24,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
  │               Overview ▶ Confidence ▶ (not confident: a callout, offerLines: Warm up | Start the set)│                              │ reads every 3 s
  │               ▶ WarmupChat (the ticked skills → concernTurns, the skill in a light blue box (ink text) in each ask, later ones "How about…?"; one bubble at a time to turnSteps, the box off while the tutor "writes" → answers → focus → warmupSequence, easiest first)│
  │               ▶ Practice (pad · skill buttons: dark once on or through, tap opens · HelpMenu: hint · worked example · video · chat · follow-up split pane)│
- │                   HelpChat (ticket 69): the right column while open · lines said → run.chat · POST /api/help-chat streams claude-opus-5 (lib/helpChat.ts brief: hints only, two ways in, "which makes more sense?")│
+ │                   HelpChat (ticket 69): under the read-as lines while open, content-sized to a 42% cap then scrolling (ticket 103) · lines said → run.chat · POST /api/help-chat streams claude-opus-5 (lib/helpChat.ts brief: hints only, two ways in, "which makes more sense?")│
  │                   HintCard: linked hint words light the expression (termTex) — practices only│
  │               ▶ Working ─▶ DrawPad (canvas ink)                  │
  │                                  ├▶ "Read as" column             │
@@ -233,6 +233,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 100 | A lit box around a whole fraction has 0.2em of air above and below (`hint-term-tall`), where a digit's box keeps 0.08em | `…?stage=practice`, the practice overlay | 98 | [architecture/100-fraction-box-tall.md](architecture/100-fraction-box-tall.md) |
 | 101 | The help menu's first pill always reads "hint"; pressed while the previous hint is unacted on it shows a notice ("Let's talk through the previous hint before giving you another." + "Talk it through") that opens the same chat as the hint card's pill | `…?stage=practice`, the practice overlay | 99, 86 | [architecture/101-hint-stall-popup.md](architecture/101-hint-stall-popup.md) |
 | 102 | The concerns chat reflects on every answer before the next question ("Gotcha. It sounds like…", "Agreed: that's a tricky skill.", "A lot of students share that struggle.", the last repeating), and closes with the reflection then "Thank you for that insight / those insights. Let's start with ___." | `…?stage=warmup-chat` | 74, 84 | [architecture/102-reflective-listening.md](architecture/102-reflective-listening.md) |
+| 103 | The chat under the read-as lines takes only the height it needs, capped at 42% of the column (about the bottom third of the page), and scrolls kept at its end so the latest exchange shows; the read-as list keeps the rest | `…?stage=practice`, the practice overlay | 69, 90 | [architecture/103-chat-bottom-third.md](architecture/103-chat-bottom-third.md) |
 
 ## Conventions
 

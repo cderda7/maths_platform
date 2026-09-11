@@ -13,7 +13,8 @@ const FAILED = "I lost that one. Say it again?";
 
 /**
  * The help chat, in the pad's right column under the read-back (the student's lines stay in view): the tutor's opener,
- * the chat so far on this problem, the reply streaming in, and a box to write in. Each line said
+ * the chat so far on this problem, the reply streaming in, and a box to write in. The box is only as tall as the chat
+ * needs, up to the cap the caller sets (about the bottom third of the column); past that the transcript scrolls. Each line said
  * is dispatched into the run as it happens, so the chat survives a reload and a reopen; a reply
  * lands on the problem it was asked on even if the pad has moved to the follow-up. Mount one per
  * problem (key it by the problem id): unmounting drops the turn in flight. While the worked
@@ -41,7 +42,7 @@ export default function HelpChat({
   onClose?: () => void;
   /** Set while the worked example is playing beside the chat: how many of its steps are on screen. */
   exampleShown?: number;
-  /** Extra classes on the outer box: the pad's top border when the chat sits under the read-as lines. */
+  /** How the outer box sits in its column: `flex-1` beside the worked example (the column is the chat); under the read-as lines, its cap and the top border. */
   className?: string;
 }) {
   const example = exampleShown !== undefined;
@@ -110,7 +111,7 @@ export default function HelpChat({
   const tutor = "border border-line bg-paper text-ink";
   const student = "bg-ink text-white";
   return (
-    <div className={`flex min-h-0 flex-1 flex-col ${className}`} data-help-chat data-example-chat={example ? "" : undefined}>
+    <div className={`flex min-h-0 flex-col ${className}`} data-help-chat data-example-chat={example ? "" : undefined}>
       <div className="flex items-center justify-between">
         <Eyebrow>{example ? "Question about a step?" : "Chat"}</Eyebrow>
         {onClose && (
@@ -119,9 +120,8 @@ export default function HelpChat({
           </button>
         )}
       </div>
-      {/* The bubbles gather at the foot, just above the box to write in; a long chat scrolls. The empty first item takes the slack. */}
+      {/* The bubbles sit just above the box to write in; once the chat is at its cap the list scrolls, kept at its end, so the latest exchange is what shows. */}
       <ol className="mt-3 flex min-h-0 flex-1 flex-col space-y-2 overflow-y-auto pr-1" data-chat>
-        <li className="mt-auto" aria-hidden />
         {transcript.map((m, i) => (
           <li key={i} className={`flex ${m.from === "student" ? "justify-end" : "justify-start"}`} data-from={m.from}>
             <span className={`max-w-[92%] rounded-2xl px-3.5 py-2 text-[14px] leading-snug ${m.from === "student" ? student : tutor}`}>

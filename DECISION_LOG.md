@@ -1873,3 +1873,36 @@ demo's intent may read it as a bug.
 **Defense.** The chat now has the shape of a conversation (acknowledge, then ask) with a
 one-line change to the turn model and no change to the store, the reducer or the teacher side,
 and the live version drops in by replacing `reflection(i)` with a stored line.
+
+## 2026-09-11 · The chat under the read-as lines is content-sized to a cap, not the column's remainder
+
+**Decision.** With the chat open under "Read as", the read-as list keeps `flex-1` and the chat
+box is `max-h-[42%] shrink-0`: as tall as its bubbles and the box to write in need, no taller
+than 42% of the column (about the bottom third of the page once the footer is counted). Past the
+cap the transcript scrolls, kept at its end by the existing scroll-to-end effect, so the latest
+exchange is what shows. Beside the worked example the chat is still the whole column.
+
+**Context.** The user (ticket 103): "change chat from taking up all the space not taken up by
+read as to being minimal -- only takes up as much space as chat currently needs -- approx the
+bottom 1/3 of the page. have the chat scroll as it goes, so usually only see most recent message
+from chat & your most recent response to avoid chat growing huge." Ticket 90 had capped the
+read-as list at 45% and given the chat the rest, so a one-bubble chat was a tall empty box.
+
+**Alternatives considered.**
+- *Cap the transcript list at a fixed pixel height (say 170px).* Holds the "latest exchange"
+  promise regardless of window height, but on a short window the fixed list plus the box to
+  write in could push the read-as lines to nothing; a share of the column scales with it.
+- *A third of the column (33%).* Tried at 36%: the list was 125px, which cut the student's own
+  line off above a four-line reply. 42% gives the list about 167px, the last line and the reply.
+- *Let the chat grow with the transcript and scroll the whole column.* The box to write in
+  would leave the screen as the chat grew: the thing the user asked to avoid.
+
+**Tradeoffs.** A long tutor reply (five lines and more) fills the visible list on its own and
+the student's line scrolls just out of view above it; the cap is a share of the column, so on a
+short window the chat has less room than on a tall one. The read-as list, no longer capped,
+scrolls on its own once the chat takes its share.
+
+**Defense.** The chat's data path is untouched (lines said, streaming, reload, reopen); the change
+is two `className`s and the removal of the spacer item that pushed bubbles to the foot. The
+click-through measures the share at one, six and reopened exchanges and checks the latest reply is
+inside the scrolled list.

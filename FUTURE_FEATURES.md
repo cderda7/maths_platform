@@ -1088,6 +1088,19 @@ agents add sections above it and leave it alone.
   question. If the chat feels slow with many skills, the reflection's dots could be shorter than
   the question's (`turnSteps` takes one dots length for every bubble today).
 
+## The chat capped at the bottom of the column (from ticket 103, 2026-09-11)
+
+- **The cap is a share of the column (42%), not a number of bubbles.** A five-line reply fills the
+  visible list and the student's own line scrolls just above it. A cap of "the last two bubbles,
+  whatever their height" would need measuring; not asked for.
+- **No drag handle to resize the chat.** The student cannot trade read-as space for chat space by
+  hand; the split is fixed. Deferred: a sash between the two lists, remembered per device.
+- **No "new reply" marker when scrolled up.** If the student scrolls the transcript up while a reply
+  streams in, the scroll-to-end effect pulls the list back down on each chunk. A "jump to latest"
+  pill that only appears when the student has scrolled away was not asked for.
+- **Ticket 90's 45% cap on the read-as list is gone**: the read-as list scrolls on its own once
+  the chat takes its share. The note above about the read-back staying in view still holds.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
