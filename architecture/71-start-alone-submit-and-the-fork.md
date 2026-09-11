@@ -40,7 +40,7 @@ Route: `/student` (overview), `/student?stage=confidence`.
 
 ## Verified by
 
-vitest (309 tests, four rewritten for the new actions); eslint and tsc clean; `next build`. Headless
+vitest (307 tests, four rewritten for the new actions); eslint and tsc clean; `next build`. Headless
 Chrome on the built app (port 3131): the overview shows only "start"; Submit is disabled until an
 answer; two skills ticked + Submit leaves the list locked (`pointer-events: none`), Submit gone, the
 offer's bottom edge exactly at the empty spot's top edge; a reload keeps the offer with the same two

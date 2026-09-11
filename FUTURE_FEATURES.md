@@ -3,7 +3,30 @@
 Deferred ideas, kept deliberately generous: if it came up and was not built, it goes here. Each
 entry says where it came from and why it was deferred, so a later decision has its context.
 Newest at the bottom of each section. Policy: every work session that scopes something out
-appends it here (see `CLAUDE.md`). Hand-written notes live in `## Carson's notes` at the bottom;
+appends it here (see `CLAUDE.md`). Hand-written notes live in `## The warm-up offer after the confidence answer (from tickets 71–72, 2026-09-11)
+
+- **A teacher switch on the offer.** The warm-up is offered to every student who answers "not
+  confident" or "not confident with…", never to one who answers "confident". A per-assignment
+  setting (always offer / offer to the not-confident / never) is a classroom-store field and one
+  branch in the reducer; deferred until a teacher asks for it.
+- **Re-offering the warm-up mid-set to a "confident" student who then slips.** The mid-set practice
+  overlay already catches a second mistake on a group; a fuller "want the warm-up after all?" after
+  the first few problems would need a rule for when confidence was misjudged. Deferred: the overlay
+  covers the case narrowly.
+- **A way back from the offer to the answer.** The list locks once Submit is tapped; a student who
+  mis-ticked has no undo short of "Reset demo". Deferred on purpose (the interview settled that the
+  offer is a fork, not a form); a small "change answer" link under the callout is the cheap version.
+- **An exit from the concerns chat.** The chat has no "skip to the set"; the pad has one. Deferred
+  on purpose: the chat is one message per ticked skill and the student chose it a tap earlier.
+- **The count line as a duration.** "2 short problems, then the set" counts one problem per ticked
+  skill; "about 5 minutes" would need timing data from real runs. The plain "not confident" line
+  says "a few" because the chat decides the count.
+- **The callout covers the bottom of the dimmed list.** It floats over the locked answers so
+  nothing reflows; on a two-skill answer it hides the last two or three skill rows. If a student
+  needs to re-read what they ticked, the question line names the skills; a taller stage could show
+  both.
+
+## Carson's notes` at the bottom;
 agents add sections above it and leave it alone.
 
 ## Review pathways

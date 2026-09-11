@@ -1140,3 +1140,49 @@ ways in and the transcript mapping pure and tested means the tutor's rules are r
 and change without touching the route or the UI. Storing the chat on the run through the reducer
 gives reload, reopen and a future teacher's-eye view for free. Failing to a clear 503 keeps the
 offline demo intact on any laptop without a key.
+
+## 2026-09-11 · The warm-up is offered on the confidence screen, after the answer, as a callout beside the empty Submit spot
+
+**Decision.** The start screen has one button, START. The confidence screen's button reads
+"Submit" for every answer. "Confident" opens Q1. Either not-confident answer records the answer,
+dims and locks the list, and a callout rises just above the spot Submit occupied: the tutor's
+question naming the ticked skills, a line counting one short problem per skill, and "Warm up"
+(accent) / "Start the set" (secondary). The spot itself is left empty. The recorded answer and the
+open offer live in the session (`warmupOffered`), not in component state.
+
+**Context.** Tickets 27 / 47 / 48 offered the warm-up on the start screen, before the student had
+said how they felt, and the confidence button then announced the destination ("Warm up" / "Start
+Q1"). The student the warm-up is for is the one who has just said they are not confident, and the
+offer belongs at that moment. The user's brief: eliminate the start-screen warm-up; after a
+not-confident answer, trigger the choice; keep it seamless and low-friction, but make the student
+move to reach either button so nobody clicks through without a thought.
+
+**Alternatives considered.**
+- *A stage of its own (a screen between confidence and the chat).* Cleanest for stage lists and
+  deep links, and one tap either way. Rejected by the user: the whole screen changing is what the
+  student expects, and the choice should arrive where their attention already is.
+- *A bottom sheet or modal over the confidence screen.* Draws the eye by force. Rejected as not
+  seamless: a scrim interrupts, and the design brief across the app avoids modals for a one-line
+  choice.
+- *Submit turning into the two buttons in place.* Fewest taps, but the button changes under the
+  finger, which is exactly the click-through the user wants to prevent, and it breaks "Submit does
+  not say where you are going".
+- *Two buttons in Submit's row, to its left.* Same row as the habit's next tap. The callout above
+  the empty spot is close but off the line.
+- *Local component state for "answered, choosing".* Simpler, but a reload would show the empty
+  form again and the teacher's mirror would not see the answer. The session already holds the
+  confidence answer; adding the not-yet-chosen state to it costs one derived predicate.
+
+**Tradeoffs.** The confidence screen now carries two states and the reducer a guard
+(`confidence/set` is ignored once answered; the offer actions only while it is open), which is more
+than a stage transition. The callout floats over the dimmed list and hides its last rows on a
+two-skill answer. The list cannot be un-submitted (FUTURE_FEATURES). The pulse and dim are motion
+and opacity, so a screen reader hears only the new group's label; the group has `role="group"`
+and an `aria-label`.
+
+**Defense.** The offer arrives at the moment the student has given the reason for it, in the
+tutor's voice the chat continues, and it costs a confident student nothing. Keeping the student
+on the same screen means the answer they just gave is still in view, dimmed, so the offer reads as
+a consequence of it. Leaving Submit's spot empty makes the choice a deliberate reach without
+adding a confirmation. Holding the state in the session keeps reload, the teacher's mirror and the
+demo fixtures honest for free, and `warmupOffered` is a one-line predicate the tests pin.

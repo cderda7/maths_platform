@@ -129,6 +129,35 @@ body {
   cursor: text;
 }
 
+/* The warm-up offer on the confidence screen: rises into place, then one ring pulse to catch an eye already looking away. */
+@keyframes offer-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes offer-pulse {
+  0% { box-shadow: 0 0 0 0 rgb(91 74 232 / 0.45); }
+  100% { box-shadow: 0 0 0 14px rgb(91 74 232 / 0); }
+}
+/* No `position` here: the utility on the element sets it (this rule is unlayered and would win over it). */
+.offer-in {
+  animation: offer-rise 200ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+/* The ring on a layer of its own, so the card keeps its lift shadow once the pulse has faded. */
+.offer-in::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: offer-pulse 650ms ease-out 240ms 1 both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .offer-in,
+  .offer-in::after {
+    animation: none;
+  }
+}
+
 /* "Recognising…" placeholder in the transcription column. */
 @keyframes shimmer {
   0% { background-position: -200px 0; }

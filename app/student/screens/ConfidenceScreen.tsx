@@ -6,6 +6,7 @@ import { studentLeafName, type LeafId } from "@/data/taxonomy";
 import type { Confidence } from "@/data/types";
 import { useAssignment } from "@/lib/classroom-store";
 import { relevantSkills } from "@/lib/hierarchy";
+import { offerLines } from "@/lib/warmup";
 
 type Level = Confidence["level"];
 
@@ -13,9 +14,10 @@ type Level = Confidence["level"];
  * Three answers, lowercase: "confident", "not confident" overall, then "not confident with…" over
  * the set's seven most relevant skills (always visible, stacked, tick any number; ticking one is
  * the answer). One button, "Submit", whatever the answer: "confident" opens Q1; either other
- * answer keeps the student here (`answered` set), locks the list, and offers the warm-up just
- * above the spot Submit occupied, which is left empty so reaching either choice is a deliberate
- * move rather than a second tap in the same place.
+ * answer keeps the student here (`answered` set), dims and locks the list, and a callout rises
+ * just above the spot Submit occupied (the tutor's question naming the ticked skills, the size of
+ * the warm-up, "Warm up" / "Start the set"). The spot itself is left empty so reaching either
+ * choice is a deliberate move rather than a second tap in the same place.
  */
 /** The radio dot at the head of each answer, filled when that answer is picked. */
 function Radio({ on }: { on: boolean }) {
@@ -69,7 +71,7 @@ export default function ConfidenceScreen({
       <Eyebrow>Before you start</Eyebrow>
       <h1 className="font-display mt-3 text-[32px] leading-tight text-ink">How confident are you?</h1>
 
-      <div className={`mt-7 min-h-0 space-y-3 overflow-y-auto pb-2 ${locked ? "pointer-events-none" : ""}`} aria-disabled={locked} data-answers>
+      <div className={`mt-7 min-h-0 space-y-3 overflow-y-auto pb-2 transition-opacity duration-300 ${locked ? "pointer-events-none opacity-50" : ""}`} aria-disabled={locked} data-answers>
         <button type="button" onClick={() => pick("confident")} aria-pressed={level === "confident"} className={`rounded-2xl border ${level === "confident" ? "border-ink" : "border-line"} ${head(level === "confident")}`}>
           <Radio on={level === "confident"} />
           <span className="text-[16px] font-medium">confident</span>
@@ -103,16 +105,25 @@ export default function ConfidenceScreen({
         </div>
       </div>
 
-      <div className="mt-auto flex flex-col items-end pt-6">
-        {locked ? (
+      <div className="relative mt-auto flex flex-col items-end pt-6">
+        {answered ? (
           <>
-            <div className="flex items-center gap-2" data-warmup-offer>
-              <Button variant="accent" size="lg" onClick={onWarmup} data-warmup-accept>
-                Warm up
-              </Button>
-              <Button variant="secondary" size="lg" onClick={onStart} data-warmup-decline>
-                Start the set
-              </Button>
+            {/* Floats over the dimmed list rather than pushing it, so nothing on the screen moves but the callout. */}
+            <div className="offer-in absolute right-0 bottom-[60px] rounded-2xl border border-accent-line bg-paper px-5 py-4 shadow-lift" role="group" aria-label="Warm up?" data-warmup-offer>
+              <p className="text-[16px] font-medium text-ink" data-offer-question>
+                {offerLines(answered).question}
+              </p>
+              <p className="mt-0.5 text-[13.5px] text-ink-muted" data-offer-size>
+                {offerLines(answered).size}
+              </p>
+              <div className="mt-3.5 flex items-center justify-end gap-2">
+                <Button variant="accent" size="lg" onClick={onWarmup} data-warmup-accept>
+                  Warm up
+                </Button>
+                <Button variant="secondary" size="lg" onClick={onStart} data-warmup-decline>
+                  Start the set
+                </Button>
+              </div>
             </div>
             {/* The spot Submit occupied, left empty on purpose. */}
             <div className="h-[48px] shrink-0" aria-hidden data-submit-spot />

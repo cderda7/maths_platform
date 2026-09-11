@@ -1,4 +1,4 @@
-import type { ChatMessage, PracticeProblem, Problem } from "@/data/types";
+import type { ChatMessage, Confidence, PracticeProblem, Problem } from "@/data/types";
 import { ASSIGNMENT } from "@/data/assignment";
 import { isolatable, PRACTICE, PRACTICES } from "@/data/practice";
 import { groupOf, studentLeafName, type LeafId } from "@/data/taxonomy";
@@ -28,6 +28,17 @@ export function concernPrompts(seed: LeafId[]): string[] {
   if (w.length === 0) return ["Let's do a warm up. Tell me a little bit about what you'd like to warm up on."];
   if (w.length === 1) return [`Let's do a warm up on ${w[0]}. Tell me a little bit about your concerns with ${w[0]}.`];
   return [`Let's do a warm up on ${amp(w)}. First, tell me a little bit about your concerns with ${w[0]}.`, ...w.slice(1).map((x) => `Next, tell me about your concerns with ${x}.`)];
+}
+
+/**
+ * The warm-up offer's two lines, on the confidence screen after a not-confident answer: the tutor's
+ * question naming the ticked skills in tick order, and a muted line sizing the warm-up at one short
+ * problem per skill. A plain "not confident" (no skills) gets the open question and "a few".
+ */
+export function offerLines(confidence: Confidence): { question: string; size: string } {
+  const w = confidence.level === "low-when" ? confidence.leaves.map(skillWord) : [];
+  if (w.length === 0) return { question: "Warm up before the set?", size: "a few short problems, then the set" };
+  return { question: `Warm up on ${amp(w)} first?`, size: `${w.length} short problem${w.length === 1 ? "" : "s"}, then the set` };
 }
 
 /** The chat so far: each question, then the student's answer to it, up to the first question still unanswered. Only the student's lines are stored; the questions are derived. */

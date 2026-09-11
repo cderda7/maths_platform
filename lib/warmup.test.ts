@@ -1,8 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { byEase, concernPrompts, concernsAnswered, concernTranscript, EASE, focusLeaves, interpret, practiceFor, warmupScript, warmupSequence } from "./warmup";
+import { byEase, concernPrompts, concernsAnswered, concernTranscript, EASE, focusLeaves, interpret, offerLines, practiceFor, warmupScript, warmupSequence } from "./warmup";
 import { isolatable, PRACTICE, WARMUP_BANK } from "@/data/practice";
 import { ASSIGNMENT } from "@/data/assignment";
 import { leavesTouched } from "./hierarchy";
+
+describe("the warm-up offer's lines", () => {
+  it("names the ticked skills in tick order and counts one short problem each", () => {
+    expect(offerLines({ level: "low-when", leaves: ["algebra.expand-factor.monic", "unit.u1.discriminant"] })).toEqual({ question: "Warm up on factorising & the discriminant first?", size: "2 short problems, then the set" });
+    expect(offerLines({ level: "low-when", leaves: ["unit.u1.discriminant", "algebra.expand-factor.monic", "algebra.number.fractions"] })).toEqual({ question: "Warm up on the discriminant, factorising, & fractions first?", size: "3 short problems, then the set" });
+    expect(offerLines({ level: "low-when", leaves: ["unit.u1.nfl"] })).toEqual({ question: "Warm up on null factor law first?", size: "1 short problem, then the set" });
+  });
+  it("asks the open question for a plain \"not confident\"", () => {
+    expect(offerLines({ level: "low" })).toEqual({ question: "Warm up before the set?", size: "a few short problems, then the set" });
+    expect(offerLines({ level: "low-when", leaves: [] })).toEqual({ question: "Warm up before the set?", size: "a few short problems, then the set" });
+  });
+});
 
 describe("interpreting the student's words", () => {
   it("reads skill words and question references", () => {
