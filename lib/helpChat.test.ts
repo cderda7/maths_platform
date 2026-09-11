@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { PRACTICE, PRACTICES, WARMUP_BANK } from "@/data/practice";
 import { studentLeafName } from "@/data/taxonomy";
 import type { PracticeProblem } from "@/data/types";
-import { CHAT_OPENER, chatSegments, findPractice, helpChatMessages, helpChatSystem, parseHelpChatRequest } from "./helpChat";
+import { CHAT_OPENER, chatOpener, chatSegments, findPractice, helpChatMessages, helpChatSystem, HINT_OPENER_START, hintOpener, parseHelpChatRequest } from "./helpChat";
 
 const every = (): PracticeProblem[] => WARMUP_BANK.flatMap((p) => (p.followUp ? [p, p.followUp] : [p]));
 
@@ -57,6 +57,22 @@ describe("helpChatSystem", () => {
     expect(s).toContain(`"${CHAT_OPENER}"`);
   });
 
+  it("names the pad's own tutor line as the opener when the chat opened on a hint, and tells the tutor what such a line means", () => {
+    const opened = [
+      { from: "tutor" as const, text: hintOpener(2) },
+      { from: "student" as const, text: "set them to zero?" },
+    ];
+    const s = helpChatSystem(p, [], opened);
+    expect(s).toContain(`"${hintOpener(2)}"`);
+    expect(s).not.toContain(`"${CHAT_OPENER}"`);
+    expect(s).toContain(`beginning "${HINT_OPENER_START}"`);
+    expect(s).toContain("Do not say what the next hint would say until they have used this one.");
+    expect(hintOpener(2)).toBe("Let's talk more about hint 2 before another one. What is it asking you to do here, in your own words?");
+    expect(chatOpener([])).toBe(CHAT_OPENER);
+    expect(chatOpener([{ from: "student", text: "hi" }])).toBe(CHAT_OPENER);
+    expect(chatOpener(opened)).toBe(hintOpener(2));
+  });
+
   it("lists the lines the pad has read, numbered, or says there are none", () => {
     expect(helpChatSystem(p, [])).toContain("(nothing yet)");
     const s = helpChatSystem(p, ["3 \\times 4 = 12", "(x + 3)(x + 4) = 0"]);
@@ -91,6 +107,21 @@ describe("helpChatMessages", () => {
       { role: "user", content: "I don't know where to start" },
       { role: "assistant", content: "Two ways in…" },
       { role: "user", content: "factorising" },
+    ]);
+  });
+
+  it("folds two lines in a row from one side into one turn, so the roles alternate", () => {
+    expect(
+      helpChatMessages([
+        { from: "student", text: "stuck" },
+        { from: "tutor", text: "Two ways in…" },
+        { from: "tutor", text: hintOpener(2) },
+        { from: "student", text: "ok" },
+      ]),
+    ).toEqual([
+      { role: "user", content: "stuck" },
+      { role: "assistant", content: `Two ways in…\n\n${hintOpener(2)}` },
+      { role: "user", content: "ok" },
     ]);
   });
 

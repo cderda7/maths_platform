@@ -842,6 +842,30 @@ agents add sections above it and leave it alone.
   link the minus signs in the brackets; a lit "− 2" and "− 5" (fragment `- 2` inside `(x - 2)`)
   would make the point visually.
 
+## "Another hint" opens the chat while the current hint is unused (from ticket 86, 2026-09-11)
+
+- **The pad cannot tell a wrong line from progress.** A line the pad could not place counts as
+  moving on, so a student who writes 2 × 6 = 12 under the pair hint gets the next hint rather than
+  the chat. Real recognition could mark the line and keep the hint stalled, or open the chat on the
+  slip.
+- **Stalled means "the latest hint".** An earlier hint left unused behind a later one is not
+  checked. Fine while hints come one per point, in order.
+- **The opening line is fixed.** "Let's talk more about hint 2 before another one. What is it asking
+  you to do here, in your own words?" is the same on every problem. A per-hint opener (naming the
+  linked words, or quoting the hint) is a field on `Hint`; a model-written opener is a first API
+  turn with the cost and the 503 case that come with it (logged in the decision).
+- **The tutor is briefed, not enforced.** Whether the model holds back the next hint is down to the
+  brief's rule; nothing on the server checks its reply against the hint list.
+- **Leaving the chat for the pad.** The tutor is told to send the student back to write the line,
+  but the chat stays open in the read-as column while they write; a "back to the pad" affordance,
+  or closing the chat when a line is read, was not asked for.
+- **A stall could also gate the worked example.** The same "have you used the hint?" thought applies
+  to "worked example" straight after a hint; not touched, since the example is the fuller help by
+  design.
+- **The general-hint problems never stall.** The null factor law, discriminant, non-monic and graph
+  warm-ups each have one hint without a point, so "another hint" simply reads "Shown" there. Giving
+  them per-point hints (ticket 85's note) brings them under this rule for free.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

@@ -1,5 +1,5 @@
 import type { ChatMessage, Confidence, Pathway, PracticeProblem, Stage, Stroke } from "@/data/types";
-import { pickHint } from "./hint";
+import { pickHint, stalledHint } from "./hint";
 import { groupOf, type LeafId } from "@/data/taxonomy";
 import { PRACTICES } from "@/data/practice";
 import { byEase, concernsAnswered, focusLeaves, practiceFor, warmupSequence, type WarmupMessage } from "./warmup";
@@ -546,7 +546,10 @@ function runReducer(r: PracticeRun, a: RunAction, first: PracticeProblem): Pract
       return { ...r, ink: { ...r.ink, [a.problem]: [] }, lines: { ...r.lines, [a.problem]: [] } };
     case "run/hint": {
       const shown = r.hinted[cur.id] ?? [];
-      const next = pickHint(cur, (r.lines[cur.id] ?? []).map((l) => l.tex), shown);
+      const lines = (r.lines[cur.id] ?? []).map((l) => l.tex);
+      // A hint the lines have not moved past blocks the next one: the pad opens the chat on it instead (stalledHint).
+      if (stalledHint(cur, lines, shown) !== null) return r;
+      const next = pickHint(cur, lines, shown);
       return next === null ? r : { ...r, hinted: { ...r.hinted, [cur.id]: [...shown, next] } };
     }
     case "run/example":

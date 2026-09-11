@@ -1494,3 +1494,45 @@ point at nothing. The hint texts name the fixture's numbers, so they are per pro
 (fragments locate, spacing unchanged, `at` lists) hold every hint to the same standard. The rules are
 recorded here so the next warm-up's hints are written the same way.
 
+## 2026-09-11 · A hint not yet acted on blocks the next: "another hint" opens the chat on it, with the pad's own tutor line stored in the transcript
+
+**Decision.** `stalledHint`: the latest hint shown is stalled while the student's lines have not moved
+past every point it is written for (`positionOf(lines) <= max(hint.at)`); a general hint never stalls.
+While stalled, the help menu's hint row reads "Talk it through →" and opens the chat instead of
+giving a hint, and the reducer refuses `run/hint` too. The tutor's first line is scripted by the pad
+("Let's talk more about hint 2 before another one. What is it asking you to do here, in your own
+words?") and stored as a tutor message in `run.chat`; the brief names whatever the chat actually
+opened with and carries a rule for a pad-said hint line. Two same-side lines in a row are folded into
+one API turn.
+
+**Context.** Ticket 85 gave the factorising warm-up a hint per point, and with it a blank-pad student
+could tap "another hint" five times and be walked through the method without writing a line. The user
+(ticket 86): open the chat instead, the agent starts it with "let's talk more about hint X", so the
+student either applies the hint or works on understanding it.
+
+**Alternatives considered.**
+- *Store the position each hint was given at* and stall while it is unchanged. Exact, but a third
+  shape for `hinted` in a day, and "unchanged position" is the wrong test: a hint for lines 1 or 2
+  is not acted on by writing line 2. "Past every point the hint is for" needs nothing stored.
+- *Let the model write the opening line* (a first API turn with no student message). A better
+  sentence, perhaps, but a network round trip before the chat can show anything, a 503 on a device
+  with no credentials, and a stored line that differs per run. The pad's fixed sentence is on screen
+  instantly and identical everywhere; the model takes over from the student's reply.
+- *Keep the opener unstored, like "What's got you stuck?"*, and send a flag with the request. The
+  flag would have to be stored anyway to survive a reload and a reopen; storing the line itself is
+  the same persistence and also the transcript the student sees.
+- *Hide the hint row while stalled, or leave it "Show →" and surprise the student with the chat.* The
+  row is what the student reaches for; keeping it, relabelled, is honest about what the tap does.
+
+**Tradeoffs.** A student who writes a wrong line has "moved on" (an unplaced line counts by position)
+and gets the next hint; only the chat can tell them the line is wrong. A hint's `at` now carries a
+second meaning (where it fits, and what counts as acting on it); the two agree for every hint written
+so far. The brief's opener rule depends on the fixed sentence's opening words. `helpChatSystem` has a
+third parameter for one caller.
+
+**Defense.** The rule is one function on data the pad already has, enforced in the reducer as well
+as the menu, and the pad's tutor line is ordinary chat state, so a reload, a reopen and the API all
+see the same transcript. Tests pin the stall on the two warm-ups with per-point hints, the reducer's
+refusal, the brief's opener and rule, and the folded turns; the browser check confirms the bubble
+appears once and the request carries it.
+

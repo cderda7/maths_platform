@@ -93,7 +93,8 @@ export default function HelpChat({
     }
   };
 
-  const transcript: ChatMessage[] = [{ from: "tutor", text: CHAT_OPENER }, ...messages];
+  // The pad's own tutor line (the chat opened on a hint) is stored first and is the opener; otherwise the fixed one, never stored.
+  const transcript: ChatMessage[] = messages[0]?.from === "tutor" ? messages : [{ from: "tutor", text: CHAT_OPENER }, ...messages];
   const tutor = "border border-line bg-paper text-ink";
   const student = "bg-ink text-white";
   return (

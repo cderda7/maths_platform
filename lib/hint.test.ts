@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import katex from "katex";
 import { PRACTICES } from "@/data/practice";
 import type { PracticeProblem } from "@/data/types";
-import { findFragment, hintAnchor, hintSegments, hoistSpacing, locateFragment, pickHint, positionOf, termTex } from "./hint";
+import { findFragment, hintAnchor, hintSegments, hoistSpacing, locateFragment, pickHint, positionOf, stalledHint, termTex } from "./hint";
 
 const constant = { phrase: "constant", tex: ["12"] };
 const middle = { phrase: "middle coefficient", tex: ["7"] };
@@ -274,6 +274,39 @@ describe("locateFragment", () => {
     const b = { phrase: "b", tex: [{ tex: "6", within: "- 6" }] };
     expect(termTex(tex, [a, b])).toBe("\\dfrac{x}{4} + \\dfrac{x}{2} - \\htmlClass{hint-term}{6} = \\dfrac{9}{2}");
     expect(termTex(tex, [a, b], b)).toBe("\\dfrac{x}{4} + \\dfrac{x}{2} - \\htmlClass{hint-term hint-term-lit}{6} = \\dfrac{9}{2}");
+  });
+});
+
+describe("stalledHint", () => {
+  const monic = PRACTICES["algebra.expand-factor.monic"]!;
+  const lines = (n: number) => monic.steps.slice(0, n).map((s) => s.tex);
+
+  it("is the latest hint shown while the lines have not moved past the point it is for, and nothing once they have", () => {
+    expect(stalledHint(monic, [], [])).toBeNull();
+    // The opening hint asks for a first line.
+    expect(stalledHint(monic, [], [0])).toBe(0);
+    expect(stalledHint(monic, lines(1), [0])).toBeNull();
+    // A line the pad could not place still counts as moving on.
+    expect(stalledHint(monic, ["2 \\times 6 = 12"], [0])).toBeNull();
+    // Stuck at the brackets with the null factor law hint showing.
+    expect(stalledHint(monic, lines(3), [3])).toBe(3);
+    expect(stalledHint(monic, lines(4), [3])).toBeNull();
+    // A hint given ahead of its point stalls until the lines are past that point.
+    expect(stalledHint(monic, lines(3), [3, 4])).toBe(4);
+    expect(stalledHint(monic, lines(5), [3, 4])).toBeNull();
+    // Only the latest hint counts: an earlier one left behind is not a stall.
+    expect(stalledHint(monic, lines(1), [0, 1])).toBe(1);
+  });
+
+  it("a hint written for two points stalls until the lines are past both; a general hint never stalls", () => {
+    const f = PRACTICES["algebra.number.fractions"]!;
+    const fl = (n: number) => f.steps.slice(0, n).map((s) => s.tex);
+    expect(stalledHint(f, fl(1), [0, 1])).toBe(1);
+    expect(stalledHint(f, fl(2), [0, 1])).toBe(1);
+    expect(stalledHint(f, fl(3), [0, 1])).toBeNull();
+    const nfl = PRACTICES["unit.u1.nfl"]!;
+    expect(nfl.hints[0].at).toBeUndefined();
+    expect(stalledHint(nfl, [], [0])).toBeNull();
   });
 });
 

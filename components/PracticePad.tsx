@@ -10,7 +10,8 @@ import PracticeCard from "@/components/PracticeCard";
 import ReadAs from "@/components/ReadAs";
 import { Button, Eyebrow } from "@/components/ui";
 import { LeafChip } from "@/components/Tag";
-import { hintAnchor, pickHint, termTex } from "@/lib/hint";
+import { hintOpener } from "@/lib/helpChat";
+import { hintAnchor, pickHint, stalledHint, termTex } from "@/lib/hint";
 import { nextLine } from "@/lib/recognition";
 import type { PracticeRun, RunKey, SessionAction } from "@/lib/session";
 import { warmupScript } from "@/lib/warmup";
@@ -56,6 +57,8 @@ export default function PracticePad({
   const hints = shown.map((i) => p.hints[i]).filter((h) => h !== undefined);
   const terms = hints.flatMap((h) => h.terms ?? []);
   const nextHint = pickHint(p, lines.map((l) => l.tex), shown) !== null;
+  /** The latest hint, while the lines have not moved past what it asks for: "another hint" then opens the chat on it instead. */
+  const stalled = stalledHint(p, lines.map((l) => l.tex), shown) !== null;
   /** Per shown hint, what its linked words point at: 0 the problem, k the student's k-th read line. The problem and each line wrap only the terms anchored to them. */
   const anchors = hints.map((h) => hintAnchor(h, lines.length));
   const termsAt = (k: number) => hints.flatMap((h, i) => (anchors[i] === k ? (h.terms ?? []) : []));
@@ -174,11 +177,19 @@ export default function PracticePad({
 
       {helpOpen && (
         <HelpMenu
-          hints={{ shown: hints.length, total: p.hints.length, next: nextHint }}
+          hints={{ shown: hints.length, total: p.hints.length, next: nextHint, stalled }}
           exampled={exampled}
           chatted={chat.length > 0}
           onChat={() => {
             setHelpOpen(false);
+            setChatOpen(true);
+          }}
+          onTalkHint={() => {
+            setHelpOpen(false);
+            // The tutor's line about the hint, said by the pad and stored, once: a reopen on the same stall adds nothing.
+            const text = hintOpener(hints.length);
+            const last = chat[chat.length - 1];
+            if (!(last?.from === "tutor" && last.text === text)) dispatch({ type: "run/chat", run: runKey, problem: p.id, message: { from: "tutor", text } });
             setChatOpen(true);
           }}
           onHint={() => {
@@ -196,27 +207,29 @@ export default function PracticePad({
   );
 }
 
-/** "I need help" on the pad: pick how much help. Hints come one per ask, each picked for where the student's lines have got (`next` says one is available), "another hint" once one is showing. The video is listed so the shape is visible; it goes nowhere yet. The chat can always be reopened. */
+/** "I need help" on the pad: pick how much help. Hints come one per ask, each picked for where the student's lines have got (`next` says one is available), "another hint" once one is showing; while the latest hint is `stalled` (the lines have not moved past what it asks for) that row opens the chat on it instead ("Talk it through →"). The video is listed so the shape is visible; it goes nowhere yet. The chat can always be reopened. */
 function HelpMenu({
   hints,
   exampled,
   chatted,
   onHint,
+  onTalkHint,
   onExample,
   onChat,
   onClose,
 }: {
-  hints: { shown: number; total: number; next: boolean };
+  hints: { shown: number; total: number; next: boolean; stalled: boolean };
   exampled: boolean;
   chatted: boolean;
   onHint: () => void;
+  onTalkHint: () => void;
   onExample: () => void;
   onChat: () => void;
   onClose: () => void;
 }) {
-  const hintNote = hints.next ? undefined : hints.shown === hints.total ? (hints.total > 1 ? "All shown" : "Shown") : "None for this step";
+  const hintNote = hints.stalled ? "Talk it through →" : hints.next ? undefined : hints.shown === hints.total ? (hints.total > 1 ? "All shown" : "Shown") : "None for this step";
   const options: { key: string; title: string; onPick?: () => void; note?: string }[] = [
-    { key: "hint", title: hints.shown > 0 ? "another hint" : "hint", onPick: hints.next ? onHint : undefined, note: hintNote },
+    { key: "hint", title: hints.shown > 0 ? "another hint" : "hint", onPick: hints.stalled ? onTalkHint : hints.next ? onHint : undefined, note: hintNote },
     { key: "example", title: "worked example", onPick: exampled ? undefined : onExample, note: exampled ? "Seen" : undefined },
     { key: "video", title: "video", note: "Not available yet" },
     { key: "chat", title: "chat", onPick: onChat, note: chatted ? "Continue →" : "Open →" },
