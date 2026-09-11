@@ -30,7 +30,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
         ],
       },
       {
-        text: "Once you have a pair that multiplies to 12, check it adds to 7 as well. The pairs to try: 1 and 12, 2 and 6, 3 and 4.",
+        text: "Once you have a pair that multiplies to 12, check it adds to 7 as well.",
         at: [1],
         terms: [
           { phrase: "pair", tex: ["3", "4"] },
