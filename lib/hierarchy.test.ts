@@ -69,8 +69,8 @@ describe("the scripted run through the hierarchy", () => {
 
   it("half dots appear only after submit and only where problems were skipped; colour ignores the skipped problems", () => {
     let s = sessionAt("working");
-    s = sessionReducer(s, { type: "line/reveal", problem: "q1", line: { tex: "x^2 - 5x + 6 = 0", strokeCount: 1 } });
-    s = sessionReducer(s, { type: "line/reveal", problem: "q1", line: { tex: "(x-2)(x-3) = 0", strokeCount: 2 } });
+    s = sessionReducer(s, { type: "line/reveal", problem: "q1", line: { tex: "x^2 + 5x + 6 = 0", strokeCount: 1 } });
+    s = sessionReducer(s, { type: "line/reveal", problem: "q1", line: { tex: "(x+2)(x+3) = 0", strokeCount: 2 } });
     const working = sessionHierarchy(s);
     expect(working.half.leaves).toEqual([]);
     expect(working.leaves["algebra.expand-factor.monic"]).toBe("secure");

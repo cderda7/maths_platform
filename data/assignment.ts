@@ -14,11 +14,11 @@ export const PROBLEMS: Problem[] = [
     label: "Q1",
     difficulty: "simple familiar",
     stem: "Solve for x.",
-    tex: "x^2 - 5x + 6 = 0",
+    tex: "x^2 + 5x + 6 = 0",
     solution: [
-      { tex: "x^2 - 5x + 6 = 0", label: "Standard form", tags: [tag("algebra.equations.quadratic")] },
-      { tex: "(x-2)(x-3) = 0", label: "Factorised", tags: [tag("algebra.expand-factor.monic")] },
-      { tex: "x = 2 \\;\\text{or}\\; x = 3", label: "Null factor law", tags: [tag("unit.u1.nfl"), tag("algebra.equations.quadratic")] },
+      { tex: "x^2 + 5x + 6 = 0", label: "Standard form", tags: [tag("algebra.equations.quadratic")] },
+      { tex: "(x+2)(x+3) = 0", label: "Factorised", tags: [tag("algebra.expand-factor.monic")] },
+      { tex: "x = -2 \\;\\text{or}\\; x = -3", label: "Null factor law", tags: [tag("unit.u1.nfl"), tag("algebra.equations.quadratic")] },
     ],
   },
   {

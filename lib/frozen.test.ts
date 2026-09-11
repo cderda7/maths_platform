@@ -39,7 +39,7 @@ describe("the frozen student's view", () => {
 
   it("an unattempted problem has no versions", () => {
     let s = sessionAt("working");
-    s = sessionReducer(s, { type: "line/reveal", problem: "q1", line: { tex: "x^2 - 5x + 6 = 0", strokeCount: 1 } });
+    s = sessionReducer(s, { type: "line/reveal", problem: "q1", line: { tex: "x^2 + 5x + 6 = 0", strokeCount: 1 } });
     const v = frozenView(s, projecting(["q2"]))!;
     expect(v.attempted).toBe(false);
     expect(v.versions).toEqual([]);

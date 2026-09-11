@@ -1,1 +1,2 @@
 -**STUDENT ON** ipad; **TEACHER ON** laptop; **BOARD** smartboard (teacher can click).
+-**TYPED QUESTIONS FIT THEIR TILE** on the create screen: a tile is a fixed square in the five-wide grid and clips; no tile scrolls or grows (ticket 119, 2026-09-11).

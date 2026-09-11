@@ -45,9 +45,14 @@ restarts everything in every tab; it is a presenter control, not part of the pro
 
 ## The demo, in order
 
-Teacher, before the lesson (`/teacher/assignments/new`):
+Teacher, before the lesson (`/teacher/assignments/create`, then the older `/teacher/assignments/new`):
 
-1. **New assignment**: title, problems from the bank, the inferred QCAA unit to confirm (or
+0. **Create** (ticket 119): a title, then the questions typed into tiles in the student's five-wide
+   grid, each tile the editor: the typed text on top, the rendered question beneath as you type
+   (`x**2 + 5x + 6 = 0`, `1/3x**2`, `sqrt(2)` as KaTeX), Enter for the next tile, Shift+Enter to
+   put the expression under the prose, × or Backspace to remove ("Q2 removed. Undo"). Continue
+   saves the draft and opens the review screen, a stub for now.
+1. **New assignment** (the older screen, reachable by URL): title, problems from the bank, the inferred QCAA unit to confirm (or
    describe the focus and reassess), and the review pathway on the map. Every
    pathway starts at student submission; then any of individual review, group review and
    whole-class review, in that order, each optional. Pick a column and its siblings fade; leave

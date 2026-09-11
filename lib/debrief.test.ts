@@ -33,7 +33,7 @@ describe("the marked view", () => {
     ]);
     expect(markedVersions("q1", { lines: RECOGNITION_REWORK.q1, rework: [] }, RECOGNITION_REWORK.q1).map((x) => x.green)).toEqual([true, true]);
     expect(markedVersions("q1", { lines: RECOGNITION.q1, rework: [] }, RECOGNITION_REWORK.q1).map((x) => x.green)).toEqual([false, true]);
-    expect(matchesGroup(["(x - 2)(x - 3) = 0", "x = 2 \\;\\text{or}\\;  x = 3"], RECOGNITION_REWORK.q1)).toBe(true); // whitespace aside
+    expect(matchesGroup(["(x + 2)(x + 3) = 0", "x = -2 \\;\\text{or}\\;  x = -3"], RECOGNITION_REWORK.q1)).toBe(true); // whitespace aside
     expect(matchesGroup([...RECOGNITION_REWORK.q1].reverse(), RECOGNITION_REWORK.q1)).toBe(false); // same lines, wrong order
     expect(matchesGroup(RECOGNITION_REWORK.q1.slice(0, 1), RECOGNITION_REWORK.q1)).toBe(false); // a prefix is not a match
     expect(matchesGroup([], [])).toBe(false); // nothing written matches nothing

@@ -13,7 +13,7 @@ describe("branchesOf", () => {
     expect(branchesOf("x = \\tfrac{1}{2} \\;\\text{or}\\; x = -4")).toEqual(["x = \\tfrac{1}{2}", "x = -4"]);
   });
   it("leaves a plain line, an implication, and anything with more than two cases whole", () => {
-    expect(branchesOf("x^2 - 5x + 6 = 0")).toEqual(["x^2 - 5x + 6 = 0"]);
+    expect(branchesOf("x^2 + 5x + 6 = 0")).toEqual(["x^2 + 5x + 6 = 0"]);
     expect(branchesOf("(x - 4)(x + 2) = 0 \\Rightarrow x = 4 \\;\\text{or}\\; x = -2")).toEqual(["(x - 4)(x + 2) = 0 \\Rightarrow x = 4 \\;\\text{or}\\; x = -2"]);
     expect(branchesOf("a \\;\\text{or}\\; b \\;\\text{or}\\; c")).toEqual(["a \\;\\text{or}\\; b \\;\\text{or}\\; c"]);
   });

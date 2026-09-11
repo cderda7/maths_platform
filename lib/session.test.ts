@@ -352,8 +352,8 @@ describe("escalation inside the session", () => {
 
   it("the scripted run: Q1's factorising slip passes, Q2's triggers the prompt", () => {
     let s = sessionAt("working");
-    s = reveal(s, "q1", "x^2 - 5x + 6 = 0", 5);
-    s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 12);
+    s = reveal(s, "q1", "x^2 + 5x + 6 = 0", 5);
+    s = reveal(s, "q1", "(x - 2)(x - 3) = 0", 12);
     expect(s.prompt).toBeNull();
     expect(s.escalation.counts["algebra.expand-factor"]).toBe(1);
     s = sessionReducer(s, { type: "problem/goto", index: 1 });
@@ -369,7 +369,7 @@ describe("escalation inside the session", () => {
     const answers: Confidence[] = [{ level: "confident" }, { level: "low" }, { level: "low-when", leaves: ["algebra.expand-factor.monic"] }];
     for (const confidence of answers) {
       let s: StudentSession = { ...sessionAt("working"), confidence };
-      s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 3);
+      s = reveal(s, "q1", "(x - 2)(x - 3) = 0", 3);
       expect(s.prompt, confidence.level).toBeNull();
       expect(s.escalation.counts["algebra.expand-factor"]).toBe(1);
     }
@@ -377,17 +377,17 @@ describe("escalation inside the session", () => {
 
   it("undo and re-reveal of the same wrong line is counted once", () => {
     let s = sessionAt("working");
-    s = reveal(s, "q1", "x^2 - 5x + 6 = 0", 5);
-    s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 12);
+    s = reveal(s, "q1", "x^2 + 5x + 6 = 0", 5);
+    s = reveal(s, "q1", "(x - 2)(x - 3) = 0", 12);
     s = sessionReducer(s, { type: "lines/undo", problem: "q1", strokeCount: 11 });
-    s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 12);
+    s = reveal(s, "q1", "(x - 2)(x - 3) = 0", 12);
     expect(s.escalation.counts["algebra.expand-factor"]).toBe(1);
     expect(s.prompt).toBeNull();
   });
 
   it("accepting the prompt opens the practice overlay; finishing it returns to the same problem", () => {
     let s = sessionAt("working");
-    s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 3);
+    s = reveal(s, "q1", "(x - 2)(x - 3) = 0", 3);
     s = sessionReducer(s, { type: "problem/goto", index: 1 });
     s = reveal(s, "q2", "(2x + 4)(x - 1) = 0", 3);
     s = sessionReducer(s, { type: "prompt/accept", problem: "q2" });
@@ -401,7 +401,7 @@ describe("escalation inside the session", () => {
 
   it("'I need help' after a detected practice raises the caution flag", () => {
     let s = sessionAt("working");
-    s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 3);
+    s = reveal(s, "q1", "(x - 2)(x - 3) = 0", 3);
     s = reveal(s, "q2", "(2x + 4)(x - 1) = 0", 3);
     s = sessionReducer(s, { type: "prompt/decline", problem: "q2" });
     expect(s.escalation.caution).toEqual([]);
@@ -416,12 +416,12 @@ describe("independent rework", () => {
   it("keeps the original version untouched while a second version builds up", () => {
     let s = sessionAt("feedback");
     const original = s.lines.q1.map((l) => l.tex);
-    s = sessionReducer(s, { type: "rework/reveal", problem: "q1", line: { tex: "(x - 2)(x - 3) = 0", strokeCount: 4 } });
-    s = sessionReducer(s, { type: "rework/reveal", problem: "q1", line: { tex: "x = 2", strokeCount: 8 } });
-    expect(s.rework.q1.map((l) => l.tex)).toEqual(["(x - 2)(x - 3) = 0", "x = 2"]);
+    s = sessionReducer(s, { type: "rework/reveal", problem: "q1", line: { tex: "(x + 2)(x + 3) = 0", strokeCount: 4 } });
+    s = sessionReducer(s, { type: "rework/reveal", problem: "q1", line: { tex: "x = -2", strokeCount: 8 } });
+    expect(s.rework.q1.map((l) => l.tex)).toEqual(["(x + 2)(x + 3) = 0", "x = -2"]);
     expect(s.lines.q1.map((l) => l.tex)).toEqual(original);
     s = sessionReducer(s, { type: "rework/undo", problem: "q1", strokeCount: 7 });
-    expect(s.rework.q1.map((l) => l.tex)).toEqual(["(x - 2)(x - 3) = 0"]);
+    expect(s.rework.q1.map((l) => l.tex)).toEqual(["(x + 2)(x + 3) = 0"]);
     expect(s.escalation).toEqual(sessionAt("feedback").escalation);
   });
 
@@ -633,7 +633,7 @@ describe("rework hand-in and the guard", () => {
 describe("teacher force submit", () => {
   it("hands in as it stands, records unattempted problems, shows the notice, and follows the pathway", () => {
     let s = sessionAt("working");
-    s = sessionReducer(s, { type: "line/reveal", problem: "q1", line: { tex: "x^2 - 5x + 6 = 0", strokeCount: 1 } });
+    s = sessionReducer(s, { type: "line/reveal", problem: "q1", line: { tex: "x^2 + 5x + 6 = 0", strokeCount: 1 } });
     s = sessionReducer(s, { type: "advance/apply", id: "force-submit@1", kind: "force-submit", at: 77 }, { pathway: ["whole-class"] });
     expect(s.stage).toBe("waiting");
     expect(s.handedInAt).toBe(77);

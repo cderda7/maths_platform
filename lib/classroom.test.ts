@@ -14,6 +14,17 @@ describe("classroom state", () => {
     expect(pathwayOf(c)).toEqual(["whole-class"]);
     expect(classroomReducer(c, { type: "reset" })).toEqual(INITIAL_CLASSROOM);
   });
+
+  it("the create screen's draft is kept as typed, replaced whole, cleared by null and by reset", () => {
+    const draft = { title: "Set 4", questions: [{ id: "a", text: "Solve for x. x**2 = 4", stem: "Solve for x.", tex: "x^{2} = 4" }], updatedAt: 7 };
+    const c = classroomReducer(INITIAL_CLASSROOM, { type: "draft/set", draft });
+    expect(c.draft).toEqual(draft);
+    expect(c.assignment).toBeNull();
+    const again = { ...draft, questions: [], updatedAt: 9 };
+    expect(classroomReducer(c, { type: "draft/set", draft: again }).draft).toEqual(again);
+    expect(classroomReducer(c, { type: "draft/set", draft: null }).draft).toBeNull();
+    expect(classroomReducer(c, { type: "reset" }).draft).toBeUndefined();
+  });
 });
 
 describe("active assignment", () => {

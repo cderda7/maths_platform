@@ -19,7 +19,7 @@ describe("feedback layers", () => {
     const fb = feedbackFor(scriptedSession());
     const reds = fb.flatMap((p) => p.lines.filter((l) => l.verdict.verdict === "wrong").map((l) => [p.problem.id, l.tex.slice(0, 12)]));
     expect(reds).toEqual([
-      ["q1", "(x + 2)(x + "],
+      ["q1", "(x - 2)(x - "],
       ["q2", "(2x + 4)(x -"],
       ["q3", "x - 3 = 6 \\;"],
       ["q7", "x^2 + 6x + \\"],
@@ -94,8 +94,8 @@ describe("detective feedback summary", () => {
     expect(feedbackSummary(reworked, "final").sentence).toBe("1 of your problems still contains a mistake. Double-check fractions.");
     expect(feedbackSummary(reworked, "original").count).toBe(5);
     let partial = sessionAt("feedback");
-    partial = sessionReducer(partial, { type: "rework/reveal", problem: "q1", line: { tex: "(x - 2)(x - 3) = 0", strokeCount: 1 } });
-    partial = sessionReducer(partial, { type: "rework/reveal", problem: "q1", line: { tex: "x = 2 \\text{ or } x = 3", strokeCount: 2 } });
+    partial = sessionReducer(partial, { type: "rework/reveal", problem: "q1", line: { tex: "(x + 2)(x + 3) = 0", strokeCount: 1 } });
+    partial = sessionReducer(partial, { type: "rework/reveal", problem: "q1", line: { tex: "x = -2 \\text{ or } x = -3", strokeCount: 2 } });
     const f = feedbackSummary(partial, "final");
     expect(f.count).toBe(4);
     expect(f.sentence).toMatch(/^4 of your problems still contain a mistake\./);
@@ -152,10 +152,10 @@ describe("incomplete work", () => {
 
   it("finishing problems on the rework pad counts the box down; the last one takes the box away", async () => {
     const { progressOf, feedbackSummary } = await import("./feedback");
-    let s = rework(thinHandIn(), "q1", ["(x - 2)(x - 3) = 0"]);
+    let s = rework(thinHandIn(), "q1", ["(x + 2)(x + 3) = 0"]);
     expect(progressOf(s, "q1")).toBe("unfinished");
     expect(feedbackSummary(s).incomplete).toBe(10);
-    s = rework(s, "q1", ["x = 2" + OR + "x = 3"]);
+    s = rework(s, "q1", ["x = -2" + OR + "x = -3"]);
     expect(progressOf(s, "q1")).toBe("finished");
     expect(feedbackSummary(s).incomplete).toBe(9);
     expect(feedbackSummary(s).incompleteHead).toBe("9 problems are incomplete.");
@@ -170,7 +170,7 @@ describe("incomplete work", () => {
 
   it("a wrong step while finishing a blank problem changes neither box nor the hand-in notice", async () => {
     const { progressOf, feedbackSummary } = await import("./feedback");
-    let s = rework(thinHandIn(), "q1", ["(x + 2)(x + 3) = 0", "x = -2" + OR + "x = -3"]);
+    let s = rework(thinHandIn(), "q1", ["(x - 2)(x - 3) = 0", "x = 2" + OR + "x = 3"]);
     expect(progressOf(s, "q1")).toBe("finished");
     const f = feedbackSummary(s);
     expect(f).toMatchObject({ count: 0, hint: [], incomplete: 9, head: "No mistakes in your first submission." });

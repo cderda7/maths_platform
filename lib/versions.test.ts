@@ -5,8 +5,8 @@ import { alignVersions, changedRowCount, rowChanged, versionsOf } from "./versio
 describe("submission history", () => {
   it("the final version is the rework where there is one, otherwise the handed-in lines", () => {
     const [original, final] = versionsOf(sessionAt("history"));
-    expect(original.lines.q1.map((l) => l.tex)[1]).toBe("(x + 2)(x + 3) = 0");
-    expect(final.lines.q1.map((l) => l.tex)[0]).toBe("(x - 2)(x - 3) = 0");
+    expect(original.lines.q1.map((l) => l.tex)[1]).toBe("(x - 2)(x - 3) = 0");
+    expect(final.lines.q1.map((l) => l.tex)[0]).toBe("(x + 2)(x + 3) = 0");
     expect(final.lines.q4).toEqual(original.lines.q4);
     expect(original.at).toBeGreaterThan(0);
     expect(final.at).toBeGreaterThan(original.at);

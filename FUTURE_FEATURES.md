@@ -1374,6 +1374,48 @@ agents add sections above it and leave it alone.
   field, checklist of problems, unit focus, pathway map) either becomes the tile screen's route or
   is deleted; the "New assignment" pill in the teacher chrome points at whichever survives.
 
+## The create screen: typing questions into tiles (from ticket 119, 2026-09-11)
+
+- **Teaching the typing convention.** The user (2026-09-11): "i'll type in basic like coding
+  language, eg x**2 & want that to render as KaTeX. add to F_F bc that's obv not intuitive for
+  teacher." Nothing on the screen says how to type maths (the user: "nothing at all -- i'll
+  resolve later"); the live tile is the only teacher. Options when it is resolved: a quiet line
+  under the grid ("Type maths as you would on a calculator: x**2, 1/3, sqrt(2)"), a first-run
+  example tile, a "?" beside the title, or a small palette of buttons that insert the forms.
+- **An explicit maths delimiter.** Backticks or `$…$` around maths would remove every wrong guess
+  of the detector (it sets "Q3" and "2 marks" in maths, and "as x grows" leaves the x in prose);
+  deferred with the LaTeX concern. The parser already reads `$`-free text, so a delimiter would be
+  an addition, not a change.
+- **Questions bigger than the tile.** The user: "no internal scroll. for rn we'll assume all
+  questions will fit." A tile is fixed at the grid's square and clips (ASSUMPTIONS.md). A long
+  worded question, or a focused tile whose text box plus rendering exceed the square, is cut off.
+  Options: the focused tile grows and its row with it; the tile scrolls inside with a fade; the
+  text shrinks to fit (`FitText`); a taller row proportion.
+- **Adding a graph or figure to a typed question.** The user: "put adding a graph in F_F. we'll
+  leave Q8 but yeah not possible to generate new graph organically." The bank's Q8 carries a
+  `figure` id drawn by `components/Figure`; a typed question has no way to attach one. Options: a
+  figure picker from a small library, an upload, or a function plotter fed from the expression
+  (the expression is already TeX; a plotter would need it as a function).
+- **Sub-parts (a), (b), (c).** A tile is one question; there is no sub-part. A newline is already
+  taken for the prose/expression split, so sub-parts would want their own affordance (a "+ part"
+  in the tile, or "a)" at the start of a line).
+- **Reordering tiles.** No drag or move; a removed tile comes back where it was. A drag handle, or
+  Alt+arrows while a tile is focused, would do.
+- **Worked solutions, difficulty and skills per question.** The old screen showed difficulty tags
+  and leaf chips; the create screen shows none (the user: "eliminate all this"). Where they
+  belong, if anywhere, is the review screen's decision; the model solution (`Problem.solution`)
+  the student's marking runs on has no source for a typed question at all.
+- **An undo stack.** One removal is restorable ("Q2 removed. Undo", Cmd+Z); a second removal
+  replaces it. A stack is a list instead of a value.
+- **Empty tiles in the middle.** A tile emptied with select-all-delete, not Backspace, stays as an
+  empty numbered tile with the ghost's placeholder but a solid border; it is dropped from the
+  draft. Backspace in it removes it. A blur could remove it too.
+- **The old screen.** `/teacher/assignments/new` stays reachable by URL, unlinked, until the
+  review screen replaces it; then it and `PathwayMap`'s home should go or move.
+- **The draft is the classroom store's.** It is mirrored to every tab and survives Reset demo only
+  as far as `reset` clears it (it does). A teacher with two tabs open on the create screen would
+  see the last writer win on reload, not live.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

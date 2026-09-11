@@ -2170,3 +2170,60 @@ not give the answer away. Runs persisted before this change keep a `stuck` key n
 **Defence.** The mode's one behaviour was to reveal, and its reveal was wrong in the common case.
 Deleting it is smaller than fixing it, the run's shape loses a field, and the peer turn loses a
 seven-second pause that only existed for the reveal.
+
+## 2026-09-11 · Typed maths is detected by token, not delimited, and read into the card's shape
+
+**Decision.** On the create screen a question is one free-text box. `lib/mathInput` finds the
+maths by token: a token is *strong* (a digit, one of `^ * / = < >`, a bare operator, a call like
+`sqrt(`) or *weak* (a single letter), and a run of them with at least one strong token is maths; a
+token ending in sentence punctuation can only close a run; a weak tail is prose unless an operator
+holds it. The last run that ends the text is the centred expression, the rest render inline in
+the prose, and a newline forces the split. The shorthand grammar (`**`, `/` as a stacked fraction
+bound to the atoms either side, `*`, `sqrt()`, `pi`, `<=`, …) is converted to TeX; whatever KaTeX
+still rejects is shown as typed. The draft is saved to the classroom store on every change as the
+typed text plus the parsed stem (inline maths as `$…$`) and expression.
+
+**Context.** Ticket 119. The user: "i'll type in basic like coding language, eg x**2 & want that
+to render as KaTeX", and the student's card is prose over one display expression (`Problem.stem`
++ `tex`), which the typed line has to be split into.
+
+**Alternatives considered.**
+- *Two boxes per question, words and maths.* Matches the data shape exactly, but the bank's own
+  Q10 has maths inside its prose ("the graph of y = x² + 4x + 5"), and a teacher writes in
+  sentences. Rejected.
+- *An explicit delimiter (backticks or `$`).* Unambiguous, but it is the "inputting LaTeX
+  concern" the user set aside, one more convention to teach. Rejected for now; noted in
+  FUTURE_FEATURES beside the `**` convention itself.
+- *A single letter always as maths.* Would set the "a" of "a ball" and the "x" of "for x." in
+  italic; the weak/strong rule keeps them prose while "y = x**2" is maths.
+- *Store only the typed text and let the next screen parse.* The parser is pure and exported, so
+  it could; the parsed shape is stored as well so the review screen (another agent's work) has the
+  card's shape in hand without reaching for the parser.
+
+**Tradeoffs.** Detection can guess wrong ("as in Q3" sets Q3 in maths; "2 marks" sets the 2), and
+the live preview is the only correction, plus Shift+Enter for the split. Storing the parsed shape
+beside the text is a derived copy that could drift if the grammar changes; the draft is short-lived
+(one sitting), so a stale stem is a reload away from fresh.
+
+**Defence.** A single box with live rendering is what "fantastic user experience" for typing
+questions means; the rule is small, tested against the bank's ten questions, and every mis-detect
+is visible in the tile as it is typed.
+
+## 2026-09-11 · The create screen is a new route; the old screen stays as a reference
+
+**Decision.** `/teacher/assignments/create` (and `…/create/review` as a stub) are new; the
+"New assignment" pill points at the create route; `/teacher/assignments/new` is left as it was,
+reachable by URL only.
+
+**Context.** Ticket 119. The user wants the old screen kept so a second agent, building the
+review screen, can reference its unit-focus and pathway sections.
+
+**Alternatives considered.** *Rewrite the old screen in place* (loses the reference); *nest the
+new screen under the old route* (the pill would still land on the old flow). Rejected.
+
+**Tradeoffs.** Two creation entry points exist until the review screen lands, one of them
+unlinked. The old screen's `assignment/create` is still the only thing that sets the assignment
+in force; the draft does not, by design.
+
+**Defence.** The smallest change that gives the teacher the new flow from the pill and the other
+agent an untouched reference.

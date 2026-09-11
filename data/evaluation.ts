@@ -56,18 +56,18 @@ const CONCL: LeafId = "reasoning.justify.conclusions";
 
 export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
   q1: {
-    "x^2 - 5x + 6 = 0": ok(T(QUAD), "Standard form"),
-    "(x-2)(x-3) = 0": ok(T(MONIC), "Factorised"),
-    "(x - 2)(x - 3) = 0": ok(T(MONIC), "Factorised"),
-    "x = 2 \\;\\text{or}\\; x = 3": A(ok(T(NFL, QUAD), "Null factor law")),
-    "(x + 2)(x + 3) = 0": wrong(
+    "x^2 + 5x + 6 = 0": ok(T(QUAD), "Standard form"),
+    "(x+2)(x+3) = 0": ok(T(MONIC), "Factorised"),
+    "(x + 2)(x + 3) = 0": ok(T(MONIC), "Factorised"),
+    "x = -2 \\;\\text{or}\\; x = -3": A(ok(T(NFL, QUAD), "Null factor law")),
+    "(x - 2)(x - 3) = 0": wrong(
       T(MONIC),
       "Factorised",
       "Somewhere a pair of signs doesn't survive the trip back. Expanding a factorisation is a one-line check.",
       "Expand this back: what sign does the x term come out with?",
     ),
-    "x = 2, 3": A(okc(T(NFL), "Roots read off, the null factor law not shown")),
-    "x = -2 \\;\\text{or}\\; x = -3": A(ok(T(NFL, QUAD), "Null factor law", true)),
+    "x = -2, -3": A(okc(T(NFL), "Roots read off, the null factor law not shown")),
+    "x = 2 \\;\\text{or}\\; x = 3": A(ok(T(NFL, QUAD), "Null factor law", true)),
   },
   q2: {
     "2x^2 + 7x - 4 = 0": ok(T(QUAD), "Standard form"),

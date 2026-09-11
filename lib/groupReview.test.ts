@@ -30,7 +30,7 @@ describe("check and the first-mistake cut", () => {
     expect(checkBoard("q1", RECOGNITION_REWORK.q1)).toEqual({ correct: true, cut: -1 });
     expect(checkBoard("q3", RECOGNITION.q3)).toEqual({ correct: false, cut: 1 });
     expect(checkBoard("q1", [])).toEqual({ correct: false, cut: -1 });
-    expect(checkBoard("q1", ["x^2 - 5x + 6 = 0"]).correct).toBe(true);
+    expect(checkBoard("q1", ["x^2 + 5x + 6 = 0"]).correct).toBe(true);
     expect(checkBoard("q1", ["\\text{something new}"]).correct).toBe(false);
   });
   it("shows up to the first wrong line, that line red, the rest as a count; a clean attempt whole and unmarked", () => {

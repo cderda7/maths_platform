@@ -54,7 +54,7 @@ export default function TeacherChrome({ children }: { children: ReactNode }) {
             </nav>
           </div>
           <div className="flex items-center gap-3 text-[13px] text-ink-soft">
-            <Link href="/teacher/assignments/new" className={`rounded-full px-3 py-1 text-[13.5px] font-medium transition-colors ${path === "/teacher/assignments/new" ? "bg-accent-soft text-accent-deep" : "text-ink-soft hover:bg-cream-deep hover:text-ink"}`} data-new-assignment>
+            <Link href="/teacher/assignments/create" className={`rounded-full px-3 py-1 text-[13.5px] font-medium transition-colors ${path.startsWith("/teacher/assignments/") ? "bg-accent-soft text-accent-deep" : "text-ink-soft hover:bg-cream-deep hover:text-ink"}`} data-new-assignment>
               New assignment
             </Link>
             <span>{ASSIGNMENT.teacher}</span>

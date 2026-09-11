@@ -52,8 +52,29 @@ export interface WholeClassSession {
   ink: Record<string, Stroke[]>;
 }
 
+/**
+ * One question the teacher typed on the create screen (ticket 119). `text` is what they typed;
+ * `stem` and `tex` are the same text read by `parseQuestion` (`lib/mathInput`) into the shape of
+ * the student's card: prose with inline maths as `$…$`, and the centred expression or null.
+ */
+export interface DraftQuestion {
+  id: string;
+  text: string;
+  stem: string;
+  tex: string | null;
+}
+
+/** The assignment being created: the create screen writes it, the review screen reads it. */
+export interface AssignmentDraft {
+  title: string;
+  questions: DraftQuestion[];
+  updatedAt: number;
+}
+
 export interface ClassroomState {
   assignment: CreatedAssignment | null;
+  /** The teacher's draft on the create screen; kept across reloads, cleared by reset. */
+  draft?: AssignmentDraft | null;
   advance: PendingAdvance | null;
   wholeClass: WholeClassSession | null;
   /** The teacher's seating groups, per class; absent in older stored state (read through `seatingOf`). */
@@ -66,6 +87,8 @@ export interface ClassroomState {
 
 export type ClassroomAction =
   | { type: "assignment/create"; title: string; problemIds: string[]; pathway: Pathway; unit?: 1 | 2 | 3 | 4; at?: number }
+  /** The create screen's draft as typed; null clears it. */
+  | { type: "draft/set"; draft: AssignmentDraft | null }
   /** The groups page: move one student to a colour. */
   | { type: "groups/move"; student: string; to: GroupColour }
   | { type: "groups/reset" }
@@ -105,6 +128,8 @@ export const INITIAL_CLASSROOM: ClassroomState = { assignment: null, advance: nu
 
 export function classroomReducer(c: ClassroomState, a: ClassroomAction): ClassroomState {
   switch (a.type) {
+    case "draft/set":
+      return { ...c, draft: a.draft };
     case "assignment/create":
       return { ...c, assignment: { title: a.title, problemIds: [...a.problemIds], pathway: [...a.pathway], unit: a.unit ?? 1, createdAt: a.at ?? 0 } };
     case "advance/start": {

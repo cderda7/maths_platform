@@ -196,3 +196,29 @@ body {
   background-size: 400px 100%;
   animation: shimmer 1.1s linear infinite;
 }
+
+/* The create screen's question box grows with its text (ticket 119): the wrapper's ::after mirrors the value in the same cell, so the textarea takes the height of the text without a script. */
+.grow-wrap {
+  display: grid;
+}
+.grow-wrap::after {
+  content: attr(data-value) " ";
+  white-space: pre-wrap;
+  visibility: hidden;
+}
+.grow-wrap > textarea {
+  resize: none;
+  overflow: hidden;
+}
+.grow-wrap > textarea,
+.grow-wrap::after {
+  grid-area: 1 / 1 / 2 / 2;
+  font: inherit;
+  line-height: inherit;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+}
+.grow-wrap > textarea:focus {
+  border-color: var(--color-accent-line);
+}

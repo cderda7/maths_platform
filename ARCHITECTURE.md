@@ -12,7 +12,9 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
  browser tab A · student iPad                        browser tab B · teacher laptop
  ┌──────────────────────────────────┐                ┌──────────────────────────────────┐
  │ /student?stage=  page.tsx (server)│               │ /teacher  page.tsx ▶ TeacherLive │
- │ /teacher/assignments/new         │                │   (no board indicator, ticket 55)│
+ │ /teacher/assignments/create      │                │   (no board indicator, ticket 55)│
+ │   CreateAssignment ▶ QuestionTile (the tile is the editor) ▶ QuestionView ◀ lib/mathInput (x**2 → KaTeX); draft/set ▶ …/create/review (stub)│
+ │ /teacher/assignments/new (old)   │
  │   NewAssignment ▶ PathwayMap     │
  │ /teacher/whole-class ▶ setup     │
  │ /teacher/board ▶ BoardControls   │   (pad · prev · mode · marks · End · next; no examples)
@@ -248,6 +250,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 115 | The hand-in check: Hand in over a blank problem opens a card bottom right ("Hand in with Q7 blank?" / "Return to Q7" / "Confirm submit", or "Return to Q2, Q3, Q4" with a blue box under the pointer) instead of handing in; returning puts Hand in in the footer with "Jump to Qn" to its left while another blank remains; a starred problem's tile is the star alone | `/student` while working | — | [architecture/115-hand-in-check.md](architecture/115-hand-in-check.md) |
 | 117 | The group board's "we're stuck" mode is removed: no button, no reveal of everyone's earlier work, no scripted press on Jordan's Q3 turn; the action row is Check alone (or "checks when ready") at the right | `…?stage=group` | 40, 76 | [architecture/117-remove-stuck.md](architecture/117-remove-stuck.md) |
 | 116 | The handed-in screen stacks two soft boxes: "N problems are incomplete." (a problem is finished once any line, first hand-in or rework, is an answer line, right or wrong; counts down live, gone at zero) above the detective sentence, which names the first submission while anything is outstanding; rows read not attempted / unfinished / N lines; a slip made while finishing a problem blank at hand-in is never counted | `…?stage=feedback`, the post-rework notice | 07, 111 | [architecture/116-incomplete-count.md](architecture/116-incomplete-count.md) |
+| 119 | The create screen: a title and the questions typed into tiles in the student's five-wide grid, each tile the editor (typed text on top, the rendered question beneath, live; `x**2`, `1/3`, `sqrt(2)` as KaTeX), a ghost for the next, Enter / Shift+Enter / Backspace / × / paste-split, "Q2 removed. Undo" and Cmd+Z, the draft in the classroom store, Continue pinned to a review stub; the old screen untouched; the bank's Q1 is `x^2 + 5x + 6 = 0` | `/teacher/assignments/create`, `…/create/review` | 19, 117 | [architecture/119-create-assignment.md](architecture/119-create-assignment.md) |
 
 ## Conventions
 
