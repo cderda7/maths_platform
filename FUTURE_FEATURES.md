@@ -1901,6 +1901,18 @@ agents add sections above it and leave it alone.
   options; a pointer over the disabled button explaining why (a title, or the options
   outlined) deferred until someone hovers it puzzled.
 
+## The "select one" nudge (from ticket 147, 2026-09-12)
+
+- **Supersedes "A nudge on Project" (ticket 146).** Pressing the faded Project now answers
+  with "select one" on the button and a three-beat light-blue flash on both options.
+- **Focus with the flash.** The flash is visual only; moving keyboard focus to the first option
+  on the press (so Space or the arrows pick one) deferred until the page has keyboard use.
+- **The same nudge for "no problem checked".** With every problem unchecked Project is simply
+  disabled; a press does nothing. Flashing the problem list the same way deferred: unchecking
+  all three is a deliberate act, not an oversight.
+- **Scroll the options into view.** On a short window the options can sit above the fold when
+  Project is pressed; scrolling them into view before the flash deferred.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

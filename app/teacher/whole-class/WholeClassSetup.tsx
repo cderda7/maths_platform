@@ -17,7 +17,8 @@ const PRECHECK = 3;
 /**
  * The private setup for whole-class review: which problems, and which 2–3 examples per problem.
  * Names and correctness show here and nowhere near the projector. What the students' screens do
- * (frozen or write with me) starts unchosen: both options empty, Project off until one is picked.
+ * (frozen or write with me) starts unchosen: both options empty, Project faded until one is picked;
+ * pressing it anyway turns its label to "select one" and flashes the two options light blue.
  */
 export default function WholeClassSetup() {
   const router = useRouter();
@@ -28,6 +29,8 @@ export default function WholeClassSetup() {
   const [overrides, setOverrides] = useState<Record<string, ExampleRef[]>>({});
   /** What the students' screens do: no default (ticket 146), the teacher picks one before Project comes on. */
   const [mode, setMode] = useState<FollowMode | null>(null);
+  /** How many times Project was pressed with no mode chosen: the button reads "select one" and the options flash (each press restarts the flash). */
+  const [nudge, setNudge] = useState(0);
   const chosenIds = chosen ?? ranked.slice(0, PRECHECK).map((r) => r.problem.id);
   const toggle = (id: string) => setChosen(chosenIds.includes(id) ? chosenIds.filter((x) => x !== id) : [...chosenIds, id]);
   const examplesFor = (pid: string) => overrides[pid] ?? suggestExamples(candidatesFor(pid, session));
@@ -91,8 +94,17 @@ export default function WholeClassSetup() {
               ] as { m: FollowMode; detail: string }[]
             ).map(({ m, detail }) => {
               const on = mode === m;
+              const flash = !mode && nudge > 0;
               return (
-                <button key={m} type="button" onClick={() => setMode(m)} aria-pressed={on} data-mode={m} className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left transition-colors ${on ? "border-ink bg-paper" : "border-line bg-paper hover:border-ink-muted"}`}>
+                <button
+                  key={`${m}:${nudge}`}
+                  type="button"
+                  onClick={() => setMode(m)}
+                  aria-pressed={on}
+                  data-mode={m}
+                  data-flash={flash || undefined}
+                  className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left transition-colors ${on ? "border-ink bg-paper" : "border-line bg-paper hover:border-ink-muted"} ${flash ? "choose-flash" : ""}`}
+                >
                   <span className={`grid h-4 w-4 shrink-0 place-items-center rounded-full border ${on ? "border-ink" : "border-line-strong"}`} aria-hidden>
                     {on && <span className="h-2 w-2 rounded-full bg-ink" />}
                   </span>
@@ -104,8 +116,17 @@ export default function WholeClassSetup() {
           </div>
           <p className="mt-2 text-[12px] text-ink-muted">{mode ? "You can change this per problem from the board." : "Choose one to project."}</p>
           <div className="mt-5 flex justify-end">
-            <Button size="lg" disabled={ordered.length === 0 || !mode} onClick={project} data-project>
-              Project
+            {/* With no mode chosen the button looks off but still takes the press: it answers "select one" and the options flash. Truly off only with no problem checked. */}
+            <Button
+              size="lg"
+              disabled={ordered.length === 0}
+              aria-disabled={!mode || undefined}
+              className={mode ? "" : "opacity-40"}
+              onClick={() => (mode ? project() : setNudge((n) => n + 1))}
+              data-project
+              data-nudged={(!mode && nudge > 0) || undefined}
+            >
+              {!mode && nudge > 0 ? "select one" : "Project"}
             </Button>
           </div>
         </Card>

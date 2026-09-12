@@ -119,7 +119,8 @@ Teacher, during the lesson (`/teacher`):
 - **Whole-class setup** (`/teacher/whole-class`): problems ranked by how many struggled, top
   three pre-checked; 2–3 suggested examples per problem with names and correctness (private),
   swappable; **Student screens** (screens frozen / write with me) starts with neither chosen and
-  **Project** stays off until you pick one. **Project** opens the board and starts the grace.
+  **Project** sits faded until you pick one (press it anyway and it reads **select one** while the
+  two options flash light blue). **Project** opens the board and starts the grace.
 - **Board controls** (`/teacher/board`): which problem is up, what the board is showing, the
   teacher's pad (mirrored to frozen students and to the board); Previous · screens frozen /
   write with me · Show marks · End · Next.
