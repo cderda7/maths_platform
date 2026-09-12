@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import TeacherChrome from "./TeacherChrome";
 import DiagnosticPush from "./DiagnosticPush";
@@ -26,6 +26,13 @@ import { useBatchedSession, useNow } from "@/lib/store";
 
 /** How long a second click may follow the first and still count as a double-click. */
 const DOUBLE_MS = 350;
+
+/**
+ * How long after the pointer last left a category pill the row's buttons stay away (ticket 131). A
+ * teacher moving between pills is using the pills; the buttons are for one who would not think to,
+ * and come back once the pointer has sat off the pills this long.
+ */
+const PILL_GRACE_MS = 2000;
 
 /** The grey uppercase label beside a category pill: the category name in a column view, the unit beside the Unit pill in a drill. */
 const LABEL = "pointer-events-none absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink-muted";
@@ -73,6 +80,18 @@ export default function TeacherLive() {
   const tableRef = useRef<HTMLTableElement>(null);
   const lastClick = useRef<{ student: string; at: number } | null>(null);
   const nonce = useRef(0);
+  /** True once the pointer has been off every category pill for PILL_GRACE_MS; the row buttons need it. One timer for the grid: pills in any row count. */
+  const [pillQuiet, setPillQuiet] = useState(true);
+  const pillTimer = useRef<number | undefined>(undefined);
+  const pillEnter = () => {
+    window.clearTimeout(pillTimer.current);
+    setPillQuiet(false);
+  };
+  const pillLeave = () => {
+    window.clearTimeout(pillTimer.current);
+    pillTimer.current = window.setTimeout(() => setPillQuiet(true), PILL_GRACE_MS);
+  };
+  useEffect(() => () => window.clearTimeout(pillTimer.current), []);
   /**
    * Where each category's dots sit, relative to the drill cell's content edge (td px-5 = 20px),
    * in CSS px: rects are scaled by the page's zoom, margins are not, so divide by the scale.
@@ -183,7 +202,7 @@ export default function TeacherLive() {
 
       <div className="mt-10 grid grid-cols-[1fr_320px] gap-6">
         <Card className="overflow-x-auto">
-          <table ref={tableRef} className="w-full min-w-[1040px] table-fixed text-left text-[14px]" data-grid>
+          <table ref={tableRef} className="w-full min-w-[1040px] table-fixed text-left text-[14px]" data-grid data-pill-quiet={pillQuiet || undefined}>
             <colgroup>
               <col className="w-[280px]" />
               {columns.map((c) => (
@@ -274,8 +293,8 @@ export default function TeacherLive() {
                               )}
                             </div>
                           </div>
-                          {/* Shown while the pointer is in the student's block, except over a category pill: the pill is its own way in (ticket 128). */}
-                          <div className="invisible ml-auto flex shrink-0 flex-col gap-1 group-hover/row:visible group-focus-within/row:visible group-has-[[data-dot]:hover]/row:invisible" data-row-actions={r.id}>
+                          {/* Shown while the pointer is in the student's block, except over a category pill (the pill is its own way in, ticket 128) and for PILL_GRACE_MS after it last left one (ticket 131). The CSS :has rule hides at once; the state carries the grace. */}
+                          <div className={`invisible ml-auto flex shrink-0 flex-col gap-1 ${pillQuiet ? "group-hover/row:visible group-focus-within/row:visible group-has-[[data-dot]:hover]/row:invisible" : ""}`} data-row-actions={r.id}>
                             <button type="button" onClick={() => (isOpen ? setOpen(null) : openRow(r.id, "expanded"))} className={isOpen ? STACK_ACTIVE : STACK_IDLE} data-see-skills={r.id} aria-pressed={isOpen}>
                               {isOpen ? "close" : "see dot skills"}
                             </button>
@@ -296,6 +315,8 @@ export default function TeacherLive() {
                               type="button"
                               onClick={() => (on && !column ? setOpen(null) : openRow(r.id, "category", c))}
                               onDoubleClick={() => openRow(r.id, "category", c, undefined, true)}
+                              onPointerEnter={pillEnter}
+                              onPointerLeave={pillLeave}
                               aria-label={`${categoryLabel(c, unit).name}: ${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}
                               aria-expanded={on}
                               className={`inline-grid h-7 w-10 place-items-center rounded-md transition-colors hover:bg-cream-deep ${on ? "bg-cream-deep ring-1 ring-ink" : ""} ${blanked ? "invisible" : ""}`}

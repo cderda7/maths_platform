@@ -1574,6 +1574,21 @@ agents add sections above it and leave it alone.
   a chip floating in empty space beside each collapsed row. Kept the chip at the right edge;
   revisit if the reflow annoys.
 
+## The grace after a pill (from ticket 131, 2026-09-12)
+
+- **Two seconds is a guess.** `PILL_GRACE_MS` is one constant; a teacher who reads slowly
+  between pills may find the buttons popping up mid-thought, a fast one may find the wait long.
+  Tune it once a teacher has used the grid for a session.
+- **Grace on the header chip too.** The column header's see skills / full breakdown buttons
+  still swap in the instant the chip is hovered; the same grace (and the same "the chip is its
+  own way in" rule from ticket 128's deferred note) would make the two hovers consistent.
+- **A fade at the end of the grace.** The buttons appear in one frame when the clock runs out
+  while the pointer is resting; a short fade-in there would read as "you have been still" rather
+  than as something jumping. Kept instant to match the other hover reveals.
+- **Per-row clocks.** Deliberately one clock for the grid; if a teacher ever complains that
+  moving from a pill in one row to the name in the next feels slow, a per-row clock is a
+  `Record<string, number>` in the same place.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
