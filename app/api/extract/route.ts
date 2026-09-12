@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { fixtureDrafts } from "@/data/extract-fixtures";
-import { base64ToBytes, EXTRACT_MAX_TOKENS, EXTRACT_MODEL, extractMessages, extractSystem, LineBuffer, MAX_PAGES, parseDraftLine, parseExtractRequest, pdfPageCount, type ExtractEvent, type ExtractFailure, type Source } from "@/lib/extract";
+import { fixtureDrafts, fixtureFix } from "@/data/extract-fixtures";
+import { base64ToBytes, EXTRACT_MAX_TOKENS, EXTRACT_MODEL, extractMessages, extractSystem, LineBuffer, MAX_PAGES, parseDraftLine, parseExtractRequest, pdfPageCount, type ExtractEvent, type ExtractFailure, type ExtractRequest, type Source } from "@/lib/extract";
 
 /**
  * Problem extraction (ticket 170): the create screen posts one or more sources (typed text, an
@@ -9,7 +9,8 @@ import { base64ToBytes, EXTRACT_MAX_TOKENS, EXTRACT_MODEL, extractMessages, extr
  * environment (`ANTHROPIC_API_KEY`, or an `ant auth login` profile), the first event awaited
  * before the response commits so a failure is an HTTP status the screen can read, not a broken
  * stream. With `EXTRACT_FIXTURES=1` the model is skipped and `data/extract-fixtures.ts`
- * answers, one draft per beat, so the streaming path is exercised without a key.
+ * answers, one draft per beat, so the streaming path is exercised without a key. A `fix`
+ * request (ticket 173) is the same route with one draft and a correction in, one draft out.
  */
 export const runtime = "nodejs";
 
@@ -27,18 +28,25 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 /** A PDF past the page cap, checked here as well as in the browser; a PDF whose pages cannot be counted passes (the model reads it either way). */
 const overPageCap = (s: Source) => s.kind === "pdf" && (pdfPageCount(base64ToBytes(s.data)) ?? 0) > MAX_PAGES;
 
-function fixtureStream(sources: Source[]): Response {
+function fixtureStream(request: ExtractRequest): Response {
   const encoder = new TextEncoder();
   const out = new ReadableStream<Uint8Array>({
     async start(controller) {
       try {
-        for (let i = 0; i < sources.length; i++) {
-          const drafts = await fixtureDrafts(sources[i], i);
-          for (const d of drafts) {
-            await sleep(FIXTURE_BEAT_MS);
-            controller.enqueue(encoder.encode(line({ type: "draft", ...d })));
+        if (request.mode === "fix") {
+          await sleep(FIXTURE_BEAT_MS);
+          controller.enqueue(encoder.encode(line({ type: "draft", ...fixtureFix(request) })));
+          controller.enqueue(encoder.encode(line({ type: "done", source: 0 })));
+        } else {
+          const { sources } = request;
+          for (let i = 0; i < sources.length; i++) {
+            const drafts = await fixtureDrafts(sources[i], i);
+            for (const d of drafts) {
+              await sleep(FIXTURE_BEAT_MS);
+              controller.enqueue(encoder.encode(line({ type: "draft", ...d })));
+            }
+            controller.enqueue(encoder.encode(line({ type: "done", source: i })));
           }
-          controller.enqueue(encoder.encode(line({ type: "done", source: i })));
         }
         controller.close();
       } catch (e) {
@@ -52,17 +60,21 @@ function fixtureStream(sources: Source[]): Response {
 export async function POST(req: Request): Promise<Response> {
   const parsed = parseExtractRequest(await req.json().catch(() => null));
   if (!parsed.ok) return fail(parsed.failure, parsed.failure === "too-large" ? 413 : 400);
-  const { sources } = parsed.request;
+  const request = parsed.request;
+  const sources = request.mode === "fix" ? (request.source ? [request.source] : []) : request.sources;
   if (sources.some(overPageCap)) return fail("too-large", 413);
 
-  if (process.env.EXTRACT_FIXTURES === "1") return fixtureStream(sources);
+  if (process.env.EXTRACT_FIXTURES === "1") return fixtureStream(request);
+
+  // A fix answers for one draft: its lines are read as source 0 whatever the model writes.
+  const sourceCount = request.mode === "fix" ? 1 : sources.length;
 
   const client = new Anthropic();
   const stream = client.beta.messages.stream({
     model: EXTRACT_MODEL,
     max_tokens: EXTRACT_MAX_TOKENS,
-    system: extractSystem(),
-    messages: extractMessages(sources),
+    system: extractSystem(request.mode),
+    messages: extractMessages(request),
     // A declined turn re-runs on a fallback model server-side rather than leaving the teacher with nothing.
     betas: ["server-side-fallback-2026-07-01"],
     fallbacks: "default",
@@ -88,14 +100,14 @@ export async function POST(req: Request): Promise<Response> {
   const out = new ReadableStream<Uint8Array>({
     async start(controller) {
       const lines = new LineBuffer();
-      const emitted = new Array<number>(sources.length).fill(0);
-      const dropped = new Array<number>(sources.length).fill(0);
+      const emitted = new Array<number>(sourceCount).fill(0);
+      const dropped = new Array<number>(sourceCount).fill(0);
       const push = (ev: ExtractEvent) => controller.enqueue(encoder.encode(line(ev)));
       // Every complete line the model writes: a draft goes out at once; a fence or a stray word is dropped and counted against the first source (a line with no source names none).
       const take = (ls: string[]) => {
         for (const l of ls) {
           if (!l.trim() || l.trim().startsWith("```")) continue;
-          const d = parseDraftLine(l, sources.length);
+          const d = parseDraftLine(l, sourceCount);
           if (d) {
             emitted[d.source]++;
             push({ type: "draft", ...d });
@@ -107,10 +119,10 @@ export async function POST(req: Request): Promise<Response> {
         take(lines.end());
         const final = await stream.finalMessage();
         const declined = final.stop_reason === "refusal";
-        sources.forEach((_, i) => {
+        for (let i = 0; i < sourceCount; i++) {
           if (declined && emitted[i] === 0) push({ type: "error", source: i, reason: "declined" });
           else push(dropped[i] > 0 ? { type: "done", source: i, dropped: dropped[i] } : { type: "done", source: i });
-        });
+        }
         controller.close();
       } catch (e) {
         controller.error(e);

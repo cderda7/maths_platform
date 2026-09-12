@@ -49,7 +49,7 @@ export default function RecommendationsStep({
           ))}
         </div>
       )}
-      <QuestionGrid items={final.map((q) => ({ id: q.id, text: q.text, difficulty: q.difficulty, origin: q.origin }))} />
+      <QuestionGrid items={final.map((q) => ({ id: q.id, text: q.text, stem: q.stem, tex: q.tex, figureUrl: q.figureUrl, difficulty: q.difficulty, origin: q.origin }))} />
       <div className="fixed bottom-16 right-6 z-30 flex items-center gap-3">
         <Button variant="ghost" onClick={onBack} data-back>
           Back

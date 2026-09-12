@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ExtractEvent } from "./extract";
-import { bytesToBase64, ExtractError, extractSource, fileToSource } from "./extractClient";
+import { bytesToBase64, ExtractError, extractSource, fileToSource, fixDraft } from "./extractClient";
 
 const stream = (text: string) =>
   new ReadableStream<Uint8Array>({
@@ -52,7 +52,7 @@ describe("extractSource", () => {
       { type: "done", source: 0 },
     ]);
     expect(seen.url).toBe("/api/extract");
-    expect(seen.body).toEqual({ sources: [source] });
+    expect(seen.body).toEqual({ mode: "extract", sources: [source] });
   });
 
   it("a non-2xx answer is the route's failure before anything is yielded; an unknown one reads as unavailable", async () => {
@@ -62,6 +62,19 @@ describe("extractSource", () => {
     await expect(all(extractSource(source, { fetch: f429 }))).rejects.toMatchObject({ failure: "busy" });
     const f500 = fetchWith(() => new Response("boom", { status: 500 }));
     await expect(all(extractSource(source, { fetch: f500 }))).rejects.toMatchObject({ failure: "unavailable" });
+  });
+
+  it("fixDraft posts the fix request and returns the one draft, null when none came, and throws on a declined source (ticket 173)", async () => {
+    const seen: { url?: string; body?: unknown } = {};
+    const f = fetchWith(() => new Response(stream('{"type":"draft","source":0,"stem":"Solve.","tex":"x=9"}\n{"type":"done","source":0}\n'), { status: 200 }), seen);
+    expect(await fixDraft({ stem: "Solve.", tex: "x=1", instruction: "the 1 should be 9", source }, { fetch: f })).toEqual({ type: "draft", source: 0, stem: "Solve.", tex: "x=9" });
+    expect(seen.body).toEqual({ mode: "fix", stem: "Solve.", tex: "x=1", instruction: "the 1 should be 9", source });
+    const none = fetchWith(() => new Response(stream('{"type":"done","source":0}\n'), { status: 200 }));
+    expect(await fixDraft({ stem: "Solve.", tex: "x=1", instruction: "x" }, { fetch: none })).toBeNull();
+    const declined = fetchWith(() => new Response(stream('{"type":"error","source":0,"reason":"declined"}\n'), { status: 200 }));
+    await expect(fixDraft({ stem: "Solve.", tex: "x=1", instruction: "x" }, { fetch: declined })).rejects.toMatchObject({ failure: "declined" });
+    const f503 = fetchWith(() => Response.json({ error: "not-configured" }, { status: 503 }));
+    await expect(fixDraft({ stem: "Solve.", tex: "x=1", instruction: "x" }, { fetch: f503 })).rejects.toMatchObject({ failure: "not-configured" });
   });
 
   it("a request that never reaches the route is network; an aborted one ends quietly", async () => {

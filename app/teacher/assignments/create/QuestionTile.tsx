@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, type ClipboardEvent, type KeyboardEvent, type MouseEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type KeyboardEvent, type MouseEvent } from "react";
 import QuestionView from "@/components/QuestionView";
-import { parseQuestion, splitPaste } from "@/lib/mathInput";
+import { draftText, parseQuestion, splitPaste } from "@/lib/mathInput";
 import type { QuestionItem } from "@/lib/upload";
 
 export interface TileHandlers {
@@ -20,7 +20,14 @@ export interface TileHandlers {
   onKeep: () => void;
   /** The ghost's Upload link: open the file picker (ticket 171). */
   onUpload: () => void;
+  /** The text changed while the tile was focused and the focus is leaving: have the model read it (ticket 173). */
+  onRead: () => void;
+  /** A correction typed into the Fix line (ticket 173). */
+  onFix: (instruction: string) => void;
 }
+
+/** What the Fix line suggests. */
+export const FIX_PLACEHOLDER = "Fix: e.g. the denominator is 2x";
 
 /** What the ghost says when nothing is typed: the ways a question can arrive here (ticket 171, PDFs with ticket 172). */
 export const GHOST_PLACEHOLDER = "Type a question, or drop a picture or PDF";
@@ -40,11 +47,23 @@ export const GHOST_PLACEHOLDER = "Type a question, or drop a picture or PDF";
  * with a ✓ to keep it and a × to discard it always showing, its text the model's stem then its
  * TeX on a second line (editable like any other), a thumbnail of the file in the corner, and the
  * sheet's own numbering under the label when it printed one.
+ *
+ * Ticket 173: a typed tile whose text changed while it was focused is sent to the model as the
+ * focus leaves (Enter or blur); the shorthand parser's preview stands until the model's reading
+ * arrives (`item.model`, valid while the text is unchanged), then that is what renders, with no
+ * tint. A dot beside the label pulses while the read is in flight. Every focused tile has a Fix
+ * line under its text: a plain-language correction or a line of TeX, Enter to send, Escape to
+ * clear; a shimmer covers the render while the fix is in flight. A figure cut from the source
+ * shows under the question while the tile is not being edited (the editor and the Fix line
+ * would push it under the tile's edge).
  */
 export default function QuestionTile({ index, slot = index, item, ghost, focused, h }: { index: number; slot?: number; item: QuestionItem; ghost: boolean; focused: boolean; h: TileHandlers }) {
   const text = item.text;
-  const parsed = useMemo(() => parseQuestion(text), [text]);
+  const model = item.model && item.model.for === text ? item.model : undefined;
+  const parsed = useMemo(() => (model ? parseQuestion(draftText(model.stem, model.tex)) : parseQuestion(text)), [text, model]);
   const area = useRef<HTMLTextAreaElement>(null);
+  /** The text when the tile took focus, so only a change is sent to the model on the way out. */
+  const focusText = useRef<string | null>(null);
   const label = `Q${slot + 1}`;
   const unconfirmed = item.uploaded === true && item.confirmed === false;
   const source = item.page !== undefined ? `${item.label ? `${item.label} · ` : ""}p. ${item.page}` : item.label;
@@ -57,15 +76,32 @@ export default function QuestionTile({ index, slot = index, item, ghost, focused
     el.setSelectionRange(el.value.length, el.value.length);
   }, [focused]);
 
+  useEffect(() => {
+    focusText.current = focused ? text : null;
+    // The text at the moment of focusing is what a change is measured against; later edits must not move it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focused]);
+
+  /** Leaving the tile (Enter or blur): a changed, non-empty text goes to the model once. */
+  const leaving = () => {
+    if (focusText.current !== null && text !== focusText.current && text.trim()) {
+      focusText.current = text;
+      h.onRead();
+    }
+  };
+
   const keyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
+      leaving();
       h.onNext();
     } else if (e.key === "Backspace" && text === "") {
       e.preventDefault();
       h.onBackspaceEmpty();
     }
   };
+
+
 
   const paste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
     // A pasted picture is the screen's business (a drop by another route); a pasted list is split into tiles here.
@@ -111,10 +147,14 @@ export default function QuestionTile({ index, slot = index, item, ghost, focused
       data-focused={focused || undefined}
       data-uploaded={item.uploaded || undefined}
       data-unconfirmed={unconfirmed || undefined}
+      data-reading={item.reading || undefined}
+      data-fixing={item.fixing || undefined}
+      data-model={model ? "true" : undefined}
     >
       <div className="flex items-center justify-between">
         <span className={`font-display text-[20px] ${ghost ? "text-ink-muted" : "text-ink"}`} data-label>
           {label}
+          {item.reading && <span className="ml-2 inline-block h-2 w-2 animate-pulse rounded-full bg-standout align-middle" aria-label="Reading" data-reading-dot />}
           {source && (
             <span className="ml-2 align-middle font-sans text-[11px] font-semibold tracking-[0.08em] text-standout" data-source-label>
               {source}
@@ -151,15 +191,22 @@ export default function QuestionTile({ index, slot = index, item, ghost, focused
             onChange={(e) => h.onChange(e.target.value)}
             onKeyDown={keyDown}
             onPaste={paste}
-            onBlur={h.onBlur}
+            onBlur={() => {
+              leaving();
+              h.onBlur();
+            }}
             className="w-full bg-cream-deep/70 text-ink outline-none placeholder:text-ink-muted/60"
             data-editor
           />
+          {!ghost && <FixLine label={label} disabled={!!item.fixing} onFix={h.onFix} />}
         </div>
       )}
-      <div className={focused ? "mt-3" : "mt-2.5"}>
+      <div className={`relative ${focused ? "mt-3" : "mt-2.5"}`}>
         <QuestionView parsed={parsed} placeholder={focused ? undefined : ghost ? GHOST_PLACEHOLDER : "Type a question"} />
+        {item.fixing && <div className="shimmer absolute inset-0 rounded-md opacity-80" aria-label="Fixing" data-fixing-shimmer />}
       </div>
+      {/* eslint-disable-next-line @next/next/no-img-element -- a data URL the browser drew */}
+      {item.figure && !focused && <img src={item.figure.url} alt="" className="mt-2 max-h-[40%] w-auto max-w-full self-start rounded-md border border-line" data-figure />}
       {ghost && text === "" && (
         <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={h.onUpload} className="mt-2 self-start text-[13px] font-medium text-accent-deep hover:underline" data-upload>
           Upload
@@ -168,5 +215,40 @@ export default function QuestionTile({ index, slot = index, item, ghost, focused
       {/* eslint-disable-next-line @next/next/no-img-element -- a data URL the browser drew; next/image has nothing to optimise */}
       {item.thumb && <img src={item.thumb} alt="" title={item.name} className="absolute bottom-3 right-3 h-10 w-10 rounded-md border border-line bg-paper object-cover" data-thumb />}
     </div>
+  );
+}
+
+/**
+ * The Fix line under a focused tile's text (ticket 173): a plain-language correction or a line
+ * of TeX, Enter to send, Escape to clear. Its text lives with the focused block and goes when
+ * the focus does. A press inside it stays inside it (the tile's own press handling would move
+ * the caret).
+ */
+function FixLine({ label, disabled, onFix }: { label: string; disabled: boolean; onFix: (instruction: string) => void }) {
+  const [fix, setFix] = useState("");
+  const keyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const instruction = fix.trim();
+      if (!instruction || disabled) return;
+      onFix(instruction);
+      setFix("");
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setFix("");
+    }
+  };
+  return (
+    <input
+      value={fix}
+      onChange={(e) => setFix(e.target.value)}
+      onKeyDown={keyDown}
+      onMouseDown={(e) => e.stopPropagation()}
+      placeholder={FIX_PLACEHOLDER}
+      aria-label={`Fix ${label}`}
+      disabled={disabled}
+      className="mt-1.5 w-full rounded-[10px] border border-transparent bg-transparent px-[10px] py-1 text-[12.5px] text-ink outline-none placeholder:text-ink-muted/60 focus:border-standout-line focus:bg-standout-soft/60 disabled:opacity-60"
+      data-fix
+    />
   );
 }

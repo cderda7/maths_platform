@@ -2508,6 +2508,40 @@ uploaded problems) settled the following as later, each on purpose.
 - **Scanned PDFs.** A scan is an image per page inside a PDF; the model reads it as an image and
   the page thumbnail draws it; handwriting and skew are untested (no such fixture).
 
+## Typed lines through the model, Fix and figures (from ticket 173, 2026-09-13)
+
+- **The preview and the reading disagree for a beat.** "half of x squared plus 3" previews as a
+  bare 3 (the shorthand's token rule) and then becomes ½x² + 3; a teacher watching sees a jump.
+  A quieter preview for a line the parser cannot read well (plain prose, no expression) would
+  hide the wrong guess until the model answers.
+- **Every blur with a change is a model call.** Typing a ten-question set by hand is ten calls;
+  fine at demo scale, a cost at class scale. A debounce is not the answer (blur is already the
+  debounce); a batch of several changed tiles into one request is.
+- **The reading dot is the only sign of a read; a failed read says nothing.** By the interview's
+  choice (Q22 applied to typing). A one-time line in the bar the first time a read fails would
+  tell a teacher on a machine with no key why their plain English never changes.
+- **A Fix on a typed tile turns its shorthand into TeX.** The teacher's own words are gone from
+  the textarea after a Fix; keeping them as a "was" line, or undo for a Fix, is not built.
+- **No undo for a Fix.** The undo line covers removals only; a wrong Fix is fixed with another
+  Fix or by editing the text.
+- **The Fix picture is the whole page.** For a PDF page with ten problems the model gets the page
+  and the draft; a box per problem from the extraction would let the Fix send only its region.
+- **Figures on the student side.** A draft's figure never reaches a student (Create is a wall,
+  `ASSUMPTIONS.md`); when it does, `Problem.figure` is a fixed library id and needs a data-URL or
+  stored-image variant.
+- **The figure hides while editing.** The editor and the Fix line push it under the tile's
+  edge; a taller focused tile, or the figure beside the text, would keep it in view during a Fix
+  about the figure.
+- **Figure crops are boxed by the model, not checked.** A box that misses the diagram gives a
+  crop of white space; nothing flags an almost-empty crop.
+- **A figure's full PNG is per browser.** Like every source (ticket 171); the small JPEG on the
+  draft is what a reload on another machine would have.
+- **Reading a pasted list through the model.** A paste splits into tiles locally and only the
+  focused tile is read on blur; the other pasted lines stay on the parser's reading until each is
+  focused and changed. Reading every new tile once would be a loop over the paste.
+- **The fixture Fix rules are three regexes.** Enough for the click-through; a real Fix reads
+  the sentence. The live model is still unverified from this machine (ticket 170's open item).
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

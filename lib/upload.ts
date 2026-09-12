@@ -73,6 +73,19 @@ export function dropNote(left: Partition<DropFile>["left"]): string | null {
   return parts.join(" · ");
 }
 
+/** How the model read a typed tile's text (ticket 173): valid while `for` is still the text. */
+export interface ModelReading {
+  for: string;
+  stem: string;
+  tex: string | null;
+}
+
+/** A diagram cut from the file a question was read from (ticket 173): the full crop's id in the source store and a small copy for the tile. */
+export interface FigureRef {
+  id: string;
+  url: string;
+}
+
 /** A question tile: typed, or read from a file (`uploaded`) and then unconfirmed until kept. */
 export interface QuestionItem {
   kind?: undefined;
@@ -85,6 +98,13 @@ export interface QuestionItem {
   thumb?: string;
   page?: number;
   label?: string;
+  /** The model's reading of a typed tile's text, shown instead of the shorthand parser's while the text is unchanged (ticket 173). */
+  model?: ModelReading;
+  /** A read of the text is in flight. */
+  reading?: true;
+  /** A Fix is in flight. */
+  fixing?: true;
+  figure?: FigureRef;
 }
 
 /** The shimmer tile holding a file's place while its drafts are read; each draft is inserted before it. */
@@ -145,13 +165,39 @@ export function discardUnconfirmed(list: readonly Item[]): Item[] {
   return list.filter((x) => !isUnconfirmed(x));
 }
 
-/** A draft the route streamed, as the tile it becomes: unconfirmed, its text the stem then the TeX (`draftText`), carrying its file's thumbnail and the sheet's page and numbering. */
-export function draftItem(draft: Draft, from: { sourceId: string; name: string; thumb?: string }, id: string): QuestionItem {
+/** A draft the route streamed, as the tile it becomes: unconfirmed, its text the stem then the TeX (`draftText`), carrying its file's thumbnail, the sheet's page and numbering, and its figure when one was cut. */
+export function draftItem(draft: Draft, from: { sourceId: string; name: string; thumb?: string; figure?: FigureRef }, id: string): QuestionItem {
   const item: QuestionItem = { id, text: draftText(draft.stem, draft.tex), uploaded: true, confirmed: false, sourceId: from.sourceId, name: from.name };
   if (from.thumb) item.thumb = from.thumb;
   if (draft.page !== undefined) item.page = draft.page;
   if (draft.label !== undefined) item.label = draft.label;
+  if (from.figure) item.figure = from.figure;
   return item;
+}
+
+/** The model's reading of `text` applied to the question with `id`, if its text is still `text`; extra drafts (a typed list) become confirmed typed tiles after it. */
+export function applyRead(list: readonly Item[], id: string, text: string, drafts: readonly Draft[], newId: () => string): Item[] {
+  const at = list.findIndex((x) => x.id === id);
+  const q = list[at];
+  if (at === -1 || !q || !isQuestion(q)) return [...list];
+  if (q.text !== text) return list.map((x) => (x.id === id && isQuestion(x) ? without(x, "reading") : x));
+  const [first, ...rest] = drafts;
+  const read: QuestionItem = without(q, "reading");
+  if (first) read.model = { for: text, stem: first.stem, tex: first.tex };
+  const extras: QuestionItem[] = rest.map((d) => ({ id: newId(), text: draftText(d.stem, d.tex) }));
+  return [...list.slice(0, at), read, ...extras, ...list.slice(at + 1)];
+}
+
+/** A Fix's answer applied: the tile's text becomes the corrected stem then TeX, its model reading cleared (the text is now the model's own), its state otherwise kept. */
+export function applyFix(list: readonly Item[], id: string, draft: Draft): Item[] {
+  return list.map((x) => (x.id === id && isQuestion(x) ? { ...without(without(x, "fixing"), "model"), text: draftText(draft.stem, draft.tex) } : x));
+}
+
+/** A question with one optional flag off (the spread would keep `reading: undefined`, which is not the same as absent for tests and the store). */
+export function without<K extends "reading" | "fixing" | "model">(q: QuestionItem, key: K): QuestionItem {
+  const out = { ...q };
+  delete out[key];
+  return out;
 }
 
 /** Why a file's read ended without tiles. `empty` is a clean read that found no problems; `network` the request never answered; `too-many-pages` a PDF past the cap, never sent. */

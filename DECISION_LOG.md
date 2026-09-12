@@ -3469,3 +3469,41 @@ without a table resize would leave its stack misaligned; nothing does that today
 
 **Defense.** The user's four asks are met in the way that cannot drift: one element for every pill,
 one measurer for the sheet and the stacks, one rectangle over exactly the columns that carry pills.
+## 2026-09-13 · The model's reading of a typed line sits beside the text, not in it; a Fix replaces the text; figures are cut in the browser (ticket 173)
+
+**Decision.** A typed tile keeps the teacher's own words as its `text`; the model's reading
+(`model: { for, stem, tex }`) is a second thing on the item, used for the render and the stored
+stem and TeX only while `for` still equals the text, and dropped the moment the text changes.
+A read is sent once per change as the focus leaves the tile (Enter or blur), never per
+keystroke. A Fix, by contrast, replaces the tile's text with the corrected stem then TeX
+(`draftText`) and clears the reading: the teacher asked for a change, so the words change. The
+picture sent with a Fix is the whole source (the image, or the PDF page drawn at 1.5×), since
+the model boxes figures, not problems. A figure is cut in the browser from the image or the
+page drawn at 2×, the full PNG kept in IndexedDB and a ≤ 480 px JPEG data URL on the draft.
+
+**Context.** The interview settled the parser as the instant preview with the model's TeX
+replacing it on blur (Q9, Q17), Fix as a one-line correction with the source in hand (Q5,
+Q28), and figures kept as crops (Q11). Open were where the reading lives, what a Fix does to
+the text, and what "the source crop" means when the model returns no box for the problem.
+
+**Alternatives.** *Writing the model's reading into `text`*: the teacher's shorthand would
+turn into TeX under their hands after every blur, and re-editing would start from the model's
+words, which the interview's "re-editing starts from what they typed" ruled out. *Reading per
+keystroke*: a round trip per character; the parser is the instant preview for a reason. *A Fix
+that keeps the old text and stores only a new reading*: the textarea would still show the wrong
+line the teacher just corrected. *Sending a crop of the problem's region with a Fix*: there is
+no such box in the model's output; asking for one would cost every extraction a box per
+problem for a rare use. *Cropping figures on the server*: the page would have to be rasterised
+there; the browser already draws pages for thumbnails.
+
+**Tradeoffs.** A stored typed question's stem and TeX can differ from what re-parsing its text
+gives; `itemOf` rebuilds the reading from that difference on reload, and the review grid renders
+the stored stem and TeX rather than re-parsing (`GridItem.stem/tex`), so both screens agree.
+The shorthand preview and the model's reading can disagree visibly for a moment (a bare "3"
+then ½x² + 3); that is the interview's choice. A Fix on a typed tile turns its shorthand into
+TeX. A figure's full crop lives only in this browser; the small copy in the draft is what
+survives. The fix picture for a PDF page at 1.5× is a few hundred KB per Fix.
+
+**Defense.** The teacher's words stay theirs, the model's reading is a layer that lifts off on
+the first keystroke, and a Fix is the one place the words are meant to change. Figures cost
+one draw per boxed draft and show where the problem is, on the tile and on the review grid.

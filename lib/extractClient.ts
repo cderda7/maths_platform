@@ -1,4 +1,4 @@
-import { readExtractEvents, type ExtractEvent, type ExtractFailure, type ImageMime, type Source } from "./extract";
+import { readExtractEvents, type Draft, type ExtractEvent, type ExtractFailure, type ExtractRequest, type ImageMime, type Source } from "./extract";
 
 /**
  * The create screen's side of the extraction route (ticket 171): a dropped file as a `Source`,
@@ -35,10 +35,23 @@ export async function fileToSource(blob: Blob, name: string, mime: string): Prom
  * reaches the route is `network`.
  */
 export async function* extractSource(source: Source, opts: { fetch?: typeof fetch; signal?: AbortSignal } = {}): AsyncGenerator<ExtractEvent> {
+  yield* request({ mode: "extract", sources: [source] }, opts);
+}
+
+/** One draft corrected by the teacher's instruction (ticket 173): the route's one draft back, or null when it wrote none. */
+export async function fixDraft(fix: { stem: string; tex: string | null; instruction: string; source?: Source }, opts: { fetch?: typeof fetch; signal?: AbortSignal } = {}): Promise<Draft | null> {
+  for await (const ev of request({ mode: "fix", ...fix }, opts)) {
+    if (ev.type === "draft") return ev;
+    if (ev.type === "error") throw new ExtractError("declined");
+  }
+  return null;
+}
+
+async function* request(body: ExtractRequest, opts: { fetch?: typeof fetch; signal?: AbortSignal }): AsyncGenerator<ExtractEvent> {
   const f = opts.fetch ?? fetch;
   let res: Response;
   try {
-    res = await f("/api/extract", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sources: [source] }), signal: opts.signal });
+    res = await f("/api/extract", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), signal: opts.signal });
   } catch {
     if (opts.signal?.aborted) return;
     throw new ExtractError("network");

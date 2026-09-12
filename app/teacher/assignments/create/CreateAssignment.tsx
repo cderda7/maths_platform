@@ -11,13 +11,15 @@ import { ASSIGNMENT } from "@/data/assignment";
 import { DEMO_DRAFT_GOAL, DEMO_DRAFT_TITLE, DEMO_PASTE_LINES } from "@/data/draft-seed";
 import { GOAL_MAX, type AssignmentDraft, type DraftQuestion } from "@/lib/classroom";
 import { dispatchClassroom, getClassroom } from "@/lib/classroom-store";
-import { ExtractError, extractSource, fileToSource } from "@/lib/extractClient";
+import { cropFigure, cropFromImage, type Figure } from "@/lib/crops";
+import type { Draft, FigureBox, Source } from "@/lib/extract";
+import { bytesToBase64, ExtractError, extractSource, fileToSource, fixDraft } from "@/lib/extractClient";
 import { parseQuestion, stemText } from "@/lib/mathInput";
 import { moveItem } from "@/lib/reorder";
 import { MAX_PAGES } from "@/lib/extract";
-import { openPdf, pageThumb } from "@/lib/pdfPages";
+import { openPdf, pageThumb, renderPage, type OpenPdf } from "@/lib/pdfPages";
 import { getSource, putSource, thumbOf } from "@/lib/sources";
-import { confirmAll, discardUnconfirmed, draftItem, dropNote, insertBefore, isPdfFile, isQuestion, messageItem, partitionDrop, pendingItem, removeItem, replaceItem, unconfirmedCount, updateQuestion, type Item, type MessageItem, type PendingItem, type QuestionItem, type ReadFailure } from "@/lib/upload";
+import { applyFix, applyRead, confirmAll, discardUnconfirmed, draftItem, dropNote, insertBefore, isPdfFile, isQuestion, messageItem, partitionDrop, pendingItem, removeItem, replaceItem, unconfirmedCount, updateQuestion, without, type FigureRef, type Item, type MessageItem, type PendingItem, type QuestionItem, type ReadFailure } from "@/lib/upload";
 
 export const REVIEW_PATH = "/teacher/assignments/create/review";
 
@@ -33,8 +35,14 @@ export function draftOf(title: string, goal: string, qs: Item[], at: number): As
     .filter(isQuestion)
     .filter((q) => q.text.trim())
     .map((q) => {
+      // The model's reading of a typed line stands in for the parser's while the text is unchanged (ticket 173).
+      const model = q.model && q.model.for === q.text ? q.model : null;
       const p = parseQuestion(q.text);
-      const d: DraftQuestion = { id: q.id, text: q.text, stem: stemText(p.stem), tex: p.tex };
+      const d: DraftQuestion = { id: q.id, text: q.text, stem: model ? model.stem : stemText(p.stem), tex: model ? model.tex : p.tex };
+      if (q.figure) {
+        d.figureId = q.figure.id;
+        d.figureUrl = q.figure.url;
+      }
       if (q.uploaded) {
         d.uploaded = true;
         d.confirmed = q.confirmed !== false;
@@ -68,6 +76,12 @@ export function draftOf(title: string, goal: string, qs: Item[], at: number): As
  * "Discard N" while any are unconfirmed, and Continue, never gated, keeps them all on the way
  * through. The file itself goes to the browser's source store (`lib/sources`); the draft
  * carries its id and a thumbnail.
+ *
+ * Ticket 173: a typed tile's text goes to the same route as the focus leaves it, and the
+ * model's reading (`model` on the item) stands in for the shorthand parser's while the text is
+ * unchanged; not configured, the parser's stands and nothing is said. A Fix line on every focused
+ * tile sends the stem, the TeX, the instruction and the source picture, and the answer becomes
+ * the tile's text. A figure the model boxed is cut from the source and shown under the question.
  */
 export default function CreateAssignment() {
   // The draft lives in localStorage, so the editor mounts on the client only and reads it as its first state.
@@ -92,6 +106,12 @@ function storedOrSeed(): { title: string; goal: string; questions: QuestionItem[
 /** A stored question back as a tile; an uploaded one keeps its provenance and its unconfirmed state across a reload. */
 function itemOf(q: DraftQuestion): QuestionItem {
   const item: QuestionItem = { id: q.id, text: q.text };
+  if (q.figureId && q.figureUrl) item.figure = { id: q.figureId, url: q.figureUrl };
+  // A typed line the model has read keeps that reading (the stored stem and TeX differ from the parser's only then).
+  if (!q.uploaded) {
+    const p = parseQuestion(q.text);
+    if (stemText(p.stem) !== q.stem || p.tex !== q.tex) item.model = { for: q.text, stem: q.stem, tex: q.tex };
+  }
   if (q.uploaded) {
     item.uploaded = true;
     item.confirmed = q.confirmed !== false;
@@ -108,6 +128,24 @@ const isServer = () => false;
 
 /** The files in a drag or a drop, if it carries any. */
 const hasFiles = (e: DragEvent) => Array.from(e.dataTransfer?.types ?? []).includes("Files");
+
+/** A figure box cut from the picture a draft came from (an image, or a PDF page drawn at twice its size), kept in the source store with a small copy for the tile. */
+async function figureFor(box: FigureBox, blob: Blob, open: OpenPdf | null, page: number | undefined, name: string): Promise<FigureRef | undefined> {
+  let fig: Figure | null = null;
+  try {
+    if (open) {
+      const p = box.page ?? page;
+      if (p === undefined) return undefined;
+      const canvas = await renderPage(open.doc, p, { scale: 2 });
+      fig = canvas ? await cropFigure(canvas, box) : null;
+    } else fig = await cropFromImage(blob, box);
+  } catch {
+    fig = null;
+  }
+  if (!fig) return undefined;
+  const id = await putSource(fig.full, `${name} (figure)`, "image/png");
+  return { id, url: fig.url };
+}
 
 /** A PDF's first page as its marker's thumbnail, or nothing when it will not open (the read then says so). */
 async function firstPageThumb(blob: Blob): Promise<string | undefined> {
@@ -201,7 +239,8 @@ function Editor() {
         if (ev.type === "draft") {
           count++;
           const thumb = await thumbFor(ev.page);
-          const item = draftItem(ev, { sourceId: marker.sourceId, name: marker.name, thumb }, newId());
+          const figure = ev.figure ? await figureFor(ev.figure, blob, open, ev.page, marker.name) : undefined;
+          const item = draftItem(ev, { sourceId: marker.sourceId, name: marker.name, thumb, figure }, newId());
           patch((cur) => insertBefore(cur, marker.id, item));
         } else if (ev.type === "error") throw new ExtractError("declined");
       }
@@ -234,6 +273,70 @@ function Editor() {
       return jobs.reduce<Item[]>((list, j) => insertBefore(list, ghost.id, j.marker), cur);
     });
     for (const j of jobs) void run(j.marker, j.file, j.file.type);
+  };
+
+  /** The picture a question was read from, as a source for a Fix: the image itself, or its PDF page drawn at 1.5×. Nothing for a typed question. */
+  const sourceFor = async (q: QuestionItem): Promise<Source | undefined> => {
+    if (!q.sourceId) return undefined;
+    const stored = await getSource(q.sourceId);
+    if (!stored) return undefined;
+    if (!isPdfFile({ name: stored.name, type: stored.mime, size: stored.blob.size })) return fileToSource(stored.blob, stored.name, stored.mime);
+    if (q.page === undefined) return undefined;
+    const open = await openPdf(stored.blob).catch(() => null);
+    if (!open) return undefined;
+    try {
+      const canvas = await renderPage(open.doc, q.page, { scale: 1.5 });
+      const png = canvas ? await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png")) : null;
+      if (!png) return undefined;
+      return { kind: "image", name: `${stored.name} p. ${q.page}`, mime: "image/png", data: bytesToBase64(new Uint8Array(await png.arrayBuffer())) };
+    } finally {
+      void open.close();
+    }
+  };
+
+  /** A typed tile's text sent to the model as the focus leaves it (ticket 173); the reading lands only if the text is still the same. Not configured: the parser's reading stands, quietly. */
+  const inFlight = useRef(new Map<string, string>());
+  /** Said once per screen when a typed line could not be read by the model: typing works without it, so the screen stays quiet. */
+  const warnedRead = useRef(false);
+  const read = async (q: QuestionItem) => {
+    const text = q.text;
+    if (!text.trim() || (q.model && q.model.for === text) || inFlight.current.get(q.id) === text) return;
+    inFlight.current.set(q.id, text);
+    patch((cur) => updateQuestion(cur, q.id, (x) => ({ ...x, reading: true })));
+    const drafts: Draft[] = [];
+    try {
+      for await (const ev of extractSource({ kind: "text", text })) if (ev.type === "draft") drafts.push(ev);
+      patch((cur) => applyRead(cur, q.id, text, drafts, newId));
+    } catch (e) {
+      if (!warnedRead.current) {
+        warnedRead.current = true;
+        console.warn("The model could not read the typed question; the shorthand reading stands.", e instanceof ExtractError ? e.failure : e);
+      }
+      patch((cur) => updateQuestion(cur, q.id, (x) => without(x, "reading")));
+    } finally {
+      if (inFlight.current.get(q.id) === text) inFlight.current.delete(q.id);
+    }
+  };
+
+  /** A correction from the tile's Fix line (ticket 173): the current stem and TeX, the instruction and the picture it was read from go to the model; the answer replaces the tile's text. */
+  const fix = async (q: QuestionItem, instruction: string) => {
+    if (q.fixing) return;
+    setNote(null);
+    patch((cur) => updateQuestion(cur, q.id, (x) => ({ ...x, fixing: true })));
+    try {
+      const d = draftOf("", "", [q], 0).questions[0];
+      const source = await sourceFor(q);
+      const fixed = await fixDraft({ stem: d?.stem ?? "", tex: d?.tex ?? null, instruction, source });
+      if (fixed) patch((cur) => applyFix(cur, q.id, fixed));
+      else {
+        patch((cur) => updateQuestion(cur, q.id, (x) => without(x, "fixing")));
+        setNote(`Nothing came back for the fix on Q${qs.findIndex((x) => x.id === q.id) + 1}.`);
+      }
+    } catch (e) {
+      patch((cur) => updateQuestion(cur, q.id, (x) => without(x, "fixing")));
+      const failure = e instanceof ExtractError ? e.failure : "network";
+      setNote(failure === "not-configured" ? "Fix needs the model. Not configured." : `Couldn't fix Q${qs.findIndex((x) => x.id === q.id) + 1}. Try again.`);
+    }
   };
 
   const retry = async (m: MessageItem) => {
@@ -303,6 +406,8 @@ function Editor() {
     },
     onKeep: () => edit((cur) => updateQuestion(cur, q.id, (x) => ({ ...x, confirmed: true }))),
     onUpload: () => fileInput.current?.click(),
+    onRead: () => void read(q),
+    onFix: (instruction) => void fix(q, instruction),
   });
 
   // Every tile but the ghost can be held and dropped on; a move is an edit like any other (it clears the undo line). A file's marker or message is not a question and never lifts.

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { FILE_FIXTURES, fixtureDrafts, noFixture, TEXT_FIXTURES } from "@/data/extract-fixtures";
+import { FILE_FIXTURES, fixtureDrafts, fixtureFix, noFixture, TEXT_FIXTURES } from "@/data/extract-fixtures";
 import manifest from "@/fixtures/extract/manifest.json";
 import { toTex } from "./mathInput";
 import { base64Bytes, base64ToBytes, extractMessages, extractSystem, LineBuffer, MAX_FILE_BYTES, MAX_IMAGES, MAX_PDFS, parseDraftLine, parseExtractEvent, parseExtractRequest, pdfPageCount, readExtractEvents, sourceHash, sourceName, type ExtractEvent, type Source } from "./extract";
@@ -14,7 +14,9 @@ const fixture = (name: string) => readFileSync(join(process.cwd(), "fixtures", "
 describe("parseExtractRequest", () => {
   it("reads text, image and pdf sources and nothing else", () => {
     const r = parseExtractRequest({ sources: [{ kind: "text", text: "Solve for x. x**2 = 4" }, png(), pdf()] });
-    expect(r.ok && r.request.sources.map((s) => s.kind)).toEqual(["text", "image", "pdf"]);
+    expect(r.ok && r.request.mode === "extract" && r.request.sources.map((s) => s.kind)).toEqual(["text", "image", "pdf"]);
+    expect(parseExtractRequest({ mode: "extract", sources: [png()] }).ok).toBe(true);
+    expect(parseExtractRequest({ mode: "other", sources: [png()] })).toEqual({ ok: false, failure: "bad-request" });
     expect(parseExtractRequest(null)).toEqual({ ok: false, failure: "bad-request" });
     expect(parseExtractRequest({ sources: [] })).toEqual({ ok: false, failure: "bad-request" });
     expect(parseExtractRequest({ sources: [{ kind: "text", text: "   " }] })).toEqual({ ok: false, failure: "bad-request" });
@@ -26,7 +28,7 @@ describe("parseExtractRequest", () => {
 
   it("keeps a text source's name only when given", () => {
     const r = parseExtractRequest({ sources: [{ kind: "text", text: "x" }, { kind: "text", name: "pasted", text: "y" }] });
-    expect(r.ok && r.request.sources).toEqual([
+    expect(r.ok && r.request.mode === "extract" && r.request.sources).toEqual([
       { kind: "text", text: "x" },
       { kind: "text", name: "pasted", text: "y" },
     ]);
@@ -40,6 +42,50 @@ describe("parseExtractRequest", () => {
     const big = "A".repeat(Math.ceil((MAX_FILE_BYTES + 3) / 3) * 4);
     expect(parseExtractRequest({ sources: [{ kind: "image", name: "big.png", mime: "image/png", data: big }] })).toEqual({ ok: false, failure: "too-large" });
     expect(parseExtractRequest({ sources: [{ kind: "text", text: "x".repeat(20_001) }] })).toEqual({ ok: false, failure: "too-large" });
+  });
+});
+
+describe("parseExtractRequest in fix mode (ticket 173)", () => {
+  it("reads the draft, the instruction and an optional picture; refuses an empty draft, an empty instruction or a text source", () => {
+    expect(parseExtractRequest({ mode: "fix", stem: "Solve.", tex: "x^2 = 4", instruction: " the 4 should be 9 " })).toEqual({ ok: true, request: { mode: "fix", stem: "Solve.", tex: "x^2 = 4", instruction: "the 4 should be 9" } });
+    expect(parseExtractRequest({ mode: "fix", stem: "", tex: "x^2 = 4", instruction: "x", source: png("a.png") })).toEqual({ ok: true, request: { mode: "fix", stem: "", tex: "x^2 = 4", instruction: "x", source: png("a.png") } });
+    expect(parseExtractRequest({ mode: "fix", stem: "Prose.", tex: "", instruction: "x" })).toEqual({ ok: true, request: { mode: "fix", stem: "Prose.", tex: null, instruction: "x" } });
+    expect(parseExtractRequest({ mode: "fix", stem: "", tex: null, instruction: "x" })).toEqual({ ok: false, failure: "bad-request" });
+    expect(parseExtractRequest({ mode: "fix", stem: "Solve.", tex: null, instruction: "  " })).toEqual({ ok: false, failure: "bad-request" });
+    expect(parseExtractRequest({ mode: "fix", stem: "Solve.", tex: null, instruction: "x", source: { kind: "text", text: "t" } })).toEqual({ ok: false, failure: "bad-request" });
+    expect(parseExtractRequest({ mode: "fix", stem: "Solve.", tex: null, instruction: "x".repeat(501) })).toEqual({ ok: false, failure: "too-large" });
+    expect(parseExtractRequest({ mode: "fix", stem: "Solve.", tex: 5, instruction: "x" })).toEqual({ ok: false, failure: "bad-request" });
+  });
+
+  it("the fix brief asks for one line, the correction applied and nothing else changed, TeX taken as the expression", () => {
+    const s = extractSystem("fix");
+    expect(s).toContain("Write exactly one JSON object on one line");
+    expect(s).toContain("Apply the correction and change nothing else");
+    expect(s).toContain("a line of TeX replaces the expression");
+    expect(s).toContain("read the correction against it");
+    expect(s).toContain("Never write solutions");
+    expect(extractSystem()).toBe(extractSystem("extract"));
+  });
+
+  it("the fix turn carries the draft, the picture when given, and the correction", () => {
+    const [m] = extractMessages({ mode: "fix", stem: "Solve.", tex: "x^2 = 4", instruction: "the 4 should be 9", source: png("q.png") });
+    const c = m.content as unknown as Array<Record<string, unknown>>;
+    expect(c.map((b) => b.type)).toEqual(["text", "text", "image", "text"]);
+    expect(c[0].text).toBe('The problem as it stands:\nstem: "Solve."\ntex: "x^2 = 4"');
+    expect(c[1].text).toBe("The picture it was read from: q.png");
+    expect(c[3].text).toBe("The teacher's correction: the 4 should be 9");
+    const [n] = extractMessages({ mode: "fix", stem: "Prose.", tex: null, instruction: "x" });
+    expect((n.content as unknown as Array<Record<string, unknown>>).map((b) => b.text)).toEqual(['The problem as it stands:\nstem: "Prose."\ntex: null', "The teacher's correction: x"]);
+  });
+
+  it("fixtureFix: TeX replaces the expression, 'A should be B' swaps in the expression then the stem, anything else leaves the draft", () => {
+    expect(fixtureFix({ stem: "Solve for x.", tex: "x^2 + 5x + 6 = 0", instruction: "the 6 should be 8" })).toEqual({ source: 0, stem: "Solve for x.", tex: "x^2 + 5x + 8 = 0" });
+    expect(fixtureFix({ stem: "Solve for x.", tex: "x^2 + 5x + 6 = 0", instruction: "5x should be 3x." })).toEqual({ source: 0, stem: "Solve for x.", tex: "x^2 + 3x + 6 = 0" });
+    expect(fixtureFix({ stem: "Solve for x.", tex: "x^2 + 5x + 6 = 0", instruction: "replace 6 with 8" })).toEqual({ source: 0, stem: "Solve for x.", tex: "x^2 + 5x + 8 = 0" });
+    expect(fixtureFix({ stem: "Solve for y.", tex: "x^2 = 4", instruction: "the y should be x" })).toEqual({ source: 0, stem: "Solve for x.", tex: "x^2 = 4" });
+    expect(fixtureFix({ stem: "Solve.", tex: "x^2 = 4", instruction: "\\frac{1}{2}x^2 = 4" })).toEqual({ source: 0, stem: "Solve.", tex: "\\frac{1}{2}x^2 = 4" });
+    expect(fixtureFix({ stem: "Solve.", tex: "x^2 = 4", instruction: "x^2 = 9" })).toEqual({ source: 0, stem: "Solve.", tex: "x^2 = 9" });
+    expect(fixtureFix({ stem: "Solve.", tex: "x^2 = 4", instruction: "make it harder" })).toEqual({ source: 0, stem: "Solve.", tex: "x^2 = 4" });
   });
 });
 
@@ -82,7 +128,7 @@ describe("extractSystem", () => {
 
 describe("extractMessages", () => {
   it("is one user turn: each source named, text as text, an image as an image block, a PDF as a document block", () => {
-    const [m] = extractMessages([{ kind: "text", text: "x**2 = 4" }, png("q.png"), pdf("w.pdf")]);
+    const [m] = extractMessages({ mode: "extract", sources: [{ kind: "text", text: "x**2 = 4" }, png("q.png"), pdf("w.pdf")] });
     expect(m.role).toBe("user");
     const c = m.content as unknown as Array<Record<string, unknown>>;
     expect(c.map((b) => b.type)).toEqual(["text", "text", "text", "image", "text", "document"]);

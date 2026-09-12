@@ -1,6 +1,6 @@
 import manifest from "@/fixtures/extract/manifest.json";
-import { base64ToBytes, parseDraftLine, sourceHash, type Draft, type Source, sourceName } from "@/lib/extract";
-import { parseQuestion, splitPaste, stemText } from "@/lib/mathInput";
+import { base64ToBytes, parseDraftLine, sourceHash, type Draft, type FixRequest, type Source, sourceName } from "@/lib/extract";
+import { isTex, parseQuestion, splitPaste, stemText } from "@/lib/mathInput";
 
 /**
  * What the extraction route answers when `EXTRACT_FIXTURES=1` (ticket 170): no model, the
@@ -22,6 +22,24 @@ export const TEXT_FIXTURES: Record<string, FixtureDraft[]> = {
   "solve x squared plus five x plus six equals zero": [{ stem: "Solve for $x$.", tex: "x^2 + 5x + 6 = 0" }],
   "what is the turning point of y equals x squared minus 4x minus 5": [{ stem: "What is the turning point of", tex: "y = x^2 - 4x - 5" }],
 };
+
+/**
+ * A Fix in fixture mode (ticket 173), by three rules a click-through can rely on: a line of TeX
+ * replaces the expression; "the A should be B" (or "A should be B", "replace A with B", "A → B")
+ * swaps the first A in the expression, else in the stem, for B; anything else leaves the draft
+ * as it was. The model reads the instruction for real; this is the deterministic stand-in.
+ */
+export function fixtureFix(req: Pick<FixRequest, "stem" | "tex" | "instruction">): Draft {
+  const instruction = req.instruction.trim();
+  if (isTex(instruction) || /^[\d\sxyzk+\-*/^=()<>.]+$/.test(instruction)) return { source: 0, stem: req.stem, tex: instruction };
+  const swap = instruction.match(/^(?:the\s+)?(.+?)\s+(?:should be|→|->|becomes)\s+(.+?)\.?$/i) ?? instruction.match(/^replace\s+(.+?)\s+with\s+(.+?)\.?$/i);
+  if (swap) {
+    const [, from, to] = swap;
+    if (req.tex && req.tex.includes(from)) return { source: 0, stem: req.stem, tex: req.tex.replace(from, to) };
+    if (req.stem.includes(from)) return { source: 0, stem: req.stem.replace(from, to), tex: req.tex };
+  }
+  return { source: 0, stem: req.stem, tex: req.tex };
+}
 
 /** The draft a source gets when no fixture matches it, so a wrong fixture shows on the screen rather than as silence. */
 export const noFixture = (s: Source, i: number): Draft => ({ source: i, stem: `No fixture for ${sourceName(s, i)}`, tex: null });

@@ -5,13 +5,18 @@ import QuestionView from "@/components/QuestionView";
 import { DifficultyTag } from "@/components/Tag";
 import { useReorder } from "@/components/useReorder";
 import type { Difficulty } from "@/data/types";
-import { parseQuestion } from "@/lib/mathInput";
+import { draftText, parseQuestion } from "@/lib/mathInput";
 import { nextDifficulty } from "@/lib/review";
 
 /** One tile of the review grid: the question as typed (or as the assessment changed or added it) and its label. */
 export interface GridItem {
   id: string;
   text: string;
+  /** The question as stored (ticket 173: the model's reading of a typed line, when it has one); with both given the tile shows these rather than parsing `text`. */
+  stem?: string;
+  tex?: string | null;
+  /** A small copy of the diagram cut from the file the question was read from (ticket 173). */
+  figureUrl?: string;
   difficulty: Difficulty;
   /** How the question came to be in the set; "typed" shows nothing. */
   origin?: "typed" | "changed" | "added";
@@ -47,7 +52,7 @@ export default function QuestionGrid({ items, onLabel, onMove, animate = false }
 }
 
 function Tile({ item, index, slot, onRotate, animate }: { item: GridItem; index: number; slot: number; onRotate?: () => void; animate: boolean }) {
-  const parsed = useMemo(() => parseQuestion(item.text), [item.text]);
+  const parsed = useMemo(() => parseQuestion(item.stem !== undefined && item.tex !== undefined ? draftText(item.stem, item.tex) : item.text), [item.text, item.stem, item.tex]);
   const marked = item.origin === "changed" || item.origin === "added";
   // Where this tile arrived with the animation on, if it did; a relabel or a move later never replays it.
   const [arrivedAt] = useState(animate ? index : null);
@@ -73,6 +78,8 @@ function Tile({ item, index, slot, onRotate, animate }: { item: GridItem; index:
       <div className="mt-2.5">
         <QuestionView parsed={parsed} />
       </div>
+      {/* eslint-disable-next-line @next/next/no-img-element -- a data URL the browser drew */}
+      {item.figureUrl && <img src={item.figureUrl} alt="" className="mt-2 max-h-[40%] w-auto max-w-full self-start rounded-md border border-line" data-figure />}
       {marked && (
         <div className="mt-auto pt-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-accent-deep" data-origin-note>
           {item.origin === "changed" ? "Changed" : "Added"}

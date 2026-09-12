@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MAX_FILE_BYTES } from "./extract";
-import { confirmAll, discardUnconfirmed, draftItem, dropNote, failureMessage, insertBefore, isPdfFile, isQuestion, isUnconfirmed, messageItem, partitionDrop, pendingItem, removeItem, replaceItem, unconfirmedCount, updateQuestion, type Item, type MessageItem, type PendingItem, type QuestionItem } from "./upload";
+import { applyFix, applyRead, confirmAll, discardUnconfirmed, draftItem, dropNote, failureMessage, insertBefore, isPdfFile, isQuestion, isUnconfirmed, messageItem, partitionDrop, pendingItem, removeItem, replaceItem, unconfirmedCount, updateQuestion, type Item, type MessageItem, type PendingItem, type QuestionItem } from "./upload";
 
 const png = (name: string, size = 1000) => ({ name, type: "image/png", size });
 const pdf = (name: string, size = 1000) => ({ name, type: "application/pdf", size });
@@ -75,6 +75,40 @@ describe("draftItem", () => {
     expect(draftItem({ source: 0, stem: "Solve for x.", tex: "x^2 = 4" }, marker, "n1")).toEqual({ id: "n1", text: "Solve for x.\nx^2 = 4", uploaded: true, confirmed: false, sourceId: "s1", name: "sheet.png", thumb: "data:t" });
     expect(draftItem({ source: 0, stem: "", tex: "x^2 = 4", page: 2, label: "4(a)" }, { sourceId: "s", name: "w.pdf" }, "n2")).toEqual({ id: "n2", text: "x^2 = 4", uploaded: true, confirmed: false, sourceId: "s", name: "w.pdf", page: 2, label: "4(a)" });
     expect(draftItem({ source: 0, stem: "Prose only.", tex: null }, { sourceId: "s", name: "w.pdf" }, "n3").text).toBe("Prose only.\n");
+  });
+});
+
+describe("the model's reading of a typed tile (ticket 173)", () => {
+  let n = 0;
+  const newId = () => `n${++n}`;
+  const typed: QuestionItem = { id: "t", text: "half of x squared plus 3", reading: true };
+  const ghost = q("g", "");
+
+  it("lands as `model` on the tile when its text is unchanged, the reading flag off", () => {
+    const out = applyRead([typed, ghost], "t", "half of x squared plus 3", [{ source: 0, stem: "", tex: "\\tfrac{1}{2}x^2 + 3" }], newId);
+    expect(out).toEqual([{ id: "t", text: "half of x squared plus 3", model: { for: "half of x squared plus 3", stem: "", tex: "\\tfrac{1}{2}x^2 + 3" } }, ghost]);
+  });
+
+  it("is dropped when the text moved on, the flag still cleared; a marker with the id is left alone", () => {
+    const moved: QuestionItem = { ...typed, text: "half of x squared plus 4" };
+    expect(applyRead([moved, ghost], "t", "half of x squared plus 3", [{ source: 0, stem: "", tex: "x" }], newId)).toEqual([{ id: "t", text: "half of x squared plus 4" }, ghost]);
+    expect(applyRead([marker, ghost], "m", "", [{ source: 0, stem: "x", tex: null }], newId)).toEqual([marker, ghost]);
+    expect(applyRead([typed], "nope", "x", [], newId)).toEqual([typed]);
+  });
+
+  it("extra drafts (a typed list) become confirmed typed tiles after it; no drafts clears the flag and sets no model", () => {
+    const out = applyRead([typed, ghost], "t", "half of x squared plus 3", [{ source: 0, stem: "A.", tex: "x=1" }, { source: 0, stem: "B.", tex: "x=2" }, { source: 0, stem: "C.", tex: null }], newId);
+    expect(out.map((x) => x.id)).toEqual(["t", "n1", "n2", "g"]);
+    expect(out[1]).toEqual({ id: "n1", text: "B.\nx=2" });
+    expect(out[2]).toEqual({ id: "n2", text: "C.\n" });
+    expect(applyRead([typed], "t", "half of x squared plus 3", [], newId)).toEqual([{ id: "t", text: "half of x squared plus 3" }]);
+  });
+
+  it("a fix replaces the text with the corrected stem then TeX, clears the model and the fixing flag, keeps everything else", () => {
+    const u: QuestionItem = { ...up("u"), fixing: true, model: { for: "x", stem: "s", tex: null } };
+    const out = applyFix([u, typed, ghost], "u", { source: 0, stem: "Solve for x.", tex: "x^2 + 5x + 8 = 0" });
+    expect(out[0]).toEqual({ id: "u", text: "Solve for x.\nx^2 + 5x + 8 = 0", uploaded: true, confirmed: false, sourceId: "s", name: "a.png" });
+    expect(out[1]).toEqual(typed);
   });
 });
 

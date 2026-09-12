@@ -29,7 +29,7 @@ export default function DifficultyStep({ questions, overrides, onLabel, onMove, 
         ))}
         <span className="text-[13px] text-ink-muted">Tap a label to change it.</span>
       </div>
-      <QuestionGrid items={questions.map((q) => ({ id: q.id, text: q.text, difficulty: labels[q.id] }))} onLabel={onLabel} onMove={onMove} animate />
+      <QuestionGrid items={questions.map((q) => ({ id: q.id, text: q.text, stem: q.stem, tex: q.tex, figureUrl: q.figureUrl, difficulty: labels[q.id] }))} onLabel={onLabel} onMove={onMove} animate />
       <div className="fixed bottom-16 right-6 z-30 flex items-center gap-3">
         <Link href="/teacher/assignments/create" className="rounded-full px-4 py-2 text-[13.5px] font-medium text-ink-soft hover:bg-cream-deep hover:text-ink" data-back>
           Back

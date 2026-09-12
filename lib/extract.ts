@@ -30,9 +30,25 @@ export type ImageMime = (typeof IMAGE_TYPES)[number];
 /** One thing to read: a typed line or pasted list, an image, or a PDF (`data` base64, no newlines). */
 export type Source = { kind: "text"; name?: string; text: string } | { kind: "image"; name: string; mime: ImageMime; data: string } | { kind: "pdf"; name: string; data: string };
 
-export interface ExtractRequest {
+/** Read every problem out of the sources. */
+export interface ExtractSources {
+  mode: "extract";
   sources: Source[];
 }
+
+/** Correct one draft by the teacher's instruction (ticket 173), the picture it was read from along when there is one. */
+export interface FixRequest {
+  mode: "fix";
+  stem: string;
+  tex: string | null;
+  instruction: string;
+  source?: Source;
+}
+
+export type ExtractRequest = ExtractSources | FixRequest;
+
+/** The most a Fix instruction can be: a sentence or a line of TeX. */
+export const MAX_INSTRUCTION_CHARS = 500;
 
 /** A diagram that belongs to a problem: its box normalised 0..1 on the page (`page` 1-based, PDFs only) or the image. */
 export interface FigureBox {
@@ -91,7 +107,10 @@ function parseSource(raw: unknown): Source | null {
  * twenty-first image, a very long text) and the message the bar can still word.
  */
 export function parseExtractRequest(raw: unknown): { ok: true; request: ExtractRequest } | { ok: false; failure: "bad-request" | "too-large" } {
-  if (!isRecord(raw) || !Array.isArray(raw.sources) || raw.sources.length === 0) return { ok: false, failure: "bad-request" };
+  if (!isRecord(raw)) return { ok: false, failure: "bad-request" };
+  if (raw.mode === "fix") return parseFix(raw);
+  if (raw.mode !== undefined && raw.mode !== "extract") return { ok: false, failure: "bad-request" };
+  if (!Array.isArray(raw.sources) || raw.sources.length === 0) return { ok: false, failure: "bad-request" };
   const sources: Source[] = [];
   for (const s of raw.sources) {
     const parsed = parseSource(s);
@@ -102,10 +121,27 @@ export function parseExtractRequest(raw: unknown): { ok: true; request: ExtractR
   const pdfs = sources.filter((s) => s.kind === "pdf").length;
   if (images > MAX_IMAGES || pdfs > MAX_PDFS) return { ok: false, failure: "too-large" };
   for (const s of sources) {
-    if (s.kind === "text" && s.text.length > MAX_TEXT_CHARS) return { ok: false, failure: "too-large" };
-    if (s.kind !== "text" && base64Bytes(s.data) > MAX_FILE_BYTES) return { ok: false, failure: "too-large" };
+    const over = sourceTooLarge(s);
+    if (over) return { ok: false, failure: "too-large" };
   }
-  return { ok: true, request: { sources } };
+  return { ok: true, request: { mode: "extract", sources } };
+}
+
+const sourceTooLarge = (s: Source) => (s.kind === "text" ? s.text.length > MAX_TEXT_CHARS : base64Bytes(s.data) > MAX_FILE_BYTES);
+
+function parseFix(raw: Record<string, unknown>): { ok: true; request: FixRequest } | { ok: false; failure: "bad-request" | "too-large" } {
+  const { stem, tex, instruction, source } = raw;
+  if (typeof stem !== "string" || (tex !== null && typeof tex !== "string") || typeof instruction !== "string" || instruction.trim() === "") return { ok: false, failure: "bad-request" };
+  if (stem === "" && (tex === null || tex === "")) return { ok: false, failure: "bad-request" };
+  if (instruction.length > MAX_INSTRUCTION_CHARS || stem.length > MAX_TEXT_CHARS || (tex ?? "").length > MAX_TEXT_CHARS) return { ok: false, failure: "too-large" };
+  const request: FixRequest = { mode: "fix", stem, tex: tex === "" ? null : (tex as string | null), instruction: instruction.trim() };
+  if (source !== undefined) {
+    const parsed = parseSource(source);
+    if (!parsed || parsed.kind === "text") return { ok: false, failure: "bad-request" };
+    if (sourceTooLarge(parsed)) return { ok: false, failure: "too-large" };
+    request.source = parsed;
+  }
+  return { ok: true, request };
 }
 
 /**
@@ -127,9 +163,10 @@ export const sourceName = (s: Source, i: number): string => s.name ?? (s.kind ==
  * The extractor's brief. The rules are what make the output one problem per line in the
  * shape the tile expects, sub-parts split, typed shorthand and plain English both normalised,
  * and nothing extracted that the engine or the teacher does not want (solutions, headings,
- * printed answers).
+ * printed answers). In `fix` mode the same line shape carries one corrected draft.
  */
-export function extractSystem(): string {
+export function extractSystem(mode: "extract" | "fix" = "extract"): string {
+  if (mode === "fix") return fixSystem();
   return [
     "You turn maths problems from a teacher's sources into drafts for an assignment.",
     "",
@@ -156,14 +193,42 @@ export function extractSystem(): string {
   ].join("\n");
 }
 
-/** The one user turn: each source under its name, an image as an image block, a PDF as a document block, text as text. */
-export function extractMessages(sources: Source[]): Anthropic.Beta.BetaMessageParam[] {
+/** The brief for a Fix: one draft in, the teacher's correction, one draft out, nothing else changed. */
+function fixSystem(): string {
+  return [
+    "You correct one maths problem in a teacher's assignment.",
+    "",
+    'You are given the problem as it stands (its stem and its tex), the teacher\'s correction, and, when the problem was read from a picture, that picture.',
+    "",
+    'Write exactly one JSON object on one line and nothing else: {"source": 0, "stem": "...", "tex": "..."}',
+    "- stem: the problem's prose in plain text, inline maths as $…$ in KaTeX-supported TeX; \"\" when the problem is an expression alone.",
+    "- tex: the problem's main expression or equation as KaTeX-supported TeX; null when the problem is prose alone.",
+    "",
+    "Rules:",
+    "- Apply the correction and change nothing else: keep every word and symbol the correction does not touch.",
+    '- The correction may be plain language ("the denominator is 2x", "the 6 should be 8") or a line of TeX; a line of TeX replaces the expression.',
+    "- When the picture is given, read the correction against it: the teacher is telling you what the picture says.",
+    "- Never write solutions, answers, hints, marks or difficulty.",
+  ].join("\n");
+}
+
+/** The one user turn: for an extraction, each source under its name (an image as an image block, a PDF as a document block, text as text); for a fix, the draft, its picture when there is one, and the correction. */
+export function extractMessages(request: ExtractRequest): Anthropic.Beta.BetaMessageParam[] {
   const content: Anthropic.Beta.BetaContentBlockParam[] = [];
-  sources.forEach((s, i) => {
+  const block = (s: Source): Anthropic.Beta.BetaContentBlockParam =>
+    s.kind === "text" ? { type: "text", text: s.text } : s.kind === "image" ? { type: "image", source: { type: "base64", media_type: s.mime, data: s.data } } : { type: "document", source: { type: "base64", media_type: "application/pdf", data: s.data }, title: s.name };
+  if (request.mode === "fix") {
+    content.push({ type: "text", text: `The problem as it stands:\nstem: ${JSON.stringify(request.stem)}\ntex: ${request.tex === null ? "null" : JSON.stringify(request.tex)}` });
+    if (request.source) {
+      content.push({ type: "text", text: `The picture it was read from: ${sourceName(request.source, 0)}` });
+      content.push(block(request.source));
+    }
+    content.push({ type: "text", text: `The teacher's correction: ${request.instruction}` });
+    return [{ role: "user", content }];
+  }
+  request.sources.forEach((s, i) => {
     content.push({ type: "text", text: `Source ${i}: ${sourceName(s, i)}` });
-    if (s.kind === "text") content.push({ type: "text", text: s.text });
-    else if (s.kind === "image") content.push({ type: "image", source: { type: "base64", media_type: s.mime, data: s.data } });
-    else content.push({ type: "document", source: { type: "base64", media_type: "application/pdf", data: s.data }, title: s.name });
+    content.push(block(s));
   });
   return [{ role: "user", content }];
 }

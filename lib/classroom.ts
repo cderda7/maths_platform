@@ -86,6 +86,9 @@ export interface DraftQuestion {
   thumb?: string;
   page?: number;
   label?: string;
+  /** A diagram cut from the file (ticket 173): the full crop's id in the source store, and a small copy the tile shows. */
+  figureId?: string;
+  figureUrl?: string;
 }
 
 /** The most a goal for the class can be: one or two sentences, so it fits the student's bubble. */
