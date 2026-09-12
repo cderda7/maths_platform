@@ -29,6 +29,10 @@ const ACTION_ACTIVE = `${ACTION} bg-accent text-white hover:bg-accent-deep`;
  * takes 10 px of the column.
  */
 const COLUMN_FLOOR = 186;
+/** The two count tags beside a problem card: "15/20 correct" level with the header, "3/20 skipped" right under it (tickets 140, 143). */
+const COUNT = "inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md border border-line bg-cream-deep px-2 py-1 text-[12px] leading-none";
+/** A count tag's height: 12 px text on its own line, 4 px padding and 1 px border each side. The column's top padding centres the first tag on the header row. */
+const COUNT_H = 22;
 const LINE = "rounded-xl border px-4 py-2.5 text-[clamp(13px,calc(17px*var(--fit,1)),17px)] whitespace-nowrap text-ink @max-[260px]:px-2 @max-[260px]:py-1.5";
 
 /**
@@ -87,8 +91,9 @@ function FitGrid({ children, ...rest }: React.HTMLAttributes<HTMLDivElement>) {
  * make-your-own tab as a flyout from the chip, down and to the right (ticket 132); the card
  * keeps its width either way, and a little clear of the card so the open flyout never touches
  * it (ticket 142). Left of the card, level with its header row, a small box counts the class who
- * got it right, "14/20 right" (ticket 140; outside the card since 142), its tooltip splitting the
- * rest into the wrong (the rows) and those who never finished it. The difficulty tag sits after
+ * got it correct, "14/20 correct" (ticket 140; outside the card since 142), its tooltip splitting the
+ * rest into the wrong (the rows) and the skipped, and under it a second box with the skipped
+ * count, "3/20 skipped" (143): stopped before the problem, or handed in without an answer. The difficulty tag sits after
  * the maths, not at the header's far end (142); no live pill on a name here (142).
  */
 export default function TeacherMistakes() {
@@ -116,6 +121,8 @@ export default function TeacherMistakes() {
         {problems.map(({ problem, rows, right }) => {
           const isOpen = open.includes(problem.id);
           const othersOpen = open.some((id) => id !== problem.id);
+          /** Neither correct nor among the rows: stopped before the problem, or handed it in without an answer (ticket 143). */
+          const skipped = CLASS_SIZE - right - rows.length;
           const groups = groupBySlip(rows);
           // One grid column per identical working (ticket 138); boxes and pills span columns.
           const columns = groups.flatMap((g) => g.columns);
@@ -137,17 +144,19 @@ export default function TeacherMistakes() {
           };
           return (
             <div key={problem.id} className="flex items-start gap-4" data-problem-row={problem.id}>
-            {/* Level with the header row: the card's 1 px border, then the header. */}
-            <div className="flex shrink-0 items-center" style={{ height: PROBLEM_HEADER + 2 }}>
-              <span
-                className="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-line bg-cream-deep px-2 py-1 text-[12px] leading-none"
-                title={`${right} of ${CLASS_SIZE} got it right · ${rows.length} wrong · ${CLASS_SIZE - right - rows.length} didn't finish it`}
-                data-right={`${problem.id}:${right}`}
-              >
+            {/* The correct count level with the header row (the card's 1 px border, then the header), the skipped count 6 px under it; the two the same width. */}
+            <div className="flex shrink-0 flex-col items-stretch gap-1.5" style={{ paddingTop: (PROBLEM_HEADER + 2 - COUNT_H) / 2 }}>
+              <span className={COUNT} title={`${right} of ${CLASS_SIZE} got it correct · ${rows.length} wrong · ${skipped} skipped`} data-right={`${problem.id}:${right}`}>
                 <span className="font-semibold text-ink">
                   {right}/{CLASS_SIZE}
                 </span>
-                <span className="text-ink-muted">right</span>
+                <span className="text-ink-muted">correct</span>
+              </span>
+              <span className={COUNT} title="Stopped before this problem, or handed it in without an answer" data-skipped={`${problem.id}:${skipped}`}>
+                <span className="font-semibold text-ink">
+                  {skipped}/{CLASS_SIZE}
+                </span>
+                <span className="text-ink-muted">skipped</span>
               </span>
             </div>
             <Card

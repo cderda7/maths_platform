@@ -138,7 +138,8 @@ teacher shows them, and a mirror of the teacher's working.
   problem twelve students got wrong in three ways takes three columns. Columns share the card
   down to a floor and the working shrinks to fit them, so a problem scrolls sideways only past
   seven or so distinct workings. Left of every problem's card, level with its header, a small
-  box counts the class who got it right ("15/20 right"; hover for the wrong and the unfinished);
+  box counts the class who got it correct ("15/20 correct"; hover for the wrong and the skipped)
+  with the skipped count under it ("3/20 skipped": stopped before it, or no answer handed in);
   the difficulty tag sits after the maths. The class's slips have a shape: twelve
   classmates wrong on Q7 in three ways (the fraction cleared from two terms, the third lost,
   the wrong pair), Amelia alone on Q6, nobody on Q8, and every other problem wrong in at least

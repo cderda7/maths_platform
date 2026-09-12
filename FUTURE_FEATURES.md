@@ -1854,6 +1854,21 @@ agents add sections above it and leave it alone.
 - **Flyout gap.** 11 layout px (8 on screen) between the card and the panel; if the user wants
   more, `ml-5` on the diagnostic is the one knob (the chip moves with it).
 
+## The skipped tag (from ticket 143, 2026-09-12)
+
+- **What "skipped" holds.** The class less the correct and the wrong: a classmate who stopped
+  before the problem, the live student whose working reaches no answer (Sam's Q9), and the
+  live student before any hand-in at all. A split ("2 didn't reach it · 1 no answer"), or a
+  third tag for the unfinished, deferred until a teacher asks which is which.
+- **A wrong that came after stopping.** Ethan and Harper slipped on Q9 though their `done`
+  says they stopped before it, so they are wrong, not skipped; the fixture's `done` and `wrong`
+  are not reconciled. Deferred with ticket 130's fixture notes.
+- **Reading the two tags across problems.** The tags are the same width within a problem, not
+  across the page (a "15/20" is wider than a "2/20"); a fixed width for the column so every
+  tag lines up down the page, deferred until the eye complains.
+- **Click a tag.** Neither tag does anything on click; a list of who skipped (or who got it
+  correct) deferred with ticket 140's note.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
