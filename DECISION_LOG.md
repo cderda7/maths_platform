@@ -2357,3 +2357,32 @@ Q2's panel), by design: it is the same question.
 
 **Defence.** The student-side contract (one modal, answer, back) holds unchanged; ownership is
 a pure function with tests; the ten panels and the class view's card are one component.
+
+## 2026-09-12 · The class's stage is the stage the class entered, derived, not stored
+
+**Decision.** `lib/classStage.ts` derives where the class is on its pathway from state that
+already exists (the whole-class session's status, the group gate, the live student's stage) and
+counts the students done with that stage from the same sources. Nothing new is written to the
+classroom; no stage transition is recorded.
+
+**Context.** Ticket 129: the Pathway card marks the current stage, counts the class through it,
+and darkens stages the class has moved on from. The student side already knows its own stage;
+the teacher side needed one for the class.
+
+**Alternatives considered.** (1) A `stage` field on the classroom advanced by explicit actions
+(teacher-driven or automatic). (2) The furthest stage any student has reached. (3) The stage most
+students are in.
+
+**Tradeoffs.** Derivation means every tab agrees without a new action and older stored state
+needs no migration, but the rule has to name a class-level moment for a stage that students
+enter one by one (individual review), and the fixture classmates have no stage of their own.
+An explicit field would be simpler to read but would need writers on the student side and
+could drift from what the whole-class session and the gate already say. "Furthest student"
+would light individual review the moment one student hands in and never let the working
+stage look over while one is missing; "most students" hides a straggling class.
+
+**Defence.** The gate and the whole-class session are already the class-level moments for
+group and class review; individual review's moment is the live student's hand-in, which is
+what the demo's scripted classmates are anchored to. The counts stay honest about who is
+behind (the grid's MISSING marker and Force assignment submit's count use the same lines).
+If the classmates become live, only `stageDone` and `currentClassStage` change.

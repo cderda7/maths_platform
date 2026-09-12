@@ -56,9 +56,9 @@ export function pathwaySentence(p: readonly ReviewStage[]): string {
   return ["student submission", ...p.map((s) => STAGE_WORD[s]), "done"].join(" → ");
 }
 
-/** "submit → indiv review → group review" for the chip. */
+/** "indiv working → indiv review → group review" for the chip (the class view's card, ticket 129). */
 export function pathwayChip(p: readonly ReviewStage[]): string {
-  return ["submit", ...p.map((s) => STAGE_SHORT[s])].join(" → ");
+  return ["indiv working", ...p.map((s) => STAGE_SHORT[s])].join(" → ");
 }
 
 const TOKENS: Record<string, ReviewStage> = {

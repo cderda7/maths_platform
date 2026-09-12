@@ -6,7 +6,7 @@ import TeacherChrome from "./TeacherChrome";
 import DiagnosticPush from "./DiagnosticPush";
 import ForceSubmit from "./ForceSubmit";
 import GroupProgressCard from "./GroupProgressCard";
-import GroupStart, { groupStartShown } from "./GroupStart";
+import GroupStart from "./GroupStart";
 import WholeClassCard from "./WholeClassCard";
 import { RowDrill, type ColumnBox, type RowMode } from "@/components/HierarchyDrill";
 import FitText from "@/components/FitText";
@@ -18,10 +18,10 @@ import { CLASSMATES } from "@/data/classmates";
 import { categoryLabel, categoryName, categoryOf, isFlat, type CategoryId, type LeafId } from "@/data/taxonomy";
 import { confidenceLabel, confidenceLines } from "@/lib/report";
 import type { Confidence } from "@/data/types";
-import { pathwayOf } from "@/lib/classroom";
+import { currentSlide } from "@/lib/classroom";
 import { useAssignment, useClassroom } from "@/lib/classroom-store";
+import { classStages } from "@/lib/classStage";
 import { classmateEvidence, hierarchyFor, problemsStarted, restrictTo, sessionEvidence, type Evidence } from "@/lib/hierarchy";
-import { pathwayChip } from "@/lib/pathway";
 import { useBatchedSession, useNow } from "@/lib/store";
 
 /** How long a second click may follow the first and still count as a double-click. */
@@ -181,6 +181,8 @@ export default function TeacherLive() {
   const results = rows.map((r) => hierarchyFor(r.evidence, problems));
   const columns = results[0]?.columns ?? [];
   const caution = live?.escalation.caution ?? [];
+  const stages = classStages(classroom, live, now, problems.length);
+  const wcInUse = !!currentSlide(classroom);
 
   return (
     <TeacherChrome>
@@ -378,31 +380,40 @@ export default function TeacherLive() {
         </Card>
 
         <div className="space-y-6">
+          {/* Class review in use: its card leads the column (ticket 129). */}
+          {wcInUse && <WholeClassCard />}
           <Card className="p-6" data-pathway-card>
             <Eyebrow className="inline-block rounded-md bg-accent px-2 py-1 text-white">Pathway</Eyebrow>
-            <ol className="mx-auto mt-3 flex w-fit flex-col items-center font-display text-[22px] leading-snug text-ink" data-pathway-chip>
-              {pathwayChip(pathwayOf(classroom))
-                .split(" → ")
-                .map((stage, i) => (
-                  <li key={stage} className="flex flex-col items-center text-center">
-                    {i > 0 && (
-                      <svg viewBox="0 0 12 18" className="my-0.5 h-[18px] w-3 text-ink-muted/70" aria-hidden>
-                        <path d="M6 1v15M2.5 12.5 6 16l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
+            {/* At the card's left (not centred as before ticket 129) so the note beside the current pill has the rest of the card's width. */}
+            <ol className="mt-3 flex w-fit flex-col items-center font-display text-[22px] leading-snug text-ink" data-pathway-chip>
+              {stages.map((stage, i) => (
+                <li key={stage.id} className="flex flex-col items-center text-center" data-stage={stage.id} data-stage-state={stage.state}>
+                  {i > 0 && (
+                    <svg viewBox="0 0 12 18" className="my-0.5 h-[18px] w-3 text-ink-muted/70" aria-hidden>
+                      <path d="M6 1v15M2.5 12.5 6 16l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                  <span className="relative inline-block">
+                    {/* Over: the dark navy of the student's own warm-up bubbles. Current: a purple ring (a shadow, so nothing moves). */}
+                    <span className={`inline-block rounded-xl px-5 py-1.5 ${stage.state === "over" ? "bg-ink text-white" : "bg-standout-soft"} ${stage.state === "current" ? "ring-2 ring-accent" : ""}`}>{stage.word}</span>
+                    {stage.state === "current" && stage.done !== null && (
+                      <span className="absolute left-full top-1/2 ml-3 flex -translate-y-1/2 flex-col items-start whitespace-nowrap text-left text-[12.5px] leading-snug text-ink-muted" style={{ fontFamily: "var(--font-sans)" }} data-stage-count>
+                        <span>
+                          <span className="tabular-nums">
+                            {stage.done}/{stage.total}
+                          </span>{" "}
+                          done
+                        </span>
+                        <GroupStart />
+                      </span>
                     )}
-                    <span className="rounded-xl bg-standout-soft px-5 py-1.5">{stage}</span>
-                  </li>
-                ))}
+                  </span>
+                </li>
+              ))}
             </ol>
           </Card>
-          {groupStartShown(classroom, now) && (
-            <Card className="p-6" data-class-card>
-              <Eyebrow className="inline-block rounded-md bg-accent px-2 py-1 text-white">Class</Eyebrow>
-              <GroupStart />
-            </Card>
-          )}
           <GroupProgressCard session={live} />
-          <WholeClassCard />
+          {!wcInUse && <WholeClassCard />}
 
           <DiagnosticPush session={live} />
 

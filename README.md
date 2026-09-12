@@ -107,8 +107,11 @@ Teacher, during the lesson (`/teacher`):
   pills, since the pill is its own way in, and for two seconds after it last left one, so a
   sweep across pills never shows them. A student with nothing handed in shows a caution triangle and MISSING in
   the Set column. Then the live row's confidence, stage and caution, the classmates, the
-  pathway chip, **Force assignment submit** (confirm, then a one-minute grace on every screen), the
-  **Class review** card (Set up → / Students frozen · End session), the assignment status
+  **Pathway** card (indiv working → indiv review → group review → class review: the stage the
+  class is on ringed in purple with `N/20 done` beside it and, before group review, **start group
+  now**; stages over are navy; stages ahead light blue), **Force assignment submit** (confirm, then a one-minute grace on every screen), the
+  **Class review** card (Set up → / Students frozen · End session; first in the column while a
+  session runs), the assignment status
   (in class review · complete), the live diagnostic push (the example, or one you write; the
   switch reads **respond online** / **not recorded**).
 - **Whole-class setup** (`/teacher/whole-class`): problems ranked by how many struggled, top

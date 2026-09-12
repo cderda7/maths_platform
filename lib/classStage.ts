@@ -1,0 +1,81 @@
+import { CLASSMATES } from "@/data/classmates";
+import type { ReviewStage } from "@/data/types";
+import { pathwayOf, type ClassroomState } from "./classroom";
+import { STAGE_SHORT } from "./pathway";
+import { classReadiness, CLASS_SIZE } from "./readiness";
+import type { StudentSession } from "./session";
+import { standingsAt } from "./standings";
+
+/**
+ * Where the class is on its pathway, for the class view's Pathway card (ticket 129): every stage
+ * of the pathway (the individual working first, then the review stages) as over, current or
+ * ahead, with how many of the class are done with the current one. Pure: derived from the
+ * classroom, the live student's session and the clock, so every tab agrees.
+ *
+ * The class enters a stage when the class does, not when its first or last student does:
+ * class review when the teacher projects, group review when the gate opens (everyone in, or the
+ * teacher's start), individual review when the live student hands in (the classmates' review is
+ * scripted from that moment). Working is over from then on even with a student marked missing on
+ * the grid; the count while it is current says how many have finished the set. Once the
+ * whole-class session ends every stage is over and none is current.
+ */
+export type ClassStageId = "working" | ReviewStage;
+export type StageState = "over" | "current" | "ahead";
+
+export interface ClassStage {
+  id: ClassStageId;
+  /** The chip's word: "indiv working", "indiv review", "group review", "class review". */
+  word: string;
+  state: StageState;
+  /** Students done with the stage; null for class review, which has no per-student count. */
+  done: number | null;
+  total: number;
+}
+
+export const CLASS_STAGE_WORD: Record<ClassStageId, string> = { working: "indiv working", ...STAGE_SHORT };
+
+/** Student stages before the set is handed in. */
+const WORKING_STAGES = ["overview", "confidence", "warmup-chat", "practice", "working"];
+
+/** The stage the class is on, or null once the whole-class session has ended. */
+export function currentClassStage(c: ClassroomState | null | undefined, session: StudentSession | null, now: number): ClassStageId | null {
+  const pathway = pathwayOf(c);
+  const wc = c?.wholeClass;
+  if (wc?.status === "ended") return null;
+  if (wc?.status === "active" && pathway.includes("whole-class")) return "whole-class";
+  if (pathway.includes("group") && (!!c?.group || classReadiness(c, now).started)) return "group";
+  if (pathway.includes("individual") && liveHandedIn(session)) return "individual";
+  return "working";
+}
+
+const liveHandedIn = (session: StudentSession | null): boolean => !!session && !WORKING_STAGES.includes(session.stage);
+
+/** How many of the class are done with a stage. */
+export function stageDone(id: ClassStageId, c: ClassroomState | null | undefined, session: StudentSession | null, now: number, problemCount: number): number | null {
+  switch (id) {
+    case "working":
+      // The set finished: the live student past working, a classmate with every problem done (the same line Force assignment submit draws).
+      return (liveHandedIn(session) ? 1 : 0) + CLASSMATES.filter((m) => m.done >= problemCount).length;
+    case "individual":
+      return classReadiness(c, now).handedIn;
+    case "group":
+      return Math.min(
+        CLASS_SIZE,
+        standingsAt(c, session, now)
+          .filter((s) => s.percent >= 100)
+          .reduce((n, s) => n + s.members.length, 0),
+      );
+    case "whole-class":
+      return null;
+  }
+}
+
+export function classStages(c: ClassroomState | null | undefined, session: StudentSession | null, now: number, problemCount: number): ClassStage[] {
+  const ids: ClassStageId[] = ["working", ...pathwayOf(c)];
+  const current = currentClassStage(c, session, now);
+  const at = current === null ? ids.length : ids.indexOf(current);
+  return ids.map((id, i) => {
+    const state: StageState = i < at ? "over" : i === at ? "current" : "ahead";
+    return { id, word: CLASS_STAGE_WORD[id], state, done: state === "current" ? stageDone(id, c, session, now, problemCount) : null, total: CLASS_SIZE };
+  });
+}

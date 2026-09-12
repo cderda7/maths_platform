@@ -1589,6 +1589,30 @@ agents add sections above it and leave it alone.
   moving from a pill in one row to the name in the next feels slow, a per-row clock is a
   `Record<string, number>` in the same place.
 
+## The Pathway card marks where the class is (from ticket 129, 2026-09-12)
+
+- **A count for class review.** The user asked for `N/20 done` beside the current stage; class
+  review has no per-student count (the class is frozen together), so its ringed pill carries
+  nothing and the class review card above it says `problem 1 of 2`. A note such as `problem 1 of 2`
+  beside the pill would repeat the card; deferred.
+- **The working stage and a missing student.** The class moves to individual review when the
+  live student hands in, so the `indiv working` pill goes navy while a classmate still shows
+  MISSING on the grid. The grid keeps that; a pill that stays lit until Force assignment submit
+  fires, or a small `1 missing` under the navy pill, was not asked for. Deferred until the
+  classmates are live rather than fixtures.
+- **Who is not done.** Hovering the count could list the students still on the stage (the ten
+  still working, the two not yet in at the gate), the way the confirm line of Force assignment
+  submit counts them. Not asked; deferred.
+- **The individual review count and the classmates' fixture.** The classmates hand in corrections
+  on a scripted timeline anchored to the live student's, so `indiv review` reads `0/20 done` until
+  the live student reaches the gate even though most classmates finished their sets long before.
+  A per-classmate `arrivedAt` in the fixture would let the count climb on its own clock.
+  Deferred; the demo's story is the live student's.
+- **Centred pills.** The column moved to the card's left so the note beside the current pill has
+  the rest of the width (the countdown with Cancel needs about 125 px). Centred pills with the
+  note hanging in the card's padding, or a wider side column, are alternatives if the left-aligned
+  column reads wrong.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
