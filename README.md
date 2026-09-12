@@ -124,7 +124,7 @@ Teacher, during the lesson (`/teacher`):
   with the full breakdown open it is the only button). Hover anywhere in a student's block (the
   row, or the drill open under it) for three buttons beside the name: **see dot skills** (the
   student's full breakdown, every group of every dot open to its skills; **close** while the row
-  is open), **student report** and **see history in…**; they step aside while the pointer is over one of the row's
+  is open), **student report** and **see history**; they step aside while the pointer is over one of the row's
   pills or the dot chips of an open drill, since each is its own way in, and for a second after
   it last left one, so a sweep across pills or dots never shows them. **See history in…** puts
   the roster into history mode for that student: everything else in the card fades, the

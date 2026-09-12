@@ -58,12 +58,12 @@ const STACK_ACTIVE = `${STACK_BUTTON} bg-accent text-white hover:bg-accent-deep`
 const STACK_TALL = `${STACK_ACTIVE} grid h-[calc(2*(1.375*11px_+_6px)_+_4px)] place-items-center`;
 
 /**
- * The row's three stacked buttons (see dot skills · student report · see history in…, ticket 175): the same
- * width and type as the header's, with the line at the text's own height and 1.5 px above and below, so three
- * (3 × 14 px and two 2 px gaps: 46 px) stand in the height the two-button stack had (2 × 21.125 + 4: 46.25) and
- * no roster row grows.
+ * The row's three stacked buttons (see dot skills · student report · see history, ticket 175): the same
+ * width and type as the header's, with the line at the text's own height and 2 px above and below, so three
+ * (3 × 15.5 px and two 3 px gaps: 52.5 px). Ticket 175 fit them in the two-button stack's 46 px at 11 px with 1.5 px;
+ * ticket 177 made them a pinch bigger and further apart, so every roster row is 6.5 px taller (81.5) than before.
  */
-const ROW_BUTTON = "w-[96px] whitespace-nowrap rounded-md px-1 py-[1.5px] text-[11px] font-medium leading-none transition-colors";
+const ROW_BUTTON = "w-[96px] whitespace-nowrap rounded-md px-1 py-[2px] text-[11.5px] font-medium leading-none transition-colors";
 const ROW_IDLE = `${ROW_BUTTON} bg-standout-soft text-accent-deep hover:bg-standout-line`;
 const ROW_ACTIVE = `${ROW_BUTTON} bg-accent text-white hover:bg-accent-deep`;
 
@@ -72,6 +72,14 @@ const HISTORY_TEXT = "text-[9px] font-semibold uppercase leading-none tracking-[
 
 /** The five history pills, 13 px each, stacked with 2 px between and 2 px above today's pill: 75 px above today's pill top. */
 const HISTORY_STACK_PX = 5 * 13 + 5 * 2;
+
+/**
+ * The least cream between the stacks' top and the cut pill above (ticket 177): a pill whose midline sits
+ * within this of the stacks' top is covered whole and the cut moves up to the next pill (or the heads),
+ * so the half pill never touches the oldest date. With 81.5 px rows the row above's midline falls exactly
+ * on the stacks' top, so without it every mid-roster cut would.
+ */
+const HISTORY_CLEAR_PX = 6;
 
 /**
  * A category column's width in px: its header chip (11 px uppercase, 0.06 em tracking, 10 px padding a side: about
@@ -230,7 +238,7 @@ export default function TeacherLive() {
     setHistory(null);
     return true;
   };
-  /** "see history in…": this student's pills widen and name themselves; a column view closes, another student's drill closes, this student's own drill stays. */
+  /** "see history": this student's pills widen and name themselves; a column view closes, another student's drill closes, this student's own drill stays. */
   const openHistory = (student: string) => {
     setColumn(null);
     if (open && open.student !== student) setOpen(null);
@@ -400,7 +408,7 @@ export default function TeacherLive() {
                           </div>
                           {/* Shown while the pointer is in the student's block, except over a marker (a category pill, ticket 128, or a drill dot, ticket 133: each is its own way in) and for PILL_GRACE_MS after it last left one (ticket 131). The CSS :has rules hide at once; the state carries the grace. */}
                           {/* Three buttons (ticket 175): the third opens history mode and reads "close history" while it is on; the stack stays in view for the student in history mode, and never shows on a faded row. */}
-                          <div className={`ml-auto flex shrink-0 flex-col gap-0.5 ${inHistory ? "visible" : "invisible"} ${pillQuiet && !faded ? "group-hover/row:visible group-focus-within/row:visible group-has-[[data-dot]:hover]/row:invisible group-has-[[data-node]:hover]/row:invisible" : ""}`} data-row-actions={r.id}>
+                          <div className={`ml-auto flex shrink-0 flex-col gap-[3px] ${inHistory ? "visible" : "invisible"} ${pillQuiet && !faded ? "group-hover/row:visible group-focus-within/row:visible group-has-[[data-dot]:hover]/row:invisible group-has-[[data-node]:hover]/row:invisible" : ""}`} data-row-actions={r.id}>
                             <button type="button" onClick={() => (isOpen ? setOpen(null) : openRow(r.id, "expanded"))} className={isOpen ? ROW_ACTIVE : ROW_IDLE} data-see-skills={r.id} aria-pressed={isOpen}>
                               {isOpen ? "close" : "see dot skills"}
                             </button>
@@ -408,7 +416,7 @@ export default function TeacherLive() {
                               student report
                             </Link>
                             <button type="button" onClick={() => (inHistory ? setHistory(null) : openHistory(r.id))} className={inHistory ? ROW_ACTIVE : ROW_IDLE} data-see-history={r.id} aria-pressed={inHistory}>
-                              {inHistory ? "close history" : "see history in…"}
+                              {inHistory ? "close history" : "see history"}
                             </button>
                           </div>
                         </div>
@@ -655,7 +663,7 @@ function HistoryBlocker({ student, tableRef, rosterRef, dueRef, onClick }: { stu
       const bottom = y(pill.top) - 2;
       const stackTop = y(pill.top) - HISTORY_STACK_PX;
       // The rows' own pills (a StatusDot directly in its button; not the history pills or their dates), their midlines in layout px: the nearest one at or above the stacks' top is where the cream stops.
-      const mids = [...table.querySelectorAll<HTMLElement>("tr[data-row] [data-dot] > [data-status]")].map((el) => el.getBoundingClientRect()).map((r) => y(r.top + r.height / 2)).filter((m) => m <= stackTop);
+      const mids = [...table.querySelectorAll<HTMLElement>("tr[data-row] [data-dot] > [data-status]")].map((el) => el.getBoundingClientRect()).map((r) => y(r.top + r.height / 2)).filter((m) => m <= stackTop - HISTORY_CLEAR_PX);
       const due = dueRef.current?.getBoundingClientRect();
       const top = mids.length > 0 ? Math.max(...mids) : due ? y(due.top + due.height / 2) : y(R.top) - 20;
       setBox({

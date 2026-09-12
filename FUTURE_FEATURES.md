@@ -2380,9 +2380,10 @@ uploaded problems) settled the following as later, each on purpose.
 - **The width animation outside Chrome.** The pill widens over 150 ms only where
   `interpolate-size: allow-keywords` is supported (Chrome 129+); Safari and Firefox snap. A fixed
   per-category width table would animate everywhere at the cost of a measurement per font.
-- **The header's stack and the row's stack differ in height.** The row's three buttons are 14 px
-  each to fit the old two-button height; the column heads' buttons are still 21 px. Trimming the
-  heads' to match, or letting every row grow by 15 px, would make the two stacks one design.
+- **The header's stack and the row's stack differ in height.** The row's three buttons are 15.5 px
+  each (ticket 177: 11.5 px text, 2 px above and below, 3 px apart; ticket 175 had them at 14 to fit
+  the old two-button height); the column heads' buttons are still 21 px. Trimming the heads' to match,
+  or growing the row's once more, would make the two stacks one design.
 - **History mode for a second student.** One student at a time; a click on another row leaves the
   mode. Comparing two students' trails side by side (two rows un-faded, two sheets) was not asked
   for.
