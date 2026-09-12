@@ -24,12 +24,14 @@ export interface TileHandlers {
  * ghost, "Q{n+1}" muted with "Type a question", until it has text. Enter moves to the next tile,
  * Shift+Enter breaks the line (which forces the prose/expression split), Backspace in an empty
  * tile removes it, a × in the corner does the same. Fixed size, nothing scrolls or grows: a
- * question is assumed to fit (ASSUMPTIONS.md).
+ * question is assumed to fit (ASSUMPTIONS.md). Press and hold anywhere on it to drag it to
+ * another slot (ticket 150); `slot` is where it shows while a drag is on, so its label
+ * renumbers as the tiles slide.
  */
-export default function QuestionTile({ index, text, ghost, focused, h }: { index: number; text: string; ghost: boolean; focused: boolean; h: TileHandlers }) {
+export default function QuestionTile({ index, slot = index, text, ghost, focused, h }: { index: number; slot?: number; text: string; ghost: boolean; focused: boolean; h: TileHandlers }) {
   const parsed = useMemo(() => parseQuestion(text), [text]);
   const area = useRef<HTMLTextAreaElement>(null);
-  const label = `Q${index + 1}`;
+  const label = `Q${slot + 1}`;
 
   useEffect(() => {
     if (!focused) return;
@@ -58,17 +60,22 @@ export default function QuestionTile({ index, text, ghost, focused, h }: { index
     h.onPasteLines(first, lines.slice(1));
   };
 
-  // A press anywhere on the tile edits it; while editing, a press on the rendered view keeps the caret where it is.
-  const mouseDown = (e: MouseEvent<HTMLDivElement>) => {
+  // A click anywhere on the tile edits it (on the release, so a press held to drag it does not); while editing, a press on the rendered view keeps the caret where it is.
+  const outside = (e: MouseEvent<HTMLDivElement>) => {
     const t = e.target as HTMLElement;
-    if (t.closest("textarea") || t.closest("button")) return;
-    e.preventDefault();
-    if (!focused) h.onFocus();
+    return !t.closest("textarea") && !t.closest("button");
+  };
+  const mouseDown = (e: MouseEvent<HTMLDivElement>) => {
+    if (outside(e)) e.preventDefault();
+  };
+  const click = (e: MouseEvent<HTMLDivElement>) => {
+    if (outside(e) && !focused) h.onFocus();
   };
 
   return (
     <div
       onMouseDown={mouseDown}
+      onClick={click}
       className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border p-5 transition-[border-color,box-shadow] ${
         ghost && !focused ? "border-dashed border-line-strong bg-transparent" : focused ? "border-accent-line bg-paper shadow-lift" : "border-line bg-paper shadow-card"
       }`}

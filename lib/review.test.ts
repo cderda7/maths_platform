@@ -72,6 +72,13 @@ describe("the review state and the draft it is about", () => {
     expect(fresh.labels).toEqual({ q2: "complex familiar" });
     expect(fresh.pathway).toEqual(["whole-class"]);
   });
+  it("leaves the order out, so a reorder keeps the review's decisions (ticket 150)", () => {
+    const qs = pasted();
+    const reversed = [...qs].reverse();
+    expect(draftKey(reversed)).toBe(draftKey(qs));
+    const stored: ReviewState = { ...initialReview(qs), step: "recommendations", answers: { [CHANGE_SIGNS.id]: "accept" } };
+    expect(reviewFor(reversed, stored)).toBe(stored);
+  });
 
   it("is kept in the classroom store and cleared by null and by reset", () => {
     const review = initialReview(pasted());

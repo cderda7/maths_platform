@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import TeacherChrome from "../../TeacherChrome";
 import QuestionTile, { type TileHandlers } from "./QuestionTile";
 import { Button, Eyebrow } from "@/components/ui";
+import { useReorder } from "@/components/useReorder";
 import { ASSIGNMENT } from "@/data/assignment";
 import { DEMO_DRAFT_GOAL, DEMO_DRAFT_TITLE, DEMO_PASTE_LINES } from "@/data/draft-seed";
 import { GOAL_MAX, type AssignmentDraft, type DraftQuestion } from "@/lib/classroom";
 import { dispatchClassroom, getClassroom } from "@/lib/classroom-store";
 import { parseQuestion, stemText } from "@/lib/mathInput";
+import { moveItem } from "@/lib/reorder";
 
 export const REVIEW_PATH = "/teacher/assignments/create/review";
 
@@ -41,7 +43,9 @@ export function draftOf(title: string, goal: string, qs: Q[], at: number): Assig
  * grid is the editor; see `QuestionTile`. The draft is saved to the classroom store on every
  * change and read back on load, so a reload keeps it. Continue floats bottom right, on once a
  * question has text, and opens the review screen. The unit, the pathway, the skills and the
- * difficulty are the review screen's business, not this one's.
+ * difficulty are the review screen's business, not this one's. A press held on a tile lifts it
+ * to drag to another slot, the labels renumbering as the others slide (ticket 150,
+ * `useReorder`); the ghost stays last and takes no drop.
  */
 export default function CreateAssignment() {
   // The draft lives in localStorage, so the editor mounts on the client only and reads it as its first state.
@@ -131,6 +135,9 @@ function Editor() {
     },
   });
 
+  // Every tile but the ghost can be held and dropped on; a move is an edit like any other (it clears the undo line).
+  const reorder = useReorder({ count: qs.length - 1, columns: 5, ignore: "button", name: (i) => `Q${i + 1}`, onMove: (from, to) => edit((cur) => moveItem(cur, from, to)) });
+
   const any = qs.some((q) => q.text.trim());
   const proceed = () => {
     if (!any) return;
@@ -176,13 +183,16 @@ function Editor() {
         </p>
       </div>
 
-      <ol className="mt-6 grid grid-cols-5 gap-4" onKeyDownCapture={gridKey} data-questions>
+      <ol className="mt-6 grid grid-cols-5 gap-4" onKeyDownCapture={gridKey} data-questions data-dragging={reorder.drag ? reorder.drag.from + 1 : undefined}>
         {qs.map((q, i) => (
-          <li key={q.id} className="aspect-square min-h-0" data-question={i + 1}>
-            <QuestionTile index={i} text={q.text} ghost={i === qs.length - 1} focused={focusId === q.id} h={handlers(i, q)} />
+          <li key={q.id} className="aspect-square min-h-0" data-question={i + 1} {...reorder.item(i)}>
+            <QuestionTile index={i} slot={reorder.slot(i)} text={q.text} ghost={i === qs.length - 1} focused={focusId === q.id} h={handlers(i, q)} />
           </li>
         ))}
       </ol>
+      <p className="sr-only" aria-live="polite" data-announce>
+        {reorder.announced}
+      </p>
 
       {removed && (
         <p className="mt-4 text-[13px] text-ink-muted" data-removed>

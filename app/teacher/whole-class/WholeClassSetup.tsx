@@ -6,11 +6,13 @@ import TeacherChrome from "../TeacherChrome";
 import M from "@/components/Math";
 import { Button, Card, Eyebrow, H1 } from "@/components/ui";
 import { DifficultyTag } from "@/components/Tag";
+import { useReorder } from "@/components/useReorder";
 import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
 import { dispatchClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
 import { FOLLOW_MODE_WORD, type FollowMode } from "@/lib/classroom";
 import { candidatesFor, MAX_EXAMPLES, optionOf, optionsFor, problemsByStruggle, suggestExamples, type ExampleRef, type PickerContext } from "@/lib/examples";
 import ExamplePicker from "./ExamplePicker";
+import { moveItem } from "@/lib/reorder";
 import { useBatchedSession } from "@/lib/store";
 
 const PRECHECK = 3;
@@ -22,6 +24,9 @@ const PRECHECK = 3;
  * their counts. Names and correctness show here and nowhere near the projector. What the students' screens do
  * (frozen or write with me) starts unchosen: both options empty, Project faded until one is picked;
  * pressing it anyway turns its label to "select one" and flashes the two options light blue once.
+ * The problem list ranks by how many struggled, for choosing; the example cards on the right
+ * stand in the order the class will see, the assignment's by default, and a press held on a
+ * card drags it to another place in that order (ticket 150, `useReorder`).
  */
 export default function WholeClassSetup() {
   const router = useRouter();
@@ -38,7 +43,21 @@ export default function WholeClassSetup() {
   const chosenIds = chosen ?? ranked.slice(0, PRECHECK).map((r) => r.problem.id);
   const toggle = (id: string) => setChosen(chosenIds.includes(id) ? chosenIds.filter((x) => x !== id) : [...chosenIds, id]);
   const examplesFor = (pid: string) => overrides[pid] ?? suggestExamples(candidatesFor(pid, session), MAX_EXAMPLES, ctx);
-  const ordered = ASSIGNMENT.problems.map((p) => p.id).filter((id) => chosenIds.includes(id));
+  /** Every problem in the order the class will see them: the assignment's until the teacher drags a card. An unticked problem keeps its place for when it is ticked again. */
+  const [order, setOrder] = useState<string[]>(() => ASSIGNMENT.problems.map((p) => p.id));
+  const ordered = order.filter((id) => chosenIds.includes(id));
+  const reorder = useReorder({
+    count: ordered.length,
+    name: (i) => PROBLEM_MAP[ordered[i]]?.label ?? `Problem ${i + 1}`,
+    onMove: (from, to) => {
+      // The chosen cards move among themselves; the unticked keep their slots in the full order.
+      const moved = moveItem(ordered, from, to);
+      setOrder((o) => {
+        let k = 0;
+        return o.map((id) => (chosenIds.includes(id) ? moved[k++] : id));
+      });
+    },
+  });
 
   const swap = (pid: string, at: number, ref: ExampleRef) => {
     const next = [...examplesFor(pid)];
@@ -135,8 +154,8 @@ export default function WholeClassSetup() {
           </div>
         </Card>
 
-        <div className="space-y-4">
-          {ordered.map((pid) => {
+        <div className="space-y-4" data-wc-order={ordered.join(" ")} data-dragging={reorder.drag ? reorder.drag.from + 1 : undefined}>
+          {ordered.map((pid, i) => {
             const p = PROBLEM_MAP[pid];
             const cands = candidatesFor(pid, session);
             const options = optionsFor(cands, ctx);
@@ -144,7 +163,8 @@ export default function WholeClassSetup() {
             /** The options already in a slot: no menu offers them again (ticket 157). */
             const taken = refs.flatMap((r) => { const o = optionOf(options, r.studentId); return o ? [o.key] : []; });
             return (
-              <Card key={pid} className="overflow-hidden" data-wc-examples={pid}>
+              <div key={pid} {...reorder.item(i)}>
+              <Card className="overflow-hidden" data-wc-examples={pid} data-wc-slot={reorder.slot(i) + 1}>
                 <div className="flex items-center gap-4 border-b border-line px-6 py-3">
                   <span className="font-display text-[22px] text-ink">{p.label}</span>
                   <DifficultyTag d={p.difficulty} />
@@ -163,8 +183,12 @@ export default function WholeClassSetup() {
                   })}
                 </div>
               </Card>
+              </div>
             );
           })}
+          <p className="sr-only" aria-live="polite" data-announce>
+            {reorder.announced}
+          </p>
         </div>
       </div>
     </TeacherChrome>

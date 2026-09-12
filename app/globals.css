@@ -279,3 +279,16 @@ body {
 .grow-wrap > textarea:focus {
   border-color: var(--color-accent-line);
 }
+
+/* Drag to reorder (ticket 150, `useReorder`): the held item lifts on the card's own shadow scale; the others slide by transform. Reduced motion drops the slide. */
+[data-drag="held"] > * {
+  box-shadow: var(--shadow-lift);
+}
+[data-drag="held"] {
+  cursor: grabbing;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-drag="shifted"] {
+    transition: none !important;
+  }
+}

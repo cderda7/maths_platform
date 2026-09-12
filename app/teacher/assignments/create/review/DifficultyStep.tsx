@@ -13,7 +13,7 @@ import { countByDifficulty, DIFFICULTIES, labelsOf } from "@/lib/review";
  * above the grid. A tap on a label rotates it to the next of the four. "Assess set" bottom right
  * runs the assessment.
  */
-export default function DifficultyStep({ questions, overrides, onLabel, onAssess }: { questions: DraftQuestion[]; overrides: Record<string, Difficulty>; onLabel: (id: string, d: Difficulty) => void; onAssess: () => void }) {
+export default function DifficultyStep({ questions, overrides, onLabel, onMove, onAssess }: { questions: DraftQuestion[]; overrides: Record<string, Difficulty>; onLabel: (id: string, d: Difficulty) => void; onMove: (from: number, to: number) => void; onAssess: () => void }) {
   const labels = labelsOf(questions, overrides);
   const counts = countByDifficulty(Object.values(labels));
   return (
@@ -29,7 +29,7 @@ export default function DifficultyStep({ questions, overrides, onLabel, onAssess
         ))}
         <span className="text-[13px] text-ink-muted">Tap a label to change it.</span>
       </div>
-      <QuestionGrid items={questions.map((q) => ({ id: q.id, text: q.text, difficulty: labels[q.id] }))} onLabel={onLabel} animate />
+      <QuestionGrid items={questions.map((q) => ({ id: q.id, text: q.text, difficulty: labels[q.id] }))} onLabel={onLabel} onMove={onMove} animate />
       <div className="fixed bottom-16 right-6 z-30 flex items-center gap-3">
         <Link href="/teacher/assignments/create" className="rounded-full px-4 py-2 text-[13.5px] font-medium text-ink-soft hover:bg-cream-deep hover:text-ink" data-back>
           Back

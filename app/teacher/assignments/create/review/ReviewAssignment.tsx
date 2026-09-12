@@ -12,6 +12,7 @@ import Steps, { type StepName } from "./Steps";
 import { Eyebrow, H1 } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
 import { dispatchClassroom, getClassroom, useClassroom } from "@/lib/classroom-store";
+import { moveItem } from "@/lib/reorder";
 import { applyReview, bankProblemsOf, inferUnitFromReviewed, reviewFor, type ReviewState } from "@/lib/review";
 
 /**
@@ -81,7 +82,14 @@ export default function ReviewAssignment({ assessMs }: { assessMs: number }) {
           {assessing ? (
             <AssessingStep ms={assessMs} onDone={assessed} />
           ) : review.step === "difficulty" ? (
-            <DifficultyStep questions={questions} overrides={review.labels} onLabel={(id, d) => set({ labels: { ...review.labels, [id]: d } })} onAssess={assess} />
+            <DifficultyStep
+              questions={questions}
+              overrides={review.labels}
+              onLabel={(id, d) => set({ labels: { ...review.labels, [id]: d } })}
+              // A move reorders the draft itself, so the create screen shows the new order too; the decisions are by id and the draft key leaves order out.
+              onMove={(from, to) => draft && dispatchClassroom({ type: "draft/set", draft: { ...draft, questions: moveItem(questions, from, to), updatedAt: Date.now() } })}
+              onAssess={assess}
+            />
           ) : review.step === "recommendations" ? (
             <RecommendationsStep
               questions={questions}

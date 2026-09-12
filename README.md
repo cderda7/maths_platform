@@ -53,11 +53,14 @@ Teacher, before the lesson (`/teacher/assignments/create`, then the older `/teac
    they start; blank means no goal screen), then the questions typed into tiles in the student's five-wide
    grid, each tile the editor: the typed text on top, the rendered question beneath as you type
    (`x**2 + 5x + 6 = 0`, `1/3x**2`, `sqrt(2)` as KaTeX), Enter for the next tile, Shift+Enter to
-   put the expression under the prose, × or Backspace to remove ("Q2 removed. Undo"). Continue
+   put the expression under the prose, × or Backspace to remove ("Q2 removed. Undo"); press and
+   hold a tile to drag it to another slot, the labels renumbering as the others slide (a click
+   edits, a hold moves; Alt+arrows move a focused tile; ticket 150). Continue
    saves the draft and opens the review step.
 0b. **Review** (ticket 120, `…/create/review`): the same tiles with a difficulty label on each
    (simple / complex × familiar / unfamiliar, from the bank or a heuristic; tap a label to change
-   it) and the counts above. "Assess set" runs a bar for five seconds and returns three
+   it; press and hold a tile to reorder, the draft and the create screen following, the labels
+   and the decisions kept) and the counts above. "Assess set" runs a bar for five seconds and returns three
    recommendations matched to the set: change Q1 to `x² − 5x + 6 = 0` (the class's sign slip),
    remove the repeat of Q3, add a problem in a context (Try another cycles three). Accept or Keep
    as is, Undo, the grid follows. "Finalise set" opens the pathway screen: the unit focus (the
@@ -127,7 +130,8 @@ Teacher, during the lesson (`/teacher`):
   `n/20 students` and the misconception it reveals, the right one green; a pulsing `n/20 in`
   with **Withdraw** while the class answers; **show on board** / **clear board**).
 - **Whole-class setup** (`/teacher/whole-class`): problems ranked by how many struggled, top
-  three pre-checked; 2–3 suggested examples per problem chosen by mistake: the correct working,
+  three pre-checked; the example cards on the right stand in the order the class will see (the
+  assignment's), and a press held on a card drags it to another place in that order (ticket 150); 2–3 suggested examples per problem chosen by mistake: the correct working,
   then the problem's most common exact mistakes, each slot headed by the mistake's name and
   count (green for correct, red for a mistake) with the skill chip, **unit focus** and
   **fixed in group review** badges, the names under the working (private); a menu on the

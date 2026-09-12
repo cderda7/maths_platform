@@ -85,10 +85,17 @@ export interface ReviewState {
   unit?: 1 | 2 | 3 | 4;
 }
 
-/** A short signature of the questions as typed, so decisions made about one draft are not shown over another. */
+/**
+ * A short signature of the questions as typed, so decisions made about one draft are not shown
+ * over another. The order is left out (ticket 150): a reorder on the create screen or the
+ * review's grid keeps every decision, since labels and answers are by id, not by position.
+ */
 export function draftKey(questions: DraftQuestion[]): string {
   let h = 5381;
-  const s = questions.map((q) => `${q.id}\u0000${q.text}`).join("\u0001");
+  const s = questions
+    .map((q) => `${q.id}\u0000${q.text}`)
+    .sort()
+    .join("\u0001");
   for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
   return `${questions.length}:${(h >>> 0).toString(36)}`;
 }

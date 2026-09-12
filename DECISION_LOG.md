@@ -2815,3 +2815,44 @@ message) rather than none, a choice about old localStorage, not about product.
 **Defence.** One dimension for "where is the student", read the same way by the deep links, the
 skip strip, the reload and the teacher's live row; the reducer decides the skip from the same env
 that already decides the pathway, so the rule is a unit test, not a screen's effect.
+
+## 2026-09-12 · Reordering is press-and-hold on pointer events, in-house, with the review keyed to the set not its order
+
+**Decision.** Drag to reorder (ticket 150) is one hook, `useReorder`, over a pure module,
+`lib/reorder`, written here rather than taken from a library, and driven by pointer events
+rather than the HTML5 drag API the groups page uses. The gesture is a press held still for
+300 ms; a press that moves first is a click, a caret or a text selection. While held, the item
+follows the pointer by transform and the others slide by transform, so nothing resizes; a
+column of uneven cards is re-laid from its heights, a grid by its slots. The click that ends a
+hold is swallowed, so a hold never also edits. `draftKey` now leaves the questions' order out,
+so a reorder keeps the review's labels, answers and step. On the class review setup the
+problem list keeps ranking by who struggled and the example cards stand in the assignment's
+order; dragging a card changes the order Project sends.
+
+**Context.** The user: "click to edit, click & hold to reorder"; "the rows being in order of
+'who struggled the most' & the tiles being in order for the assignment … it'd be weird for the
+student to go 7->2->3 … just want the option for the teacher to change"; the review's grid too;
+one ticket. The create screen's tile is an editor whose whole face already takes a press, and
+the teacher chrome is zoomed 0.72, so pointer deltas and layout px differ by that factor.
+
+**Alternatives considered.** *The HTML5 drag API* (as `TeacherGroups`): no touch, the browser's
+own ghost image, no control over the slide, and a `draggable` tile fights the text box's
+selection. *dnd-kit or another library*: a dependency and its abstractions for two lists whose
+only hard part, which slot and who slides, is forty pure lines that vitest covers. *A grip
+handle or the Qn label as the handle*: the user chose hold-anywhere. *Reordering the problem
+list on the setup page and projecting in list order*: the list is for choosing (ranked by
+struggle) and the default projection would have become struggle order, which the user ruled
+out for the students' sake. *Leaving `draftKey` order-sensitive*: a reorder after starting the
+review would have thrown the teacher back to step one and dropped their answers for no reason
+they could see; the decisions are all by id.
+
+**Tradeoffs.** A 300 ms hold is a discoverable-by-accident gesture with no visible handle; the
+lift (scale, shadow, cursor) is the only feedback that the hold took. Alt+arrows in a focused
+text box override the word-jump keys. Touch is pointer events too, but the page can still pan
+under a held finger; auto-scroll near the viewport's edge, a long-press context menu guard and
+`touch-action` are not done. The hold suppresses the click that follows it by a capture-phase
+handler on the item, which any nested control that relies on that click would need to know.
+
+**Defense.** One gesture on three screens with one implementation, no dependency, the geometry
+pure and tested against every from/to pair, the order stored where it already was (the draft's
+array, the setup's `ordered`), and the review's decisions untouched by a move.

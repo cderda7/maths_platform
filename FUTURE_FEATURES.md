@@ -1349,8 +1349,8 @@ agents add sections above it and leave it alone.
   `/teacher`, `TeacherLive`) needs a home once the draft takes the landing route: a tab in the
   teacher chrome, or the assignment's own "class" view reached from the draft once it is assigned.
 - **What a tile can do.** Remove; swap for a sibling (same skills, different numbers); edit the
-  stem or the expression in place; drag to reorder, the labels renumbering; a dashed "+" tile at the
-  end. Which of these land first is open. A tile is the student's tile, so any affordance must sit
+  stem or the expression in place; drag to reorder, the labels renumbering (landed, ticket 150); a
+  dashed "+" tile at the end. Which of these land first is open. A tile is the student's tile, so any affordance must sit
   on it without changing the card's size: the grid stays the student's grid.
 - **Coverage beside the grid.** The current form's leaf chips (skills the chosen problems touch)
   and the unit-focus card (ticket 26's infer / confirm / reassess) move from a form to a rail or
@@ -1400,7 +1400,8 @@ agents add sections above it and leave it alone.
   taken for the prose/expression split, so sub-parts would want their own affordance (a "+ part"
   in the tile, or "a)" at the start of a line).
 - **Reordering tiles.** No drag or move; a removed tile comes back where it was. A drag handle, or
-  Alt+arrows while a tile is focused, would do.
+  Alt+arrows while a tile is focused, would do. (Landed 2026-09-12, ticket 150: press-and-hold
+  anywhere on the tile, and Alt+arrows.)
 - **Worked solutions, difficulty and skills per question.** The old screen showed difficulty tags
   and leaf chips; the create screen shows none (the user: "eliminate all this"). Where they
   belong, if anywhere, is the review screen's decision; the model solution (`Problem.solution`)
@@ -2035,6 +2036,40 @@ agents add sections above it and leave it alone.
   both set aside for the continuous slow ring.
 - **The older create screen.** `/teacher/assignments/new` has no goal field; an assignment
   created there reads the fixture's goal. Left as is: the screen is reachable by URL only.
+
+## 2026-09-12 · Drag to reorder (ticket 150)
+
+Press-and-hold reordering landed on the create screen, the review's difficulty grid and the class
+review setup's example cards (`useReorder`, `lib/reorder`). Left out, and why:
+
+- **The recommendations grid does not drag.** Step two's grid is the set as the answers leave it,
+  with the assessment's addition appended and a changed question in its target's place; its order
+  is the draft's, which the difficulty step and the create screen reorder. Dragging there would
+  need the addition's position stored (an `order` on the review keyed by id, applied in
+  `applyReview`). Deferred until a teacher asks to put the added question anywhere but last.
+- **Touch.** Pointer events cover a finger, but nothing stops the page panning under a held
+  tile, no `touch-action` is set, and the long-press context menu is not guarded. A hold on an
+  iPad needs a look on the device.
+- **Auto-scroll near the viewport's edge.** A drag to a slot off screen (a long set, a tall
+  column of cards) has no auto-scroll; the boxes are measured once at the hold, so a wheel
+  scroll mid-drag also puts the slots out of date. Re-measure on scroll, and creep the window
+  near the edges.
+- **A visible handle or hint.** The hold is discoverable by accident; the lift is the only sign it
+  took. A grip glyph on hover, or a one-time "hold to move" line, is a copy decision.
+- **Alt+arrows in a text box.** They override the word-jump keys while a tile is being edited. A
+  different chord, or arrows only when the tile (not its text box) has focus, if it bites.
+- **Undo of a move.** The create screen's one-step undo covers a removal only; a move is not
+  undoable except by moving back. A move could join the same "Undo" line.
+- **Moving several at once.** No multi-select; one item per hold.
+- **Drop animation.** On release the held item snaps from under the pointer to its slot; a short
+  settle transition would read better than the snap.
+- **The setup's order is not stored.** `order` on the class review setup is component state: a
+  reload puts the cards back in assignment order (the ticks and examples reset too, as before).
+  If the setup ever persists, the order goes with it.
+- **Reordering the problem list itself.** Ruled out by the user: the list is for choosing, ranked
+  by struggle; the cards are the order.
+- **The board's slide order after Project.** Once projected, the order is fixed (`wc/setup`);
+  reordering from the board controls is a separate control.
 
 ## Carson's notes
 
