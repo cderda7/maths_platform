@@ -25,14 +25,14 @@ const worst = <T extends string>(ids: T[], status: (id: T) => Status) => [...ids
 let ctx: CanvasRenderingContext2D | null | undefined;
 let family = "";
 /** Measures with the page's real body font (next/font gives Inter a generated family name), padded 4 % for rendering slack. */
-function textWidth(text: string, size: number): number {
+export function textWidth(text: string, size: number, weight = 400): number {
   if (typeof document === "undefined") return text.length * size * 0.55;
   if (ctx === undefined) {
     ctx = document.createElement("canvas").getContext("2d");
     family = getComputedStyle(document.body).fontFamily || "system-ui, sans-serif";
   }
   if (!ctx) return text.length * size * 0.55;
-  ctx.font = `${size}px ${family}`;
+  ctx.font = `${weight} ${size}px ${family}`;
   return ctx.measureText(text).width * 1.04;
 }
 

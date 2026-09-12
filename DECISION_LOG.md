@@ -3202,3 +3202,41 @@ count is read client-side before sending, which needs the library before the fir
 at, and nothing is stored twice on the server that has no storage. IndexedDB is the one browser
 store sized for files, and putting only references in the classroom store keeps that store as
 small and synchronous as every reducer expects.
+
+## 2026-09-13 · The category pill is the header: one labelled pill per column, one width per row (ticket 174)
+
+**Decision.** On the teacher's student report and the student's own report the row of category
+chips above the columns is removed and each column's pill carries the category's name in white
+uppercase on the status colour (grey in a hollow not-seen pill). Every pill in a row is the same
+width, the width the widest name needs, and that is achieved without measuring: each pill stacks
+all six names in one grid cell and shows only its own. The text size is fitted to the row from
+11 px down to 9 px so six equal pills always clear each other; the student's reflection panel is
+320 px instead of 440 so the report's card has the room.
+
+**Context.** The user: "instead of the category header as separate, take the category pill, make
+it wider, & put the category name there in white text. remove category headers. use the widest
+necessary pill to fit text to set the width for all pills", and "the reflection panel can be made
+narrower to make more room for the heart of the report". The chips and the pills had said the same
+thing on two lines, and on the iPad the chips overlapped (GRAPHING COMMUNICATION REASONING ran
+together in the user's screenshot).
+
+**Alternatives.** *Measure the widest pill in JS and set a width on the others*: a second layout
+pass and a state for something CSS grid does exactly (stacked names in one cell). *One fixed pill
+width*: the widest name changes with the unit's categories. *Keep 11 px text everywhere and let
+the student's pills overlap or wrap*: the request is one width per row and the names must read;
+fitting the size is what the trees beneath already do. *Per-category column widths, as the
+roster has*: the request is equal pills, not equal columns, and the trees' columns stay equal
+sixths. *Keep the reflection panel at 440 and shrink the pills further*: the user asked for the
+panel to give way; two or three sentences fit a 256 px textarea.
+
+**Tradeoffs.** Six equal pills at the widest name cost more row width than six chips sized to
+their own names, so the student's report drops to 9 px text (the teacher's stays at 11); the fit
+is a canvas measure of the name as set, and a font that loads late would be measured in the
+fallback (the effect re-runs on resize, not on font load). Every pill carries six spans, five
+invisible. The class view's roster keeps its bare 28 × 13 pills under header chips: the two
+surfaces no longer draw the category marker the same way.
+
+**Defense.** One element now says what two said, in the colour that is the point of the row, and
+the equal width the user asked for comes from the grid itself rather than a measurement that can
+lag a render. The fitted size keeps the rule true on both surfaces without a per-surface constant,
+and the narrower panel is the user's own call on where the room should go.

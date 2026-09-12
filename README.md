@@ -104,7 +104,8 @@ Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the 
    "write with me"). No counts on the iPad: a light blue "your approach" tag sits on the
    example that was the student's own first hand-in. When the teacher shows marks on the board,
    the same lines show red and blue on the iPad. End releases everyone to the report.
-7. **Report** in the teacher's colours, a 2–3 sentence reflection, send.
+7. **Report** in the teacher's colours (each category's pill carrying its name in white on its
+   status colour, the groups beneath), a 2–3 sentence reflection in a 320 px panel, send.
 
 Teacher, during the lesson (`/teacher`):
 
@@ -182,7 +183,8 @@ no marks until the teacher shows them, and the teacher's working pad.
   The roster's header row (Student, the category chips, Confidence, Set) stays in view under the bar
   while the page scrolls, so the categories still read beside the later students.
   **student report** beside a name on the class view opens their individual view (`/teacher/report?student=`):
-  the skills as the full dot view (the same columns, every group's skills out) fixed on the
+  the skills as the full dot view (each category's pill carrying its name in white on its status
+  colour, all six one width, every group's skills out beneath) fixed on the
   page, nothing to open or close, a skill still showing its work beneath; the platform's
   commentary as a few ideas in a light-blue bubble (an idea lights only the skills behind it),
   and what the student wrote back in a purple-bordered box. A live diagnostic takes the whole board once all twenty have answered, or when the teacher puts it up: the question, each option with its count, the right one green, `x/20 students answered this`; never while the class is still answering unless the teacher says so, and no misconception wording.

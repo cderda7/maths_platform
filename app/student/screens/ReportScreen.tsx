@@ -37,7 +37,7 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
   const mastery = isMastery(session);
 
   return (
-    <div className="grid h-full min-h-0 grid-cols-[1fr_440px]">
+    <div className="grid h-full min-h-0 grid-cols-[1fr_320px]">
       <section className="flex min-h-0 flex-col overflow-y-auto px-9 py-7">
         <Eyebrow>{useAssignment().title}</Eyebrow>
         <h1 className="font-display mt-2 text-[30px] leading-tight text-ink">Your report</h1>

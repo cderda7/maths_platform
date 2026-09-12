@@ -2312,6 +2312,25 @@ uploaded problems) settled the following as later, each on purpose.
 - **Keyboard access to the drop target.** The Upload link is the keyboard route; the overlay and
   drop are pointer-only by nature. Paste works from the keyboard. Not audited beyond that (Q7, Q14).
 
+## Labelled category pills (from ticket 174, 2026-09-13)
+
+- **The class view's roster still draws bare pills under chips.** The two reports now carry the
+  category name inside the pill; the roster (`/teacher`) keeps its 28 × 13 pills and the header
+  chips, since its columns are 80–132 px and a labelled pill would not fit the narrow ones. If the
+  roster should match, its `columnWidth` would grow to the widest name's pill and the roster's
+  1208 px budget at 1280 would need a trade elsewhere.
+- **9 px on the iPad.** The student's report fits six equal pills only at 9 px text with 6 px
+  padding (13 px gaps) in its 115 px columns. A narrower reflection panel than 320, dropping the
+  pills' letter-spacing at small sizes, or per-column widths would each buy a size step; none was
+  asked for.
+- **Font-load timing.** The pill fit measures the name on a canvas with the page's body font; it
+  re-runs on resize but not on `document.fonts.ready`, so a first paint before Inter loads could
+  fit one step too large or too small until the next resize. Not seen in the click-throughs
+  (production builds, font preloaded).
+- **The half pill's tint.** A half pill (problems skipped) fades its right half to a 45 % tint of
+  the status colour under white text; the key at the bottom still draws the half dot as a grey
+  left half. Whether the key should show the new pill treatment was not asked.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
