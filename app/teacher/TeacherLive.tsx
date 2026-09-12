@@ -6,7 +6,6 @@ import TeacherChrome from "./TeacherChrome";
 import DiagnosticCard from "./DiagnosticCard";
 import ForceSubmit from "./ForceSubmit";
 import GroupProgressCard from "./GroupProgressCard";
-import GroupStart from "./GroupStart";
 import WholeClassCard from "./WholeClassCard";
 import { RowDrill, type ColumnBox, type RowMode } from "@/components/HierarchyDrill";
 import FitText from "@/components/FitText";
@@ -227,7 +226,6 @@ export default function TeacherLive() {
       <div className="mt-3 grid grid-cols-[1fr_320px] gap-6">
         <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
           <H1>Class View</H1>
-          <ForceSubmit session={live} />
         </div>
       </div>
       <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[14px] text-ink-muted">
@@ -441,15 +439,16 @@ export default function TeacherLive() {
                   <span className="relative inline-block">
                     {/* Over: the blue of a lit skill button on the student's warm-up (ticket 134). Current: a purple ring (a shadow, so nothing moves). */}
                     <span className={`inline-block rounded-xl px-5 py-1.5 ${stage.state === "over" ? "bg-standout text-white" : "bg-standout-soft"} ${stage.state === "current" ? "ring-2 ring-accent" : ""}`}>{stage.word}</span>
+                    {/* Beside the current pill (ticket 145): force submit for the stage, the count right under it. */}
                     {stage.state === "current" && stage.done !== null && (
-                      <span className="absolute left-full top-1/2 ml-3 flex -translate-y-1/2 flex-col items-start whitespace-nowrap text-left text-[12.5px] leading-snug text-ink-muted" style={{ fontFamily: "var(--font-sans)" }} data-stage-count>
-                        <span>
+                      <span className="absolute left-full top-1/2 ml-3 flex -translate-y-1/2 flex-col items-start whitespace-nowrap text-left text-[12.5px] leading-snug text-ink-muted" style={{ fontFamily: "var(--font-sans)" }} data-stage-note>
+                        <ForceSubmit stage={stage.id} session={live} />
+                        <span data-stage-count>
                           <span className="tabular-nums">
                             {stage.done}/{stage.total}
                           </span>{" "}
                           done
                         </span>
-                        <GroupStart />
                       </span>
                     )}
                   </span>

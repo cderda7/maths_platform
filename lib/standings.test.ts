@@ -99,6 +99,18 @@ describe("the scripted race", () => {
     // Before the first tick the clock reads 0: the start, never a negative elapsed.
     expect(standingsAt(classroom, session, 0).map((s) => s.percent)).toEqual([0, 0, 0, 0, 0]);
   });
+
+  it("ended by the teacher, the scripted race holds where it was and the demo group's pen is down", () => {
+    const { classroom, session } = skipFixture("group review", now);
+    const ended = classroomReducer(classroom, { type: "group/end", at: now + 5 * MIN });
+    const atEnd = standingsAt(classroom, session, now + 5 * MIN).map((s) => [s.percent, s.reachedAt]);
+    expect(standingsAt(ended, session, now + 5 * MIN).map((s) => [s.percent, s.reachedAt])).toEqual(atEnd);
+    expect(standingsAt(ended, session, now + 30 * MIN).map((s) => [s.percent, s.reachedAt])).toEqual(atEnd);
+    const sky = standingsAt(ended, session, now + 30 * MIN).find((s) => s.live)!;
+    expect(sky.percent).toBe(0);
+    expect(sky.pen).toBeNull();
+    expect(sky.problem).toBeNull();
+  });
 });
 
 describe("the leaderboard", () => {

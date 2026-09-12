@@ -1971,6 +1971,30 @@ agents add sections above it and leave it alone.
   the menu with it; every current name fits on two lines. A longer written-question name
   would wrap further; a cap on the name length in the editor, deferred.
 
+## Force submit per stage (from ticket 145, 2026-09-12)
+
+- **The gate line is gone; force submit on indiv review is "start group now".** Ending
+  individual review for everyone is what opened the gate, so one control does both. A separate
+  "start group now" that waits for the corrections rather than forcing them is not offered.
+- **No confirmation step.** "Force assignment submit" asked "N still working · 1 minute to
+  finish" first; the button beside the pill starts the grace at once, with Cancel for the minute.
+  A confirm line does not fit beside a pill in the 320 px card. If a teacher ever presses it by
+  accident and misses the minute, an "undo the hand-in" for the last advance would be the fix.
+- **"N still working" is gone with the confirm.** The count under the button says the opposite
+  (`10/20 done`); hovering it could list who is not done. Not asked.
+- **Force submit on group review ends the scripted race where it stands** (`endedAt`), and the
+  board's final standings hold there; a group that was mid-problem shows its bar short. A
+  "finish the problem on the board first" grace for the group with the pen was not asked for.
+- **Force submit on indiv review without group review next.** A correcting student moves to the
+  class review wait or the report; the classmates have no scripted review end, so the `indiv
+  review` count stays at what the gate recorded (nothing, when there is no gate). Deferred until
+  the classmates are live.
+- **The button beside class review.** None: class review is ended from its own card. A "force
+  submit" there could mean "end the session" and would duplicate that card's End session.
+- **A wider card, a longer label.** "force submit" at 12 px is 64 layout px wide beside the
+  190 px "indiv working" pill, leaving 17 px inside the card; "force assignment submit" or the
+  13.5 px Button would not fit. If the card ever widens, the button can take the standard size.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

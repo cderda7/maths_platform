@@ -2711,3 +2711,45 @@ the demo student's group only; the other groups have no run.
 **Defence.** One identity for a mistake across the mistake view, the diagnostic and the board
 keeps the counts consistent everywhere the teacher looks, and the picker's menu is exactly
 the list a teacher would make by hand from the mistake view.
+
+## 2026-09-12 · Force submit is one control per stage beside the current pill, and the gate is folded into it
+
+**Decision.** The teacher's force submit moves from the class view's title line to the Pathway
+card, directly right of the pill for the stage the class is on, and exists for the three stages
+the students work through: `force-submit` (the set), `force-review` (the corrections) and
+`force-group` (the board), one advance kind per stage (`FORCE_KIND` in `lib/classStage.ts`).
+The `group-start` kind and the "start group now" line are gone: forcing individual review to a
+close is what opened the gate, so the same advance does it. The button starts the grace at once
+(no confirmation step); the minute with Cancel is the undo. Ending group review also marks the
+classroom's shared run done with an `endedAt` at which the scripted race holds.
+
+**Context.** The user: "move 'force submit' to be directly to the right of 'indiv working'.
+change to 'force submit' from force assignment submit. have this be a feature for each of
+'indiv working', 'indiv review', 'group review'. 1 at a time -- only the one that's currently
+being worked through. keep the x/20 done & put it right under the button". FUTURE_FEATURES had
+carried "explicit end individual review now and end group review now with the same grace" since
+2026-09-09.
+
+**Alternatives considered.**
+- One generic `force` kind with the stage as a field. The student reducer would switch on the
+  stage anyway, and the readiness gate and the pill wording key on the kind; three kinds keep
+  every consumer a string comparison and the stored advance self-describing.
+- Keep `group-start` beside `force-review`. Two advances that both end individual review and
+  open the gate, one of them a text link under the other's count: confusing to press and to code.
+- Keep the confirmation ("N still working · 1 minute to finish"). It does not fit beside a pill
+  in a 320 px card, and the one-minute Cancel is a stronger undo than a confirm (the user's
+  standing correction: no confirm gates on the primary action).
+- End group review from the teacher's tab (dispatch `group/end` when the grace runs out there).
+  Advances are applied by student tabs everywhere else; the student tab that ends the run is the
+  same one that begins it, and a teacher tab that is closed at the deadline changes nothing.
+
+**Tradeoffs.** The button is a compact 12 px pill rather than the standard `Button`, because the
+space beside "indiv working" is about 100 layout px. A student forced out of individual review
+with group review next goes straight onto the board without passing the gate, so their arrival
+is never recorded; nothing reads it after the gate has opened. The race held at `endedAt` shows a
+mid-problem group's bar short on the final standings.
+
+**Defense.** One control, in the place the eye already goes to see where the class is, that
+means the same thing at every stage: end this for everyone in a minute. The model stays pure
+and per-tab agreement holds: the kind on the classroom, `canForce` and `standingsAt` derived from
+state and the clock, and every student tab applies the advance by id as before.

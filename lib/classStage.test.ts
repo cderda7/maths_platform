@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ASSIGNMENT } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
 import { classroomReducer, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
-import { classStages, currentClassStage, pathwayStages } from "./classStage";
+import { canForce, classStages, currentClassStage, FORCE_KIND, pathwayStages } from "./classStage";
 import { DEMO_PATHWAY, skipFixture } from "./demo";
 import { ARRIVAL_OFFSETS_MS, CLASS_SIZE, LAST_ARRIVAL_MS } from "./readiness";
 import { sessionAt } from "./session";
@@ -69,6 +69,30 @@ describe("the class's stage on the pathway", () => {
     expect(pathwayStages(skipFixture("working", now).classroom, skipFixture("working", now).session, now).map((s) => s.state)).toEqual(["current", "ahead", "ahead", "ahead"]);
     expect(pathwayStages(skipFixture("group review", now).classroom, skipFixture("group review", now).session, now).map((s) => s.state)).toEqual(["over", "over", "current", "ahead"]);
     expect(pathwayStages(skipFixture("class review", now).classroom, skipFixture("class review", now).session, now).map((s) => s.state)).toEqual(["over", "over", "over", "current"]);
+  });
+
+  it("force submit: one advance kind per stage the students work through, enabled while the live student is on it", () => {
+    expect(FORCE_KIND).toEqual({ working: "force-submit", individual: "force-review", group: "force-group", "whole-class": null });
+    const { classroom } = skipFixture("start", now);
+    // The working: before any session, and up to the working; not once handed in.
+    expect(canForce("working", classroom, null)).toBe(true);
+    for (const stage of ["overview", "confidence", "warmup-chat", "practice", "working"] as const) expect(canForce("working", classroom, sessionAt(stage)), stage).toBe(true);
+    expect(canForce("working", classroom, sessionAt("feedback"))).toBe(false);
+    // Individual review: correcting or waiting at the gate.
+    expect(canForce("individual", classroom, sessionAt("feedback"))).toBe(true);
+    expect(canForce("individual", classroom, sessionAt("class-wait"))).toBe(true);
+    expect(canForce("individual", classroom, sessionAt("working"))).toBe(false);
+    expect(canForce("individual", classroom, sessionAt("group"))).toBe(false);
+    expect(canForce("individual", classroom, null)).toBe(false);
+    // Group review: on the board, until the run is done.
+    const group = skipFixture("group review", now);
+    expect(canForce("group", group.classroom, group.session)).toBe(true);
+    expect(canForce("group", classroomReducer(group.classroom, { type: "group/end", at: now }), group.session)).toBe(false);
+    expect(canForce("group", group.classroom, sessionAt("waiting"))).toBe(false);
+    // Class review: never; and nothing while the teacher projects.
+    const wc = skipFixture("class review", now);
+    expect(canForce("whole-class", wc.classroom, wc.session)).toBe(false);
+    expect(canForce("group", wc.classroom, sessionAt("group"))).toBe(false);
   });
 
   it("skips stages the pathway lacks", () => {

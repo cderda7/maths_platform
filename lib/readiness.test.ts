@@ -23,9 +23,9 @@ describe("the gate into group review", () => {
     expect(again).toBe(arrived);
   });
 
-  it("the teacher's start opens the gate once its grace has passed, whoever is in", () => {
-    // Sam arrived a moment ago, so only a few classmates are in when the grace ends: it is the teacher's start that opens the gate.
-    const forced = classroomReducer(arrived, { type: "advance/start", kind: "group-start", at: t0 - GRACE_MS + 5000 });
+  it("the teacher's force submit on individual review opens the gate once its grace has passed, whoever is in", () => {
+    // Sam arrived a moment ago, so only a few classmates are in when the grace ends: it is the teacher's force that opens the gate.
+    const forced = classroomReducer(arrived, { type: "advance/start", kind: "force-review", at: t0 - GRACE_MS + 5000 });
     expect(classReadiness(forced, t0 + 4999).started).toBe(false);
     expect(classReadiness(forced, t0 + 5000)).toMatchObject({ started: true, reason: "teacher" });
     expect(classReadiness(forced, t0 + 5000).handedIn).toBeLessThan(20);

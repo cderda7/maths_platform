@@ -1,71 +1,56 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui";
-import { CLASSMATES } from "@/data/classmates";
-import { GRACE_MS, isPending, isProjecting } from "@/lib/classroom";
-import { dispatchClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
+import { GRACE_MS, isPending } from "@/lib/classroom";
+import { canForce, FORCE_KIND, FORCE_PENDING_WORD, type ClassStageId } from "@/lib/classStage";
+import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import type { StudentSession } from "@/lib/session";
 import { useNow } from "@/lib/store";
 
-const WORKING = ["overview", "confidence", "warmup-chat", "practice", "working"];
 const mmss = (ms: number) => {
   const s = Math.max(0, Math.ceil(ms / 1000));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 };
 
 /**
- * "Force assignment submit", inline on the class view's title line, right against the table's
- * edge: a confirmation with how many students are still working, then a one-minute grace shown
- * on every student's screen before their work is handed in as it stands.
+ * "force submit" beside the Pathway card's current pill (ticket 145; "Force assignment submit"
+ * on the title line before it, "start group now" under the count for the gate): one press starts
+ * the one-minute grace shown on every student's screen, after which the stage ends for everyone
+ * as it stands (the set handed in; the corrections handed in and the gate into group review
+ * opened; group review over). While the grace runs the button gives way to the countdown with
+ * Cancel. No confirmation step: the minute with Cancel is the undo. Disabled once the live
+ * student is past the stage or while the teacher projects.
  */
-export default function ForceSubmit({ session }: { session: StudentSession | null }) {
+export default function ForceSubmit({ stage, session }: { stage: ClassStageId; session: StudentSession | null }) {
   const classroom = useClassroom();
   const now = useNow();
-  const { problems } = useAssignment();
-  const [confirming, setConfirming] = useState(false);
+  const kind = FORCE_KIND[stage];
+  if (!kind) return null;
   const advance = classroom.advance;
-  const pending = isPending(classroom, now) && advance?.kind === "force-submit";
-  const projecting = isProjecting(classroom);
-  const liveWorking = !session || WORKING.includes(session.stage);
-  const stillWorking = (liveWorking ? 1 : 0) + CLASSMATES.filter((c) => c.done < problems.length).length;
-
-  return (
-    <div className="flex items-center gap-3" data-force-submit>
-      {pending && advance ? (
-        <div className="flex items-center gap-4" data-advance-pending>
-          <span className="flex items-center gap-2 text-[14px] text-ink">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
-            Handing in · {mmss(advance.deadline - now)}
-          </span>
-          <button type="button" className="text-[13px] text-accent-deep hover:underline" onClick={() => dispatchClassroom({ type: "advance/clear" })} data-advance-cancel>
-            Cancel
-          </button>
-        </div>
-      ) : confirming ? (
-        <div className="flex items-center gap-3" data-confirm>
-          <p className="text-[14px] text-ink">
-            {stillWorking} still working · {Math.round(GRACE_MS / 60000)} minute to finish
-          </p>
-          <Button
-            variant="accent"
-            onClick={() => {
-              dispatchClassroom({ type: "advance/start", kind: "force-submit" });
-              setConfirming(false);
-            }}
-            data-confirm-yes
-          >
-            Force assignment submit
-          </Button>
-          <Button variant="ghost" onClick={() => setConfirming(false)}>
-            Not now
-          </Button>
-        </div>
-      ) : (
-        <Button variant="sky" disabled={!liveWorking || projecting} onClick={() => setConfirming(true)} data-force>
-          force assignment submit
-        </Button>
-      )}
-    </div>
+  const pending = isPending(classroom, now) && advance?.kind === kind;
+  return pending && advance ? (
+    <span className="flex flex-col items-start text-ink" data-force-pending>
+      <span className="flex items-center gap-1.5">
+        <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-accent" aria-hidden />
+        {FORCE_PENDING_WORD[stage]}
+      </span>
+      <span className="flex items-center gap-1.5">
+        {/* The clock ticks once a second, so a fresh countdown never claims more than the grace. */}
+        <span className="tabular-nums">{mmss(Math.min(GRACE_MS, advance.deadline - now))}</span>
+        <span aria-hidden>·</span>
+        <button type="button" className="text-accent-deep hover:underline" onClick={() => dispatchClassroom({ type: "advance/clear" })} data-force-cancel>
+          Cancel
+        </button>
+      </span>
+    </span>
+  ) : (
+    <button
+      type="button"
+      className="mb-1 whitespace-nowrap rounded-full border border-standout-line bg-standout-soft px-2.5 py-1 text-[12px] font-medium leading-tight text-accent-deep transition-colors hover:bg-standout-line/60 disabled:cursor-not-allowed disabled:opacity-40"
+      disabled={!canForce(stage, classroom, session)}
+      onClick={() => dispatchClassroom({ type: "advance/start", kind })}
+      data-force={stage}
+    >
+      force submit
+    </button>
   );
 }

@@ -112,8 +112,11 @@ Teacher, during the lesson (`/teacher`):
   it last left one, so a sweep across pills or dots never shows them. A student with nothing handed in shows a caution triangle and MISSING in
   the Set column. Then the live row's confidence, stage and caution, the classmates, the
   **Pathway** card (indiv working → indiv review → group review → class review: the stage the
-  class is on ringed in purple with `N/20 done` beside it and, before group review, **start group
-  now**; stages over are the lit skill button's blue; stages ahead light blue), **Force assignment submit** (confirm, then a one-minute grace on every screen), the
+  class is on ringed in purple with **force submit** beside it and `N/20 done` right under; one
+  press starts a one-minute grace on every student's screen, `● handing in · 1:00 · Cancel` in
+  its place, then the stage ends for everyone as it stands: the set handed in, the corrections
+  handed in and group review begun, or group review over; class review has no button; stages over
+  are the lit skill button's blue; stages ahead light blue), the
   **Class review** card (Set up → / Students frozen · End session; first in the column while a
   session runs), the assignment status
   (in class review · complete), the **Live diagnostic** card: a white box linking to Mistakes

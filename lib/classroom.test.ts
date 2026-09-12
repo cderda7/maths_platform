@@ -63,6 +63,19 @@ describe("class advances", () => {
   });
 });
 
+describe("ending group review", () => {
+  it("group/end marks the run done where it stands, once; nothing without a run", async () => {
+    const { beginRun } = await import("./groupReview");
+    expect(classroomReducer(INITIAL_CLASSROOM, { type: "group/end", at: 5 })).toBe(INITIAL_CLASSROOM);
+    const running = { ...INITIAL_CLASSROOM, group: beginRun(["sam", "liam"], ["q1", "q2"], 1) };
+    const ended = classroomReducer(running, { type: "group/end", at: 5 });
+    expect(ended.group).toMatchObject({ done: true, endedAt: 5, index: 0, resolved: [] });
+    expect(classroomReducer(ended, { type: "group/end", at: 9 })).toBe(ended);
+    // A done board takes no more strokes.
+    expect(classroomReducer(ended, { type: "group/stroke", stroke: { points: [], width: 1 } as never })).toBe(ended);
+  });
+});
+
 describe("whole-class session", () => {
   const setup = () => classroomReducer(INITIAL_CLASSROOM, { type: "wc/setup", problems: ["q3", "q2", "q1"], examples: { q3: [], q2: [], q1: [] } });
 

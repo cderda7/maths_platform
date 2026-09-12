@@ -508,16 +508,38 @@ describe("routing by pathway", () => {
     }
   });
 
-  it("the gate: group/start only opens from class-wait; the teacher's group-start advance takes a waiting student in and hands a correcting one in as it stands", () => {
+  it("the gate: group/start only opens from class-wait; the teacher's force submit on individual review takes a waiting student in and hands a correcting one in as it stands", () => {
     expect(sessionReducer(sessionAt("working"), { type: "group/start" }).stage).toBe("working");
     expect(sessionReducer(sessionAt("class-wait"), { type: "group/start" }).stage).toBe("group");
-    const waiting = sessionReducer(sessionAt("class-wait"), { type: "advance/apply", id: "g1", kind: "group-start", at: 9 });
+    const waiting = sessionReducer(sessionAt("class-wait"), { type: "advance/apply", id: "g1", kind: "force-review", at: 9 });
     expect(waiting.stage).toBe("group");
-    const correcting = sessionReducer(sessionAt("feedback"), { type: "advance/apply", id: "g1", kind: "group-start", at: 9 });
+    const correcting = sessionReducer(sessionAt("feedback"), { type: "advance/apply", id: "g1", kind: "force-review", at: 9 });
     expect(correcting.stage).toBe("group");
     expect(correcting.reworkedAt).toBe(9);
     expect(correcting.notice).toMatch(/mistake/);
-    expect(sessionReducer(sessionAt("working"), { type: "advance/apply", id: "g1", kind: "group-start", at: 9 }).stage).toBe("working");
+    expect(sessionReducer(sessionAt("working"), { type: "advance/apply", id: "g1", kind: "force-review", at: 9 }).stage).toBe("working");
+  });
+
+  it("force submit on individual review without group review next follows the pathway: to the class review wait, or the report", () => {
+    const toWait = sessionReducer(sessionAt("feedback"), { type: "advance/apply", id: "r1", kind: "force-review", at: 9 }, { pathway: ["individual", "whole-class"] });
+    expect(toWait.stage).toBe("waiting");
+    expect(toWait.reworkedAt).toBe(9);
+    const toReport = sessionReducer(sessionAt("feedback"), { type: "advance/apply", id: "r1", kind: "force-review", at: 9 }, { pathway: ["individual"] });
+    expect(toReport.stage).toBe("report");
+    // Past the stage already: only the id is recorded.
+    const past = sessionReducer(sessionAt("report"), { type: "advance/apply", id: "r1", kind: "force-review", at: 9 }, { pathway: ["individual"] });
+    expect(past.stage).toBe("report");
+    expect(past.appliedAdvances).toEqual(["r1"]);
+  });
+
+  it("force submit on group review moves a student on the board on, by the pathway, and leaves everyone else where they are", () => {
+    expect(sessionReducer(sessionAt("group"), { type: "advance/apply", id: "g2", kind: "force-group", at: 9 }, { pathway: ["individual", "group", "whole-class"] }).stage).toBe("waiting");
+    expect(sessionReducer(sessionAt("group"), { type: "advance/apply", id: "g2", kind: "force-group", at: 9 }, { pathway: ["individual", "group"] }).stage).toBe("report");
+    for (const stage of ["working", "feedback", "class-wait", "report"] as const) {
+      const s = sessionReducer(sessionAt(stage), { type: "advance/apply", id: "g2", kind: "force-group", at: 9 });
+      expect(s.stage, stage).toBe(stage);
+      expect(s.appliedAdvances).toEqual(["g2"]);
+    }
   });
 
   it("submit-only lands on the report with the first attempt as the only version", () => {

@@ -7,7 +7,8 @@ import type { ClassroomState } from "./classroom";
  * corrections handed in, or their set when the pathway has no individual review) is recorded on
  * the classroom. For the demo the classmates arrive on a scripted timeline anchored to the demo
  * student's own arrival, so the count climbs while they watch. Group review starts on its own the
- * moment everyone is in, or when the teacher's "start group review" grace runs out. Pure.
+ * moment everyone is in, or when the grace of the teacher's force submit on individual review
+ * (ticket 145; "start group review now" before it) runs out. Pure.
  */
 export const CLASS_SIZE = 1 + CLASSMATES.length;
 
@@ -19,7 +20,7 @@ export interface Readiness {
   /** How many of the class have handed in, the demo student included. */
   handedIn: number;
   total: number;
-  /** True once everyone is in, or once a "start group review" advance's grace has passed. */
+  /** True once everyone is in, or once a force submit on individual review has passed its grace. */
   started: boolean;
   /** Why it started, when it has. */
   reason: "everyone" | "teacher" | null;
@@ -30,6 +31,6 @@ export function classReadiness(c: ClassroomState | null | undefined, now: number
   const classmatesIn = samAt === undefined ? 0 : CLASSMATES.filter((m) => now >= samAt + ARRIVAL_OFFSETS_MS[m.id]).length;
   const handedIn = (samAt === undefined ? 0 : 1) + classmatesIn;
   const everyone = handedIn >= CLASS_SIZE;
-  const forced = !!c?.advance && c.advance.kind === "group-start" && now >= c.advance.deadline;
+  const forced = !!c?.advance && c.advance.kind === "force-review" && now >= c.advance.deadline;
   return { handedIn, total: CLASS_SIZE, started: everyone || forced, reason: everyone ? "everyone" : forced ? "teacher" : null };
 }

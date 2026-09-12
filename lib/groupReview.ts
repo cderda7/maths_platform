@@ -36,6 +36,8 @@ export interface GroupRun {
   /** How many scripted events of a peer's turn have been applied (idempotent replay). */
   scriptDone: number;
   done: boolean;
+  /** When the teacher ended group review with problems still open (ms since epoch): the scripted race holds here. */
+  endedAt?: number;
 }
 
 /** A seeded Fisher–Yates, so the demo's pen order is stable. */

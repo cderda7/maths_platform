@@ -28,8 +28,13 @@ export interface CreatedAssignment {
   questions?: ReviewedQuestion[];
 }
 
-/** A teacher-driven move of the whole class, applied by every student tab when the deadline passes. */
-export type AdvanceKind = "force-submit" | "whole-class-start" | "group-start";
+/**
+ * A teacher-driven move of the whole class, applied by every student tab when the deadline passes.
+ * The three `force-*` kinds are the Pathway card's "force submit" for the stage the class is on
+ * (ticket 145): the set handed in as it stands, the corrections handed in as they stand (which
+ * opens the gate into group review when one is ahead), group review ended where it stands.
+ */
+export type AdvanceKind = "force-submit" | "force-review" | "force-group" | "whole-class-start";
 export interface PendingAdvance {
   id: string;
   kind: AdvanceKind;
@@ -138,6 +143,8 @@ export type ClassroomAction =
   | { type: "group/next"; at: number }
   /** A peer's scripted event, applied once by index. */
   | { type: "group/scripted"; index: number; event: TurnEvent; at?: number }
+  /** The teacher ended group review (ticket 145): the run is done where it stands and the race holds at `at`. Idempotent. */
+  | { type: "group/end"; at: number }
   | { type: "advance/start"; kind: AdvanceKind; at?: number }
   | { type: "advance/clear" }
   | { type: "wc/setup"; problems: string[]; examples: Record<string, ExampleRef[]>; mode?: FollowMode }
@@ -197,6 +204,8 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
       const next = groupReducer(c.group, a);
       return next === c.group ? c : { ...c, group: next };
     }
+    case "group/end":
+      return !c.group || c.group.done ? c : { ...c, group: { ...c.group, done: true, endedAt: a.at } };
     case "group/scripted": {
       const g = c.group;
       if (!g || a.index !== g.scriptDone) return c;

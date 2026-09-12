@@ -16,7 +16,7 @@ import ReportScreen from "./screens/ReportScreen";
 import { useEffect } from "react";
 import { dispatch, useStudentSession } from "@/lib/store";
 import { dispatchClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
-import { isDue, isPending, isProjecting, openDiagnostic } from "@/lib/classroom";
+import { GRACE_MS, isDue, isPending, isProjecting, openDiagnostic, pathwayOf } from "@/lib/classroom";
 import { pathwayStages } from "@/lib/classStage";
 import FrozenScreen from "./screens/FrozenScreen";
 import { useNow } from "@/lib/store";
@@ -65,8 +65,12 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
   const counting = isPending(classroom, now);
   const due = isDue(classroom, now) && advance && !session.appliedAdvances.includes(advance.id);
   useEffect(() => {
-    // The grace ran out: apply the teacher's advance once (the reducer ignores repeats by id).
-    if (due && advance) dispatch({ type: "advance/apply", id: advance.id, kind: advance.kind, at: now });
+    // The grace ran out: apply the teacher's advance once (the reducer ignores repeats by id). Ending group review also ends the
+    // classroom's shared run where it stands (idempotent), so the board and the race hold.
+    if (due && advance) {
+      dispatch({ type: "advance/apply", id: advance.id, kind: advance.kind, at: now });
+      if (advance.kind === "force-group") dispatchClassroom({ type: "group/end", at: now });
+    }
   }, [due, advance, now]);
   const atGate = session.stage === "class-wait";
   const arrived = classroom.arrivals?.[DEMO_STUDENT.id] !== undefined;
@@ -115,7 +119,8 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
     if (!projecting && frozen) dispatch({ type: "release" });
   }, [projecting, counting, frozen]);
   const crumb = CRUMB[session.stage] ?? (["working", "feedback", "waiting", "frozen"].includes(session.stage) ? title : ASSIGNMENT.className);
-  const groupStartPill = counting && advance?.kind === "group-start";
+  // Individual review forced with group review next: what the student is waiting for is the group.
+  const groupStartPill = counting && advance?.kind === "force-review" && pathwayOf(classroom).includes("group");
   // The header's pathway strip (ticket 151): the same stages the teacher's Pathway card lights, from the same function.
   const stages = pathwayStages(classroom, session, now);
   return (
@@ -147,7 +152,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
           <div className="pointer-events-none absolute inset-x-0 top-[33px] z-20 flex justify-center px-8" data-countdown>
             <div className="flex items-center gap-3 rounded-full border border-accent-line bg-accent-soft px-4 py-1.5 text-[13.5px] text-ink shadow-card">
               <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
-              {groupStartPill ? "Group review starts in" : "Your teacher is moving the class on in"} {mmss(advance.deadline - now)}
+              {groupStartPill ? "Group review starts in" : "Your teacher is moving the class on in"} {mmss(Math.min(GRACE_MS, advance.deadline - now))}
             </div>
           </div>
         )}

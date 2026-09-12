@@ -97,7 +97,9 @@ export function standingsAt(c: ClassroomState | null | undefined, session: Stude
   const seating = seatingOf(c?.groups);
   const run = c?.group ?? null;
   const startedAt = run ? runStartedAt(run) : 0;
-  const elapsed = run && now > 0 ? Math.max(0, now - startedAt) : 0;
+  // Ended by the teacher: the scripted groups hold where they were (ticket 145).
+  const clock = run?.endedAt !== undefined ? Math.min(now, run.endedAt) : now;
+  const elapsed = run && now > 0 ? Math.max(0, clock - startedAt) : 0;
   return GROUP_COLOURS.map((colour) => {
     const seated = seating[colour];
     const live = !!run && run.members.includes(DEMO_STUDENT.id) && seated.includes(DEMO_STUDENT.id);

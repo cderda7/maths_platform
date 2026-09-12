@@ -311,11 +311,17 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       if (s.appliedAdvances.includes(a.id)) return s;
       const applied = { ...s, appliedAdvances: [...s.appliedAdvances, a.id] };
       if (a.kind === "whole-class-start") return applied.stage === "frozen" ? applied : { ...applied, stage: "frozen", prompt: null, overlay: null };
-      if (a.kind === "group-start") {
-        // The teacher started group review: a student waiting at the gate goes in; one still correcting hands in as it stands and goes in.
+      if (a.kind === "force-review") {
+        // The teacher ended individual review (ticket 145): a student waiting at the gate goes into group review (the gate opens
+        // at the same deadline); one still correcting hands in as it stands and moves on, straight onto the board when the gate is next.
         if (applied.stage === "class-wait") return { ...applied, stage: "group" };
-        if (applied.stage === "feedback") return { ...applied, stage: "group", reworkedAt: a.at ?? s.reworkedAt, notice: feedbackSummary(s, "final").sentence };
-        return applied;
+        if (applied.stage !== "feedback") return applied;
+        const next = nextStage(env.pathway, "reworked");
+        return { ...applied, stage: next === "class-wait" ? "group" : next, reworkedAt: a.at ?? s.reworkedAt, notice: feedbackSummary(s, "final").sentence };
+      }
+      if (a.kind === "force-group") {
+        // The teacher ended group review (ticket 145): a student on the board moves on; the classroom's run is ended by the same tab.
+        return applied.stage === "group" ? { ...applied, stage: nextStage(env.pathway, "group-done") } : applied;
       }
       if (a.kind === "force-submit") {
         if (!BEFORE_HAND_IN.includes(s.stage)) return applied;
