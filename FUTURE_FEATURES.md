@@ -2086,6 +2086,20 @@ review setup's example cards (`useReorder`, `lib/reorder`). Left out, and why:
   would read more like a student's page; it needs a marking-table entry and a second burst before
   the box counts down, so the one-line version stays for the demo.
 
+## The post-rework notice (from ticket 159, 2026-09-12)
+
+- **The count notice stays.** The user asked for "Every problem holds now." to go; the notice that
+  names what is still wrong ("1 of your problems still contains a mistake. Double-check
+  fractions.") is unchanged and still sits over the next screen until dismissed. Whether it should
+  go too (the next screen is the news either way), or move off the demo strip's tabs which it
+  covers on the iPad frame, is open.
+- **A quiet mark for a clean rework.** Nothing now tells the student their rework came out clean:
+  the waiting screen, the board or the report simply arrives. A small line on the waiting screen
+  ("Nothing left to fix"), or a tick on the pathway strip's indiv review pill, deferred.
+- **"Every problem holds now." as a summary head.** `summaryParts` still produces the sentence for
+  the final version's `head`; nothing displays it today. Left in place for a report or history line
+  that might want it.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

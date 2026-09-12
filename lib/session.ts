@@ -321,7 +321,7 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
         if (applied.stage === "class-wait") return { ...applied, stage: "group" };
         if (applied.stage !== "feedback") return applied;
         const next = nextStage(env.pathway, "reworked");
-        return { ...applied, stage: next === "class-wait" ? "group" : next, reworkedAt: a.at ?? s.reworkedAt, notice: feedbackSummary(s, "final").sentence };
+        return { ...applied, stage: next === "class-wait" ? "group" : next, reworkedAt: a.at ?? s.reworkedAt, notice: reworkNotice(s) };
       }
       if (a.kind === "force-group") {
         // The teacher ended group review (ticket 145): a student on the board moves on; the classroom's run is ended by the same tab.
@@ -458,7 +458,7 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       return { ...s, reworkInk: { ...s.reworkInk, [a.problem]: [] }, rework: { ...s.rework, [a.problem]: [] } };
     case "rework/done": {
       if (!a.force && trippedProblems(s).length > 0) return s;
-      return { ...s, stage: nextStage(env.pathway, "reworked"), reworkedAt: a.at ?? s.reworkedAt, notice: feedbackSummary(s, "final").sentence };
+      return { ...s, stage: nextStage(env.pathway, "reworked"), reworkedAt: a.at ?? s.reworkedAt, notice: reworkNotice(s) };
     }
     case "notice/dismiss":
       return { ...s, notice: null };
@@ -534,6 +534,16 @@ export function fundamentalLeaf(slipped: LeafId[]): LeafId | null {
 }
 
 export const FORCED_HAND_IN_TEXT = "Your teacher handed in the class's work.";
+
+/**
+ * The notice shown over the next screen after the rework is handed in (ticket 159): the final version's
+ * summary when something still contains a mistake, nothing when every problem holds. A clean rework needs
+ * no toast ("Every problem holds now." was removed at the user's request); the next screen is the news.
+ */
+export function reworkNotice(s: StudentSession): string | null {
+  const summary = feedbackSummary(s, "final");
+  return summary.count === 0 ? null : summary.sentence;
+}
 
 const warm = (s: StudentSession, patch: Partial<WarmupState>): StudentSession => ({ ...s, warmup: { ...s.warmup, ...patch } });
 

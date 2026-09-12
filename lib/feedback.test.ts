@@ -195,7 +195,7 @@ describe("incomplete work", () => {
     expect(f.head).toBe("Every problem held.");
   });
 
-  it("a wrong step while finishing a blank problem changes neither box nor the hand-in notice", async () => {
+  it("a wrong step while finishing a blank problem changes neither the box nor the hand-in, which shows no notice", async () => {
     const { progressOf, feedbackSummary } = await import("./feedback");
     let s = rework(thinHandIn(), "q1", ["(x + 2)(x + 3) = 0", "x = -2" + OR + "x = -3"]);
     expect(progressOf(s, "q1")).toBe("finished");
@@ -203,7 +203,7 @@ describe("incomplete work", () => {
     expect(f).toMatchObject({ count: 0, hint: [], incomplete: 9, head: "No mistakes in your first submission." });
     expect(feedbackSummary(s, "final").sentence).toBe("Every problem holds now.");
     s = sessionReducer(s, { type: "rework/done" });
-    expect(s.notice).toBe("Every problem holds now.");
+    expect(s.notice).toBeNull(); // a clean rework shows no notice (ticket 159)
   });
 
   it("the sentence typed under a worded problem's working is its answer", async () => {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_ENV, DEMO_CONFIDENCE, INITIAL_RUN, INITIAL_SESSION, INITIAL_WARMUP, blankProblems, hydrateSession, runProblem, sessionAt, sessionReducer, warmupFocus, warmupOffered, warmupProblem, warmupSeed, type StudentSession } from "./session";
+import { DEFAULT_ENV, DEMO_CONFIDENCE, INITIAL_RUN, INITIAL_SESSION, INITIAL_WARMUP, blankProblems, hydrateSession, reworkNotice, runProblem, sessionAt, sessionReducer, warmupFocus, warmupOffered, warmupProblem, warmupSeed, type StudentSession } from "./session";
 import { PRACTICE, WARMUP_BANK } from "@/data/practice";
+import { PROBLEMS } from "@/data/assignment";
 import { warmupScript } from "./warmup";
 import { allPathways } from "./pathway";
 import type { Confidence, Pathway } from "@/data/types";
@@ -642,6 +643,21 @@ describe("rework hand-in and the guard", () => {
     s = sessionReducer({ ...s, stage: "feedback" }, { type: "rework/done" });
     expect(s.notice).toBe("1 of your problems still contains a mistake. Double-check fractions.");
     expect(sessionReducer(s, { type: "notice/dismiss" }).notice).toBeNull();
+  });
+
+  it("a rework that leaves no problem wrong hands in with no notice at all (ticket 159)", () => {
+    const at = sessionAt("group"); // the rework: every slip corrected but Q7
+    let s: StudentSession = { ...at, stage: "feedback", rework: { ...at.rework, q7: [] }, reworkInk: { ...at.reworkInk, q7: [] } };
+    const q7 = PROBLEMS.find((p) => p.id === "q7")!;
+    for (const [i, st] of q7.solution.entries()) s = sessionReducer(s, { type: "rework/reveal", problem: "q7", line: { tex: st.tex, strokeCount: (i + 1) * 5 } });
+    expect(reworkNotice(s)).toBeNull();
+    const done = sessionReducer(s, { type: "rework/done" });
+    expect(done.stage).not.toBe("feedback");
+    expect(done.notice).toBeNull();
+    // The teacher's force-review on the same student sets no notice either.
+    const forced = sessionReducer(s, { type: "advance/apply", id: "adv-159", kind: "force-review" });
+    expect(forced.stage).not.toBe("feedback");
+    expect(forced.notice).toBeNull();
   });
 });
 
