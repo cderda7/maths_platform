@@ -19,7 +19,10 @@ export const TEACHER_TABS: { href: string; label: string; stage?: ReviewStage }[
 ];
 
 /**
- * The teacher side's top bar (tabs gated by the pathway, plus the pathway chip) and page frame.
+ * The teacher side's top bar and page frame. The brand sits alone at the left; the tabs (gated by
+ * the pathway), "New assignment", the teacher's name and avatar form one row at the right (ticket
+ * 163). The tabs are indigo pills (the current page filled deep, the others soft) and "New
+ * assignment" a white pill with an ink border, so the action reads apart from the places.
  * The frame is the viewport: the bar sits in it and only the region beneath scrolls (ticket 68).
  * The window itself never scrolls, so the rubber-band at the end of a page moves the content,
  * never the bar; a sticky bar rode the bounce with the page. The outer div takes the viewport
@@ -36,9 +39,9 @@ export default function TeacherChrome({ children }: { children: ReactNode }) {
     <div className="flex h-full flex-col [zoom:0.72]" data-teacher-root>
       <header className="z-30 shrink-0 border-b border-line bg-paper/70 backdrop-blur">
         <div className="mx-auto flex max-w-[1640px] items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-6">
-            <Brand />
-            <nav className="flex items-center gap-1">
+          <Brand />
+          <div className="flex items-center gap-3 text-[13px] text-ink-soft">
+            <nav className="flex items-center gap-1.5" data-teacher-tabs>
               {tabs.map((t) => {
                 const active = path === t.href;
                 return (
@@ -46,16 +49,14 @@ export default function TeacherChrome({ children }: { children: ReactNode }) {
                     key={t.href}
                     href={t.href}
                     aria-current={active ? "page" : undefined}
-                    className={`rounded-full px-3 py-1 text-[13.5px] font-medium transition-colors ${active ? "bg-accent-soft text-accent-deep" : "text-ink-soft hover:bg-cream-deep hover:text-ink"}`}
+                    className={`rounded-full border border-transparent px-3 py-1 text-[13.5px] font-medium transition-colors ${active ? "bg-accent-deep text-white" : "bg-accent-soft text-accent-deep hover:bg-accent-line"}`}
                   >
                     {t.label}
                   </Link>
                 );
               })}
             </nav>
-          </div>
-          <div className="flex items-center gap-3 text-[13px] text-ink-soft">
-            <Link href="/teacher/assignments/create" className={`rounded-full px-3 py-1 text-[13.5px] font-medium transition-colors ${path.startsWith("/teacher/assignments/") ? "bg-accent-soft text-accent-deep" : "text-ink-soft hover:bg-cream-deep hover:text-ink"}`} data-new-assignment>
+            <Link href="/teacher/assignments/create" className={`ml-1.5 rounded-full border border-ink bg-white px-3 py-1 text-[13.5px] font-medium text-ink transition-colors hover:bg-cream-deep`} data-new-assignment>
               New assignment
             </Link>
             <span>{ASSIGNMENT.teacher}</span>

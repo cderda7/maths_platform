@@ -2941,3 +2941,31 @@ on every screen anyway.
 **Defence.** One component (`ReadAs`) reads the pad on the working screen, the practice pad and
 now the group board, and one list (`run.lines`) is both what the column shows and what the next
 burst reads on from, so the column can never disagree with the check.
+## 2026-09-12 · The teacher bar's tabs are indigo pills at the right, the current one filled deep; "black" is ink (ticket 163)
+
+**Decision.** The Class · Mistakes · Groups tabs move to the right end of the teacher bar as pills in
+the soft indigo "New assignment" wore (`bg-accent-soft text-accent-deep`), the current page's tab
+filled deep indigo with white text, and "New assignment" becomes a white pill with a 1 px `ink`
+border and `ink` text. Every pill carries a 1 px border (transparent on the tabs) so all are the
+same height.
+
+**Context.** The user: "move Class Mistakes Groups to the right, over towards 'New Assignment'.
+also make those have the current coloration New Assignment has. change New Assignment to a white
+pill with black border & black text." Before, the current tab was the only indigo pill and the
+others plain text, so the colouring itself said where you were; with all three the same colour that
+signal needs another form.
+
+**Alternatives considered.** *All three tabs identical, no current mark*: the bar would no longer
+say which page is open. *An underline or bold label for the current tab*: a second visual language
+in a row of pills. *A darker soft fill (`accent-line`)*: too close to the hover tint to read as
+"current" rather than "hovered". *`#000` for "black"*: the only pure black on either side of the
+app; every heading, label and body text is the navy ink.
+
+**Tradeoffs.** The deep-filled current tab is the strongest element in the bar, stronger than the
+white "New assignment" beside it; the action reads by its contrast in shape (bordered, white) rather
+than by weight. Reading "black" as ink is a judgment on the user's words; it is flagged in the
+ticket and a one-token change if wrong.
+
+**Defense.** Pills of one colour with the current one filled is the pattern every segmented
+control uses, so it needs no learning; the hover tint (`accent-line`) sits between the soft and deep
+fills so the three states stay distinct. Ink keeps the bar in the design's palette.

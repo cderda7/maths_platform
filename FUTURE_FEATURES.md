@@ -2129,6 +2129,19 @@ review setup's example cards (`useReorder`, `lib/reorder`). Left out, and why:
   above; the group board's Check keeps its own row under the grid. A shared footer, deferred.
 - **Hint lighting in group review.** The practice pad's `decorate` / `highlight` on the column
   (a lit hint word pointing at a line) has no hints to point from here. Not planned.
+## The teacher bar's tabs (from ticket 163, 2026-09-12)
+
+- **The current tab's mark.** With every tab an indigo pill, the current page is the one filled
+  deep indigo with white text. If that reads too loud next to the white "New assignment", a
+  quieter mark (a darker soft fill, an underline, a bold label) is the alternative.
+- **"Black" as ink.** The "New assignment" pill's border and text are the design's ink
+  (`#14123a`), the navy every heading uses, not `#000`. If a true black is wanted it is one token
+  change (`border-ink text-ink`), but it would be the only pure black on the teacher side.
+- **Hover on the tabs.** The tabs tint to the accent line colour on hover; the current tab does not
+  change on hover. A pressed state for the pills (a slight scale, as the student's buttons have) is
+  not done.
+- **Keyboard focus rings.** The pills keep the browser's default focus ring; a ring in the accent
+  colour to match the student's controls is deferred.
 
 ## Carson's notes
 
