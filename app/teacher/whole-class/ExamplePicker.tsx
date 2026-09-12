@@ -78,14 +78,19 @@ export default function ExamplePicker({ letter, candidate, options, onPick }: { 
                       onPick(exampleOf(o));
                       setOpen(false);
                     }}
-                    className={`flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] leading-snug transition-colors hover:bg-cream-deep ${on ? "bg-accent-soft/60" : ""}`}
+                    className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] leading-snug transition-colors hover:bg-cream-deep ${on ? "bg-accent-soft/60" : ""}`}
                     data-pick-option={correct ? "correct" : o.key}
                   >
-                    <span className={`mt-[5px] h-2.5 w-2.5 shrink-0 rounded-full ${correct ? "bg-secure" : "bg-wrong"}`} aria-hidden />
-                    <span className="min-w-0 flex-1 text-ink">
-                      {o.name}
-                      {o.unitFocus && <span className={`${BADGE} ml-1.5 bg-standout-soft text-standout`}>unit focus</span>}
-                      {o.fixedInGroup && <span className={`${BADGE} ml-1.5 bg-secure-soft text-secure`}>fixed in group review</span>}
+                    {/* The dot is centred on the name-and-badges block (ticket 155), so a badge reads as part of the same mistake. */}
+                    <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${correct ? "bg-secure" : "bg-wrong"}`} aria-hidden />
+                    <span className="min-w-0 flex-1 text-ink" data-option-name>
+                      <span className="block">{o.name}</span>
+                      {(o.unitFocus || o.fixedInGroup) && (
+                        <span className="mt-1 flex flex-wrap gap-1.5" data-option-badges>
+                          {o.unitFocus && <span className={`${BADGE} whitespace-nowrap bg-standout-soft text-standout`}>unit focus</span>}
+                          {o.fixedInGroup && <span className={`${BADGE} whitespace-nowrap bg-secure-soft text-secure`}>fixed in group review</span>}
+                        </span>
+                      )}
                     </span>
                     <span className="shrink-0 text-[12px] text-ink-muted">{o.count} {o.count === 1 ? "student" : "students"}</span>
                   </button>
