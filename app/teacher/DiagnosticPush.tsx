@@ -43,7 +43,10 @@ function clampToViewport(el: HTMLDivElement | null) {
  * up to four options, the right one). Once a question is out (ticket 137) the tab's option grid is its result: each option with the
  * class's count and the misconception it reveals, the right one green, live as the answers land;
  * Withdraw while the class is still answering, then "show on board" / "clear board". Each tab
- * keeps its own latest result; a push waits its turn while another panel's is open.
+ * keeps its own latest result; a push waits its turn while another panel's is open. The flyout
+ * collapses the moment the pointer leaves it (ticket 144); what the teacher had typed or chosen
+ * (the tab, a question of their own) is state on this component, not on the flyout, so it is
+ * there again when the chip is clicked next.
  */
 export default function DiagnosticPush({ example, problemId, className = "" }: { example: Diagnostic; problemId: string; className?: string }) {
   const classroom = useClassroom();
@@ -219,9 +222,10 @@ export default function DiagnosticPush({ example, problemId, className = "" }: {
   // Closed, the chip sits in flow. Open, its footprint holds that place (the row's layout never changes) and the chip is the
   // card's own, in the flyout laid from the chip's corner over whatever is below and to the right: unshifted, the chip is
   // exactly where it was; clamped to the viewport on a narrow window, it moves with its card. An open panel sits above the
-  // chips of the rows beneath it.
+  // chips of the rows beneath it. The flyout is a descendant of this wrapper, so one mouseleave covers the chip's footprint
+  // and the whole panel: the pointer leaving either collapses it (ticket 144).
   return (
-    <div className={`relative ${open ? "z-40" : ""} ${className}`} data-diagnostic-push={problemId} data-collapsed={open ? undefined : true}>
+    <div className={`relative ${open ? "z-40" : ""} ${className}`} onMouseLeave={() => open && setOpen(false)} data-diagnostic-push={problemId} data-collapsed={open ? undefined : true}>
       {/* A flex box, not a line box: an inline chip would sit a fraction lower on the text baseline than the card's flex row puts it. */}
       <div className="flex" style={{ paddingTop: CHIP_TOP }}>
         {open ? (

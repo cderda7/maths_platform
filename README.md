@@ -146,7 +146,9 @@ teacher shows them, and a mirror of the teacher's working.
   two ways. To the right of every problem a **Live
   diagnostic** chip: click it and the push panel opens from the chip as a flyout, down and to
   the right over the blank space, a little clear of the card (the problems never move), with that problem's own
-  suggested question (example) or one you write (make your own), **send to class** at the panel's bottom right; once the
+  suggested question (example) or one you write (make your own), **send to class** at the panel's bottom right;
+  the panel collapses as soon as the pointer leaves it, and a question you were writing is still there when
+  you open it again; once the
   question is out the tab's option grid is its result (the same cells as the class view's card),
   `Waiting · n/20 in` with Withdraw while the class answers, then the board links; a badge on
   the collapsed chip while its push waits, and the other panels' send buttons wait their turn.

@@ -1869,6 +1869,24 @@ agents add sections above it and leave it alone.
 - **Click a tag.** Neither tag does anything on click; a list of who skipped (or who got it
   correct) deferred with ticket 140's note.
 
+## The flyout collapses on leave (from ticket 144, 2026-09-12)
+
+- **No grace.** The panel closes the instant the pointer crosses its edge; a slip along the
+  border while reading closes it and the chip must be clicked again. A short grace (150 ms or
+  so, cancelled on re-entry) deferred until it bites.
+- **Typing with the mouse elsewhere.** A teacher who clicks into "make your own", starts typing
+  and lets the mouse drift out of the panel loses the panel (not the text). Holding the panel
+  open while an input inside has focus, or while a key was pressed in the last second,
+  deferred; the user asked for the plain rule.
+- **The draft is memory, not storage.** The tab and the written question survive a collapse
+  because they are the component's state; a reload of the page, or a switch to the Class tab
+  and back, starts them empty. Keeping a draft per problem in the classroom store (as the sent
+  question already is) deferred until a teacher loses one.
+- **Touch.** A finger has no leave; on a tablet the chip toggles the panel as before, with no
+  way to close it but the chip.
+- **The class view's card.** Only the mistake view's flyout collapses; the class view's
+  diagnostic card is a fixed box and does not open or close.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
