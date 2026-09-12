@@ -11,13 +11,16 @@ const BADGE = "rounded-full px-1.5 py-px text-[10px] font-semibold uppercase tra
  * One example slot on the class review setup (ticket 148): the letter, then the mistake the
  * working stands for (or "correct") with how many made it; a click opens a menu of the
  * problem's mistakes with their counts, and choosing one puts the working most of those
- * students wrote into the slot. Names sit small under the working, here and nowhere near the
+ * students wrote into the slot; only mistakes not already in one of the problem's slots are
+ * offered, and with none left the header is inert (no chevron). Names sit small under the working, here and nowhere near the
  * projector. The menu is a flyout over whatever is below, as wide as the slot and no wider so
  * the card never clips it (ticket 152): nothing on the card moves.
  */
-export default function ExamplePicker({ letter, candidate, options, onPick }: { letter: string; candidate: Candidate; options: ExampleOption[]; onPick: (ref: ExampleRef) => void }) {
+export default function ExamplePicker({ letter, candidate, options, taken, onPick }: { letter: string; candidate: Candidate; options: ExampleOption[]; /** Option keys already in a slot of this problem (this one included): the menu offers only the rest (ticket 157). */ taken: string[]; onPick: (ref: ExampleRef) => void }) {
   const [open, setOpen] = useState(false);
   const current = optionOf(options, candidate.studentId);
+  const unseen = options.filter((o) => !taken.includes(o.key));
+  const canOpen = unseen.length > 0;
   const column = current?.columns.find((c) => c.students.some((s) => s.studentId === candidate.studentId));
   const names = (column?.students ?? [candidate]).map((s) => s.name.split(" ")[0]);
   return (
@@ -26,20 +29,25 @@ export default function ExamplePicker({ letter, candidate, options, onPick }: { 
         <span className="font-display text-[18px] leading-none text-ink">{letter}</span>
         <button
           type="button"
-          onClick={() => setOpen((o) => !o)}
+          onClick={() => canOpen && setOpen((o) => !o)}
           aria-expanded={open}
-          aria-haspopup="menu"
-          className={`flex min-w-0 flex-1 items-center gap-2 rounded-xl border px-3 py-1.5 text-left text-[13px] transition-colors hover:border-ink-muted ${current?.key === CORRECT ? "border-secure-line bg-secure-soft text-secure" : "border-wrong-line bg-wrong-soft text-wrong"}`}
+          aria-haspopup={canOpen ? "menu" : undefined}
+          aria-disabled={canOpen ? undefined : true}
+          title={canOpen ? undefined : "Every mistake on this problem is already shown"}
+          className={`flex min-w-0 flex-1 items-center gap-2 rounded-xl border px-3 py-1.5 text-left text-[13px] transition-colors ${canOpen ? "hover:border-ink-muted" : "cursor-default"} ${current?.key === CORRECT ? "border-secure-line bg-secure-soft text-secure" : "border-wrong-line bg-wrong-soft text-wrong"}`}
           data-pick={letter}
+          data-pick-exhausted={canOpen ? undefined : true}
           data-pick-key={current?.key === CORRECT ? "correct" : (current?.key ?? "")}
         >
           <span className="min-w-0 flex-1 truncate font-medium">{current?.name ?? "correct"}</span>
           <span className="shrink-0 text-[12px] opacity-80" data-pick-count>
             {current?.count ?? 1}
           </span>
-          <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden className={`shrink-0 transition-transform ${open ? "rotate-180" : ""}`}>
-            <path d="M1.5 3.5 5 7l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          {canOpen && (
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden className={`shrink-0 transition-transform ${open ? "rotate-180" : ""}`}>
+              <path d="M1.5 3.5 5 7l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
         </button>
       </div>
       {current && (current.leaf || current.unitFocus || current.fixedInGroup) && (
@@ -65,7 +73,7 @@ export default function ExamplePicker({ letter, candidate, options, onPick }: { 
           <button type="button" className="fixed inset-0 z-20 cursor-default" aria-label="Close" onClick={() => setOpen(false)} data-pick-close />
           {/* As wide as the slot, never wider (ticket 152): the card clips at its edge, so a menu past column C's edge lost its counts. Long names wrap; the count stays on the right. */}
           <ul role="menu" className="absolute left-5 right-5 top-[52px] z-30 rounded-xl border border-line bg-paper p-1 shadow-lift" data-pick-menu={letter}>
-            {options.map((o) => {
+            {unseen.map((o) => {
               const on = o === current;
               const correct = o.key === CORRECT;
               return (

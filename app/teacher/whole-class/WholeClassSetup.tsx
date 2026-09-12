@@ -9,7 +9,7 @@ import { DifficultyTag } from "@/components/Tag";
 import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
 import { dispatchClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
 import { FOLLOW_MODE_WORD, type FollowMode } from "@/lib/classroom";
-import { candidatesFor, MAX_EXAMPLES, optionsFor, problemsByStruggle, suggestExamples, type ExampleRef, type PickerContext } from "@/lib/examples";
+import { candidatesFor, MAX_EXAMPLES, optionOf, optionsFor, problemsByStruggle, suggestExamples, type ExampleRef, type PickerContext } from "@/lib/examples";
 import ExamplePicker from "./ExamplePicker";
 import { useBatchedSession } from "@/lib/store";
 
@@ -141,6 +141,8 @@ export default function WholeClassSetup() {
             const cands = candidatesFor(pid, session);
             const options = optionsFor(cands, ctx);
             const refs = examplesFor(pid);
+            /** The options already in a slot: no menu offers them again (ticket 157). */
+            const taken = refs.flatMap((r) => { const o = optionOf(options, r.studentId); return o ? [o.key] : []; });
             return (
               <Card key={pid} className="overflow-hidden" data-wc-examples={pid}>
                 <div className="flex items-center gap-4 border-b border-line px-6 py-3">
@@ -157,7 +159,7 @@ export default function WholeClassSetup() {
                   {refs.map((r, i) => {
                     const c = cands.find((x) => x.studentId === r.studentId);
                     if (!c) return null;
-                    return <ExamplePicker key={r.studentId} letter={"ABC"[i]} candidate={c} options={options} onPick={(ref) => swap(pid, i, ref)} />;
+                    return <ExamplePicker key={r.studentId} letter={"ABC"[i]} candidate={c} options={options} taken={taken} onPick={(ref) => swap(pid, i, ref)} />;
                   })}
                 </div>
               </Card>

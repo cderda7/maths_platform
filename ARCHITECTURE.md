@@ -285,6 +285,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 152 | The example picker's menu is as wide as its slot and no wider (`left-5 right-5`), so column C's menu is never clipped by the card; long names wrap, badges inline, the count on the right | `/teacher/whole-class` | 148 | [architecture/152-picker-menu-width.md](architecture/152-picker-menu-width.md) |
 | 153 | The confidence screen's Submit sits in the iPad's bottom-right corner on the exact rect of the start screen's START (the same `px-10 … pb-5` frame, the question and answers in a centred `max-w-3xl` column inside it); the empty spot after a not-confident answer is the button itself, invisible | `/student` | — | [architecture/153-submit-bottom-right.md](architecture/153-submit-bottom-right.md) |
 | 155 | In the picker's menu a badge (`unit focus`, `fixed in group review`) sits on its own line under the mistake's name, never split; the dot and the count centre on the name-and-badge block | `/teacher/whole-class` | 152 | [architecture/155-badge-own-line.md](architecture/155-badge-own-line.md) |
+| 157 | The picker's menu offers only options not already in one of the problem's slots (`taken` from `optionOf` per slot); swapping frees the old option; with none left the header is inert with no chevron | `/teacher/whole-class` | 155 | [architecture/157-picker-unseen-only.md](architecture/157-picker-unseen-only.md) |
 
 ## Conventions
 

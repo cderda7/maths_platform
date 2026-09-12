@@ -2000,6 +2000,18 @@ agents add sections above it and leave it alone.
 - **One frame for every student screen's primary action.** Ticket 153 gives the confidence screen the start screen's frame by repeating its classes (`px-10 pt-6 pb-5`, `mt-auto … pt-4`, a `size="lg"` button) so Submit lands on START's rect. The other student screens (working, feedback, the group board, the report) each place their primary action their own way; a shared `ScreenFrame` / `PrimaryAction` slot would pin every screen's next tap to the same corner and make the alignment a property rather than a measurement. Deferred: the user asked for these two screens, and the working screen's actions live in the pad's own toolbar.
 - **The warm-up offer over the list.** With the button row spanning the screen, the offer now rises at the screen's right edge and floats over the bottom of the dimmed skill list (it already did at the column's edge, by design: nothing moves). If it ever reads as covering the student's own ticks, the offer could sit to the right of the column instead of over it; the column leaves 206 px either side.
 
+## Only unseen mistakes in the picker (from ticket 157, 2026-09-12)
+
+- **An inert header.** With every option on show the slot's header keeps its colour but loses
+  the chevron and does nothing on a click (a title explains). A greyed look, or a menu with one
+  muted line "every mistake is already shown", was set aside as more furniture for a state the
+  suggestion already puts the teacher in on most problems.
+- **Swapping two slots.** A teacher who wants A and B the other way round has no direct move:
+  each menu hides the other's option. A drag or a swap arrow between slots, deferred.
+- **A fourth slot.** Q7 has four options and three slots, so one mistake is always off the
+  board. `MAX_EXAMPLES` stays three (the board's columns); a fourth column when the problem
+  has four distinct workings worth showing, deferred.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
