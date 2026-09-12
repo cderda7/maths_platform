@@ -297,7 +297,7 @@ export default function TeacherLive() {
                               onDoubleClick={() => openRow(r.id, "category", c, undefined, true)}
                               aria-label={`${categoryLabel(c, unit).name}: ${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}
                               aria-expanded={on}
-                              className={`inline-grid h-7 w-10 place-items-center rounded-full transition-colors hover:bg-cream-deep ${on ? "bg-cream-deep ring-1 ring-ink" : ""} ${blanked ? "invisible" : ""}`}
+                              className={`inline-grid h-7 w-10 place-items-center rounded-md transition-colors hover:bg-cream-deep ${on ? "bg-cream-deep ring-1 ring-ink" : ""} ${blanked ? "invisible" : ""}`}
                               data-dot={c}
                               data-blanked={blanked || undefined}
                             >

@@ -44,8 +44,12 @@ export const DOT_COLOR: Record<Status, string> = {
   unseen: "transparent",
 };
 
-/** The category-level marker: a pill, 28 × 13, where a group's or skill's dot is 15 round. */
-export const PILL_SIZE = "h-[13px] w-[28px]";
+/**
+ * The category-level marker: a pill, 28 × 13, where a group's or skill's dot is 15 round. Its
+ * corners follow the category header chip above it (`rounded-md` on a 22 px chip), scaled to the
+ * pill's height: 4 px, not a stadium (ticket 126).
+ */
+export const PILL_SIZE = "h-[13px] w-[28px] rounded";
 
 /**
  * A status marker. `half` fills the left half only: the student has handed in but skipped a
@@ -63,7 +67,7 @@ export function StatusDot({ status, size, px, half = false, shape = "dot", class
         : { backgroundColor: color, borderColor: color };
   const style = px ? { ...paint, width: px, height: px } : paint;
   const dims = px ? "" : (size ?? (shape === "pill" ? PILL_SIZE : "h-2 w-2"));
-  return <span className={`inline-block shrink-0 rounded-full border ${status === "unseen" ? "border-line-strong" : ""} ${dims} ${className}`} style={style} aria-hidden data-status={status} data-half={half || undefined} data-shape={shape} />;
+  return <span className={`inline-block shrink-0 border ${shape === "pill" && !px ? "" : "rounded-full"} ${status === "unseen" ? "border-line-strong" : ""} ${dims} ${className}`} style={style} aria-hidden data-status={status} data-half={half || undefined} data-shape={shape} />;
 }
 
 export const STATUS_WORD: Record<Status, string> = {

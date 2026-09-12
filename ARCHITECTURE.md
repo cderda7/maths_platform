@@ -257,6 +257,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 123 | The review step's unit focus has no Confirm: the inferred unit stands, the note and Reassess remain, Create is on at once; the old screen keeps its Confirm through `UnitFocus`'s optional `onConfirm` | `/teacher/assignments/create/review` | 120 | [architecture/123-no-unit-confirm.md](architecture/123-no-unit-confirm.md) |
 | 124 | "Class review" as the stage's title everywhere: the class view card, the setup H1, the pathway map's node and sentence (`STAGE_WORD`), the demo strip's skip button, the status suffix and the home page copy; the chip already said it; stage id, routes and actions unchanged | `/teacher`, `/teacher/whole-class`, `/teacher/assignments/new`, `/` | — | [architecture/124-class-review-title.md](architecture/124-class-review-title.md) |
 | 125 | The category-level marker is a pill (28 × 13) on the class grid, the report's browse drill and the student's report row; groups and skills keep their round dots; `StatusDot` gains `shape`, the labels beside a marker clear the pill | `/teacher`, `/teacher/report`, `/student?stage=report` | — | [architecture/125-category-pills.md](architecture/125-category-pills.md) |
+| 126 | The category pill's corners follow the header chip: 4 px on the 28 × 13 pill (the chip's 6 px on 22, scaled), the hover area and ring `rounded-md`; dots unchanged | `/teacher`, `/teacher/report`, `/student?stage=report` | 125 | [architecture/126-pill-corners.md](architecture/126-pill-corners.md) |
 
 ## Conventions
 

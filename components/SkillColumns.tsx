@@ -66,7 +66,7 @@ export default function SkillColumns({ result, lines, problems, unit = 1 }: { re
               const half = result.half.categories.includes(c);
               return (
                 <div key={c} className="relative px-1 py-6 text-center" data-dot={c}>
-                  <span className="inline-grid h-7 w-10 place-items-center rounded-full" role="img" aria-label={`${categoryLabel(c, unit).name}: ${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}>
+                  <span className="inline-grid h-7 w-10 place-items-center rounded-md" role="img" aria-label={`${categoryLabel(c, unit).name}: ${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}>
                     <StatusDot status={st} half={half} shape="pill" />
                   </span>
                   {isFlat(c) && (

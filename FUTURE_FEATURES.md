@@ -1525,6 +1525,16 @@ agents add sections above it and leave it alone.
 - **Pill width from the column.** The pill is a fixed 28 × 13. A pill that grows with its
   column (a bar, not a marker) would read as a progress meter, which it is not; deferred.
 
+## The pill's corners (from ticket 126, 2026-09-12)
+
+- **The chip's radius verbatim.** The user asked the pill to "mimic the shape of the category
+  header"; the header chip is 6 px on 22 px, and 6 px on the 13 px pill would still be almost a
+  stadium, so the pill scales it to 4 px. If the two are ever the same height (a taller pill, or
+  the pill replacing the chip as the header), one radius token for both.
+- **A shared "category chip" token.** The header chip's `rounded-md bg-standout-soft` and the
+  pill's `rounded` live in two files; a `CATEGORY_RADIUS` constant in `components/Tag.tsx` would
+  keep them from drifting. Deferred: two call sites.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
