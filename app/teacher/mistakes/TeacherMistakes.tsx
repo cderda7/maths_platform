@@ -27,7 +27,8 @@ const ACTION_ACTIVE = `${ACTION} bg-accent text-white hover:bg-accent-deep`;
  * "close all" (while other problems are still open) until the pointer leaves the card.
  * To the right of each problem sits its live diagnostic (ticket 127): the "Live diagnostic" chip
  * alone until clicked, then the push panel with the problem's own suggested question and the
- * make-your-own tab; the card takes the width the panel leaves.
+ * make-your-own tab as a flyout from the chip, down and to the right (ticket 132); the card
+ * keeps its width either way.
  */
 export default function TeacherMistakes() {
   const { session } = useBatchedSession(3000);

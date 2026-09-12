@@ -265,6 +265,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 133 | The drill's group and skill dot chips count as markers like the pills (pointer over one hides the row buttons, leaving one starts the clock), through pointer over/out delegated on each row's tbody against `MARKER`; the grace is one second | `/teacher` | 131 | [architecture/133-dot-grace.md](architecture/133-dot-grace.md) |
 | 130 | More mistakes, more kinds: six new wrong lines in the evaluation table (Q1 wrong pair, Q2 sign solving a factor, Q3 expansion sign, Q4 −b, Q7 wrong pair, Q9 −x sign), 45 classmate wrongs instead of 32 in the shape twelve on Q7 (three strategies, six / four / two), Amelia alone on Q6, nobody on Q8; notes and clarifications cover every wrong; the race rows follow the unions | every screen that reads the classmates | 23, 36 | [architecture/130-diverse-mistakes.md](architecture/130-diverse-mistakes.md) |
 | 134 | The Pathway card's over pill is the lit skill button's blue (`bg-standout text-white`), not navy ink | `/teacher` | 129 | [architecture/134-over-pill-blue.md](architecture/134-over-pill-blue.md) |
+| 132 | The mistake view's diagnostic opens as a flyout from its chip, down and to the right over the blank space, the chip's footprint holding the row; the problem card and every row measure the same open or closed; a flyout that would overrun the window shifts left (`clampToViewport`) | `/teacher/mistakes` | 127 | [architecture/132-diagnostic-flyout.md](architecture/132-diagnostic-flyout.md) |
 
 ## Conventions
 

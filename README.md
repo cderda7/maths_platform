@@ -133,7 +133,8 @@ teacher shows them, and a mirror of the teacher's working.
   classmates wrong on Q7 in three ways (the fraction cleared from two terms, the third lost,
   the wrong pair), Amelia alone on Q6, nobody on Q8, and every other problem wrong in at least
   two ways. To the right of every problem a **Live
-  diagnostic** chip: click it and the push panel opens beside the card with that problem's own
+  diagnostic** chip: click it and the push panel opens from the chip as a flyout, down and to
+  the right over the blank space (the problems never move), with that problem's own
   suggested question (example) or one you write (make your own), the same switch, **send to
   class**; the waiting band and the response show in the panel the push came from, a badge on
   the collapsed chip while its push waits, and the other panels' send buttons wait their turn.

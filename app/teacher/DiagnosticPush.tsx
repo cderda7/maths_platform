@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import M from "@/components/Math";
 import { Button, Card, Eyebrow } from "@/components/ui";
 import { DEMO_STUDENT } from "@/data/assignment";
@@ -13,13 +13,35 @@ type Tab = "example" | "own";
 
 const CHIP = "inline-flex items-center gap-1.5 rounded-md bg-accent px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-white";
 
+/** The flyout's frame: the card's border (1) plus padding (24) so the chip in flow sits exactly where the card's own chip would. */
+const FRAME = 25;
+/** The collapsed chip's top: centred on the problem card's header row beside it (1 px border, then 69 px of header, the chip 25 tall). */
+const CHIP_TOP = 23;
+
+/**
+ * Keeps an open flyout inside the viewport: measured after it mounts, shifted left by however
+ * much it would overrun the right edge (a 16 px margin kept). Rects are in window px while the
+ * teacher chrome is zoomed, so the shift is scaled back into the flyout's own px. Set on the node,
+ * not in state: nothing else depends on it.
+ */
+function clampToViewport(el: HTMLDivElement | null) {
+  if (!el) return;
+  el.style.transform = "";
+  const r = el.getBoundingClientRect();
+  const scale = r.width / el.offsetWidth || 1;
+  const over = r.right + 16 * scale - document.documentElement.clientWidth;
+  if (over > 0) el.style.transform = `translateX(${-over / scale}px)`;
+}
+
 /**
  * Push a live diagnostic to the (mocked) class. Two tabs in the same shape: the suggested
  * example (the class view's fixture, or the problem's own on the mistake view), and one the
  * teacher writes here (stem, optional expression, up to four options, the right one). Respond
  * online or not recorded is chosen before pushing; the pending band and the response show in
- * the panel the push came from. On the mistake view the panel is `collapsible`: closed it is
- * the "Live diagnostic" chip alone, beside the problem; a click opens the card under it.
+ * the panel the push came from. On the mistake view the panel is `collapsible`: the "Live
+ * diagnostic" chip stays in flow beside the problem and a click opens the card as a flyout
+ * from the chip's corner, down and to the right over blank space; the problem card beside it
+ * never changes size (ticket 132).
  */
 export default function DiagnosticPush({
   session,
@@ -53,31 +75,31 @@ export default function DiagnosticPush({
 
   const push = (q: Diagnostic) => dispatch({ type: "diagnostic/push", questionId: q.id, recorded, question: q.id === example.id ? undefined : q });
 
+  const chipLabel = (
+    <>
+      Live diagnostic
+      {collapsible && (
+        <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden className={`transition-transform ${open ? "rotate-90" : ""}`}>
+          <path d="M3 1.5 6.5 5 3 8.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )}
+    </>
+  );
   const chip = collapsible ? (
     <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className={`${CHIP} relative transition-colors hover:bg-accent-deep`} data-diag-toggle={problemId}>
-      Live diagnostic
+      {chipLabel}
       {/* A badge on the corner, not in the row: the chip keeps its width, so the cards' right edges stay in line. */}
       {mine && !open && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 animate-pulse rounded-full bg-white ring-2 ring-accent" aria-hidden data-diag-waiting />}
-      <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden className={`transition-transform ${open ? "rotate-90" : ""}`}>
-        <path d="M3 1.5 6.5 5 3 8.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
     </button>
   ) : (
-    <Eyebrow className={`${CHIP} inline-block`}>Live diagnostic</Eyebrow>
+    <Eyebrow className={`${CHIP} inline-block`}>{chipLabel}</Eyebrow>
   );
 
-  // Closed, the chip is centred on the problem card's header row beside it (69 px: 16 px padding round a 37 px line); open, the card grows around it.
-  if (!open)
-    return (
-      <div className={`pt-[22px] ${className}`} data-diagnostic-push={problemId ?? "class"} data-collapsed>
-        {chip}
-      </div>
-    );
-
-  return (
-    <Card className={`p-6 ${collapsible ? "w-[380px]" : ""} ${className}`} data-diagnostic-push={problemId ?? "class"}>
+  /** The card's content; `head` is what sits top-left beside the switch (the chip, or its footprint under the chip in flow). */
+  const body = (head: ReactNode) => (
+    <>
       <div className="flex items-center justify-between">
-        {chip}
+        {head}
         <label className="flex items-center gap-2 text-[12.5px] text-ink-soft">
           <span>{recorded ? "respond online" : "not recorded"}</span>
           <button
@@ -197,6 +219,37 @@ export default function DiagnosticPush({
           {answers.length > 1 && <span className="text-ink-muted"> · {answers.length} pushes</span>}
         </div>
       )}
-    </Card>
+    </>
+  );
+
+  if (!collapsible)
+    return (
+      <Card className={`p-6 ${className}`} data-diagnostic-push="class">
+        {body(chip)}
+      </Card>
+    );
+
+  // Closed, the chip sits in flow. Open, its footprint holds that place (the row's layout never changes) and the chip is the
+  // card's own, in the flyout laid from the chip's corner over whatever is below and to the right: unshifted, the chip is
+  // exactly where it was; clamped to the viewport on a narrow window, it moves with its card. An open panel sits above the
+  // chips of the rows beneath it.
+  return (
+    <div className={`relative ${open ? "z-40" : ""} ${className}`} data-diagnostic-push={problemId} data-collapsed={open ? undefined : true}>
+      {/* A flex box, not a line box: an inline chip would sit a fraction lower on the text baseline than the card's flex row puts it. */}
+      <div className="flex" style={{ paddingTop: CHIP_TOP }}>
+        {open ? (
+          <span className={`${CHIP} invisible`} aria-hidden data-diag-footprint>
+            {chipLabel}
+          </span>
+        ) : (
+          chip
+        )}
+      </div>
+      {open && (
+        <div ref={clampToViewport} className="absolute" style={{ top: CHIP_TOP - FRAME, left: -FRAME }} data-diag-flyout>
+          <Card className="w-[380px] p-6 shadow-lift">{body(chip)}</Card>
+        </div>
+      )}
+    </div>
   );
 }

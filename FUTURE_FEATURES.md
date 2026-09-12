@@ -1660,6 +1660,21 @@ agents add sections above it and leave it alone.
   with an offset; the Pathway card's current pill uses the accent purple ring the user asked for.
   If the two are ever meant to match, the ring is the one place to change.
 
+## The diagnostic flyout (from ticket 132, 2026-09-12)
+
+- **Supersedes "Stable card widths" above.** The panel is now a flyout from the chip; the card
+  never resizes.
+- **Two flyouts at once.** Any number can be open; a lower one paints over the one above it
+  where they overlap (later sibling wins). Closing the others when one opens, or an outside
+  click closing the open one, deferred until a teacher trips over the overlap.
+- **Focus on open.** The chip in flow is replaced by the card's own chip when the panel opens,
+  so keyboard focus drops; moving focus to the card's chip on open deferred.
+- **Flyout on a laptop.** On a window narrower than the flyout needs it shifts left over the
+  problem card (16 px from the edge). A flyout that opens leftward or under the chip when
+  there is no room to the right, deferred.
+- **Resize while open.** The clamp runs when the flyout mounts, not on window resize; a
+  resize with a flyout open can leave it off the edge until it is closed and reopened.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
