@@ -49,11 +49,24 @@ const STACK_ACTIVE = `${STACK_BUTTON} bg-accent text-white hover:bg-accent-deep`
 const STACK_TALL = `${STACK_ACTIVE} grid h-[calc(2*(1.375*11px_+_6px)_+_4px)] place-items-center`;
 
 /**
- * A category column's width: the header chip (11 px uppercase, 0.06 em tracking, 10 px padding a side) must sit inside
- * it with its neighbours' chips clear, and "Communication" is 126 px where every other chip is under 94 (ticket 136).
+ * A category column's width in px: its header chip (11 px uppercase, 0.06 em tracking, 10 px padding a side: about
+ * 20 px plus 8 a letter, so Algebra 75, Graphing 83, Functions and Reasoning 91, New skills 93, Communication 126)
+ * with 2 px clear each side, in 8 px steps (ticket 141; ticket 136 gave every column 96 or 132).
  */
-function columnWidth(c: CategoryId): string {
-  return categoryName(c).short.length > 10 ? "w-[132px]" : "w-[96px]";
+function columnWidth(c: CategoryId): number {
+  const letters = categoryName(c).short.replace(/\s/g, "").length;
+  return letters <= 7 ? 80 : letters <= 8 ? 88 : letters <= 10 ? 96 : 132;
+}
+
+/** The roster's other columns, px: student (avatar 32 + 12 + name slot 142 + pill 82 + 12 + buttons 96, inside px-5), Confidence, Set, the closing avatar. */
+const STUDENT_COL = 420;
+const CONFIDENCE_COL = 84;
+const SET_COL = 64;
+const AVATAR_COL = 48;
+
+/** The roster's minimum width: the sum of its columns, which at 1280 × 800 is the card's 1208 px less 4 (`scripts/laptop-check.mjs` forbids the card scrolling). */
+function rosterMinWidth(columns: CategoryId[]): number {
+  return STUDENT_COL + columns.reduce((w, c) => w + columnWidth(c), 0) + CONFIDENCE_COL + SET_COL + AVATAR_COL;
 }
 
 function confidenceWord(c: Confidence | null): { text: string; tone: string } {
@@ -226,16 +239,16 @@ export default function TeacherLive() {
 
       <div className="mt-10 grid grid-cols-[1fr_320px] gap-6">
         <Card className="overflow-x-auto">
-          {/* Columns 380 · 96 per category (132 under a long chip) · 92 · 64 · 56 (ticket 136), the min the sum for the six categories the demo assignment touches. The student column holds the name slot, the live pill and, on hover, the two stacked action buttons side by side; the avatar closes the row in the last column. */}
-          <table ref={tableRef} className="w-full min-w-[1204px] table-fixed text-left text-[14px]" data-grid data-pill-quiet={pillQuiet || undefined}>
+          {/* Columns 420 · one per category sized to its chip (80–132, `columnWidth`) · 84 · 64 · 48 (ticket 141; 380 · 96/132 · 92 · 64 · 56 in ticket 136), the minimum their sum. The student column holds the avatar, the name slot, the live pill and, on hover, the two stacked action buttons side by side; the avatar again closes the row in the last column. */}
+          <table ref={tableRef} className="w-full table-fixed text-left text-[14px]" style={{ minWidth: rosterMinWidth(columns) }} data-grid data-pill-quiet={pillQuiet || undefined}>
             <colgroup>
-              <col className="w-[380px]" />
+              <col style={{ width: STUDENT_COL }} />
               {columns.map((c) => (
-                <col key={c} className={columnWidth(c)} />
+                <col key={c} style={{ width: columnWidth(c) }} />
               ))}
-              <col className="w-[92px]" />
-              <col className="w-[64px]" />
-              <col className="w-[56px]" />
+              <col style={{ width: CONFIDENCE_COL }} />
+              <col style={{ width: SET_COL }} />
+              <col style={{ width: AVATAR_COL }} />
             </colgroup>
             <thead>
               <tr className="border-b border-line text-[10px] uppercase tracking-[0.06em] text-ink-muted">
@@ -295,6 +308,7 @@ export default function TeacherLive() {
                     >
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
+                          <Avatar initials={r.initials} />
                           <div className="min-w-0">
                             <div className="flex items-center">
                               {/* The name sits in a fixed slot (the widest name on the roster, Ruby Castellanos at 16 px, plus 10 px), so the live pill of every in-progress student starts at the same x instead of staggering with the name's length (ticket 136). A longer name pushes its own pill right; the slot's padding keeps the 10 px. */}
@@ -302,7 +316,7 @@ export default function TeacherLive() {
                                 {r.name}
                               </span>
                               {r.live && (
-                                <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-accent-line bg-paper px-2 py-0.5 text-[11px] font-medium text-accent-deep" data-live-pill>
+                                <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-accent-line bg-paper px-1.5 py-0.5 text-[11px] font-medium text-accent-deep" data-live-pill>
                                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" aria-hidden />
                                   {live ? "in progress" : "not started"}
                                 </span>
@@ -378,8 +392,8 @@ export default function TeacherLive() {
                           </>
                         )}
                       </td>
-                      {/* The avatar closes the row so the eye can find its student again after crossing the skill columns (ticket 136). */}
-                      <td className="px-3 py-3.5">
+                      {/* The avatar again, closing the row so the eye can find its student after crossing the skill columns (tickets 136, 141). */}
+                      <td className="px-2 py-3.5">
                         <div className="flex justify-center" data-row-avatar={r.id}>
                           <Avatar initials={r.initials} />
                         </div>

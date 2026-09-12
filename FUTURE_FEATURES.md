@@ -1733,7 +1733,7 @@ agents add sections above it and leave it alone.
   further column (or a wider pill) means narrowing something: the Pathway column from 320, or
   the roster scrolling inside its card (which `scripts/laptop-check.mjs` forbids). Noted, not
   changed.
-- **An avatar at both ends.** The user's words were "place the avatar there"; it moved. If the
+- **An avatar at both ends.** (Done in ticket 141.) The user's words were "place the avatar there"; it moved. If the
   leading avatar is wanted back as well, the student column needs about 44 px more (the avatar
   and its gap), which the budget above does not have at 1280 without a trade.
 - **The Set column's "in progress"** under the count says what the pill now says on the same row;
@@ -1820,6 +1820,19 @@ agents add sections above it and leave it alone.
   nobody wrong") deferred.
 - **The live student's rework.** The count reads the first hand-in like the rows; a second
   number after review ("15/20 → 18/20") deferred with the rework view.
+
+## The roster's avatar at both ends (from ticket 141, 2026-09-12)
+
+- **Column widths are still a rule of thumb.** `columnWidth` buckets a chip by its letter count
+  (about 8 px a letter plus 20); a taxonomy whose chip breaks the estimate (wide letters, a long
+  two-word name) wants the width measured from the chip. Measuring at mount (a ref callback, as
+  the diagnostic flyout's clamp does) would also let the columns tighten to the chip exactly;
+  deferred with the same note as ticket 136.
+- **The laptop budget is spent again.** 1204 of 1208 px at 1280 × 800 with both avatars. The next
+  thing added to a row (a column, a wider pill, a third button) is a trade: the Pathway column
+  from 320, the 16 px name, or the card scrolling (which `scripts/laptop-check.mjs` forbids).
+- **The pill lost 6 px of padding** (`px-1.5 gap-1`) to fit; if it reads cramped beside the
+  16 px name, the 6 px has to come from somewhere else in the budget above.
 
 ## Carson's notes
 

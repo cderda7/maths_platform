@@ -2585,3 +2585,34 @@ which is the same reading the rows use.
 glance, which is what a count "to the left of the Q" is for; and defining right as reached,
 finished and clean keeps the three numbers in the tooltip a partition of the class, so the box
 never contradicts the rows beneath it.
+
+## 2026-09-12 · The avatar returns to the front of the roster's row; category columns are sized to their chips
+
+**Decision.** The roster's row opens with the student's avatar again, as before ticket 136, and
+still closes with it. The 44 px that needs at the 1280 × 800 laptop comes from sizing each
+category column to its header chip (80 / 88 / 96 / 132 px by letter count instead of 96 or 132
+for all), 8 px off the Confidence column, 8 off the closing avatar's column and 6 off the pill's
+padding. Column widths and the table's minimum are numbers in one place (`columnWidth`,
+`STUDENT_COL` … `AVATAR_COL`, `rosterMinWidth`), set as inline styles.
+
+**Context.** The user asked for the avatar "in both places": ticket 136 had moved it and spent
+the freed width on the 16 px name and the inline pill. The teacher's surface must fit 1280 px
+with no horizontal scroll (ticket 37's guard), and ticket 136 had left 4 px.
+
+**Alternatives considered.** *Narrowing the Pathway column from 320*: the count beside the
+current stage pill would sit 7 px from the card's edge at 1280. *A 15 px name*: reneges on the
+size the user asked for. *The card scrolling at 1280*: the guard forbids it, and the roster is
+the screen the teacher reads most. *Measuring the chips at mount and setting the columns from
+that*: exact for any taxonomy, but a layout pass and a visible shift after hydration, for six
+static labels. *Even 96 px columns with the Communication chip's tracking reduced*: the chip
+is 126 px at the shared header style; no single style change gets it under 96.
+
+**Tradeoffs.** Column pitch is uneven (80 to 132) so the dots are not on one grid; the chips are
+what the eye reads, and the dots sit centred under them. The letter-count rule is calibrated to
+this font and can misjudge a future chip. Four px of slack at 1280 is all that remains.
+
+**Defence.** Every px came from something that had more than it used (chips in 96 px columns
+with 3–21 px to spare, a Confidence head word of 60 px in 92) rather than from anything the
+user has asked for; the numbers are named once and summed by code, so the next change to a
+column changes the minimum with it; and the geometry is asserted at 1280 and 1400 by
+`verify141.mjs` and the laptop guard.

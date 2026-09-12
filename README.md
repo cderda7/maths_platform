@@ -152,7 +152,7 @@ teacher shows them, and a mirror of the teacher's working.
   The nineteen classmates answer over eight seconds after the push; Sam answers on the iPad.
   **Groups** (only when the pathway has group review), **/teacher/compare**.
   On the class view's roster the name is 16 px with the **in progress** pill beside it (every in-progress
-  pill at one x) and the student's initials close the row at the far right.
+  pill at one x), the avatar before the name and the same initials closing the row at the far right.
   **student report** beside a name on the class view opens their individual view (`/teacher/report?student=`):
   the platform's commentary as a few ideas in a light-blue bubble, and what the student wrote
   back in a purple-bordered box. A live diagnostic takes the whole board once all twenty have answered, or when the teacher puts it up: the question, each option with its count, the right one green, `x/20 students answered this`; never while the class is still answering unless the teacher says so, and no misconception wording.
