@@ -15,8 +15,10 @@ type Tab = "example" | "own";
 
 /** The flyout's frame: the card's border (1) plus padding (24) so the chip in flow sits exactly where the card's own chip would. */
 const FRAME = 25;
-/** The collapsed chip's top: centred on the problem card's header row beside it (1 px border, then 69 px of header, the chip 25 tall). */
-const CHIP_TOP = 23;
+/** The problem card's header row on the mistake view, in layout px: `py-4` around the 37 px maths line. The right count box beside the card centres on it too. */
+export const PROBLEM_HEADER = 69;
+/** The collapsed chip's top: centred on the problem card's header row beside it (1 px border, then the header, the chip 25 tall). */
+const CHIP_TOP = 1 + (PROBLEM_HEADER - 25) / 2;
 
 /**
  * Keeps an open flyout inside the viewport: measured after it mounts, shifted left by however
@@ -78,11 +80,11 @@ export default function DiagnosticPush({ example, problemId, className = "" }: {
     </button>
   );
 
-  /** The action row under a tab: the waiting band with Withdraw while this panel's push is out, else send (off while another panel's is). */
+  /** The action row under a tab: the waiting band with Withdraw while this panel's push is out, else send at the panel's bottom right (off while another panel's is). */
   const actions = (run: DiagnosticRun | null, send: () => void, disabled: boolean, attr: string) => (
-    <div className="mt-4">
+    <div className="mt-4 flex justify-end">
       {mine && run ? (
-        <div className="flex items-center justify-between rounded-xl border border-accent-line bg-accent-soft/50 px-4 py-3 text-[13px] text-ink" data-pending>
+        <div className="flex flex-1 items-center justify-between rounded-xl border border-accent-line bg-accent-soft/50 px-4 py-3 text-[13px] text-ink" data-pending>
           <span className="flex items-center gap-2">
             <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
             Waiting · {tally(run, now).answered}/{tally(run, now).total} in

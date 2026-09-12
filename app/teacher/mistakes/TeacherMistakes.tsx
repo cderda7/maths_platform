@@ -11,7 +11,7 @@ import { CLASS_SIZE, groupBySlip, mistakesByProblem, type WorkColumn } from "@/l
 import { diagnosticFor } from "@/lib/diagnostic";
 import { useBatchedSession } from "@/lib/store";
 import { useAssignment } from "@/lib/classroom-store";
-import DiagnosticPush from "../DiagnosticPush";
+import DiagnosticPush, { PROBLEM_HEADER } from "../DiagnosticPush";
 
 // The same button as the class view's row actions ("see dot skills" / "close").
 const ACTION = "w-[96px] rounded-md px-2 py-[3px] text-[11px] font-medium leading-snug transition-colors";
@@ -85,9 +85,11 @@ function FitGrid({ children, ...rest }: React.HTMLAttributes<HTMLDivElement>) {
  * To the right of each problem sits its live diagnostic (ticket 127): the "Live diagnostic" chip
  * alone until clicked, then the push panel with the problem's own suggested question and the
  * make-your-own tab as a flyout from the chip, down and to the right (ticket 132); the card
- * keeps its width either way. Left of the problem's label a small box counts the class who got
- * it right, "14/20 right" (ticket 140), its tooltip splitting the rest into the wrong (the rows)
- * and those who never finished it.
+ * keeps its width either way, and a little clear of the card so the open flyout never touches
+ * it (ticket 142). Left of the card, level with its header row, a small box counts the class who
+ * got it right, "14/20 right" (ticket 140; outside the card since 142), its tooltip splitting the
+ * rest into the wrong (the rows) and those who never finished it. The difficulty tag sits after
+ * the maths, not at the header's far end (142); no live pill on a name here (142).
  */
 export default function TeacherMistakes() {
   const { session } = useBatchedSession(3000);
@@ -135,28 +137,32 @@ export default function TeacherMistakes() {
           };
           return (
             <div key={problem.id} className="flex items-start gap-4" data-problem-row={problem.id}>
+            {/* Level with the header row: the card's 1 px border, then the header. */}
+            <div className="flex shrink-0 items-center" style={{ height: PROBLEM_HEADER + 2 }}>
+              <span
+                className="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-line bg-cream-deep px-2 py-1 text-[12px] leading-none"
+                title={`${right} of ${CLASS_SIZE} got it right · ${rows.length} wrong · ${CLASS_SIZE - right - rows.length} didn't finish it`}
+                data-right={`${problem.id}:${right}`}
+              >
+                <span className="font-semibold text-ink">
+                  {right}/{CLASS_SIZE}
+                </span>
+                <span className="text-ink-muted">right</span>
+              </span>
+            </div>
             <Card
               className="group/q min-w-0 flex-1 overflow-hidden"
               data-problem={problem.id}
               data-open={isOpen || undefined}
               onMouseLeave={() => armed === problem.id && setArmed(null)}
             >
-              <div className="flex items-center justify-between gap-4 border-b border-line px-6 py-4" onClick={() => toggle(problem.id)} data-problem-header={problem.id}>
+              <div className="flex items-center gap-4 border-b border-line px-6 py-4" onClick={() => toggle(problem.id)} data-problem-header={problem.id}>
                 <div className="flex items-center gap-4">
-                  <span
-                    className="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-line bg-cream-deep px-2 py-1 text-[12px] leading-none"
-                    title={`${right} of ${CLASS_SIZE} got it right · ${rows.length} wrong · ${CLASS_SIZE - right - rows.length} didn't finish it`}
-                    data-right={`${problem.id}:${right}`}
-                  >
-                    <span className="font-semibold text-ink">
-                      {right}/{CLASS_SIZE}
-                    </span>
-                    <span className="text-ink-muted">right</span>
-                  </span>
                   <span className="font-display text-[24px] text-ink">{problem.label}</span>
                   <span className="math-lg text-ink">
                     <M tex={problem.tex} />
                   </span>
+                  <DifficultyTag d={problem.difficulty} />
                   <button
                     type="button"
                     onClick={(e) => {
@@ -172,7 +178,6 @@ export default function TeacherMistakes() {
                     {action.word}
                   </button>
                 </div>
-                <DifficultyTag d={problem.difficulty} />
               </div>
               <div className="overflow-x-auto">
                 <FitGrid className="grid" style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(${COLUMN_FLOOR}px, 1fr))` }} data-students>
@@ -191,11 +196,6 @@ export default function TeacherMistakes() {
                         <span key={r.id} className="flex max-w-full items-center gap-3 whitespace-nowrap" data-row={`${problem.id}:${r.id}`}>
                           <Avatar initials={r.initials} />
                           <span className="truncate font-medium text-ink">{r.name}</span>
-                          {r.live && (
-                            <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-accent-line bg-paper px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-deep">
-                              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" aria-hidden /> live
-                            </span>
-                          )}
                         </span>
                       ))}
                     </button>
@@ -263,7 +263,8 @@ export default function TeacherMistakes() {
                 </FitGrid>
               </div>
             </Card>
-            <DiagnosticPush example={diagnosticFor(problem.id)} problemId={problem.id} className="shrink-0" />
+            {/* The extra margin keeps the open flyout (laid 25 px left of the chip) clear of the card. */}
+            <DiagnosticPush example={diagnosticFor(problem.id)} problemId={problem.id} className="ml-5 shrink-0" />
             </div>
           );
         })}

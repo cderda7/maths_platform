@@ -1834,6 +1834,26 @@ agents add sections above it and leave it alone.
 - **The pill lost 6 px of padding** (`px-1.5 gap-1`) to fit; if it reads cramped beside the
   16 px name, the 6 px has to come from somewhere else in the budget above.
 
+## The header row and the zoom (from ticket 142, 2026-09-12)
+
+- **The zoom is a constant.** 0.72 is the user's 90% of 0.8; a teacher's own zoom preference
+  (a control in the chrome, remembered per teacher) deferred; the browser's zoom still works on
+  top of it.
+- **Older width budgets.** Tickets 37, 127 and 136 sized the roster and panels for a 1280
+  laptop at 0.8 (1600 layout px); at 0.72 the same laptop lays out at 1778, so those budgets are
+  loose. Re-tightening the roster (a wider name slot, both avatars) is a trade ticket 141 opened.
+- **The box's own line.** The right box is level with the header row by a shared constant
+  (`PROBLEM_HEADER`); a header that grows (a two-line question) would leave the box high. A
+  measured centre, or the box inside a same-height flex wrapper the card also uses, deferred.
+- **The live pill elsewhere.** The pill came off the mistake view only; the class view's roster
+  still marks the live row. Dropping it everywhere, or one marker for "this is the demo's live
+  student" across the teacher's surface, deferred.
+- **Tag colours.** "complex unfamiliar" borrows the amber of the `developing` status; a fifth
+  hue reserved for difficulty alone (no overlap with statuses) deferred until a screen shows both
+  side by side.
+- **Flyout gap.** 11 layout px (8 on screen) between the card and the panel; if the user wants
+  more, `ml-5` on the diagnostic is the one knob (the chip moves with it).
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

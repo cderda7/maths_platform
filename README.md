@@ -137,15 +137,15 @@ teacher shows them, and a mirror of the teacher's working.
   share one column: the work is written once with every one of their names over it, so a
   problem twelve students got wrong in three ways takes three columns. Columns share the card
   down to a floor and the working shrinks to fit them, so a problem scrolls sideways only past
-  seven or so distinct workings. Left of every problem's label a small box counts the class
-  who got it right ("15/20 right"; hover for the wrong and the unfinished). The class's slips
-  have a shape: twelve
+  seven or so distinct workings. Left of every problem's card, level with its header, a small
+  box counts the class who got it right ("15/20 right"; hover for the wrong and the unfinished);
+  the difficulty tag sits after the maths. The class's slips have a shape: twelve
   classmates wrong on Q7 in three ways (the fraction cleared from two terms, the third lost,
   the wrong pair), Amelia alone on Q6, nobody on Q8, and every other problem wrong in at least
   two ways. To the right of every problem a **Live
   diagnostic** chip: click it and the push panel opens from the chip as a flyout, down and to
-  the right over the blank space (the problems never move), with that problem's own
-  suggested question (example) or one you write (make your own), **send to class**; once the
+  the right over the blank space, a little clear of the card (the problems never move), with that problem's own
+  suggested question (example) or one you write (make your own), **send to class** at the panel's bottom right; once the
   question is out the tab's option grid is its result (the same cells as the class view's card),
   `Waiting · n/20 in` with Withdraw while the class answers, then the board links; a badge on
   the collapsed chip while its push waits, and the other panels' send buttons wait their turn.

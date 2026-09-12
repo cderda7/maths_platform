@@ -23,8 +23,9 @@ export const TEACHER_TABS: { href: string; label: string; stage?: ReviewStage }[
  * The frame is the viewport: the bar sits in it and only the region beneath scrolls (ticket 68).
  * The window itself never scrolls, so the rubber-band at the end of a page moves the content,
  * never the bar; a sticky bar rode the bounce with the page. The outer div takes the viewport
- * height unzoomed: a `100vh` inside the zoomed frame shrinks to 80% of the window with it, a
- * percentage of an unzoomed parent does not.
+ * height unzoomed: a `100vh` inside the zoomed frame shrinks to 72% of the window with it, a
+ * percentage of an unzoomed parent does not. The zoom is 0.72 (ticket 142: the user's browser at
+ * 90% of the old 0.8 was the size wanted at 100%), so a 1280 px laptop lays out at 1778 px.
  */
 export default function TeacherChrome({ children }: { children: ReactNode }) {
   const path = usePathname();
@@ -32,7 +33,7 @@ export default function TeacherChrome({ children }: { children: ReactNode }) {
   const tabs = TEACHER_TABS.filter((t) => !t.stage || pathway.includes(t.stage));
   return (
     <div className="h-screen">
-    <div className="flex h-full flex-col [zoom:0.8]" data-teacher-root>
+    <div className="flex h-full flex-col [zoom:0.72]" data-teacher-root>
       <header className="z-30 shrink-0 border-b border-line bg-paper/70 backdrop-blur">
         <div className="mx-auto flex max-w-[1640px] items-center justify-between px-6 py-4">
           <div className="flex items-center gap-6">

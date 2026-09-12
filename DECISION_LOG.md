@@ -2616,3 +2616,36 @@ with 3–21 px to spare, a Confidence head word of 60 px in 92) rather than from
 user has asked for; the numbers are named once and summed by code, so the next change to a
 column changes the minimum with it; and the geometry is asserted at 1280 and 1400 by
 `verify141.mjs` and the laptop guard.
+
+## 2026-09-12 · The teacher chrome is zoomed 0.72, and the flyout clears the card by margin, not by moving its chip
+
+**Decision.** `TeacherChrome` zooms every teacher route at 0.72 instead of 0.8, and the mistake
+view's diagnostic gets a 20 px margin on top of the row's 16 px gap, so the open flyout (laid
+25 px left of its chip so its own chip lands where the closed one was, ticket 132) starts 11 px
+clear of the problem card. The "n/20 right" box moves out of the card into the row, in a wrapper
+exactly as tall as the card's border plus header (`PROBLEM_HEADER = 69`, exported from
+`DiagnosticPush` where the chip already used the number), centred.
+
+**Context.** The user, with the mistake view at 100% and at 90%: "i want the 100% default view
+changed to this, currently the 90% view"; "a little gap in between the question box & the live
+diagnostic box when it pops up"; "i want it out of the Q1 box -- to the left, same height as the
+Q1 row." 0.8 × 0.9 = 0.72. The old flyout overlapped the card's right edge by 9 px (16 − 25).
+
+**Alternatives considered.** *A zoom on the mistake view alone*: the Class and Mistakes tabs
+would change size on every switch; the chrome is one frame. *Shrinking the flyout's padding
+(p-6 → p-4) to clear the card*: touches the panel's look the user had just approved, and still
+only reaches the card's edge. *Laying the flyout right of its chip*: the chip would jump on
+open, which ticket 132 was written to prevent. *A `min-h` on the header with the box inside the
+card's flow*: the user asked for it outside the card. *Measuring the header at runtime for the
+box's centre*: a layout pass for a constant the chip already relies on.
+
+**Tradeoffs.** One more constant (`PROBLEM_HEADER`) that a change to the header's padding or
+the maths line's height must follow; the click-through pins it at 69. The teacher's surface is
+28% smaller than CSS px on every route, so any older measurement noted at 0.8 (the roster's
+1204 px budget on a 1280 laptop is now 1778 layout px wide) is loose rather than tight. The
+chips column moves 20 px right, the cards 20 px narrower.
+
+**Defence.** The zoom is what the user measured with their own browser; a margin is the one
+change that gives the gap without moving the chip or restyling the panel; and one shared
+constant keeps the chip and the box level with the header by construction rather than by two
+measurements that could drift apart.

@@ -5,7 +5,8 @@ const DIFF_STYLES: Record<Difficulty, string> = {
   "simple familiar": "bg-cream-deep text-ink-soft border-line-strong",
   "simple unfamiliar": "bg-standout-soft text-standout border-standout-line",
   "complex familiar": "bg-accent-soft text-accent-deep border-accent-line",
-  "complex unfamiliar": "bg-ink text-white border-ink",
+  // Light like its three siblings (cream, blue, purple); the amber marks the hardest kind without the weight of ink on white (ticket 142).
+  "complex unfamiliar": "bg-developing-soft text-developing border-developing-line",
 };
 
 export function DifficultyTag({ d, className = "" }: { d: Difficulty; className?: string }) {
