@@ -28,22 +28,25 @@ describe("board examples", () => {
 
   it("counts buckets and struggles; problems sort by struggle", () => {
     const counts = bucketCounts(candidatesFor("q2", sessionAt("feedback")));
-    const wrongQ2 = 1 + CLASSMATES.filter((c) => c.wrong.includes("q2")).length; // sam + jordan, liam, mia, oliver, sofia
-    expect(counts.get("algebra.expand-factor.nonmonic")).toBe(wrongQ2);
+    // sam + jordan, liam, mia, oliver, sofia guessed a pair; finn's factors were right and he lost a sign solving one (linear equations).
+    const guessedQ2 = 1 + CLASSMATES.filter((c) => c.wrong.includes("q2") && c.id !== "finn").length;
+    expect(counts.get("algebra.expand-factor.nonmonic")).toBe(guessedQ2);
+    expect(counts.get("algebra.equations.linear")).toBe(1);
     expect(counts.get("correct")).toBe(CLASSMATES.filter((c) => c.done >= 2 && !c.wrong.includes("q2")).length);
     expect(struggleCount("q3", sessionAt("feedback"))).toBe(1 + CLASSMATES.filter((c) => c.wrong.includes("q3")).length);
     const order = problemsByStruggle(sessionAt("feedback")).map((p) => p.problem.id);
-    expect(order.slice(0, 2)).toEqual(["q2", "q3"]); // q2 draws the most slips in the class of twenty
+    expect(order.slice(0, 2)).toEqual(["q7", "q2"]); // q7 draws the most slips in the class of twenty; q2 and q3 tie, q2 first in set order
     expect(order).toHaveLength(10);
   });
 
   it("suggests one correct example then one per error bucket, capped at three, at least two", () => {
     const q2 = suggestExamples(candidatesFor("q2", sessionAt("feedback")));
-    expect(q2).toHaveLength(2);
+    expect(q2).toHaveLength(3);
     expect(q2[0].studentId).toBe("priya"); // first correct
-    expect(q2[1].studentId).toBe("sam"); // first in the factoring bucket
-    const allCorrect = suggestExamples(candidatesFor("q1", null)); // no classmate slipped on Q1
-    expect(allCorrect).toHaveLength(2);
+    expect(q2[1].studentId).toBe("sam"); // first in the factoring bucket (the larger)
+    expect(q2[2].studentId).toBe("finn"); // alone in the linear-equations bucket
+    const q6 = suggestExamples(candidatesFor("q6", null)); // one classmate slipped on Q6: one correct, one wrong
+    expect(q6).toHaveLength(2);
     const capped = suggestExamples(
       [
         { studentId: "a", name: "", problemId: "q1", lines: [], bucket: "correct" },
@@ -60,11 +63,12 @@ describe("board examples", () => {
     const s = sessionAt("feedback");
     const refs = suggestExamples(candidatesFor("q2", s));
     const board = boardExamples(refs, "q2", s);
-    expect(board.map((e) => e.letter)).toEqual(["A", "B"]);
+    expect(board.map((e) => e.letter)).toEqual(["A", "B", "C"]);
     const handedIn = 1 + CLASSMATES.filter((c) => c.done >= 2).length;
     const wrongQ2 = 1 + CLASSMATES.filter((c) => c.wrong.includes("q2")).length;
     expect(board[0]).toEqual({ letter: "A", lines: expect.any(Array), count: handedIn - wrongQ2, denominator: handedIn });
-    expect(board[1].count).toBe(wrongQ2);
+    expect(board[1].count).toBe(wrongQ2 - 1); // the guessed pair
+    expect(board[2].count).toBe(1); // finn's sign
     for (const e of board) {
       expect(Object.keys(e).sort()).toEqual(["count", "denominator", "letter", "lines"]);
       expect(JSON.stringify(e)).not.toMatch(/Okonkwo|Raman|Whitlock|verdict|wrong/);

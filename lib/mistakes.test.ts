@@ -41,6 +41,30 @@ describe("teacher mistake view", () => {
     expect(groupBySlip(q5.rows).map((g) => g.rows.map((r) => r.id))).toEqual([["tomas"], ["harper", "ruby", "finn"]]);
   });
 
+  it("the shape of the class's slips (ticket 130): Q7 has twelve classmates across three strategies, Q6 one, Q8 none, 45 wrongs in all", () => {
+    const m = mistakesByProblem(null);
+    const rows = (pid: string) => m.find((p) => p.problem.id === pid)?.rows ?? [];
+    expect(CLASSMATES.reduce((n, c) => n + c.wrong.length, 0)).toBe(45);
+    expect(rows("q7")).toHaveLength(12);
+    expect(rows("q7").map((r) => r.id)).not.toContain("noah");
+    // The wrong line is the mistake's identity: three different ones on Q7, six / four / two.
+    const wrongLine = (r: MistakeRow) => r.lines.filter((l) => l.verdict.verdict === "wrong").map((l) => l.tex).join("|");
+    const byLine = new Map<string, number>();
+    for (const r of rows("q7")) byLine.set(wrongLine(r), (byLine.get(wrongLine(r)) ?? 0) + 1);
+    expect([...byLine.values()].sort((a, b) => b - a)).toEqual([6, 4, 2]);
+    expect(rows("q6").map((r) => r.id)).toEqual(["amelia"]);
+    expect(rows("q8")).toHaveLength(0);
+    // Two different slips under one skill on Q1 and Q4; two skills on Q2, Q3, Q9 and Q10.
+    const lines = (pid: string) => new Set(rows(pid).map(wrongLine)).size;
+    const leaves = (pid: string) => groupBySlip(rows(pid)).length;
+    expect([lines("q1"), leaves("q1")]).toEqual([2, 1]);
+    expect([lines("q4"), leaves("q4")]).toEqual([2, 1]);
+    for (const pid of ["q2", "q3", "q9", "q10"]) expect(leaves(pid), pid).toBe(2);
+    // Priya, Chloe and Grace untouched; every wrong problem has a teacher note about it.
+    for (const id of ["priya", "chloe", "grace"]) expect(CLASSMATES.find((c) => c.id === id)!.wrong).toEqual([]);
+    for (const c of CLASSMATES) for (const pid of c.wrong) expect(c.notes.some((n) => n.problems.includes(pid)), `${c.id} ${pid}`).toBe(true);
+  });
+
   it("without a live session only the classmates appear", () => {
     const m = mistakesByProblem(null);
     expect(m.map((p) => p.problem.id)).toEqual(["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q9", "q10"]); // ethan and oliver slip on Q1 now

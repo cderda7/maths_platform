@@ -2386,3 +2386,32 @@ group and class review; individual review's moment is the live student's hand-in
 what the demo's scripted classmates are anchored to. The counts stay honest about who is
 behind (the grid's MISSING marker and Force assignment submit's count use the same lines).
 If the classmates become live, only `stageDone` and `currentClassStage` change.
+
+## 2026-09-12 · A mistake's identity is its wrong line's entry in the evaluation table
+
+**Decision.** Two students have made "the exact same mistake" on a problem when their wrong
+line is the same key of `EVALUATION[problem]`, whatever the lines around it. The fixtures
+(ticket 130) are shaped on that identity: every problem with a slip has at least two distinct
+wrong lines, Q7 three, and Q9's four "h = 6" students, who reach it by a four-line and a
+three-line route, are one mistake. Ticket 131 draws a box per identity.
+
+**Context.** The user asked for more and more varied mistakes and, on the mistake view, a
+second grouping inside the skill pill by exact mistake. The skill pill already keys on the wrong
+line's first tag; the model had no finer identity. The table entry carries the teacher's note
+and the student's clue, so it is already "the mistake" on every other screen.
+
+**Alternatives considered.** *Line-for-line identical working*: separates students who made
+one mistake by different routes, which is working, not error, and makes the Q9 fixture four
+singletons. *Wrong line plus its tags as one key*: the tags are a function of the line, so it
+is the same partition with a longer key. *A hand-authored mistake id per entry*: allows two
+different lines to be one mistake (Q7's two fraction slips as "fractions cleared wrongly") but
+adds a field nobody reads and a judgement per line; the tag already gives that coarser grouping.
+
+**Tradeoffs.** Two lines that a teacher would call one mistake (a sign flipped in `(x + 2)(x + 3)`
+versus in `(x − 1)(x − 6)`) are two identities; the pill above them says they are one skill.
+The identity is only as fine as the table: a student whose line is unknown has no identity.
+
+**Defence.** No new field, no new judgement; the partition is a pure function of data that
+every screen already reads, testable by counting keys. The fixtures were shaped with the
+user in an interview, and the shape (twelve / one / none, six / four / two on Q7) is pinned
+by a test so a later fixture edit that flattens it fails first.

@@ -68,6 +68,13 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
     ),
     "x = 2, 3": A(okc(T(NFL), "Roots read off, the null factor law not shown")),
     "x = -2 \\;\\text{or}\\; x = -3": A(ok(T(NFL, QUAD), "Null factor law", true)),
+    "(x - 1)(x - 6) = 0": wrong(
+      T(MONIC),
+      "Factorised",
+      "A pair can multiply to the right constant and still add to the wrong middle term. Expanding back would catch it in one line.",
+      "1 and 6 multiply to 6 but add to 7. Which pair adds to 5?",
+    ),
+    "x = 1 \\;\\text{or}\\; x = 6": A(ok(T(NFL, QUAD), "Null factor law", true)),
   },
   q2: {
     "2x^2 + 7x - 4 = 0": ok(T(QUAD), "Standard form"),
@@ -85,6 +92,12 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
     ),
     "2x + 4 = 0 \\;\\text{or}\\; x - 1 = 0": ok(T(NFL), "Null factor law", true),
     "x = -2 \\;\\text{or}\\; x = 1": A(ok(T(LIN), "Solved each factor", true)),
+    "x = -\\tfrac{1}{2} \\;\\text{or}\\; x = -4": A(wrong(
+      T(LIN),
+      "Solved each factor",
+      "The factors were right, but solving one of them didn't keep its sign. Substituting each root back into its own factor is a one-line check.",
+      "Put x = −½ into 2x − 1. Does it come out as zero?",
+    )),
   },
   q3: {
     "(x - 3)(x + 2) = 6": ok(T(QUAD), "Copied the equation"),
@@ -100,6 +113,15 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "The null factor law needs the product to equal zero. What does this one equal?",
     ),
     "x = 9 \\;\\text{or}\\; x = 4": A(ok(T(LIN), "Solved each part", true)),
+    "x^2 + x - 6 = 6": wrong(
+      T(EXPAND),
+      "Expanded first",
+      "Expanding two brackets collects two x terms, and one sign in that collection didn't survive. Multiplying out again, term by term, shows which.",
+      "−3x + 2x: what does that come to?",
+    ),
+    "x^2 + x - 12 = 0": ok(T(LIN), "Rearranged to standard form", true),
+    "(x + 4)(x - 3) = 0": ok(T(MONIC), "Factorised", true),
+    "x = -4 \\;\\text{or}\\; x = 3": A(ok(T(NFL, QUAD), "Null factor law", true)),
   },
   q4: {
     "a = 3,\\; b = -5,\\; c = -1": ok(T(QUAD), "Identified a, b, c"),
@@ -110,6 +132,12 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Quadratic formula",
       "The formula has a denominator that depends on a. Somewhere a coefficient didn't make it into that denominator.",
       "What is the denominator of the quadratic formula? Check it against a = 3.",
+    )),
+    "x = \\dfrac{-5 \\pm \\sqrt{37}}{6}": A(wrong(
+      T(QUAD),
+      "Quadratic formula",
+      "The formula starts with −b. When b is already negative, that minus still has to act on it.",
+      "b = −5, so what is −b?",
     )),
   },
   q5: {
@@ -161,6 +189,13 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "You multiplied every term by 3 this time. Where did the 3 go?",
     ),
     "(x + 2)(x + 4)": A(ok(T(NONMONIC), "Factorised", true)),
+    "1 \\times 8 = 8,\\quad 1 + 8 = 9": wrong(
+      T(MONIC),
+      "Found the pair",
+      "The pair has two jobs at once: multiply to the constant and add to the middle term. One of those jobs got skipped.",
+      "1 and 8 multiply to 8 but add to 9. Which pair adds to 6?",
+    ),
+    "\\tfrac{1}{3}(x + 1)(x + 8)": A(ok(T(NONMONIC, BINOM), "Factorised", true)),
   },
   q8: {
     "x = 1 \\;\\text{or}\\; x = 3": A(ok(T(FEAT, ZERO), "Read from the graph")),
@@ -184,6 +219,15 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "The greatest height is the function's value at the axis of symmetry, not the axis itself.",
       "Substitute x = 3 into h = −x² + 6x. What is h?",
     )),
+    "-x(x + 6) = 0": wrong(
+      T(EXPAND),
+      "Height zero, factorised",
+      "Taking a negative factor out of two terms changes the sign of what is left behind. Expanding back shows whether it did.",
+      "Expand −x(x + 6). Do you get −x² + 6x?",
+    ),
+    "x = 0 \\;\\text{or}\\; x = -6": ok(T(NFL, ZERO), "Lands at x = −6", true),
+    "x = -3": ok(T(FEAT, SKETCH), "Axis of symmetry", true),
+    "h = 9": A(ok(T(FEAT), "Greatest height 9 m", true)),
   },
   q10: {
     "b^2 - 4ac = 16 - 20 = -4": ok(T(DISC), "Discriminant"),
@@ -201,6 +245,7 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "A conclusion about the graph has to follow from the number of real solutions. Check the link.",
       "No real solutions means no x-intercepts. What does the graph do instead?",
     )),
+    "\\text{So the graph crosses the x-axis at two points}": A(ok(T(CONCL, SKETCH), "In context", true)),
   },
 };
 

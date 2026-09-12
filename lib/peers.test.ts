@@ -8,10 +8,12 @@ describe("peer struggles for a mastery-level student", () => {
     const p = peerStruggles();
     expect(p.classSize).toBe(CLASSMATES.length);
     const missed = (pid: string) => CLASSMATES.filter((c) => c.wrong.includes(pid)).length;
+    // Q7 draws the most slips in the class (twelve); Q2 and Q3 tie at six and Q2 comes first in set order.
     expect(p.problems.slice(0, 2).map((x) => [x.problem.id, x.missed])).toEqual([
+      ["q7", missed("q7")],
       ["q2", missed("q2")],
-      ["q3", missed("q3")],
     ]);
+    expect(missed("q7")).toBe(12);
     expect(p.leaves[0].struggling).toBeGreaterThan(0);
     expect(p.leaves.map((l) => l.id)).toContain("algebra.expand-factor.nonmonic");
     const json = JSON.stringify(p);

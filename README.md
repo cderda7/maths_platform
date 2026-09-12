@@ -129,7 +129,10 @@ student's is live); the final standings held once group review is over; during w
 review one slide per problem, examples A/B/C with "n/m students", no names, no marks until the
 teacher shows them, and a mirror of the teacher's working.
 - **Mistakes** (`/teacher/mistakes`): problems first, the students who slipped on each under
-  one pill per slip, expand for their working. To the right of every problem a **Live
+  one pill per slip, expand for their working. The class's slips have a shape: twelve
+  classmates wrong on Q7 in three ways (the fraction cleared from two terms, the third lost,
+  the wrong pair), Amelia alone on Q6, nobody on Q8, and every other problem wrong in at least
+  two ways. To the right of every problem a **Live
   diagnostic** chip: click it and the push panel opens beside the card with that problem's own
   suggested question (example) or one you write (make your own), the same switch, **send to
   class**; the waiting band and the response show in the panel the push came from, a badge on

@@ -5,8 +5,8 @@ import { sessionAt, sessionReducer } from "./session";
 describe("commentary for the individual view", () => {
   it("gives a classmate the fixture's notes as ideas and their scripted clarification", () => {
     const c = commentaryFor("tomas", null);
-    expect(c.ideas.map((i) => i.text)).toEqual(["divided by a, not 2a", "scaled two of three terms"]);
-    expect(c.ideas[0].problems).toEqual(["q4"]);
+    expect(c.ideas.map((i) => i.text)).toEqual(["null factor law on a product that isn’t 0", "divided by a, not 2a", "roots read off the factors with the signs flipped", "scaled two of three terms"]);
+    expect(c.ideas[1].problems).toEqual(["q4"]);
     expect(c.clarification).toMatch(/not 2a/);
   });
 

@@ -7,12 +7,12 @@ import type { GroupColour } from "./groups";
  * Tuned so that two groups finish before the demo group plausibly does (about five to six
  * minutes) and two after, inside ten minutes. A union longer than its row carries on at the
  * row's last gap; a shorter one finishes at its own last moment. Sizes below match the default
- * seating and the classmates' wrong lists (mint 4 · amber 6 · coral 6 · violet 6).
+ * seating and the classmates' wrong lists (mint 6 · amber 6 · coral 6 · violet 7).
  */
 export const RACE_SCHEDULE: Record<GroupColour, number[]> = {
-  mint: [60, 120, 170, 220],
+  mint: [40, 80, 120, 160, 200, 240],
   amber: [35, 80, 130, 185, 240, 290],
   coral: [60, 150, 260, 360, 460, 550],
-  violet: [80, 200, 330, 450, 530, 590],
+  violet: [80, 200, 330, 450, 510, 560, 595],
   sky: [50, 110, 190, 270, 350, 420],
 };

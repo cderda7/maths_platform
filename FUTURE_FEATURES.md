@@ -1624,6 +1624,33 @@ agents add sections above it and leave it alone.
 - **One second is a guess too.** Halved from two on the user's feel; `PILL_GRACE_MS` is the one
   place to move it.
 
+## More mistakes, more kinds of mistake (from ticket 130, 2026-09-12)
+
+- **Q8's mirrored read stays unused.** The evaluation table has always carried "x = −1 or
+  x = −3" for Q8; the user wanted one problem nobody got wrong, and Q8 already was it, so the
+  line is still nobody's. A student who makes it would need a different problem to be the
+  clean one.
+- **A third kind on more problems.** Q7 has three strategies; every other problem with a slip
+  has two. A third on Q2 (the split found, then grouped wrongly) and Q5 (the axis from the
+  wrong pair of roots) were sketched and not written; the box-per-mistake view (ticket 131)
+  will show whether two is enough to read.
+- **Mistakes the demo student can make.** The six new wrong lines are classmates' only; the
+  demo student's scripted run and rework paths never write them, so their clues are seen
+  through peers and examples but never in the student's own detective feedback. A run that
+  reaches one of them is a recognition-script change.
+- **Noah is the one eligible student right on Q7.** Chosen so a near-clean student remains;
+  if a later fixture wants Q7 to be the whole class, Noah is the last to fall.
+- **Liam's Q3 with `done: 2`.** Pre-existing: Liam is wrong on Q3 with two problems finished.
+  Left alone because the class view and standings read it as they always have; a pass over
+  `done` versus `wrong` for every classmate belongs with the full versions of the lightweight
+  thirteen.
+- **The race is hand-tuned.** `RACE_SCHEDULE` rows are re-tuned by hand whenever the unions
+  change (mint and violet this time). A schedule derived from the union (a pace per group and
+  the moments computed) would survive the next fixture change without a test failing first.
+- **Sam's twelfths.** The demo group's bar now moves 17, 42, 67, 83, 92, 100 rather than round
+  tens; nobody asked for round numbers and the rule (a problem's weight is how many of the
+  group got it wrong) is the point, but a design pass on the race might prefer equal steps.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
