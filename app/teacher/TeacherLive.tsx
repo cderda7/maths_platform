@@ -48,6 +48,14 @@ const STACK_ACTIVE = `${STACK_BUTTON} bg-accent text-white hover:bg-accent-deep`
 /** The lone "close" over an open full breakdown: as tall as the two-button stack it stands in for (two 11 px × 1.375 lines with 3 px above and below, and the 4 px gap). */
 const STACK_TALL = `${STACK_ACTIVE} grid h-[calc(2*(1.375*11px_+_6px)_+_4px)] place-items-center`;
 
+/**
+ * A category column's width: the header chip (11 px uppercase, 0.06 em tracking, 10 px padding a side) must sit inside
+ * it with its neighbours' chips clear, and "Communication" is 126 px where every other chip is under 94 (ticket 136).
+ */
+function columnWidth(c: CategoryId): string {
+  return categoryName(c).short.length > 10 ? "w-[132px]" : "w-[96px]";
+}
+
 function confidenceWord(c: Confidence | null): { text: string; tone: string } {
   const text = confidenceLabel(c);
   return { text, tone: !c ? "text-ink-muted" : text === "confident" ? "text-secure" : "text-accent-deep" };
@@ -218,14 +226,16 @@ export default function TeacherLive() {
 
       <div className="mt-10 grid grid-cols-[1fr_320px] gap-6">
         <Card className="overflow-x-auto">
-          <table ref={tableRef} className="w-full min-w-[1040px] table-fixed text-left text-[14px]" data-grid data-pill-quiet={pillQuiet || undefined}>
+          {/* Columns 380 · 96 per category (132 under a long chip) · 92 · 64 · 56 (ticket 136), the min the sum for the six categories the demo assignment touches. The student column holds the name slot, the live pill and, on hover, the two stacked action buttons side by side; the avatar closes the row in the last column. */}
+          <table ref={tableRef} className="w-full min-w-[1204px] table-fixed text-left text-[14px]" data-grid data-pill-quiet={pillQuiet || undefined}>
             <colgroup>
-              <col className="w-[280px]" />
+              <col className="w-[380px]" />
               {columns.map((c) => (
-                <col key={c} className="w-[100px]" />
+                <col key={c} className={columnWidth(c)} />
               ))}
-              <col className="w-[96px]" />
+              <col className="w-[92px]" />
               <col className="w-[64px]" />
+              <col className="w-[56px]" />
             </colgroup>
             <thead>
               <tr className="border-b border-line text-[10px] uppercase tracking-[0.06em] text-ink-muted">
@@ -237,9 +247,9 @@ export default function TeacherLive() {
                   const tall = openHere && column.level === "expanded";
                   const levels = tall ? all.filter((l) => l.level === "expanded") : all;
                   return (
-                    <th key={c} className={`group/head relative select-none px-1 py-4 text-center font-semibold leading-tight ${openHere ? "text-ink" : ""}`} data-column={c} data-column-open={openHere ? column.level : undefined}>
+                    <th key={c} className={`group/head relative select-none px-0 py-4 text-center font-semibold leading-tight ${openHere ? "text-ink" : ""}`} data-column={c} data-column-open={openHere ? column.level : undefined}>
                       <span className="relative inline-block">
-                        <span className={`inline-block rounded-md px-2.5 py-1 text-[11px] group-hover/head:invisible group-focus-within/head:invisible ${openHere ? "bg-accent text-white" : "bg-standout-soft text-standout"}`}>{categoryName(c).short}</span>
+                        <span className={`inline-block whitespace-nowrap rounded-md px-2.5 py-1 text-[11px] group-hover/head:invisible group-focus-within/head:invisible ${openHere ? "bg-accent text-white" : "bg-standout-soft text-standout"}`}>{categoryName(c).short}</span>
                         <span className="invisible absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col gap-1 normal-case tracking-normal group-hover/head:visible group-focus-within/head:visible" data-column-controls={c}>
                           {levels.map(({ level, word }) => {
                             const active = openHere && column.level === level;
@@ -265,6 +275,7 @@ export default function TeacherLive() {
                 })}
                 <th className="px-3 py-4 text-center font-semibold">Confidence</th>
                 <th className="px-3 py-4 text-center font-semibold">Set</th>
+                <th className="px-3 py-4" aria-label="Student, again" />
               </tr>
             </thead>
             {rows.map((r, i) => {
@@ -284,17 +295,19 @@ export default function TeacherLive() {
                     >
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <Avatar initials={r.initials} />
                           <div className="min-w-0">
-                            <span className="block whitespace-nowrap font-medium text-ink" data-student-name={r.id}>
-                              {r.name}
-                            </span>
-                            {r.live && (
-                              <span className="mt-1 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-accent-line bg-paper px-2 py-0.5 text-[11px] font-medium text-accent-deep" data-live-pill>
-                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" aria-hidden />
-                                {live ? "in progress" : "not started"}
+                            <div className="flex items-center">
+                              {/* The name sits in a fixed slot (the widest name on the roster, Ruby Castellanos at 16 px, plus 10 px), so the live pill of every in-progress student starts at the same x instead of staggering with the name's length (ticket 136). A longer name pushes its own pill right; the slot's padding keeps the 10 px. */}
+                              <span className="box-border min-w-[142px] whitespace-nowrap pr-2.5 text-[16px] font-medium leading-6 text-ink" data-student-name={r.id}>
+                                {r.name}
                               </span>
-                            )}
+                              {r.live && (
+                                <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-accent-line bg-paper px-2 py-0.5 text-[11px] font-medium text-accent-deep" data-live-pill>
+                                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" aria-hidden />
+                                  {live ? "in progress" : "not started"}
+                                </span>
+                              )}
+                            </div>
                             <div className={`flex items-start gap-2 text-[12.5px] leading-snug text-ink-muted ${!column && (r.sub || (r.live && (caution.length > 0 || live?.reportSent))) ? "" : "hidden"}`} data-commentary>
                               {r.live && caution.length > 0 && (
                                 <span className="inline-flex items-center gap-1 rounded-full border border-gap-line bg-gap-soft px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gap" data-caution>
@@ -365,17 +378,23 @@ export default function TeacherLive() {
                           </>
                         )}
                       </td>
+                      {/* The avatar closes the row so the eye can find its student again after crossing the skill columns (ticket 136). */}
+                      <td className="px-3 py-3.5">
+                        <div className="flex justify-center" data-row-avatar={r.id}>
+                          <Avatar initials={r.initials} />
+                        </div>
+                      </td>
                     </tr>
                     {isOpen && open && (
                       <tr className="border-b border-line bg-cream/60" data-drill-row={r.id}>
-                        <td colSpan={columns.length + 3} className="px-5 py-4">
+                        <td colSpan={columns.length + 4} className="px-5 py-4">
                           <RowDrill key={`${r.id}-${open.mode}-${open.category ?? ""}-${open.leaf ?? ""}-${open.nonce}`} mode={open.mode} result={h} lines={r.evidence.lines} problems={problems} columns={open.columns} category={open.category} initialLeaf={open.leaf ?? null} expandAll={open.expandAll} onNavigate={(leaf) => jump(r.id, leaf)} />
                         </td>
                       </tr>
                     )}
                     {!isOpen && column && (
                       <tr className="border-b border-line bg-cream/60" data-drill-row={r.id} data-column-drill={column.category}>
-                        <td colSpan={columns.length + 3} className="px-5 py-3">
+                        <td colSpan={columns.length + 4} className="px-5 py-3">
                           <RowDrill key={`${r.id}-col-${column.category}-${column.level}-${column.nonce}`} mode="category" result={h} lines={r.evidence.lines} problems={problems} columns={column.boxes[r.id] ?? []} category={column.category} expandAll={column.level === "expanded"} onNavigate={(leaf) => jump(r.id, leaf)} />
                         </td>
                       </tr>

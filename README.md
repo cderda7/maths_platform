@@ -145,6 +145,8 @@ teacher shows them, and a mirror of the teacher's working.
   class**; the waiting band and the response show in the panel the push came from, a badge on
   the collapsed chip while its push waits, and the other panels' send buttons wait their turn.
   **Groups** (only when the pathway has group review), **/teacher/compare**.
+  On the class view's roster the name is 16 px with the **in progress** pill beside it (every in-progress
+  pill at one x) and the student's initials close the row at the far right.
   **student report** beside a name on the class view opens their individual view (`/teacher/report?student=`):
   the platform's commentary as a few ideas in a light-blue bubble, and what the student wrote
   back in a purple-bordered box.

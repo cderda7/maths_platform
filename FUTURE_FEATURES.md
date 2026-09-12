@@ -1720,6 +1720,27 @@ agents add sections above it and leave it alone.
 - **Sort within a column.** Students keep fixture order inside a column (the live student
   first because the rows put him first); alphabetical or by confidence deferred.
 
+## The roster's row (from ticket 136, 2026-09-12)
+
+- **The name slot is a constant.** 142 px is the widest name on the demo roster at 16 px plus
+  10; a roster with a longer name would push that one pill right (the padding keeps the 10 px)
+  while the others stay aligned. Measuring the widest name at runtime (a FitText-style pass, or
+  a CSS `ch` budget) deferred until a real roster needs it.
+- **Category column widths are a two-step rule.** `columnWidth` gives 96 px, or 132 past ten
+  letters, which fits the demo taxonomy's chips; a taxonomy with a twelve-letter chip other than
+  "Communication", or two long chips, wants the width from the chip itself. Deferred.
+- **The laptop budget is spent.** At 1280 × 800 the roster is 1204 of the card's 1208 px. Any
+  further column (or a wider pill) means narrowing something: the Pathway column from 320, or
+  the roster scrolling inside its card (which `scripts/laptop-check.mjs` forbids). Noted, not
+  changed.
+- **An avatar at both ends.** The user's words were "place the avatar there"; it moved. If the
+  leading avatar is wanted back as well, the student column needs about 44 px more (the avatar
+  and its gap), which the budget above does not have at 1280 without a trade.
+- **The Set column's "in progress"** under the count says what the pill now says on the same row;
+  "handed in" is still only there. Dropping the duplicate deferred.
+- **The last column's header is blank.** A repeated "Student" label, or the initials column
+  sticky at the card's right edge while the card scrolls (below 1280), deferred.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

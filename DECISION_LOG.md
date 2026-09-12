@@ -2481,3 +2481,42 @@ share.
 the mistake box and the box still reads as one mistake; the fixtures collapse from thirteen
 columns to three on Q7 and five to three on Q9 with no scroll at 1280, and the tests pin the
 column counts so a fixture edit that splits them fails first.
+
+## 2026-09-12 · The roster aligns pills with a fixed name slot, and the avatar moves to the row's end
+
+**Decision.** On the class roster every student's name sits in a 142 px slot (the widest
+name at 16 px plus 10 px); the **in progress** pill follows in the same line, so every
+in-progress pill starts at one x. The avatar leaves the front of the row for a new last
+column after Set. Category columns are sized to their header chip (96 px, or 132 for a chip
+past ten letters), and the table's minimum width is the 1280 × 800 laptop's card less 4 px.
+
+**Context.** The user asked for a bigger name, the pill beside it rather than under it, a
+rule that keeps several in-progress pills vertically aligned rather than staggered by name
+length, and the avatar at the far right so the eye can find its row after crossing the skill
+columns. The teacher's surface must fit a 1280 px laptop with no horizontal scroll (ticket 37,
+guarded by `scripts/laptop-check.mjs`), and the roster's student cell also holds two stacked
+hover buttons (ticket 46).
+
+**Alternatives considered.** *Pill 10 px after each name*: what the user ruled out; pills
+stagger. *A separate table column for the pill*: aligns too, but the column's width is then a
+second constant and the hover buttons still need their own room. *Measuring the widest name at
+runtime*: exact for any roster, but a layout pass for a constant the demo roster fixes. *Keeping
+the avatar at the front as well as the end*: the student cell would need 20 + 32 + 12 + 142 +
+88 + 12 + 96 + 20 = 422 px with Sam's row hovered, and the roster would then be about 40 px
+wider than the 1280 laptop's card, so either the Pathway column narrows from 320 or the card
+scrolls, which the guard forbids. *Hover buttons in the avatar's column*: the same width, just
+elsewhere; the sum is the constraint. *Even 100 px category columns*: "Communication" is
+126 px and ran under "Reasoning" whenever the card was at its minimum, as in the user's own
+window; per-chip widths fix that within the same budget.
+
+**Tradeoffs.** The 142 px slot and the ten-letter rule are constants tied to the demo roster
+and taxonomy; a longer name pushes one pill right, a second long chip overlaps. The roster is
+4 px inside the laptop budget; the next column is a trade. Only one avatar per row: the user's
+words were "place the avatar there", and if both ends are wanted the trade above is the cost.
+
+**Defence.** One flex line with a fixed-width first item is the smallest rule that gives the
+alignment the user asked for and needs no measurement; moving the avatar is the one change
+that pays for the bigger name and the inline pill inside the laptop budget without touching
+the Pathway column or the guard. Both constants are named in one place each (`min-w-[142px]`
+with its comment, `columnWidth`) and every geometry claim is asserted by `verify.mjs` at 1280
+and 1400.
