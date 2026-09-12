@@ -2218,6 +2218,24 @@ review setup's example cards (`useReorder`, `lib/reorder`). Left out, and why:
   narrow layout (fewer visible categories, or a horizontal scroller inside the card with the heads
   stuck by JavaScript) rather than either scroll.
 
+## The title as the header's crumb everywhere (from ticket 168, 2026-09-12)
+
+- **The report says the title twice.** The report screen's eyebrow over "Your report" is the
+  same "ROOTS OF A QUADRATIC — SET 3" the header now carries, an inch above it. The class-review
+  screen and the working screen do the same with their problem headings only partly. Dropping
+  the report's eyebrow (as ticket 56 dropped the confidence screen's duplicate crumb) was not
+  asked for; it is one line in `ReportScreen`.
+- **The stage names the crumbs used to carry.** "Warm-up", "Your report", "Where the class is
+  finding it hard" and "Your working" no longer appear in the header. The warm-up is not on the
+  pathway strip, so the warm-up screens now name themselves only in their own headings; if that
+  reads as unplaced, the strip could grow a warm-up stage before "indiv working".
+- **The class name is gone from the header.** The overview, goal and check-in screens showed
+  "11 Methods B" (the class) as their crumb; nothing on the student side names the class now. The
+  overview's own card could carry it.
+- **A long title.** The header fits a 212 px title with 200 px to spare before the strip at iPad
+  width; a title twice as long would collide. A truncation rule (ellipsis at a fixed width, the
+  full title in a tooltip) is not done.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

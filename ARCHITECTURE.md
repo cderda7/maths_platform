@@ -299,6 +299,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 165 | The teacher bar's Class · Mistakes · Groups tabs move back to the left, directly right of the Edexia · Maths brand (`gap-5`, the student header's brand-to-crumb gap); the pills keep ticket 163's colouring; "New assignment", the name and avatar stay at the right end | every `/teacher/*` | 163 | [architecture/165-teacher-nav-left.md](architecture/165-teacher-nav-left.md) |
 | 166 | The class-review tag on the student's own example reads "your approach" (was "your initial response") | `/student` | 161 | [architecture/166-your-approach.md](architecture/166-your-approach.md) |
 | 167 | The roster's header row (Student, the category chips, Confidence, Set) sticks under the teacher bar while the frame scrolls: every `th` sticky on paper at `z-20` with an inset bottom line, the card `overflow-clip` instead of `overflow-x-auto` so the frame is the heads' scroller | `/teacher` | 165 | [architecture/167-sticky-roster-head.md](architecture/167-sticky-roster-head.md) |
+| 168 | The assignment title is the crumb beside the wordmark on every student screen (`crumb = title` in `StudentApp`; the per-stage `CRUMB` map, ticket 164's empty crumb included, is gone): the strip names the stage, the screen names itself, the header never changes | `/student` | 151, 164 | [architecture/168-title-crumb-everywhere.md](architecture/168-title-crumb-everywhere.md) |
 
 ## Conventions
 

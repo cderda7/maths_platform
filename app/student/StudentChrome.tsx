@@ -10,7 +10,7 @@ import PathwayStrip from "./PathwayStrip";
  * product's top bar, with the pathway strip (ticket 151) beside the student's name on every
  * screen. Everything a student screen renders sits below it.
  */
-export default function StudentChrome({ children, crumb, frozen = false, stages = [] }: { children: ReactNode; crumb?: string | null; frozen?: boolean; stages?: PathwayStage[] }) {
+export default function StudentChrome({ children, crumb, frozen = false, stages = [] }: { children: ReactNode; crumb?: string; frozen?: boolean; stages?: PathwayStage[] }) {
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-6 items-center justify-between px-6 text-[11px] font-medium text-ink-soft select-none">
@@ -38,7 +38,7 @@ export default function StudentChrome({ children, crumb, frozen = false, stages 
           <Brand />
           {crumb && <span className="text-[13px] text-ink-muted">{crumb}</span>}
         </div>
-        {/* The strip sits with the name, not between the crumb and the name: pinned there it is in the same place on every screen while the crumb changes length. */}
+        {/* The strip sits with the name, not between the crumb and the name: pinned there it is in the same place on every screen whatever the crumb's length (the assignment title on every screen since ticket 168). */}
         <div className="flex items-center gap-6">
           {stages.length > 0 && <PathwayStrip stages={stages} />}
           <div className="flex items-center gap-3 text-[13px] text-ink-soft">
