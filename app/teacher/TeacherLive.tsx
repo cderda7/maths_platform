@@ -406,8 +406,8 @@ export default function TeacherLive() {
                     </svg>
                   )}
                   <span className="relative inline-block">
-                    {/* Over: the dark navy of the student's own warm-up bubbles. Current: a purple ring (a shadow, so nothing moves). */}
-                    <span className={`inline-block rounded-xl px-5 py-1.5 ${stage.state === "over" ? "bg-ink text-white" : "bg-standout-soft"} ${stage.state === "current" ? "ring-2 ring-accent" : ""}`}>{stage.word}</span>
+                    {/* Over: the blue of a lit skill button on the student's warm-up (ticket 134). Current: a purple ring (a shadow, so nothing moves). */}
+                    <span className={`inline-block rounded-xl px-5 py-1.5 ${stage.state === "over" ? "bg-standout text-white" : "bg-standout-soft"} ${stage.state === "current" ? "ring-2 ring-accent" : ""}`}>{stage.word}</span>
                     {stage.state === "current" && stage.done !== null && (
                       <span className="absolute left-full top-1/2 ml-3 flex -translate-y-1/2 flex-col items-start whitespace-nowrap text-left text-[12.5px] leading-snug text-ink-muted" style={{ fontFamily: "var(--font-sans)" }} data-stage-count>
                         <span>

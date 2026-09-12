@@ -109,7 +109,7 @@ Teacher, during the lesson (`/teacher`):
   the Set column. Then the live row's confidence, stage and caution, the classmates, the
   **Pathway** card (indiv working → indiv review → group review → class review: the stage the
   class is on ringed in purple with `N/20 done` beside it and, before group review, **start group
-  now**; stages over are navy; stages ahead light blue), **Force assignment submit** (confirm, then a one-minute grace on every screen), the
+  now**; stages over are the lit skill button's blue; stages ahead light blue), **Force assignment submit** (confirm, then a one-minute grace on every screen), the
   **Class review** card (Set up → / Students frozen · End session; first in the column while a
   session runs), the assignment status
   (in class review · complete), the live diagnostic push (the example, or one you write; the

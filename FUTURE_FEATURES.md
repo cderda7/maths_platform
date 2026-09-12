@@ -1651,6 +1651,15 @@ agents add sections above it and leave it alone.
   tens; nobody asked for round numbers and the rule (a problem's weight is how many of the
   group got it wrong) is the point, but a design pass on the race might prefer equal steps.
 
+## The over pill's blue (from ticket 134, 2026-09-12)
+
+- **One token for "done".** The Pathway card's over pill, the warm-up's lit skill button and the
+  hint box's lit term all use `--color-standout` on white by hand; a `done` semantic token (or a
+  shared class) would keep them in step if the blue ever moves. Not asked; deferred.
+- **The current pill's ring.** The lit skill button that is current carries a light blue ring
+  with an offset; the Pathway card's current pill uses the accent purple ring the user asked for.
+  If the two are ever meant to match, the ring is the one place to change.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
