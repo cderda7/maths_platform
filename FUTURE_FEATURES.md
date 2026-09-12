@@ -2100,6 +2100,16 @@ review setup's example cards (`useReorder`, `lib/reorder`). Left out, and why:
   the final version's `head`; nothing displays it today. Left in place for a report or history line
   that might want it.
 
+## 2026-09-12 · The drag hold at 150 ms (ticket 160)
+
+- **A slow click now lifts.** At 150 ms a deliberate trackpad press held a beat lifts the tile;
+  releasing without moving drops it back and the swallowed click means the tile does not open
+  for editing, so the teacher presses again. If that bites, a hold that only counts once the
+  pointer has been still for a couple of frames, or a per-device threshold (touch longer,
+  mouse shorter), would recover it.
+- **No visible countdown.** Nothing shows during the 150 ms; the lift is the first sign. A faint
+  ring filling under the pointer would make the wait legible, if it is ever felt again.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

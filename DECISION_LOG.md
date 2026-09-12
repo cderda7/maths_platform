@@ -2889,3 +2889,21 @@ screen, and the one problem the demo needs to finish finishes in one burst with 
 count updating live (the incomplete box, the row, no guard, the mistakes box untouched). The
 fallback is one line of data code and needs nothing kept in step; the marking tables already know
 every line it can read.
+
+## 2026-09-12 · The drag hold is 150 ms
+
+**Decision.** `HOLD_MS` (ticket 150) goes from 300 ms to 150 ms (ticket 160).
+
+**Context.** The user, after using it: "you wait too long before recognizing it as a 'click &
+hold to drag'." A click's press-to-release is about 80–120 ms.
+
+**Alternatives considered.** *100 ms*: inside the range of a slow click, so a deliberate click on
+a tile could lift it. *200 ms*: still a visible wait. *A hold that shortens once the pointer has
+not moved for a few frames*: more machinery for the same feel.
+
+**Tradeoffs.** A slow, deliberate click (a trackpad press held a beat) now lifts the tile; the
+release with no move drops it back where it was and the swallowed click means the tile does
+not open for editing, so the cost is one wasted press.
+
+**Defense.** One constant, tested to stay in the 120–200 band, and the click-through proves both
+sides of it (80 ms clicks, 200 ms holds).

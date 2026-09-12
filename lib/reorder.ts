@@ -8,8 +8,12 @@
  * `components/useReorder`.
  */
 
-/** How long a press must stay still before it becomes a drag. */
-export const HOLD_MS = 300;
+/**
+ * How long a press must stay still before it becomes a drag. 150 ms (ticket 160; 300 felt slow):
+ * above a click's press-to-release, so a click stays a click, and short enough that the lift
+ * reads as immediate.
+ */
+export const HOLD_MS = 150;
 /** How far (px) a press may wander during the hold and still be a hold. */
 export const HOLD_SLOP = 6;
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { arrowTarget, beyondSlop, HOLD_SLOP, moveItem, shiftedSlot, slotAt, stackedTops, type Rect } from "./reorder";
+import { arrowTarget, beyondSlop, HOLD_MS, HOLD_SLOP, moveItem, shiftedSlot, slotAt, stackedTops, type Rect } from "./reorder";
 
 describe("moveItem", () => {
   const list = ["a", "b", "c", "d", "e"];
@@ -12,6 +12,13 @@ describe("moveItem", () => {
     expect(moveItem(list, 2, 2)).not.toBe(list);
     expect(moveItem(list, -1, 2)).toEqual(list);
     expect(moveItem(list, 2, 5)).toEqual(list);
+  });
+});
+
+describe("HOLD_MS", () => {
+  it("sits above a click's press-to-release and below a beat (ticket 160)", () => {
+    expect(HOLD_MS).toBeGreaterThanOrEqual(120);
+    expect(HOLD_MS).toBeLessThanOrEqual(200);
   });
 });
 
