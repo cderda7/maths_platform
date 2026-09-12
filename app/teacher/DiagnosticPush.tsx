@@ -36,9 +36,9 @@ function clampToViewport(el: HTMLDivElement | null) {
 /**
  * Push a live diagnostic to the (mocked) class. Two tabs in the same shape: the suggested
  * example (the class view's fixture, or the problem's own on the mistake view), and one the
- * teacher writes here (stem, optional expression, up to four options, the right one). Respond
- * online or not recorded is chosen before pushing; the pending band and the response show in
- * the panel the push came from. On the mistake view the panel is `collapsible`: the "Live
+ * teacher writes here (stem, optional expression, up to four options, the right one). One
+ * button sends it (no recorded / not-recorded choice, ticket 139); the pending band and the
+ * response show in the panel the push came from. On the mistake view the panel is `collapsible`: the "Live
  * diagnostic" chip stays in flow beside the problem and a click opens the card as a flyout
  * from the chip's corner, down and to the right over blank space; the problem card beside it
  * never changes size (ticket 132).
@@ -60,7 +60,6 @@ export default function DiagnosticPush({
 }) {
   const [open, setOpen] = useState(!collapsible);
   const [tab, setTab] = useState<Tab>("example");
-  const [recorded, setRecorded] = useState(false);
   const [stem, setStem] = useState("");
   const [tex, setTex] = useState("");
   const [options, setOptions] = useState(["", "", "", ""]);
@@ -73,7 +72,7 @@ export default function DiagnosticPush({
   const answers = (session?.diagnosticAnswers ?? []).filter((a) => pushBelongsTo(a, example, problemId) && (tab === "example" ? !a.question : !!a.question));
   const last = answers[answers.length - 1];
 
-  const push = (q: Diagnostic) => dispatch({ type: "diagnostic/push", questionId: q.id, recorded, question: q.id === example.id ? undefined : q });
+  const push = (q: Diagnostic) => dispatch({ type: "diagnostic/push", questionId: q.id, question: q.id === example.id ? undefined : q });
 
   const chipLabel = (
     <>
@@ -95,26 +94,10 @@ export default function DiagnosticPush({
     <Eyebrow className={`${CHIP} inline-block`}>{chipLabel}</Eyebrow>
   );
 
-  /** The card's content; `head` is what sits top-left beside the switch (the chip, or its footprint under the chip in flow). */
+  /** The card's content; `head` is what sits top-left (the chip, or its footprint under the chip in flow). */
   const body = (head: ReactNode) => (
     <>
-      <div className="flex items-center justify-between">
-        {head}
-        <label className="flex items-center gap-2 text-[12.5px] text-ink-soft">
-          <span>{recorded ? "respond online" : "not recorded"}</span>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={recorded}
-            onClick={() => setRecorded((r) => !r)}
-            disabled={mine}
-            className={`relative h-5 w-9 rounded-full transition-colors ${recorded ? "bg-accent" : "bg-line-strong"} disabled:opacity-50`}
-            data-recorded-toggle
-          >
-            <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${recorded ? "left-0.5 translate-x-4" : "left-0.5"}`} />
-          </button>
-        </label>
-      </div>
+      <div className="flex items-center">{head}</div>
 
       <div className="mt-3 grid grid-cols-2 gap-1 rounded-full border border-line bg-cream/60 p-1 text-[12.5px]" role="tablist">
         {(["example", "own"] as Tab[]).map((t) => (
@@ -215,7 +198,7 @@ export default function DiagnosticPush({
       {last && !mine && (
         <div className={`mt-3 rounded-xl border px-4 py-3 text-[13px] ${isCorrect(last.questionId, last.option, last.question) ? "border-secure-line bg-secure-soft" : "border-wrong-line bg-wrong-soft"}`} data-response>
           <span className="font-medium text-ink">{DEMO_STUDENT.name.split(" ")[0]}</span> · <span className="font-semibold uppercase">{last.option}</span> ·{" "}
-          {isCorrect(last.questionId, last.option, last.question) ? "right" : "wrong"} · {last.recorded ? "recorded" : "not recorded"}
+          {isCorrect(last.questionId, last.option, last.question) ? "right" : "wrong"}
           {answers.length > 1 && <span className="text-ink-muted"> · {answers.length} pushes</span>}
         </div>
       )}

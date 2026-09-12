@@ -112,8 +112,8 @@ Teacher, during the lesson (`/teacher`):
   now**; stages over are the lit skill button's blue; stages ahead light blue), **Force assignment submit** (confirm, then a one-minute grace on every screen), the
   **Class review** card (Set up → / Students frozen · End session; first in the column while a
   session runs), the assignment status
-  (in class review · complete), the live diagnostic push (the example, or one you write; the
-  switch reads **respond online** / **not recorded**).
+  (in class review · complete), the live diagnostic push (the example, or one you write; one
+  button, nothing to decide first).
 - **Whole-class setup** (`/teacher/whole-class`): problems ranked by how many struggled, top
   three pre-checked; 2–3 suggested examples per problem with names and correctness (private),
   swappable. **Project** opens the board and starts the grace.
@@ -141,7 +141,7 @@ teacher shows them, and a mirror of the teacher's working.
   two ways. To the right of every problem a **Live
   diagnostic** chip: click it and the push panel opens from the chip as a flyout, down and to
   the right over the blank space (the problems never move), with that problem's own
-  suggested question (example) or one you write (make your own), the same switch, **send to
+  suggested question (example) or one you write (make your own), **send to
   class**; the waiting band and the response show in the panel the push came from, a badge on
   the collapsed chip while its push waits, and the other panels' send buttons wait their turn.
   **Groups** (only when the pathway has group review), **/teacher/compare**.

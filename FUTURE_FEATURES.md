@@ -1741,6 +1741,22 @@ agents add sections above it and leave it alone.
 - **The last column's header is blank.** A repeated "Student" label, or the initials column
   sticky at the card's right edge while the card scrolls (below 1280), deferred.
 
+## An unrecorded diagnostic, answered with fingers (from ticket 139, 2026-09-12)
+
+- **The idea.** A live diagnostic the class answers by raising fingers (one for A, two for
+  B…) rather than on their devices, so a student can commit to an answer without feeling it
+  goes on their record; the teacher reads the room, nothing is stored. The "respond online" /
+  "not recorded" switch (tickets 25, 127) was the first cut at it.
+- **Why it is out.** The user (2026-09-12): the idea is good but "too nuanced"; the switch was
+  a decision to make before every push, friction on the one thing the panel does. Removed
+  entirely: one "send to class", no recorded flag anywhere in the model, no pill on the
+  student's modal.
+- **If it comes back.** As a distinct action, not a mode on the same button: a second, quieter
+  control ("ask for fingers") that puts the question on the board and nothing on devices, with
+  the teacher tallying by eye or tapping counts; the student side never sees it, so nothing to
+  feel recorded by. Needs the board (ticket 44's slide) to carry a diagnostic. Defaults matter
+  more than the option: the online push stays the primary, one-tap path.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

@@ -8,19 +8,14 @@ import type { Diagnostic } from "@/data/diagnostic";
 import { questionFor } from "@/lib/diagnostic";
 
 /** A diagnostic pushed by the teacher, over whatever the student was doing. Answer, then straight back. */
-export default function DiagnosticModal({ questionId, recorded, question, onAnswer }: { questionId: string; recorded: boolean; question?: Diagnostic; onAnswer: (option: string) => void }) {
+export default function DiagnosticModal({ questionId, question, onAnswer }: { questionId: string; question?: Diagnostic; onAnswer: (option: string) => void }) {
   const d = questionFor(questionId, question);
   const [pick, setPick] = useState<string | null>(null);
   if (!d) return null;
   return (
     <div className="absolute inset-0 z-30 grid place-items-center bg-ink/40 p-10 backdrop-blur-[2px]" role="dialog" aria-modal data-diagnostic>
       <div className="w-[600px] rounded-3xl bg-paper p-8 shadow-lift">
-        <div className="flex items-center justify-between">
-          <Eyebrow>Quick check from {ASSIGNMENT.teacher}</Eyebrow>
-          <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${recorded ? "bg-accent-soft text-accent-deep" : "bg-cream-deep text-ink-soft"}`}>
-            {recorded ? "Recorded" : "Not recorded"}
-          </span>
-        </div>
+        <Eyebrow>Quick check from {ASSIGNMENT.teacher}</Eyebrow>
         <h2 className="font-display mt-2 text-[26px] leading-tight text-ink">
           {d.stem}
           {d.tex ? (

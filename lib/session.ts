@@ -133,9 +133,9 @@ export interface StudentSession {
   /** Ids of teacher advances this session has already applied, so tabs and reloads converge. */
   appliedAdvances: string[];
   /** A diagnostic the teacher has pushed and the student hasn't answered yet. A teacher-written question travels inline. */
-  diagnostic: { questionId: string; recorded: boolean; question?: Diagnostic } | null;
+  diagnostic: { questionId: string; question?: Diagnostic } | null;
   /** Answered diagnostics, oldest first. */
-  diagnosticAnswers: { questionId: string; option: string; recorded: boolean; question?: Diagnostic }[];
+  diagnosticAnswers: { questionId: string; option: string; question?: Diagnostic }[];
 }
 
 export type SessionAction =
@@ -219,7 +219,7 @@ export type SessionAction =
   | { type: "goto"; stage: Stage; at?: number }
   | { type: "history/open" }
   | { type: "history/close" }
-  | { type: "diagnostic/push"; questionId: string; recorded: boolean; question?: Diagnostic }
+  | { type: "diagnostic/push"; questionId: string; question?: Diagnostic }
   | { type: "diagnostic/answer"; option: string }
   | { type: "diagnostic/withdraw" }
   | { type: "reset" };
@@ -504,7 +504,7 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     case "goto":
       return { ...s, stage: a.stage, handedInAt: a.stage === "feedback" && a.at ? a.at : s.handedInAt };
     case "diagnostic/push":
-      return { ...s, diagnostic: a.question ? { questionId: a.questionId, recorded: a.recorded, question: a.question } : { questionId: a.questionId, recorded: a.recorded } };
+      return { ...s, diagnostic: a.question ? { questionId: a.questionId, question: a.question } : { questionId: a.questionId } };
     case "diagnostic/answer":
       if (!s.diagnostic) return s;
       return { ...s, diagnostic: null, diagnosticAnswers: [...s.diagnosticAnswers, { ...s.diagnostic, option: a.option }] };
