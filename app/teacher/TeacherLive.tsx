@@ -495,6 +495,12 @@ export default function TeacherLive() {
         </div>
 
         <div className="space-y-6">
+          {/* "New assignment" heads the column, right above the Pathway card (ticket 176; it was the bar's white pill): a light indigo pill, deep indigo text and border. */}
+          <div className="flex">
+            <Link href="/teacher/assignments/create" className="rounded-full border border-accent-deep bg-accent-soft px-3 py-1 text-[13.5px] font-medium text-accent-deep transition-colors hover:bg-accent-line" data-new-assignment>
+              New assignment
+            </Link>
+          </div>
           {/* Class review in use: its card leads the column (ticket 129). */}
           {wcInUse && <WholeClassCard />}
           <Card className="p-6" data-pathway-card>

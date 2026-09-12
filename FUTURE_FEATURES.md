@@ -2394,6 +2394,22 @@ uploaded problems) settled the following as later, each on purpose.
   column. A single rounded shape, or the sheet stopping at the row top with the two lowest
   dated pills on the row's own paper, are the two ways to lose the step.
 
+## "New assignment" above the Pathway card (from ticket 176, 2026-09-13)
+
+- **Only reachable from the class view.** The pill left the bar, so Mistakes, Groups, the
+  student report and the create screen itself have no way to a new assignment except the Class
+  tab. If teachers start assignments from elsewhere, a bar entry (or a keyboard shortcut) could
+  come back beside the name.
+- **While a class-review session runs.** The Class review card leads the column then (ticket
+  129), so the pill sits above *that* card, not directly above the Pathway card. If it should
+  always touch the Pathway card, it moves between the two; if it should not show during a
+  session at all, gate it on `wcInUse`.
+- **The roster's top and the pill's top are level.** The Pathway card therefore starts 55 layout
+  px lower than the roster card. Putting the pill in the title row's empty 320 px cell (the H1
+  grid already reserves it) would keep the two cards level and still place it over the column.
+- **The create screen's own "New assignment" heading** (`/teacher/assignments/new`, the older
+  screen) is unchanged; the pill still points at `/teacher/assignments/create`.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

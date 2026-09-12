@@ -135,7 +135,9 @@ Teacher, during the lesson (`/teacher`):
   whole and the cream rising over the "due" line). Nothing moves. The button reads **close
   history**; a click on any other row leaves the mode and opens nothing; a drill under the same
   student stays open beside it. A student with nothing handed in shows a caution triangle and MISSING in
-  the Set column. Then the live row's confidence, stage and caution, the classmates, the
+  the Set column. Then the live row's confidence, stage and caution, the classmates, and the
+  right column: a light indigo **New assignment** pill heading it (deep indigo text and border;
+  it opens the create screen and is no longer in the bar), then the
   **Pathway** card (indiv working → indiv review → group review → class review: the stage the
   class is on ringed in purple with **force submit** beside it and `N/20 done` right under; one
   press starts a one-minute grace on every student's screen, `● handing in · 1:00 · Cancel` in
