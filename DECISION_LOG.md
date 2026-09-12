@@ -2332,3 +2332,28 @@ student sees −5x (ASSUMPTIONS).
 
 **Defence.** Nothing the teacher decided is lost, the student side keeps its guarantee, and the
 gap between the two lists is visible data rather than a silent drop.
+
+## 2026-09-12 · One push slot; a push belongs to the panel it came from
+
+**Decision.** The mistake view's per-problem diagnostic panels share the session's single
+`diagnostic` slot with the class view's card. Which panel a push (waiting or answered) belongs
+to is decided by `pushBelongsTo`: a fixture push by its id, a teacher-written one by the
+`problemId` it was written under (none on the class view). Only the owning panel shows the
+waiting band, Withdraw and the response; the other panels' send buttons are off while a push
+waits.
+
+**Context.** Ticket 127 puts the push panel beside every problem of the mistake view, so ten
+panels and the class view's card can each push. The student side answers one modal at a time.
+
+**Alternatives considered.** *A slot per panel* (`diagnostics: Record<problemId, …>`): the
+student could face several modals, and the reducer, the modal and the class view's card all
+change. *A queue*: same student-side question, plus ordering rules nobody has asked for.
+*No ownership, every panel shows the band*: the teacher could not tell which question is out,
+and Withdraw would appear in ten places.
+
+**Tradeoffs.** A teacher cannot have two checks out at once; the disabled buttons say why in a
+title only. A fixture push shows on two panels when they share the fixture (the class view and
+Q2's panel), by design: it is the same question.
+
+**Defence.** The student-side contract (one modal, answer, back) holds unchanged; ownership is
+a pure function with tests; the ten panels and the class view's card are one component.

@@ -108,7 +108,8 @@ Teacher, during the lesson (`/teacher`):
   the Set column. Then the live row's confidence, stage and caution, the classmates, the
   pathway chip, **Force assignment submit** (confirm, then a one-minute grace on every screen), the
   **Class review** card (Set up → / Students frozen · End session), the assignment status
-  (in class review · complete), the live diagnostic push (the example, or one you write).
+  (in class review · complete), the live diagnostic push (the example, or one you write; the
+  switch reads **respond online** / **not recorded**).
 - **Whole-class setup** (`/teacher/whole-class`): problems ranked by how many struggled, top
   three pre-checked; 2–3 suggested examples per problem with names and correctness (private),
   swappable. **Project** opens the board and starts the grace.
@@ -123,7 +124,13 @@ for the first three groups home (the other four groups run a scripted ten-minute
 student's is live); the final standings held once group review is over; during whole-class
 review one slide per problem, examples A/B/C with "n/m students", no names, no marks until the
 teacher shows them, and a mirror of the teacher's working.
-- **Mistakes**, **Groups** (only when the pathway has group review), **/teacher/compare**.
+- **Mistakes** (`/teacher/mistakes`): problems first, the students who slipped on each under
+  one pill per slip, expand for their working. To the right of every problem a **Live
+  diagnostic** chip: click it and the push panel opens beside the card with that problem's own
+  suggested question (example) or one you write (make your own), the same switch, **send to
+  class**; the waiting band and the response show in the panel the push came from, a badge on
+  the collapsed chip while its push waits, and the other panels' send buttons wait their turn.
+  **Groups** (only when the pathway has group review), **/teacher/compare**.
   **student report** beside a name on the class view opens their individual view (`/teacher/report?student=`):
   the platform's commentary as a few ideas in a light-blue bubble, and what the student wrote
   back in a purple-bordered box.

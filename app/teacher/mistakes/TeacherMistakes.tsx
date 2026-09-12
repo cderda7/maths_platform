@@ -8,8 +8,10 @@ import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { DifficultyTag, SlipChip } from "@/components/Tag";
 import { ASSIGNMENT } from "@/data/assignment";
 import { groupBySlip, mistakesByProblem } from "@/lib/mistakes";
+import { diagnosticFor } from "@/lib/diagnostic";
 import { useBatchedSession } from "@/lib/store";
 import { useAssignment } from "@/lib/classroom-store";
+import DiagnosticPush from "../DiagnosticPush";
 
 // The same button as the class view's row actions ("see dot skills" / "close").
 const ACTION = "w-[96px] rounded-md px-2 py-[3px] text-[11px] font-medium leading-snug transition-colors";
@@ -23,6 +25,9 @@ const ACTION_ACTIVE = `${ACTION} bg-accent text-white hover:bg-accent-deep`;
  * button that shows on hover opens every student's working for that problem in columns, the
  * wrong line in red. An open problem carries a "close" button; once pressed, the button reads
  * "close all" (while other problems are still open) until the pointer leaves the card.
+ * To the right of each problem sits its live diagnostic (ticket 127): the "Live diagnostic" chip
+ * alone until clicked, then the push panel with the problem's own suggested question and the
+ * make-your-own tab; the card takes the width the panel leaves.
  */
 export default function TeacherMistakes() {
   const { session } = useBatchedSession(3000);
@@ -65,9 +70,9 @@ export default function TeacherMistakes() {
             } else toggle(problem.id);
           };
           return (
+            <div key={problem.id} className="flex items-start gap-4" data-problem-row={problem.id}>
             <Card
-              key={problem.id}
-              className="group/q overflow-hidden"
+              className="group/q min-w-0 flex-1 overflow-hidden"
               data-problem={problem.id}
               data-open={isOpen || undefined}
               onMouseLeave={() => armed === problem.id && setArmed(null)}
@@ -157,6 +162,8 @@ export default function TeacherMistakes() {
                 </div>
               </div>
             </Card>
+            <DiagnosticPush session={session} example={diagnosticFor(problem.id)} problemId={problem.id} collapsible className="shrink-0" />
+            </div>
           );
         })}
         {problems.length === 0 && <Card className="p-6 text-[14px] text-ink-muted">No slips yet</Card>}

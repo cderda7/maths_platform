@@ -1548,6 +1548,32 @@ agents add sections above it and leave it alone.
   ring show before the tap; the pill tap drills and the buttons only appear through focus-within.
   Fine on the teacher's laptop; a tablet teacher view would need an always-visible affordance.
 
+## The live diagnostic beside each problem (from ticket 127, 2026-09-12)
+
+- **More than one push at a time.** The session has one diagnostic slot, so while a push waits
+  every other panel's "send to class" is off (with a title). Queueing pushes, or several open
+  at once with the student answering them in turn, deferred until a teacher wants two out.
+- **A panel that opens itself.** A panel whose push is waiting when the page loads (reload,
+  another tab) stays collapsed with the badge on its chip; opening it automatically was
+  deferred (the session arrives after mount, and an unasked-for open would push the cards
+  about).
+- **The response line's third word.** The line under a push still says "recorded" / "not
+  recorded" while the switch says "respond online"; "responded online" there was deferred
+  until the recorded mode does something different for the student.
+- **"Respond online" off means what?** With the switch off the student still gets the modal;
+  a true not-recorded mode (a show of hands, the question on the board only, nothing on
+  devices) needs the board to carry the question. Deferred.
+- **A suggested question that reads the slips.** The example is a fixture per problem. Picking
+  it from the slip pill under the problem (a different check for a null-factor-law slip than
+  for a sign slip on the same problem) deferred until the fixtures cover more than one slip
+  per problem.
+- **Answers across the class.** The response line reads the demo student only; a count and a
+  bar per option once classmates answer, deferred with the rest of the mocked class.
+- **Stable card widths.** Opening a panel narrows that problem's card (the panel takes 380 px
+  from the row); reserving the column for every row would keep the cards one width but leave
+  a chip floating in empty space beside each collapsed row. Kept the chip at the right edge;
+  revisit if the reflow annoys.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
