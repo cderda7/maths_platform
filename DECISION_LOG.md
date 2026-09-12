@@ -3039,3 +3039,40 @@ changes in the content beneath.
 header (brand and crumb, then the pathway strip and the name), so the two sides of the app now
 share one bar layout; the pill classes did not move, so the current mark, hover and heights are
 exactly what ticket 163 verified.
+
+## 2026-09-12 · The roster's heads stick under the bar; the roster card stops being its own sideways scroller (ticket 167)
+
+**Decision.** Every header cell of the class view's roster is `position: sticky; top: 0` on paper at
+`z-20`, with its bottom line drawn as an inset shadow, so the row sticks to the top of the teacher
+frame's scroll region (directly under the Edexia · Maths bar) while the teacher scrolls to later
+students. To make that possible the card around the table is `overflow: clip` instead of
+`overflow-x: auto`: it still clips to its rounded corners, but it is no longer a scroll container.
+
+**Context.** The user, with a screenshot of the roster scrolled to its later rows: "as i scroll down
+in the table, i want 'algebra', etc. with category headers to remain visible as kind of a sub header
+to the Edexia Maths header." A sticky element sticks within its nearest scrolling ancestor; with
+`overflow-x: auto` on the card, that ancestor was the card, which never scrolls vertically, so the
+heads could never reach the frame's scroller (`main[data-teacher-scroll]`, ticket 68's only scroller).
+
+**Alternatives considered.** *A cloned header rendered in the bar once the row scrolls out*: a
+second copy of the row to keep in step (column widths, the open column, hover controls) and a
+scroll listener, for what one CSS property does. *Sticky on the `thead` element*: works in current
+browsers, but the collapsed border and the per-cell background are the parts that go wrong, so the
+cells carry the styles themselves. *Keeping the card's sideways scroll and giving the table its own
+vertical scroller*: the page would then have two nested vertical scrollers and the rubber-band the
+frame was built to avoid. *Making the bar itself taller with the categories in it*: the categories
+belong to the table (they are its columns, with the open-column controls), not to the app's bar.
+
+**Tradeoffs.** In a window narrower than the roster (below the 1280 laptop, where the roster is
+1204 of the card's 1208 px) the whole frame now scrolls sideways instead of the card alone, since a
+clipped card takes its content's minimum width; at both laptop sizes nothing overflows
+(`check:laptop`). The header `tr`'s collapsed 1 px border is gone in favour of the inset shadow,
+so the table is 1 px shorter. The heads sit in a `z-20` stacking context: anything inside a row
+that wants to rise above them (a flyout opening upward) would need a higher index; the row flyouts
+open downward and none does today.
+
+**Defense.** The user asked for a sub-header of the bar, and a stuck row flush under the bar on the
+same paper is exactly that with no second copy of the row: the hover controls, the open column, and
+the column edges stay the real ones. One class string (`HEAD`) on the cells and one overflow
+keyword on the card is the whole change, and the frame-scrolls-sideways case is one the laptop
+guard measures on every route.

@@ -39,6 +39,14 @@ const MARKER = "[data-dot], [data-node]";
 
 /** The grey uppercase label beside a category pill: the category name in a column view, the unit beside the Unit pill in a drill. */
 const LABEL = "pointer-events-none absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink-muted";
+/**
+ * Every header cell of the roster (ticket 167): it sticks to the top of the teacher frame's scroll region
+ * (`main[data-teacher-scroll]`, whose top is the bar's bottom edge), so the category names stay in view as
+ * a sub-header of the bar while the teacher scrolls to later students. Paper behind it so the rows pass
+ * under, above the rows' own positioned marks (`z-20`); its bottom line is an inset shadow rather than the
+ * row's collapsed border, which would stay behind with the table when the cells stick.
+ */
+const HEAD = "sticky top-0 z-20 bg-paper shadow-[inset_0_-1px_0_var(--color-line)]";
 
 /** The stacked pair of small buttons beside a student's name and over a column header: light blue, dark indigo text, one width. */
 const STACK_BUTTON = "w-[96px] rounded-md px-2 py-[3px] text-[11px] font-medium leading-snug transition-colors";
@@ -236,7 +244,8 @@ export default function TeacherLive() {
       </p>
 
       <div className="mt-10 grid grid-cols-[1fr_320px] gap-6">
-        <Card className="overflow-x-auto">
+        {/* `overflow-clip`, not `overflow-x-auto` (ticket 167): a scroll container would be the header row's nearest scroller, so the heads could only stick within the card, which never scrolls; `clip` still rounds the card's corners over the heads' paper backgrounds and is no scroller, so the heads stick to the top of the teacher frame's scroll region instead. A window narrower than the roster (below the 1280 laptop, where it is 1204 of 1208 px) now scrolls the frame sideways rather than the card. */}
+        <Card className="overflow-clip">
           {/* Columns 420 · one per category sized to its chip (80–132, `columnWidth`) · 84 · 64 · 48 (ticket 141; 380 · 96/132 · 92 · 64 · 56 in ticket 136), the minimum their sum. The student column holds the avatar, the name slot, the live pill and, on hover, the two stacked action buttons side by side; the avatar again closes the row in the last column. */}
           <table ref={tableRef} className="w-full table-fixed text-left text-[14px]" style={{ minWidth: rosterMinWidth(columns) }} data-grid data-pill-quiet={pillQuiet || undefined}>
             <colgroup>
@@ -249,8 +258,8 @@ export default function TeacherLive() {
               <col style={{ width: AVATAR_COL }} />
             </colgroup>
             <thead>
-              <tr className="border-b border-line text-[10px] uppercase tracking-[0.06em] text-ink-muted">
-                <th className="px-5 py-4 font-semibold">Student</th>
+              <tr className="text-[10px] uppercase tracking-[0.06em] text-ink-muted">
+                <th className={`${HEAD} px-5 py-4 font-semibold`}>Student</th>
                 {columns.map((c) => {
                   const openHere = column?.category === c;
                   const all: { level: "groups" | "expanded"; word: string }[] = isFlat(c) ? [{ level: "groups", word: "see skills" }] : [{ level: "groups", word: "see skills" }, { level: "expanded", word: "full breakdown" }];
@@ -258,7 +267,7 @@ export default function TeacherLive() {
                   const tall = openHere && column.level === "expanded";
                   const levels = tall ? all.filter((l) => l.level === "expanded") : all;
                   return (
-                    <th key={c} className={`group/head relative select-none px-0 py-4 text-center font-semibold leading-tight ${openHere ? "text-ink" : ""}`} data-column={c} data-column-open={openHere ? column.level : undefined}>
+                    <th key={c} className={`${HEAD} group/head select-none px-0 py-4 text-center font-semibold leading-tight ${openHere ? "text-ink" : ""}`} data-column={c} data-column-open={openHere ? column.level : undefined}>
                       <span className="relative inline-block">
                         <span className={`inline-block whitespace-nowrap rounded-md px-2.5 py-1 text-[11px] group-hover/head:invisible group-focus-within/head:invisible ${openHere ? "bg-accent text-white" : "bg-standout-soft text-standout"}`}>{categoryName(c).short}</span>
                         <span className="invisible absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col gap-1 normal-case tracking-normal group-hover/head:visible group-focus-within/head:visible" data-column-controls={c}>
@@ -284,9 +293,9 @@ export default function TeacherLive() {
                     </th>
                   );
                 })}
-                <th className="px-3 py-4 text-center font-semibold">Confidence</th>
-                <th className="px-3 py-4 text-center font-semibold">Set</th>
-                <th className="px-3 py-4" aria-label="Student, again" />
+                <th className={`${HEAD} px-3 py-4 text-center font-semibold`}>Confidence</th>
+                <th className={`${HEAD} px-3 py-4 text-center font-semibold`}>Set</th>
+                <th className={`${HEAD} px-3 py-4`} aria-label="Student, again" />
               </tr>
             </thead>
             {rows.map((r, i) => {

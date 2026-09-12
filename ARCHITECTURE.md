@@ -298,6 +298,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 161 | In class review the student's screen shows the board's slide: the same examples in the same columns (`ExampleColumns`, shared with the board, lines fitted so none wraps) with a light blue "your initial response" tag on the example that is the student's first hand-in's mistake, no counts; the board's pad is 380 wide and its lines 21 px so nothing wraps at 1440 | `/board`, `/student` | 157 | [architecture/161-student-sees-board.md](architecture/161-student-sees-board.md) |
 | 165 | The teacher bar's Class · Mistakes · Groups tabs move back to the left, directly right of the Edexia · Maths brand (`gap-5`, the student header's brand-to-crumb gap); the pills keep ticket 163's colouring; "New assignment", the name and avatar stay at the right end | every `/teacher/*` | 163 | [architecture/165-teacher-nav-left.md](architecture/165-teacher-nav-left.md) |
 | 166 | The class-review tag on the student's own example reads "your approach" (was "your initial response") | `/student` | 161 | [architecture/166-your-approach.md](architecture/166-your-approach.md) |
+| 167 | The roster's header row (Student, the category chips, Confidence, Set) sticks under the teacher bar while the frame scrolls: every `th` sticky on paper at `z-20` with an inset bottom line, the card `overflow-clip` instead of `overflow-x-auto` so the frame is the heads' scroller | `/teacher` | 165 | [architecture/167-sticky-roster-head.md](architecture/167-sticky-roster-head.md) |
 
 ## Conventions
 

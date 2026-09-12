@@ -2200,6 +2200,24 @@ review setup's example cards (`useReorder`, `lib/reorder`). Left out, and why:
   room to spare; a window narrow enough for the two groups to meet is below anything the teacher
   side lays out for (the roster alone is 1204 px at 1280).
 
+## The roster's heads stick under the bar (from ticket 167, 2026-09-12)
+
+- **A shadow or tint once the row is stuck.** The heads sit on plain paper with their 1 px line
+  whether at rest or stuck; a soft shadow under the row only while it is stuck (an
+  `IntersectionObserver` on a sentinel above the table, or `scroll-state()` container queries when
+  they are broad enough) would show the rows passing under more clearly. Not asked for.
+- **Sticky heads on the other teacher tables.** The mistakes page's and the groups page's tables
+  scroll their header rows away as the roster did; the same `HEAD` class string would do for them.
+  Deferred until one of them is long enough to need it.
+- **The "Student" head as a stuck row's label.** With the categories always in view, the stuck
+  row could also carry the class name or the assignment title at its left in place of "STUDENT",
+  a true sub-header. The bar already names neither; deferred.
+- **The card's own sideways scroll in a narrow window.** Below the 1280 laptop the frame now
+  scrolls sideways as a whole (the clipped card takes its content's width) where the card used to
+  scroll alone. If the teacher side ever lays out for narrower windows, the roster wants a real
+  narrow layout (fewer visible categories, or a horizontal scroller inside the card with the heads
+  stuck by JavaScript) rather than either scroll.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
