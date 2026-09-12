@@ -12,7 +12,8 @@ const BADGE = "rounded-full px-1.5 py-px text-[10px] font-semibold uppercase tra
  * working stands for (or "correct") with how many made it; a click opens a menu of the
  * problem's mistakes with their counts, and choosing one puts the working most of those
  * students wrote into the slot. Names sit small under the working, here and nowhere near the
- * projector. The menu is a flyout over whatever is below: nothing on the card moves.
+ * projector. The menu is a flyout over whatever is below, as wide as the slot and no wider so
+ * the card never clips it (ticket 152): nothing on the card moves.
  */
 export default function ExamplePicker({ letter, candidate, options, onPick }: { letter: string; candidate: Candidate; options: ExampleOption[]; onPick: (ref: ExampleRef) => void }) {
   const [open, setOpen] = useState(false);
@@ -62,7 +63,8 @@ export default function ExamplePicker({ letter, candidate, options, onPick }: { 
       {open && (
         <>
           <button type="button" className="fixed inset-0 z-20 cursor-default" aria-label="Close" onClick={() => setOpen(false)} data-pick-close />
-          <ul role="menu" className="absolute left-5 top-[52px] z-30 w-[440px] rounded-xl border border-line bg-paper p-1 shadow-lift" data-pick-menu={letter}>
+          {/* As wide as the slot, never wider (ticket 152): the card clips at its edge, so a menu past column C's edge lost its counts. Long names wrap; the count stays on the right. */}
+          <ul role="menu" className="absolute left-5 right-5 top-[52px] z-30 rounded-xl border border-line bg-paper p-1 shadow-lift" data-pick-menu={letter}>
             {options.map((o) => {
               const on = o === current;
               const correct = o.key === CORRECT;
@@ -76,13 +78,15 @@ export default function ExamplePicker({ letter, candidate, options, onPick }: { 
                       onPick(exampleOf(o));
                       setOpen(false);
                     }}
-                    className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] transition-colors hover:bg-cream-deep ${on ? "bg-accent-soft/60" : ""}`}
+                    className={`flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] leading-snug transition-colors hover:bg-cream-deep ${on ? "bg-accent-soft/60" : ""}`}
                     data-pick-option={correct ? "correct" : o.key}
                   >
-                    <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${correct ? "bg-secure" : "bg-wrong"}`} aria-hidden />
-                    <span className="min-w-0 flex-1 truncate text-ink">{o.name}</span>
-                    {o.unitFocus && <span className={`${BADGE} shrink-0 bg-standout-soft text-standout`}>unit focus</span>}
-                    {o.fixedInGroup && <span className={`${BADGE} shrink-0 bg-secure-soft text-secure`}>fixed in group review</span>}
+                    <span className={`mt-[5px] h-2.5 w-2.5 shrink-0 rounded-full ${correct ? "bg-secure" : "bg-wrong"}`} aria-hidden />
+                    <span className="min-w-0 flex-1 text-ink">
+                      {o.name}
+                      {o.unitFocus && <span className={`${BADGE} ml-1.5 bg-standout-soft text-standout`}>unit focus</span>}
+                      {o.fixedInGroup && <span className={`${BADGE} ml-1.5 bg-secure-soft text-secure`}>fixed in group review</span>}
+                    </span>
                     <span className="shrink-0 text-[12px] text-ink-muted">{o.count} {o.count === 1 ? "student" : "students"}</span>
                   </button>
                 </li>

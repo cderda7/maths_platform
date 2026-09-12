@@ -1961,6 +1961,16 @@ agents add sections above it and leave it alone.
 - **The diagnostic in the picker.** A diagnostic result's per-option count could sit beside
   the matching mistake in the menu ("12/20 picked this on the diagnostic"). Deferred.
 
+## The picker's menu width (from ticket 152, 2026-09-12)
+
+- **A menu wider than its slot.** The menu now takes the slot's width, so a long name with a
+  badge wraps to two lines in a narrow column. A menu that widens leftwards over the
+  neighbouring slot when the slot is narrow (the card's `overflow-hidden` clips anything past
+  its edge) was set aside; the user asked for the narrower bubble.
+- **Three-column slots at 1280 px.** Each slot is about 300 px wide at the laptop width and
+  the menu with it; every current name fits on two lines. A longer written-question name
+  would wrap further; a cap on the name length in the editor, deferred.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
