@@ -3114,3 +3114,91 @@ request word for word; the shared component means the report and the roster cann
 and the one interaction kept (a skill's work) is the one that adds information rather than
 rearranging it. Deleting the browse drill removes a second way of drawing the same tree that no
 screen uses.
+
+## 2026-09-13 · One extraction funnel: typed, pasted, dropped and uploaded problems all become streamed drafts in unconfirmed tiles (tickets 170–173)
+
+**Decision.** Every way a question enters an assignment (a typed line, a pasted screenshot or list,
+a dropped image or PDF, a Finder upload) feeds one API route, `POST /api/extract`, whose output is
+always a stream of problem drafts: a stem and its TeX, with the worksheet's own label, the page,
+and a figure box when a diagram belongs to the problem. No solution or answer is extracted (see
+`ASSUMPTIONS.md`, the grading engine). Drafts from a file land inline on the create screen as
+tinted unconfirmed tiles, one per problem (sub-parts one each with the stem repeated), each with
+keep and discard; the pinned bar gains "Add N" and "Discard" while Continue stays live and confirms
+everything on the way through. A typed tile keeps the local shorthand parser (`lib/mathInput.ts`)
+as its instant preview and the model's TeX replaces it on Enter or blur, confirmed at once. A bad
+extraction is corrected by editing the TeX or by a one-line plain-language "Fix" the model applies
+(with the source crop in hand), never by re-cropping the image. Caps: twenty images or five PDFs
+per drop, ten MB a file, ten pages a PDF; extras are left out and named, not the whole drop
+refused. The route is modelled on the help chat's (credentials, the first event awaited before the
+response commits, typed failures) with a separate model constant and a fixture mode behind
+`EXTRACT_FIXTURES=1` that matches sources by hash to drafts rendered from the demo set.
+
+**Context.** The user (2026-09-12): a teacher should be able to screenshot a problem elsewhere and
+drop it in, or click to upload; "the type a question doesn't really work … needing to type in
+python … won't work in practice"; and "drag & drop a whole doc … the program can auto split it
+into problems". An interview of thirty questions on 2026-09-12/13 settled the shape above. Until
+now the create screen's only contract was the shorthand grammar, the app's only model call the
+help chat, and nothing typed had a model or a file behind it.
+
+**Alternatives.** *Three features* (a typed path, an image path, a document path) each with its
+own output: a screenshot of four questions would then be one problem or need its own splitter;
+one extractor seeing more content is the same code. *A separate review screen for extracted
+drafts*: a second place to learn, when the tile grid is already where questions are added and
+read. *Gating Continue on confirming the drafts*: against the standing rule that the primary
+action stays on; a discard per tile is the correction. *Retiring the shorthand parser*: typing
+would wait on a round trip for every preview; kept as the preview, the model is the final word.
+*Cropping a region as the fix tool*: heavy to build and rare; a sentence fixes a denominator.
+*The model emitting worked solutions for the teacher to check*: the engine assumption makes them
+dead weight in the prompt and the stream. *A region or page-range picker before extraction*:
+with the ten-page cap, extracting everything and ticking what to keep is cheaper and simpler.
+*Building the screens against a stub first*: the UI would be rebuilt when the real output was
+shaped differently; the real route with a fixture mode gives both.
+
+**Tradeoffs.** A model in the typing path means a typed tile can change after the teacher looks
+away (on blur); the parser's preview and the model's TeX can differ, and the teacher's own words
+are kept as `text` so re-editing starts from them. Streaming JSON lines from text output (rather
+than one tool call) means a malformed line is dropped, never fatal, and counted. Fixture mode by
+hash means a fixture file edited by hand stops matching; the render script is the source of
+truth. Sub-parts as separate tiles lose the parts' grouping on the screen (label "4(a)" carries
+it). The caps are round numbers chosen for a laptop and one teacher, not measured.
+
+**Defense.** One funnel means every input, present and future (a bank search, "three more like
+Q4"), ends in the same drafts and the same tiles, and the whole thing is proved once on the
+simplest input (a screenshot) before PDFs and typing join it. Inline unconfirmed tiles keep the
+teacher on the screen they know with one new state to learn, and the tint plus keep/discard is
+the review. The fixture mode keeps the click-throughs deterministic without a key while the
+real route is the one the screens are built on.
+
+## 2026-09-13 · PDFs go to the API natively and are drawn in the browser by pdfjs-dist; sources live in IndexedDB (tickets 171–172)
+
+**Decision.** A dropped PDF is sent to the model as a document block, untouched; the browser
+draws its pages itself with `pdfjs-dist` (a new dependency, loaded only on the create screen) for
+the tile thumbnails and the figure crops. Uploaded files, page thumbnails and figure crops are
+kept in the browser in IndexedDB (`lib/sources.ts`), and the classroom store's draft holds ids
+and small data URLs only. Docx is not accepted; the bar says "export it as a PDF".
+
+**Context.** The API takes PDFs directly, so no server rasterising is needed for extraction. But
+the create screen needs pixels: a tile shows the page its draft came from (Q8) and a figure in a
+worksheet is cropped from the page (Q11), and a browser cannot draw a PDF page without a library.
+Sources have to be kept for those crops and for a later "Fix" that sends the region along; five
+files of ten MB do not fit localStorage, which is where the classroom store lives.
+
+**Alternatives.** *Rasterise on the server and send images*: a sharp/pdf dependency on the server
+plus a second copy of every page over the wire, when the API reads the PDF itself. *No thumbnails
+or crops for PDFs this round, text labels only*: a worksheet PDF with a graph is the common case
+for figures; a feature that works for screenshots and not PDFs would confuse. *Sources in
+localStorage as data URLs*: over its limit on the first real drop. *Server-side file storage*: a
+separate build (auth, buckets, lifetimes) deferred to future features; nothing here needs a file
+to outlive the browser. *Accept docx via a server conversion*: a heavy dependency for a file a
+teacher exports to PDF in one step.
+
+**Tradeoffs.** `pdfjs-dist` is a large package with a worker to bundle; it is dynamically imported
+so no other screen pays for it. IndexedDB is asynchronous, so a tile's thumbnail is a data URL on
+the draft (synchronous render) and the Blob is read only for crops and Fix. Sources are per
+browser: a draft opened on another machine has tiles but no thumbnails or crops. The page
+count is read client-side before sending, which needs the library before the first request.
+
+**Defense.** The API does the reading and the browser does the drawing, each with what it is good
+at, and nothing is stored twice on the server that has no storage. IndexedDB is the one browser
+store sized for files, and putting only references in the classroom store keeps that store as
+small and synchronous as every reducer expects.

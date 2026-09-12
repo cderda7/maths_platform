@@ -2255,6 +2255,63 @@ review setup's example cards (`useReorder`, `lib/reorder`). Left out, and why:
   version is at `ebd613d`. A compact one-branch view for a narrow surface (the iPad's report, a
   phone) would start from `SkillTree` and `WorkPanel` rather than from that.
 
+## Assignment upload: what the interview scoped out (2026-09-13, tickets 170–173)
+
+The interview that shaped tickets 170–173 (one extraction funnel for typed, pasted, dropped and
+uploaded problems) settled the following as later, each on purpose.
+
+- **Word documents.** Docx is not accepted; the bar says "export it as a PDF". A server-side
+  conversion (LibreOffice or a docx-to-PDF service) is a heavy dependency for a one-step export.
+  Deferred 2026-09-13 (Q13).
+- **Google Docs links, PowerPoint, URLs dropped from a browser.** Only files and pasted images
+  go in. A link needs fetching, auth and a converter; slides need a rasteriser. Deferred (Q6).
+- **Server-side file storage.** Sources, thumbnails and figure crops live in the browser's
+  IndexedDB; a draft opened on another machine has tiles but no thumbnails or crops, and nothing
+  survives a cleared browser. Storage with auth, buckets and lifetimes is its own build (Q12).
+- **More than the caps.** Twenty images or five PDFs per drop, ten MB a file, ten pages a PDF;
+  extras are left out and named. A twenty-page chapter needs the cap lifted and progress per page,
+  and a way to cancel a long extraction (Q6, Q25).
+- **Marking a region or a page range before extraction.** Everything is extracted and the
+  teacher ticks what to keep. A region picker (drag a box on the thumbnail) or "pages 3–5" would
+  cut cost and noise on long documents (Q8).
+- **Cropping as a fix tool.** A bad read is fixed by editing the TeX or by a plain-language Fix
+  line; re-cropping the image region by hand is not built (Q5).
+- **The model emitting worked solutions, answers, difficulty and taxonomy leaves.** Drafts are
+  stem and TeX only; the symbolic grading engine is assumed to derive the rest (`ASSUMPTIONS.md`).
+  When the engine is real, or when a teacher wants to see the answer under the question before
+  students do, the extractor's prompt is the place (Q10, Q19, Q23). Difficulty labels and the
+  recommendations on the review step stay heuristic and scripted for uploaded drafts too.
+- **Uploaded and typed problems reaching students.** Create is a wall back to the demo set
+  (`ASSUMPTIONS.md`); only the review pathway varies. A draft figure (a crop under the question)
+  is shown to the teacher only (Q11, Q21).
+- **Sub-parts as one problem.** A worksheet's 4(a), (b), (c) become one tile each with the stem
+  repeated and the label carrying the part; a tile that holds parts together is not built (Q20).
+- **A typed tile changing after blur.** The parser's preview is replaced by the model's TeX on
+  Enter or blur, with no tint; a teacher who looked away may find the render changed. A subtle
+  "updated" flash, or a diff when the two differ materially, was not asked for (Q17).
+- **Typed input with no model configured.** The parser's TeX stands silently; only uploads show
+  "Not configured". A one-time notice on the create screen that typing is running without the
+  model would be a line in the bar (Q22).
+- **The `$…$` delimiter and the shorthand grammar's future.** With the model normalising every
+  typed line, the shorthand grammar (`lib/mathInput.ts`) is a preview only; whether to keep
+  extending it, teach it, or let it fall behind the model is open. The explicit delimiter entry
+  above ("Teaching the typing convention") stays deferred (Q9).
+- **A re-extract button.** A tile whose read is badly wrong is fixed line by line or discarded
+  and the file dropped again; "read this one again" from the source is not built (Q5).
+- **Fixtures from real worksheets.** The deterministic fixtures are rendered from the demo set;
+  a real (licensed) worksheet or textbook page as a fixture would test the model on handwriting,
+  scans and photographed pages (Q24).
+- **Handwritten and photographed pages.** Screenshots and exported PDFs are the day-one inputs;
+  a phone photo of a textbook page (skew, shadow, low contrast) goes through the same route
+  untested. A deskew or contrast pass before sending is not built (Q6).
+- **"Three more like Q4", the bank searched by skill, last term's set cloned.** Other sources
+  into the same funnel (the from-nothing entries above); the funnel is built so they end in the
+  same drafts and tiles (Q2).
+- **Cancelling an extraction in flight.** A shimmer tile has no cancel; the request runs to its
+  end. An abort per file is an `AbortController` the client already threads (Q16).
+- **Keyboard access to the drop target.** The Upload link is the keyboard route; the overlay and
+  drop are pointer-only by nature. Paste works from the keyboard. Not audited beyond that (Q7, Q14).
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
