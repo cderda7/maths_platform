@@ -5,25 +5,29 @@ import { useRouter } from "next/navigation";
 import TeacherChrome from "../TeacherChrome";
 import M from "@/components/Math";
 import { Button, Card, Eyebrow, H1 } from "@/components/ui";
-import { DifficultyTag, LeafChip } from "@/components/Tag";
+import { DifficultyTag } from "@/components/Tag";
 import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
-import { dispatchClassroom, useAssignment } from "@/lib/classroom-store";
+import { dispatchClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
 import { FOLLOW_MODE_WORD, type FollowMode } from "@/lib/classroom";
-import { candidatesFor, MAX_EXAMPLES, problemsByStruggle, suggestExamples, type Bucket, type ExampleRef } from "@/lib/examples";
+import { candidatesFor, MAX_EXAMPLES, optionsFor, problemsByStruggle, suggestExamples, type ExampleRef, type PickerContext } from "@/lib/examples";
+import ExamplePicker from "./ExamplePicker";
 import { useBatchedSession } from "@/lib/store";
 
 const PRECHECK = 3;
 
 /**
  * The private setup for whole-class review: which problems, and which 2–3 examples per problem.
- * Names and correctness show here and nowhere near the projector. What the students' screens do
+ * An example is chosen by mistake, not by name (ticket 148): the suggestion is the correct working
+ * then the most common exact mistakes, and each slot's menu lists the problem's mistakes with
+ * their counts. Names and correctness show here and nowhere near the projector. What the students' screens do
  * (frozen or write with me) starts unchosen: both options empty, Project faded until one is picked;
  * pressing it anyway turns its label to "select one" and flashes the two options light blue once.
  */
 export default function WholeClassSetup() {
   const router = useRouter();
   const { session } = useBatchedSession(3000);
-  const { problems } = useAssignment();
+  const { problems, unit } = useAssignment();
+  const ctx: PickerContext = { unit, group: useClassroom().group ?? null };
   const ranked = problemsByStruggle(session).filter((r) => problems.some((p) => p.id === r.problem.id));
   const [chosen, setChosen] = useState<string[] | null>(null);
   const [overrides, setOverrides] = useState<Record<string, ExampleRef[]>>({});
@@ -33,12 +37,12 @@ export default function WholeClassSetup() {
   const [nudge, setNudge] = useState(0);
   const chosenIds = chosen ?? ranked.slice(0, PRECHECK).map((r) => r.problem.id);
   const toggle = (id: string) => setChosen(chosenIds.includes(id) ? chosenIds.filter((x) => x !== id) : [...chosenIds, id]);
-  const examplesFor = (pid: string) => overrides[pid] ?? suggestExamples(candidatesFor(pid, session));
+  const examplesFor = (pid: string) => overrides[pid] ?? suggestExamples(candidatesFor(pid, session), MAX_EXAMPLES, ctx);
   const ordered = ASSIGNMENT.problems.map((p) => p.id).filter((id) => chosenIds.includes(id));
 
-  const swap = (pid: string, at: number, studentId: string) => {
+  const swap = (pid: string, at: number, ref: ExampleRef) => {
     const next = [...examplesFor(pid)];
-    next[at] = { studentId, problemId: pid };
+    next[at] = ref;
     setOverrides((o) => ({ ...o, [pid]: next }));
   };
 
@@ -135,6 +139,7 @@ export default function WholeClassSetup() {
           {ordered.map((pid) => {
             const p = PROBLEM_MAP[pid];
             const cands = candidatesFor(pid, session);
+            const options = optionsFor(cands, ctx);
             const refs = examplesFor(pid);
             return (
               <Card key={pid} className="overflow-hidden" data-wc-examples={pid}>
@@ -152,35 +157,7 @@ export default function WholeClassSetup() {
                   {refs.map((r, i) => {
                     const c = cands.find((x) => x.studentId === r.studentId);
                     if (!c) return null;
-                    const others = cands.filter((x) => !refs.some((rr) => rr.studentId === x.studentId) || x.studentId === c.studentId);
-                    return (
-                      <div key={r.studentId} className="px-5 py-4" data-example={i}>
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-display text-[18px] text-ink">{"ABC"[i]}</span>
-                          <BucketTag bucket={c.bucket} />
-                        </div>
-                        <select
-                          value={c.studentId}
-                          onChange={(e) => swap(pid, i, e.target.value)}
-                          className="mt-2 w-full rounded-full border border-line-strong bg-paper px-3 py-1.5 text-[13px] text-ink"
-                          aria-label={`Example ${"ABC"[i]}`}
-                          data-swap
-                        >
-                          {others.map((o) => (
-                            <option key={o.studentId} value={o.studentId}>
-                              {o.name}
-                            </option>
-                          ))}
-                        </select>
-                        <ol className="mt-3 space-y-1.5">
-                          {c.lines.map((tex, n) => (
-                            <li key={n} className="rounded-lg border border-line bg-cream/60 px-3 py-1.5 text-[14px] text-ink">
-                              <M tex={tex} />
-                            </li>
-                          ))}
-                        </ol>
-                      </div>
-                    );
+                    return <ExamplePicker key={r.studentId} letter={"ABC"[i]} candidate={c} options={options} onPick={(ref) => swap(pid, i, ref)} />;
                   })}
                 </div>
               </Card>
@@ -190,9 +167,4 @@ export default function WholeClassSetup() {
       </div>
     </TeacherChrome>
   );
-}
-
-function BucketTag({ bucket }: { bucket: Bucket }) {
-  if (bucket === "correct") return <span className="rounded-full border border-secure-line bg-secure-soft px-2 py-0.5 text-[11.5px] text-secure">correct</span>;
-  return <LeafChip id={bucket} className="border-wrong-line bg-wrong-soft text-wrong" />;
 }

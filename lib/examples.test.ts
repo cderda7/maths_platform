@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CLASSMATES } from "@/data/classmates";
-import { boardExamples, bucketCounts, bucketOf, candidatesFor, problemsByStruggle, struggleCount, suggestExamples } from "./examples";
+import { boardExamples, bucketCounts, bucketOf, candidatesFor, CORRECT, exampleOf, mistakeOf, optionOf, optionsFor, problemsByStruggle, struggleCount, suggestExamples, type Bucket, type Candidate, type PickerContext } from "./examples";
 import { sessionAt } from "./session";
 
 describe("board examples", () => {
@@ -8,6 +8,8 @@ describe("board examples", () => {
     expect(bucketOf("q2", ["2x^2 + 7x - 4 = 0", "(2x + 4)(x - 1) = 0", "x = -2 \;\\text{or}\; x = 1"])).toBe("algebra.expand-factor.nonmonic");
     expect(bucketOf("q4", ["a = 3,\; b = -5,\; c = -1", "b^2 - 4ac = 25 + 12 = 37", "x = \\dfrac{5 \\pm \\sqrt{37}}{6}"])).toBe("correct");
     expect(bucketOf("q1", [])).toBe("correct");
+    expect(mistakeOf("q2", ["2x^2 + 7x - 4 = 0", "(2x + 4)(x - 1) = 0", "x = -2 \\;\\text{or}\\; x = 1"])).toBe("(2x + 4)(x - 1) = 0");
+    expect(mistakeOf("q1", [])).toBe(CORRECT);
   });
 
   it("every classmate who handed a problem in is a candidate; the live student joins once handed in, with their final version", () => {
@@ -39,24 +41,64 @@ describe("board examples", () => {
     expect(order).toHaveLength(10);
   });
 
-  it("suggests one correct example then one per error bucket, capped at three, at least two", () => {
+  it("suggests the correct working then the most common exact mistakes, capped at three, at least two (ticket 148)", () => {
     const q2 = suggestExamples(candidatesFor("q2", sessionAt("feedback")));
     expect(q2).toHaveLength(3);
-    expect(q2[0].studentId).toBe("priya"); // first correct
-    expect(q2[1].studentId).toBe("sam"); // first in the factoring bucket (the larger)
-    expect(q2[2].studentId).toBe("finn"); // alone in the linear-equations bucket
+    expect(q2[0].studentId).toBe("priya"); // the correct working: the model solution every right classmate shares
+    // The guessed pair: sam and five classmates share the mistake; the five wrote the same three lines, so the example is theirs.
+    expect(q2[1].studentId).toBe("jordan");
+    expect(q2[2].studentId).toBe("finn"); // alone on the sign lost solving a factor
     const q6 = suggestExamples(candidatesFor("q6", null)); // one classmate slipped on Q6: one correct, one wrong
     expect(q6).toHaveLength(2);
-    const capped = suggestExamples(
-      [
-        { studentId: "a", name: "", problemId: "q1", lines: [], bucket: "correct" },
-        { studentId: "b", name: "", problemId: "q1", lines: [], bucket: "algebra.equations.linear" },
-        { studentId: "c", name: "", problemId: "q1", lines: [], bucket: "algebra.number.fractions" },
-        { studentId: "d", name: "", problemId: "q1", lines: [], bucket: "algebra.expand-factor.monic" },
-        { studentId: "e", name: "", problemId: "q1", lines: [], bucket: "algebra.expand-factor.monic" },
-      ],
-    );
-    expect(capped.map((r) => r.studentId)).toEqual(["a", "d", "b"]); // largest error bucket first, then the rest, cap 3
+    const cand = (studentId: string, mistake: string, bucket: Bucket = mistake ? "algebra.equations.linear" : "correct"): Candidate => ({ studentId, name: studentId, problemId: "q1", lines: [mistake || "ok"], bucket, mistake });
+    const capped = suggestExamples([cand("a", ""), cand("b", "m1"), cand("c", "m2"), cand("d", "m3"), cand("e", "m3")]);
+    expect(capped.map((r) => r.studentId)).toEqual(["a", "d", "b"]); // the biggest mistake first, then the rest in order, cap 3
+    const oneWrong = suggestExamples([cand("a", ""), cand("b", ""), cand("c", "m1")]);
+    expect(oneWrong.map((r) => r.studentId)).toEqual(["a", "c"]);
+  });
+
+  it("the picker's options: correct first, then exact mistakes by count, identical workings largest first, the live student first in his column", () => {
+    const s = sessionAt("feedback");
+    const options = optionsFor(candidatesFor("q7", s));
+    expect(options[0].key).toBe(CORRECT);
+    expect(options[0].name).toBe("correct");
+    expect(options.slice(1).map((o) => [o.name, o.count])).toEqual([
+      ["scaled two of three terms", 7], // six classmates and Sam
+      ["tripled, third never restored", 4],
+      ["pair adds to nine", 2],
+    ]);
+    for (const o of options.slice(1)) {
+      expect(o.leaf).toBeTruthy();
+      expect(o.columns.map((c) => c.students.length)).toEqual([...o.columns.map((c) => c.students.length)].sort((x, y) => y - x));
+      expect(o.count).toBe(o.columns.reduce((n, c) => n + c.students.length, 0));
+    }
+    const q2 = optionsFor(candidatesFor("q2", s));
+    const guessed = q2.find((o) => o.name === "guessed pair, not expanded back")!;
+    expect(guessed.count).toBe(6);
+    expect(guessed.columns).toHaveLength(2); // the five classmates' three lines, and sam's own route
+    expect(guessed.columns[0].students).toHaveLength(5);
+    expect(optionOf(q2, "sam")).toBe(guessed);
+    expect(exampleOf(guessed).studentId).toBe("jordan");
+  });
+
+  it("a mistake on the unit's focus leaf is badged; one the group worked through sinks and is not suggested unless needed", () => {
+    const s = sessionAt("feedback");
+    const q3 = candidatesFor("q3", s);
+    const plain = optionsFor(q3, { unit: 1 });
+    const nfl = plain.find((o) => o.name === "null factor law without zero")!;
+    expect(nfl.unitFocus).toBe(true); // the wrong line is tagged unit.u1.nfl
+    expect(plain.find((o) => o.key === CORRECT)!.unitFocus).toBe(false);
+    expect(optionsFor(q3, { unit: 2 }).find((o) => o.name === nfl.name)!.unitFocus).toBe(false);
+    // Sam's group (sam, jordan, zara, liam) checked Q3 correct in group review: zara's and liam's mistakes on Q3 are fixed.
+    const group = { members: ["sam", "jordan", "zara", "liam"], resolved: ["q3"] } as unknown as NonNullable<PickerContext["group"]>;
+    const fixed = optionsFor(q3, { group });
+    expect(fixed.find((o) => o.name === nfl.name)!.fixedInGroup).toBe(true); // zara is on it
+    expect(fixed[fixed.length - 1].name).toBe(nfl.name); // sinks to the end
+    expect(suggestExamples(q3, 3, { group }).map((r) => r.studentId)).not.toContain(exampleOf(nfl).studentId);
+    // With nothing else to show, a fixed mistake still makes the second example.
+    const only = q3.filter((c) => c.mistake === CORRECT || c.mistake === nfl.key);
+    expect(suggestExamples(only, 3, { group })).toHaveLength(2);
+    expect(optionsFor(q3, { group: { ...group, resolved: [] } }).every((o) => !o.fixedInGroup)).toBe(true);
   });
 
   it("the board view model carries letters, lines and counts, and nothing that names a student or marks a line", () => {

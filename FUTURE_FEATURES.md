@@ -1936,6 +1936,31 @@ agents add sections above it and leave it alone.
 - **A narrow crumb rule.** The longest crumb ("Where the class is finding it hard") ends 200 px
   clear of the strip at iPad width; a crumb that grew past that would need to truncate.
 
+## Class review examples chosen by mistake (from ticket 148, 2026-09-12)
+
+- **Another route to the same mistake.** An option's example is its largest identical column;
+  a student who reached the same wrong line another way (Q9's four "h = 6" by two routes) is
+  never the example. A second-level pick inside an option (route 1 of 2), deferred.
+- **A name for a student, still.** The dropdown of names is gone; a teacher who wants one
+  particular student's working (a strong student's standout route) has no way to pick it.
+  A "by student" tail on the menu, deferred until asked for.
+- **Other groups' fixes.** "fixed in group review" reads the demo student's group run only,
+  because the other groups race on a script and never record attempts. When the other groups
+  have runs, the badge should read all of them.
+- **A mistake fixed for some, not others.** The badge fires when any member of the resolving
+  group is on the mistake; the count still includes everyone. Splitting an option into fixed
+  and unfixed halves, deferred.
+- **A slide per mistake.** The user kept the problem as the slide's unit; a review organised by
+  misconception across problems ("guessed pair" on Q1, Q2 and Q3 as one slide) was proposed
+  and set aside. Revisit if a teacher wants to teach a habit rather than a problem.
+- **Unit focus as a rank.** The badge marks a mistake on the unit's leaf; it does not lift it.
+  The user chose badge only.
+- **The board at a narrow window.** On a 1400 px window the board's example columns wrap
+  inline maths mid-line (`2x^2 + 7x −` / `4 = 0`); a projector is wider. Pre-existing; a
+  nowrap plus fit for the board's lines, deferred.
+- **The diagnostic in the picker.** A diagnostic result's per-option count could sit beside
+  the matching mistake in the menu ("12/20 picked this on the diagnostic"). Deferred.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

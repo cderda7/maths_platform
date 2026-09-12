@@ -2682,3 +2682,32 @@ side by side and they always agree; a change to when a stage begins is made once
 strip beside the name means the header's only moving part is the crumb, and the pills sit at
 identical coordinates on every screen (asserted in the click-through).
 
+## 2026-09-12 · A class review example stands for a mistake, and the mistake has a name
+
+**Decision.** On the class review setup an example slot is chosen by exact mistake (the wrong
+lines' TeX, the same identity as the mistake view's boxes), not by student. Each option's
+working is the largest column of identical working among the students on that mistake; the
+board's count is the students on that mistake. Every wrong line of the evaluation table carries
+a `name` of five words or fewer, the teacher's word for the mistake, authored beside its clue
+and note.
+
+**Context.** Ticket 148: the user wants the taxonomy to drive "the selection of a student's
+work" for class review instead of a dropdown of names. The setup suggested one student per
+skill leaf and counted by leaf, so two different Q7 mistakes both read "12/20".
+
+**Alternatives considered.** (1) Keep the leaf as the unit and improve the suggestion: two
+mistakes on one leaf (Q7's three fraction slips) stay one bucket, which is the teacher's actual
+choice. (2) Name the option from the classmates' notes (the most common note among its
+students): grounded, but the live student has no note and two students on one mistake can
+carry differently worded notes. (3) The `clue` or `note` already on the line: written to the
+student, a sentence, not a label. (4) A mistake-level list instead of the problem list:
+rejected by the user; the problem stays the unit of a slide.
+
+**Tradeoffs.** Nineteen names to keep true when the table changes (a test pins the length). The
+example is the *most common* working, so an unusual route to the same mistake never shows
+unless the teacher picks the student by another path (none today). A group-fixed badge reads
+the demo student's group only; the other groups have no run.
+
+**Defence.** One identity for a mistake across the mistake view, the diagnostic and the board
+keeps the counts consistent everywhere the teacher looks, and the picker's menu is exactly
+the list a teacher would make by hand from the mistake view.

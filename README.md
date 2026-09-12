@@ -121,8 +121,11 @@ Teacher, during the lesson (`/teacher`):
   `n/20 students` and the misconception it reveals, the right one green; a pulsing `n/20 in`
   with **Withdraw** while the class answers; **show on board** / **clear board**).
 - **Whole-class setup** (`/teacher/whole-class`): problems ranked by how many struggled, top
-  three pre-checked; 2–3 suggested examples per problem with names and correctness (private),
-  swappable; **Student screens** (screens frozen / write with me) starts with neither chosen and
+  three pre-checked; 2–3 suggested examples per problem chosen by mistake: the correct working,
+  then the problem's most common exact mistakes, each slot headed by the mistake's name and
+  count (green for correct, red for a mistake) with the skill chip, **unit focus** and
+  **fixed in group review** badges, the names under the working (private); a menu on the
+  header lists the problem's mistakes with counts to swap the working; **Student screens** (screens frozen / write with me) starts with neither chosen and
   **Project** sits faded until you pick one (press it anyway and it reads **select one** while the
   two options flash light blue). **Project** opens the board and starts the grace.
 - **Board controls** (`/teacher/board`): which problem is up, what the board is showing, the

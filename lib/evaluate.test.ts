@@ -65,3 +65,16 @@ describe("scripted evaluation", () => {
     expect(evaluateLine("q1", "x = 42").verdict).toBe("unclear");
   });
 });
+
+describe("wrong lines are named for the teacher (ticket 148)", () => {
+  it("every wrong entry carries a name of five words or fewer; ok entries none", async () => {
+    const { EVALUATION } = await import("@/data/evaluation");
+    for (const [pid, table] of Object.entries(EVALUATION))
+      for (const [tex, v] of Object.entries(table)) {
+        if (v.verdict === "wrong") {
+          expect(v.name, `${pid} ${tex}`).toBeTruthy();
+          expect(v.name!.split(/\s+/).length, `${pid} ${tex}: ${v.name}`).toBeLessThanOrEqual(5);
+        } else expect(v.name, `${pid} ${tex}`).toBeUndefined();
+      }
+  });
+});
