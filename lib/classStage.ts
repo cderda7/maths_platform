@@ -1,5 +1,5 @@
 import { CLASSMATES } from "@/data/classmates";
-import type { ReviewStage } from "@/data/types";
+import { BEFORE_HAND_IN_STAGES, type ReviewStage } from "@/data/types";
 import { pathwayOf, type AdvanceKind, type ClassroomState } from "./classroom";
 import { STAGE_SHORT } from "./pathway";
 import { classReadiness, CLASS_SIZE } from "./readiness";
@@ -39,7 +39,7 @@ export interface ClassStage {
 export const CLASS_STAGE_WORD: Record<ClassStageId, string> = { working: "indiv working", ...STAGE_SHORT };
 
 /** Student stages before the set is handed in. */
-const WORKING_STAGES = ["overview", "confidence", "warmup-chat", "practice", "working"];
+const WORKING_STAGES = BEFORE_HAND_IN_STAGES;
 
 /** The advance "force submit" starts for a stage; class review has none (the teacher ends the session from its card). */
 export const FORCE_KIND: Record<ClassStageId, AdvanceKind | null> = { working: "force-submit", individual: "force-review", group: "force-group", "whole-class": null };

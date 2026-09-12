@@ -44,7 +44,7 @@ function finishedRun(session: StudentSession, now: number): GroupRun {
 }
 
 export function skipFixture(target: SkipTarget, now: number): { session: StudentSession; classroom: ClassroomState } {
-  let classroom = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: ASSIGNMENT.title, problemIds: ASSIGNMENT.problems.map((p) => p.id), pathway: DEMO_PATHWAY, at: now });
+  let classroom = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: ASSIGNMENT.title, problemIds: ASSIGNMENT.problems.map((p) => p.id), pathway: DEMO_PATHWAY, goal: ASSIGNMENT.goal, at: now });
   switch (target) {
     case "start":
       return { session: INITIAL_SESSION, classroom };

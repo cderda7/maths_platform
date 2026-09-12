@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classroomReducer, INITIAL_CLASSROOM, pathwayOf } from "./classroom";
+import { classroomReducer, GOAL_MAX, INITIAL_CLASSROOM, pathwayOf } from "./classroom";
 import { DEFAULT_PATHWAY } from "./pathway";
 
 describe("classroom state", () => {
@@ -45,6 +45,23 @@ describe("active assignment", () => {
     const empty = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: "", problemIds: [], pathway: [] });
     expect(activeAssignment(empty).problems).toHaveLength(10);
     expect(activeAssignment(empty).title).toBe("ROOTS OF A QUADRATIC — SET 3");
+  });
+
+  it("the goal for the class travels from the draft to the created assignment; blank stays blank, absent reads the fixture's", async () => {
+    const { activeAssignment } = await import("./assignment");
+    const { ASSIGNMENT } = await import("@/data/assignment");
+    expect(activeAssignment(INITIAL_CLASSROOM).goal).toBe(ASSIGNMENT.goal);
+    expect(ASSIGNMENT.goal.length).toBeLessThanOrEqual(GOAL_MAX);
+    const written = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: "Set 4", problemIds: ["q1"], pathway: [], goal: "Show your working." });
+    expect(written.assignment?.goal).toBe("Show your working.");
+    expect(activeAssignment(written).goal).toBe("Show your working.");
+    const blank = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: "Set 4", problemIds: ["q1"], pathway: [], goal: "" });
+    expect(activeAssignment(blank).goal).toBe("");
+    const before = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: "Set 4", problemIds: ["q1"], pathway: [] });
+    expect(before.assignment).not.toHaveProperty("goal");
+    expect(activeAssignment(before).goal).toBe(ASSIGNMENT.goal);
+    const draft = classroomReducer(INITIAL_CLASSROOM, { type: "draft/set", draft: { title: "Set 4", goal: "Show your working.", questions: [], updatedAt: 1 } });
+    expect(draft.draft?.goal).toBe("Show your working.");
   });
 });
 

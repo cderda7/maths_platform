@@ -47,8 +47,10 @@ restarts everything in every tab; it is a presenter control, not part of the pro
 
 Teacher, before the lesson (`/teacher/assignments/create`, then the older `/teacher/assignments/new`):
 
-0. **Create** (tickets 119, 121): opens prefilled with the demo set (`data/draft-seed.ts`: the title
-   and ten typed questions, Q1 with +5x and a repeated Q9 for the review step); a title, then the questions typed into tiles in the student's five-wide
+0. **Create** (tickets 119, 121, 154): opens prefilled with the demo set (`data/draft-seed.ts`: the title,
+   the goal for the class and ten typed questions, Q1 with +5x and a repeated Q9 for the review step); a title, then
+   "Goal for the class" (a goal-oriented message, 280 characters, shown to every student once before
+   they start; blank means no goal screen), then the questions typed into tiles in the student's five-wide
    grid, each tile the editor: the typed text on top, the rendered question beneath as you type
    (`x**2 + 5x + 6 = 0`, `1/3x**2`, `sqrt(2)` as KaTeX), Enter for the next tile, Shift+Enter to
    put the expression under the prose, × or Backspace to remove ("Q2 removed. Undo"). Continue
@@ -70,7 +72,8 @@ Teacher, before the lesson (`/teacher/assignments/create`, then the older `/teac
 
 Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the pen):
 
-2. Overview, confidence (a not-confident answer is offered the warm-up). Work Q1–Q10 on the pad; each burst of strokes is read as
+2. Overview (CONTINUE pulses until pressed), the teacher's goal in a speech bubble ("Before you get started, Ms
+   Okafor wants you to know…"; skipped when blank), then the check-in: confidence (a not-confident answer is offered the warm-up). Work Q1–Q10 on the pad; each burst of strokes is read as
    one line and the ink is kept. Q1 slips on monic factorising and Q2 on non-monic (a two-minute
    practice is offered on the second), Q3 misuses the null factor law, Q4–Q6 and Q8 hold, Q7
    multiplies only two of three terms by 3, Q9 skips the height (a compounded step, not a
@@ -174,7 +177,7 @@ teacher shows them, and a mirror of the teacher's working.
 
 ## Deep links
 
-`/student?stage=<stage>` starts a fresh run at that stage (`overview`, `practice`, `confidence`,
+`/student?stage=<stage>` starts a fresh run at that stage (`overview`, `goal`, `practice`, `confidence`,
 `working`, `feedback`, `waiting`, `frozen`, `rework`, `group-pass`, `group-discuss`, `report`,
 `peers`, `history`). Add `&run=strong` for a run where every step held. Add
 `&pathway=<p>` to create the demo assignment with that review pathway first: `none`, `indiv`,

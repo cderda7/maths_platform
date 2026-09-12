@@ -9,8 +9,10 @@ import { useAssignment } from "@/lib/classroom-store";
  * The start screen: the set's title, then every problem as one square tile in a five-wide grid so
  * the whole set sits on the iPad at once. No skill words anywhere on this screen (no summary panel,
  * no chips on the tiles); the skills a student ticks under "not confident with…" are what the
- * warm-up is about. One button, "START", in the bottom-right corner: the warm-up is offered on
- * the confidence screen, to the student who says they are not confident.
+ * warm-up is about. One button, "CONTINUE", in the bottom-right corner (the goal and the check-in
+ * come before the set, so it is not a start; ticket 154), pulsing an accent ring until pressed so
+ * the tiles are never mistaken for the way in. The warm-up is offered on the confidence screen,
+ * to the student who says they are not confident.
  */
 export default function OverviewScreen({ onStart }: { onStart: () => void }) {
   const active = useAssignment();
@@ -35,8 +37,8 @@ export default function OverviewScreen({ onStart }: { onStart: () => void }) {
       </ol>
 
       <div className="mt-auto flex shrink-0 justify-end pt-4" data-start>
-        <Button variant="accent" size="lg" className="uppercase tracking-[0.08em]" onClick={onStart}>
-          start
+        <Button variant="accent" size="lg" className="pulse-loop relative uppercase tracking-[0.08em]" onClick={onStart} data-continue>
+          continue
         </Button>
       </div>
     </div>

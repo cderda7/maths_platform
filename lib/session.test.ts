@@ -1,13 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { DEMO_CONFIDENCE, INITIAL_RUN, INITIAL_SESSION, INITIAL_WARMUP, blankProblems, hydrateSession, runProblem, sessionAt, sessionReducer, warmupFocus, warmupOffered, warmupProblem, warmupSeed, type StudentSession } from "./session";
+import { DEFAULT_ENV, DEMO_CONFIDENCE, INITIAL_RUN, INITIAL_SESSION, INITIAL_WARMUP, blankProblems, hydrateSession, runProblem, sessionAt, sessionReducer, warmupFocus, warmupOffered, warmupProblem, warmupSeed, type StudentSession } from "./session";
 import { PRACTICE, WARMUP_BANK } from "@/data/practice";
 import { warmupScript } from "./warmup";
 import { allPathways } from "./pathway";
 import type { Confidence, Pathway } from "@/data/types";
 
+/** Past the overview and the goal: the session on the confidence question. */
+const atCheckIn = () => sessionReducer(sessionReducer(INITIAL_SESSION, { type: "overview/start" }), { type: "goal/continue" });
+
 describe("student session flow", () => {
-  it("START goes to the confidence question, and \"confident\" opens Q1 with no warm-up offered", () => {
+  it("CONTINUE on the overview shows the teacher's goal, CONTINUE there the confidence question; a blank goal skips the goal screen", () => {
     let s = sessionReducer(INITIAL_SESSION, { type: "overview/start" });
+    expect(s.stage).toBe("goal");
+    expect(sessionReducer(s, { type: "overview/start" })).toBe(s);
+    expect(sessionReducer(INITIAL_SESSION, { type: "goal/continue" })).toBe(INITIAL_SESSION);
+    s = sessionReducer(s, { type: "goal/continue" });
+    expect(s.stage).toBe("confidence");
+    expect(sessionReducer(s, { type: "goal/continue" })).toBe(s);
+    for (const goal of ["", "   "]) expect(sessionReducer(INITIAL_SESSION, { type: "overview/start" }, { ...DEFAULT_ENV, goal }).stage).toBe("confidence");
+    expect(sessionAt("goal")).toEqual({ ...INITIAL_SESSION, stage: "goal" });
+  });
+
+  it("START goes to the confidence question, and \"confident\" opens Q1 with no warm-up offered", () => {
+    let s = sessionReducer(INITIAL_SESSION, { type: "overview/start" }, { ...DEFAULT_ENV, goal: "" });
     expect(s.stage).toBe("confidence");
     expect(s.practice).toBeNull();
     expect(warmupOffered(s)).toBe(false);
@@ -18,7 +33,7 @@ describe("student session flow", () => {
   });
 
   it("a not-confident answer stays on the screen with the warm-up offered; \"Start the set\" opens Q1", () => {
-    let s = sessionReducer(INITIAL_SESSION, { type: "overview/start" });
+    let s = atCheckIn();
     s = sessionReducer(s, { type: "confidence/set", confidence: { level: "low-when", leaves: ["algebra.number.fractions"] } });
     expect(s.stage).toBe("confidence");
     expect(s.practice).toBeNull();
@@ -35,14 +50,14 @@ describe("student session flow", () => {
 
   it("the offer is only open after a not-confident answer", () => {
     expect(sessionReducer(INITIAL_SESSION, { type: "warmup/accept" })).toBe(INITIAL_SESSION);
-    const asked = sessionReducer(INITIAL_SESSION, { type: "overview/start" });
+    const asked = atCheckIn();
     expect(sessionReducer(asked, { type: "warmup/accept" })).toBe(asked);
     expect(sessionReducer(asked, { type: "warmup/decline" })).toBe(asked);
     expect(sessionReducer(INITIAL_SESSION, { type: "confidence/set", confidence: { level: "low" } })).toBe(INITIAL_SESSION);
   });
 
   it("\"Warm up\" after a not-confident answer opens the concerns chat, one question per ticked skill, then the warm-up, then the set", () => {
-    let s = sessionReducer(INITIAL_SESSION, { type: "overview/start" });
+    let s = atCheckIn();
     s = sessionReducer(s, { type: "confidence/set", confidence: { level: "low-when", leaves: ["algebra.expand-factor.monic", "algebra.number.fractions"] } });
     expect(s.stage).toBe("confidence");
     s = sessionReducer(s, { type: "warmup/accept" });
@@ -68,7 +83,7 @@ describe("student session flow", () => {
   });
 
   it("an overall answer asks one open question, and what it names is the warm-up (nothing named: the default)", () => {
-    let s = sessionReducer(sessionReducer(sessionReducer(INITIAL_SESSION, { type: "overview/start" }), { type: "confidence/set", confidence: { level: "low" } }), { type: "warmup/accept" });
+    let s = sessionReducer(sessionReducer(atCheckIn(), { type: "confidence/set", confidence: { level: "low" } }), { type: "warmup/accept" });
     expect(s.stage).toBe("warmup-chat");
     expect(warmupSeed(s)).toEqual([]);
     const named = sessionReducer(sessionReducer(s, { type: "warmup/say", text: "fractions and Q2" }), { type: "warmup/begin" });
@@ -474,7 +489,7 @@ describe("final report", () => {
 });
 
 describe("routing by pathway", () => {
-  const under = (pathway: Pathway) => (s: ReturnType<typeof sessionAt>, a: Parameters<typeof sessionReducer>[1]) => sessionReducer(s, a, { pathway });
+  const under = (pathway: Pathway) => (s: ReturnType<typeof sessionAt>, a: Parameters<typeof sessionReducer>[1]) => sessionReducer(s, a, { ...DEFAULT_ENV, pathway });
   // Every problem attempted, still on the pad: a plain Hand in goes through (a blank one would open the hand-in check instead).
   const attempted = (): StudentSession => ({ ...sessionAt("feedback"), stage: "working" });
 
@@ -521,20 +536,20 @@ describe("routing by pathway", () => {
   });
 
   it("force submit on individual review without group review next follows the pathway: to the class review wait, or the report", () => {
-    const toWait = sessionReducer(sessionAt("feedback"), { type: "advance/apply", id: "r1", kind: "force-review", at: 9 }, { pathway: ["individual", "whole-class"] });
+    const toWait = sessionReducer(sessionAt("feedback"), { type: "advance/apply", id: "r1", kind: "force-review", at: 9 }, { ...DEFAULT_ENV, pathway: ["individual", "whole-class"] });
     expect(toWait.stage).toBe("waiting");
     expect(toWait.reworkedAt).toBe(9);
-    const toReport = sessionReducer(sessionAt("feedback"), { type: "advance/apply", id: "r1", kind: "force-review", at: 9 }, { pathway: ["individual"] });
+    const toReport = sessionReducer(sessionAt("feedback"), { type: "advance/apply", id: "r1", kind: "force-review", at: 9 }, { ...DEFAULT_ENV, pathway: ["individual"] });
     expect(toReport.stage).toBe("report");
     // Past the stage already: only the id is recorded.
-    const past = sessionReducer(sessionAt("report"), { type: "advance/apply", id: "r1", kind: "force-review", at: 9 }, { pathway: ["individual"] });
+    const past = sessionReducer(sessionAt("report"), { type: "advance/apply", id: "r1", kind: "force-review", at: 9 }, { ...DEFAULT_ENV, pathway: ["individual"] });
     expect(past.stage).toBe("report");
     expect(past.appliedAdvances).toEqual(["r1"]);
   });
 
   it("force submit on group review moves a student on the board on, by the pathway, and leaves everyone else where they are", () => {
-    expect(sessionReducer(sessionAt("group"), { type: "advance/apply", id: "g2", kind: "force-group", at: 9 }, { pathway: ["individual", "group", "whole-class"] }).stage).toBe("waiting");
-    expect(sessionReducer(sessionAt("group"), { type: "advance/apply", id: "g2", kind: "force-group", at: 9 }, { pathway: ["individual", "group"] }).stage).toBe("report");
+    expect(sessionReducer(sessionAt("group"), { type: "advance/apply", id: "g2", kind: "force-group", at: 9 }, { ...DEFAULT_ENV, pathway: ["individual", "group", "whole-class"] }).stage).toBe("waiting");
+    expect(sessionReducer(sessionAt("group"), { type: "advance/apply", id: "g2", kind: "force-group", at: 9 }, { ...DEFAULT_ENV, pathway: ["individual", "group"] }).stage).toBe("report");
     for (const stage of ["working", "feedback", "class-wait", "report"] as const) {
       const s = sessionReducer(sessionAt(stage), { type: "advance/apply", id: "g2", kind: "force-group", at: 9 });
       expect(s.stage, stage).toBe(stage);
@@ -634,7 +649,7 @@ describe("teacher force submit", () => {
   it("hands in as it stands, records unattempted problems, shows the notice, and follows the pathway", () => {
     let s = sessionAt("working");
     s = sessionReducer(s, { type: "line/reveal", problem: "q1", line: { tex: "x^2 - 5x + 6 = 0", strokeCount: 1 } });
-    s = sessionReducer(s, { type: "advance/apply", id: "force-submit@1", kind: "force-submit", at: 77 }, { pathway: ["whole-class"] });
+    s = sessionReducer(s, { type: "advance/apply", id: "force-submit@1", kind: "force-submit", at: 77 }, { ...DEFAULT_ENV, pathway: ["whole-class"] });
     expect(s.stage).toBe("waiting");
     expect(s.handedInAt).toBe(77);
     expect(s.notAttempted).toEqual(["q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"]);
@@ -732,7 +747,7 @@ describe("the hand-in check (ticket 115)", () => {
 
   it("Confirm submit hands in as it stands with the blanks recorded as not attempted", () => {
     let s = sessionReducer(allBut("q1", "q4"), { type: "hand-in" });
-    s = sessionReducer(s, { type: "hand-in/confirm", at: 8 }, { pathway: [] });
+    s = sessionReducer(s, { type: "hand-in/confirm", at: 8 }, { ...DEFAULT_ENV, pathway: [] });
     expect(s.stage).toBe("report");
     expect(s.handedInAt).toBe(8);
     expect(s.notAttempted).toEqual(["q1", "q4"]);

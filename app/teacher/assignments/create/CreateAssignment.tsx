@@ -6,8 +6,8 @@ import TeacherChrome from "../../TeacherChrome";
 import QuestionTile, { type TileHandlers } from "./QuestionTile";
 import { Button, Eyebrow } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
-import { DEMO_DRAFT_TITLE, DEMO_PASTE_LINES } from "@/data/draft-seed";
-import type { AssignmentDraft, DraftQuestion } from "@/lib/classroom";
+import { DEMO_DRAFT_GOAL, DEMO_DRAFT_TITLE, DEMO_PASTE_LINES } from "@/data/draft-seed";
+import { GOAL_MAX, type AssignmentDraft, type DraftQuestion } from "@/lib/classroom";
 import { dispatchClassroom, getClassroom } from "@/lib/classroom-store";
 import { parseQuestion, stemText } from "@/lib/mathInput";
 
@@ -24,19 +24,20 @@ const ghostOf = (): Q => ({ id: newId(), text: "" });
 const withGhost = (qs: Q[]): Q[] => (qs.length && qs[qs.length - 1].text === "" ? qs : [...qs, ghostOf()]);
 
 /** The draft as the store keeps it: the typed questions with their parsed shape, the empties dropped. */
-export function draftOf(title: string, qs: Q[], at: number): AssignmentDraft {
+export function draftOf(title: string, goal: string, qs: Q[], at: number): AssignmentDraft {
   const questions: DraftQuestion[] = qs
     .filter((q) => q.text.trim())
     .map((q) => {
       const p = parseQuestion(q.text);
       return { id: q.id, text: q.text, stem: stemText(p.stem), tex: p.tex };
     });
-  return { title: title.trim(), questions, updatedAt: at };
+  return { title: title.trim(), goal: goal.slice(0, GOAL_MAX), questions, updatedAt: at };
 }
 
 /**
- * The create screen, step one of a new assignment (ticket 119): the title, then the questions as
- * tiles in the five-wide grid the student's overview uses. Every tile is one question and the
+ * The create screen, step one of a new assignment (ticket 119): the title, the goal for the class
+ * (ticket 154: one or two sentences the student reads between the overview and the check-in; blank
+ * means no goal screen), then the questions as tiles in the five-wide grid the student's overview uses. Every tile is one question and the
  * grid is the editor; see `QuestionTile`. The draft is saved to the classroom store on every
  * change and read back on load, so a reload keeps it. Continue floats bottom right, on once a
  * question has text, and opens the review screen. The unit, the pathway, the skills and the
@@ -55,10 +56,11 @@ const noSubscribe = () => () => {};
  * teacher's set from `data/draft-seed` so the screen opens mid-creation with the tiles filled
  * rather than blank (ticket 121). A draft the teacher has emptied is kept empty.
  */
-function storedOrSeed(): { title: string; questions: { id: string; text: string }[] } {
+function storedOrSeed(): { title: string; goal: string; questions: { id: string; text: string }[] } {
   const d = getClassroom().draft;
-  if (d) return d;
-  return { title: DEMO_DRAFT_TITLE, questions: DEMO_PASTE_LINES.map((text, i) => ({ id: `seed-${i + 1}`, text })) };
+  // A draft stored before the goal existed has none; it is not re-seeded (the teacher may have emptied it on purpose).
+  if (d) return { ...d, goal: d.goal ?? "" };
+  return { title: DEMO_DRAFT_TITLE, goal: DEMO_DRAFT_GOAL, questions: DEMO_PASTE_LINES.map((text, i) => ({ id: `seed-${i + 1}`, text })) };
 }
 const isClient = () => true;
 const isServer = () => false;
@@ -66,13 +68,14 @@ const isServer = () => false;
 function Editor() {
   const router = useRouter();
   const [title, setTitle] = useState(() => storedOrSeed().title);
+  const [goal, setGoal] = useState(() => storedOrSeed().goal);
   const [qs, setQs] = useState<Q[]>(() => withGhost(storedOrSeed().questions.map((q) => ({ id: q.id, text: q.text }))));
   const [focusId, setFocusId] = useState<string | null>(() => qs[qs.length - 1].id);
   const [removed, setRemoved] = useState<{ q: Q; index: number } | null>(null);
 
   useEffect(() => {
-    dispatchClassroom({ type: "draft/set", draft: draftOf(title, qs, Date.now()) });
-  }, [title, qs]);
+    dispatchClassroom({ type: "draft/set", draft: draftOf(title, goal, qs, Date.now()) });
+  }, [title, goal, qs]);
 
   const edit = (f: (qs: Q[]) => Q[]) => {
     setRemoved(null);
@@ -131,7 +134,7 @@ function Editor() {
   const any = qs.some((q) => q.text.trim());
   const proceed = () => {
     if (!any) return;
-    dispatchClassroom({ type: "draft/set", draft: draftOf(title, qs, Date.now()) });
+    dispatchClassroom({ type: "draft/set", draft: draftOf(title, goal, qs, Date.now()) });
     router.push(REVIEW_PATH);
   };
 
@@ -150,7 +153,30 @@ function Editor() {
         data-title
       />
 
-      <ol className="mt-8 grid grid-cols-5 gap-4" onKeyDownCapture={gridKey} data-questions>
+      <div className="mt-6 max-w-3xl" data-goal>
+        <label htmlFor="goal" className="block text-[11px] font-semibold tracking-[0.12em] uppercase text-ink-muted">
+          Goal for the class
+        </label>
+        <p className="mt-1 text-[13.5px] text-ink-muted">Write a goal-oriented message for the class. This will be displayed on student screens before they start the assignment.</p>
+        <textarea
+          id="goal"
+          value={goal}
+          rows={3}
+          maxLength={GOAL_MAX}
+          onChange={(e) => {
+            setRemoved(null);
+            setGoal(e.target.value.slice(0, GOAL_MAX));
+          }}
+          placeholder="By the end of this set I want you to…"
+          className="mt-2 w-full resize-none rounded-xl border border-line bg-paper px-4 py-3 text-[15px] leading-[1.45] text-ink outline-none transition-colors placeholder:text-ink-muted/50 focus:border-accent"
+          data-goal-input
+        />
+        <p className="mt-1 text-right text-[12px] tabular-nums text-ink-muted" data-goal-count>
+          {goal.length} / {GOAL_MAX}
+        </p>
+      </div>
+
+      <ol className="mt-6 grid grid-cols-5 gap-4" onKeyDownCapture={gridKey} data-questions>
         {qs.map((q, i) => (
           <li key={q.id} className="aspect-square min-h-0" data-question={i + 1}>
             <QuestionTile index={i} text={q.text} ghost={i === qs.length - 1} focused={focusId === q.id} h={handlers(i, q)} />

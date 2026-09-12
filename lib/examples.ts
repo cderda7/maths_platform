@@ -2,7 +2,7 @@ import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
 import { STANDOUT } from "@/data/evaluation";
 import { leafName, unitOf, type LeafId } from "@/data/taxonomy";
-import type { Problem } from "@/data/types";
+import { BEFORE_HAND_IN_STAGES, type Problem } from "@/data/types";
 import { evaluateLine } from "./evaluate";
 import type { GroupRun } from "./groupReview";
 import { classmateLines } from "./hierarchy";
@@ -92,7 +92,7 @@ function liveLines(session: StudentSession, problemId: string): string[] {
   return (rw.length > 0 ? rw : (session.lines[problemId] ?? [])).map((l) => l.tex);
 }
 
-const HANDED_IN = ["overview", "confidence", "warmup-chat", "practice", "working"];
+const HANDED_IN = BEFORE_HAND_IN_STAGES;
 
 const candidate = (studentId: string, name: string, problemId: string, lines: string[]): Candidate => ({ studentId, name, problemId, lines, bucket: bucketOf(problemId, lines), mistake: mistakeOf(problemId, lines) });
 

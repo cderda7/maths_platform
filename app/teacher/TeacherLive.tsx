@@ -16,7 +16,7 @@ import { ASSIGNMENT, DEMO_STUDENT, unitLabel } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
 import { categoryLabel, categoryName, categoryOf, isFlat, type CategoryId, type LeafId } from "@/data/taxonomy";
 import { confidenceLabel, confidenceLines } from "@/lib/report";
-import type { Confidence } from "@/data/types";
+import { BEFORE_HAND_IN_STAGES, type Confidence } from "@/data/types";
 import { currentSlide } from "@/lib/classroom";
 import { useAssignment, useClassroom } from "@/lib/classroom-store";
 import { classStages } from "@/lib/classStage";
@@ -79,7 +79,7 @@ function ago(ms: number | null, now: number): string {
   return s <= 1 ? "just now" : `${s}s ago`;
 }
 
-const HANDED_IN = ["overview", "confidence", "warmup-chat", "practice", "working"];
+const HANDED_IN = BEFORE_HAND_IN_STAGES;
 
 /**
  * "Where the class is": one row per student, one column per category the assignment touches

@@ -50,6 +50,7 @@ export default function ReviewAssignment({ assessMs }: { assessMs: number }) {
       problemIds: bankProblemsOf(final).map((p) => p.id),
       pathway: review.pathway,
       unit: review.unit ?? inferUnitFromReviewed(final),
+      goal: draft.goal ?? "",
       questions: final,
     });
     dispatchClassroom({ type: "draft/set", draft: null });

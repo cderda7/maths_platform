@@ -4,6 +4,7 @@ import { useEffect, useSyncExternalStore } from "react";
 import type { Stage } from "@/data/types";
 import { INITIAL_SESSION, hydrateSession, sessionAt, sessionReducer, type RunKindParam, type SessionAction, type StudentSession } from "./session";
 import { pathwayOf } from "./classroom";
+import { activeAssignment } from "./assignment";
 import { getClassroom, resetClassroom } from "./classroom-store";
 
 /**
@@ -83,7 +84,7 @@ export function setSession(next: StudentSession | null) {
 export function dispatch(action: SessionAction) {
   const stamped: SessionAction =
     action.type === "hand-in" || action.type === "hand-in/confirm" || (action.type === "goto" && action.stage === "feedback") || action.type === "rework/done" ? { ...action, at: Date.now() } : action;
-  setSession(sessionReducer(getSnapshot() ?? INITIAL_SESSION, stamped, { pathway: pathwayOf(getClassroom()) }));
+  setSession(sessionReducer(getSnapshot() ?? INITIAL_SESSION, stamped, { pathway: pathwayOf(getClassroom()), goal: activeAssignment(getClassroom()).goal }));
 }
 
 /** Back to the start in every tab: a fresh session and an empty classroom, so deep-linked tabs move too. */

@@ -2784,3 +2784,34 @@ answer, hidden from assistive technology and the tab order.
 iPad stage at scale 1 and fails on any drift. A shared frame is the natural next step if a third
 screen wants the same corner (noted in `FUTURE_FEATURES.md`); until then the nested column keeps
 the content's geometry to the pixel (x 242 → 938 before and after) while only the button moves.
+
+## 2026-09-12 · The goal is a stage of the session, and blank means no screen
+
+**Decision.** The teacher's goal for the class (ticket 154) is a `Stage` of the student session
+(`goal`, between `overview` and `confidence`), entered by `overview/start` only when the goal in
+force is non-blank and left by `goal/continue`. The goal reaches the reducer through
+`SessionEnv`, beside the pathway, from the active assignment. A blank goal is a blank goal: no
+screen, CONTINUE opens the check-in. The fixture's never-rendered `intro` is replaced by `goal`
+rather than kept beside it, and the six copies of the "stages before hand-in" list become one
+exported constant.
+
+**Context.** The user wants a goal written at creation, broadcast to every student once, after
+the overview's button and before the confidence check-in; the button renamed CONTINUE because
+the student is not starting yet. The goal lives on the classroom (the assignment), the screen
+sequence on the session.
+
+**Alternatives considered.** A `goalSeen` flag on the overview stage (no new stage, but every
+reader of `stage === "overview"` would have needed the flag too, and the deep link and the
+skip-to fixture would have had to fake it). Always entering `goal` and letting the screen skip
+itself when blank (a one-frame flash, and a stage the student never sees in the stored run).
+Keeping `intro` next to `goal` (two descriptions that mean nearly the same thing). Leaving the
+six stage lists as they were and adding `"goal"` to each (a seventh copy next time).
+
+**Tradeoffs.** A new stage touches every stage list, which is why the lists were unified first;
+`SessionEnv` grows a field every test that builds one by hand must spread from `DEFAULT_ENV`. An
+assignment stored before the field reads the fixture's goal (so running demos keep showing the
+message) rather than none, a choice about old localStorage, not about product.
+
+**Defence.** One dimension for "where is the student", read the same way by the deep links, the
+skip strip, the reload and the teacher's live row; the reducer decides the skip from the same env
+that already decides the pathway, so the rule is a unit test, not a screen's effect.

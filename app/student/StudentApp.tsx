@@ -3,6 +3,7 @@
 import IpadStage from "@/components/IpadStage";
 import StudentChrome from "./StudentChrome";
 import OverviewScreen from "./screens/OverviewScreen";
+import GoalScreen from "./screens/GoalScreen";
 import PracticeScreen from "./screens/PracticeScreen";
 import WarmupChatScreen from "./screens/WarmupChatScreen";
 import ConfidenceScreen from "./screens/ConfidenceScreen";
@@ -54,11 +55,11 @@ const CRUMB: Partial<Record<Stage, string>> = {
 export default function StudentApp({ initStage, explicit, run = "weak", pathway = null }: { initStage: Stage; explicit: boolean; run?: RunKindParam; pathway?: Pathway | null }) {
   useEffect(() => {
     // A `?pathway=` deep link creates the demo assignment with that pathway before the run starts.
-    if (pathway) dispatchClassroom({ type: "assignment/create", title: ASSIGNMENT.title, problemIds: ASSIGNMENT.problems.map((p) => p.id), pathway });
+    if (pathway) dispatchClassroom({ type: "assignment/create", title: ASSIGNMENT.title, problemIds: ASSIGNMENT.problems.map((p) => p.id), pathway, goal: ASSIGNMENT.goal });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const session = useStudentSession(initStage, explicit, run);
-  const { title } = useAssignment();
+  const { title, goal } = useAssignment();
   const classroom = useClassroom();
   const now = useNow();
   const advance = classroom.advance;
@@ -129,6 +130,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
         {session.stage === "overview" && (
           <OverviewScreen onStart={() => dispatch({ type: "overview/start" })} />
         )}
+        {session.stage === "goal" && <GoalScreen goal={goal} onContinue={() => dispatch({ type: "goal/continue" })} />}
         {session.stage === "warmup-chat" && <WarmupChatScreen session={session} dispatch={dispatch} />}
         {session.stage === "practice" && <PracticeScreen session={session} dispatch={dispatch} />}
         {session.stage === "confidence" && (

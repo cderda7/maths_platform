@@ -1,3 +1,5 @@
+import { ASSIGNMENT } from "./assignment";
+
 /**
  * The demo teacher's draft, as typed on the create screen (ticket 121): the bank's set in the
  * editor's own shorthand, one line per question. The create screen seeds an empty store with it,
@@ -26,3 +28,6 @@ export const DEMO_PASTE = DEMO_PASTE_LINES.join("\n");
 
 /** The draft's title: the bank's set, as the teacher would type it (the bank's own is upper-cased for the student's eyebrow). */
 export const DEMO_DRAFT_TITLE = "Roots of a quadratic — Set 3";
+
+/** The draft's goal for the class (ticket 154): the fixture's, so the create screen opens with the message written and the student sees the same one either way. */
+export const DEMO_DRAFT_GOAL = ASSIGNMENT.goal;

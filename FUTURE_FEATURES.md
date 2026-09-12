@@ -2012,6 +2012,30 @@ agents add sections above it and leave it alone.
   board. `MAX_EXAMPLES` stays three (the board's columns); a fourth column when the problem
   has four distinct workings worth showing, deferred.
 
+## The teacher's goal for the class (from ticket 154, 2026-09-12)
+
+- **The teacher sees the goal back.** Creation is the only teacher-side view of the goal for
+  now; the assignment overview, the class view and the projected board could show it (and the
+  board could open the lesson with it). Deferred until asked for.
+- **A pill for the goal.** The goal is a sub-step of the start, not a stage on the header's
+  pathway strip or the teacher's Pathway card. Set aside: it is a twenty-second read.
+- **A student's own goal.** Carson's note: later, student self-identification of a goal after
+  reading the teacher's. The screen has room under the bubble for it.
+- **A message to the not-confident.** Carson's note: low-confidence students receive a message
+  from the teacher (acknowledging feelings). The same field shape, shown after the check-in
+  rather than before; deferred.
+- **Rich text, a cap the teacher can feel.** Plain text, line breaks kept, 280 characters with a
+  counter; the textarea refuses more rather than warning. Bold, a link, a longer message with a
+  scrolling bubble, all set aside.
+- **The bubble at three lines or fewer.** The bubble's size follows the text; a one-line goal
+  sits in a wide bubble with air at the sides. A narrower bubble for short goals, deferred.
+- **The pulse on later CONTINUEs.** Only the overview's button pulses (the tiles beside it are
+  what confuses); the goal and check-in buttons are the only thing on their screens. A pulse
+  that starts after a few seconds of no click, and a pulse that stops after three beats, were
+  both set aside for the continuous slow ring.
+- **The older create screen.** `/teacher/assignments/new` has no goal field; an assignment
+  created there reads the fixture's goal. Left as is: the screen is reachable by URL only.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

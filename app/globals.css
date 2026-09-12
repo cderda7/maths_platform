@@ -186,6 +186,26 @@ body {
   }
 }
 
+/* The overview's CONTINUE (ticket 154): the same accent ring, slow and without end, until the button is pressed; the tiles are not buttons and this is. Reduced motion holds a soft halo instead. The element must be positioned. */
+@keyframes pulse-loop {
+  0% { box-shadow: 0 0 0 0 rgb(91 74 232 / 0.45); }
+  70%, 100% { box-shadow: 0 0 0 16px rgb(91 74 232 / 0); }
+}
+.pulse-loop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: pulse-loop 2000ms ease-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pulse-loop::after {
+    animation: none;
+    box-shadow: 0 0 0 6px rgb(91 74 232 / 0.22);
+  }
+}
+
 /* The setup page's Student screens options flash light blue, once, when Project is pressed with neither chosen (ticket 147; one beat since 149): the cue points at the choice. Colours only; the element keeps its own layout. */
 @keyframes choose-flash {
   0%, 100% { background-color: var(--color-paper); border-color: var(--color-line); }

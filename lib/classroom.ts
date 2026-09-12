@@ -21,6 +21,8 @@ export interface CreatedAssignment {
   /** The confirmed QCAA unit for Unit Focus. */
   unit: 1 | 2 | 3 | 4;
   createdAt: number;
+  /** The teacher's goal for the class (ticket 154), as written; absent in assignments stored before it. */
+  goal?: string;
   /**
    * The finalised set as the teacher typed and reviewed it (ticket 120), every question whether
    * or not the bank holds it; `problemIds` is the part of it the student side can run.
@@ -76,9 +78,14 @@ export interface DraftQuestion {
   tex: string | null;
 }
 
+/** The most a goal for the class can be: one or two sentences, so it fits the student's bubble. */
+export const GOAL_MAX = 280;
+
 /** The assignment being created: the create screen writes it, the review screen reads it. */
 export interface AssignmentDraft {
   title: string;
+  /** The goal for the class as typed, at most `GOAL_MAX` characters; absent in drafts stored before ticket 154. */
+  goal?: string;
   questions: DraftQuestion[];
   updatedAt: number;
 }
@@ -120,7 +127,7 @@ export interface ClassroomState {
 }
 
 export type ClassroomAction =
-  | { type: "assignment/create"; title: string; problemIds: string[]; pathway: Pathway; unit?: 1 | 2 | 3 | 4; questions?: ReviewedQuestion[]; at?: number }
+  | { type: "assignment/create"; title: string; problemIds: string[]; pathway: Pathway; unit?: 1 | 2 | 3 | 4; goal?: string; questions?: ReviewedQuestion[]; at?: number }
   /** The create screen's draft as typed; null clears it. */
   | { type: "draft/set"; draft: AssignmentDraft | null }
   /** The review step's decisions; null clears them. */
@@ -179,7 +186,7 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
     case "review/set":
       return { ...c, review: a.review };
     case "assignment/create":
-      return { ...c, assignment: { title: a.title, problemIds: [...a.problemIds], pathway: [...a.pathway], unit: a.unit ?? 1, createdAt: a.at ?? 0, ...(a.questions ? { questions: a.questions.map((q) => ({ ...q })) } : {}) } };
+      return { ...c, assignment: { title: a.title, problemIds: [...a.problemIds], pathway: [...a.pathway], unit: a.unit ?? 1, createdAt: a.at ?? 0, ...(a.goal !== undefined ? { goal: a.goal } : {}), ...(a.questions ? { questions: a.questions.map((q) => ({ ...q })) } : {}) } };
     case "advance/start": {
       const at = a.at ?? 0;
       return { ...c, advance: { id: `${a.kind}@${at}`, kind: a.kind, deadline: at + GRACE_MS } };

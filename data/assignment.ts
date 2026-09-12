@@ -152,7 +152,7 @@ export const ASSIGNMENT: Assignment = {
   teacher: "Ms Okafor",
   due: "Thu 10 Sep",
   unit: { number: 1, topic: "Topic 2", title: "Functions and graphs" },
-  intro: "Ten problems on finding where a quadratic crosses the x-axis, and what its graph shows.",
+  goal: "By the end of this set I want every one of you to look at a quadratic and choose a method on purpose: factorise, complete the square, or the formula, and say why. Getting stuck is part of it. Write down what you tried, not just the answer.",
   problems: PROBLEMS,
 };
 

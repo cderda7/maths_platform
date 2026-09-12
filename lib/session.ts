@@ -1,4 +1,4 @@
-import type { ChatMessage, Confidence, Pathway, PracticeProblem, Stage, Stroke } from "@/data/types";
+import { BEFORE_HAND_IN_STAGES, type ChatMessage, type Confidence, type Pathway, type PracticeProblem, type Stage, type Stroke } from "@/data/types";
 import { pickHint, stalledHint } from "./hint";
 import { groupOf, type LeafId } from "@/data/taxonomy";
 import { PRACTICES } from "@/data/practice";
@@ -142,8 +142,10 @@ export type SessionAction =
   | { type: "hand-in/return"; index: number }
   /** A teacher advance whose grace has run out. Idempotent by id. */
   | { type: "advance/apply"; id: string; kind: AdvanceKind; at?: number }
-  /** START on the overview: on to the confidence question. */
+  /** CONTINUE on the overview: on to the teacher's goal when there is one, else the confidence question. */
   | { type: "overview/start" }
+  /** CONTINUE on the goal screen: on to the confidence question. */
+  | { type: "goal/continue" }
   /** The confidence answer. "confident" opens Q1; either not-confident answer stays on the screen with the warm-up offered. */
   | { type: "confidence/set"; confidence: Confidence }
   /** The offer after a not-confident answer: "Warm up" opens the concerns chat, "Start the set" opens Q1. */
@@ -294,8 +296,10 @@ function hydrateHinted(run: { hinted?: unknown }): Record<string, number[]> {
 /** What the reducer needs from outside the session: the pathway in force. */
 export interface SessionEnv {
   pathway: Pathway;
+  /** The teacher's goal for the class; blank means the goal screen is skipped. */
+  goal: string;
 }
-export const DEFAULT_ENV: SessionEnv = { pathway: DEFAULT_PATHWAY };
+export const DEFAULT_ENV: SessionEnv = { pathway: DEFAULT_PATHWAY, goal: ASSIGNMENT.goal };
 
 export function sessionReducer(s: StudentSession, a: SessionAction, env: SessionEnv = DEFAULT_ENV): StudentSession {
   switch (a.type) {
@@ -339,7 +343,9 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       return applied;
     }
     case "overview/start":
-      return s.stage === "overview" ? { ...s, stage: "confidence" } : s;
+      return s.stage === "overview" ? { ...s, stage: env.goal.trim() ? "goal" : "confidence" } : s;
+    case "goal/continue":
+      return s.stage === "goal" ? { ...s, stage: "confidence" } : s;
     case "confidence/set":
       if (s.stage !== "confidence" || s.confidence) return s;
       return a.confidence.level === "confident" ? { ...s, confidence: a.confidence, practice: "declined", stage: "working" } : { ...s, confidence: a.confidence };
@@ -508,7 +514,7 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
   }
 }
 
-const BEFORE_HAND_IN: Stage[] = ["overview", "confidence", "warmup-chat", "practice", "working"];
+const BEFORE_HAND_IN = BEFORE_HAND_IN_STAGES;
 
 /** The leaf to practise for a mistake: its own practice, else another leaf in the same group that has one; never a whole-task leaf. */
 export function practiceLeaf(leaf: LeafId): LeafId | null {
@@ -614,7 +620,7 @@ function roundStroke(s: Stroke): Stroke {
   return s.map((p) => ({ x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10 }));
 }
 
-const ORDER: Stage[] = ["overview", "confidence", "warmup-chat", "practice", "working", "feedback", "waiting", "frozen", "class-wait", "group", "report", "peers", "history"];
+const ORDER: Stage[] = ["overview", "goal", "confidence", "warmup-chat", "practice", "working", "feedback", "waiting", "frozen", "class-wait", "group", "report", "peers", "history"];
 
 /** Fixed times for deep-linked runs: handed in at 3:48 pm, rework done at 4:07 pm, today. */
 const todayAt = (h: number, m: number) => {

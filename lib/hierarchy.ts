@@ -1,7 +1,7 @@
 import { ASSIGNMENT } from "@/data/assignment";
 import { isolatable } from "@/data/practice";
 import { ALL_LEAVES, CATEGORY_ORDER, categoryOf, groupsOf, leavesOf, type CategoryId, type GroupId, type LeafId } from "@/data/taxonomy";
-import type { Problem, Status } from "@/data/types";
+import { BEFORE_HAND_IN_STAGES, type Problem, type Status } from "@/data/types";
 import { evaluateLine } from "./evaluate";
 
 /**
@@ -147,7 +147,7 @@ export function classmateLines(c: Classmate, p: Problem, index: number): string[
   return null;
 }
 
-const BEFORE_HAND_IN = ["overview", "confidence", "warmup-chat", "practice", "working"];
+const BEFORE_HAND_IN = BEFORE_HAND_IN_STAGES;
 
 /** The live student's first-attempt lines, whether they have handed in, and any groups under caution. */
 export function sessionEvidence(session: StudentSession): Evidence {

@@ -78,7 +78,7 @@ export default function ConfidenceScreen({
     <div className="flex h-full min-h-0 flex-col px-10 pt-6 pb-5">
       {/* The same frame as the start screen, so the button row below lands where START was. */}
       <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-col px-9" data-confidence-column>
-        <Eyebrow>Before you start</Eyebrow>
+        <Eyebrow>Check in</Eyebrow>
         <h1 className="font-display mt-2 text-[32px] leading-tight text-ink">How confident are you?</h1>
 
       <div className={`mt-5 min-h-0 space-y-3 overflow-y-auto pb-2 transition-opacity duration-300 ${locked ? "pointer-events-none opacity-50" : ""}`} aria-disabled={locked} data-answers>

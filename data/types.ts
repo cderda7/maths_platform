@@ -64,7 +64,8 @@ export interface Assignment {
   teacher: string;
   due: string;
   unit: UnitRef;
-  intro: string;
+  /** The teacher's goal for the class (ticket 154): shown to every student once, between the overview and the check-in. Blank means no goal screen. */
+  goal: string;
   /** Ordered set of core problems. */
   problems: Problem[];
 }
@@ -83,6 +84,8 @@ export type Stroke = Point[];
 /** Where the student is in the closed loop. Each stage is one screen on the iPad. */
 export type Stage =
   | "overview"
+  /** The teacher's goal for the class, read once after CONTINUE on the overview; skipped when the goal is blank. */
+  | "goal"
   | "confidence"
   /** The concerns chat after the confidence answer: one question per ticked skill, then the warm-up. */
   | "warmup-chat"
@@ -98,6 +101,9 @@ export type Stage =
   | "report"
   | "peers"
   | "history";
+
+/** The stages before the set is handed in, in order: the one meaning of "still working" (the class stage, force submit, the live row, the hierarchy's evidence, the examples). */
+export const BEFORE_HAND_IN_STAGES: readonly Stage[] = ["overview", "goal", "confidence", "warmup-chat", "practice", "working"];
 
 /**
  * The review stages a teacher can put after 1st submit. Order is fixed (individual < group <
