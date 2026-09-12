@@ -23,16 +23,22 @@ still holds it).
 ```bash
 npm install
 npm run dev        # http://localhost:3000
-npm test           # vitest: 208 tests over the pure logic in lib/
+npm test           # vitest: 475 tests over the pure logic in lib/
 npm run lint && npx tsc --noEmit && npm run build
 npx next start -p 3121 & npm run check:laptop   # every teacher route at 1440×900 and 1280×800, fails on horizontal overflow
+EXTRACT_FIXTURES=1 npm run dev                  # problem extraction answers from fixtures/extract instead of the model (no key needed)
+node scripts/render-extract-fixtures.mjs        # re-render those fixtures from the demo set (headless Chrome + KaTeX)
 ```
 
-The help chat on the practice pad ("I need help" → chat, ticket 69) is the one thing that leaves the
-browser: `POST /api/help-chat` streams a reply from Claude through the Anthropic SDK. Put an
-`ANTHROPIC_API_KEY=…` in `.env.local` (gitignored) before `npm run dev` or `next start` to connect
-it; without one the route answers 503 and the tutor's bubble says the chat isn't connected on this
-device. Everything else in the demo still runs offline.
+Two things leave the browser, both through the Anthropic SDK: the help chat on the practice pad
+("I need help" → chat, ticket 69), `POST /api/help-chat` streaming a reply from Claude, and problem
+extraction (ticket 170), `POST /api/extract` turning typed text, a screenshot or a PDF into problem
+drafts streamed one per line. Put an `ANTHROPIC_API_KEY=…` in `.env.local` (gitignored) before
+`npm run dev` or `next start` to connect them; without one both routes answer 503, the tutor's bubble
+says the chat isn't connected on this device, and the create screen says the upload needs the model.
+`EXTRACT_FIXTURES=1` makes extraction answer from `fixtures/extract/` (rendered from the demo set,
+matched by the file's hash; typed text through the shorthand parser) so it runs without a key.
+Everything else in the demo still runs offline.
 
 Open **/** and pick a side. Use tabs of the same browser: the student iPad in one, the teacher in
 another, the board in a third when projecting. Or open **/split** to see any one, two or all
@@ -214,7 +220,9 @@ Useful starts: `/student?stage=working&pathway=wc` (hand in, wait for the board)
 - `components/` the presentational kit, the drawpad, `InkView`, the pad and transcription columns.
 - `data/` all fixtures: the assignment, subskills, practice problems, scripted recognition
   (including the Q4 rework slip), the evaluation table with clues and standouts, classmates,
-  the diagnostic.
+  the diagnostic, and what extraction answers in fixture mode; `fixtures/extract/` the rendered
+  files a teacher would drop (a problem, a worksheet, a three-page PDF) and their manifest, made by
+  `scripts/render-extract-fixtures.mjs`.
 - `lib/` pure logic with vitest: the student session reducer and store; the classroom reducer and
   store (assignment, advances, whole-class session); pathway rules; active assignment; detective
   summary and the guard; examples and marks for the board; the frozen view; recognition,

@@ -1,0 +1,140 @@
+{
+  "generatedBy": "scripts/render-extract-fixtures.mjs",
+  "files": {
+    "one-problem.png": {
+      "drafts": [
+        {
+          "source": 0,
+          "stem": "Solve for x.",
+          "tex": "x^2 + 5x + 6 = 0"
+        }
+      ],
+      "hash": "87d820906c6b7b63ac90c1259323d0f7d762c5e170fc5da93a11847c73e4d3ee"
+    },
+    "worksheet.png": {
+      "drafts": [
+        {
+          "source": 0,
+          "label": "1",
+          "stem": "Solve for x.",
+          "tex": "x^2 + 5x + 6 = 0"
+        },
+        {
+          "source": 0,
+          "label": "2",
+          "stem": "Solve for x.",
+          "tex": "2x^2 + 7x - 4 = 0"
+        },
+        {
+          "source": 0,
+          "figure": {
+            "x0": 0.175,
+            "y0": 0.492,
+            "x1": 0.519,
+            "y1": 0.739
+          },
+          "label": "3",
+          "stem": "Find the x-intercepts and the turning point of the graph of",
+          "tex": "y = x^2 - 4x - 5"
+        },
+        {
+          "source": 0,
+          "label": "4",
+          "stem": "Solve for x.",
+          "tex": "(x+1)(x-4) = 6"
+        }
+      ],
+      "hash": "e377f336c009017492c20b65f13ac1fa1cd170fb7f22982dc53283f8c239516e"
+    },
+    "worksheet.pdf": {
+      "pages": 3,
+      "drafts": [
+        {
+          "source": 0,
+          "page": 1,
+          "label": "1",
+          "stem": "Solve for x.",
+          "tex": "x^2 + 5x + 6 = 0"
+        },
+        {
+          "source": 0,
+          "page": 1,
+          "label": "2",
+          "stem": "Solve for x.",
+          "tex": "2x^2 + 7x - 4 = 0"
+        },
+        {
+          "source": 0,
+          "page": 1,
+          "label": "3",
+          "stem": "Find all values of x for which the following holds.",
+          "tex": "(x-3)(x+2) = 6"
+        },
+        {
+          "source": 0,
+          "page": 1,
+          "label": "4",
+          "stem": "Solve, giving exact values.",
+          "tex": "3x^2 - 5x - 1 = 0"
+        },
+        {
+          "source": 0,
+          "page": 2,
+          "figure": {
+            "page": 2,
+            "x0": 0.181,
+            "y0": 0.12,
+            "x1": 0.458,
+            "y1": 0.253
+          },
+          "label": "5",
+          "stem": "Find the x-intercepts and the turning point of the graph of",
+          "tex": "y = x^2 - 4x - 5"
+        },
+        {
+          "source": 0,
+          "page": 2,
+          "label": "6",
+          "stem": "For which value of k does the graph of the following touch the x-axis exactly once?",
+          "tex": "y = x^2 + 6x + k"
+        },
+        {
+          "source": 0,
+          "page": 2,
+          "label": "7",
+          "stem": "Factorise fully.",
+          "tex": "\\frac{1}{3}x^2 + 2x + \\frac{8}{3}"
+        },
+        {
+          "source": 0,
+          "page": 3,
+          "figure": {
+            "page": 3,
+            "x0": 0.181,
+            "y0": 0.12,
+            "x1": 0.458,
+            "y1": 0.253
+          },
+          "label": "8",
+          "stem": "The graph of the following is shown. Read off its x-intercepts and check them.",
+          "tex": "y = x^2 - 4x + 3"
+        },
+        {
+          "source": 0,
+          "page": 3,
+          "label": "9(a)",
+          "stem": "Show that the following has no real solutions.",
+          "tex": "x^2 + 4x + 5 = 0"
+        },
+        {
+          "source": 0,
+          "page": 3,
+          "label": "9(b)",
+          "stem": "Say what that means for the graph of $y = x^2 + 4x + 5$.",
+          "tex": null
+        }
+      ],
+      "hash": "961a57f1cb18134556f941ce00e6632d35138a1b39d15a323315031cd46078c7"
+    }
+  }
+}

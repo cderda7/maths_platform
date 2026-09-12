@@ -2330,6 +2330,32 @@ uploaded problems) settled the following as later, each on purpose.
 - **The half pill's tint.** A half pill (problems skipped) fades its right half to a 45 % tint of
   the status colour under white text; the key at the bottom still draws the half dot as a grey
   left half. Whether the key should show the new pill treatment was not asked.
+## The extraction route (from ticket 170, 2026-09-13)
+
+- **The live model unverified from this machine.** No key or CLI profile here, so the one-problem
+  fixture has not been through the real model; the acceptance item is open. First run with a key:
+  drop each fixture, read the drafts against the manifest, and tune the brief where they differ.
+- **Effort and thinking for extraction.** The route sends the model's defaults (adaptive thinking,
+  default effort). A worksheet read is a reading task; a lower effort would be faster and cheaper
+  and may read as well. Measure on real worksheets before setting it.
+- **Dropped lines are counted, not shown.** `done` carries `dropped`; nothing on the screen says
+  "the model wrote 2 lines that did not parse" yet (ticket 171 could word it in the bar).
+- **The server-side page cap is best effort.** `pdfPageCount` counts `/Type /Page` objects; a PDF
+  with compressed object streams reads as unknown and passes to the model. The browser counts for
+  real (ticket 172); a server-side PDF library would make the route's own cap exact.
+- **Image transforms.** The API can transform images server-side (`transform` on an image block);
+  a photographed page could be deskewed or downscaled there. Not set.
+- **A refusal mid-stream.** A source the model declines with nothing emitted gets an `error`
+  "declined"; a refusal after some drafts is treated as done. No retry on a fallback beyond the
+  API's own `fallbacks: "default"`.
+- **Fixtures for handwriting and photos.** The rendered fixtures are clean KaTeX; a photographed
+  or handwritten page fixture (licensed) would test the real cases. The render script is the
+  place to add a page with skew or shadow.
+- **The fixture beat is a constant.** 120 ms per draft in fixture mode (`FIXTURE_BEAT_MS`); a
+  slower beat would show the shimmer longer in a demo. An env knob is one line.
+- **One request for several sources.** The route accepts many sources per request and the model
+  tags each draft with its source; the client (ticket 171) sends one request per file for
+  parallelism. If per-request cost matters, several small images could share one request.
 
 ## Carson's notes
 

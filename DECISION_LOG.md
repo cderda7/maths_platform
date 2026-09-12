@@ -3240,3 +3240,43 @@ surfaces no longer draw the category marker the same way.
 the equal width the user asked for comes from the grid itself rather than a measurement that can
 lag a render. The fitted size keeps the rule true on both surfaces without a per-surface constant,
 and the narrower panel is the user's own call on where the room should go.
+## 2026-09-13 · Extraction streams JSON lines as the model's text, not a structured output; fixtures are matched by hash (ticket 170)
+
+**Decision.** The extractor's brief asks the model to write one JSON object per line and nothing
+else, and the route cuts the text stream into lines as it arrives, parses each with
+`parseDraftLine`, and sends it on at once as an NDJSON event; a line that is not a draft (a
+fence, a stray word, bad JSON) is dropped and counted on the `done` event, never fatal. The route
+takes a PDF as a native document block and an image as an image block, so nothing is rasterised
+or OCR'd on the server. In fixture mode the route answers from `fixtures/extract/manifest.json`
+by the SHA-256 of the dropped bytes (typed text goes through the shorthand parser, with a small
+table of plain-English lines), one draft per 120 ms beat, so the client's streaming path runs
+without a key.
+
+**Context.** The interview settled that drafts stream in one at a time so a teacher watching a
+worksheet turn into tiles knows it is working (Q16). The API's structured outputs
+(`output_config.format`) guarantee a schema but arrive as one object at the end of the turn;
+a tool call streams its input as JSON deltas that are not parseable per draft. The help chat
+route already streams text deltas, so the same shape carries drafts one line at a time.
+
+**Alternatives.** *Structured outputs*: schema-guaranteed, but the first tile would appear only
+when the last problem was read; for a ten-page PDF that is the "blank grid for a minute" the
+interview rejected. *One tool call per draft*: a round trip per problem, ten model turns for
+ten problems. *Rasterise PDFs server-side and send page images*: a sharp/pdf dependency and a
+second copy of every page over the wire when the API reads the PDF itself; the browser draws
+pages for thumbnails with pdfjs (ticket 172), the API reads the document. *Fixtures by file name*:
+any file called `worksheet.png` would match; by hash, only the rendered bytes do, and a wrong
+fixture shows on screen as "No fixture for …" rather than as silence.
+
+**Tradeoffs.** A free-text line is only as well-formed as the model makes it: the parser is
+strict (a draft with neither stem nor TeX is dropped, a bad figure is dropped with the draft
+kept) and the count of dropped lines rides on `done` so the screen can say "n lines unread".
+The server-side page cap is best effort (`pdfPageCount` counts page objects; compressed object
+streams read as unknown and pass); the browser's pdfjs count is the real gate (ticket 172).
+Re-rendering the fixtures changes their hashes, so the manifest and the files move together
+and a vitest test fails if they drift. The live model has not been run on the fixtures from this
+machine (no key here); the parser and the brief are tested, the model's actual output is not.
+
+**Defense.** The stream is what the tiles need (a problem at a time, in reading order), the
+parser is tested against everything a model might write around its lines, and the fixture
+mode exercises the same client code the model does, so the screens in tickets 171–173 are built
+against the real route's shape with deterministic content.

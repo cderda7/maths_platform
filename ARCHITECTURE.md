@@ -3,8 +3,8 @@
 Running architecture record for the closed-loop demo. One row per completed ticket, in build
 order (01–16 spec v2, 17–25 spec v3); per-ticket detail lives in `architecture/<nn>-<slug>.md`. Paths below are
 relative to the repo root. Next.js 16 App Router, React 19, Tailwind 4, KaTeX; no backend beyond
-the one route the help chat streams through (`/api/help-chat`, ticket 69), all data static under
-`data/`. The Sept 7 mockup was removed on 10 Sep 2026 (ticket 60).
+two routes, the help chat's (`/api/help-chat`, ticket 69) and problem extraction (`/api/extract`, ticket 170), all data static under
+`data/` (plus the rendered extraction fixtures under `fixtures/extract/`). The Sept 7 mockup was removed on 10 Sep 2026 (ticket 60).
 
 ## System diagram
 
@@ -70,7 +70,9 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
  │ lib/recognition.ts  nextLine · afterUndo  (burst of strokes → scripted line)        │
  │ lib/hint.ts         hintSegments · findFragment · termTex (\htmlClass wraps, no layout change)│
  │ lib/helpChat.ts     findPractice · parseHelpChatRequest · helpChatSystem (the tutor's brief) · helpChatMessages · chatSegments│
- │   app/api/help-chat/route.ts  the one live model call: Anthropic SDK stream → text/plain; 503 with no credentials│
+ │   app/api/help-chat/route.ts  a live model call: Anthropic SDK stream → text/plain; 503 with no credentials│
+ │ lib/extract.ts      Source · caps · parseExtractRequest · pdfPageCount · extractSystem (the extractor's brief) · extractMessages (image / native PDF blocks) · parseDraftLine · readExtractEvents · sourceHash│
+ │   app/api/extract/route.ts  POST { sources } → application/x-ndjson, one {"type":"draft"} line per problem as the model writes it, a "done" per source; EXTRACT_FIXTURES=1 answers from data/extract-fixtures.ts (fixtures/extract/manifest.json by hash, typed text via mathInput); 503 with no credentials│
  │   session.ink / reworkInk: strokes per problem, popped with lines on undo/clear      │
  │ lib/evaluate.ts     evaluateLine(problem, tex) → ok | wrong | unclear               │
  │ lib/escalation.ts   recordMistake · requestHelp → { trigger, cautioned }            │
@@ -302,6 +304,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 168 | The assignment title is the crumb beside the wordmark on every student screen (`crumb = title` in `StudentApp`; the per-stage `CRUMB` map, ticket 164's empty crumb included, is gone): the strip names the stage, the screen names itself, the header never changes | `/student` | 151, 164 | [architecture/168-title-crumb-everywhere.md](architecture/168-title-crumb-everywhere.md) |
 | 169 | The teacher's student report opens to the class view's full dot view, fixed: `SkillColumns` in `expanded` mode, `locked` (group rows fixed `div`s, skills still open their work, the commentary filter still lights); the browse drill (`HierarchyDrill`'s default export) removed | `/teacher/report` | 125 | [architecture/169-report-dot-view.md](architecture/169-report-dot-view.md) |
 | 174 | Both reports' category header band is gone: each category pill carries its name in white on the status colour, every pill in the row the widest name's width (the names stacked invisibly in each), the text size fitted to the row (11 px teacher, 9 px student); UNIT 1 stays grey to the right of NEW SKILLS; the student's reflection panel 320 px (was 440) | `/teacher/report`, `/student` (report) | 169 | [architecture/174-labelled-pills.md](architecture/174-labelled-pills.md) |
+| 170 | Problem extraction: `POST /api/extract` takes typed text, images and PDFs (native document blocks) and streams back one draft per problem as JSON lines in reading order (stem, TeX, label, page, figure box; no solutions), a `done` per source; caps 10 MB, 20 images, 5 PDFs, 10 pages; `EXTRACT_FIXTURES=1` answers from fixtures rendered from the demo set, matched by hash | `POST /api/extract` | 69 | [architecture/170-extraction-route.md](architecture/170-extraction-route.md) |
 
 ## Conventions
 
