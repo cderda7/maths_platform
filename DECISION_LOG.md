@@ -2415,3 +2415,38 @@ The identity is only as fine as the table: a student whose line is unknown has n
 every screen already reads, testable by counting keys. The fixtures were shaped with the
 user in an interview, and the shape (twelve / one / none, six / four / two on Q7) is pinned
 by a test so a later fixture edit that flattens it fails first.
+
+## 2026-09-12 · The mistake box is drawn by its cells, and the working shrinks by measurement
+
+**Decision.** On the mistake view the box around the students on one exact mistake is not an
+element: each student's working cell draws its share (top and bottom edges on every cell, the
+left edge, corners and a 10 px margin on the group's first, the right on its last, a plain
+divider between). And a problem's working is sized by one measured factor (`FitGrid`, a layout
+effect that compares every line's KaTeX width with its box and writes `--fit` to the grid),
+17 px down to a 13 px floor, with the columns at `minmax(186px, 1fr)`.
+
+**Context.** Ticket 135. The box has to sit on the same column lines as the name row above and
+the pill between them, and the user wanted a crowded problem's columns to narrow with the
+maths shrinking to fit rather than wrapping or scrolling early. The teacher chrome is zoomed
+0.8, which rules out mixing client rects with layout units.
+
+**Alternatives considered.** *One element per box spanning its columns, with an inner grid*:
+its inner tracks drift from the outer ones by the box's margin, visibly against the name
+row's dividers. *A subgrid*: aligns, but a subgrid's own margins reduce its edge tracks, and
+the box's margin then narrows the first and last students' cells unevenly. *An absolutely
+positioned outline over the cells*: needs measuring on every resize and open. *Pure-CSS
+shrink* (`font-size` in `cqw` from the cell as a container, clamped): tried; a rule of the
+column's width alone cannot serve Q5 (four columns of short lines, fine at 17 px) and Q10 with
+the live student (four columns of sentences, 14 px needed) at once. *Wrapping the pair-check
+line at its gap*: the user chose shrink over wrap.
+
+**Tradeoffs.** A box is several elements, so anything that wants "the box" (a hover, a label)
+addresses its first cell. The fit is a layout effect that writes a style, re-run on resize and
+font load: a few DOM reads per open problem, no state, but not something CSS alone
+expresses. The floor means twelve columns still scroll; see FUTURE_FEATURES.
+
+**Defence.** Alignment holds by construction, with no measurement, on every column count.
+The fit measures in layout px only (`offsetWidth`, `clientWidth`, computed padding) so the
+zoom cannot skew it, and one measurement suffices because KaTeX scales linearly with the font
+size. The click-through asserts every line on one row inside its box on every problem at
+1440 and 1280, with and without the live student.

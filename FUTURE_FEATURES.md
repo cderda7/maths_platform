@@ -1675,6 +1675,34 @@ agents add sections above it and leave it alone.
 - **Resize while open.** The clamp runs when the flyout mounts, not on window resize; a
   resize with a flyout open can leave it off the edge until it is closed and reopened.
 
+## The box per exact mistake (from ticket 135, 2026-09-12)
+
+- **Twelve columns on one screen.** The user wanted a crowded problem's columns to narrow
+  until all twelve fit unscrolled; the card is capped near 1426 layout px, so that is 118 px a
+  column and maths under 9 px. The floor stayed at 186 px (the widest Q7 line at 13 px) and Q7
+  scrolls sideways past about seven and a half columns. Wrapping the students onto a second
+  row of columns, pills and boxes per row, is the way to show all twelve; it was set aside as
+  its own design ticket (the pill spanning its students is the idea the wrap breaks). The
+  other agent's ticket 138 (identical working shares one column) is the other route.
+- **The box while collapsed.** Chosen: nothing shows until the problem is open. The name row
+  could carry the same box (round-one option (b), two rectangles either side of the pill)
+  so a teacher sees the split before opening; deferred until the open state has been used.
+- **The live badge in a narrow column.** At 186 px "Sam Okonkwo · LIVE" truncates to "Sa…"
+  because the badge keeps its width; the badge could drop under the name, or to a dot, when
+  the column is narrow. Deferred with the name-truncation decision.
+- **Prose lines.** Q10's sentences (`\text{…}`) are the widest lines in the fixtures and set
+  the shrink for that problem; they are prose and could wrap at spaces while maths stays on
+  one row. Deferred: the user chose shrink over wrap in the interview.
+- **A box that says what the mistake is.** The box carries no label (the user: no second
+  pill). A hover title, or the teacher note of the wrong line as a tooltip on the box's edge,
+  would name it without a pill. Not asked.
+- **Per-cell fit.** The whole problem shrinks by one factor so its columns read as one row;
+  a student with one long line drags every column down with them. Per-cell sizes would look
+  ragged; a per-cell cap only for that student's long line was not tried.
+- **Measurement versus CSS.** `FitGrid` measures in a layout effect; a pure-CSS rule (font in
+  `cqw`) was tried first and could not serve Q5 (four short columns) and Q10 (four long ones)
+  at once. If container-relative typography ever knows content width, the effect goes.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CLASSMATES } from "@/data/classmates";
-import { groupBySlip, mistakesByProblem, type MistakeRow } from "./mistakes";
+import { groupByMistake, groupBySlip, mistakeKey, mistakesByProblem, type MistakeRow } from "./mistakes";
 import { sessionAt } from "./session";
 
 describe("teacher mistake view", () => {
@@ -39,6 +39,47 @@ describe("teacher mistake view", () => {
     // Q5 in the fixtures: Tomas alone on quadratic equations, then Harper, Ruby and Finn under one graph-features pill.
     const q5 = mistakesByProblem(sessionAt("feedback")).find((p) => p.problem.id === "q5")!;
     expect(groupBySlip(q5.rows).map((g) => g.rows.map((r) => r.id))).toEqual([["tomas"], ["harper", "ruby", "finn"]]);
+  });
+
+  it("inside a slip group, students on the exact same wrong line sit together, groups by first appearance (ticket 135)", () => {
+    const wrong = (tex: string) => ({ tex, verdict: { verdict: "wrong", tags: [], label: "" } as unknown as MistakeRow["lines"][number]["verdict"] });
+    const ok = (tex: string) => ({ tex, verdict: { verdict: "ok", tags: [], label: "" } as unknown as MistakeRow["lines"][number]["verdict"] });
+    const row = (id: string, lines: MistakeRow["lines"]) => ({ id, name: id, initials: id, live: false, lines, slips: ["x"] as unknown as MistakeRow["slips"] });
+    const a = row("a", [ok("p"), wrong("m1")]);
+    const b = row("b", [wrong("m2")]);
+    const c = row("c", [ok("q"), ok("r"), wrong("m1")]); // the same mistake as a by a longer route
+    const d = row("d", [wrong("m2"), ok("s")]);
+    const e = row("e", [wrong("m1"), wrong("m3")]); // two wrong lines: its own key
+    expect(mistakeKey(e)).toBe("m1 | m3");
+    expect(groupByMistake([a, b, c, d, e]).map((g) => ({ key: g.key, start: g.start, ids: g.rows.map((r) => r.id) }))).toEqual([
+      { key: "m1", start: 0, ids: ["a", "c"] },
+      { key: "m2", start: 2, ids: ["b", "d"] },
+      { key: "m1 | m3", start: 4, ids: ["e"] },
+    ]);
+    // One slip group: its rows are reordered to the exact groups' order and its starts are absolute.
+    const [g] = groupBySlip([a, b, c, d, e]);
+    expect(g.rows.map((r) => r.id)).toEqual(["a", "c", "b", "d", "e"]);
+    expect(g.mistakes.map((m) => m.start)).toEqual([0, 2, 4]);
+    // Q7 in the fixtures: under the fractions pill the four who lost the third (Amelia first) then the six who scaled two terms; under monic factorising the two on the wrong pair.
+    const q7 = mistakesByProblem(null).find((p) => p.problem.id === "q7")!;
+    const groups = groupBySlip(q7.rows);
+    expect(groups.map((s) => s.mistakes.map((m) => [m.start, m.rows.length]))).toEqual([
+      [
+        [0, 4],
+        [4, 6],
+      ],
+      [[10, 2]],
+    ]);
+    expect(groups[0].rows.slice(0, 4).map((r) => r.id)).toEqual(["amelia", "zara", "ethan", "finn"]);
+    // With the live student first (Sam scaled two terms), that group leads.
+    const live = groupBySlip(mistakesByProblem(sessionAt("feedback")).find((p) => p.problem.id === "q7")!.rows);
+    expect(live[0].mistakes.map((m) => [m.rows[0].id, m.rows.length])).toEqual([
+      ["sam", 7],
+      ["amelia", 4],
+    ]);
+    // Q9: the four on "h = 6" by two routes are one group; Mia's sign slip its own pill.
+    const q9 = groupBySlip(mistakesByProblem(null).find((p) => p.problem.id === "q9")!.rows);
+    expect(q9.map((s) => s.mistakes.map((m) => m.rows.length))).toEqual([[4], [1]]);
   });
 
   it("the shape of the class's slips (ticket 130): Q7 has twelve classmates across three strategies, Q6 one, Q8 none, 45 wrongs in all", () => {

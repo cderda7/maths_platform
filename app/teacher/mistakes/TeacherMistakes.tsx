@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import TeacherChrome from "../TeacherChrome";
 import M from "@/components/Math";
@@ -19,11 +19,66 @@ const ACTION_IDLE = `${ACTION} bg-standout-soft text-accent-deep hover:bg-stando
 const ACTION_ACTIVE = `${ACTION} bg-accent text-white hover:bg-accent-deep`;
 
 /**
+ * The narrowest a student's column goes (ticket 135). Columns share the card evenly; a problem
+ * with more students than fit at this width scrolls sideways. The working shrinks to fit: a
+ * problem's lines are set at 17 px, or smaller by the one factor (`--fit`, measured by
+ * `FitGrid`) that puts its widest line on one row inside its box, never under 13 px; under
+ * 260 px of column the padding inside tightens too (`@max-[260px]`, a container query on the
+ * cell). The floor is measured so the widest line in the fixtures (Q7's pair check,
+ * 2 × 4 = 8, 2 + 4 = 6, at 13 px) sits on one row inside the box's edge cell, whose margin
+ * takes 10 px of the column.
+ */
+const COLUMN_FLOOR = 186;
+const LINE = "rounded-xl border px-4 py-2.5 text-[clamp(13px,calc(17px*var(--fit,1)),17px)] whitespace-nowrap text-ink @max-[260px]:px-2 @max-[260px]:py-1.5";
+
+/**
+ * The students' grid of one problem, which measures its own lines: before paint, with `--fit`
+ * at 1, the widest line's overshoot of its box sets the factor every line in the grid is
+ * scaled by (KaTeX scales with the font size, so one measurement is enough); measured again
+ * whenever the grid's size changes (the window, a panel opening beside the card) and once the
+ * maths fonts have loaded. Writes the factor straight to the element: no state, no re-render.
+ */
+function FitGrid({ children, ...rest }: React.HTMLAttributes<HTMLDivElement>) {
+  const ref = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const fit = () => {
+      el.style.setProperty("--fit", "1");
+      let scale = 1;
+      for (const li of el.querySelectorAll<HTMLElement>("li[data-line]")) {
+        const k = li.querySelector<HTMLElement>(".katex");
+        if (!k) continue;
+        // Layout px throughout (offsetWidth, clientWidth, computed padding): the teacher chrome is zoomed, so client rects would be in other units.
+        const cs = getComputedStyle(li);
+        const avail = li.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+        const w = k.offsetWidth + 1; // offsetWidth rounds down
+        if (w > avail) scale = Math.min(scale, avail / w);
+      }
+      el.style.setProperty("--fit", scale.toFixed(4));
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    document.fonts?.ready.then(fit);
+    return () => ro.disconnect();
+  });
+  return (
+    <div ref={ref} {...rest}>
+      {children}
+    </div>
+  );
+}
+
+/**
  * Mistakes by problem. Under each problem the students who slipped sit side by side, those who
- * slipped on the same step next to each other under one pill that spans them. Any number of
- * problems can be open at once: clicking the problem's header, any student, or the "expand"
- * button that shows on hover opens every student's working for that problem in columns, the
- * wrong line in red. An open problem carries a "close" button; once pressed, the button reads
+ * slipped on the same step next to each other under one pill that spans them, and inside a
+ * pill those who made the exact same mistake (the same wrong line, whatever the lines around
+ * it) next to each other. Any number of problems can be open at once: clicking the problem's
+ * header, any student, or the "expand" button that shows on hover opens every student's
+ * working for that problem in columns, the wrong line in red, and one box in the pill's red
+ * around the working of every group of students on the same exact mistake (a student alone on
+ * theirs boxed alone). An open problem carries a "close" button; once pressed, the button reads
  * "close all" (while other problems are still open) until the pointer leaves the card.
  * To the right of each problem sits its live diagnostic (ticket 127): the "Live diagnostic" chip
  * alone until clicked, then the push panel with the problem's own suggested question and the
@@ -57,6 +112,8 @@ export default function TeacherMistakes() {
           const othersOpen = open.some((id) => id !== problem.id);
           const groups = groupBySlip(rows);
           const ordered = groups.flatMap((g) => g.rows);
+          const boxes = groups.flatMap((g) => g.mistakes);
+          const boxOf = (i: number) => boxes.find((m) => i >= m.start && i < m.start + m.rows.length)!;
           const column = (i: number) => (i === 0 ? "" : "border-l border-line");
           // Hover shows "expand"; open shows "close" until pressed; just closed shows "close all" while others are open.
           const action: { word: "expand" | "close" | "close all"; cls: string; visible: boolean } = isOpen
@@ -102,7 +159,7 @@ export default function TeacherMistakes() {
                 <DifficultyTag d={problem.difficulty} />
               </div>
               <div className="overflow-x-auto">
-                <div className="grid" style={{ gridTemplateColumns: `repeat(${ordered.length}, minmax(230px, 1fr))` }} data-students>
+                <FitGrid className="grid" style={{ gridTemplateColumns: `repeat(${ordered.length}, minmax(${COLUMN_FLOOR}px, 1fr))` }} data-students>
                   {ordered.map((r, i) => {
                     const key = `${problem.id}:${r.id}`;
                     return (
@@ -137,30 +194,55 @@ export default function TeacherMistakes() {
                       ))}
                     </div>
                   ))}
+                  {/* The working row's ground: the divider under the pills and the cream behind the boxes, across every column. */}
+                  {isOpen && <div className="row-start-3 border-t border-line bg-cream/60" style={{ gridColumn: "1 / -1" }} aria-hidden />}
                   {isOpen &&
-                    ordered.map((r, i) => (
-                      <div key={r.id} className={`row-start-3 min-w-0 border-t border-line bg-cream/60 px-5 py-4 ${column(i)}`} style={{ gridColumn: i + 1 }} data-expanded={`${problem.id}:${r.id}`}>
-                        <ol className="space-y-2">
-                          {r.lines.map((l, j) => {
-                            const wrong = l.verdict.verdict === "wrong";
-                            return (
-                              <li key={j} className={`rounded-xl border px-4 py-2.5 text-[17px] text-ink ${wrong ? "border-wrong-line bg-wrong-soft" : "border-line bg-paper"}`} data-wrong={wrong || undefined}>
-                                <M tex={l.tex} />
-                              </li>
-                            );
-                          })}
-                        </ol>
-                        {r.live && (
-                          <div className="mt-3 flex items-center justify-between text-[12.5px] text-ink-muted">
-                            <span>As handed in</span>
-                            <Link href="/teacher/compare" className="text-accent-deep hover:underline" data-compare-link>
-                              Original vs final →
-                            </Link>
+                    ordered.map((r, i) => {
+                      // One box per exact mistake: every cell in it carries the top and bottom edge; the first the left edge and corners, the last the right; between cells a plain divider.
+                      const box = boxOf(i);
+                      const first = i === box.start;
+                      const last = i === box.start + box.rows.length - 1;
+                      const edges = `${first ? "ml-2.5 rounded-l-xl border-l border-wrong-deep" : "border-l border-line"} ${last ? "mr-2.5 rounded-r-xl border-r border-wrong-deep" : ""}`;
+                      // The grid cell is the container (its width is the column's, the same for every cell); the box edges sit on the div inside it.
+                      return (
+                        <div
+                          key={r.id}
+                          className="@container row-start-3 min-w-0 py-4"
+                          style={{ gridColumn: i + 1 }}
+                          data-expanded={`${problem.id}:${r.id}`}
+                          data-mistake-group={box.rows.map((x) => x.id).join(",")}
+                          data-box-start={first || undefined}
+                          data-box-end={last || undefined}
+                        >
+                          <div className={`h-full border-y border-wrong-deep px-2.5 py-3 @max-[260px]:px-2 ${edges}`}>
+                            <ol className="space-y-2">
+                              {r.lines.map((l, j) => {
+                                const wrong = l.verdict.verdict === "wrong";
+                                return (
+                                  <li
+                                    key={j}
+                                    className={`${LINE} ${wrong ? "border-wrong-line bg-wrong-soft" : "border-line bg-paper"}`}
+                                    data-line
+                                    data-wrong={wrong || undefined}
+                                  >
+                                    <M tex={l.tex} />
+                                  </li>
+                                );
+                              })}
+                            </ol>
+                            {r.live && (
+                              <div className="mt-3 flex items-center justify-between text-[12.5px] whitespace-nowrap text-ink-muted @max-[260px]:flex-col @max-[260px]:items-start @max-[260px]:gap-0.5 @max-[260px]:text-[11px]">
+                                <span>As handed in</span>
+                                <Link href="/teacher/compare" className="text-accent-deep hover:underline" data-compare-link>
+                                  Original vs final →
+                                </Link>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    ))}
-                </div>
+                        </div>
+                      );
+                    })}
+                </FitGrid>
               </div>
             </Card>
             <DiagnosticPush session={session} example={diagnosticFor(problem.id)} problemId={problem.id} collapsible className="shrink-0" />

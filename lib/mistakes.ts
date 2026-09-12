@@ -32,12 +32,50 @@ export interface SlipGroup {
   /** Index of the group's first student in the ordered rows. */
   start: number;
   rows: MistakeRow[];
+  /** The group's students again, partitioned by the exact mistake (ticket 135); the rows above are these concatenated. */
+  mistakes: MistakeGroup[];
+}
+
+/**
+ * Students who made the exact same mistake: the same wrong line (the same entry of the
+ * evaluation table, whatever the lines around it), adjacent, so the view can box them together.
+ */
+export interface MistakeGroup {
+  /** The wrong lines' TeX, in order, joined; a student with two wrong lines is keyed on both. */
+  key: string;
+  /** Index of the group's first student in the ordered rows. */
+  start: number;
+  rows: MistakeRow[];
+}
+
+/** A mistake's identity is its wrong line's entry in the evaluation table (DECISION_LOG, 2026-09-12). */
+export const mistakeKey = (r: MistakeRow): string =>
+  r.lines
+    .filter((l) => l.verdict.verdict === "wrong")
+    .map((l) => l.tex)
+    .join(" | ");
+
+/** Partitions rows by exact mistake, groups in order of first appearance, rows in their original order within a group. */
+export function groupByMistake(rows: MistakeRow[], start = 0): MistakeGroup[] {
+  const groups: MistakeGroup[] = [];
+  for (const r of rows) {
+    const key = mistakeKey(r);
+    const g = groups.find((x) => x.key === key);
+    if (g) g.rows.push(r);
+    else groups.push({ key, start: 0, rows: [r] });
+  }
+  for (const g of groups) {
+    g.start = start;
+    start += g.rows.length;
+  }
+  return groups;
 }
 
 /**
  * Orders a problem's students so those who slipped on the same leaves sit next to each other
- * (groups in order of first appearance, students in their original order within a group) and
- * returns the groups; the flat order is the groups' rows concatenated.
+ * (groups in order of first appearance, students in their original order within a group) and,
+ * inside each of those, those who made the exact same mistake next to each other (the same
+ * rule again); returns the groups, and the flat order is the groups' rows concatenated.
  */
 export function groupBySlip(rows: MistakeRow[]): SlipGroup[] {
   const groups: SlipGroup[] = [];
@@ -46,11 +84,13 @@ export function groupBySlip(rows: MistakeRow[]): SlipGroup[] {
     const key = slips.join("|");
     const g = groups.find((x) => x.slips.join("|") === key);
     if (g) g.rows.push(r);
-    else groups.push({ slips, start: 0, rows: [r] });
+    else groups.push({ slips, start: 0, rows: [r], mistakes: [] });
   }
   let start = 0;
   for (const g of groups) {
     g.start = start;
+    g.mistakes = groupByMistake(g.rows, start);
+    g.rows = g.mistakes.flatMap((m) => m.rows);
     start += g.rows.length;
   }
   return groups;
