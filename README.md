@@ -139,10 +139,11 @@ Teacher, during the lesson (`/teacher`):
   the roster into history mode for that student: everything else in the card fades, the
   student's six pills widen to carry their category's name in white, and a click on one stacks
   that category's last five recorded results above it (Aug 31 · Sep 2 · Sep 3 · Sep 7 · Sep 9,
-  oldest at the top, dated in white, a hair apart; several can stand open); a cream sheet then
-  covers the rows above from Algebra through Set so the stacks never mix with other students'
-  pills, its top edge cutting through a pill halfway (or, for the top rows, the heads covered
-  whole and the cream rising over the "due" line). Nothing moves. The button reads **close
+  oldest at the top, dated in white, the same height as the pill; several can stand open); a white
+  sheet then covers the rows above over the category columns, Algebra through New skills, so
+  the stacks never mix with other students' pills, its top edge cutting through a pill halfway
+  (or, for the top rows, the heads covered whole and the sheet rising over the "due" line), and
+  the five spread evenly from the sheet's top down to today's pill. Nothing moves. The button reads **close
   history**; a click on any other row leaves the mode and opens nothing; a drill under the same
   student stays open beside it. A student with nothing handed in shows a caution triangle and MISSING in
   the Set column. Then the live row's confidence, stage and caution, the classmates, a light

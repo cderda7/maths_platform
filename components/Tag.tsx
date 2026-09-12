@@ -58,7 +58,14 @@ export const PILL_SIZE = "h-[13px] w-[28px] rounded";
  * group or a skill; `shape="pill"` for a category, the top level of every grid and drill (ticket
  * 125), so the levels read apart at a glance.
  */
-export function StatusDot({ status, size, px, half = false, shape = "dot", className = "" }: { status: Status; size?: string; /** Exact diameter in px, for dots that shrink to fit. */ px?: number; half?: boolean; shape?: "dot" | "pill"; className?: string }) {
+/**
+ * A pill's label (ticket 181): its category's name or a date in 9 px semibold uppercase, white on the
+ * status colour, muted on a hollow pill; the pill keeps its 13 px height and grows to the text with a
+ * 56 px floor (double the plain pill), the width animating where `interpolate-size` is supported.
+ */
+export const PILL_LABEL = "inline-grid w-auto min-w-[56px] place-items-center whitespace-nowrap px-1 text-[9px] font-semibold uppercase leading-none tracking-[0.06em] [interpolate-size:allow-keywords] transition-[width] duration-150";
+
+export function StatusDot({ status, size, px, half = false, shape = "dot", label, className = "" }: { status: Status; size?: string; /** Exact diameter in px, for dots that shrink to fit. */ px?: number; half?: boolean; shape?: "dot" | "pill"; /** Text on a pill (the class view's history mode, ticket 181): the pill widens to carry it, the same element and height as without. */ label?: React.ReactNode; className?: string }) {
   const color = DOT_COLOR[status];
   const paint =
     status === "unseen"
@@ -68,7 +75,12 @@ export function StatusDot({ status, size, px, half = false, shape = "dot", class
         : { backgroundColor: color, borderColor: color };
   const style = px ? { ...paint, width: px, height: px } : paint;
   const dims = px ? "" : (size ?? (shape === "pill" ? PILL_SIZE : "h-2 w-2"));
-  return <span className={`inline-block shrink-0 border ${shape === "pill" && !px ? "" : "rounded-full"} ${status === "unseen" ? "border-line-strong" : ""} ${dims} ${className}`} style={style} aria-hidden data-status={status} data-half={half || undefined} data-shape={shape} />;
+  const labelled = label !== undefined && label !== null;
+  return (
+    <span className={`inline-block shrink-0 border ${shape === "pill" && !px ? "" : "rounded-full"} ${status === "unseen" ? "border-line-strong" : ""} ${dims} ${labelled ? `${PILL_LABEL} ${status === "unseen" ? "text-ink-muted" : "text-white"}` : ""} ${className}`} style={style} aria-hidden data-status={status} data-half={half || undefined} data-shape={shape} data-label={labelled ? "" : undefined}>
+      {labelled ? label : null}
+    </span>
+  );
 }
 
 export const STATUS_WORD: Record<Status, string> = {

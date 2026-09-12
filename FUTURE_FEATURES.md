@@ -2390,10 +2390,16 @@ uploaded problems) settled the following as later, each on purpose.
 - **Keyboard.** Faded rows keep their buttons in the tab order (invisible, not `display: none`),
   so a keyboard user can still reach "see dot skills" on a faded row and open a drill under the
   cream. `inert` on faded tbodies would close that.
-- **The sheet's notch.** The wide cream stops at the student's row top and an apron carries it
-  down over the category columns only, leaving a step at the row top beside the Confidence
-  column. A single rounded shape, or the sheet stopping at the row top with the two lowest
-  dated pills on the row's own paper, are the two ways to lose the step.
+- **The sheet's notch** (gone in ticket 181: the sheet is one white rectangle over the category
+  columns only, Algebra through New skills, so it never reached the Confidence column and needs
+  no apron). What remains: a white sheet on a white card shows only by what it cuts (the half
+  pills at its top edge) and by the page it rises over for the top rows; a faint 1 px line along
+  its top edge would make the sheet itself visible without going back to cream.
+- **The five's spacing on a tall sheet.** Ticket 181 spreads the five dated pills evenly from the
+  sheet's top to today's pill, so on a mid-roster row (a 155 px sheet) they sit about 15 px
+  apart and over the "due" line about 12; a taller sheet (a drill open above, a three-line
+  confidence row) spreads them further. A ceiling on the gap (say 20 px) with the surplus left
+  above the oldest would keep the column reading as one trail on any sheet.
 
 ## "New assignment" above the Pathway card (from ticket 176, 2026-09-13)
 

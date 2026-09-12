@@ -3433,3 +3433,39 @@ ticket 173's figure crops but nothing calls it yet. The document is closed after
 
 **Defense.** One dependency, loaded only where it is used, with its own worker kept in step by
 the bundler; the model reads the document, the browser draws only what a tile shows.
+
+## 2026-09-13 · History mode: one StatusDot for every pill, the five spread over a white sheet that stops at New skills (ticket 181)
+
+**Decision.** Today's named pill in history mode is the roster's own `StatusDot` given a `label`, not a
+separate element, so its height and place are the plain pill's by construction; the five dated pills
+are the same `StatusDot` with the date as label. They are drawn by `HistoryBlocker` beside the card,
+from measured pill rects, in a column from the sheet's top to today's pill with `justify-evenly`, so
+the five fill the sheet's height with equal space rather than huddling 2 px apart above the pill. The
+sheet is `paper` (white) and spans the category columns only, Algebra through New skills.
+
+**Context.** The user, on Jordan's Algebra history: "make it evenly spaced from bottom to top of box …
+change box color to white … have it extend through new skills, not all the way through set … the
+pill is shorter than the og category pill. make it the same height as the category pill & make all
+history pills that height as well". The named pill measured 13 px like the plain one, but it was a
+different element (`inline-grid` inside an `inline-flex` wrapper) at a fractionally different place, and
+at the teacher frame's 0.72 zoom 13 px is 9.36 device px: two elements a fraction apart can snap to 9
+and 10. One element removes the question.
+
+**Alternatives.** *Keep `HistoryPill` and pad its height*: a second pill drawing to keep in step with
+`PILL_SIZE`; the label as a `StatusDot` prop means there is one. *Spread the five inside the cell*: the
+stack lived in the cell and could not know the sheet's height; the sheet's measurer already has every
+number, so the stacks moved to it. *Stop the sheet at the row top and drop the 2 px apron*: with the
+sheet no longer over Confidence and Set there is nothing of the student's to protect; one rectangle
+to 2 px above the pills is simpler and the five's bottom gap is then the same as every other gap.
+*Cream for contrast*: asked for and reversed; the cut pills at the top edge and the page the top
+rows' sheet rises over are what show the sheet now.
+
+**Tradeoffs.** A white sheet on a white card is visible only by what it hides (logged in
+FUTURE_FEATURES with a hairline as the fix if wanted). The five's spacing depends on the sheet's height:
+about 15 px on a mid-roster row, 12 over the "due" line, more under a drill (a ceiling is logged).
+`StatusDot` gains a prop and a labelled branch; every other caller passes no label and is unchanged.
+The stacks are measured once per mount and on table resizes, so a named pill whose width changed
+without a table resize would leave its stack misaligned; nothing does that today.
+
+**Defense.** The user's four asks are met in the way that cannot drift: one element for every pill,
+one measurer for the sheet and the stacks, one rectangle over exactly the columns that carry pills.
