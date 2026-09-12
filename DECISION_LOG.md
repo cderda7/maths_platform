@@ -3011,3 +3011,31 @@ one size and guarantees no line ever wraps at any width, while the chosen sizes 
 widths exactly as laid out. Keying the tag on the exact mistake is the same identity the picker
 and the counts already use (DECISION_LOG 2026-09-12, ticket 148), so what the student sees tagged
 is what the teacher chose to put up for their mistake.
+
+## 2026-09-12 · The teacher bar's tabs sit at the left beside the brand again; the pill colouring from ticket 163 stays (ticket 165)
+
+**Decision.** The Class · Mistakes · Groups pills move from the right end of the teacher bar to
+directly right of the "Edexia · Maths" wordmark, in one `gap-5` row with the brand (the student
+header's brand-to-crumb gap). Their colouring (soft indigo, the current page filled deep with
+white text) and "New assignment" as a white ink-bordered pill are ticket 163's, unchanged. This
+supersedes the placement half of the 2026-09-12 ticket 163 entry; its colouring half stands.
+
+**Context.** The user, with a screenshot of the Groups page: "move the purple tabs to left --
+directly right of Edexia Maths". Ticket 163 had moved the tabs right on the same day's earlier
+request; with the pills coloured, the user wanted them back beside the brand.
+
+**Alternatives considered.** *The tabs at the left as plain text again (pre-163)*: the user asked
+to move the pills, not to undo their colouring. *A larger gap or a divider after the brand*: the
+student header puts its crumb a `gap-5` after the same brand, so the two bars match with no new
+element. *Keeping `ml-1.5` on "New assignment"*: it separated the action from the tabs; with
+nothing before it, the group's own `gap-3` is the spacing.
+
+**Tradeoffs.** The deep-filled current tab now sits at the left, where the eye lands first, so the
+bar leads with "where you are"; the white "New assignment" at the right reads as the one action.
+The right group is shorter, so on the roster page (1204 of the 1280 laptop's 1208 px) nothing
+changes in the content beneath.
+
+**Defense.** Places at the left, actions and identity at the right is the shape of the student
+header (brand and crumb, then the pathway strip and the name), so the two sides of the app now
+share one bar layout; the pill classes did not move, so the current mark, hover and heights are
+exactly what ticket 163 verified.

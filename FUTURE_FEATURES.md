@@ -2185,6 +2185,21 @@ review setup's example cards (`useReorder`, `lib/reorder`). Left out, and why:
 - **The student's pad title in write with me.** The pad is 310 px so "Write with me" and Undo /
   Clear share a line; a narrower pad with a tighter toolbar would give the examples more room.
 
+## The teacher bar's tabs at the left (from ticket 165, 2026-09-12)
+
+- **Two moves in one day.** Ticket 163 put the tabs at the right beside "New assignment"; this
+  ticket puts them back at the left beside the brand, keeping 163's pill colouring. The bar now
+  reads places at the left, actions and identity at the right. If the placement moves again, the
+  pill classes are the constant and only the group they sit in changes.
+- **The gap after "· Maths".** `gap-5` is the student header's brand-to-crumb gap, so the two bars'
+  left groups are built the same way. A rule or dot between the wordmark and the first pill (the
+  brand as a label, the pills as controls) was not asked for.
+- **"New assignment" alone at the right.** With the tabs gone the white pill stands next to the
+  teacher's name; a divider between the action and the identity is not done.
+- **The tabs on a narrow window.** At 1280 the left group ends at 348 px of the 1280, so there is
+  room to spare; a window narrow enough for the two groups to meet is below anything the teacher
+  side lays out for (the roster alone is 1204 px at 1280).
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

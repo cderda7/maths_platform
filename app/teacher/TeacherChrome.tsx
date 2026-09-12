@@ -19,10 +19,11 @@ export const TEACHER_TABS: { href: string; label: string; stage?: ReviewStage }[
 ];
 
 /**
- * The teacher side's top bar and page frame. The brand sits alone at the left; the tabs (gated by
- * the pathway), "New assignment", the teacher's name and avatar form one row at the right (ticket
- * 163). The tabs are indigo pills (the current page filled deep, the others soft) and "New
- * assignment" a white pill with an ink border, so the action reads apart from the places.
+ * The teacher side's top bar and page frame. The brand and the tabs (gated by the pathway) form
+ * the left group, the tabs directly right of the wordmark at the student header's gap (ticket
+ * 165); "New assignment", the teacher's name and avatar form one row at the right. The tabs are
+ * indigo pills (the current page filled deep, the others soft, ticket 163) and "New assignment" a
+ * white pill with an ink border, so the action reads apart from the places.
  * The frame is the viewport: the bar sits in it and only the region beneath scrolls (ticket 68).
  * The window itself never scrolls, so the rubber-band at the end of a page moves the content,
  * never the bar; a sticky bar rode the bounce with the page. The outer div takes the viewport
@@ -39,8 +40,8 @@ export default function TeacherChrome({ children }: { children: ReactNode }) {
     <div className="flex h-full flex-col [zoom:0.72]" data-teacher-root>
       <header className="z-30 shrink-0 border-b border-line bg-paper/70 backdrop-blur">
         <div className="mx-auto flex max-w-[1640px] items-center justify-between px-6 py-4">
-          <Brand />
-          <div className="flex items-center gap-3 text-[13px] text-ink-soft">
+          <div className="flex items-center gap-5">
+            <Brand />
             <nav className="flex items-center gap-1.5" data-teacher-tabs>
               {tabs.map((t) => {
                 const active = path === t.href;
@@ -56,7 +57,9 @@ export default function TeacherChrome({ children }: { children: ReactNode }) {
                 );
               })}
             </nav>
-            <Link href="/teacher/assignments/create" className={`ml-1.5 rounded-full border border-ink bg-white px-3 py-1 text-[13.5px] font-medium text-ink transition-colors hover:bg-cream-deep`} data-new-assignment>
+          </div>
+          <div className="flex items-center gap-3 text-[13px] text-ink-soft">
+            <Link href="/teacher/assignments/create" className={`rounded-full border border-ink bg-white px-3 py-1 text-[13.5px] font-medium text-ink transition-colors hover:bg-cream-deep`} data-new-assignment>
               New assignment
             </Link>
             <span>{ASSIGNMENT.teacher}</span>
