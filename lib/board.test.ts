@@ -18,7 +18,7 @@ describe("what the board shows per stage", () => {
   });
 
   it("follows the demo's skips: blank through individual review and the gate, the standings during group review, the board while projecting, holding once group review is over", () => {
-    const kinds = { start: "blank", "warm-up": "blank", working: "blank", "indiv review": "blank", "class wait": "blank", "group review": "group", "whole-class review": "whole-class", report: "holding" } as const;
+    const kinds = { start: "blank", "warm-up": "blank", working: "blank", "indiv review": "blank", "class wait": "blank", "group review": "group", "class review": "whole-class", report: "holding" } as const;
     for (const t of SKIP_TARGETS) {
       const { session, classroom } = skipFixture(t, now);
       expect(boardContent(classroom, session).kind, t).toBe(kinds[t]);
@@ -46,8 +46,8 @@ describe("what the board shows per stage", () => {
   });
 
   it("while projecting: the slide, its examples with counts, the view and the teacher's ink, following the controls", () => {
-    let { classroom } = skipFixture("whole-class review", now);
-    const { session } = skipFixture("whole-class review", now);
+    let { classroom } = skipFixture("class review", now);
+    const { session } = skipFixture("class review", now);
     const first = boardContent(classroom, session);
     if (first.kind !== "whole-class") throw new Error("expected the board");
     expect(first.problem.id).toBe(classroom.wholeClass!.problems[0]);
@@ -87,7 +87,7 @@ describe("what the board shows per stage", () => {
   });
 
   it("goes blank when the teacher ends the session, whatever the student is doing", () => {
-    const { classroom, session } = skipFixture("whole-class review", now);
+    const { classroom, session } = skipFixture("class review", now);
     const ended = classroomReducer(classroom, { type: "wc/end" });
     expect(boardContent(ended, session).kind).toBe("blank");
     expect(boardContent(ended, sessionAt("report")).kind).toBe("blank");
@@ -124,6 +124,6 @@ describe("what the board shows per stage", () => {
     expect(held.standings.map((s) => s.percent)).toEqual([100, 100, 100, 100, 100]);
     expect(held.standings.map((s) => s.medal)).toEqual(["gold", "silver", "bronze", null, null]);
     // Projecting replaces the standings; ending goes blank.
-    expect(boardContent(skipFixture("whole-class review", now).classroom, session, now).kind).toBe("whole-class");
+    expect(boardContent(skipFixture("class review", now).classroom, session, now).kind).toBe("whole-class");
   });
 });

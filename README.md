@@ -64,7 +64,7 @@ Teacher, before the lesson (`/teacher/assignments/create`, then the older `/teac
 1. **New assignment** (the older screen, reachable by URL): title, problems from the bank, the inferred QCAA unit to confirm (or
    describe the focus and reassess), and the review pathway on the map. Every
    pathway starts at student submission; then any of individual review, group review and
-   whole-class review, in that order, each optional. Pick a column and its siblings fade; leave
+   class review, in that order, each optional. Pick a column and its siblings fade; leave
    later columns empty to stop there; tap "student submission" to clear the map and start again;
    the sentence under the map reads the pathway back. Create.
 
@@ -87,7 +87,7 @@ Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the 
    union of wrongs with a shared count. On Liam's Q7 the group gets it wrong first, the board's
    transcription shown up to the first mistake, and the debrief after the group's rework asks Sam to
    describe his own mistake.
-6. **Whole-class review**: the teacher projects; a one-minute countdown shows on every student
+6. **Class review**: the teacher projects; a one-minute countdown shows on every student
    screen; then the iPad freezes on the student's own work for the problem on the board, ink and
    transcription, both versions, nothing to tap. When the teacher shows marks on the board, the
    student's own lines show red and blue too. End releases everyone to the report.
@@ -106,8 +106,8 @@ Teacher, during the lesson (`/teacher`):
   is open) and **student report**. A student with nothing handed in shows a caution triangle and MISSING in
   the Set column. Then the live row's confidence, stage and caution, the classmates, the
   pathway chip, **Force assignment submit** (confirm, then a one-minute grace on every screen), the
-  **Whole-class review** card (Set up → / Students frozen · End session), the assignment status
-  (in whole-class review · complete), the live diagnostic push (the example, or one you write).
+  **Class review** card (Set up → / Students frozen · End session), the assignment status
+  (in class review · complete), the live diagnostic push (the example, or one you write).
 - **Whole-class setup** (`/teacher/whole-class`): problems ranked by how many struggled, top
   three pre-checked; 2–3 suggested examples per problem with names and correctness (private),
   swappable. **Project** opens the board and starts the grace.

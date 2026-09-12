@@ -15,7 +15,7 @@ export default function Home() {
         <H1 className="mt-3 max-w-3xl">One student, one teacher, one live loop.</H1>
         <p className="mt-5 max-w-2xl text-[17px] leading-relaxed text-ink-soft">
           Open the student side in one tab, the teacher side in another, and the board on the projector. As {DEMO_STUDENT.name} works through{" "}
-          <em>{ASSIGNMENT.title}</em> on the iPad, the teacher's laptop moves with them; the board wakes for whole-class review.
+          <em>{ASSIGNMENT.title}</em> on the iPad, the teacher's laptop moves with them; the board wakes for class review.
         </p>
 
         <div className="mt-12 grid gap-6 md:grid-cols-3">
@@ -44,7 +44,7 @@ export default function Home() {
               <Eyebrow>Smartboard</Eyebrow>
               <div className="mt-3 font-display text-[30px] leading-tight text-ink">The projector</div>
               <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
-                Opened once at the start of the lesson and left up. Blank until whole-class review, then the class's examples and the teacher's working; nothing on it to press.
+                Opened once at the start of the lesson and left up. Blank until class review, then the class's examples and the teacher's working; nothing on it to press.
               </p>
               <div className="mt-6 text-[14px] font-medium text-accent-deep group-hover:underline">Open the board →</div>
             </Card>

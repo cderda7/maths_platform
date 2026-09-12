@@ -20,7 +20,7 @@ export default function WholeClassCard() {
   const starting = isPending(classroom, now) && classroom.advance?.kind === "whole-class-start";
   return (
     <Card className={`p-6 ${slide ? "border-accent-line" : ""}`} data-whole-class-card>
-      <Eyebrow>Whole-class review</Eyebrow>
+      <Eyebrow>Class review</Eyebrow>
       {slide ? (
         <div className="mt-3 text-[14px]">
           <span className="flex items-center gap-2 whitespace-nowrap text-ink" data-wc-status>

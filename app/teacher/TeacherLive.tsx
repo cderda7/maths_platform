@@ -66,7 +66,7 @@ export default function TeacherLive() {
   const { title, problems, unit } = useAssignment();
   const classroom = useClassroom();
   const wc = classroom.wholeClass;
-  const status = wc?.status === "active" ? " · in whole-class review" : wc?.status === "ended" ? " · complete" : "";
+  const status = wc?.status === "active" ? " · in class review" : wc?.status === "ended" ? " · complete" : "";
   const [open, setOpen] = useState<{ student: string; mode: RowMode; category?: CategoryId; leaf?: LeafId; columns: ColumnBox[]; nonce: number; expandAll?: boolean; keep?: LeafId[] } | null>(null);
   /** A column view: one category open under every student's dot, at group level or with skills too. */
   const [column, setColumn] = useState<{ category: CategoryId; level: "groups" | "expanded"; boxes: Record<string, ColumnBox[]>; nonce: number } | null>(null);

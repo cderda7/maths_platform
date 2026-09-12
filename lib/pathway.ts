@@ -48,7 +48,7 @@ export function nextStage(pathway: readonly ReviewStage[], from: Transition): St
   return next ? ENTRY[next] : "report";
 }
 
-export const STAGE_WORD: Record<ReviewStage, string> = { individual: "individual review", group: "group review", "whole-class": "whole-class review" };
+export const STAGE_WORD: Record<ReviewStage, string> = { individual: "individual review", group: "group review", "whole-class": "class review" };
 export const STAGE_SHORT: Record<ReviewStage, string> = { individual: "indiv review", group: "group review", "whole-class": "class review" };
 
 /** "student submission → individual review → group review → done" */

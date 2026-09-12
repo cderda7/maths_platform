@@ -1501,6 +1501,18 @@ agents add sections above it and leave it alone.
   Reassess, by keyword. A unit picker (the four units as pills) beside the note would be the
   direct correction; deferred, the note is the demo's story.
 
+## Class review as the stage's name (from ticket 124, 2026-09-12)
+
+- **The name in code.** On screen the third stage is now "class review" everywhere (the user:
+  "need to make that consistent"), but the stage id is still `whole-class`, the route is
+  `/teacher/whole-class`, the store field is `wholeClass`, the actions are `wc/*` and the
+  components are `WholeClassCard` / `WholeClassSetup`. Deferred: a rename of the identifiers to
+  match; nothing a user sees depends on it, and the `?pathway=wc` deep link and the
+  `data-whole-class-card` hooks in the check scripts would all move with it.
+- **Docs that keep the old name.** Ticket titles and architecture notes from tickets 23–54 and
+  the decision log say "whole-class review" as the history they are; only the README's
+  live description was updated.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

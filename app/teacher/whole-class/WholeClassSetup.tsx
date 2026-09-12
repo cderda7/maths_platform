@@ -49,7 +49,7 @@ export default function WholeClassSetup() {
       <Eyebrow>
         {ASSIGNMENT.className} · {useAssignment().title}
       </Eyebrow>
-      <H1 className="mt-3">Whole-class review</H1>
+      <H1 className="mt-3">Class review</H1>
 
       <div className="mt-8 grid grid-cols-[380px_1fr] gap-6">
         <Card className="self-start p-5">

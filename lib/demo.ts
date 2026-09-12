@@ -13,9 +13,9 @@ import { beginRun, type GroupRun } from "./groupReview";
  * session for that moment, so what Sam submitted is always the same. Pure: the strip applies the
  * result through the stores.
  */
-export type SkipTarget = "start" | "warm-up" | "working" | "indiv review" | "class wait" | "group review" | "whole-class review" | "report";
+export type SkipTarget = "start" | "warm-up" | "working" | "indiv review" | "class wait" | "group review" | "class review" | "report";
 
-export const SKIP_TARGETS: SkipTarget[] = ["start", "warm-up", "working", "indiv review", "class wait", "group review", "whole-class review", "report"];
+export const SKIP_TARGETS: SkipTarget[] = ["start", "warm-up", "working", "indiv review", "class wait", "group review", "class review", "report"];
 
 /** Every review stage, so any of the three jumps has somewhere to land. */
 export const DEMO_PATHWAY: Pathway = ["individual", "group", "whole-class"];
@@ -67,7 +67,7 @@ export function skipFixture(target: SkipTarget, now: number): { session: Student
       const session = sessionAt("report");
       return { session, classroom: { ...everyoneIn(classroom, now), group: finishedRun(session, now) } };
     }
-    case "whole-class review": {
+    case "class review": {
       // The teacher's setup, as it would be done from the reworked run: the most-struggled problems, suggested examples, projected with the grace already over.
       const session = { ...reworkedSession(), stage: "frozen" as const };
       const problems = problemsByStruggle(session)
