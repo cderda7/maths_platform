@@ -2410,6 +2410,19 @@ uploaded problems) settled the following as later, each on purpose.
 - **The create screen's own "New assignment" heading** (`/teacher/assignments/new`, the older
   screen) is unchanged; the pill still points at `/teacher/assignments/create`.
 
+## No pathway strip on the report (from ticket 178, 2026-09-13)
+
+- **A finished trail instead of nothing.** The report's header is blank where the strip was.
+  A version of the strip with every pill in the "over" blue (the pathway as a record of what the
+  class did) was not asked for; "just have blank" was.
+- **The report while the class is still mid-pathway.** A student reaches the report only when
+  the session ends (or through the demo strip's skip), so the report never shows a live class
+  stage. If a student could read their report while others are still in group review, the strip
+  might earn its place back there.
+- **The peers view and the student's own working** lost the strip with the report so it does
+  not flicker on the way there and back; if those screens should name the class's stage, put
+  `peers` and `history` back in `pathwayStages`'s reach in `StudentApp`.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

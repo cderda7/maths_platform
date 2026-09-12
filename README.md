@@ -88,10 +88,11 @@ Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the 
    multiplies only two of three terms by 3, Q9 skips the height (a compounded step, not a
    mistake), and Q10 misreads a negative discriminant. "I need help" runs the same practice flow.
 3. **Hand in** → the pathway decides what comes next. The Edexia header on every student screen
-   carries the pathway horizontally beside the student's name (indiv working → indiv review →
-   group review → class review, only the stages the assignment has): the stage the class is on
-   ringed in purple, stages over in the lit skill button's blue, stages ahead light blue, the
-   same pill the teacher's Pathway card lights.
+   up to class review carries the pathway horizontally beside the student's name (indiv working →
+   indiv review → group review → class review, only the stages the assignment has): the stage
+   the class is on ringed in purple, stages over in the lit skill button's blue, stages ahead
+   light blue, the same pill the teacher's Pathway card lights. The report and the screens it
+   opens have no strip: the pathway is behind the student there.
 4. **Individual review** (detective feedback): one sentence, "3 of your problems contain a
    mistake. Double-check factorising and algebra.", and the unmarked transcription. Rework any
    problem. Rework Q4 (which was right) and the pad "reads" a classic slip: the one per-problem

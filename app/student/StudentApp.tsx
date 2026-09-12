@@ -115,7 +115,10 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
   // Individual review forced with group review next: what the student is waiting for is the group.
   const groupStartPill = counting && advance?.kind === "force-review" && pathwayOf(classroom).includes("group");
   // The header's pathway strip (ticket 151): the same stages the teacher's Pathway card lights, from the same function.
-  const stages = pathwayStages(classroom, session, now);
+  // Not on the report or the screens it opens (ticket 178): the pathway is behind the student there, so the
+  // header's right end is the name and avatar alone and the space the strip took stays blank.
+  const afterPathway = session.stage === "report" || session.stage === "peers" || session.stage === "history";
+  const stages = afterPathway ? [] : pathwayStages(classroom, session, now);
   return (
     <IpadStage>
       <StudentChrome crumb={crumb} frozen={frozen} stages={stages}>
