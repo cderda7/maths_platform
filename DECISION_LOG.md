@@ -3334,3 +3334,33 @@ the student's own drill can stay open beneath it all, which is the request in fu
 widths are the only readable way to name every pill inside its column; the observer is the
 lint-clean way to measure; and an average of colours around today is what a teacher would actually
 see across five sets of differing difficulty.
+
+## 2026-09-13 · The row buttons' grace ends at the row's first pill, measured on pointer move (ticket 180)
+
+**Decision.** Ticket 131's one-second grace (the row buttons stay away after the pointer leaves a
+category pill or drill dot, so a sweep across markers never flashes them) ends the moment the
+pointer is left of the row's leftmost pill button, read from the pointer's x on every `pointermove`
+inside the student's tbody, off every marker. The line is the first pill *button's* left edge, per
+row, and ending the grace quiets the grid's one clock; to the right of that line the second holds.
+
+**Context.** The user: "once teacher moves left of leftmost pill, there is no lag & the 3 options
+auto pop up". The buttons sit in the name cell, left of every marker; a teacher heading that way
+has left the pills behind, and the wait reads as lag.
+
+**Alternatives considered.** (1) Hover on the name cell (`onPointerEnter` on the first `td`): the
+Algebra cell's ~16 px of padding left of its pill would keep waiting, and a pointer crossing the
+cell boundary is the only signal, so a pointer already in the name cell when the clock starts
+(it cannot be: the clock starts on leaving a marker) is moot but the padding is not. (2) A per-row
+clock: rejected in 131 and still wrong here, since a row entered from another row's pill would
+show at once whatever the x. (3) Shortening the grace: the gaps between pills are the case the
+grace exists for.
+
+**Tradeoffs.** A `pointermove` listener per student tbody with a `closest` and one
+`getBoundingClientRect` while the grid is not quiet; nothing while quiet (the first check) or over
+a marker. The threshold is the pill button, not the visible pill graphic (6 px narrower each side):
+the button is the hover target and takes the cream hover fill, so it *is* the pill under the pointer.
+
+**Defense.** The rule is stated in the teacher's terms: the pills are to the right, the buttons to
+the left, so heading left is the exit. Everything 131 verified still holds to the right of the line
+(the click-through re-checks the gap, the return after the second, the column, the drill, and
+history mode's faded rows).

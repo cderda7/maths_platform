@@ -2424,6 +2424,16 @@ uploaded problems) settled the following as later, each on purpose.
   not flicker on the way there and back; if those screens should name the class's stage, put
   `peers` and `history` back in `pathwayStages`'s reach in `StudentApp`.
 
+## The row buttons' grace ends left of the first pill (from ticket 180, 2026-09-13)
+
+- **An exit to the right as well.** Deferred: the grace still holds right of the last marker (past
+  the New skills pill, over Confidence, Set and the closing avatar). The buttons sit on the left, so
+  a teacher over the right-hand columns is not heading for them; if that ever reads as lag, the same
+  `markerMove` could take the last pill's right edge as a second line.
+- **A grace tuned by distance rather than time.** Deferred: the second could shrink with the
+  distance travelled from the last marker (a pointer that has moved 200 px is not hopping pills).
+  Kept a fixed second with the leftward exit, which covers the case the user hit.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

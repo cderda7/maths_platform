@@ -32,7 +32,9 @@ const DOUBLE_MS = 350;
  * How long after the pointer last left a marker (a category pill, or a group or skill dot in the drill
  * under it) the row's buttons stay away (tickets 131, 133). A teacher moving between markers is using
  * them; the buttons are for one who would not think to, and come back once the pointer has sat off
- * every marker this long.
+ * every marker this long. The grace is for the gaps between markers: the moment the pointer is left of
+ * the row's leftmost pill (into the name cell, where the buttons sit) it is over, and they show at once
+ * (ticket 180).
  */
 const PILL_GRACE_MS = 1000;
 
@@ -167,6 +169,20 @@ export default function TeacherLive() {
     if (!markerCrossing(e)) return;
     window.clearTimeout(pillTimer.current);
     pillTimer.current = window.setTimeout(() => setPillQuiet(true), PILL_GRACE_MS);
+  };
+  /**
+   * The grace ends early on the way out to the left (ticket 180): once the pointer is left of the row's
+   * leftmost pill button (the name cell, or the first column's padding before the pill), the teacher has
+   * left the markers behind and the buttons come back at once. The row's own leftmost pill is the line,
+   * so a move from one row's pill down into another's name cell counts too. Off every marker: on a marker
+   * the :has rules hide the buttons and the leave restarts the clock as before.
+   */
+  const markerMove = (e: React.PointerEvent<HTMLTableSectionElement>) => {
+    if (pillQuiet || (e.target as Element).closest(MARKER)) return;
+    const first = e.currentTarget.querySelector<HTMLElement>("tr[data-row] [data-dot]");
+    if (!first || e.clientX >= first.getBoundingClientRect().left) return;
+    window.clearTimeout(pillTimer.current);
+    setPillQuiet(true);
   };
   /**
    * Where each category's dots sit, relative to the drill cell's content edge (td px-5 = 20px),
@@ -366,7 +382,7 @@ export default function TeacherLive() {
                 const inHistory = history?.student === r.id;
                 const faded = !!history && !inHistory;
                 return (
-                  <RowGroup key={r.id} onPointerOver={markerOver} onPointerOut={markerOut} faded={faded}>
+                  <RowGroup key={r.id} onPointerOver={markerOver} onPointerOut={markerOut} onPointerMove={markerMove} faded={faded}>
                     <tr
                       className={`border-b border-line ${r.live ? "bg-accent-soft/30" : ""} ${showDrill ? "border-b-0" : ""}`}
                       data-missing={r.missing || undefined}
@@ -406,7 +422,7 @@ export default function TeacherLive() {
                               )}
                             </div>
                           </div>
-                          {/* Shown while the pointer is in the student's block, except over a marker (a category pill, ticket 128, or a drill dot, ticket 133: each is its own way in) and for PILL_GRACE_MS after it last left one (ticket 131). The CSS :has rules hide at once; the state carries the grace. */}
+                          {/* Shown while the pointer is in the student's block, except over a marker (a category pill, ticket 128, or a drill dot, ticket 133: each is its own way in) and for PILL_GRACE_MS after it last left one (ticket 131), unless the pointer has gone left of the row's first pill, which ends the grace at once (ticket 180). The CSS :has rules hide at once; the state carries the grace. */}
                           {/* Three buttons (ticket 175): the third opens history mode and reads "close history" while it is on; the stack stays in view for the student in history mode, and never shows on a faded row. */}
                           <div className={`ml-auto flex shrink-0 flex-col gap-[3px] ${inHistory ? "visible" : "invisible"} ${pillQuiet && !faded ? "group-hover/row:visible group-focus-within/row:visible group-has-[[data-dot]:hover]/row:invisible group-has-[[data-node]:hover]/row:invisible" : ""}`} data-row-actions={r.id}>
                             <button type="button" onClick={() => (isOpen ? setOpen(null) : openRow(r.id, "expanded"))} className={isOpen ? ROW_ACTIVE : ROW_IDLE} data-see-skills={r.id} aria-pressed={isOpen}>
@@ -591,9 +607,9 @@ function Missing() {
  * anywhere in the block (the drill row included) shows the buttons beside the name. The pointer
  * handlers watch for the markers inside it (the pills and the drill's dots) on the grid's behalf.
  */
-function RowGroup({ children, onPointerOver, onPointerOut, faded }: { children: React.ReactNode; onPointerOver: React.PointerEventHandler; onPointerOut: React.PointerEventHandler; /** Another student is in history mode (ticket 175): the block fades to 30 %; a click on it still lands, and leaves history mode. */ faded: boolean }) {
+function RowGroup({ children, onPointerOver, onPointerOut, onPointerMove, faded }: { children: React.ReactNode; onPointerOver: React.PointerEventHandler<HTMLTableSectionElement>; onPointerOut: React.PointerEventHandler<HTMLTableSectionElement>; /** Ends the grace once the pointer is left of the row's first pill (ticket 180). */ onPointerMove: React.PointerEventHandler<HTMLTableSectionElement>; /** Another student is in history mode (ticket 175): the block fades to 30 %; a click on it still lands, and leaves history mode. */ faded: boolean }) {
   return (
-    <tbody className={`group/row ${faded ? "opacity-30" : ""}`} onPointerOver={onPointerOver} onPointerOut={onPointerOut} data-faded={faded ? "" : undefined}>
+    <tbody className={`group/row ${faded ? "opacity-30" : ""}`} onPointerOver={onPointerOver} onPointerOut={onPointerOut} onPointerMove={onPointerMove} data-faded={faded ? "" : undefined}>
       {children}
     </tbody>
   );

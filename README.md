@@ -126,7 +126,9 @@ Teacher, during the lesson (`/teacher`):
   student's full breakdown, every group of every dot open to its skills; **close** while the row
   is open), **student report** and **see history**; they step aside while the pointer is over one of the row's
   pills or the dot chips of an open drill, since each is its own way in, and for a second after
-  it last left one, so a sweep across pills or dots never shows them. **See history in…** puts
+  it last left one, so a sweep across pills or dots never shows them; the second is waived the
+  moment the pointer goes left of the row's first pill, back towards the name, where they show at
+  once. **See history** puts
   the roster into history mode for that student: everything else in the card fades, the
   student's six pills widen to carry their category's name in white, and a click on one stacks
   that category's last five recorded results above it (Aug 31 · Sep 2 · Sep 3 · Sep 7 · Sep 9,
