@@ -32,9 +32,12 @@ describe("bytesToBase64", () => {
 });
 
 describe("fileToSource", () => {
-  it("is an image source with the file's name, mime and bytes", async () => {
+  it("is an image source with the file's name, mime and bytes, or a pdf source by type or by name", async () => {
     const blob = new Blob([new Uint8Array([137, 80, 78, 71])], { type: "image/png" });
     expect(await fileToSource(blob, "shot.png", "image/png")).toEqual({ kind: "image", name: "shot.png", mime: "image/png", data: Buffer.from([137, 80, 78, 71]).toString("base64") });
+    const pdf = new Blob(["%PDF-1.4"], { type: "application/pdf" });
+    expect(await fileToSource(pdf, "w.pdf", "application/pdf")).toEqual({ kind: "pdf", name: "w.pdf", data: Buffer.from("%PDF-1.4").toString("base64") });
+    expect((await fileToSource(pdf, "w.pdf", "")).kind).toBe("pdf");
   });
 });
 

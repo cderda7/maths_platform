@@ -22,9 +22,10 @@ export function bytesToBase64(bytes: Uint8Array): string {
   return btoa(bin);
 }
 
-/** A dropped image as the route takes it. The mime is the file's own; `partitionDrop` has already kept only the four the route accepts. */
+/** A dropped file as the route takes it: a PDF (by type, or by name when the browser gave none) as a document, else an image whose mime is the file's own (`partitionDrop` has already kept only the four the route accepts). */
 export async function fileToSource(blob: Blob, name: string, mime: string): Promise<Source> {
   const data = bytesToBase64(new Uint8Array(await blob.arrayBuffer()));
+  if (mime === "application/pdf" || /\.pdf$/i.test(name)) return { kind: "pdf", name, data };
   return { kind: "image", name, mime: mime as ImageMime, data };
 }
 

@@ -22,14 +22,14 @@ export interface TileHandlers {
   onUpload: () => void;
 }
 
-/** What the ghost says when nothing is typed: the two ways a question can arrive here (ticket 171; "or PDF" comes with ticket 172). */
-export const GHOST_PLACEHOLDER = "Type a question, or drop a picture";
+/** What the ghost says when nothing is typed: the ways a question can arrive here (ticket 171, PDFs with ticket 172). */
+export const GHOST_PLACEHOLDER = "Type a question, or drop a picture or PDF";
 
 /**
  * One question as a tile in the five-wide grid, the same tile the student's overview shows
  * (ticket 119). The tile is the editor: focused, it shows the typed text in a box at the top and
  * the rendered question beneath, live; blurred, only the rendered question. The last tile is the
- * ghost, "Q{n+1}" muted with "Type a question, or drop a picture" (the textarea's placeholder
+ * ghost, "Q{n+1}" muted with "Type a question, or drop a picture or PDF" (the textarea's placeholder
  * while focused, the view's while not) and an Upload link under it, until it has text. Enter moves to the next tile, Shift+Enter breaks the line (which forces the
  * prose/expression split), Backspace in an empty tile removes it, a × in the corner does the
  * same. Fixed size, nothing scrolls or grows: a question is assumed to fit (ASSUMPTIONS.md).

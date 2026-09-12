@@ -1,34 +1,40 @@
 import { describe, expect, it } from "vitest";
 import { MAX_FILE_BYTES } from "./extract";
-import { confirmAll, discardUnconfirmed, draftItem, dropNote, failureMessage, insertBefore, isQuestion, isUnconfirmed, messageItem, partitionDrop, pendingItem, removeItem, replaceItem, unconfirmedCount, updateQuestion, type Item, type MessageItem, type PendingItem, type QuestionItem } from "./upload";
+import { confirmAll, discardUnconfirmed, draftItem, dropNote, failureMessage, insertBefore, isPdfFile, isQuestion, isUnconfirmed, messageItem, partitionDrop, pendingItem, removeItem, replaceItem, unconfirmedCount, updateQuestion, type Item, type MessageItem, type PendingItem, type QuestionItem } from "./upload";
 
 const png = (name: string, size = 1000) => ({ name, type: "image/png", size });
+const pdf = (name: string, size = 1000) => ({ name, type: "application/pdf", size });
 const q = (id: string, text = "x", extra: Partial<QuestionItem> = {}): QuestionItem => ({ id, text, ...extra });
 const up = (id: string, confirmed = false): QuestionItem => q(id, "Solve.\nx=1", { uploaded: true, confirmed, sourceId: "s", name: "a.png" });
 const marker: PendingItem = { kind: "pending", id: "m", text: "", sourceId: "s1", name: "sheet.png", thumb: "data:t" };
 
 describe("partitionDrop", () => {
-  it("takes images in drop order up to twenty, leaves the rest with a reason, never refuses the drop whole", () => {
-    const files = [...Array.from({ length: 21 }, (_, i) => png(`p${i}.png`)), { name: "w.pdf", type: "application/pdf", size: 10 }, { name: "n.docx", type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", size: 10 }, png("big.png", MAX_FILE_BYTES + 1), { name: "j.jpg", type: "image/jpeg", size: 5 }];
+  it("takes images in drop order up to twenty and PDFs up to five, each cap its own, leaves the rest with a reason, never refuses the drop whole", () => {
+    const files = [...Array.from({ length: 21 }, (_, i) => png(`p${i}.png`)), pdf("w.pdf"), { name: "n.docx", type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", size: 10 }, png("big.png", MAX_FILE_BYTES + 1), { name: "j.jpg", type: "image/jpeg", size: 5 }];
     const { accepted, left } = partitionDrop(files);
-    expect(accepted.map((f) => f.name)).toEqual(Array.from({ length: 20 }, (_, i) => `p${i}.png`));
-    expect(left.map((l) => `${l.file.name}:${l.reason}`)).toEqual(["p20.png:too-many-images", "w.pdf:pdf-later", "n.docx:unsupported", "big.png:too-large", "j.jpg:too-many-images"]);
+    expect(accepted.map((f) => f.name)).toEqual([...Array.from({ length: 20 }, (_, i) => `p${i}.png`), "w.pdf"]);
+    expect(left.map((l) => `${l.file.name}:${l.reason}`)).toEqual(["p20.png:too-many-images", "n.docx:docx", "big.png:too-large", "j.jpg:too-many-images"]);
+    const six = partitionDrop([...Array.from({ length: 6 }, (_, i) => pdf(`s${i}.pdf`)), png("a.png")]);
+    expect(six.accepted.map((f) => f.name)).toEqual(["s0.pdf", "s1.pdf", "s2.pdf", "s3.pdf", "s4.pdf", "a.png"]);
+    expect(six.left.map((l) => `${l.file.name}:${l.reason}`)).toEqual(["s5.pdf:too-many-pdfs"]);
   });
 
-  it("a file over the cap does not use up a slot; a PDF by extension with no type is still a PDF", () => {
-    const { accepted, left } = partitionDrop([png("big.png", MAX_FILE_BYTES + 1), png("ok.png"), { name: "w.pdf", type: "", size: 1 }]);
-    expect(accepted.map((f) => f.name)).toEqual(["ok.png"]);
-    expect(left.map((l) => l.reason)).toEqual(["too-large", "pdf-later"]);
+  it("a file over the cap does not use up a slot; a PDF by extension with no type is still a PDF; a .doc is a Word file too", () => {
+    const { accepted, left } = partitionDrop([png("big.png", MAX_FILE_BYTES + 1), png("ok.png"), { name: "w.pdf", type: "", size: 1 }, pdf("huge.pdf", MAX_FILE_BYTES + 1), { name: "old.doc", type: "", size: 1 }]);
+    expect(accepted.map((f) => f.name)).toEqual(["ok.png", "w.pdf"]);
+    expect(left.map((l) => `${l.file.name}:${l.reason}`)).toEqual(["big.png:too-large", "huge.pdf:too-large", "old.doc:docx"]);
     expect(partitionDrop([]).accepted).toEqual([]);
+    expect(isPdfFile({ name: "W.PDF", type: "", size: 1 })).toBe(true);
+    expect(isPdfFile(png("a.png"))).toBe(false);
   });
 });
 
 describe("dropNote", () => {
   it("names the cap once with its count and every other file by name, or says nothing", () => {
     expect(dropNote([])).toBeNull();
-    const { left } = partitionDrop([...Array.from({ length: 23 }, (_, i) => png(`p${i}.png`)), { name: "w.pdf", type: "application/pdf", size: 1 }, png("big.png", 11 * 1024 * 1024), { name: "a.txt", type: "text/plain", size: 1 }]);
-    expect(dropNote(left)).toBe("Twenty at a time; 3 not added · w.pdf: not yet · big.png is 11 MB; ten at most · a.txt: not a picture");
-    expect(dropNote(partitionDrop([{ name: "w.pdf", type: "application/pdf", size: 1 }]).left)).toBe("w.pdf: not yet");
+    const { left } = partitionDrop([...Array.from({ length: 23 }, (_, i) => png(`p${i}.png`)), ...Array.from({ length: 7 }, (_, i) => pdf(`s${i}.pdf`)), { name: "n.docx", type: "", size: 1 }, png("big.png", 11 * 1024 * 1024), { name: "a.txt", type: "text/plain", size: 1 }]);
+    expect(dropNote(left)).toBe("Twenty pictures at a time; 3 not added · Five PDFs at a time; s5.pdf, s6.pdf not added · n.docx: export it as a PDF · big.png is 11 MB; ten at most · a.txt: not a picture or PDF");
+    expect(dropNote(partitionDrop([{ name: "chapter2.docx", type: "", size: 1 }]).left)).toBe("chapter2.docx: export it as a PDF");
   });
 });
 
@@ -82,6 +88,8 @@ describe("failure tiles", () => {
     expect(failureMessage("empty", "a.png")).toEqual({ message: "No questions found in a.png.", retry: false });
     expect(failureMessage("too-large", "a.png")).toEqual({ message: "Couldn't send a.png.", retry: false });
     expect(failureMessage("bad-request", "a.png")).toEqual({ message: "Couldn't send a.png.", retry: false });
+    expect(failureMessage("too-many-pages", "w.pdf", 14)).toEqual({ message: "w.pdf has 14 pages; 10 at most", retry: false });
+    expect(messageItem(marker, "too-many-pages", 14).message).toBe("sheet.png has 14 pages; 10 at most");
   });
 
   it("a marker becomes its message tile with the same id and file, and back to a marker for Try again", () => {

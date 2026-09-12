@@ -2477,6 +2477,30 @@ uploaded problems) settled the following as later, each on purpose.
 - **Right-aligned instead.** The pill is flush with the Pathway card's left edge; flush with
   the column's right edge (under the avatar in the bar) is the other reading of "above the
   pathway box". One class swap (`justify-end`).
+## PDFs on the create screen (from ticket 172, 2026-09-13)
+
+- **The page thumbnail is a blank at 40 px.** An A4 page drawn at 160 px and shown at 40 is 28
+  × 40 with the text invisible; it says "page 2", not what is there. A crop to the draft's own
+  region (once ticket 173 has the box), or a larger thumbnail on hover, would show the problem.
+- **Parts of the same page share one thumbnail.** Deliberate (one draw per page); a per-draft
+  crop would be the better picture at the cost of a draw per draft.
+- **The worker fetch on the first drop.** About 1 MB the first time a PDF is opened; nothing
+  says "loading" during it beyond the shimmer tile. A prefetch when a file is dragged over would
+  hide it.
+- **Password-protected and broken PDFs.** `openPdf` fails and the marker carries no thumbnail;
+  the read then goes to the route, which sends the bytes to the model. A locked PDF should be
+  refused on the tile with a word about the password; today it falls through to the route's
+  answer.
+- **A PDF's first page as the marker's picture, then the draft's page.** Two draws for page one
+  (marker and first draft) since the marker is drawn before the document is reopened in `run`;
+  keeping the document open across both would save one.
+- **Ten pages as a hard cap.** A twelve-page worksheet is refused whole; a page-range picker or
+  "read the first ten" would take the common case.
+- **Landscape and mixed-size pages.** `fitScale` fits the longer side; a landscape page's
+  thumbnail is wide and short in a square corner. Fine; not designed for.
+- **Docx conversion.** Still deferred (the interview); the note says "export it as a PDF".
+- **Scanned PDFs.** A scan is an image per page inside a PDF; the model reads it as an image and
+  the page thumbnail draws it; handwriting and skew are untested (no such fixture).
 
 ## Carson's notes
 

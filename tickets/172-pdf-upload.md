@@ -4,7 +4,7 @@
 
 **Blocked by:** 171.
 
-**Status:** ready
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -28,9 +28,9 @@ The interview settled: PDF and images day one, docx deferred (Q6, Q13); the whol
 
 ## Acceptance
 
-- [ ] in fixture mode, dropping `worksheet.pdf` shows a shimmer tile then ten tinted tiles in order with page thumbnails and "p. N" labels, the sub-parts one tile each with the stem repeated; Upload via Finder does the same
-- [ ] two PDFs dropped together stream into two groups in drop order, both shimmers visible at once
-- [ ] six PDFs: five added, the sixth named in the bar; a generated 14-page PDF is refused by name with its page count; a docx is named with "export it as a PDF"
-- [ ] an image and a PDF in one drop both extract, the image's tiles first
-- [ ] the ghost tile reads "Type a question, or drop a picture or PDF"
-- [ ] vitest, eslint, tsc, `next build`, headless click-through (`pdf172.mjs`) at 1400×1000 and 1280×800
+- [x] in fixture mode, dropping `worksheet.pdf` shows a shimmer tile (its first page in the corner) then ten tinted tiles in order with page thumbnails and "N · p. M" labels, 9(a) and 9(b) one tile each; Upload via the file input does the same
+- [x] two PDFs dropped together stream into two groups in drop order, both shimmers visible at once
+- [x] six PDFs: five added, the sixth named in the bar; a generated 14-page PDF is refused on its tile with its page count; a docx is named with "export it as a PDF"
+- [x] an image and a PDF in one drop both extract, the image's tile first
+- [x] the ghost tile reads "Type a question, or drop a picture or PDF"
+- [x] vitest (501), eslint, tsc, `next build`, headless click-through (`pdf172.mjs`, 19 checks at 1400×1000 with the bar at 1280×800)

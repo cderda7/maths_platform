@@ -14,8 +14,10 @@ import { dispatchClassroom, getClassroom } from "@/lib/classroom-store";
 import { ExtractError, extractSource, fileToSource } from "@/lib/extractClient";
 import { parseQuestion, stemText } from "@/lib/mathInput";
 import { moveItem } from "@/lib/reorder";
+import { MAX_PAGES } from "@/lib/extract";
+import { openPdf, pageThumb } from "@/lib/pdfPages";
 import { getSource, putSource, thumbOf } from "@/lib/sources";
-import { confirmAll, discardUnconfirmed, draftItem, dropNote, insertBefore, isQuestion, messageItem, partitionDrop, pendingItem, removeItem, replaceItem, unconfirmedCount, updateQuestion, type Item, type MessageItem, type PendingItem, type QuestionItem, type ReadFailure } from "@/lib/upload";
+import { confirmAll, discardUnconfirmed, draftItem, dropNote, insertBefore, isPdfFile, isQuestion, messageItem, partitionDrop, pendingItem, removeItem, replaceItem, unconfirmedCount, updateQuestion, type Item, type MessageItem, type PendingItem, type QuestionItem, type ReadFailure } from "@/lib/upload";
 
 export const REVIEW_PATH = "/teacher/assignments/create/review";
 
@@ -58,8 +60,9 @@ export function draftOf(title: string, goal: string, qs: Item[], at: number): As
  * to drag to another slot, the labels renumbering as the others slide (ticket 150,
  * `useReorder`); the ghost stays last and takes no drop.
  *
- * Questions also arrive as pictures (ticket 171): a screenshot dropped anywhere on the grid,
- * pasted with ⌘V, or chosen through the ghost's Upload link. Each file gets a shimmer tile at
+ * Questions also arrive as pictures (ticket 171) and PDFs (ticket 172): a screenshot or a
+ * worksheet dropped anywhere on the grid, pasted with ⌘V, or chosen through the ghost's Upload
+ * link. Each file gets a shimmer tile at
  * the end of the grid while `POST /api/extract` reads it, and its drafts stream in before that
  * marker as tinted, unconfirmed tiles with keep and discard; the bar gains "Add N" and
  * "Discard N" while any are unconfirmed, and Continue, never gated, keeps them all on the way
@@ -105,6 +108,18 @@ const isServer = () => false;
 
 /** The files in a drag or a drop, if it carries any. */
 const hasFiles = (e: DragEvent) => Array.from(e.dataTransfer?.types ?? []).includes("Files");
+
+/** A PDF's first page as its marker's thumbnail, or nothing when it will not open (the read then says so). */
+async function firstPageThumb(blob: Blob): Promise<string | undefined> {
+  try {
+    const open = await openPdf(blob);
+    const thumb = await pageThumb(open.doc, 1);
+    await open.close();
+    return thumb;
+  } catch {
+    return undefined;
+  }
+}
 
 function Editor() {
   const router = useRouter();
@@ -162,16 +177,31 @@ function Editor() {
 
   /**
    * One file read by the route: its drafts inserted before its marker as they arrive, the
-   * marker removed at the end, or turned into a message tile when the read fails or finds nothing.
+   * marker removed at the end, or turned into a message tile when the read fails or finds
+   * nothing. A PDF is opened once in the browser (ticket 172) for the page count, refused past
+   * the cap before anything is sent, and for each draft's page thumbnail, drawn once per page.
    */
   const run = async (marker: PendingItem, blob: Blob, mime: string) => {
     let count = 0;
+    const pdf = isPdfFile({ name: marker.name, type: mime, size: blob.size });
+    const open = pdf ? await openPdf(blob).catch(() => null) : null;
+    const thumbs = new Map<number, Promise<string | undefined>>();
+    const thumbFor = (page: number | undefined) => {
+      if (!open || page === undefined) return Promise.resolve(marker.thumb);
+      if (!thumbs.has(page)) thumbs.set(page, pageThumb(open.doc, page));
+      return thumbs.get(page)!;
+    };
     try {
+      if (open && open.pages > MAX_PAGES) {
+        patch((cur) => replaceItem(cur, marker.id, messageItem(marker, "too-many-pages", open.pages)));
+        return;
+      }
       const source = await fileToSource(blob, marker.name, mime);
       for await (const ev of extractSource(source)) {
         if (ev.type === "draft") {
           count++;
-          const item = draftItem(ev, marker, newId());
+          const thumb = await thumbFor(ev.page);
+          const item = draftItem(ev, { sourceId: marker.sourceId, name: marker.name, thumb }, newId());
           patch((cur) => insertBefore(cur, marker.id, item));
         } else if (ev.type === "error") throw new ExtractError("declined");
       }
@@ -179,10 +209,12 @@ function Editor() {
     } catch (e) {
       const reason: ReadFailure = e instanceof ExtractError ? e.failure : "network";
       patch((cur) => replaceItem(cur, marker.id, messageItem(marker, reason)));
+    } finally {
+      void open?.close();
     }
   };
 
-  /** A drop, a paste or a pick: the files the caps allow get a marker each, in order, then read in parallel. */
+  /** A drop, a paste or a pick: the files the caps allow get a marker each, in order, then read in parallel. A PDF's marker carries its first page. */
   const addFiles = async (files: File[]) => {
     const { accepted, left } = partitionDrop(files);
     setRemoved(null);
@@ -191,7 +223,7 @@ function Editor() {
     const jobs = await Promise.all(
       accepted.map(async (file) => {
         const sourceId = await putSource(file, file.name, file.type);
-        const thumb = await thumbOf(file);
+        const thumb = isPdfFile(file) ? await firstPageThumb(file) : await thumbOf(file);
         const marker: PendingItem = { kind: "pending", id: newId(), text: "", sourceId, name: file.name };
         if (thumb) marker.thumb = thumb;
         return { marker, file };
@@ -349,7 +381,7 @@ function Editor() {
         ref={fileInput}
         type="file"
         multiple
-        accept="image/png,image/jpeg,image/gif,image/webp"
+        accept="image/png,image/jpeg,image/gif,image/webp,application/pdf"
         className="hidden"
         aria-hidden="true"
         tabIndex={-1}

@@ -23,7 +23,7 @@ still holds it).
 ```bash
 npm install
 npm run dev        # http://localhost:3000
-npm test           # vitest: 500 tests over the pure logic in lib/
+npm test           # vitest: 501 tests over the pure logic in lib/
 npm run lint && npx tsc --noEmit && npm run build
 npx next start -p 3121 & npm run check:laptop   # every teacher route at 1440×900 and 1280×800, fails on horizontal overflow
 EXTRACT_FIXTURES=1 npm run dev                  # problem extraction answers from fixtures/extract instead of the model (no key needed)
@@ -62,11 +62,13 @@ Teacher, before the lesson (`/teacher/assignments/create`, then the older `/teac
    put the expression under the prose, × or Backspace to remove ("Q2 removed. Undo"); press and
    hold a tile to drag it to another slot, the labels renumbering as the others slide (a click
    edits, a hold moves; Alt+arrows move a focused tile; ticket 150). A question can also be a
-   picture (ticket 171): drop a screenshot anywhere on the grid, paste one with ⌘V, or use the
-   ghost tile's Upload link; a shimmer tile holds the file's place while `/api/extract` reads it
-   and each problem it finds arrives as a light blue tile with ✓ and × (a worksheet of four gives
-   four), the bar offering "Add N" and "Discard N" beside Continue, which keeps them all anyway.
-   Twenty pictures a drop, ten MB each. Continue
+   picture or a PDF (tickets 171–172): drop a screenshot or a worksheet anywhere on the grid,
+   paste a screenshot with ⌘V, or use the ghost tile's Upload link; a shimmer tile holds the
+   file's place while `/api/extract` reads it and each problem it finds arrives as a light blue
+   tile with ✓ and × (a worksheet of four gives four; a three-page PDF gives every problem on it,
+   its page drawn in the tile's corner and "4(a) · p. 2" beside the label), the bar offering
+   "Add N" and "Discard N" beside Continue, which keeps them all anyway. Twenty pictures or five
+   PDFs a drop, ten MB each, ten pages a PDF; a Word file is told to become a PDF. Continue
    saves the draft and opens the review step.
 0b. **Review** (ticket 120, `…/create/review`): the same tiles with a difficulty label on each
    (simple / complex × familiar / unfamiliar, from the bank or a heuristic; tap a label to change

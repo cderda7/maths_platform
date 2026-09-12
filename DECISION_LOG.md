@@ -3402,3 +3402,34 @@ the line (an unmatched `$` is plain text).
 **Defense.** One tile, one text, one parser for both origins is the smallest thing that gives
 the teacher direct editing of what the model read, and the two parser rules are ones typed
 input wanted anyway: an explicit way to say "this is maths" and TeX accepted as TeX.
+
+## 2026-09-13 · pdfjs-dist is loaded on first use with its own worker bundled by Next; a PDF's pages are drawn for thumbnails only (ticket 172)
+
+**Decision.** `lib/pdfPages` imports `pdfjs-dist` dynamically the first time a PDF is opened and
+points it at its own worker through `new URL("pdfjs-dist/build/pdf.worker.min.mjs",
+import.meta.url)`, which Next bundles as a static asset. The browser opens a PDF once per drop:
+to count its pages (refused on the tile past ten, never sent) and to draw, once per page, the
+160 px thumbnail each of that page's tiles shares. The bytes themselves go to the route as a
+native document block; nothing is rasterised for the model.
+
+**Context.** The interview's decision (above, "PDFs go to the API natively and are drawn in the
+browser by pdfjs-dist") left the mechanics open: how the library and its worker reach the page,
+and how much drawing is done. pdfjs needs a worker script URL; the package ships one; a copy in
+`public/` would be a second copy of a 1 MB file to keep in step with the dependency.
+
+**Alternatives.** *A copy of the worker in `public/`*: simple, but it drifts from the installed
+version and is committed weight. *No worker (pdfjs's fake-worker mode)*: parsing on the main
+thread, which stalls the grid while a ten-page PDF opens. *Drawing every page up front*: ten
+canvases for a file whose drafts may all be on page one; drawing on demand per draft's page
+costs one render per page that has a draft. *Counting pages on the server only*: the route's
+count is best effort (compressed object streams read as unknown); the browser's is exact and
+comes before the upload.
+
+**Tradeoffs.** The worker is a separate 1 MB fetch the first time a PDF is dropped, then cached.
+A page thumbnail at 40 px in the tile's corner is an A4 page at 28 × 40, almost blank at that
+size; it tells the teacher which page, not what is on it. `renderPage` at full scale exists for
+ticket 173's figure crops but nothing calls it yet. The document is closed after the read, so a
+"Fix" that wants the page again reopens the file from IndexedDB.
+
+**Defense.** One dependency, loaded only where it is used, with its own worker kept in step by
+the bundler; the model reads the document, the browser draws only what a tile shows.
