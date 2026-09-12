@@ -7,7 +7,7 @@ import M from "@/components/Math";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { DifficultyTag, SlipChip } from "@/components/Tag";
 import { ASSIGNMENT } from "@/data/assignment";
-import { groupBySlip, mistakesByProblem } from "@/lib/mistakes";
+import { groupBySlip, mistakesByProblem, type WorkColumn } from "@/lib/mistakes";
 import { diagnosticFor } from "@/lib/diagnostic";
 import { useBatchedSession } from "@/lib/store";
 import { useAssignment } from "@/lib/classroom-store";
@@ -19,8 +19,8 @@ const ACTION_IDLE = `${ACTION} bg-standout-soft text-accent-deep hover:bg-stando
 const ACTION_ACTIVE = `${ACTION} bg-accent text-white hover:bg-accent-deep`;
 
 /**
- * The narrowest a student's column goes (ticket 135). Columns share the card evenly; a problem
- * with more students than fit at this width scrolls sideways. The working shrinks to fit: a
+ * The narrowest a column goes (ticket 135). Columns share the card evenly; a problem with more
+ * columns (distinct workings, ticket 138) than fit at this width scrolls sideways. The working shrinks to fit: a
  * problem's lines are set at 17 px, or smaller by the one factor (`--fit`, measured by
  * `FitGrid`) that puts its widest line on one row inside its box, never under 13 px; under
  * 260 px of column the padding inside tightens too (`@max-[260px]`, a container query on the
@@ -74,11 +74,13 @@ function FitGrid({ children, ...rest }: React.HTMLAttributes<HTMLDivElement>) {
  * Mistakes by problem. Under each problem the students who slipped sit side by side, those who
  * slipped on the same step next to each other under one pill that spans them, and inside a
  * pill those who made the exact same mistake (the same wrong line, whatever the lines around
- * it) next to each other. Any number of problems can be open at once: clicking the problem's
- * header, any student, or the "expand" button that shows on hover opens every student's
- * working for that problem in columns, the wrong line in red, and one box in the pill's red
- * around the working of every group of students on the same exact mistake (a student alone on
- * theirs boxed alone). An open problem carries a "close" button; once pressed, the button reads
+ * it) next to each other. Students whose working is identical line for line share one column
+ * (ticket 138): their names sit together over the one copy of the work, so a problem twelve
+ * students got wrong in three ways takes three columns. Any number of problems can be open at
+ * once: clicking the problem's header, any student, or the "expand" button that shows on hover
+ * opens the working for that problem, one column each, the wrong line in red, and one box in
+ * the pill's red around the working of every group of students on the same exact mistake (a
+ * student alone on theirs boxed alone). An open problem carries a "close" button; once pressed, the button reads
  * "close all" (while other problems are still open) until the pointer leaves the card.
  * To the right of each problem sits its live diagnostic (ticket 127): the "Live diagnostic" chip
  * alone until clicked, then the push panel with the problem's own suggested question and the
@@ -111,9 +113,11 @@ export default function TeacherMistakes() {
           const isOpen = open.includes(problem.id);
           const othersOpen = open.some((id) => id !== problem.id);
           const groups = groupBySlip(rows);
-          const ordered = groups.flatMap((g) => g.rows);
+          // One grid column per identical working (ticket 138); boxes and pills span columns.
+          const columns = groups.flatMap((g) => g.columns);
           const boxes = groups.flatMap((g) => g.mistakes);
-          const boxOf = (i: number) => boxes.find((m) => i >= m.start && i < m.start + m.rows.length)!;
+          const boxOf = (i: number) => boxes.find((m) => i >= m.start && i < m.start + m.columns.length)!;
+          const ids = (c: WorkColumn) => c.rows.map((r) => r.id).join(",");
           const column = (i: number) => (i === 0 ? "" : "border-l border-line");
           // Hover shows "expand"; open shows "close" until pressed; just closed shows "close all" while others are open.
           const action: { word: "expand" | "close" | "close all"; cls: string; visible: boolean } = isOpen
@@ -159,34 +163,36 @@ export default function TeacherMistakes() {
                 <DifficultyTag d={problem.difficulty} />
               </div>
               <div className="overflow-x-auto">
-                <FitGrid className="grid" style={{ gridTemplateColumns: `repeat(${ordered.length}, minmax(${COLUMN_FLOOR}px, 1fr))` }} data-students>
-                  {ordered.map((r, i) => {
-                    const key = `${problem.id}:${r.id}`;
-                    return (
-                      <button
-                        key={r.id}
-                        type="button"
-                        onClick={() => toggle(problem.id)}
-                        aria-expanded={isOpen}
-                        className={`row-start-1 flex min-w-0 items-center gap-3 px-5 pt-4 pb-3.5 text-left transition-colors hover:bg-cream-deep/40 ${column(i)} ${isOpen ? "bg-accent-soft/30" : ""}`}
-                        style={{ gridColumn: i + 1 }}
-                        data-row={key}
-                      >
-                        <Avatar initials={r.initials} />
-                        <span className="truncate font-medium text-ink">{r.name}</span>
-                        {r.live && (
-                          <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-accent-line bg-paper px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-deep">
-                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" aria-hidden /> live
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
+                <FitGrid className="grid" style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(${COLUMN_FLOOR}px, 1fr))` }} data-students>
+                  {columns.map((c, i) => (
+                    // Every student who wrote this column's working, their names flowing across the column and wrapping as it narrows; the first name in every column on one line.
+                    <button
+                      key={ids(c)}
+                      type="button"
+                      onClick={() => toggle(problem.id)}
+                      aria-expanded={isOpen}
+                      className={`row-start-1 flex min-w-0 flex-wrap content-start items-center gap-x-5 gap-y-2 px-5 pt-4 pb-3.5 text-left transition-colors hover:bg-cream-deep/40 ${column(i)} ${isOpen ? "bg-accent-soft/30" : ""}`}
+                      style={{ gridColumn: i + 1 }}
+                      data-column={`${problem.id}:${ids(c)}`}
+                    >
+                      {c.rows.map((r) => (
+                        <span key={r.id} className="flex max-w-full items-center gap-3 whitespace-nowrap" data-row={`${problem.id}:${r.id}`}>
+                          <Avatar initials={r.initials} />
+                          <span className="truncate font-medium text-ink">{r.name}</span>
+                          {r.live && (
+                            <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-accent-line bg-paper px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-deep">
+                              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" aria-hidden /> live
+                            </span>
+                          )}
+                        </span>
+                      ))}
+                    </button>
+                  ))}
                   {groups.map((g) => (
                     <div
                       key={g.slips.join("|")}
                       className={`row-start-2 flex min-w-0 items-start gap-1.5 pr-5 pb-4 pl-5 ${column(g.start)} ${isOpen ? "bg-accent-soft/30" : ""}`}
-                      style={{ gridColumn: `${g.start + 1} / span ${g.rows.length}` }}
+                      style={{ gridColumn: `${g.start + 1} / span ${g.columns.length}` }}
                       data-slip-group={g.rows.map((r) => r.id).join(",")}
                     >
                       {g.slips.map((id) => (
@@ -197,26 +203,26 @@ export default function TeacherMistakes() {
                   {/* The working row's ground: the divider under the pills and the cream behind the boxes, across every column. */}
                   {isOpen && <div className="row-start-3 border-t border-line bg-cream/60" style={{ gridColumn: "1 / -1" }} aria-hidden />}
                   {isOpen &&
-                    ordered.map((r, i) => {
+                    columns.map((c, i) => {
                       // One box per exact mistake: every cell in it carries the top and bottom edge; the first the left edge and corners, the last the right; between cells a plain divider.
                       const box = boxOf(i);
                       const first = i === box.start;
-                      const last = i === box.start + box.rows.length - 1;
+                      const last = i === box.start + box.columns.length - 1;
                       const edges = `${first ? "ml-2.5 rounded-l-xl border-l border-wrong-deep" : "border-l border-line"} ${last ? "mr-2.5 rounded-r-xl border-r border-wrong-deep" : ""}`;
                       // The grid cell is the container (its width is the column's, the same for every cell); the box edges sit on the div inside it.
                       return (
                         <div
-                          key={r.id}
+                          key={ids(c)}
                           className="@container row-start-3 min-w-0 py-4"
                           style={{ gridColumn: i + 1 }}
-                          data-expanded={`${problem.id}:${r.id}`}
+                          data-expanded={`${problem.id}:${ids(c)}`}
                           data-mistake-group={box.rows.map((x) => x.id).join(",")}
                           data-box-start={first || undefined}
                           data-box-end={last || undefined}
                         >
                           <div className={`h-full border-y border-wrong-deep px-2.5 py-3 @max-[260px]:px-2 ${edges}`}>
                             <ol className="space-y-2">
-                              {r.lines.map((l, j) => {
+                              {c.lines.map((l, j) => {
                                 const wrong = l.verdict.verdict === "wrong";
                                 return (
                                   <li
@@ -230,7 +236,7 @@ export default function TeacherMistakes() {
                                 );
                               })}
                             </ol>
-                            {r.live && (
+                            {c.live && (
                               <div className="mt-3 flex items-center justify-between text-[12.5px] whitespace-nowrap text-ink-muted @max-[260px]:flex-col @max-[260px]:items-start @max-[260px]:gap-0.5 @max-[260px]:text-[11px]">
                                 <span>As handed in</span>
                                 <Link href="/teacher/compare" className="text-accent-deep hover:underline" data-compare-link>

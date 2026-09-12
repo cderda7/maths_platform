@@ -1703,6 +1703,23 @@ agents add sections above it and leave it alone.
   `cqw`) was tried first and could not serve Q5 (four short columns) and Q10 (four long ones)
   at once. If container-relative typography ever knows content width, the effect goes.
 
+## One column per identical working (from ticket 138, 2026-09-12)
+
+- **Near-identical working.** Two students who differ by one right line (Q9's four-line and
+  three-line routes to "h = 6") stay two columns inside one box; the user asked for exact
+  matches only. A looser key (the wrong line plus the lines after it, or ignoring skipped
+  right steps) deferred until a teacher asks why two columns look the same.
+- **Names in a crowded column.** Seven names over one column wrap to four rows and the
+  header row of the whole problem grows with them; a "+3 more" fold past a few names, or
+  avatars alone with names on hover, deferred.
+- **Whose column is it.** The compare footer ("As handed in · Original vs final") sits under
+  the column the live student is in, though six classmates share it; a per-student footer or
+  the footer beside the live student's name deferred.
+- **Click a name.** The whole header cell expands the problem; clicking one name to open that
+  student's report deferred (the class view has the report button).
+- **Sort within a column.** Students keep fixture order inside a column (the live student
+  first because the rows put him first); alphabetical or by confidence deferred.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

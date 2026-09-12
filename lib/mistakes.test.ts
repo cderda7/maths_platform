@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CLASSMATES } from "@/data/classmates";
-import { groupByMistake, groupBySlip, mistakeKey, mistakesByProblem, type MistakeRow } from "./mistakes";
+import { groupByMistake, groupBySlip, groupByWork, mistakeKey, mistakesByProblem, type MistakeRow } from "./mistakes";
 import { sessionAt } from "./session";
 
 describe("teacher mistake view", () => {
@@ -31,10 +31,11 @@ describe("teacher mistake view", () => {
     const c = row("c", ["x", "x"]);
     const d = row("d", ["y", "x"]);
     const groups = groupBySlip([a, b, c, d]);
-    expect(groups.map((g) => ({ slips: g.slips, start: g.start, ids: g.rows.map((r) => r.id) }))).toEqual([
-      { slips: ["x"], start: 0, ids: ["a", "c"] },
-      { slips: ["y"], start: 2, ids: ["b"] },
-      { slips: ["y", "x"], start: 3, ids: ["d"] },
+    // a and c wrote the same (empty) working, so they share one column and the next pill starts at column 1 (ticket 138).
+    expect(groups.map((g) => ({ slips: g.slips, start: g.start, ids: g.rows.map((r) => r.id), columns: g.columns.length }))).toEqual([
+      { slips: ["x"], start: 0, ids: ["a", "c"], columns: 1 },
+      { slips: ["y"], start: 1, ids: ["b"], columns: 1 },
+      { slips: ["y", "x"], start: 2, ids: ["d"], columns: 1 },
     ]);
     // Q5 in the fixtures: Tomas alone on quadratic equations, then Harper, Ruby and Finn under one graph-features pill.
     const q5 = mistakesByProblem(sessionAt("feedback")).find((p) => p.problem.id === "q5")!;
@@ -56,19 +57,21 @@ describe("teacher mistake view", () => {
       { key: "m2", start: 2, ids: ["b", "d"] },
       { key: "m1 | m3", start: 4, ids: ["e"] },
     ]);
-    // One slip group: its rows are reordered to the exact groups' order and its starts are absolute.
+    // One slip group: its rows are reordered to the exact groups' order and its starts are absolute (five different workings, so five columns).
     const [g] = groupBySlip([a, b, c, d, e]);
     expect(g.rows.map((r) => r.id)).toEqual(["a", "c", "b", "d", "e"]);
     expect(g.mistakes.map((m) => m.start)).toEqual([0, 2, 4]);
+    expect(g.columns.length).toBe(5);
     // Q7 in the fixtures: under the fractions pill the four who lost the third (Amelia first) then the six who scaled two terms; under monic factorising the two on the wrong pair.
     const q7 = mistakesByProblem(null).find((p) => p.problem.id === "q7")!;
     const groups = groupBySlip(q7.rows);
-    expect(groups.map((s) => s.mistakes.map((m) => [m.start, m.rows.length]))).toEqual([
+    // Each of the three is one working, so one column each: the starts count columns (ticket 138).
+    expect(groups.map((s) => s.mistakes.map((m) => [m.start, m.rows.length, m.columns.length]))).toEqual([
       [
-        [0, 4],
-        [4, 6],
+        [0, 4, 1],
+        [1, 6, 1],
       ],
-      [[10, 2]],
+      [[2, 2, 1]],
     ]);
     expect(groups[0].rows.slice(0, 4).map((r) => r.id)).toEqual(["amelia", "zara", "ethan", "finn"]);
     // With the live student first (Sam scaled two terms), that group leads.
@@ -104,6 +107,54 @@ describe("teacher mistake view", () => {
     // Priya, Chloe and Grace untouched; every wrong problem has a teacher note about it.
     for (const id of ["priya", "chloe", "grace"]) expect(CLASSMATES.find((c) => c.id === id)!.wrong).toEqual([]);
     for (const c of CLASSMATES) for (const pid of c.wrong) expect(c.notes.some((n) => n.problems.includes(pid)), `${c.id} ${pid}`).toBe(true);
+  });
+
+  it("students whose working is identical line for line share one column (ticket 138), in order of first appearance", () => {
+    const line = (tex: string, verdict: "right" | "wrong" = "right") => ({ tex, verdict: { verdict, tags: [] } as unknown as MistakeRow["lines"][number]["verdict"] });
+    const row = (id: string, lines: MistakeRow["lines"], live = false) => ({ id, name: id, initials: id, live, lines, slips: ["x"] as unknown as MistakeRow["slips"] });
+    const a = row("a", [line("p"), line("q", "wrong")], true);
+    const b = row("b", [line("p"), line("r", "wrong")]);
+    const c = row("c", [line("p"), line("q", "wrong")]);
+    const d = row("d", [line("q", "wrong")]);
+    expect(groupByWork([a, b, c, d]).map((k) => ({ ids: k.rows.map((r) => r.id), live: k.live, lines: k.lines.map((l) => l.tex) }))).toEqual([
+      { ids: ["a", "c"], live: true, lines: ["p", "q"] },
+      { ids: ["b"], live: false, lines: ["p", "r"] },
+      { ids: ["d"], live: false, lines: ["q"] },
+    ]);
+    // The live student's column carries the flag whichever member is live.
+    expect(groupByWork([c, a]).map((k) => [k.rows.map((r) => r.id), k.live])).toEqual([[["c", "a"], true]]);
+    // Inside a pill and a mistake group the columns follow first appearance, students keep their order inside one, and the starts count columns.
+    const e = { ...row("e", [line("p"), line("r", "wrong")]), slips: ["y"] as unknown as MistakeRow["slips"] };
+    const groups = groupBySlip([b, a, e, c]);
+    expect(groups.map((g) => ({ start: g.start, columns: g.columns.map((k) => k.rows.map((r) => r.id)), mistakes: g.mistakes.map((m) => [m.start, m.columns.length]) }))).toEqual([
+      { start: 0, columns: [["b"], ["a", "c"]], mistakes: [[0, 1], [1, 1]] },
+      { start: 2, columns: [["e"]], mistakes: [[2, 1]] },
+    ]);
+    expect(groups[0].rows.map((r) => r.id)).toEqual(["b", "a", "c"]);
+  });
+
+  it("the fixtures collapse: Q9 three columns, Q7 three strategies, Q5's graph-features trio one column", () => {
+    const columnsOf = (session: ReturnType<typeof sessionAt> | null, pid: string) => {
+      const p = mistakesByProblem(session).find((x) => x.problem.id === pid)!;
+      return groupBySlip(p.rows).flatMap((g) => g.columns.map((k) => k.rows.map((r) => r.id)));
+    };
+    // Zara and Ruby wrote the same four lines, Ethan and Harper the same rushed three, Mia her own.
+    expect(columnsOf(null, "q9")).toEqual([["zara", "ruby"], ["ethan", "harper"], ["mia"]]);
+    // Twelve classmates wrong on Q7 take three columns (Amelia's lost third first, then the two terms, then the pair): four / six / two.
+    expect(columnsOf(null, "q7").map((c) => c.length)).toEqual([4, 6, 2]);
+    expect(columnsOf(null, "q5")).toEqual([["tomas"], ["harper", "ruby", "finn"]]);
+    // With the live session Sam leads Q7, and his working is the six classmates' two-terms slip line for line: one live column of seven, first.
+    const q7 = columnsOf(sessionAt("feedback"), "q7");
+    expect(q7[0][0]).toBe("sam");
+    expect(q7.map((c) => c.length)).toEqual([7, 4, 2]);
+    const q7Rows = mistakesByProblem(sessionAt("feedback")).find((x) => x.problem.id === "q7")!.rows;
+    expect(groupBySlip(q7Rows).flatMap((g) => g.columns.map((k) => k.live))).toEqual([true, false, false]);
+    // The pill's start counts columns, not students.
+    const q9 = mistakesByProblem(null).find((x) => x.problem.id === "q9")!;
+    expect(groupBySlip(q9.rows).map((g) => [g.start, g.columns.length])).toEqual([
+      [0, 2],
+      [2, 1],
+    ]);
   });
 
   it("without a live session only the classmates appear", () => {

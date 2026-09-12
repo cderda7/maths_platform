@@ -131,8 +131,11 @@ teacher shows them, and a mirror of the teacher's working.
 - **Mistakes** (`/teacher/mistakes`): problems first, the students who slipped on each under
   one pill per slip, expand for their working; inside a pill the students on the exact same
   wrong line sit together and, open, one box in the pill's red surrounds their working (a
-  student alone on theirs boxed alone). Columns share the card down to a floor and the working
-  shrinks to fit them, so a crowded problem scrolls sideways only past seven or so students. The class's slips have a shape: twelve
+  student alone on theirs boxed alone). Students whose working is identical line for line
+  share one column: the work is written once with every one of their names over it, so a
+  problem twelve students got wrong in three ways takes three columns. Columns share the card
+  down to a floor and the working shrinks to fit them, so a problem scrolls sideways only past
+  seven or so distinct workings. The class's slips have a shape: twelve
   classmates wrong on Q7 in three ways (the fraction cleared from two terms, the third lost,
   the wrong pair), Amelia alone on Q6, nobody on Q8, and every other problem wrong in at least
   two ways. To the right of every problem a **Live

@@ -2450,3 +2450,34 @@ The fit measures in layout px only (`offsetWidth`, `clientWidth`, computed paddi
 zoom cannot skew it, and one measurement suffices because KaTeX scales linearly with the font
 size. The click-through asserts every line on one row inside its box on every problem at
 1440 and 1280, with and without the live student.
+
+## 2026-09-12 · A column on the mistake view is a working, not a student
+
+**Decision.** The mistake view's grid has one column per distinct working (every line's TeX,
+in order, `workKey`), not one per student: students whose working is identical line for line
+share the column, their names all over the one copy of the work. The partition sits under the
+exact-mistake groups (`groupByMistake` → `groupByWork`), and every `start` in the model counts
+columns, since pills and boxes span grid columns.
+
+**Context.** The user, on Q7 (thirteen columns scrolling) and Q9 (Ethan's and Harper's
+columns showing the same three lines): "if students share EXACT same work, don't write each
+of their work individually. write it ONCE & group them together." Ticket 135 had just made
+the maths shrink to fit more columns; that keeps every column and reaches seven or so before
+scrolling, but Q7 has thirteen.
+
+**Alternatives considered.** *Keep a column per student, hide duplicates' lines* ("same as
+Tomas"): keeps thirteen columns and the scroll. *Group by exact mistake* (ticket 135's key,
+the wrong line only): merges Q9's four-line and three-line routes to "h = 6" into one column
+with no honest single copy of the work to show. *A fuzzy key* (ignoring right steps): the
+user asked for exact; a teacher reading "the same work" must be able to trust it.
+
+**Tradeoffs.** A student whose working differs by one right line from a neighbour's gets a
+column of their own inside the same box, which can look like a duplicate. The header row
+grows with the longest list of names in the problem (seven wrap to four rows at 1280). The
+compare footer belongs to a column, not a student, so it sits under a column six classmates
+share.
+
+**Defence.** Identical working implies the same wrong line, so the column nests cleanly under
+the mistake box and the box still reads as one mistake; the fixtures collapse from thirteen
+columns to three on Q7 and five to three on Q9 with no scroll at 1280, and the tests pin the
+column counts so a fixture edit that splits them fails first.
