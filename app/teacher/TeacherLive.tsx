@@ -28,11 +28,15 @@ import { useBatchedSession, useNow } from "@/lib/store";
 const DOUBLE_MS = 350;
 
 /**
- * How long after the pointer last left a category pill the row's buttons stay away (ticket 131). A
- * teacher moving between pills is using the pills; the buttons are for one who would not think to,
- * and come back once the pointer has sat off the pills this long.
+ * How long after the pointer last left a marker (a category pill, or a group or skill dot in the drill
+ * under it) the row's buttons stay away (tickets 131, 133). A teacher moving between markers is using
+ * them; the buttons are for one who would not think to, and come back once the pointer has sat off
+ * every marker this long.
  */
-const PILL_GRACE_MS = 2000;
+const PILL_GRACE_MS = 1000;
+
+/** The markers: the category pill buttons in the row, and the drill's group and skill nodes under it. */
+const MARKER = "[data-dot], [data-node]";
 
 /** The grey uppercase label beside a category pill: the category name in a column view, the unit beside the Unit pill in a drill. */
 const LABEL = "pointer-events-none absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink-muted";
@@ -80,18 +84,28 @@ export default function TeacherLive() {
   const tableRef = useRef<HTMLTableElement>(null);
   const lastClick = useRef<{ student: string; at: number } | null>(null);
   const nonce = useRef(0);
-  /** True once the pointer has been off every category pill for PILL_GRACE_MS; the row buttons need it. One timer for the grid: pills in any row count. */
+  /** True once the pointer has been off every marker (pill or drill dot) for PILL_GRACE_MS; the row buttons need it. One timer for the grid: markers in any row count. */
   const [pillQuiet, setPillQuiet] = useState(true);
   const pillTimer = useRef<number | undefined>(undefined);
-  const pillEnter = () => {
+  useEffect(() => () => window.clearTimeout(pillTimer.current), []);
+  /**
+   * Delegated from each student's tbody, so the drill's nodes count without threading handlers through
+   * HierarchyDrill. A move between two elements inside the same marker is neither an enter nor a leave.
+   */
+  const markerCrossing = (e: React.PointerEvent) => {
+    const marker = (e.target as Element).closest(MARKER);
+    return marker && !(e.relatedTarget instanceof Node && marker.contains(e.relatedTarget));
+  };
+  const markerOver = (e: React.PointerEvent) => {
+    if (!markerCrossing(e)) return;
     window.clearTimeout(pillTimer.current);
     setPillQuiet(false);
   };
-  const pillLeave = () => {
+  const markerOut = (e: React.PointerEvent) => {
+    if (!markerCrossing(e)) return;
     window.clearTimeout(pillTimer.current);
     pillTimer.current = window.setTimeout(() => setPillQuiet(true), PILL_GRACE_MS);
   };
-  useEffect(() => () => window.clearTimeout(pillTimer.current), []);
   /**
    * Where each category's dots sit, relative to the drill cell's content edge (td px-5 = 20px),
    * in CSS px: rects are scaled by the page's zoom, margins are not, so divide by the scale.
@@ -258,7 +272,7 @@ export default function TeacherLive() {
                 const h = isOpen && open.keep ? restrictTo(results[i], open.keep) : results[i];
                 const showDrill = isOpen || !!column;
                 return (
-                  <RowGroup key={r.id}>
+                  <RowGroup key={r.id} onPointerOver={markerOver} onPointerOut={markerOut}>
                     <tr
                       className={`border-b border-line ${r.live ? "bg-accent-soft/30" : ""} ${showDrill ? "border-b-0" : ""}`}
                       data-missing={r.missing || undefined}
@@ -295,8 +309,8 @@ export default function TeacherLive() {
                               )}
                             </div>
                           </div>
-                          {/* Shown while the pointer is in the student's block, except over a category pill (the pill is its own way in, ticket 128) and for PILL_GRACE_MS after it last left one (ticket 131). The CSS :has rule hides at once; the state carries the grace. */}
-                          <div className={`invisible ml-auto flex shrink-0 flex-col gap-1 ${pillQuiet ? "group-hover/row:visible group-focus-within/row:visible group-has-[[data-dot]:hover]/row:invisible" : ""}`} data-row-actions={r.id}>
+                          {/* Shown while the pointer is in the student's block, except over a marker (a category pill, ticket 128, or a drill dot, ticket 133: each is its own way in) and for PILL_GRACE_MS after it last left one (ticket 131). The CSS :has rules hide at once; the state carries the grace. */}
+                          <div className={`invisible ml-auto flex shrink-0 flex-col gap-1 ${pillQuiet ? "group-hover/row:visible group-focus-within/row:visible group-has-[[data-dot]:hover]/row:invisible group-has-[[data-node]:hover]/row:invisible" : ""}`} data-row-actions={r.id}>
                             <button type="button" onClick={() => (isOpen ? setOpen(null) : openRow(r.id, "expanded"))} className={isOpen ? STACK_ACTIVE : STACK_IDLE} data-see-skills={r.id} aria-pressed={isOpen}>
                               {isOpen ? "close" : "see dot skills"}
                             </button>
@@ -317,8 +331,6 @@ export default function TeacherLive() {
                               type="button"
                               onClick={() => (on && !column ? setOpen(null) : openRow(r.id, "category", c))}
                               onDoubleClick={() => openRow(r.id, "category", c, undefined, true)}
-                              onPointerEnter={pillEnter}
-                              onPointerLeave={pillLeave}
                               aria-label={`${categoryLabel(c, unit).name}: ${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}
                               aria-expanded={on}
                               className={`inline-grid h-7 w-10 place-items-center rounded-md transition-colors hover:bg-cream-deep ${on ? "bg-cream-deep ring-1 ring-ink" : ""} ${blanked ? "invisible" : ""}`}
@@ -458,8 +470,13 @@ function Missing() {
 
 /**
  * A student's block: their row and, under it, any open drill. One `tbody` per student so a hover
- * anywhere in the block (the drill row included) shows the buttons beside the name.
+ * anywhere in the block (the drill row included) shows the buttons beside the name. The pointer
+ * handlers watch for the markers inside it (the pills and the drill's dots) on the grid's behalf.
  */
-function RowGroup({ children }: { children: React.ReactNode }) {
-  return <tbody className="group/row">{children}</tbody>;
+function RowGroup({ children, onPointerOver, onPointerOut }: { children: React.ReactNode; onPointerOver: React.PointerEventHandler; onPointerOut: React.PointerEventHandler }) {
+  return (
+    <tbody className="group/row" onPointerOver={onPointerOver} onPointerOut={onPointerOut}>
+      {children}
+    </tbody>
+  );
 }

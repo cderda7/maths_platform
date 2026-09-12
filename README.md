@@ -104,8 +104,8 @@ Teacher, during the lesson (`/teacher`):
   row, or the drill open under it) for two buttons beside the name: **see dot skills** (the
   student's full breakdown, every group of every dot open to its skills; **close** while the row
   is open) and **student report**; they step aside while the pointer is over one of the row's
-  pills, since the pill is its own way in, and for two seconds after it last left one, so a
-  sweep across pills never shows them. A student with nothing handed in shows a caution triangle and MISSING in
+  pills or the dot chips of an open drill, since each is its own way in, and for a second after
+  it last left one, so a sweep across pills or dots never shows them. A student with nothing handed in shows a caution triangle and MISSING in
   the Set column. Then the live row's confidence, stage and caution, the classmates, the
   **Pathway** card (indiv working → indiv review → group review → class review: the stage the
   class is on ringed in purple with `N/20 done` beside it and, before group review, **start group

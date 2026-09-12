@@ -1613,6 +1613,17 @@ agents add sections above it and leave it alone.
   note hanging in the card's padding, or a wider side column, are alternatives if the left-aligned
   column reads wrong.
 
+## Drill dots as markers (from ticket 133, 2026-09-12)
+
+- **The marked-up work too.** A problem's card in the drill (the work behind a skill) is not a
+  marker: resting the pointer on it lets the buttons back after the second. If a teacher reads
+  work with the pointer parked on it and finds the buttons popping up, add `[data-work-problem]`
+  to `MARKER`.
+- **The column view's drills.** With a column open under every student, each row's drill nodes
+  are markers already (same tbody); the header's own controls remain instant. Same note as 131.
+- **One second is a guess too.** Halved from two on the user's feel; `PILL_GRACE_MS` is the one
+  place to move it.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
