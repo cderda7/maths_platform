@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ASSIGNMENT } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
 import { classroomReducer, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
-import { classStages, currentClassStage } from "./classStage";
+import { classStages, currentClassStage, pathwayStages } from "./classStage";
 import { DEMO_PATHWAY, skipFixture } from "./demo";
 import { ARRIVAL_OFFSETS_MS, CLASS_SIZE, LAST_ARRIVAL_MS } from "./readiness";
 import { sessionAt } from "./session";
@@ -56,6 +56,19 @@ describe("the class's stage on the pathway", () => {
     const ended = classroomReducer(classroom, { type: "wc/end" });
     expect(currentClassStage(ended, session, now)).toBeNull();
     expect(classStages(ended, session, now, N).map((s) => s.state)).toEqual(["over", "over", "over", "over"]);
+  });
+
+  it("gives the student's header strip the same stages, without the counts (ticket 151)", () => {
+    for (const target of ["start", "working", "indiv review", "class wait", "group review", "class review", "report"] as const) {
+      const { classroom, session } = skipFixture(target, now);
+      const strip = pathwayStages(classroom, session, now);
+      expect(strip).toEqual(classStages(classroom, session, now, N).map(({ id, word, state }) => ({ id, word, state })));
+      expect(strip.map((s) => s.word)).toEqual(["indiv working", "indiv review", "group review", "class review"]);
+      expect(strip.filter((s) => s.state === "current").length).toBeLessThanOrEqual(1);
+    }
+    expect(pathwayStages(skipFixture("working", now).classroom, skipFixture("working", now).session, now).map((s) => s.state)).toEqual(["current", "ahead", "ahead", "ahead"]);
+    expect(pathwayStages(skipFixture("group review", now).classroom, skipFixture("group review", now).session, now).map((s) => s.state)).toEqual(["over", "over", "current", "ahead"]);
+    expect(pathwayStages(skipFixture("class review", now).classroom, skipFixture("class review", now).session, now).map((s) => s.state)).toEqual(["over", "over", "over", "current"]);
   });
 
   it("skips stages the pathway lacks", () => {

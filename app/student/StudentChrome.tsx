@@ -2,12 +2,15 @@ import type { ReactNode } from "react";
 import Brand from "@/components/Brand";
 import { Avatar } from "@/components/ui";
 import { DEMO_STUDENT } from "@/data/assignment";
+import type { PathwayStage } from "@/lib/classStage";
+import PathwayStrip from "./PathwayStrip";
 
 /**
  * The persistent frame inside the iPad screen: a thin iPadOS-style status strip and the
- * product's top bar. Everything a student screen renders sits below it.
+ * product's top bar, with the pathway strip (ticket 151) beside the student's name on every
+ * screen. Everything a student screen renders sits below it.
  */
-export default function StudentChrome({ children, crumb, frozen = false }: { children: ReactNode; crumb?: string; frozen?: boolean }) {
+export default function StudentChrome({ children, crumb, frozen = false, stages = [] }: { children: ReactNode; crumb?: string; frozen?: boolean; stages?: PathwayStage[] }) {
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-6 items-center justify-between px-6 text-[11px] font-medium text-ink-soft select-none">
@@ -35,9 +38,13 @@ export default function StudentChrome({ children, crumb, frozen = false }: { chi
           <Brand />
           {crumb && <span className="text-[13px] text-ink-muted">{crumb}</span>}
         </div>
-        <div className="flex items-center gap-3 text-[13px] text-ink-soft">
-          <span>{DEMO_STUDENT.name}</span>
-          <Avatar initials={DEMO_STUDENT.initials} />
+        {/* The strip sits with the name, not between the crumb and the name: pinned there it is in the same place on every screen while the crumb changes length. */}
+        <div className="flex items-center gap-6">
+          {stages.length > 0 && <PathwayStrip stages={stages} />}
+          <div className="flex items-center gap-3 text-[13px] text-ink-soft">
+            <span>{DEMO_STUDENT.name}</span>
+            <Avatar initials={DEMO_STUDENT.initials} />
+          </div>
         </div>
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>

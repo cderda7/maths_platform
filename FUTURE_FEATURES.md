@@ -1918,6 +1918,24 @@ agents add sections above it and leave it alone.
 - **Three beats became one.** The user: "1 flash will suffice." A single 600 ms beat on each
   press; a longer or repeated cue only if a teacher misses the single one.
 
+## The student's pathway strip (from ticket 151, 2026-09-12)
+
+- **The student's own position.** The strip shows the class's stage, as the teacher's card does,
+  so on the report while other groups are still finishing it keeps group review ringed. A
+  student-centric variant (the report, peers and history screens all over; the gate and the board
+  group review; waiting and frozen class review) deferred until it is wanted; the decision is in
+  `DECISION_LOG.md`.
+- **A count beside the current pill.** The card's "N/20 done" would tell a waiting student how
+  many are still to come; left off the header for room (the crumb can be long). The class-wait
+  screen still shows the readiness count.
+- **Tapping a pill.** The strip is not interactive. Tapping an over stage to see what happened
+  there (the corrections, the group's board) deferred.
+- **Everything over with no class review.** With a pathway that ends at group review, the class
+  never leaves "group review" on either side (nothing marks the group stage over once every
+  group is done); a stage-over rule from the standings deferred with ticket 129's card.
+- **A narrow crumb rule.** The longest crumb ("Where the class is finding it hard") ends 200 px
+  clear of the strip at iPad width; a crumb that grew past that would need to truncate.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

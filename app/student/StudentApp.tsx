@@ -17,6 +17,7 @@ import { useEffect } from "react";
 import { dispatch, useStudentSession } from "@/lib/store";
 import { dispatchClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
 import { isDue, isPending, isProjecting, openDiagnostic } from "@/lib/classroom";
+import { pathwayStages } from "@/lib/classStage";
 import FrozenScreen from "./screens/FrozenScreen";
 import { useNow } from "@/lib/store";
 import { ASSIGNMENT } from "@/data/assignment";
@@ -115,9 +116,11 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
   }, [projecting, counting, frozen]);
   const crumb = CRUMB[session.stage] ?? (["working", "feedback", "waiting", "frozen"].includes(session.stage) ? title : ASSIGNMENT.className);
   const groupStartPill = counting && advance?.kind === "group-start";
+  // The header's pathway strip (ticket 151): the same stages the teacher's Pathway card lights, from the same function.
+  const stages = pathwayStages(classroom, session, now);
   return (
     <IpadStage>
-      <StudentChrome crumb={crumb} frozen={frozen}>
+      <StudentChrome crumb={crumb} frozen={frozen} stages={stages}>
         {session.stage === "overview" && (
           <OverviewScreen onStart={() => dispatch({ type: "overview/start" })} />
         )}

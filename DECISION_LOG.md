@@ -2649,3 +2649,36 @@ chips column moves 20 px right, the cards 20 px narrower.
 change that gives the gap without moving the chip or restyling the panel; and one shared
 constant keeps the chip and the box level with the header by construction rather than by two
 measurements that could drift apart.
+
+## 2026-09-12 · The student's pathway strip shows the class's stage, from the teacher's function
+
+**Decision.** The strip in the student's header (ticket 151) lights the same pill as the teacher's
+Pathway card: `pathwayStages` in `lib/classStage.ts` returns the pathway's stages as over,
+current or ahead, and `classStages` (the card) adds the counts on top of it. The strip carries no
+count. It is pinned in the header's right-hand group, 24 px before the student's name.
+
+**Context.** The user: "just as the teacher has transparency into the review process, want the
+student to, as well. same exact idea with the light blue & then dark blue … have it be a part of
+every student screen, in the edexia header." The class's stage is already a pure function of the
+classroom, the live student's session and the clock (ticket 129).
+
+**Alternatives considered.** *The student's own position* (feedback screen = individual review
+current, the gate and the board = group review, waiting and frozen = class review, the report =
+everything over): it reads as "where am I" and would say all done on the report even while the
+class is still in group review. *A count beside the current pill* as on the card: the header is a
+56 px strip that already carries the brand, the crumb and the name; a count there would crowd
+the long crumbs. *Centred between the crumb and the name*: it moved sideways as the crumb changed
+length between screens (the class name, the set's title, "Where the class is finding it hard").
+
+**Tradeoffs.** With the class's stage, a student on the report while other groups are still
+finishing sees group review ringed rather than everything over; the same is true on the teacher's
+card and the two sides can never disagree, which is what "transparency into the review process"
+asks for. The student's own position, if it is wanted, is a second function beside this one and
+a one-line swap in `StudentApp`; it is in `FUTURE_FEATURES.md`. No count keeps the strip one
+row at 15 px and clear of every crumb; the class-wait screen still shows the readiness count.
+
+**Defense.** One function, two views: the teacher's split view shows the card and the strip
+side by side and they always agree; a change to when a stage begins is made once. Pinning the
+strip beside the name means the header's only moving part is the crumb, and the pills sit at
+identical coordinates on every screen (asserted in the click-through).
+

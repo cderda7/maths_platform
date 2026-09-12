@@ -70,12 +70,22 @@ export function stageDone(id: ClassStageId, c: ClassroomState | null | undefined
   }
 }
 
-export function classStages(c: ClassroomState | null | undefined, session: StudentSession | null, now: number, problemCount: number): ClassStage[] {
+/** A stage without its count: what the student's header strip shows (ticket 151). */
+export type PathwayStage = Pick<ClassStage, "id" | "word" | "state">;
+
+/**
+ * Every stage of the pathway as over, current or ahead, no counts. The student's own header
+ * reads this: the live student's hand-in is what moves the class into individual review, the
+ * gate they wait at is what opens group review, and the teacher's projection freezes them into
+ * class review, so the class's stage is their stage too, and both sides light the same pill.
+ */
+export function pathwayStages(c: ClassroomState | null | undefined, session: StudentSession | null, now: number): PathwayStage[] {
   const ids: ClassStageId[] = ["working", ...pathwayOf(c)];
   const current = currentClassStage(c, session, now);
   const at = current === null ? ids.length : ids.indexOf(current);
-  return ids.map((id, i) => {
-    const state: StageState = i < at ? "over" : i === at ? "current" : "ahead";
-    return { id, word: CLASS_STAGE_WORD[id], state, done: state === "current" ? stageDone(id, c, session, now, problemCount) : null, total: CLASS_SIZE };
-  });
+  return ids.map((id, i) => ({ id, word: CLASS_STAGE_WORD[id], state: i < at ? "over" : i === at ? "current" : "ahead" }));
+}
+
+export function classStages(c: ClassroomState | null | undefined, session: StudentSession | null, now: number, problemCount: number): ClassStage[] {
+  return pathwayStages(c, session, now).map((s) => ({ ...s, done: s.state === "current" ? stageDone(s.id, c, session, now, problemCount) : null, total: CLASS_SIZE }));
 }
