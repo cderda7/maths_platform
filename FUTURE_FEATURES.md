@@ -1535,6 +1535,19 @@ agents add sections above it and leave it alone.
   pill's `rounded` live in two files; a `CATEGORY_RADIUS` constant in `components/Tag.tsx` would
   keep them from drifting. Deferred: two call sites.
 
+## The pill hides the row's buttons (from ticket 128, 2026-09-12)
+
+- **The header chip the same way.** A column header hovered swaps its chip for the see skills /
+  full breakdown buttons; the user's "two options, not both at once" reasoning would also argue
+  for the chip itself being the click target with the buttons for everyone else. Not asked;
+  deferred until the header's hover is revisited.
+- **A gap between pill and buttons as a cue.** With the pointer moving from the name across to
+  the first pill the buttons vanish at the pill's edge; a short fade instead of a cut would
+  read less like a flicker. Kept instant to match every other hover reveal on the grid.
+- **Touch.** On a touch screen there is no hover, so neither the buttons nor the pill's hover
+  ring show before the tap; the pill tap drills and the buttons only appear through focus-within.
+  Fine on the teacher's laptop; a tablet teacher view would need an always-visible affordance.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

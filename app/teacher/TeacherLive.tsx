@@ -274,7 +274,8 @@ export default function TeacherLive() {
                               )}
                             </div>
                           </div>
-                          <div className="invisible ml-auto flex shrink-0 flex-col gap-1 group-hover/row:visible group-focus-within/row:visible" data-row-actions={r.id}>
+                          {/* Shown while the pointer is in the student's block, except over a category pill: the pill is its own way in (ticket 128). */}
+                          <div className="invisible ml-auto flex shrink-0 flex-col gap-1 group-hover/row:visible group-focus-within/row:visible group-has-[[data-dot]:hover]/row:invisible" data-row-actions={r.id}>
                             <button type="button" onClick={() => (isOpen ? setOpen(null) : openRow(r.id, "expanded"))} className={isOpen ? STACK_ACTIVE : STACK_IDLE} data-see-skills={r.id} aria-pressed={isOpen}>
                               {isOpen ? "close" : "see dot skills"}
                             </button>
