@@ -314,7 +314,17 @@ export default function TeacherLive() {
         </span>
       </p>
 
+      {/* "New assignment" (ticket 176, the bar's old white pill, now light indigo with deep indigo text and border) has its own row above both cards, over the right column's left edge (ticket 179): the two cards stay level. */}
       <div className="mt-10 grid grid-cols-[1fr_320px] gap-6">
+        <div />
+        <div className="flex">
+          <Link href="/teacher/assignments/create" className="rounded-full border border-accent-deep bg-accent-soft px-3 py-1 text-[13.5px] font-medium text-accent-deep transition-colors hover:bg-accent-line" data-new-assignment>
+            New assignment
+          </Link>
+        </div>
+      </div>
+
+      <div className="mt-6 grid grid-cols-[1fr_320px] gap-6">
         {/* `overflow-clip`, not `overflow-x-auto` (ticket 167): a scroll container would be the header row's nearest scroller, so the heads could only stick within the card, which never scrolls; `clip` still rounds the card's corners over the heads' paper backgrounds and is no scroller, so the heads stick to the top of the teacher frame's scroll region instead. A window narrower than the roster (below the 1280 laptop, where it is 1204 of 1208 px) now scrolls the frame sideways rather than the card. */}
         {/* The roster and, beside it in the same box, the history blocker (ticket 175): the cream that hides the rows above an open history is drawn outside the card, so it can rise past the card's clipped top edge over the "due" line when the history is a top row's. */}
         <div ref={rosterRef} className="relative">
@@ -519,12 +529,6 @@ export default function TeacherLive() {
         </div>
 
         <div className="space-y-6">
-          {/* "New assignment" heads the column, right above the Pathway card (ticket 176; it was the bar's white pill): a light indigo pill, deep indigo text and border. */}
-          <div className="flex">
-            <Link href="/teacher/assignments/create" className="rounded-full border border-accent-deep bg-accent-soft px-3 py-1 text-[13.5px] font-medium text-accent-deep transition-colors hover:bg-accent-line" data-new-assignment>
-              New assignment
-            </Link>
-          </div>
           {/* Class review in use: its card leads the column (ticket 129). */}
           {wcInUse && <WholeClassCard />}
           <Card className="p-6" data-pathway-card>

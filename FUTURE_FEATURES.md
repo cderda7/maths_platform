@@ -2466,6 +2466,18 @@ uploaded problems) settled the following as later, each on purpose.
   distance travelled from the last marker (a pointer that has moved 200 px is not hopping pills).
   Kept a fixed second with the leftward exit, which covers the case the user hit.
 
+## "New assignment" on its own row (from ticket 179, 2026-09-13)
+
+- **Ticket 176's "cards not level" note is resolved**: the pill now has a row of its own and
+  the Pathway card is back on the roster's line. The other 176 notes (only reachable from the
+  class view; the create screen's own heading) still stand.
+- **An empty left cell.** The pill's row leaves the roster's width blank. Roster-wide actions
+  (export, a filter, the assignment status that now sits on the due line) would fit there if
+  the class view ever needs a toolbar.
+- **Right-aligned instead.** The pill is flush with the Pathway card's left edge; flush with
+  the column's right edge (under the avatar in the bar) is the other reading of "above the
+  pathway box". One class swap (`justify-end`).
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

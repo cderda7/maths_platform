@@ -23,7 +23,7 @@ export const TEACHER_TABS: { href: string; label: string; stage?: ReviewStage }[
  * the left group, the tabs directly right of the wordmark at the student header's gap (ticket
  * 165); the teacher's name and avatar form one row at the right. The tabs are indigo pills (the
  * current page filled deep, the others soft, ticket 163). "New assignment" left the bar for the
- * class view's right column, above the Pathway card (ticket 176).
+ * class view, a row of its own above the roster and Pathway cards (tickets 176, 179).
  * The frame is the viewport: the bar sits in it and only the region beneath scrolls (ticket 68).
  * The window itself never scrolls, so the rubber-band at the end of a page moves the content,
  * never the bar; a sticky bar rode the bounce with the page. The outer div takes the viewport
