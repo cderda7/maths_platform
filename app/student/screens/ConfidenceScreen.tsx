@@ -79,7 +79,7 @@ export default function ConfidenceScreen({
       {/* The same frame as the start screen, so the button row below lands where START was. */}
       <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-col px-9" data-confidence-column>
         <Eyebrow>Check in</Eyebrow>
-        <h1 className="font-display mt-2 text-[32px] leading-tight text-ink">How confident are you?</h1>
+        <h1 className="font-display mt-2 text-[32px] leading-tight text-ink">How confident are you going into this set?</h1>
 
       <div className={`mt-5 min-h-0 space-y-3 overflow-y-auto pb-2 transition-opacity duration-300 ${locked ? "pointer-events-none opacity-50" : ""}`} aria-disabled={locked} data-answers>
         <button type="button" onClick={() => pick("confident")} aria-pressed={level === "confident"} className={`rounded-2xl border ${level === "confident" ? "border-ink" : "border-line"} ${head(level === "confident")}`}>
