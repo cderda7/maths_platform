@@ -7,12 +7,12 @@ import { categoryLabel, categoryName, isFlat } from "@/data/taxonomy";
 import type { Problem } from "@/data/types";
 import type { HierarchyResult } from "@/lib/hierarchy";
 
-/** The grey uppercase label beside the Unit dot, as on the teacher's grid. */
+/** The grey uppercase label beside the Unit pill, as on the teacher's grid. */
 const LABEL = "pointer-events-none absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink-muted";
 
 /**
  * The student's skills drawn as the teacher's class-view row: one column per category the set
- * touches, the category chip over its dot, and under every dot at once the groups beneath it
+ * touches, the category chip over its pill, and under every pill at once the groups beneath it
  * (the skills themselves for a flat category), each group's dot on its category dot's line.
  * Nothing is collapsed and nothing has to be opened; a group shows its skills, a skill the work
  * behind it beneath the columns, exactly as on the teacher's grid.
@@ -66,11 +66,11 @@ export default function SkillColumns({ result, lines, problems, unit = 1 }: { re
               const half = result.half.categories.includes(c);
               return (
                 <div key={c} className="relative px-1 py-6 text-center" data-dot={c}>
-                  <span className="inline-grid h-7 w-7 place-items-center rounded-full" role="img" aria-label={`${categoryLabel(c, unit).name}: ${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}>
-                    <StatusDot status={st} half={half} size="h-[15px] w-[15px]" />
+                  <span className="inline-grid h-7 w-10 place-items-center rounded-full" role="img" aria-label={`${categoryLabel(c, unit).name}: ${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}>
+                    <StatusDot status={st} half={half} shape="pill" />
                   </span>
                   {isFlat(c) && (
-                    <span className={`${LABEL} left-[calc(50%+12px)]`} data-unit-label>
+                    <span className={`${LABEL} left-[calc(50%+20px)]`} data-unit-label>
                       {categoryLabel(c, unit).name}
                     </span>
                   )}

@@ -27,7 +27,7 @@ import { useBatchedSession, useNow } from "@/lib/store";
 /** How long a second click may follow the first and still count as a double-click. */
 const DOUBLE_MS = 350;
 
-/** The grey uppercase label beside a dot: the category name in a column view, the unit beside the Unit dot in a drill. */
+/** The grey uppercase label beside a category pill: the category name in a column view, the unit beside the Unit pill in a drill. */
 const LABEL = "pointer-events-none absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink-muted";
 
 /** The stacked pair of small buttons beside a student's name and over a column header: light blue, dark indigo text, one width. */
@@ -52,7 +52,7 @@ const HANDED_IN = ["overview", "confidence", "warmup-chat", "practice", "working
 
 /**
  * "Where the class is": one row per student, one column per category the assignment touches
- * (canonical order), each dot the worst status beneath it. Clicking a dot expands that row into
+ * (canonical order), each a pill in the worst status beneath it (ticket 125; groups and skills are dots). Clicking a pill expands that row into
  * the category → group → leaf → work drill; hovering a student's block (their row and any drill
  * open under it) shows two buttons beside the name: the row's full breakdown (every group open to its skills; "close" while
  * the row is open) and the student's individual view. The
@@ -297,19 +297,19 @@ export default function TeacherLive() {
                               onDoubleClick={() => openRow(r.id, "category", c, undefined, true)}
                               aria-label={`${categoryLabel(c, unit).name}: ${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}
                               aria-expanded={on}
-                              className={`inline-grid h-7 w-7 place-items-center rounded-full transition-colors hover:bg-cream-deep ${on ? "bg-cream-deep ring-1 ring-ink" : ""} ${blanked ? "invisible" : ""}`}
+                              className={`inline-grid h-7 w-10 place-items-center rounded-full transition-colors hover:bg-cream-deep ${on ? "bg-cream-deep ring-1 ring-ink" : ""} ${blanked ? "invisible" : ""}`}
                               data-dot={c}
                               data-blanked={blanked || undefined}
                             >
-                              <StatusDot status={st} half={half} size="h-[15px] w-[15px]" />
+                              <StatusDot status={st} half={half} shape="pill" />
                             </button>
                             {column?.category === c && (
-                              <span className={`${LABEL} right-[calc(50%+12px)]`} data-column-label>
+                              <span className={`${LABEL} right-[calc(50%+20px)]`} data-column-label>
                                 {categoryLabel(c, unit).name}
                               </span>
                             )}
                             {!column && isOpen && isFlat(c) && (
-                              <span className={`${LABEL} left-[calc(50%+12px)]`} data-unit-label>
+                              <span className={`${LABEL} left-[calc(50%+20px)]`} data-unit-label>
                                 {categoryLabel(c, unit).name}
                               </span>
                             )}

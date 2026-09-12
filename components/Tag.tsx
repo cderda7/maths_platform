@@ -44,11 +44,16 @@ export const DOT_COLOR: Record<Status, string> = {
   unseen: "transparent",
 };
 
+/** The category-level marker: a pill, 28 × 13, where a group's or skill's dot is 15 round. */
+export const PILL_SIZE = "h-[13px] w-[28px]";
+
 /**
- * A status dot. `half` fills the left half only: the student has handed in but skipped a problem
- * that invokes this node, so the colour comes from attempted work alone.
+ * A status marker. `half` fills the left half only: the student has handed in but skipped a
+ * problem that invokes this node, so the colour comes from attempted work alone. A dot for a
+ * group or a skill; `shape="pill"` for a category, the top level of every grid and drill (ticket
+ * 125), so the levels read apart at a glance.
  */
-export function StatusDot({ status, size = "h-2 w-2", px, half = false, className = "" }: { status: Status; size?: string; /** Exact diameter in px, for dots that shrink to fit. */ px?: number; half?: boolean; className?: string }) {
+export function StatusDot({ status, size, px, half = false, shape = "dot", className = "" }: { status: Status; size?: string; /** Exact diameter in px, for dots that shrink to fit. */ px?: number; half?: boolean; shape?: "dot" | "pill"; className?: string }) {
   const color = DOT_COLOR[status];
   const paint =
     status === "unseen"
@@ -57,7 +62,8 @@ export function StatusDot({ status, size = "h-2 w-2", px, half = false, classNam
         ? { backgroundImage: `linear-gradient(90deg, ${color} 50%, transparent 50%)`, borderColor: color }
         : { backgroundColor: color, borderColor: color };
   const style = px ? { ...paint, width: px, height: px } : paint;
-  return <span className={`inline-block shrink-0 rounded-full border ${status === "unseen" ? "border-line-strong" : ""} ${px ? "" : size} ${className}`} style={style} aria-hidden data-status={status} data-half={half || undefined} />;
+  const dims = px ? "" : (size ?? (shape === "pill" ? PILL_SIZE : "h-2 w-2"));
+  return <span className={`inline-block shrink-0 rounded-full border ${status === "unseen" ? "border-line-strong" : ""} ${dims} ${className}`} style={style} aria-hidden data-status={status} data-half={half || undefined} data-shape={shape} />;
 }
 
 export const STATUS_WORD: Record<Status, string> = {

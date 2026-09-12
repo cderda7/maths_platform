@@ -1513,6 +1513,18 @@ agents add sections above it and leave it alone.
   the decision log say "whole-class review" as the history they are; only the README's
   live description was updated.
 
+## Category markers as pills (from ticket 125, 2026-09-12)
+
+- **A pill row in the key.** The class view's key still shows one dot per status; the category
+  pills use the same colours, so the key was left alone. A second column of pills in the key
+  (or a one-line "categories are pills, groups and skills dots") would spell it out; deferred
+  until a teacher asks what the two shapes mean.
+- **Centring the tree under the pill.** A group's dot hangs from the pill's left edge (the
+  column measurement reads the marker's left). Centring the dot under the pill instead would
+  put the tree's text under the pill's right half; kept left-aligned as the outline convention.
+- **Pill width from the column.** The pill is a fixed 28 × 13. A pill that grows with its
+  column (a bar, not a marker) would read as a progress meter, which it is not; deferred.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

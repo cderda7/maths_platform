@@ -96,9 +96,9 @@ Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the 
 Teacher, during the lesson (`/teacher`):
 
 - **Class**: one column per skill category the set touches (Algebra, Functions, Graphing,
-  Communication, Reasoning, New skills), each dot the worst status beneath it, half dots where a
-  student skipped problems; click a dot to drill sideways into groups, skills and the marked-up
-  work behind them. Hover a column header for its **see skills** / **full breakdown** buttons
+  Communication, Reasoning, New skills), each a pill in the worst status beneath it (groups and
+  skills beneath are round dots), half-filled where a student skipped problems; click a pill to drill
+  sideways into groups, skills and the marked-up work behind them. Hover a column header for its **see skills** / **full breakdown** buttons
   (the chosen level opens under every student; the open level's button reads **close**, and
   with the full breakdown open it is the only button). Hover anywhere in a student's block (the
   row, or the drill open under it) for two buttons beside the name: **see dot skills** (the

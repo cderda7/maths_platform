@@ -63,8 +63,8 @@ export function fitLabels(labels: { text: string; depth: number }[], available: 
 
 /* ---------- nodes and trees ---------- */
 
-/** Group and skill names read lowercase; a category (`keepCase`) keeps its own. */
-function Node({ label, status, half, open, fit, onClick, node, keepCase = false }: { label: string; status: Status; half: boolean; open: boolean; fit: Fit; onClick: () => void; node: string; keepCase?: boolean }) {
+/** Group and skill names read lowercase behind a dot; a category (`category`) keeps its case and carries the pill. */
+function Node({ label, status, half, open, fit, onClick, node, category = false }: { label: string; status: Status; half: boolean; open: boolean; fit: Fit; onClick: () => void; node: string; category?: boolean }) {
   return (
     <button
       type="button"
@@ -74,8 +74,8 @@ function Node({ label, status, half, open, fit, onClick, node, keepCase = false 
       className={`-ml-[7px] flex items-center gap-2 rounded-lg border py-1 pl-1.5 pr-2.5 text-left transition-colors ${open ? "border-ink bg-paper" : "border-transparent hover:bg-cream-deep/60"}`}
       data-node={node}
     >
-      <StatusDot status={status} half={half} px={fit.dot} className="shrink-0" />
-      <span className={`leading-tight text-ink ${keepCase ? "" : "lowercase"} ${fit.wrap ? "whitespace-normal [text-wrap:balance]" : "whitespace-nowrap"}`} style={{ fontSize: fit.size }}>
+      {category ? <StatusDot status={status} half={half} shape="pill" className="shrink-0" /> : <StatusDot status={status} half={half} px={fit.dot} className="shrink-0" />}
+      <span className={`leading-tight text-ink ${category ? "" : "lowercase"} ${fit.wrap ? "whitespace-normal [text-wrap:balance]" : "whitespace-nowrap"}`} style={{ fontSize: fit.size }}>
         {label}
       </span>
     </button>
@@ -345,7 +345,7 @@ export default function HierarchyDrill({ result, lines, problems, unit = 1, stud
       <ul ref={treeRef} className="shrink-0 space-y-1 self-start" data-col="tree">
         {result.columns.map((c) => (
           <li key={c}>
-            <Node label={categoryLabel(c, unit).name} status={result.categories[c] ?? "unseen"} half={result.half.categories.includes(c)} open={c === category} fit={FULL} onClick={() => { setCategory(category === c ? null : c); setGroup(null); setLeaf(null); }} node={c} keepCase />
+            <Node label={categoryLabel(c, unit).name} status={result.categories[c] ?? "unseen"} half={result.half.categories.includes(c)} open={c === category} fit={FULL} onClick={() => { setCategory(category === c ? null : c); setGroup(null); setLeaf(null); }} node={c} category />
             {c === category && isFlat(c) && (
               <ul className="mt-1 space-y-1 pl-7" data-col="leaves">
                 {worst(groupsOf(c).flatMap((g) => leavesIn(g)), (l) => result.leaves[l]!).map((l) => (
