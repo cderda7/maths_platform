@@ -1,22 +1,23 @@
 "use client";
 
+import ExampleColumns from "@/components/ExampleColumns";
 import M from "@/components/Math";
-import InkView from "@/components/InkView";
 import PadSection from "@/components/PadSection";
-import { Eyebrow } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
 import type { Stroke } from "@/data/types";
 import { FOLLOW_MODE_WORD } from "@/lib/classroom";
 import { useClassroom } from "@/lib/classroom-store";
-import { branchesOf } from "@/lib/branches";
 import { frozenView } from "@/lib/frozen";
 import type { SessionAction, StudentSession } from "@/lib/session";
 
 /**
- * Whole-class review on the student's screen: their own versions of the board's problem beside a
- * pad. One or two versions take half the width, three take two thirds; the pad takes the rest. In
- * "screens frozen" the pad mirrors the teacher's writing and takes no input; in "write with me" it
- * is the student's own, to copy the teacher's working. Marks appear only while the board shows them.
+ * Whole-class review on the student's screen: the board's slide, as the board shows it (ticket
+ * 161). The problem, its examples in the same columns (`ExampleColumns`), and a pad in the
+ * board's place for the teacher's working. The one difference from the board is each example's
+ * corner: no count here, only a tag on the example that was this student's own first hand-in.
+ * In "screens frozen" the pad mirrors the teacher's writing and takes no input; in "write with
+ * me" it is the student's own, to copy the teacher's working. Marks appear only while the board
+ * shows them.
  */
 export default function FrozenScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
   const v = frozenView(session, useClassroom());
@@ -43,45 +44,22 @@ export default function FrozenScreen({ session, dispatch }: { session: StudentSe
               <M tex={v.problem.tex} />
             </span>
           </div>
-          <div className={`mt-3 grid min-h-0 flex-1 gap-4 ${v.versions.length >= 3 ? "grid-cols-[2fr_1fr]" : "grid-cols-2"}`} data-split={v.versions.length >= 3 ? "2/3" : "1/2"}>
-            {v.attempted ? (
-              <div className={`grid min-h-0 gap-3 ${v.versions.length === 1 ? "grid-cols-1" : v.versions.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
-                {v.versions.map((ver) => (
-                  <section key={ver.label} className="flex min-h-0 flex-col overflow-y-auto rounded-2xl border border-line bg-paper p-4" data-version={ver.label}>
-                    <Eyebrow>{ver.label}</Eyebrow>
-                    {ver.ink.length > 0 && (
-                      <div className="mt-3 h-[120px] shrink-0 rounded-xl border border-line bg-cream/50 px-3 py-2">
-                        <InkView strokes={ver.ink} />
-                      </div>
-                    )}
-                    <ol className="mt-3 space-y-2">
-                      {ver.lines.map((l, i) => {
-                        const tone = l.mark === "wrong" ? "border-wrong-line bg-wrong-soft" : l.mark === "standout" ? "border-standout-line bg-standout-soft" : "border-line bg-cream/40";
-                        const box = `rounded-xl border px-3 py-2 text-[15px] text-ink ${tone}`;
-                        const branches = branchesOf(l.tex);
-                        return branches.length === 2 ? (
-                          <li key={i} data-mark={l.mark ?? undefined} className="grid grid-cols-2 gap-2" data-branches>
-                            {branches.map((b, j) => (
-                              <span key={j} className={`${box} min-w-0 overflow-x-auto`}>
-                                <M tex={b} />
-                              </span>
-                            ))}
-                          </li>
-                        ) : (
-                          <li key={i} data-mark={l.mark ?? undefined} className={box}>
-                            <M tex={l.tex} />
-                          </li>
-                        );
-                      })}
-                    </ol>
-                  </section>
-                ))}
-              </div>
-            ) : (
-              <p className="mt-10 text-center text-[15px] text-ink-muted" data-not-attempted>
-                You haven&apos;t attempted this one yet
-              </p>
-            )}
+          <p className="mt-1 text-[15px] text-ink-soft">{v.problem.stem}</p>
+          {/* The pad is 310 wide, enough for "Write with me" and Undo / Clear on one line; the example columns are fitted to the rest (ticket 161). */}
+          <div className="mt-3 grid min-h-0 flex-1 grid-cols-[1fr_310px] gap-4">
+            <ExampleColumns
+              size="student"
+              examples={v.examples.map((e) => ({
+                letter: e.letter,
+                lines: e.lines,
+                corner: e.mine ? (
+                  // Centred on the letter's row, not on its baseline: a pill on the baseline would make this column's header taller than its neighbours' and drop its lines out of line with theirs.
+                  <span className="self-center rounded-full border border-standout-line bg-standout-soft px-2.5 py-0.5 text-[12px] font-medium whitespace-nowrap text-standout" data-mine>
+                    your initial response
+                  </span>
+                ) : undefined,
+              }))}
+            />
             <div className="flex min-h-0 flex-col rounded-2xl border border-line bg-paper" data-follow-pad>
               {live ? (
                 <PadSection title="Write with me" strokes={own} onStrokesChange={addStroke} onBurstEnd={() => undefined} onPenDown={() => undefined} onUndo={() => dispatch({ type: "follow/undo", problem: pid })} onClear={() => dispatch({ type: "follow/clear", problem: pid })} />

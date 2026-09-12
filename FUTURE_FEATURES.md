@@ -2158,6 +2158,33 @@ review setup's example cards (`useReorder`, `lib/reorder`). Left out, and why:
   name as the crumb; whether the header needs it at all now that the strip is there (and the
   overview's own heading names the assignment) is not decided.
 
+## The student sees the board in class review (from ticket 161, 2026-09-12)
+
+- **The student's own versions in class review.** The frozen screen used to show the student's
+  handed-in and reworked lines with their ink; now it shows the board's examples. A way back to
+  one's own work during class review (a fold-out, or a fourth column on request) is deferred: the
+  user asked for the board's view, and the tagged example is the student's own mistake.
+- **A tag when the student's mistake is not one of the examples.** The tag sits on the example
+  whose exact mistake is the student's first hand-in's; a student whose mistake the teacher did not
+  put up sees no tag at all (and a student who never attempted the problem sees none either). A
+  "your response wasn't one of these" note, or showing their own lines as an extra column, deferred.
+- **The tagged example's lines are a classmate's.** The example is the largest identical column of
+  that mistake, so the tagged working can be a step shorter or longer than the student's own (Q2:
+  the example has three lines, Sam wrote four). Showing the student's own lines inside the tagged
+  column, keeping the board's letter, is a possible refinement.
+- **"You got this one right" on the correct example.** A student whose first hand-in was correct
+  sees the tag on the correct example, which reads a little oddly ("your initial response" on the
+  model answer). A different wording for that case is deferred.
+- **Counts for the teacher's eye only.** The board still reads "13/19 students" because the user
+  asked for it there; whether a projected count belongs on the wall at all (it names how many got
+  it wrong) is a question for a later pass.
+- **Per-line fitting on the board.** `ExampleColumns` shrinks every column's lines together when a
+  window is narrower than the design width; the letter and the corner do not shrink, so a very
+  narrow board (under ~1000 px) keeps a 44 px letter over 12 px lines. Scaling the whole card is
+  deferred: the board is designed at 1440 and the split view letterboxes it.
+- **The student's pad title in write with me.** The pad is 310 px so "Write with me" and Undo /
+  Clear share a line; a narrower pad with a tighter toolbar would give the examples more room.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

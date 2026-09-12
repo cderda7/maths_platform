@@ -2,6 +2,7 @@
 
 import Brand from "@/components/Brand";
 import DiagnosticResults from "@/components/DiagnosticResults";
+import ExampleColumns from "@/components/ExampleColumns";
 import M from "@/components/Math";
 import PadSection from "@/components/PadSection";
 import { Eyebrow } from "@/components/ui";
@@ -140,36 +141,23 @@ function Slide({ content }: { content: Extract<BoardContent, { kind: "whole-clas
       </header>
       <p className="px-10 text-[20px] text-ink-soft">{p.stem}</p>
 
-      <main className="mt-6 mb-8 grid min-h-0 flex-1 grid-cols-[1fr_400px] gap-6 px-10">
-        <div className={`grid min-h-0 gap-6 overflow-y-auto ${examples.length === 3 ? "grid-cols-3" : "grid-cols-2"}`} data-examples>
-          {examples.map((e) => {
+      {/* The pad is 380 wide (its title and toolbar on one line) and the example cards fitted (ticket 161) so the widest line of any example stands on one line at the board's 1440 width. */}
+      <main className="mt-6 mb-8 grid min-h-0 flex-1 grid-cols-[1fr_380px] gap-4 px-10">
+        <ExampleColumns
+          size="board"
+          examples={examples.map((e) => {
             const marks = view === "marked" ? lineMarks(p.id, e.lines) : [];
-            return (
-              <section key={e.letter} className="flex flex-col rounded-3xl border border-line bg-paper p-7 shadow-card" data-example={e.letter}>
-                <div className="flex items-baseline justify-between">
-                  <span className="font-display text-[44px] leading-none text-ink">{e.letter}</span>
-                  <span className="text-[18px] text-ink-soft" data-count>
-                    {e.count}/{e.denominator} students
-                  </span>
-                </div>
-                <ol className="mt-6 space-y-3">
-                  {e.lines.map((tex, i) => {
-                    const mark = marks[i] ?? null;
-                    return (
-                      <li
-                        key={i}
-                        data-mark={mark ?? undefined}
-                        className={`rounded-2xl border px-5 py-4 text-[26px] text-ink ${mark === "wrong" ? "border-wrong-line bg-wrong-soft" : mark === "standout" ? "border-standout-line bg-standout-soft" : "border-line bg-cream/50"}`}
-                      >
-                        <M tex={tex} />
-                      </li>
-                    );
-                  })}
-                </ol>
-              </section>
-            );
+            return {
+              letter: e.letter,
+              lines: e.lines.map((tex, i) => ({ tex, mark: marks[i] ?? null })),
+              corner: (
+                <span className="text-[18px] whitespace-nowrap text-ink-soft" data-count>
+                  {e.count}/{e.denominator} students
+                </span>
+              ),
+            };
           })}
-        </div>
+        />
         <section className="flex min-h-0 flex-col rounded-3xl border border-line bg-paper shadow-card" data-teacher-pad data-mode={mode}>
           <PadSection title={`${ASSIGNMENT.teacher}'s working`} strokes={teacherInk} onStrokesChange={addStroke} onBurstEnd={() => undefined} onPenDown={() => undefined} onUndo={() => dispatchClassroom({ type: "wc/ink-undo", problem: pid })} onClear={() => dispatchClassroom({ type: "wc/ink-clear", problem: pid })} />
         </section>

@@ -2969,3 +2969,45 @@ ticket and a one-token change if wrong.
 **Defense.** Pills of one colour with the current one filled is the pattern every segmented
 control uses, so it needs no learning; the hover tint (`accent-line`) sits between the soft and deep
 fills so the three states stay distinct. Ink keeps the bar in the design's palette.
+
+## 2026-09-12 · One examples component for the board and the student, fitted rather than wrapped, and the tag keyed on the exact mistake
+
+**Decision.** The examples of whole-class review are one component, `ExampleColumns` (ticket 161),
+rendered by the smartboard (`size="board"`) and by the student's frozen screen (`size="student"`),
+each passing what goes in an example's corner (the count; the tag). Lines are `whitespace-nowrap`;
+the component measures every line at the size's maximum against its box and, only when the columns
+are narrower than the widest line, scales every column's lines down together by the one ratio that
+fits. The sizes (board 21 px with a 380 px pad, student 16 px with a 310 px pad) are chosen so that
+at the design widths (1440, 1180) no fitting happens. The student's "your initial response" tag
+goes on the example whose exact mistake key (`mistakeOf`, the wrong lines' TeX) equals that of the
+student's first hand-in (`session.lines`), not their rework.
+
+**Context.** The user, with a screenshot of the board at Q2 where every first line broke in two:
+make the student's class-review screen show the same as the board, reorganise the board so no line
+spills, and replace the board's "13/19" with a light blue "your initial response" tag on the
+student's screen. The student's screen had shown their own handed-in and reworked lines instead.
+
+**Alternatives considered.** *Two renderings kept in step by hand* (the board's markup and a copy in
+`FrozenScreen`): the two had already drifted (the student split two-case lines, the board did not).
+*Fixed sizes only, no fitting*: the board is designed at 1440 but the user looks at it in a 1396-wide
+window, where the widest line fit by 0 px; a fixed size that also holds at 1280 would be 17 px on a
+projector. *`FitText` per line*: lines in one column at different sizes read as different weights;
+the column set must shrink as one. *Tagging by identical lines*: Sam's four-line Q2 working is the
+same mistake as the three-line example on the board and would go untagged. *Tagging by the rework*:
+the rework is correct, so the tag would sit on the model answer for every student who fixed their
+work in individual review; the user asked for the initial response. *Sam's own lines in the tagged
+column*: the user asked for the board's view; deferred in `FUTURE_FEATURES.md`.
+
+**Tradeoffs.** The fit is a layout effect that measures a dozen boxes on mount, on a change of what
+is shown and on resize (a re-render with the same lines, the board's once-a-second tick, does not
+re-fit); the server renders at the maximum, so a narrower window sees one frame at the maximum. The
+board's lines are 21 px where they were 26 px, and the pad 380 where it was 400. The tagged
+example's lines can differ from the student's own by a step. `FrozenView` lost `versions` and
+`attempted`; the student's own class-review versions are gone with them.
+
+**Defense.** One component makes "the same as the board" true by construction, including marks
+and any future change to the cards. Fitting the set rather than the line keeps every column at
+one size and guarantees no line ever wraps at any width, while the chosen sizes keep the design
+widths exactly as laid out. Keying the tag on the exact mistake is the same identity the picker
+and the counts already use (DECISION_LOG 2026-09-12, ticket 148), so what the student sees tagged
+is what the teacher chose to put up for their mistake.

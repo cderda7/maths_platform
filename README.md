@@ -99,9 +99,11 @@ Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the 
    gets it wrong first, the attempt shown at the top of the column up to the first mistake, and the
    debrief after the group's rework asks Sam to describe his own mistake.
 6. **Class review**: the teacher projects; a one-minute countdown shows on every student
-   screen; then the iPad freezes on the student's own work for the problem on the board, ink and
-   transcription, both versions, nothing to tap. When the teacher shows marks on the board, the
-   student's own lines show red and blue too. End releases everyone to the report.
+   screen; then the iPad freezes on what the board shows: the problem and the same two or three
+   examples in the same columns, beside a mirror of the teacher's pad (or the student's own pad in
+   "write with me"). No counts on the iPad: a light blue "your initial response" tag sits on the
+   example that was the student's own first hand-in. When the teacher shows marks on the board,
+   the same lines show red and blue on the iPad. End releases everyone to the report.
 7. **Report** in the teacher's colours, a 2–3 sentence reflection, send.
 
 Teacher, during the lesson (`/teacher`):
@@ -148,8 +150,9 @@ submission and individual review; during group review the race, five rows of fou
 with a colour, a large bar and the percentage, re-ordered as bars move, gold, silver and bronze
 for the first three groups home (the other four groups run a scripted ten-minute race; the demo
 student's is live); the final standings held once group review is over; during whole-class
-review one slide per problem, examples A/B/C with "n/m students", no names, no marks until the
-teacher shows them, and a mirror of the teacher's working.
+review one slide per problem, examples A/B/C with "n/m students" (the same columns the students
+see, drawn by one component; lines never wrap, they shrink together in a narrow window), no names,
+no marks until the teacher shows them, and the teacher's working pad.
 - **Mistakes** (`/teacher/mistakes`): problems first, the students who slipped on each under
   one pill per slip, expand for their working; inside a pill the students on the exact same
   wrong line sit together and, open, one box in the pill's red surrounds their working (a
