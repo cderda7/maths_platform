@@ -2143,6 +2143,21 @@ review setup's example cards (`useReorder`, `lib/reorder`). Left out, and why:
 - **Keyboard focus rings.** The pills keep the browser's default focus ring; a ring in the accent
   colour to match the student's controls is deferred.
 
+## The header crumb beside the wordmark (from ticket 164, 2026-09-12)
+
+- **Only the group review lost its crumb.** The strip names four stages (indiv working, indiv
+  review, group review, class review) but only the group review and class-wait screens carried
+  the stage's name as their crumb; the working, review and frozen screens show the assignment
+  title there, which the strip does not say, so those stay. If the title ever moves into the
+  screen's own heading, the crumb on those screens becomes redundant the same way and could go
+  through the same `null` entry.
+- **"Warm-up" stays.** The warm-up is not on the strip (it comes before individual working), so
+  its crumb is the only place the header names it. Putting the warm-up on the strip as a stage
+  before "indiv working" was not asked for.
+- **The class name on the overview, goal and check-in.** These screens still show the class
+  name as the crumb; whether the header needs it at all now that the strip is there (and the
+  overview's own heading names the assignment) is not decided.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

@@ -10,7 +10,7 @@ import PathwayStrip from "./PathwayStrip";
  * product's top bar, with the pathway strip (ticket 151) beside the student's name on every
  * screen. Everything a student screen renders sits below it.
  */
-export default function StudentChrome({ children, crumb, frozen = false, stages = [] }: { children: ReactNode; crumb?: string; frozen?: boolean; stages?: PathwayStage[] }) {
+export default function StudentChrome({ children, crumb, frozen = false, stages = [] }: { children: ReactNode; crumb?: string | null; frozen?: boolean; stages?: PathwayStage[] }) {
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-6 items-center justify-between px-6 text-[11px] font-medium text-ink-soft select-none">

@@ -38,11 +38,13 @@ const mmss = (ms: number) => {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 };
 
-const CRUMB: Partial<Record<Stage, string>> = {
+// `null` is no crumb at all: the pathway strip's lit pill already names the group review (ticket 164),
+// so a "Group review" beside the wordmark read the stage twice; the class name would be the wrong third.
+const CRUMB: Partial<Record<Stage, string | null>> = {
   "warmup-chat": "Warm-up",
   practice: "Warm-up",
-  "class-wait": "Group review",
-  group: "Group review",
+  "class-wait": null,
+  group: null,
   report: "Your report",
   peers: "Where the class is finding it hard",
   history: "Your working",
@@ -119,7 +121,8 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
     if (projecting && !counting && !frozen) dispatch({ type: "freeze" });
     if (!projecting && frozen) dispatch({ type: "release" });
   }, [projecting, counting, frozen]);
-  const crumb = CRUMB[session.stage] ?? (["working", "feedback", "waiting", "frozen"].includes(session.stage) ? title : ASSIGNMENT.className);
+  const named = CRUMB[session.stage];
+  const crumb = named !== undefined ? named : ["working", "feedback", "waiting", "frozen"].includes(session.stage) ? title : ASSIGNMENT.className;
   // Individual review forced with group review next: what the student is waiting for is the group.
   const groupStartPill = counting && advance?.kind === "force-review" && pathwayOf(classroom).includes("group");
   // The header's pathway strip (ticket 151): the same stages the teacher's Pathway card lights, from the same function.
