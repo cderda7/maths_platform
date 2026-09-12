@@ -1789,6 +1789,38 @@ agents add sections above it and leave it alone.
   user chose this over a fixed slot (the teacher returns to the view fresh). A collapse to the
   question line with the cells folded, deferred until the column gets crowded.
 
+## Marking correct but inefficient answers (asked for 2026-09-12, with ticket 140)
+
+- **A third verdict beside right and wrong.** The user: "add marking for correct but
+  inefficient answers." Today a line is `ok` or `wrong` (or `unclear`), and a problem is right,
+  wrong or unfinished (ticket 140's box). An answer that is right but took the long way (the
+  quadratic formula on Q1's monic that factorises, expanding then refactorising on Q3, solving
+  both roots when the question wants the discriminant's sign on Q6 and Q10) needs its own mark:
+  `inefficient` on the working, or a per-problem "efficient route" length the hand-in is
+  measured against. Where it would show: the student's feedback screen (an amber line, "works,
+  but there is a shorter way", never counted as a mistake), the teacher's mistake view (a third
+  group under the problem in a third colour, or a count in ticket 140's box: "15/20 right, 3 the
+  long way"), the class grid's dots (a status between solid and secure, or a mark on the dot),
+  the report. Grace's jumps are the opposite case (right, steps skipped) and already have a
+  teacher note; the two should read apart. Deferred: it needs the evaluation table to know an
+  efficient route per problem and fixture attempts that take the long way; the hand-written notes
+  below ("Address efficiency") already hold the intent.
+
+## The right count (from ticket 140, 2026-09-12)
+
+- **Over the class or over those who reached it.** The box reads "n/20"; "8/20" on Q9 is eight
+  of the eleven who reached it. The tooltip holds the split; a second number in the box
+  ("8/11 reached") or a hover card deferred until the teacher asks.
+- **Colour.** The box is neutral cream at every count; tinting it (green when everyone who
+  reached it was right, red under half) deferred so the red stays for the pills.
+- **Click to see who.** The box is part of the header, so clicking it opens the problem; a
+  list of the right students (or the unfinished) on click deferred; the class view has the grid.
+- **Q8 has no card.** Nobody slipped on Q8, so the view has no card and no box for it,
+  though `rightCount` covers it; a row of the problems nobody got wrong ("Q8: 15/20 right,
+  nobody wrong") deferred.
+- **The live student's rework.** The count reads the first hand-in like the rows; a second
+  number after review ("15/20 → 18/20") deferred with the rework view.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

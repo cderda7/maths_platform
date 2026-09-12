@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CLASSMATES } from "@/data/classmates";
-import { groupByMistake, groupBySlip, groupByWork, mistakeKey, mistakesByProblem, type MistakeRow } from "./mistakes";
+import { ASSIGNMENT } from "@/data/assignment";
+import { CLASS_SIZE, groupByMistake, groupBySlip, groupByWork, mistakeKey, mistakesByProblem, rightCount, type MistakeRow } from "./mistakes";
 import { sessionAt } from "./session";
 
 describe("teacher mistake view", () => {
@@ -13,6 +14,27 @@ describe("teacher mistake view", () => {
     for (const p of m) expect(p.rows.map((r) => r.id)).toEqual([...(samWrong.includes(p.problem.id) ? ["sam"] : []), ...wrongBy(p.problem.id)]);
     expect(m[1].rows[0].live).toBe(true);
     expect(m[1].rows[1].live).toBe(false);
+  });
+
+  it("counts the class who got each problem right: reached it and not wrong on it, the live student when his hand-in is clean (ticket 140)", () => {
+    expect(CLASS_SIZE).toBe(20);
+    const classmatesRight = (pid: string, index: number) => CLASSMATES.filter((c) => index < c.done && !c.wrong.includes(pid)).length;
+    // Nobody live: the classmates alone. Q1: Chloe never started, Liam, Ethan and Oliver got it wrong, so fifteen. Q7: Priya and Noah alone.
+    const none = mistakesByProblem(null);
+    for (const p of none) expect(p.right, p.problem.id).toBe(classmatesRight(p.problem.id, ASSIGNMENT.problems.indexOf(p.problem)));
+    expect(none.find((p) => p.problem.id === "q1")!.right).toBe(15);
+    expect(none.find((p) => p.problem.id === "q7")!.right).toBe(2);
+    // With Sam's hand-in: one more on every problem he finished cleanly (Q4, Q5, Q6, Q8), the same on the five he slipped on and on Q9, where his working stops before the height (unfinished, so neither); right and wrong never overlap.
+    const live = mistakesByProblem(sessionAt("feedback"));
+    const samRight = ["q4", "q5", "q6", "q8"];
+    for (const p of live) {
+      const index = ASSIGNMENT.problems.indexOf(p.problem);
+      expect(p.right, p.problem.id).toBe(classmatesRight(p.problem.id, index) + (samRight.includes(p.problem.id) ? 1 : 0));
+      expect(p.right + p.rows.length, p.problem.id).toBeLessThanOrEqual(CLASS_SIZE);
+    }
+    expect(live.find((p) => p.problem.id === "q4")!.right).toBe(12);
+    // Q8, absent from the view because nobody slipped, is still countable: everyone who reached it.
+    expect(rightCount(ASSIGNMENT.problems[7], 7, sessionAt("feedback"))).toBe(1 + CLASSMATES.filter((c) => c.done > 7).length);
   });
 
   it("every row's working contains at least one step that didn't hold, and the fixture lines are all known", () => {

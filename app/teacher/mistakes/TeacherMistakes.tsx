@@ -7,7 +7,7 @@ import M from "@/components/Math";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { DifficultyTag, SlipChip } from "@/components/Tag";
 import { ASSIGNMENT } from "@/data/assignment";
-import { groupBySlip, mistakesByProblem, type WorkColumn } from "@/lib/mistakes";
+import { CLASS_SIZE, groupBySlip, mistakesByProblem, type WorkColumn } from "@/lib/mistakes";
 import { diagnosticFor } from "@/lib/diagnostic";
 import { useBatchedSession } from "@/lib/store";
 import { useAssignment } from "@/lib/classroom-store";
@@ -85,7 +85,9 @@ function FitGrid({ children, ...rest }: React.HTMLAttributes<HTMLDivElement>) {
  * To the right of each problem sits its live diagnostic (ticket 127): the "Live diagnostic" chip
  * alone until clicked, then the push panel with the problem's own suggested question and the
  * make-your-own tab as a flyout from the chip, down and to the right (ticket 132); the card
- * keeps its width either way.
+ * keeps its width either way. Left of the problem's label a small box counts the class who got
+ * it right, "14/20 right" (ticket 140), its tooltip splitting the rest into the wrong (the rows)
+ * and those who never finished it.
  */
 export default function TeacherMistakes() {
   const { session } = useBatchedSession(3000);
@@ -109,7 +111,7 @@ export default function TeacherMistakes() {
       <H1 className="mt-3">Where it went wrong</H1>
 
       <div className="mt-10 space-y-6">
-        {problems.map(({ problem, rows }) => {
+        {problems.map(({ problem, rows, right }) => {
           const isOpen = open.includes(problem.id);
           const othersOpen = open.some((id) => id !== problem.id);
           const groups = groupBySlip(rows);
@@ -141,6 +143,16 @@ export default function TeacherMistakes() {
             >
               <div className="flex items-center justify-between gap-4 border-b border-line px-6 py-4" onClick={() => toggle(problem.id)} data-problem-header={problem.id}>
                 <div className="flex items-center gap-4">
+                  <span
+                    className="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-line bg-cream-deep px-2 py-1 text-[12px] leading-none"
+                    title={`${right} of ${CLASS_SIZE} got it right · ${rows.length} wrong · ${CLASS_SIZE - right - rows.length} didn't finish it`}
+                    data-right={`${problem.id}:${right}`}
+                  >
+                    <span className="font-semibold text-ink">
+                      {right}/{CLASS_SIZE}
+                    </span>
+                    <span className="text-ink-muted">right</span>
+                  </span>
                   <span className="font-display text-[24px] text-ink">{problem.label}</span>
                   <span className="math-lg text-ink">
                     <M tex={problem.tex} />

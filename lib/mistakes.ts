@@ -3,7 +3,8 @@ import { CLASSMATES } from "@/data/classmates";
 import type { Problem } from "@/data/types";
 import type { LeafId } from "@/data/taxonomy";
 import { evaluateLine, type Verdict } from "./evaluate";
-import { feedbackFor } from "./feedback";
+import { feedbackFor, progressOf, type ProblemFeedback } from "./feedback";
+import { CLASS_SIZE } from "./readiness";
 import type { StudentSession } from "./session";
 
 /**
@@ -24,6 +25,8 @@ export interface MistakeRow {
 export interface ProblemMistakes {
   problem: Problem;
   rows: MistakeRow[];
+  /** How many of the class of `CLASS_SIZE` got the problem right (ticket 140); the rest are the rows, or never reached it. */
+  right: number;
 }
 
 /** Students who slipped on the same leaves, adjacent, so the view can draw one pill across them. */
@@ -145,10 +148,32 @@ export function groupBySlip(rows: MistakeRow[]): SlipGroup[] {
 const evaluateAll = (pid: string, texs: string[]) => texs.map((tex) => ({ tex, verdict: evaluateLine(pid, tex) }));
 const slipsOf = (lines: { verdict: Verdict }[]) => lines.flatMap((l) => (l.verdict.verdict === "wrong" ? [l.verdict.tags[0].leaf] : []));
 
+/**
+ * Whether the live student got a problem right: a finished hand-in on it with no wrong line.
+ * The teacher's view of the first hand-in, like the rows: a rework that fixed a slip still
+ * leaves the student among the wrong, so the right and the wrong never overlap.
+ */
+const liveRight = (session: StudentSession, me: ProblemFeedback | undefined): boolean => !!me?.clean && progressOf(session, me.problem.id) === "finished";
+
+/**
+ * How many of the class got a problem right (ticket 140; DECISION_LOG, 2026-09-12): each classmate who reached it (in
+ * assignment order, `done`) and is not wrong on it, the same rule that gives them the model
+ * solution on the skill grid (`classmateLines`), plus the live student when his hand-in on it is
+ * clean and finished. Out of `CLASS_SIZE`, the class of twenty; the rows are the wrong, and the
+ * remainder never finished it (a classmate who stopped before it, the live student with a
+ * working that reaches no answer).
+ */
+export function rightCount(problem: Problem, index: number, session: StudentSession | null, me?: ProblemFeedback): number {
+  const live = session && liveRight(session, me ?? feedbackFor(session).find((p) => p.problem.id === problem.id)) ? 1 : 0;
+  return live + CLASSMATES.filter((c) => index < c.done && !c.wrong.includes(problem.id)).length;
+}
+
+export { CLASS_SIZE };
+
 export function mistakesByProblem(session: StudentSession | null): ProblemMistakes[] {
   const mine = session ? feedbackFor(session) : [];
   return ASSIGNMENT.problems
-    .map((problem) => {
+    .map((problem, index) => {
       const rows: MistakeRow[] = [];
       const me = mine.find((p) => p.problem.id === problem.id);
       if (me && me.slips.length > 0) {
@@ -160,7 +185,7 @@ export function mistakesByProblem(session: StudentSession | null): ProblemMistak
         const lines = evaluateAll(problem.id, c.attempts[problem.id] ?? []);
         rows.push({ id: c.id, name: c.name, initials: c.initials, live: false, lines, slips: slipsOf(lines) });
       }
-      return { problem, rows };
+      return { problem, rows, right: rightCount(problem, index, session, me) };
     })
     .filter((p) => p.rows.length > 0);
 }

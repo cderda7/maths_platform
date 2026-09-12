@@ -2551,3 +2551,37 @@ had, and stored sessions from before keep a harmless `diagnostic` field.
 **Defence.** One store, one writer per action, the same numbers in every tab and after a reload
 without a single message; the whole behaviour is a pure function with 27 tests, and the demo
 tells the same story every time. When answers become real, `tally` is the one seam to replace.
+
+## 2026-09-12 · The right count on the mistake view is over the whole class, and "right" means finished and clean
+
+**Decision.** The box left of each problem's label reads "n/20": the class of twenty
+(`CLASS_SIZE`) is the denominator, and a student counts as right only when they reached the
+problem and are not wrong on it (a classmate: `index < done && !wrong.includes(pid)`, the
+rule that already gives them the model solution on the skill grid) or, for the live student,
+when the first hand-in on it is clean and finished (`feedbackFor(...).clean` and
+`progressOf === "finished"`). The rest split into the wrong (the rows under the label) and the
+unfinished, and the tooltip says so.
+
+**Context.** The user: "to the left of the Q box, add a little box saying how many students
+got the problem correct." The fixtures make the choice real: Jordan finished three problems,
+Liam two, Chloe none, Grace four, and Sam's own Q9 working stops at the axis of symmetry
+("Axis of symmetry, height not shown"), so on Q9 he is neither right nor wrong.
+
+**Alternatives considered.** *Over the students who reached it* ("15/18"): a truer rate, but
+the denominator then changes from problem to problem and the eye cannot compare two boxes
+without reading both numbers; the class view's fractions are already x/20 (ticket 129). *Right
+= not wrong*: would count Sam right on Q9 with no answer written, and Chloe right on everything.
+*Right = the rework's result*: the rows are the first hand-in's mistakes, so right and wrong
+would overlap once a rework fixed a slip. *Counting in the view*: the rule belongs beside the
+rows it complements, in `lib/mistakes.ts`, where the test can pin it.
+
+**Tradeoffs.** A problem few students reached reads as a low score ("8/20 right" on Q9 when
+eleven reached it and eight of those were right); the tooltip carries the split, but only on
+hover. The live student's "finished" reads the rework too (`progressOf`), so a student who
+answered only in the rework counts finished but is right only if the first hand-in was clean,
+which is the same reading the rows use.
+
+**Defence.** One denominator across every box makes the column of boxes comparable at a
+glance, which is what a count "to the left of the Q" is for; and defining right as reached,
+finished and clean keeps the three numbers in the tooltip a partition of the class, so the box
+never contradicts the rows beneath it.
