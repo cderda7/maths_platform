@@ -2753,3 +2753,34 @@ mid-problem group's bar short on the final standings.
 means the same thing at every stage: end this for everyone in a minute. The model stays pure
 and per-tab agreement holds: the kind on the classroom, `canForce` and `standingsAt` derived from
 state and the clock, and every student tab applies the advance by id as before.
+
+## 2026-09-12 · The primary action stays put between screens: the same frame, not a shared component
+
+**Decision.** The confidence screen (ticket 153) takes the start screen's outer frame (`px-10 pt-6 pb-5`,
+an `mt-auto … pt-4` button row, a `size="lg"` button) so Submit sits on the exact rect START had;
+the question and the answers keep a centred `max-w-3xl px-9` column nested inside that frame. The
+alignment is repeated classes plus a click-through that measures both buttons, not a new shared
+layout component. The empty spot after a not-confident answer is the Submit button itself rendered
+`invisible`, so the row's height is the button's by construction.
+
+**Context.** The user: "move submit to the bottom right. look at the 'continue' button from the last
+screen & ensure that it's in the same position on the ipad as in that view, otherwise the jump is
+random." The two screens are consecutive taps; the student's thumb is where START was.
+
+**Alternatives considered.** *A shared `ScreenFrame` with a primary-action slot* used by both screens:
+right in principle, but only two of the student screens place a lone button this way today (the
+working screen's actions are in the pad's toolbar, the board and report have their own rows), so the
+abstraction would have one real second user and would have to grow a variant per screen. *Moving the
+whole confidence column to the screen's width*: the answers would stretch to 1100 px and the radios
+would sit far from their labels' reading line. *A fixed-position button*: it would escape the flex
+frame and the offer that rises above it.
+
+**Tradeoffs.** Two screens now share a frame by convention; a change to one screen's padding silently
+breaks the alignment, which is why the click-through asserts the two rects are equal rather than
+asserting either one's numbers alone. The invisible button renders one extra `Button` after the
+answer, hidden from assistive technology and the tab order.
+
+**Defense.** The measurement is the contract: the ticket's script compares START to Submit on the
+iPad stage at scale 1 and fails on any drift. A shared frame is the natural next step if a third
+screen wants the same corner (noted in `FUTURE_FEATURES.md`); until then the nested column keeps
+the content's geometry to the pixel (x 242 → 938 before and after) while only the button moves.

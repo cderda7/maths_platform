@@ -19,6 +19,11 @@ type Level = Confidence["level"];
  * just above the spot Submit occupied (the tutor's question naming the ticked skills, the size of
  * the warm-up, "Warm up" in the accent fill / "Start the set" in the accent outline). The spot itself is left empty so reaching either
  * choice is a deliberate move rather than a second tap in the same place.
+ *
+ * Submit sits in the screen's bottom-right corner, at the exact spot the start screen's START
+ * button occupied (the same `px-10 … pb-5` frame and `size="lg"` button, ticket 153): the student's
+ * thumb is already there from the previous tap, so the button does not jump between screens. The
+ * question and the answers keep their centred `max-w-3xl` column; only the button row spans the screen.
  */
 /** The radio dot at the head of each answer, filled when that answer is picked. */
 function Radio({ on }: { on: boolean }) {
@@ -70,9 +75,11 @@ export default function ConfidenceScreen({
   const head = (on: boolean) => `flex w-full items-center gap-4 px-5 py-3 text-left transition-colors ${on ? "bg-ink text-white" : "bg-paper text-ink hover:bg-cream-deep"}`;
 
   return (
-    <div className="mx-auto flex h-full max-w-3xl flex-col px-9 py-6">
-      <Eyebrow>Before you start</Eyebrow>
-      <h1 className="font-display mt-2 text-[32px] leading-tight text-ink">How confident are you?</h1>
+    <div className="flex h-full min-h-0 flex-col px-10 pt-6 pb-5">
+      {/* The same frame as the start screen, so the button row below lands where START was. */}
+      <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-col px-9" data-confidence-column>
+        <Eyebrow>Before you start</Eyebrow>
+        <h1 className="font-display mt-2 text-[32px] leading-tight text-ink">How confident are you?</h1>
 
       <div className={`mt-5 min-h-0 space-y-3 overflow-y-auto pb-2 transition-opacity duration-300 ${locked ? "pointer-events-none opacity-50" : ""}`} aria-disabled={locked} data-answers>
         <button type="button" onClick={() => pick("confident")} aria-pressed={level === "confident"} className={`rounded-2xl border ${level === "confident" ? "border-ink" : "border-line"} ${head(level === "confident")}`}>
@@ -124,8 +131,9 @@ export default function ConfidenceScreen({
           </ul>
         </div>
       </div>
+      </div>
 
-      <div className="relative mt-auto flex flex-col items-end pt-4">
+      <div className="relative mt-auto flex shrink-0 flex-col items-end pt-4">
         {answered ? (
           <>
             {/* Floats over the dimmed list rather than pushing it, so nothing on the screen moves but the callout. */}
@@ -145,8 +153,10 @@ export default function ConfidenceScreen({
                 </Button>
               </div>
             </div>
-            {/* The spot Submit occupied, left empty on purpose. */}
-            <div className="h-[48px] shrink-0" aria-hidden data-submit-spot />
+            {/* The spot Submit occupied, left empty on purpose: the same button, invisible, so the row keeps exactly its height. */}
+            <Button size="lg" className="invisible" disabled aria-hidden tabIndex={-1} data-submit-spot>
+              Submit
+            </Button>
           </>
         ) : (
           <Button size="lg" disabled={!ready} onClick={submit} data-submit>

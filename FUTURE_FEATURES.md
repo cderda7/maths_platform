@@ -1995,6 +1995,11 @@ agents add sections above it and leave it alone.
   190 px "indiv working" pill, leaving 17 px inside the card; "force assignment submit" or the
   13.5 px Button would not fit. If the card ever widens, the button can take the standard size.
 
+## Submit on START's spot (from ticket 153, 2026-09-12)
+
+- **One frame for every student screen's primary action.** Ticket 153 gives the confidence screen the start screen's frame by repeating its classes (`px-10 pt-6 pb-5`, `mt-auto … pt-4`, a `size="lg"` button) so Submit lands on START's rect. The other student screens (working, feedback, the group board, the report) each place their primary action their own way; a shared `ScreenFrame` / `PrimaryAction` slot would pin every screen's next tap to the same corner and make the alignment a property rather than a measurement. Deferred: the user asked for these two screens, and the working screen's actions live in the pad's own toolbar.
+- **The warm-up offer over the list.** With the button row spanning the screen, the offer now rises at the screen's right edge and floats over the bottom of the dimmed skill list (it already did at the column's edge, by design: nothing moves). If it ever reads as covering the student's own ticks, the offer could sit to the right of the column instead of over it; the column leaves 206 px either side.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
