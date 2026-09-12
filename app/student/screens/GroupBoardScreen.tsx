@@ -3,6 +3,7 @@
 import { useState } from "react";
 import M from "@/components/Math";
 import PadSection from "@/components/PadSection";
+import ReadAs from "@/components/ReadAs";
 import { Avatar, Button, Eyebrow } from "@/components/ui";
 import { DEMO_STUDENT, PROBLEM_MAP } from "@/data/assignment";
 import { CLASSMATE_MAP } from "@/data/classmates";
@@ -21,10 +22,12 @@ import GroupHeader from "./GroupHeader";
 const first = (id: string) => (id === DEMO_STUDENT.id ? "You" : CLASSMATE_MAP[id]?.name.split(" ")[0] ?? id);
 
 /**
- * Group review on one shared whiteboard. The board alone while the pen-holder writes (a live
- * mirror for the other three); Check for the pen-holder only. A wrong check shows the board's
- * transcription up to the first mistake with the rest as a count, the board kept. A correct check
- * opens the debrief.
+ * Group review on one shared whiteboard: the board on the left two thirds while the pen-holder
+ * writes (a live mirror for the other three), the "Read as" column on the right filling in one
+ * line per burst, on every member's iPad, as on the working screen (ticket 162). Check for the
+ * pen-holder only. A wrong check puts the attempt, cut at the first mistake with the rest as a
+ * count, at the top of the column; the board is kept and the next attempt's lines read in
+ * beneath. A correct check opens the debrief.
  */
 export default function GroupBoardScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
   const classroom = useClassroom();
@@ -40,16 +43,25 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
   const mine = holder === DEMO_STUDENT.id;
   const resolved = resolvedCurrent(run);
   const last = lastAttempt(run);
-  const wrongShown = last && !last.correct ? cutAtFirstMistake(pid, last.lines) : null;
+  const wrongShown = last && !last.correct && !resolved ? cutAtFirstMistake(pid, last.lines) : null;
   const colour = groupOfStudent(seatingOf(classroom.groups), DEMO_STUDENT.id) ?? "sky";
   const attemptNo = attemptsOn(run).length;
+  // The board's transcription so far, shared by every member: what the column shows and what the next burst reads on from.
+  const revealed: RevealedLine[] = run.lines.map((tex, i) => ({ tex, strokeCount: i + 1 }));
 
   const addStroke = (next: Stroke[]) => dispatchClassroom({ type: "group/stroke", stroke: next[next.length - 1] });
   const onBurstEnd = (strokeCount: number) => {
     setRecognising(false);
-    const revealed: RevealedLine[] = run.lines.map((tex, i) => ({ tex, strokeCount: i + 1 }));
     const line = nextLine(ownAttemptScript(pid, attemptNo), revealed, strokeCount);
     if (line) dispatchClassroom({ type: "group/line", tex: line.tex });
+  };
+  const undo = () => {
+    setRecognising(false);
+    dispatchClassroom({ type: "group/undo" });
+  };
+  const clear = () => {
+    setRecognising(false);
+    dispatchClassroom({ type: "group/clear" });
   };
 
   return (
@@ -82,27 +94,39 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
         ))}
       </ul>
 
-      {wrongShown && !resolved && (
-        <div className="mt-3 rounded-2xl border border-wrong-line bg-wrong-soft/60 px-4 py-3" data-wrong-check>
-          <div className="flex items-center justify-between">
-            <Eyebrow>Not yet · read as</Eyebrow>
-            <span className="text-[12px] text-ink-muted">up to the first mistake</span>
-          </div>
-          <Lines view={wrongShown} />
+      {/* The board takes two thirds, the column the third beside it (the working screen's shape without its problem column). */}
+      <div className="mt-3 grid min-h-0 flex-1 grid-cols-[2fr_1fr] gap-5" data-board-row>
+        <div className="flex min-h-0 flex-col rounded-2xl border border-line bg-paper" data-board>
+          <PadSection
+            title={mine ? "Your working" : `${first(holder)}'s working`}
+            strokes={run.strokes}
+            onStrokesChange={addStroke}
+            onBurstEnd={onBurstEnd}
+            onPenDown={() => setRecognising(true)}
+            onUndo={undo}
+            onClear={clear}
+            readOnly={!mine || resolved}
+          />
         </div>
-      )}
 
-      <div className="mt-3 flex min-h-0 flex-1 flex-col rounded-2xl border border-line bg-paper" data-board>
-        <PadSection
-          title={mine ? "Your working" : `${first(holder)}'s working`}
-          strokes={run.strokes}
-          onStrokesChange={addStroke}
-          onBurstEnd={onBurstEnd}
-          onPenDown={() => setRecognising(true)}
-          onUndo={() => dispatchClassroom({ type: "group/undo" })}
-          onClear={() => dispatchClassroom({ type: "group/clear" })}
-          readOnly={!mine || resolved}
-        />
+        {/* One pixel of top padding more than the pad's, for the board's border, so the two eyebrows sit on one line. */}
+        <aside className="flex min-h-0 flex-col pt-[25px] pb-6" data-read-as>
+          {wrongShown && (
+            <div className="shrink-0 rounded-2xl border border-wrong-line bg-wrong-soft/60 px-3.5 py-3" data-wrong-check>
+              <div className="flex items-center justify-between gap-2">
+                <Eyebrow>Not yet</Eyebrow>
+                <span className="text-[12px] text-ink-muted">up to the first mistake</span>
+              </div>
+              <Lines view={wrongShown} compact />
+            </div>
+          )}
+          <ReadAs
+            lines={revealed}
+            recognising={recognising}
+            empty={mine ? "Lines appear here as you write." : `Lines appear here as ${first(holder)} writes.`}
+            className={wrongShown ? "mt-4 flex-1" : "flex-1"}
+          />
+        </aside>
       </div>
 
       <div className="mt-3 flex items-center justify-end">

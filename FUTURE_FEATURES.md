@@ -2110,6 +2110,26 @@ review setup's example cards (`useReorder`, `lib/reorder`). Left out, and why:
 - **No visible countdown.** Nothing shows during the 150 ms; the lift is the first sign. A faint
   ring filling under the pointer would make the wait legible, if it is ever felt again.
 
+## The group board read live (from ticket 162, 2026-09-12)
+
+- **Marks in place.** After a wrong check the cut sits in a block above the live list; marking the
+  red line in the list itself would keep the attempt on screen while the next one is written, but
+  the reducer empties the lines on a wrong check (the next attempt starts clean), so the block
+  stays a block. Deferred.
+- **The block once the rework is under way.** The "Not yet" block stays until the problem
+  resolves, so while the second attempt is read the column holds both. Fading it once new lines
+  exist, or collapsing it to one line ("attempt 1: line 1 wrong"), deferred.
+- **A watcher's shimmer.** The pen-holder sees the shimmer while a burst is read; a watcher sees
+  the line land with no warning, since a peer's scripted turn has no pen-down event. A
+  "recognising" event on the classroom, deferred.
+- **The board's double frame.** The pad's card sits inside the board card (two rounded borders),
+  as it did before this ticket. Flattening it to one frame with the column's eyebrow level was
+  left for a pass over the whole screen.
+- **Check under the column.** The working screen's footer sits inside its column with a rule
+  above; the group board's Check keeps its own row under the grid. A shared footer, deferred.
+- **Hint lighting in group review.** The practice pad's `decorate` / `highlight` on the column
+  (a lit hint word pointing at a line) has no hints to point from here. Not planned.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

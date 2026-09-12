@@ -2907,3 +2907,37 @@ not open for editing, so the cost is one wasted press.
 
 **Defense.** One constant, tested to stay in the 120–200 band, and the click-through proves both
 sides of it (80 ms clicks, 200 ms holds).
+
+## 2026-09-12 · The group board is read live, in a column beside it
+
+**Decision.** The group whiteboard shows its transcription as it is written (ticket 162): the
+board takes the left two thirds of the row and a "Read as" column the right third, the same
+column as the working screen, showing the run's shared `lines` on every member's iPad. A wrong
+check's cut (the first mistake red, the rest a count) sits at the top of that column, under
+"Not yet", and the next attempt's lines read in beneath it. No new state: the run's lines were
+already classroom state, kept for the check.
+
+**Context.** The 2026-09-10 whiteboard decision listed "recognising the board live" as an
+alternative set aside, "transcription only at the check, matching where OCR is credible". The
+user now wants the live column here as everywhere else the pad appears: the watchers otherwise
+see ink and nothing read, and the pen-holder gets no sign that a line was taken before pressing
+Check. The wrong-check panel above the board also pushed the pad down when it opened.
+
+**Alternatives considered.** Keeping the transcription hidden and showing the column only after
+the check (the same blind writing as before, for the sake of a credibility argument the working
+screen does not make). Showing the wrong check's marks in place in the live list (the reducer
+empties the lines on a wrong check so the next attempt starts clean; marking the old lines would
+mean keeping two lists in the column). A full-width wrong panel above the grid as before (it
+squeezed the board and put the marks nowhere near the lines). A `1fr_320px` column like the
+working screen's (the row is 1116 px with no problem column; a third reads as the same
+proportion and gives the two-case line room).
+
+**Tradeoffs.** The board's paper is narrower (730 px instead of 1116), which the synthetic
+scribbles and the demo's lines fit with room. The wrong check now stays in the column while the
+second attempt is read beneath it, two lists in one column for that stretch. The 2026-09-10
+rationale about OCR credibility is dropped for this screen; the demo's recognition is scripted
+on every screen anyway.
+
+**Defence.** One component (`ReadAs`) reads the pad on the working screen, the practice pad and
+now the group board, and one list (`run.lines`) is both what the column shows and what the next
+burst reads on from, so the column can never disagree with the check.
