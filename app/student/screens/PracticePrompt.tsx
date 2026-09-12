@@ -76,7 +76,7 @@ export function PracticeOverlay({ session, problem, dispatch }: { session: Stude
           </div>
         }
         footer={
-          <Button variant="accent" onClick={back} data-done>
+          <Button size="lg" variant="accent" onClick={back} data-done>
             Back to {problem.label} →
           </Button>
         }
