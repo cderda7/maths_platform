@@ -4,7 +4,7 @@ import { forwardRef, useLayoutEffect, useMemo, useRef, useState } from "react";
 import M from "@/components/Math";
 import { Eyebrow } from "@/components/ui";
 import { DifficultyTag, StatusDot, STATUS_TEXT, STATUS_WORD } from "@/components/Tag";
-import { categoryLabel, categoryOf, groupName, groupOf, groupsOf, isFlat, leafName, leavesOf, studentLeafName, type CategoryId, type GroupId, type LeafId } from "@/data/taxonomy";
+import { categoryOf, groupName, groupOf, groupsOf, isFlat, leafName, leavesOf, studentLeafName, type CategoryId, type GroupId, type LeafId } from "@/data/taxonomy";
 import type { Problem, Status } from "@/data/types";
 import { evaluateLine } from "@/lib/evaluate";
 import { lineMarks } from "@/lib/examples";
@@ -63,21 +63,38 @@ export function fitLabels(labels: { text: string; depth: number }[], available: 
 
 /* ---------- nodes and trees ---------- */
 
-/** Group and skill names read lowercase behind a dot; a category (`category`) keeps its case and carries the pill. */
-function Node({ label, status, half, open, fit, onClick, node, category = false }: { label: string; status: Status; half: boolean; open: boolean; fit: Fit; onClick: () => void; node: string; category?: boolean }) {
+/**
+ * Group and skill names read lowercase behind a dot; a category (`category`) keeps its case and
+ * carries the pill. A `fixed` node is the same row drawn as plain text (ticket 169): no button, no
+ * hover, no pressed state, for a tree that never opens or closes.
+ */
+function Node({ label, status, half, open, fit, onClick, node, category = false, fixed = false }: { label: string; status: Status; half: boolean; open: boolean; fit: Fit; onClick: () => void; node: string; category?: boolean; fixed?: boolean }) {
+  const inner = (
+    <>
+      {category ? <StatusDot status={status} half={half} shape="pill" className="shrink-0" /> : <StatusDot status={status} half={half} px={fit.dot} className="shrink-0" />}
+      <span className={`leading-tight text-ink ${category ? "" : "lowercase"} ${fit.wrap ? "whitespace-normal [text-wrap:balance]" : "whitespace-nowrap"}`} style={{ fontSize: fit.size }}>
+        {label}
+      </span>
+    </>
+  );
+  const layout = "-ml-[7px] flex items-center gap-2 rounded-lg border py-1 pl-1.5 pr-2.5 text-left";
+  if (fixed) {
+    return (
+      <div className={`${layout} border-transparent`} role="img" aria-label={`${label}: ${STATUS_WORD[status]}${half ? ", some problems not attempted" : ""}`} data-node={node} data-fixed>
+        {inner}
+      </div>
+    );
+  }
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={open}
       aria-label={`${label}: ${STATUS_WORD[status]}${half ? ", some problems not attempted" : ""}`}
-      className={`-ml-[7px] flex items-center gap-2 rounded-lg border py-1 pl-1.5 pr-2.5 text-left transition-colors ${open ? "border-ink bg-paper" : "border-transparent hover:bg-cream-deep/60"}`}
+      className={`${layout} transition-colors ${open ? "border-ink bg-paper" : "border-transparent hover:bg-cream-deep/60"}`}
       data-node={node}
     >
-      {category ? <StatusDot status={status} half={half} shape="pill" className="shrink-0" /> : <StatusDot status={status} half={half} px={fit.dot} className="shrink-0" />}
-      <span className={`leading-tight text-ink ${category ? "" : "lowercase"} ${fit.wrap ? "whitespace-normal [text-wrap:balance]" : "whitespace-nowrap"}`} style={{ fontSize: fit.size }}>
-        {label}
-      </span>
+      {inner}
     </button>
   );
 }
@@ -98,9 +115,11 @@ interface TreeProps {
   marginLeft?: number;
   /** The student's own report: skills by their student-facing names. */
   student?: boolean;
+  /** The groups are fixed rows, not toggles: whatever `openGroups` says stays as it is (ticket 169). */
+  lockGroups?: boolean;
 }
 
-export const SkillTree = forwardRef<HTMLUListElement, TreeProps>(function SkillTree({ category, result, openGroups, leaf, onGroup, onLeaf, width, marginLeft, student = false }, ref) {
+export const SkillTree = forwardRef<HTMLUListElement, TreeProps>(function SkillTree({ category, result, openGroups, leaf, onGroup, onLeaf, width, marginLeft, student = false, lockGroups = false }, ref) {
   const groups = worst(groupsOf(category).filter((g) => result.groups[g] !== undefined), (g) => result.groups[g]!);
   const leavesIn = (g: GroupId) => worst(leavesOf(g).filter((l) => result.leaves[l] !== undefined), (l) => result.leaves[l]!);
   const name = (l: LeafId) => (student ? studentLeafName(l) : leafName(l)).name;
@@ -125,7 +144,7 @@ export const SkillTree = forwardRef<HTMLUListElement, TreeProps>(function SkillT
     <ul ref={ref} className="space-y-0.5 self-start" style={style} data-col="tree" data-category={category} data-fit={fit.size}>
       {groups.map((g) => (
         <li key={g}>
-          <Node label={groupName(g).name} status={result.groups[g]!} half={result.half.groups.includes(g)} open={openGroups.includes(g)} fit={fit} onClick={() => onGroup(g)} node={g} />
+          <Node label={groupName(g).name} status={result.groups[g]!} half={result.half.groups.includes(g)} open={openGroups.includes(g)} fit={fit} onClick={() => onGroup(g)} node={g} fixed={lockGroups} />
           {openGroups.includes(g) && (
             <ul className="mt-0.5 space-y-0.5" style={{ paddingLeft: fit.indent }} data-col="leaves">
               {leavesIn(g).map((l) => (
@@ -227,7 +246,8 @@ export interface ColumnBox {
  * What opens under a student's row. `category`: one tree under the clicked dot, work beside it
  * (or beneath when there's no room). `groups`: every category's groups, each tree inside its own
  * column, skills on demand. `expanded`: the same with every group open. Work always beneath in the
- * last two.
+ * last two. `locked` keeps the groups where the mode put them: the group rows are plain text, not
+ * toggles, and only a skill still opens its work (the teacher's student report, ticket 169).
  */
 export function RowDrill({
   mode,
@@ -240,6 +260,7 @@ export function RowDrill({
   expandAll = false,
   onNavigate,
   student = false,
+  locked = false,
 }: {
   mode: RowMode;
   result: HierarchyResult;
@@ -253,6 +274,8 @@ export function RowDrill({
   onNavigate?: (leaf: LeafId) => void;
   /** The student's own report: student-facing skill names, no difficulty tags. */
   student?: boolean;
+  /** No group opens or closes; the mode's initial state is the whole view. */
+  locked?: boolean;
 }) {
   const allGroups = useMemo(() => result.columns.flatMap((c) => groupsOf(c).filter((g) => result.groups[g] !== undefined)), [result]);
   const [openGroups, setOpenGroups] = useState<GroupId[]>(() =>
@@ -292,8 +315,8 @@ export function RowDrill({
   if (mode === "category" && category) {
     const box = columns.find((c) => c.category === category);
     return (
-      <div ref={rootRef} className={`flex min-h-0 gap-8 ${below ? "flex-col" : "items-start"}`} data-drill data-mode={mode} data-panel={below ? "below" : "beside"}>
-        <SkillTree ref={treeRef} category={category} result={result} openGroups={openGroups} leaf={leaf} onGroup={toggleGroup} onLeaf={pickLeaf} marginLeft={Math.max(0, box?.left ?? 0)} student={student} />
+      <div ref={rootRef} className={`flex min-h-0 gap-8 ${below ? "flex-col" : "items-start"}`} data-drill data-mode={mode} data-panel={below ? "below" : "beside"} data-locked={locked || undefined}>
+        <SkillTree ref={treeRef} category={category} result={result} openGroups={openGroups} leaf={leaf} onGroup={toggleGroup} onLeaf={pickLeaf} marginLeft={Math.max(0, box?.left ?? 0)} student={student} lockGroups={locked} />
         {leaf && <WorkPanel leaf={leaf} lines={lines} problems={problems} status={result.leaves[leaf]!} wide={below} onGoTo={goTo} student={student} />}
       </div>
     );
@@ -301,82 +324,14 @@ export function RowDrill({
 
   const first = columns[0]?.left ?? 0;
   return (
-    <div className="flex flex-col gap-5" data-drill data-mode={mode} data-panel="below">
+    <div className="flex flex-col gap-5" data-drill data-mode={mode} data-panel="below" data-locked={locked || undefined}>
       <div className="grid items-start" style={{ gridTemplateColumns: `${Math.max(0, first)}px ${columns.map((c, i) => `${i < columns.length - 1 ? columns[i + 1].left - c.left : c.width}px`).join(" ")}` }} data-trees>
         <div />
         {columns.map((c) => (
-          <SkillTree key={c.category} category={c.category} result={result} openGroups={openGroups} leaf={leaf} onGroup={toggleGroup} onLeaf={pickLeaf} width={c.width} student={student} />
+          <SkillTree key={c.category} category={c.category} result={result} openGroups={openGroups} leaf={leaf} onGroup={toggleGroup} onLeaf={pickLeaf} width={c.width} student={student} lockGroups={locked} />
         ))}
       </div>
       {leaf && <WorkPanel leaf={leaf} lines={lines} problems={problems} status={result.leaves[leaf]!} wide onGoTo={goTo} student={student} />}
-    </div>
-  );
-}
-
-/* ---------- the reports' browse drill ---------- */
-
-/** Categories at the top level, groups nested, skills nested; work to the right, or beneath when it won't fit. */
-export default function HierarchyDrill({ result, lines, problems, unit = 1, student = false }: { result: HierarchyResult; lines: Record<string, string[]>; problems: Problem[]; unit?: 1 | 2 | 3 | 4; /** The student's own report: no difficulty tags anywhere. */ student?: boolean }) {
-  const [category, setCategory] = useState<CategoryId | null>(null);
-  const [group, setGroup] = useState<GroupId | null>(null);
-  const [leaf, setLeaf] = useState<LeafId | null>(null);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const treeRef = useRef<HTMLUListElement>(null);
-  const [below, setBelow] = useState(false);
-  useLayoutEffect(() => {
-    const root = rootRef.current;
-    const tree = treeRef.current;
-    if (!root || !tree) return;
-    const measure = () => setBelow(root.clientWidth - tree.offsetWidth - 32 < MIN_PANEL);
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(root);
-    ro.observe(tree);
-    return () => ro.disconnect();
-  }, [leaf, group, category]);
-  const leavesIn = (g: GroupId) => worst(leavesOf(g).filter((l) => result.leaves[l] !== undefined), (l) => result.leaves[l]!);
-  const goTo = (target: LeafId) => {
-    setCategory(categoryOf(target));
-    setGroup(groupOf(target));
-    setLeaf(target);
-  };
-  return (
-    <div ref={rootRef} className={`flex min-h-0 gap-8 ${below ? "flex-col" : "items-start"}`} data-drill data-mode="browse" data-panel={below ? "below" : "beside"}>
-      <ul ref={treeRef} className="shrink-0 space-y-1 self-start" data-col="tree">
-        {result.columns.map((c) => (
-          <li key={c}>
-            <Node label={categoryLabel(c, unit).name} status={result.categories[c] ?? "unseen"} half={result.half.categories.includes(c)} open={c === category} fit={FULL} onClick={() => { setCategory(category === c ? null : c); setGroup(null); setLeaf(null); }} node={c} category />
-            {c === category && isFlat(c) && (
-              <ul className="mt-1 space-y-1 pl-7" data-col="leaves">
-                {worst(groupsOf(c).flatMap((g) => leavesIn(g)), (l) => result.leaves[l]!).map((l) => (
-                  <li key={l}>
-                    <Node label={leafName(l).name} status={result.leaves[l]!} half={result.half.leaves.includes(l)} open={l === leaf} fit={FULL} onClick={() => setLeaf(leaf === l ? null : l)} node={l} />
-                  </li>
-                ))}
-              </ul>
-            )}
-            {c === category && !isFlat(c) && (
-              <ul className="mt-1 space-y-1 pl-7" data-col="groups">
-                {worst(groupsOf(c).filter((g) => result.groups[g] !== undefined), (g) => result.groups[g]!).map((g) => (
-                  <li key={g}>
-                    <Node label={groupName(g).name} status={result.groups[g]!} half={result.half.groups.includes(g)} open={g === group} fit={FULL} onClick={() => { setGroup(group === g ? null : g); setLeaf(null); }} node={g} />
-                    {g === group && (
-                      <ul className="mt-1 space-y-1 pl-7" data-col="leaves">
-                        {leavesIn(g).map((l) => (
-                          <li key={l}>
-                            <Node label={leafName(l).name} status={result.leaves[l]!} half={result.half.leaves.includes(l)} open={l === leaf} fit={FULL} onClick={() => setLeaf(leaf === l ? null : l)} node={l} />
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </li>
-        ))}
-      </ul>
-      {leaf && <WorkPanel leaf={leaf} lines={lines} problems={problems} status={result.leaves[leaf]!} wide={below} onGoTo={goTo} student={student} />}
     </div>
   );
 }

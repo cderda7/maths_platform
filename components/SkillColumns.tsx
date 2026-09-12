@@ -11,13 +11,33 @@ import type { HierarchyResult } from "@/lib/hierarchy";
 const LABEL = "pointer-events-none absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink-muted";
 
 /**
- * The student's skills drawn as the teacher's class-view row: one column per category the set
+ * A student's skills drawn as the teacher's class-view row: one column per category the set
  * touches, the category chip over its pill, and under every pill at once the groups beneath it
  * (the skills themselves for a flat category), each group's dot on its category dot's line.
- * Nothing is collapsed and nothing has to be opened; a group shows its skills, a skill the work
- * behind it beneath the columns, exactly as on the teacher's grid.
+ * Nothing has to be opened: in `groups` mode (the student's own report) a group shows its skills
+ * on a click; in `expanded` mode every group's skills are out from the start, and `locked` makes
+ * that the one fixed view, the group rows plain text (the teacher's student report, ticket 169).
+ * A skill shows the work behind it beneath the columns either way, exactly as on the teacher's grid.
  */
-export default function SkillColumns({ result, lines, problems, unit = 1 }: { result: HierarchyResult; lines: Record<string, string[]>; problems: Problem[]; unit?: 1 | 2 | 3 | 4 }) {
+export default function SkillColumns({
+  result,
+  lines,
+  problems,
+  unit = 1,
+  mode = "groups",
+  locked = false,
+  student = false,
+}: {
+  result: HierarchyResult;
+  lines: Record<string, string[]>;
+  problems: Problem[];
+  unit?: 1 | 2 | 3 | 4;
+  mode?: "groups" | "expanded";
+  /** No group opens or closes; `mode` is the whole view. */
+  locked?: boolean;
+  /** The student's own report: student-facing skill names, no difficulty tags. */
+  student?: boolean;
+}) {
   const columns = result.columns;
   const rootRef = useRef<HTMLDivElement>(null);
   const [boxes, setBoxes] = useState<ColumnBox[]>([]);
@@ -78,7 +98,7 @@ export default function SkillColumns({ result, lines, problems, unit = 1 }: { re
               );
             })}
           </div>
-          {boxes.length > 0 && <RowDrill mode="groups" result={result} lines={lines} problems={problems} columns={boxes} student />}
+          {boxes.length > 0 && <RowDrill mode={mode} result={result} lines={lines} problems={problems} columns={boxes} student={student} locked={locked} />}
         </div>
       </div>
     </div>

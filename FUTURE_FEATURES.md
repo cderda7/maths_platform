@@ -2236,6 +2236,25 @@ review setup's example cards (`useReorder`, `lib/reorder`). Left out, and why:
   width; a title twice as long would collide. A truncation rule (ellipsis at a fixed width, the
   full title in a tooltip) is not done.
 
+## The student report's full dot view (from ticket 169, 2026-09-12)
+
+- **Column widths sized to the labels.** The report's six columns are equal sixths of the card
+  (`repeat(6, minmax(0, 1fr)) 0.5fr`), so the longest label in a column sets its text size:
+  9.5–11.5 px at the teacher frame's 0.72 zoom (the class view's own dot view fits at 9–10.5).
+  The roster gives each category its own width (`columnWidth`, 80–132 px); the report has room for
+  more (the card is about 1085 layout px inside at 1400) and could size each column to its widest
+  skill name so the text reads at 12.5 or 13.5. Not asked for.
+- **A student with nothing handed in.** Sam's report before any session says "Nothing yet" in a
+  plain card; it could show the six columns with every pill and dot unseen (hollow), as the class
+  view's MISSING row would, so the shape of the report is there before the evidence.
+- **Group rows out of the tab order.** A fixed group row is a `div` with an image role; a screen
+  reader reads its name and status but keyboard focus skips from skill to skill. If the rows should
+  be reachable, `tabindex="0"` on the fixed node with no action is one line.
+- **The browse drill is gone.** `HierarchyDrill`'s default export (categories → groups → skills one
+  branch at a time, the work beside) had no user after this ticket and was deleted; its last
+  version is at `ebd613d`. A compact one-branch view for a narrow surface (the iPad's report, a
+  phone) would start from `SkillTree` and `WorkPanel` rather than from that.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

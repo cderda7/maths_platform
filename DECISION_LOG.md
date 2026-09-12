@@ -3076,3 +3076,41 @@ same paper is exactly that with no second copy of the row: the hover controls, t
 the column edges stay the real ones. One class string (`HEAD`) on the cells and one overflow
 keyword on the card is the whole change, and the frame-scrolls-sideways case is one the laptop
 guard measures on every route.
+
+## 2026-09-12 · The teacher's student report is the class view's full dot view, fixed (ticket 169)
+
+**Decision.** The Skills card on the teacher's individual view renders the same column view the
+student's own report uses (`SkillColumns`), in the class view's "see dot skills" state (`expanded`:
+every category's groups, every group's skills) and `locked`: the group rows are plain text, not
+toggles, so nothing on the card opens or closes. A skill is still a button that opens the work
+behind it beneath the columns, and the commentary's idea filter still narrows the lit skills in
+the same fixed view. The old browse drill (`HierarchyDrill`'s default export: six category rows,
+one branch open at a time) is deleted rather than kept beside it.
+
+**Context.** The user, on Sam's report: "automatically open to full dot view. don't have
+functionality for collapse or expand here. just show full dot view fixed". The report is the
+place a teacher reads one student in full; a drill that shows one branch at a time hid five of the
+six categories' detail behind clicks, and its category rows did not look like the row the teacher
+had just left on the class view.
+
+**Alternatives.** *Keep the browse drill and start it fully open*: its layout is an outline with
+the work beside it, not the columns under pills the teacher knows from the roster, and its rows
+would still be toggles to disarm. *A third component for the report*: the column view already
+draws exactly the class-view row, with the per-column text fitting; one more `mode` and a
+`locked` flag is the whole difference. *Locked groups as disabled buttons*: a disabled button
+still reads as a control (cursor, focus order, aria-pressed); a `div` with the same layout and an
+image role is what a fixed row is. *Locking the skills too*: the work behind a skill is the
+report's reason to exist; opening it is not "collapse or expand", the columns never change.
+
+**Tradeoffs.** The column text fits per column at 9.5–11.5 px here (the class view's row fits at
+9–10.5), small at the teacher frame's 0.72 zoom; the columns are equal sixths of the card, so the
+longest label in each decides. Group rows are no longer in the tab order. The browse drill is gone
+from the codebase (in git at `ebd613d` if a compact one-branch view is wanted again). The card
+loses its uniform padding: the chip band runs edge to edge and the eyebrow and key carry their
+own insets.
+
+**Defense.** The report now shows what "see dot skills" shows, at once and for good, which is the
+request word for word; the shared component means the report and the roster cannot drift apart;
+and the one interaction kept (a skill's work) is the one that adds information rather than
+rearranging it. Deleting the browse drill removes a second way of drawing the same tree that no
+screen uses.

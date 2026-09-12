@@ -5,7 +5,7 @@ import Link from "next/link";
 import TeacherChrome from "../TeacherChrome";
 import M from "@/components/Math";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
-import HierarchyDrill from "@/components/HierarchyDrill";
+import SkillColumns from "@/components/SkillColumns";
 import StatusKey from "@/components/StatusKey";
 import { ASSIGNMENT, DEMO_STUDENT, PROBLEMS } from "@/data/assignment";
 import { CLASSMATE_MAP } from "@/data/classmates";
@@ -18,7 +18,9 @@ import { useAssignment } from "@/lib/classroom-store";
 
 /**
  * The individual view: one student, opened from their name on the class view (`student` from
- * the page's `?student=`; the demo student when absent or unknown). Skills on the left, the same drill as the class view. On the right
+ * the page's `?student=`; the demo student when absent or unknown). Skills on the left as the
+ * class view's full dot view (see dot skills): one column per category, every group's skills out,
+ * and fixed that way, nothing to open or close (ticket 169); a skill still shows its work. On the right
  * the platform's commentary as a few ideas in a light-blue bubble, and beneath it what the
  * student wrote back in a white box with a purple border. Clicking an idea lights only the
  * skills behind it; the same idea again shows everything. The demo student's report facts and
@@ -59,10 +61,10 @@ export default function TeacherReport({ student }: { student: string | null }) {
 
       <div className="mt-8 grid grid-cols-[1fr_440px] gap-6">
         <div className="space-y-5">
-          <Card className="p-5" data-hierarchy>
-            <Eyebrow>Skills</Eyebrow>
-            <div className="mt-3">{nothing ? <p className="text-[13.5px] text-ink-muted">Nothing yet</p> : <HierarchyDrill key={idea ?? "all"} result={result} lines={evidence.lines} problems={problems} unit={unit} />}</div>
-            <StatusKey className="mt-4 max-w-xs border-t border-line pt-3" />
+          <Card data-hierarchy>
+            <Eyebrow className="px-5 pt-5">Skills</Eyebrow>
+            {nothing ? <p className="mt-3 px-5 text-[13.5px] text-ink-muted">Nothing yet</p> : <SkillColumns key={idea ?? "all"} result={result} lines={evidence.lines} problems={problems} unit={unit} mode="expanded" locked />}
+            <StatusKey className="mx-5 mb-5 max-w-xs border-t border-line pt-3" />
           </Card>
 
           {live && (

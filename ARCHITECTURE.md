@@ -107,7 +107,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
  │ components/  (presentational kit, no page deps)                                    │
  │   ui.tsx  Card Eyebrow H1 H2 Button Avatar    Math.tsx  M (katex.renderToString)   │
  │   Tag.tsx DifficultyTag LeafChip StatusDot(half) STATUS_WORD    Figure.tsx (Q8 svg) │
- │   HierarchyDrill.tsx  category → group → leaf → work, shared by grid and reports    │
+ │   HierarchyDrill.tsx  RowDrill: trees per column → leaf → work, grid and reports  │
  │   Brand.tsx Brand BrandMark                   IpadStage.tsx  bezel + scale-to-fit  │
  │   DrawPad.tsx  pointer events → ink; reports pen-down and burst-end(strokeCount)   │
  │   InkView.tsx  read-only SVG of stored strokes, cropped and fitted to its box       │
@@ -300,6 +300,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 166 | The class-review tag on the student's own example reads "your approach" (was "your initial response") | `/student` | 161 | [architecture/166-your-approach.md](architecture/166-your-approach.md) |
 | 167 | The roster's header row (Student, the category chips, Confidence, Set) sticks under the teacher bar while the frame scrolls: every `th` sticky on paper at `z-20` with an inset bottom line, the card `overflow-clip` instead of `overflow-x-auto` so the frame is the heads' scroller | `/teacher` | 165 | [architecture/167-sticky-roster-head.md](architecture/167-sticky-roster-head.md) |
 | 168 | The assignment title is the crumb beside the wordmark on every student screen (`crumb = title` in `StudentApp`; the per-stage `CRUMB` map, ticket 164's empty crumb included, is gone): the strip names the stage, the screen names itself, the header never changes | `/student` | 151, 164 | [architecture/168-title-crumb-everywhere.md](architecture/168-title-crumb-everywhere.md) |
+| 169 | The teacher's student report opens to the class view's full dot view, fixed: `SkillColumns` in `expanded` mode, `locked` (group rows fixed `div`s, skills still open their work, the commentary filter still lights); the browse drill (`HierarchyDrill`'s default export) removed | `/teacher/report` | 125 | [architecture/169-report-dot-view.md](architecture/169-report-dot-view.md) |
 
 ## Conventions
 

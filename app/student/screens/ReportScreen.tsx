@@ -50,7 +50,7 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
 
         {/* No overflow-hidden here: as a flex child it would let the card shrink and clip an opened skill's work. */}
         <Card className="mt-5 shrink-0" data-hierarchy>
-          <SkillColumns result={hierarchy} lines={sessionEvidence(session).lines} problems={problems} unit={unit} />
+          <SkillColumns result={hierarchy} lines={sessionEvidence(session).lines} problems={problems} unit={unit} student />
         </Card>
 
         {mastery && (

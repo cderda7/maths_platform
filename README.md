@@ -182,8 +182,10 @@ no marks until the teacher shows them, and the teacher's working pad.
   The roster's header row (Student, the category chips, Confidence, Set) stays in view under the bar
   while the page scrolls, so the categories still read beside the later students.
   **student report** beside a name on the class view opens their individual view (`/teacher/report?student=`):
-  the platform's commentary as a few ideas in a light-blue bubble, and what the student wrote
-  back in a purple-bordered box. A live diagnostic takes the whole board once all twenty have answered, or when the teacher puts it up: the question, each option with its count, the right one green, `x/20 students answered this`; never while the class is still answering unless the teacher says so, and no misconception wording.
+  the skills as the full dot view (the same columns, every group's skills out) fixed on the
+  page, nothing to open or close, a skill still showing its work beneath; the platform's
+  commentary as a few ideas in a light-blue bubble (an idea lights only the skills behind it),
+  and what the student wrote back in a purple-bordered box. A live diagnostic takes the whole board once all twenty have answered, or when the teacher puts it up: the question, each option with its count, the right one green, `x/20 students answered this`; never while the class is still answering unless the teacher says so, and no misconception wording.
 
 ## Deep links
 
