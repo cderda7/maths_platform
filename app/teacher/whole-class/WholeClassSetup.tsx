@@ -16,7 +16,8 @@ const PRECHECK = 3;
 
 /**
  * The private setup for whole-class review: which problems, and which 2–3 examples per problem.
- * Names and correctness show here and nowhere near the projector.
+ * Names and correctness show here and nowhere near the projector. What the students' screens do
+ * (frozen or write with me) starts unchosen: both options empty, Project off until one is picked.
  */
 export default function WholeClassSetup() {
   const router = useRouter();
@@ -25,7 +26,8 @@ export default function WholeClassSetup() {
   const ranked = problemsByStruggle(session).filter((r) => problems.some((p) => p.id === r.problem.id));
   const [chosen, setChosen] = useState<string[] | null>(null);
   const [overrides, setOverrides] = useState<Record<string, ExampleRef[]>>({});
-  const [mode, setMode] = useState<FollowMode>("frozen");
+  /** What the students' screens do: no default (ticket 146), the teacher picks one before Project comes on. */
+  const [mode, setMode] = useState<FollowMode | null>(null);
   const chosenIds = chosen ?? ranked.slice(0, PRECHECK).map((r) => r.problem.id);
   const toggle = (id: string) => setChosen(chosenIds.includes(id) ? chosenIds.filter((x) => x !== id) : [...chosenIds, id]);
   const examplesFor = (pid: string) => overrides[pid] ?? suggestExamples(candidatesFor(pid, session));
@@ -38,6 +40,7 @@ export default function WholeClassSetup() {
   };
 
   const project = () => {
+    if (!mode) return;
     const examples = Object.fromEntries(ordered.map((id) => [id, examplesFor(id)]));
     dispatchClassroom({ type: "wc/setup", problems: ordered, examples, mode });
     dispatchClassroom({ type: "wc/project" });
@@ -99,9 +102,9 @@ export default function WholeClassSetup() {
               );
             })}
           </div>
-          <p className="mt-2 text-[12px] text-ink-muted">You can change this per problem from the board.</p>
+          <p className="mt-2 text-[12px] text-ink-muted">{mode ? "You can change this per problem from the board." : "Choose one to project."}</p>
           <div className="mt-5 flex justify-end">
-            <Button size="lg" disabled={ordered.length === 0} onClick={project} data-project>
+            <Button size="lg" disabled={ordered.length === 0 || !mode} onClick={project} data-project>
               Project
             </Button>
           </div>

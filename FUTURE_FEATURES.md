@@ -1887,6 +1887,20 @@ agents add sections above it and leave it alone.
 - **The class view's card.** Only the mistake view's flyout collapses; the class view's
   diagnostic card is a fixed box and does not open or close.
 
+## Student screens: no default on the setup page (from ticket 146, 2026-09-12)
+
+- **Remember the last choice.** The setup page starts with neither mode chosen every time; a
+  teacher who always projects with screens frozen re-picks it each lesson. Pre-filling from
+  the previous class review (still shown as a choice, not a default) deferred until a second
+  lesson exists in the demo.
+- **The board keeps a default.** From the board a problem with no mode of its own still reads
+  as frozen (`currentSlide`'s fallback for sessions stored before modes existed). The setup
+  page always sends a mode now, so the fallback is for old data only; removing it means a
+  migration of stored classrooms. Deferred.
+- **A nudge on Project.** Project is simply off with "Choose one to project." beneath the two
+  options; a pointer over the disabled button explaining why (a title, or the options
+  outlined) deferred until someone hovers it puzzled.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
