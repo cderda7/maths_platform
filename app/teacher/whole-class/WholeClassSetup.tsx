@@ -18,7 +18,7 @@ const PRECHECK = 3;
  * The private setup for whole-class review: which problems, and which 2–3 examples per problem.
  * Names and correctness show here and nowhere near the projector. What the students' screens do
  * (frozen or write with me) starts unchosen: both options empty, Project faded until one is picked;
- * pressing it anyway turns its label to "select one" and flashes the two options light blue.
+ * pressing it anyway turns its label to "select one" and flashes the two options light blue once.
  */
 export default function WholeClassSetup() {
   const router = useRouter();

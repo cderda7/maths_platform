@@ -1913,6 +1913,11 @@ agents add sections above it and leave it alone.
 - **Scroll the options into view.** On a short window the options can sit above the fold when
   Project is pressed; scrolling them into view before the flash deferred.
 
+## One flash (from ticket 149, 2026-09-12)
+
+- **Three beats became one.** The user: "1 flash will suffice." A single 600 ms beat on each
+  press; a longer or repeated cue only if a teacher misses the single one.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

@@ -278,6 +278,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 144 | The live diagnostic flyout collapses the moment the pointer leaves it (one `onMouseLeave` on the wrapper that holds the chip's footprint and the panel); the tab and a question the teacher was writing are component state, so they are there again on the next click | `/teacher/mistakes` | 132, 137 | [architecture/144-flyout-collapse.md](architecture/144-flyout-collapse.md) |
 | 146 | The class review setup's Student screens choice has no default: screens frozen and write with me both start empty, "Choose one to project." beneath them and Project off until the teacher picks one; the board's per-problem toggle and the stored-session fallback unchanged | `/teacher/whole-class` | 44 | [architecture/146-choose-screens.md](architecture/146-choose-screens.md) |
 | 147 | Pressing the faded Project with no screen mode chosen turns its label to "select one" and flashes both Student screens options light blue for three beats (`.choose-flash`, restarted per press); the button is truly off only with no problem checked | `/teacher/whole-class` | 146 | [architecture/147-select-one-nudge.md](architecture/147-select-one-nudge.md) |
+| 149 | The "select one" flash on the Student screens options is one beat (600 ms), not three | `/teacher/whole-class` | 147 | [architecture/149-one-flash.md](architecture/149-one-flash.md) |
 
 ## Conventions
 
