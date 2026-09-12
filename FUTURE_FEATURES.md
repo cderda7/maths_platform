@@ -2071,6 +2071,21 @@ review setup's example cards (`useReorder`, `lib/reorder`). Left out, and why:
 - **The board's slide order after Project.** Once projected, the order is fixed (`wc/setup`);
   reordering from the board controls is a separate control.
 
+## The review pad reads every problem (from ticket 158, 2026-09-12)
+
+- **A scripted second version for Q5, Q6 and Q8.** Problems that held read their own hand-in
+  again when reworked. A distinct correct route per problem (the quadratic formula for Q5, say)
+  would make reworking a right answer worth watching; deferred until a demo needs it.
+- **Finishing Q9 in the deep-linked run.** `reworkedSession` leaves Q9 unfinished so the group,
+  class-wait and class-review fixtures are unchanged; a deep link that lands past the rework with
+  Q9 finished (and the board's counts moved to match) is a separate change.
+- **A row label that counts the rework.** After Q9 is finished its row reads "3 lines", the first
+  hand-in's count; the one rework line is not counted because a problem that had lines at hand-in
+  keeps that count. "3 + 1 lines", or the total, deferred.
+- **Q9's greatest height in two lines.** A substitution line (`h = -(3)^2 + 6(3)`) before the value
+  would read more like a student's page; it needs a marking-table entry and a second burst before
+  the box counts down, so the one-line version stays for the demo.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

@@ -2856,3 +2856,36 @@ handler on the item, which any nested control that relies on that click would ne
 **Defense.** One gesture on three screens with one implementation, no dependency, the geometry
 pure and tested against every from/to pair, the order stored where it already was (the draft's
 array, the setup's `ordered`), and the review's decisions untouched by a move.
+
+## 2026-09-12 · The review pad always reads something: a scripted correction, else the hand-in's own lines again
+
+**Decision.** In individual review (ticket 158) the pad's script for a problem is `reworkScript(id)`:
+its scripted correction from `RECOGNITION_REWORK` when it has one, otherwise the first hand-in's
+script from `RECOGNITION`. Q9 gets a scripted correction of exactly one line, the greatest height
+the scripted run skipped, so a single burst finishes the problem on screen. The deep-linked run past
+the rework (`reworkedSession`) still leaves Q9 unfinished.
+
+**Context.** The user, on Q9 with strokes on the pad and the "Read as" column still on its
+placeholder: "the 'read as' feature isn't simulating in individual review. please fix. want to show
+how the incomplete problem update happens." The simulation only had corrections for the five
+problems that slipped and for Q10; on the other five the pad silently read nothing.
+
+**Alternatives considered.** *A scripted correction for every problem*, each a different second
+version: more data to keep in step with the marking tables for problems whose rework has no story
+to tell (Q5, Q6, Q8 held). *A generic "unclear" line for unscripted problems*: the pad would read
+something, but a line the marking table doesn't know would show as unclear in every later view and
+could not finish anything. *Finishing Q9 in the deep-linked run too*: it would change the group and
+class stages' fixtures (the board's n/20, the teacher's counts) for a demo moment that belongs to the
+review screen alone. *A two-line rework for Q9* (substitute, then evaluate): the substitution line
+is not in the marking table and the box counting down on the first burst is the clearer demo.
+
+**Tradeoffs.** Re-reading the hand-in on Q5/Q6/Q8 is a plausible simulation, not a scripted story:
+a demo that reworks one of them shows the same lines twice. Q9's rework is a continuation, not a
+second version, so the row's label after finishing reads the first hand-in's count ("3 lines"), the
+existing rule for a problem that had lines at hand-in.
+
+**Defense.** Every pad now answers the pen, which is what a student expects from any pad on the
+screen, and the one problem the demo needs to finish finishes in one burst with every dependent
+count updating live (the incomplete box, the row, no guard, the mistakes box untouched). The
+fallback is one line of data code and needs nothing kept in step; the marking tables already know
+every line it can read.

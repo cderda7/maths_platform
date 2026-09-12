@@ -137,6 +137,33 @@ describe("incomplete work", () => {
     expect(done.head).toBe("Every problem held.");
   });
 
+  it("Q9's scripted correction is the one missing line: a single burst finishes it and the incomplete box counts down (ticket 158)", async () => {
+    const { progressOf, feedbackSummary } = await import("./feedback");
+    const { reworkScript } = await import("@/data/recognition");
+    const { guardFor } = await import("./guard");
+    expect(reworkScript("q9")).toEqual(["h = -9 + 18 = 9"]);
+    let s: StudentSession = { ...scriptedSession(), stage: "feedback" };
+    s = rework(s, "q9", reworkScript("q9"));
+    expect(progressOf(s, "q9")).toBe("finished");
+    expect(feedbackSummary(s).incompleteHead).toBe("1 problem is incomplete.");
+    expect(guardFor(s, "q9").tripped).toBe(false);
+    // The mistakes box reads the first submission, so finishing Q9 leaves it alone.
+    expect(feedbackSummary(s).head).toBe("5 problems in your first submission contain a mistake.");
+    s = rework(s, "q10", reworkScript("q10"));
+    expect(feedbackSummary(s).incompleteHead).toBeNull();
+    // A problem that held with no scripted correction reads its own working again, and holds again.
+    for (const pid of ["q5", "q6", "q8"]) {
+      expect(reworkScript(pid).length, pid).toBeGreaterThan(0);
+      const again = rework(s, pid, reworkScript(pid));
+      expect(guardFor(again, pid).tripped, pid).toBe(false);
+      expect(progressOf(again, pid), pid).toBe("finished");
+    }
+    // The deep-linked reworked run still has Q9 unfinished: only problems that slipped are reworked there.
+    const deep = sessionAt("group");
+    expect(deep.rework.q9).toBeUndefined();
+    expect(progressOf(deep, "q9")).toBe("unfinished");
+  });
+
   it("a thin hand-in: not attempted or unfinished rows, ten incomplete, no mistakes in the first submission", async () => {
     const { progressOf, feedbackSummary } = await import("./feedback");
     const s = thinHandIn();

@@ -677,7 +677,11 @@ export function scriptedSession(): StudentSession {
   return { ...s, handedInAt: todayAt(15, 48) };
 }
 
-/** The scripted run plus the corrected rework of every problem that slipped (Q4 held, so it is left alone), Q4 starred. */
+/**
+ * The scripted run plus the corrected rework of every problem that slipped, Q4 starred. A problem
+ * whose first hand-in held is left alone: Q4 (its scripted rework is the guard's demo) and Q9
+ * (right as far as it went, so the deep-linked run still has it unfinished, ticket 158).
+ */
 export function reworkedSession(): StudentSession {
   let s = { ...scriptedSession(), stage: "feedback" as Stage, stars: ["q4"] };
   for (const [pid, lines] of Object.entries(RECOGNITION_REWORK)) {

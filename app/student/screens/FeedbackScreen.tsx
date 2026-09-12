@@ -8,7 +8,7 @@ import ReadAs from "@/components/ReadAs";
 import { Button, Card, Eyebrow } from "@/components/ui";
 import StarButton from "@/components/StarButton";
 import { LeafChip } from "@/components/Tag";
-import { RECOGNITION_REWORK } from "@/data/recognition";
+import { reworkScript } from "@/data/recognition";
 import { useAssignment } from "@/lib/classroom-store";
 import { branchesOf } from "@/lib/branches";
 import { feedbackSummary, progressOf } from "@/lib/feedback";
@@ -41,7 +41,7 @@ export default function FeedbackScreen({ session, dispatch }: { session: Student
   const addStroke = (next: Stroke[]) => dispatch({ type: "rework/stroke", problem: cur.id, stroke: next[next.length - 1] });
   const onBurstEnd = (strokeCount: number) => {
     setRecognising(false);
-    const line = nextLine(RECOGNITION_REWORK[cur.id] ?? [], session.rework[cur.id] ?? [], strokeCount);
+    const line = nextLine(reworkScript(cur.id), session.rework[cur.id] ?? [], strokeCount);
     if (line) dispatch({ type: "rework/reveal", problem: cur.id, line });
   };
   const undo = () => {

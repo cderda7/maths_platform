@@ -24,7 +24,9 @@ export const RECOGNITION: Record<string, string[]> = {
  * scaled by 3 this time, then the third never put back), so the fraction problem is still wrong
  * after the individual review and the group's rework and debrief have something to do. Q4 held;
  * reworking it anyway "reads" the classic slip of dividing by a instead of 2a, which is what
- * trips the guard in the demo (spec v3).
+ * trips the guard in the demo (spec v3). Q9 held but stopped short of the height (ticket 158):
+ * its rework is the one missing line, so a single burst finishes the problem and the review's
+ * incomplete box counts down. Q10 finishes on its third line, the sentence about the graph.
  */
 export const RECOGNITION_REWORK: Record<string, string[]> = {
   q1: ["(x - 2)(x - 3) = 0", "x = 2 \\;\\text{or}\\; x = 3"],
@@ -32,6 +34,16 @@ export const RECOGNITION_REWORK: Record<string, string[]> = {
   q3: ["x^2 - x - 6 = 6", "x^2 - x - 12 = 0", "(x - 4)(x + 3) = 0", "x = 4 \\;\\text{or}\\; x = -3"],
   q4: ["a = 3,\\; b = -5,\\; c = -1", "x = \\dfrac{5 \\pm \\sqrt{37}}{3}"],
   q7: ["x^2 + 6x + 8", "2 \\times 4 = 8,\\quad 2 + 4 = 6", "(x + 2)(x + 4)"],
+  q9: ["h = -9 + 18 = 9"],
   q10: ["b^2 - 4ac = 16 - 20 = -4", "\\Delta < 0 \\Rightarrow \\text{no real solutions}", "\\text{The graph never meets the x-axis}"],
 };
+
+/**
+ * The lines the pad reads for a problem during the independent rework. A problem with no scripted
+ * correction (Q5, Q6, Q8: finished and right at hand-in) reads its first hand-in's working again,
+ * so every problem's pad answers the pen; before ticket 158 those pads read nothing at all.
+ */
+export function reworkScript(problemId: string): string[] {
+  return RECOGNITION_REWORK[problemId] ?? RECOGNITION[problemId] ?? [];
+}
 
