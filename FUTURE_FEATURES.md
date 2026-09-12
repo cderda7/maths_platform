@@ -2357,6 +2357,43 @@ uploaded problems) settled the following as later, each on purpose.
   tags each draft with its source; the client (ticket 171) sends one request per file for
   parallelism. If per-request cost matters, several small images could share one request.
 
+## Category history on the class view (from ticket 175, 2026-09-13)
+
+- **Confidence and Set history.** Asked for as an option ("also option to show confidence & set
+  history") and deferred in the interview: the cream sheet already spans through the Set column,
+  so five stacked confidence words and five set counts above those cells would slot in without
+  anything moving. The Set column is 64 px and the confidence column 84, so the stacks would carry
+  short text (`10/10`, `low`) at the history pills' 9 px.
+- **Real history.** `historyFor` is a seeded simulation around today's status; the five dates are
+  the same for every student and category. With more than one assignment in the data, the five
+  would be the last five sets whose taxonomy touched the category, each rolled up by
+  `hierarchyFor` on that set's evidence, dated from the set, and a category a set never touched
+  would be skipped rather than shown hollow.
+- **More than five, and a hover for each.** The stack could show every recorded set on a long
+  hover, or a tooltip on a dated pill could name the set ("Set 2 · Completing the square") and the
+  status word; today a dated pill carries only its date, and the stack's `aria-label` reads the
+  five out.
+- **One width for every pill.** The interview chose every pill the widest name's width, which
+  Inter's uppercase cannot fit inside the 80 px Algebra column (COMMUNICATION is 88 px at 9 px);
+  each pill takes its own name's width instead. A shorter name for Communication (COMMS, or a
+  two-line chip) would let the pills match.
+- **The width animation outside Chrome.** The pill widens over 150 ms only where
+  `interpolate-size: allow-keywords` is supported (Chrome 129+); Safari and Firefox snap. A fixed
+  per-category width table would animate everywhere at the cost of a measurement per font.
+- **The header's stack and the row's stack differ in height.** The row's three buttons are 14 px
+  each to fit the old two-button height; the column heads' buttons are still 21 px. Trimming the
+  heads' to match, or letting every row grow by 15 px, would make the two stacks one design.
+- **History mode for a second student.** One student at a time; a click on another row leaves the
+  mode. Comparing two students' trails side by side (two rows un-faded, two sheets) was not asked
+  for.
+- **Keyboard.** Faded rows keep their buttons in the tab order (invisible, not `display: none`),
+  so a keyboard user can still reach "see dot skills" on a faded row and open a drill under the
+  cream. `inert` on faded tbodies would close that.
+- **The sheet's notch.** The wide cream stops at the student's row top and an apron carries it
+  down over the category columns only, leaving a step at the row top beside the Confidence
+  column. A single rounded shape, or the sheet stopping at the row top with the two lowest
+  dated pills on the row's own paper, are the two ways to lose the step.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

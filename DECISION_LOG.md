@@ -3280,3 +3280,57 @@ machine (no key here); the parser and the brief are tested, the model's actual o
 parser is tested against everything a model might write around its lines, and the fixture
 mode exercises the same client code the model does, so the screens in tickets 171–173 are built
 against the real route's shape with deterministic content.
+
+## 2026-09-13 · Category history on the class view: pills named in place, five dated pills above, a cream sheet cut through a pill (ticket 175)
+
+**Decision.** History mode is one student's and lives in the roster itself: their category pills
+widen to carry their category's name (each to its own name's width, at least double the pill, the
+height unchanged) and a click on one stacks that category's last five results above it, sized by
+the pill's own width so the dates' pills match it exactly. The cream that hides the rows above is
+one `cream-deep` sheet from the Algebra column through Set, its top edge always on the midline of
+a pill (or, for the top two rows, the heads covered whole and the sheet risen out of the card to
+the "due" line's midline); it is drawn beside the card in a `relative` box, not inside it, and
+measured from the table by a ResizeObserver rather than set in a layout effect. The five
+results are simulated by a seeded mix around today's status, an average rather than a trend.
+
+**Context.** The user: "a short color history trail … the last 5 assignments/assessments of that
+skill … open up OVER the other students that it comes to block, so don't add white space to shift
+down … block it for the whole width … have the white space intersect an above student halfway
+through a pill in order to clearly indicate that it's hiding things … that cream color for more
+contrast". In the interview: every pill the widest name's width was chosen, then found impossible
+(Inter's uppercase COMMUNICATION is 88 px at 9 px; the Algebra column is 80), so each pill takes
+its own name's width with a 56 px floor. The trend idea was refused: "showing dark green on an
+assignment 1 week ago will be bc that skill was easier … not like each student goes from 80% avg
+to 90% avg".
+
+**Alternatives.** *A flyout panel beside the row* (a card with five rows per category): leaves
+the pills where they are but puts the history somewhere other than over the pill it belongs to;
+the request was a trail rising from the pill. *Pills all one width with the text shrunk*: the
+widest name at 5 px is unreadable; per-name widths keep 9 px everywhere. *The stack and sheet
+both inside the card*: the card clips its overflow (ticket 167), so the top rows' sheet could not
+rise over the "due" line; the stack stays in the cell (it is never clipped: the top row's stack
+ends 10 px inside the card) and only the sheet moves outside, which also lets it sit under the
+stacks (z-25 under z-30) and over the stuck heads (z-20). *A layout effect that sets state* for the
+sheet's box: the repo's lint forbids it; the observer fires once on observe and again when a
+drill opens or the window resizes, which are the only times the box changes. *A genuine trend in
+the simulated colours*: refused as unrealistic; a fixed mix keyed on today's status with one
+student dark green throughout. *Hiding the sheet's step*: the wide part stops at the student's row
+top so their confidence word and set count stay clear, and an apron over the category columns
+carries the cream down to 2 px above the pills so the whole stack stands on cream; the notch this
+leaves at the row top is the price of hiding nothing of the student's own.
+
+**Tradeoffs.** Three row buttons in the old two-button height means 14 px buttons (11 px text at
+its own line height) instead of 21; the header's stack keeps its taller buttons, so the two stacks
+no longer match in height. The pill names read at 9 px, 6.5 px on screen at the teacher frame's
+0.72 zoom: legible, small. The width animation needs `interpolate-size: allow-keywords` (Chrome
+129+); elsewhere the pill snaps wide. `historyFor` is deterministic but invented; the day real
+evidence exists it is the one function to replace. The sheet is measured, so a change in row
+height without a table resize (none exists today) would leave it misplaced until the next
+observer event.
+
+**Defense.** The trail rises from the pill it describes, the other students are hidden by a sheet
+that visibly hides (its edge through a pill, never a clean gap), nothing on the roster moves, and
+the student's own drill can stay open beneath it all, which is the request in full. Per-name pill
+widths are the only readable way to name every pill inside its column; the observer is the
+lint-clean way to measure; and an average of colours around today is what a teacher would actually
+see across five sets of differing difficulty.

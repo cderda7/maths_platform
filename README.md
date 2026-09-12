@@ -23,7 +23,7 @@ still holds it).
 ```bash
 npm install
 npm run dev        # http://localhost:3000
-npm test           # vitest: 475 tests over the pure logic in lib/
+npm test           # vitest: 479 tests over the pure logic in lib/
 npm run lint && npx tsc --noEmit && npm run build
 npx next start -p 3121 & npm run check:laptop   # every teacher route at 1440×900 and 1280×800, fails on horizontal overflow
 EXTRACT_FIXTURES=1 npm run dev                  # problem extraction answers from fixtures/extract instead of the model (no key needed)
@@ -121,11 +121,20 @@ Teacher, during the lesson (`/teacher`):
   sideways into groups, skills and the marked-up work behind them. Hover a column header for its **see skills** / **full breakdown** buttons
   (the chosen level opens under every student; the open level's button reads **close**, and
   with the full breakdown open it is the only button). Hover anywhere in a student's block (the
-  row, or the drill open under it) for two buttons beside the name: **see dot skills** (the
+  row, or the drill open under it) for three buttons beside the name: **see dot skills** (the
   student's full breakdown, every group of every dot open to its skills; **close** while the row
-  is open) and **student report**; they step aside while the pointer is over one of the row's
+  is open), **student report** and **see history in…**; they step aside while the pointer is over one of the row's
   pills or the dot chips of an open drill, since each is its own way in, and for a second after
-  it last left one, so a sweep across pills or dots never shows them. A student with nothing handed in shows a caution triangle and MISSING in
+  it last left one, so a sweep across pills or dots never shows them. **See history in…** puts
+  the roster into history mode for that student: everything else in the card fades, the
+  student's six pills widen to carry their category's name in white, and a click on one stacks
+  that category's last five recorded results above it (Aug 31 · Sep 2 · Sep 3 · Sep 7 · Sep 9,
+  oldest at the top, dated in white, a hair apart; several can stand open); a cream sheet then
+  covers the rows above from Algebra through Set so the stacks never mix with other students'
+  pills, its top edge cutting through a pill halfway (or, for the top rows, the heads covered
+  whole and the cream rising over the "due" line). Nothing moves. The button reads **close
+  history**; a click on any other row leaves the mode and opens nothing; a drill under the same
+  student stays open beside it. A student with nothing handed in shows a caution triangle and MISSING in
   the Set column. Then the live row's confidence, stage and caution, the classmates, the
   **Pathway** card (indiv working → indiv review → group review → class review: the stage the
   class is on ringed in purple with **force submit** beside it and `N/20 done` right under; one
