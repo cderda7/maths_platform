@@ -9,7 +9,7 @@ import type { StudentSession } from "./session";
  * and its two or three examples, red and blue on the lines only while the board itself is showing
  * marks, beside a pad. The one difference from the board is each example's corner: the board
  * counts students there; the student's screen marks the example that is their own first hand-in
- * ("your initial response": the same exact mistake, or correct like them) and says nothing on the
+ * ("your approach": the same exact mistake, or correct like them) and says nothing on the
  * others, so no student ever sees a count. The pad follows the board's mode: a mirror of the
  * teacher's writing, or the student's own to write along with.
  */

@@ -101,7 +101,7 @@ Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the 
 6. **Class review**: the teacher projects; a one-minute countdown shows on every student
    screen; then the iPad freezes on what the board shows: the problem and the same two or three
    examples in the same columns, beside a mirror of the teacher's pad (or the student's own pad in
-   "write with me"). No counts on the iPad: a light blue "your initial response" tag sits on the
+   "write with me"). No counts on the iPad: a light blue "your approach" tag sits on the
    example that was the student's own first hand-in. When the teacher shows marks on the board,
    the same lines show red and blue on the iPad. End releases everyone to the report.
 7. **Report** in the teacher's colours, a 2–3 sentence reflection, send.

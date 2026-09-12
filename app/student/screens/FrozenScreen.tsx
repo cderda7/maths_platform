@@ -55,7 +55,7 @@ export default function FrozenScreen({ session, dispatch }: { session: StudentSe
                 corner: e.mine ? (
                   // Centred on the letter's row, not on its baseline: a pill on the baseline would make this column's header taller than its neighbours' and drop its lines out of line with theirs.
                   <span className="self-center rounded-full border border-standout-line bg-standout-soft px-2.5 py-0.5 text-[12px] font-medium whitespace-nowrap text-standout" data-mine>
-                    your initial response
+                    your approach
                   </span>
                 ) : undefined,
               }))}

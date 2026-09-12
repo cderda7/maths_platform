@@ -297,6 +297,7 @@ the one route the help chat streams through (`/api/help-chat`, ticket 69), all d
 | 164 | No "Group review" crumb beside the wordmark on the group review and class-wait screens: a `null` in the `CRUMB` map is "no crumb", the pathway strip's lit pill is the stage's one name; every other crumb unchanged | `/student` | 151 | [architecture/164-no-stage-crumb.md](architecture/164-no-stage-crumb.md) |
 | 161 | In class review the student's screen shows the board's slide: the same examples in the same columns (`ExampleColumns`, shared with the board, lines fitted so none wraps) with a light blue "your initial response" tag on the example that is the student's first hand-in's mistake, no counts; the board's pad is 380 wide and its lines 21 px so nothing wraps at 1440 | `/board`, `/student` | 157 | [architecture/161-student-sees-board.md](architecture/161-student-sees-board.md) |
 | 165 | The teacher bar's Class · Mistakes · Groups tabs move back to the left, directly right of the Edexia · Maths brand (`gap-5`, the student header's brand-to-crumb gap); the pills keep ticket 163's colouring; "New assignment", the name and avatar stay at the right end | every `/teacher/*` | 163 | [architecture/165-teacher-nav-left.md](architecture/165-teacher-nav-left.md) |
+| 166 | The class-review tag on the student's own example reads "your approach" (was "your initial response") | `/student` | 161 | [architecture/166-your-approach.md](architecture/166-your-approach.md) |
 
 ## Conventions
 

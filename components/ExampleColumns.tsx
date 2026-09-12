@@ -7,7 +7,7 @@ import type { LineMark } from "@/lib/examples";
 /**
  * The examples of whole-class review, drawn the same way on the smartboard and on the student's
  * screen (ticket 161): two or three columns, the letter at the top left, a corner slot at the top
- * right (the board puts "n/m students" there; the student's screen a "your initial response" tag
+ * right (the board puts "n/m students" there; the student's screen a "your approach" tag
  * on the example that was their own first hand-in), then the working, one line per box, red or
  * blue only while the board is showing marks. A line never wraps: the lines are set at the size's
  * maximum (fitted so the widest line of the assignment stands on one line at the surface's design
