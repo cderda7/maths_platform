@@ -2423,6 +2423,38 @@ uploaded problems) settled the following as later, each on purpose.
 - **The peers view and the student's own working** lost the strip with the report so it does
   not flicker on the way there and back; if those screens should name the class's stage, put
   `peers` and `history` back in `pathwayStages`'s reach in `StudentApp`.
+## Pictures on the create screen (from ticket 171, 2026-09-13)
+
+- **The bar over the last row.** Discard N · Add N · Continue float bottom-right and cover the
+  corner of the last tile in a full row at 1400 and 1280 (Continue alone did before); the note
+  pill adds to it. A bar that sits in the page flow under the grid, or a bottom padding sized to
+  the bar, would clear it.
+- **Thumbnails of mostly-white screenshots read as blank squares.** The 160 px thumbnail of a
+  one-problem screenshot is a white square with a few grey marks; a crop to the ink's bounding box
+  before scaling, or a border in the tint colour, would read better.
+- **A dropped file's questions all land at the end.** Drop order is the grid order; a drop onto a
+  particular tile could insert there instead (the overlay is one target).
+- **A pending tile is not draggable and a drag over one shows nothing special.** Fine while
+  markers are brief; a long read leaves an inert tile in the grid for the duration.
+- **The note clears on the next edit only.** A note about a refused file stays until the teacher
+  types or drops again; a timed fade or a × on the pill would let them clear it.
+- **"No questions found" is silent about why.** A screenshot of a heading or a blank page gets
+  the empty message; the model's own reason is not asked for.
+- **Retry re-reads the whole file.** "Try again" resends the source from IndexedDB; a partial
+  read (some drafts, then a network drop) keeps the drafts it got and re-reads everything, so a
+  second attempt can duplicate them. A "resume from draft n" is not built.
+- **The undo line and the drop note share a corner of attention.** A discard's "Q12 removed.
+  Undo" sits under the grid; the note sits in the bar. Two places for two transient messages.
+- **The file input accepts images only.** PDFs are named "not yet" until ticket 172 widens it.
+- **Twenty parallel requests.** A 20-image drop opens twenty streams at once; the browser queues
+  past six per host. A small pool (four at a time) would keep the first tiles arriving sooner.
+- **A prose stem with a bare number sets it as maths.** "after 5 seconds" renders the 5 in KaTeX
+  by the shorthand's token rule; invisible at this size, but a stem like "Question 3 asks" is
+  read the same way. A rule that leaves a lone integer in prose alone is a token tweak.
+- **`$` in a typed price.** Two dollar signs on a typed line now make a maths run; a teacher
+  typing "$5 and $7" gets "5 and" set as maths. An escape (`\$`) is not read.
+- **Keyboard access to keep and discard.** ✓ and × are buttons and tab in order; there is no
+  shortcut (Enter to keep, Delete to discard) on a focused unconfirmed tile.
 
 ## The row buttons' grace ends left of the first pill (from ticket 180, 2026-09-13)
 

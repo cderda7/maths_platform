@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseQuestion, splitPaste, stemText, toTex, typesets } from "./mathInput";
+import { parseQuestion, splitPaste, stemText, toTex, typesets, draftText, isTex } from "./mathInput";
 import { DEMO_PASTE_LINES } from "@/data/draft-seed";
 import { PROBLEMS } from "@/data/assignment";
 
@@ -97,6 +97,49 @@ describe("one typed question as the student's card", () => {
 
   it("a pasted block is one question per non-empty line", () => {
     expect(splitPaste("Solve for x. x**2 = 4\r\n\n  Factorise fully. x**2 - 9  \n")).toEqual(["Solve for x. x**2 = 4", "Factorise fully. x**2 - 9"]);
+  });
+
+  it("a run between dollars is maths by declaration, kept as written, inline, and never the expression (ticket 171)", () => {
+    const q = parseQuestion("Say what that means for the graph of $y = x^2 + 4x + 5$.");
+    expect(q.stem).toEqual([text("Say what that means for the graph of "), { kind: "math", tex: "y = x^2 + 4x + 5", raw: "$y = x^2 + 4x + 5$", explicit: true }, text(".")]);
+    expect(q.tex).toBeNull();
+    expect(stemText(q.stem)).toBe("Say what that means for the graph of $y = x^2 + 4x + 5$.");
+    // Shorthand around a dollar run is still read; the pieces of prose around it are one segment.
+    const r = parseQuestion("Given $f(x) = \\sqrt{x}$, solve 2x + 1 = 7 for x. x**2 = 9");
+    expect(r.stem).toEqual([text("Given "), { kind: "math", tex: "f(x) = \\sqrt{x}", raw: "$f(x) = \\sqrt{x}$", explicit: true }, text(", solve "), math("2x + 1 = 7", "2x + 1 = 7"), text(" for x.")]);
+    expect(r.tex).toBe("x^{2} = 9");
+    expect(parseQuestion("$$ alone")).toEqual({ stem: [text("$$ alone")], tex: null, raw: null });
+  });
+
+  it("a line that is TeX already passes through untouched; the newline form takes a dollar-wrapped expression (ticket 171)", () => {
+    expect(isTex("\\frac{1}{3}x^2")).toBe(true);
+    expect(isTex("x^{2}")).toBe(true);
+    expect(isTex("x**2 + 5x")).toBe(false);
+    expect(toTex("\\frac{1}{3}x^2 + 2x +   \\frac{8}{3}")).toBe("\\frac{1}{3}x^2 + 2x + \\frac{8}{3}");
+    expect(parseQuestion("Factorise fully.\n\\frac{1}{3}x^2 + 2x + \\frac{8}{3}")).toEqual({ stem: [text("Factorise fully.")], tex: "\\frac{1}{3}x^2 + 2x + \\frac{8}{3}", raw: "\\frac{1}{3}x^2 + 2x + \\frac{8}{3}" });
+    expect(parseQuestion("Solve.\n$x^2 = 4$")).toEqual({ stem: [text("Solve.")], tex: "x^{2} = 4", raw: "x^2 = 4" });
+  });
+
+  it("draftText is the newline form parseQuestion reads back (ticket 171)", () => {
+    expect(draftText("Solve for x.", "x^2 + 5x + 6 = 0")).toBe("Solve for x.\nx^2 + 5x + 6 = 0");
+    expect(draftText("", "x^2 = 4")).toBe("x^2 = 4");
+    expect(draftText("Prose only.", null)).toBe("Prose only.\n");
+    expect(draftText("  Padded.  ", null)).toBe("Padded.\n");
+    expect(draftText("", null)).toBe("");
+    // The newline keeps a prose stem prose: without it the trailing "tiny0.png" or "5 seconds" would be read as the expression.
+    expect(parseQuestion(draftText("No fixture for tiny0.png", null)).tex).toBeNull();
+    expect(parseQuestion("No fixture for tiny0.png").tex).not.toBeNull();
+    for (const [stem, tex] of [
+      ["Solve for x.", "x^2 + 5x + 6 = 0"],
+      ["Factorise fully.", "\\frac{1}{3}x^2 + 2x + \\frac{8}{3}"],
+      ["Say what that means for the graph of $y = x^2 + 4x + 5$.", null],
+      ["", "(x+1)(x-4) = 6"],
+    ] as const) {
+      const p = parseQuestion(draftText(stem, tex));
+      expect(stemText(p.stem)).toBe(stem);
+      // A TeX line with no command or brace is the shorthand's own subset and comes back normalised (x^2 as x^{2}); one with either passes through untouched.
+      expect(p.tex).toBe(tex === null ? null : toTex(tex));
+    }
   });
 });
 

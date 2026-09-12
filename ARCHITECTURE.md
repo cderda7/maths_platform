@@ -13,7 +13,8 @@ two routes, the help chat's (`/api/help-chat`, ticket 69) and problem extraction
  ┌──────────────────────────────────┐                ┌──────────────────────────────────┐
  │ /student?stage=  page.tsx (server)│               │ /teacher  page.tsx ▶ TeacherLive │
  │ /teacher/assignments/create      │                │   (no board indicator, ticket 55)│
- │   CreateAssignment ▶ QuestionTile (the tile is the editor) ▶ QuestionView ◀ lib/mathInput (x**2 → KaTeX); draft/set ▶ …/create/review (stub)│
+ │   CreateAssignment ▶ QuestionTile (the tile is the editor) ▶ QuestionView ◀ lib/mathInput (x**2 → KaTeX; $…$ inline; TeX as written); draft/set ▶ …/create/review (stub)│
+ │     drop · ⌘V · Upload (ticket 171) ▶ lib/upload partitionDrop ▶ lib/sources (IndexedDB) ▶ lib/extractClient ▶ POST /api/extract ▶ PendingTile → unconfirmed tiles (✓ ×) · MessageTile; the bar: Discard N · Add N · Continue│
  │ /teacher/assignments/new (old)   │
  │   NewAssignment ▶ PathwayMap     │
  │ /teacher/whole-class ▶ setup     │
@@ -72,6 +73,9 @@ two routes, the help chat's (`/api/help-chat`, ticket 69) and problem extraction
  │ lib/helpChat.ts     findPractice · parseHelpChatRequest · helpChatSystem (the tutor's brief) · helpChatMessages · chatSegments│
  │   app/api/help-chat/route.ts  a live model call: Anthropic SDK stream → text/plain; 503 with no credentials│
  │ lib/extract.ts      Source · caps · parseExtractRequest · pdfPageCount · extractSystem (the extractor's brief) · extractMessages (image / native PDF blocks) · parseDraftLine · readExtractEvents · sourceHash│
+ │ lib/upload.ts       partitionDrop · dropNote · Item (question | pending | message) · insertBefore/updateQuestion/replaceItem/removeItem · confirmAll · discardUnconfirmed · draftItem · failureMessage│
+ │ lib/sources.ts      putSource · getSource · deleteSource (IndexedDB, a Map without it) · thumbOf (160 px JPEG data URL) · thumbSize│
+ │ lib/extractClient.ts fileToSource · extractSource (one POST, events as they arrive; ExtractError with the route's failure) · bytesToBase64│
  │   app/api/extract/route.ts  POST { sources } → application/x-ndjson, one {"type":"draft"} line per problem as the model writes it, a "done" per source; EXTRACT_FIXTURES=1 answers from data/extract-fixtures.ts (fixtures/extract/manifest.json by hash, typed text via mathInput); 503 with no credentials│
  │   session.ink / reworkInk: strokes per problem, popped with lines on undo/clear      │
  │ lib/evaluate.ts     evaluateLine(problem, tex) → ok | wrong | unclear               │
@@ -310,6 +314,7 @@ two routes, the help chat's (`/api/help-chat`, ticket 69) and problem extraction
 | 177 | The third row button reads **see history** (was "see history in…"); the three row buttons a pinch bigger and further apart (11.5 px text, 2 px above and below, 3 px between: 15.5 each, 52.5 the stack), every roster row 6.5 px taller (81.5); the cream's cut keeps at least 6 px above the stacks (`HISTORY_CLEAR_PX`), since the taller rows put the row above's pill midline exactly on the stacks' top | `/teacher` | 175 | [architecture/177-row-buttons-pinch.md](architecture/177-row-buttons-pinch.md) |
 | 178 | No pathway strip on the student's report or the two screens it opens (peers, own working): `stages` is `[]` at those stages in `StudentApp`, so the header's right end is the name and avatar alone and the strip's space stays blank; every earlier screen keeps ticket 151's strip | `/student` | 151 | [architecture/178-no-strip-on-report.md](architecture/178-no-strip-on-report.md) |
 | 180 | The class view's row buttons come back at once left of the row's first pill: a delegated `onPointerMove` on each student's tbody (`markerMove`) ends ticket 131's one-second grace the moment the pointer's x is left of the row's first `[data-dot]` button, off every marker; to the right, between and beyond the pills, the second still holds, and a faded row in history mode still shows nothing | `/teacher` | 131, 175 | [architecture/180-quiet-left-of-pill.md](architecture/180-quiet-left-of-pill.md) |
+| 171 | The create screen takes pictures: the grid is the drop target (an overlay, nothing moves), ⌘V pastes a screenshot, the ghost reads "Type a question, or drop a picture" with an Upload link; each file gets a shimmer tile while `/api/extract` reads it and its drafts stream in before it as tinted unconfirmed tiles (✓ keep, × discard, thumbnail, the sheet's number); the bar gains "Discard N · Add N" with Continue live and confirming all; twenty images per drop, ten MB each, the rest named in a note; failures are message tiles; files in IndexedDB; the tile's text for an uploaded question is stem then TeX, `$…$` explicit inline, TeX passed through | `/teacher/assignments/create` | 170, 119 | [architecture/171-drop-paste-upload.md](architecture/171-drop-paste-upload.md) |
 
 ## Conventions
 

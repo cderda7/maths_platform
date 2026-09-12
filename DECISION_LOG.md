@@ -3364,3 +3364,41 @@ the button is the hover target and takes the cream hover fill, so it *is* the pi
 the left, so heading left is the exit. Everything 131 verified still holds to the right of the line
 (the click-through re-checks the gap, the return after the second, the column, the drill, and
 history mode's faded rows).
+## 2026-09-13 · An uploaded question's tile text is its stem then its TeX; `$…$` is an explicit inline delimiter; TeX passes through the shorthand (ticket 171)
+
+**Decision.** A question the model read out of a picture becomes a tile whose text is the
+model's stem on the first line and its TeX on the second (`draftText`), the newline form the
+create screen's parser already had for "prose, then the expression". To make that text round
+trip, `lib/mathInput` gained two rules: a run between dollars in the stem is maths by
+declaration, kept as written and always inline (never the centred expression); and a line that
+is already TeX (a `\command` or a brace group) passes through `toTex` untouched instead of being
+read as calculator shorthand. A prose-only draft's text ends in a newline so its last word is
+never taken as the expression. The tile itself is otherwise the same tile: one textarea, one
+render, one parser.
+
+**Context.** The interview settled that an uploaded tile holds the model's TeX for direct
+editing with the same tile shape as a typed one (Q18). A typed tile's text is one shorthand
+line; the model returns two things, prose and TeX, and TeX like `\frac{1}{3}x^2` would be
+mangled by the shorthand's fraction and power rules while inline maths in the prose (`$y = x^2
++ 4x + 5$`) has no place in the shorthand grammar at all. The explicit delimiter was itself a
+deferred idea ("Teaching the typing convention").
+
+**Alternatives.** *A second tile shape for uploads* (stem field + TeX field): two editors to
+maintain and two reviews to learn; the newline form already carries both halves. *Storing stem
+and TeX only and never showing text*: the teacher could not edit an uploaded question in place,
+and the review step's grid, the draft key and the store all read `text`. *Reading TeX through the
+shorthand anyway*: `x^2` survives (as `x^{2}`) but `\frac` and `\sqrt` do not; the pass-through
+keeps the model's TeX exact and costs typed users nothing, since shorthand never contains a
+backslash or a brace.
+
+**Tradeoffs.** A TeX line with no command and no brace (`x^2 + 5x + 6 = 0`) is the shorthand's
+own subset and comes back normalised (`x^{2}`), harmlessly. A prose stem with a bare number in it
+("after 5 seconds") still gets that number set inline as maths by the token rule, as typed prose
+always has; the model writes real inline maths as `$…$` so it is explicit. The trailing newline on
+a prose-only tile shows as an empty second line in the editor. `$` is now special in a typed
+line: a teacher typing a price loses the dollar sign into a maths run when a second `$` follows on
+the line (an unmatched `$` is plain text).
+
+**Defense.** One tile, one text, one parser for both origins is the smallest thing that gives
+the teacher direct editing of what the model read, and the two parser rules are ones typed
+input wanted anyway: an explicit way to say "this is maths" and TeX accepted as TeX.

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, type ClipboardEvent, type KeyboardEvent, type MouseEvent } from "react";
 import QuestionView from "@/components/QuestionView";
 import { parseQuestion, splitPaste } from "@/lib/mathInput";
+import type { QuestionItem } from "@/lib/upload";
 
 export interface TileHandlers {
   onChange: (text: string) => void;
@@ -15,23 +16,38 @@ export interface TileHandlers {
   onRemove: () => void;
   /** A paste of several lines: the first goes into this tile, the rest become tiles after it. */
   onPasteLines: (first: string, rest: string[]) => void;
+  /** An unconfirmed uploaded question kept (ticket 171). */
+  onKeep: () => void;
+  /** The ghost's Upload link: open the file picker (ticket 171). */
+  onUpload: () => void;
 }
+
+/** What the ghost says when nothing is typed: the two ways a question can arrive here (ticket 171; "or PDF" comes with ticket 172). */
+export const GHOST_PLACEHOLDER = "Type a question, or drop a picture";
 
 /**
  * One question as a tile in the five-wide grid, the same tile the student's overview shows
  * (ticket 119). The tile is the editor: focused, it shows the typed text in a box at the top and
  * the rendered question beneath, live; blurred, only the rendered question. The last tile is the
- * ghost, "Q{n+1}" muted with "Type a question", until it has text. Enter moves to the next tile,
- * Shift+Enter breaks the line (which forces the prose/expression split), Backspace in an empty
- * tile removes it, a × in the corner does the same. Fixed size, nothing scrolls or grows: a
- * question is assumed to fit (ASSUMPTIONS.md). Press and hold anywhere on it to drag it to
- * another slot (ticket 150); `slot` is where it shows while a drag is on, so its label
- * renumbers as the tiles slide.
+ * ghost, "Q{n+1}" muted with "Type a question, or drop a picture" (the textarea's placeholder
+ * while focused, the view's while not) and an Upload link under it, until it has text. Enter moves to the next tile, Shift+Enter breaks the line (which forces the
+ * prose/expression split), Backspace in an empty tile removes it, a × in the corner does the
+ * same. Fixed size, nothing scrolls or grows: a question is assumed to fit (ASSUMPTIONS.md).
+ * Press and hold anywhere on it to drag it to another slot (ticket 150); `slot` is where it
+ * shows while a drag is on, so its label renumbers as the tiles slide.
+ *
+ * A question read out of a dropped file (ticket 171) arrives unconfirmed: tinted light blue
+ * with a ✓ to keep it and a × to discard it always showing, its text the model's stem then its
+ * TeX on a second line (editable like any other), a thumbnail of the file in the corner, and the
+ * sheet's own numbering under the label when it printed one.
  */
-export default function QuestionTile({ index, slot = index, text, ghost, focused, h }: { index: number; slot?: number; text: string; ghost: boolean; focused: boolean; h: TileHandlers }) {
+export default function QuestionTile({ index, slot = index, item, ghost, focused, h }: { index: number; slot?: number; item: QuestionItem; ghost: boolean; focused: boolean; h: TileHandlers }) {
+  const text = item.text;
   const parsed = useMemo(() => parseQuestion(text), [text]);
   const area = useRef<HTMLTextAreaElement>(null);
   const label = `Q${slot + 1}`;
+  const unconfirmed = item.uploaded === true && item.confirmed === false;
+  const source = item.page !== undefined ? `${item.label ? `${item.label} · ` : ""}p. ${item.page}` : item.label;
 
   useEffect(() => {
     if (!focused) return;
@@ -52,6 +68,8 @@ export default function QuestionTile({ index, slot = index, text, ghost, focused
   };
 
   const paste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
+    // A pasted picture is the screen's business (a drop by another route); a pasted list is split into tiles here.
+    if (e.clipboardData.files.length) return;
     const lines = splitPaste(e.clipboardData.getData("text"));
     if (lines.length < 2) return;
     e.preventDefault();
@@ -72,31 +90,54 @@ export default function QuestionTile({ index, slot = index, text, ghost, focused
     if (outside(e) && !focused) h.onFocus();
   };
 
+  const surface =
+    ghost && !focused
+      ? "border-dashed border-line-strong bg-transparent"
+      : unconfirmed
+        ? focused
+          ? "border-accent-line bg-standout-soft shadow-lift"
+          : "border-standout-line bg-standout-soft shadow-card"
+        : focused
+          ? "border-accent-line bg-paper shadow-lift"
+          : "border-line bg-paper shadow-card";
+
   return (
     <div
       onMouseDown={mouseDown}
       onClick={click}
-      className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border p-5 transition-[border-color,box-shadow] ${
-        ghost && !focused ? "border-dashed border-line-strong bg-transparent" : focused ? "border-accent-line bg-paper shadow-lift" : "border-line bg-paper shadow-card"
-      }`}
+      className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border p-5 transition-[border-color,box-shadow] ${surface}`}
       data-tile={index + 1}
       data-ghost={ghost || undefined}
       data-focused={focused || undefined}
+      data-uploaded={item.uploaded || undefined}
+      data-unconfirmed={unconfirmed || undefined}
     >
       <div className="flex items-center justify-between">
         <span className={`font-display text-[20px] ${ghost ? "text-ink-muted" : "text-ink"}`} data-label>
           {label}
+          {source && (
+            <span className="ml-2 align-middle font-sans text-[11px] font-semibold tracking-[0.08em] text-standout" data-source-label>
+              {source}
+            </span>
+          )}
         </span>
         {!ghost && (
-          <button
-            type="button"
-            onClick={h.onRemove}
-            aria-label={`Remove ${label}`}
-            className={`-mr-2 -mt-1 grid h-7 w-7 place-items-center rounded-full text-[16px] leading-none text-ink-muted transition-opacity hover:bg-cream-deep hover:text-ink ${focused ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus-visible:opacity-100"}`}
-            data-remove
-          >
-            ×
-          </button>
+          <span className="-mr-2 -mt-1 flex items-center">
+            {unconfirmed && (
+              <button type="button" onClick={h.onKeep} aria-label={`Keep ${label}`} className="grid h-7 w-7 place-items-center rounded-full text-[15px] leading-none text-standout transition-colors hover:bg-paper hover:text-ink" data-keep>
+                ✓
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={h.onRemove}
+              aria-label={`${unconfirmed ? "Discard" : "Remove"} ${label}`}
+              className={`grid h-7 w-7 place-items-center rounded-full text-[16px] leading-none text-ink-muted transition-opacity hover:bg-cream-deep hover:text-ink ${focused || unconfirmed ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus-visible:opacity-100"}`}
+              data-remove
+            >
+              ×
+            </button>
+          </span>
         )}
       </div>
       {focused && (
@@ -105,7 +146,7 @@ export default function QuestionTile({ index, slot = index, text, ghost, focused
             ref={area}
             value={text}
             rows={1}
-            placeholder="Type a question"
+            placeholder={ghost ? GHOST_PLACEHOLDER : "Type a question"}
             aria-label={`${label} text`}
             onChange={(e) => h.onChange(e.target.value)}
             onKeyDown={keyDown}
@@ -117,8 +158,15 @@ export default function QuestionTile({ index, slot = index, text, ghost, focused
         </div>
       )}
       <div className={focused ? "mt-3" : "mt-2.5"}>
-        <QuestionView parsed={parsed} placeholder={focused ? undefined : "Type a question"} />
+        <QuestionView parsed={parsed} placeholder={focused ? undefined : ghost ? GHOST_PLACEHOLDER : "Type a question"} />
       </div>
+      {ghost && text === "" && (
+        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={h.onUpload} className="mt-2 self-start text-[13px] font-medium text-accent-deep hover:underline" data-upload>
+          Upload
+        </button>
+      )}
+      {/* eslint-disable-next-line @next/next/no-img-element -- a data URL the browser drew; next/image has nothing to optimise */}
+      {item.thumb && <img src={item.thumb} alt="" title={item.name} className="absolute bottom-3 right-3 h-10 w-10 rounded-md border border-line bg-paper object-cover" data-thumb />}
     </div>
   );
 }

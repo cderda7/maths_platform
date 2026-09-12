@@ -76,6 +76,16 @@ export interface DraftQuestion {
   text: string;
   stem: string;
   tex: string | null;
+  /** Read out of a dropped, pasted or uploaded file rather than typed (ticket 171). */
+  uploaded?: true;
+  /** An uploaded question the teacher has not yet kept: tinted on the create screen with keep and discard; Continue keeps everything. */
+  confirmed?: boolean;
+  /** The file it was read from: its id in the browser's source store (`lib/sources`), its name, a small thumbnail (a data URL), the page and the sheet's own numbering when the model saw them. */
+  sourceId?: string;
+  name?: string;
+  thumb?: string;
+  page?: number;
+  label?: string;
 }
 
 /** The most a goal for the class can be: one or two sentences, so it fits the student's bubble. */

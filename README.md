@@ -23,7 +23,7 @@ still holds it).
 ```bash
 npm install
 npm run dev        # http://localhost:3000
-npm test           # vitest: 479 tests over the pure logic in lib/
+npm test           # vitest: 500 tests over the pure logic in lib/
 npm run lint && npx tsc --noEmit && npm run build
 npx next start -p 3121 & npm run check:laptop   # every teacher route at 1440×900 and 1280×800, fails on horizontal overflow
 EXTRACT_FIXTURES=1 npm run dev                  # problem extraction answers from fixtures/extract instead of the model (no key needed)
@@ -61,7 +61,12 @@ Teacher, before the lesson (`/teacher/assignments/create`, then the older `/teac
    (`x**2 + 5x + 6 = 0`, `1/3x**2`, `sqrt(2)` as KaTeX), Enter for the next tile, Shift+Enter to
    put the expression under the prose, × or Backspace to remove ("Q2 removed. Undo"); press and
    hold a tile to drag it to another slot, the labels renumbering as the others slide (a click
-   edits, a hold moves; Alt+arrows move a focused tile; ticket 150). Continue
+   edits, a hold moves; Alt+arrows move a focused tile; ticket 150). A question can also be a
+   picture (ticket 171): drop a screenshot anywhere on the grid, paste one with ⌘V, or use the
+   ghost tile's Upload link; a shimmer tile holds the file's place while `/api/extract` reads it
+   and each problem it finds arrives as a light blue tile with ✓ and × (a worksheet of four gives
+   four), the bar offering "Add N" and "Discard N" beside Continue, which keeps them all anyway.
+   Twenty pictures a drop, ten MB each. Continue
    saves the draft and opens the review step.
 0b. **Review** (ticket 120, `…/create/review`): the same tiles with a difficulty label on each
    (simple / complex × familiar / unfamiliar, from the bank or a heuristic; tap a label to change

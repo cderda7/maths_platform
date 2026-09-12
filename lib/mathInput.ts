@@ -14,9 +14,15 @@ import katex from "katex";
  * token, so "for x." and "a ball" stay prose while "y = x**2" is maths. A token ending in
  * sentence punctuation can only close a run, so "Solve for x. x**2 = 4" is two sentences, not
  * one run. Everything else is prose.
+ *
+ * Two things arrived with the extraction funnel (ticket 171). A run between dollars, `$y =
+ * x^2$`, is maths by declaration: it is kept as one inline segment with its TeX as written,
+ * and it never becomes the centred expression (an explicit inline stays inline). And a line
+ * that is already TeX (a `\command` or a brace group) passes through `toTex` untouched, so an
+ * uploaded question, whose tile text is the model's TeX, re-renders as the model wrote it.
  */
 
-export type Segment = { kind: "text"; text: string } | { kind: "math"; tex: string; raw: string };
+export type Segment = { kind: "text"; text: string } | { kind: "math"; tex: string; raw: string; explicit?: true };
 
 export interface ParsedQuestion {
   /** The prose, with inline maths as TeX segments. */
@@ -112,6 +118,7 @@ function segmentLine(line: string): Segment[] {
  * through to KaTeX as typed.
  */
 export function toTex(raw: string): string {
+  if (isTex(raw)) return raw.trim().replace(/\s+/g, " ");
   let s = raw.trim();
   s = s.replace(/\*\*/g, "^").replace(/−/g, "-").replace(/×/g, "*").replace(/²/g, "^2").replace(/³/g, "^3");
   s = s.replace(/<=|≤/g, "\\le ").replace(/>=|≥/g, "\\ge ").replace(/!=|≠/g, "\\ne ").replace(/\+-|±/g, "\\pm ");
@@ -124,6 +131,9 @@ export function toTex(raw: string): string {
   s = s.replace(/(\d)\s*\*\s*(\d)/g, "$1 \\times $2").replace(/\s*\*\s*/g, "");
   return s.replace(/\s+/g, " ").trim();
 }
+
+/** Whether a run is TeX already (a `\command` or a brace group) rather than the typing shorthand, so it is left as written. */
+export const isTex = (raw: string): boolean => /\\[A-Za-z]+|[{}]/.test(raw);
 
 /** The index just past the group that opens at `open` (a `(`), or -1 when unbalanced. */
 function closeOf(s: string, open: number): number {
@@ -237,23 +247,67 @@ function openOf(s: string, close: number): number {
   return -1;
 }
 
+const DOLLARS = /\$([^$\n]+)\$/g;
+
+/** A line of prose with its maths: `$…$` runs as explicit inline segments, the shorthand found by token in the text between them. */
+function segmentText(line: string): Segment[] {
+  const segs: Segment[] = [];
+  let at = 0;
+  for (const m of line.matchAll(DOLLARS)) {
+    segs.push(...prose(line.slice(at, m.index)));
+    const tex = m[1].trim();
+    if (tex) segs.push({ kind: "math", tex, raw: m[0], explicit: true });
+    at = m.index + m[0].length;
+  }
+  segs.push(...prose(line.slice(at)));
+  return mergeText(segs);
+}
+
+/** A stretch of the line between dollar runs, read by token; the whitespace at its ends, which the tokeniser drops, kept as text so "of $y$" keeps its space. */
+function prose(chunk: string): Segment[] {
+  if (!chunk) return [];
+  const lead = chunk.match(/^\s*/)?.[0] ?? "";
+  const trail = chunk.trim() ? (chunk.match(/\s*$/)?.[0] ?? "") : "";
+  const inner = chunk.trim();
+  const out: Segment[] = [];
+  if (lead) out.push({ kind: "text", text: lead });
+  if (inner) out.push(...segmentLine(inner));
+  if (trail) out.push({ kind: "text", text: trail });
+  return out;
+}
+
+/** Adjacent text segments as one (the pieces around a dollar run come back separately). */
+function mergeText(segs: Segment[]): Segment[] {
+  const out: Segment[] = [];
+  for (const s of segs) {
+    const last = out[out.length - 1];
+    if (s.kind === "text" && last?.kind === "text") out[out.length - 1] = { kind: "text", text: last.text + s.text };
+    else out.push(s);
+  }
+  return out;
+}
+
+/** A run wrapped in dollars, unwrapped: the newline form of a question may carry its expression as `$…$`. */
+const undollar = (s: string): string => (/^\$[^$]+\$$/.test(s) ? s.slice(1, -1).trim() : s);
+
 /**
  * One typed question as the student's card shows it: prose, then the centred expression. The
  * expression is the last maths run when it ends the text (a trailing full stop allowed); a
  * newline in the text forces the split there instead, whatever follows it read whole as maths.
+ * An explicit `$…$` run is inline by declaration and is never taken as the expression.
  */
 export function parseQuestion(text: string): ParsedQuestion {
   const nl = text.indexOf("\n");
   if (nl !== -1) {
-    const after = text.slice(nl + 1).replace(/\s+/g, " ").trim();
-    const stem = segmentLine(text.slice(0, nl).trim());
+    const after = undollar(text.slice(nl + 1).replace(/\s+/g, " ").trim());
+    const stem = segmentText(text.slice(0, nl).trim());
     return after ? { stem, tex: toTex(after), raw: after } : { stem, tex: null, raw: null };
   }
-  const segs = segmentLine(text.trim());
+  const segs = segmentText(text.trim());
   const last = segs[segs.length - 1];
   const tail = last?.kind === "text" ? segs[segs.length - 2] : last;
   const endsInMath = last?.kind === "math" || (last?.kind === "text" && /^[.]$/.test(last.text.trim()) && tail?.kind === "math");
-  if (!endsInMath || !tail || tail.kind !== "math") return { stem: segs, tex: null, raw: null };
+  if (!endsInMath || !tail || tail.kind !== "math" || tail.explicit) return { stem: segs, tex: null, raw: null };
   const stem = segs.slice(0, segs.indexOf(tail));
   const lastStem = stem[stem.length - 1];
   if (lastStem?.kind === "text") stem[stem.length - 1] = { kind: "text", text: lastStem.text.replace(/\s+$/, "") };
@@ -273,6 +327,19 @@ export function typesets(tex: string): boolean {
 /** The prose as one string with inline maths as `$…$`, the form kept on the draft for the next screen. */
 export function stemText(stem: Segment[]): string {
   return stem.map((s) => (s.kind === "text" ? s.text : `$${s.tex}$`)).join("");
+}
+
+/**
+ * The create screen's text for a question that arrived as a stem and an expression rather than
+ * as typing (ticket 171): the stem on the first line, the TeX on the second, the newline form
+ * `parseQuestion` reads back into the same stem and expression. No stem: the TeX alone; no
+ * expression: the stem with a newline after it, so the prose is read as prose whatever it ends
+ * in (a bare "…after 5 seconds." would otherwise have its last run taken as the expression).
+ */
+export function draftText(stem: string, tex: string | null): string {
+  const s = stem.trim();
+  if (!tex) return s ? `${s}\n` : "";
+  return s ? `${s}\n${tex}` : tex;
 }
 
 /** The questions in one pasted block: one per non-empty line. */

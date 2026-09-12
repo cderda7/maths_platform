@@ -1,37 +1,48 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type DragEvent, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import TeacherChrome from "../../TeacherChrome";
 import QuestionTile, { type TileHandlers } from "./QuestionTile";
+import { MessageTile, PendingTile } from "./UploadTiles";
 import { Button, Eyebrow } from "@/components/ui";
 import { useReorder } from "@/components/useReorder";
 import { ASSIGNMENT } from "@/data/assignment";
 import { DEMO_DRAFT_GOAL, DEMO_DRAFT_TITLE, DEMO_PASTE_LINES } from "@/data/draft-seed";
 import { GOAL_MAX, type AssignmentDraft, type DraftQuestion } from "@/lib/classroom";
 import { dispatchClassroom, getClassroom } from "@/lib/classroom-store";
+import { ExtractError, extractSource, fileToSource } from "@/lib/extractClient";
 import { parseQuestion, stemText } from "@/lib/mathInput";
 import { moveItem } from "@/lib/reorder";
+import { getSource, putSource, thumbOf } from "@/lib/sources";
+import { confirmAll, discardUnconfirmed, draftItem, dropNote, insertBefore, isQuestion, messageItem, partitionDrop, pendingItem, removeItem, replaceItem, unconfirmedCount, updateQuestion, type Item, type MessageItem, type PendingItem, type QuestionItem, type ReadFailure } from "@/lib/upload";
 
 export const REVIEW_PATH = "/teacher/assignments/create/review";
 
-interface Q {
-  id: string;
-  text: string;
-}
-
 const newId = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2));
-const ghostOf = (): Q => ({ id: newId(), text: "" });
-/** The list always ends with one empty tile, the ghost the next question is typed into. */
-const withGhost = (qs: Q[]): Q[] => (qs.length && qs[qs.length - 1].text === "" ? qs : [...qs, ghostOf()]);
+const ghostOf = (): QuestionItem => ({ id: newId(), text: "" });
+const isGhost = (q: Item | undefined) => !!q && isQuestion(q) && q.text === "";
+/** The list always ends with one empty question tile, the ghost the next question is typed into; a file's marker is never it. */
+const withGhost = (qs: Item[]): Item[] => (isGhost(qs[qs.length - 1]) ? qs : [...qs, ghostOf()]);
 
-/** The draft as the store keeps it: the typed questions with their parsed shape, the empties dropped. */
-export function draftOf(title: string, goal: string, qs: Q[], at: number): AssignmentDraft {
+/** The draft as the store keeps it: the questions with their parsed shape, the empties and the file markers dropped, an uploaded question's provenance kept. */
+export function draftOf(title: string, goal: string, qs: Item[], at: number): AssignmentDraft {
   const questions: DraftQuestion[] = qs
+    .filter(isQuestion)
     .filter((q) => q.text.trim())
     .map((q) => {
       const p = parseQuestion(q.text);
-      return { id: q.id, text: q.text, stem: stemText(p.stem), tex: p.tex };
+      const d: DraftQuestion = { id: q.id, text: q.text, stem: stemText(p.stem), tex: p.tex };
+      if (q.uploaded) {
+        d.uploaded = true;
+        d.confirmed = q.confirmed !== false;
+        if (q.sourceId) d.sourceId = q.sourceId;
+        if (q.name) d.name = q.name;
+        if (q.thumb) d.thumb = q.thumb;
+        if (q.page !== undefined) d.page = q.page;
+        if (q.label !== undefined) d.label = q.label;
+      }
+      return d;
     });
   return { title: title.trim(), goal: goal.slice(0, GOAL_MAX), questions, updatedAt: at };
 }
@@ -46,6 +57,14 @@ export function draftOf(title: string, goal: string, qs: Q[], at: number): Assig
  * difficulty are the review screen's business, not this one's. A press held on a tile lifts it
  * to drag to another slot, the labels renumbering as the others slide (ticket 150,
  * `useReorder`); the ghost stays last and takes no drop.
+ *
+ * Questions also arrive as pictures (ticket 171): a screenshot dropped anywhere on the grid,
+ * pasted with ⌘V, or chosen through the ghost's Upload link. Each file gets a shimmer tile at
+ * the end of the grid while `POST /api/extract` reads it, and its drafts stream in before that
+ * marker as tinted, unconfirmed tiles with keep and discard; the bar gains "Add N" and
+ * "Discard N" while any are unconfirmed, and Continue, never gated, keeps them all on the way
+ * through. The file itself goes to the browser's source store (`lib/sources`); the draft
+ * carries its id and a thumbnail.
  */
 export default function CreateAssignment() {
   // The draft lives in localStorage, so the editor mounts on the client only and reads it as its first state.
@@ -60,37 +79,65 @@ const noSubscribe = () => () => {};
  * teacher's set from `data/draft-seed` so the screen opens mid-creation with the tiles filled
  * rather than blank (ticket 121). A draft the teacher has emptied is kept empty.
  */
-function storedOrSeed(): { title: string; goal: string; questions: { id: string; text: string }[] } {
+function storedOrSeed(): { title: string; goal: string; questions: QuestionItem[] } {
   const d = getClassroom().draft;
   // A draft stored before the goal existed has none; it is not re-seeded (the teacher may have emptied it on purpose).
-  if (d) return { ...d, goal: d.goal ?? "" };
+  if (d) return { title: d.title, goal: d.goal ?? "", questions: d.questions.map(itemOf) };
   return { title: DEMO_DRAFT_TITLE, goal: DEMO_DRAFT_GOAL, questions: DEMO_PASTE_LINES.map((text, i) => ({ id: `seed-${i + 1}`, text })) };
+}
+
+/** A stored question back as a tile; an uploaded one keeps its provenance and its unconfirmed state across a reload. */
+function itemOf(q: DraftQuestion): QuestionItem {
+  const item: QuestionItem = { id: q.id, text: q.text };
+  if (q.uploaded) {
+    item.uploaded = true;
+    item.confirmed = q.confirmed !== false;
+    if (q.sourceId) item.sourceId = q.sourceId;
+    if (q.name) item.name = q.name;
+    if (q.thumb) item.thumb = q.thumb;
+    if (q.page !== undefined) item.page = q.page;
+    if (q.label !== undefined) item.label = q.label;
+  }
+  return item;
 }
 const isClient = () => true;
 const isServer = () => false;
+
+/** The files in a drag or a drop, if it carries any. */
+const hasFiles = (e: DragEvent) => Array.from(e.dataTransfer?.types ?? []).includes("Files");
 
 function Editor() {
   const router = useRouter();
   const [title, setTitle] = useState(() => storedOrSeed().title);
   const [goal, setGoal] = useState(() => storedOrSeed().goal);
-  const [qs, setQs] = useState<Q[]>(() => withGhost(storedOrSeed().questions.map((q) => ({ id: q.id, text: q.text }))));
+  const [qs, setQs] = useState<Item[]>(() => withGhost(storedOrSeed().questions));
   const [focusId, setFocusId] = useState<string | null>(() => qs[qs.length - 1].id);
-  const [removed, setRemoved] = useState<{ q: Q; index: number } | null>(null);
+  const [removed, setRemoved] = useState<{ q: QuestionItem; index: number } | null>(null);
+  /** What the bar says about the last drop's files that were left out; cleared by the next edit. */
+  const [note, setNote] = useState<string | null>(null);
+  /** How many nested drag targets the pointer is inside: above zero, the overlay shows. */
+  const [over, setOver] = useState(0);
+  const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     dispatchClassroom({ type: "draft/set", draft: draftOf(title, goal, qs, Date.now()) });
   }, [title, goal, qs]);
 
-  const edit = (f: (qs: Q[]) => Q[]) => {
+  /** A change by the teacher's hand: clears the undo line and the drop note. */
+  const edit = (f: (qs: Item[]) => Item[]) => {
     setRemoved(null);
+    setNote(null);
     setQs((cur) => withGhost(f(cur)));
   };
+  /** A change from a file being read: the list moves, the undo line and the note stay. */
+  const patch = (f: (qs: Item[]) => Item[]) => setQs((cur) => withGhost(f(cur)));
 
-  /** Remove a tile (never the ghost); Backspace steps the caret back, × leaves nothing focused. */
+  /** Remove a question tile (never the ghost); Backspace steps the caret back, × leaves nothing focused. */
   const remove = (index: number, stepBack: boolean) => {
     const q = qs[index];
-    if (!q || index === qs.length - 1) return;
+    if (!q || !isQuestion(q) || index === qs.length - 1) return;
     setRemoved({ q, index });
+    setNote(null);
     setFocusId(stepBack ? (qs[index - 1]?.id ?? null) : null);
     setQs(withGhost(qs.filter((_, i) => i !== index)));
   };
@@ -106,15 +153,104 @@ function Editor() {
     setFocusId(q.id);
   };
 
-  const gridKey = (e: KeyboardEvent<HTMLOListElement>) => {
+  const gridKey = (e: KeyboardEvent<HTMLElement>) => {
     if (removed && (e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === "z") {
       e.preventDefault();
       undoRemove();
     }
   };
 
-  const handlers = (index: number, q: Q): TileHandlers => ({
-    onChange: (text) => edit((cur) => cur.map((x) => (x.id === q.id ? { ...x, text } : x))),
+  /**
+   * One file read by the route: its drafts inserted before its marker as they arrive, the
+   * marker removed at the end, or turned into a message tile when the read fails or finds nothing.
+   */
+  const run = async (marker: PendingItem, blob: Blob, mime: string) => {
+    let count = 0;
+    try {
+      const source = await fileToSource(blob, marker.name, mime);
+      for await (const ev of extractSource(source)) {
+        if (ev.type === "draft") {
+          count++;
+          const item = draftItem(ev, marker, newId());
+          patch((cur) => insertBefore(cur, marker.id, item));
+        } else if (ev.type === "error") throw new ExtractError("declined");
+      }
+      patch((cur) => (count ? removeItem(cur, marker.id) : replaceItem(cur, marker.id, messageItem(marker, "empty"))));
+    } catch (e) {
+      const reason: ReadFailure = e instanceof ExtractError ? e.failure : "network";
+      patch((cur) => replaceItem(cur, marker.id, messageItem(marker, reason)));
+    }
+  };
+
+  /** A drop, a paste or a pick: the files the caps allow get a marker each, in order, then read in parallel. */
+  const addFiles = async (files: File[]) => {
+    const { accepted, left } = partitionDrop(files);
+    setRemoved(null);
+    setNote(dropNote(left));
+    if (!accepted.length) return;
+    const jobs = await Promise.all(
+      accepted.map(async (file) => {
+        const sourceId = await putSource(file, file.name, file.type);
+        const thumb = await thumbOf(file);
+        const marker: PendingItem = { kind: "pending", id: newId(), text: "", sourceId, name: file.name };
+        if (thumb) marker.thumb = thumb;
+        return { marker, file };
+      }),
+    );
+    patch((cur) => {
+      const ghost = cur[cur.length - 1];
+      return jobs.reduce<Item[]>((list, j) => insertBefore(list, ghost.id, j.marker), cur);
+    });
+    for (const j of jobs) void run(j.marker, j.file, j.file.type);
+  };
+
+  const retry = async (m: MessageItem) => {
+    const stored = await getSource(m.sourceId);
+    if (!stored) {
+      patch((cur) => replaceItem(cur, m.id, messageItem(m, "unavailable")));
+      return;
+    }
+    const marker = pendingItem(m);
+    patch((cur) => replaceItem(cur, m.id, marker));
+    void run(marker, stored.blob, stored.mime);
+  };
+
+  // ⌘V with a picture on the clipboard anywhere on the screen is a drop; text pastes are the tiles' own.
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const files = Array.from(e.clipboardData?.files ?? []);
+      if (!files.length) return;
+      e.preventDefault();
+      void addFiles(files);
+    };
+    document.addEventListener("paste", onPaste);
+    return () => document.removeEventListener("paste", onPaste);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const dragEnter = (e: DragEvent<HTMLDivElement>) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    setOver((d) => d + 1);
+  };
+  const dragOver = (e: DragEvent<HTMLDivElement>) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+  };
+  const dragLeave = (e: DragEvent<HTMLDivElement>) => {
+    if (!hasFiles(e)) return;
+    setOver((d) => Math.max(0, d - 1));
+  };
+  const drop = (e: DragEvent<HTMLDivElement>) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    setOver(0);
+    void addFiles(Array.from(e.dataTransfer.files));
+  };
+
+  const handlers = (index: number, q: QuestionItem): TileHandlers => ({
+    onChange: (text) => edit((cur) => updateQuestion(cur, q.id, (x) => ({ ...x, text }))),
     onFocus: () => setFocusId(q.id),
     onBlur: () => setFocusId((cur) => (cur === q.id ? null : cur)),
     onNext: () => {
@@ -129,19 +265,25 @@ function Editor() {
     },
     onRemove: () => remove(index, false),
     onPasteLines: (first, rest) => {
-      const added = rest.map((text) => ({ id: newId(), text }));
-      edit((cur) => cur.flatMap((x) => (x.id === q.id ? [{ ...x, text: first }, ...added] : [x])));
+      const added: QuestionItem[] = rest.map((text) => ({ id: newId(), text }));
+      edit((cur) => cur.flatMap((x) => (x.id === q.id && isQuestion(x) ? [{ ...x, text: first }, ...added] : [x])));
       setFocusId(added[added.length - 1].id);
     },
+    onKeep: () => edit((cur) => updateQuestion(cur, q.id, (x) => ({ ...x, confirmed: true }))),
+    onUpload: () => fileInput.current?.click(),
   });
 
-  // Every tile but the ghost can be held and dropped on; a move is an edit like any other (it clears the undo line).
-  const reorder = useReorder({ count: qs.length - 1, columns: 5, ignore: "button", name: (i) => `Q${i + 1}`, onMove: (from, to) => edit((cur) => moveItem(cur, from, to)) });
+  // Every tile but the ghost can be held and dropped on; a move is an edit like any other (it clears the undo line). A file's marker or message is not a question and never lifts.
+  const reorder = useReorder({ count: qs.length - 1, columns: 5, ignore: "button, [data-pending], [data-message]", name: (i) => `Q${i + 1}`, onMove: (from, to) => edit((cur) => moveItem(cur, from, to)) });
 
-  const any = qs.some((q) => q.text.trim());
+  const any = qs.some((q) => isQuestion(q) && q.text.trim());
+  const unconfirmed = unconfirmedCount(qs);
+  const addAll = () => edit(confirmAll);
+  const discardAll = () => edit(discardUnconfirmed);
   const proceed = () => {
     if (!any) return;
-    dispatchClassroom({ type: "draft/set", draft: draftOf(title, goal, qs, Date.now()) });
+    const kept = confirmAll(qs);
+    dispatchClassroom({ type: "draft/set", draft: draftOf(title, goal, kept, Date.now()) });
     router.push(REVIEW_PATH);
   };
 
@@ -183,13 +325,41 @@ function Editor() {
         </p>
       </div>
 
-      <ol className="mt-6 grid grid-cols-5 gap-4" onKeyDownCapture={gridKey} data-questions data-dragging={reorder.drag ? reorder.drag.from + 1 : undefined}>
-        {qs.map((q, i) => (
-          <li key={q.id} className="aspect-square min-h-0" data-question={i + 1} {...reorder.item(i)}>
-            <QuestionTile index={i} slot={reorder.slot(i)} text={q.text} ghost={i === qs.length - 1} focused={focusId === q.id} h={handlers(i, q)} />
-          </li>
-        ))}
-      </ol>
+      <div className="relative mt-6" onDragEnter={dragEnter} onDragOver={dragOver} onDragLeave={dragLeave} onDrop={drop} onKeyDownCapture={gridKey} data-dropzone data-over={over > 0 || undefined}>
+        <ol className="grid grid-cols-5 gap-4" data-questions data-dragging={reorder.drag ? reorder.drag.from + 1 : undefined}>
+          {qs.map((q, i) => (
+            <li key={q.id} className="aspect-square min-h-0" data-question={i + 1} {...reorder.item(i)}>
+              {q.kind === "pending" ? (
+                <PendingTile index={i} item={q} />
+              ) : q.kind === "message" ? (
+                <MessageTile index={i} item={q} onRetry={() => void retry(q)} onDismiss={() => edit((cur) => removeItem(cur, q.id))} />
+              ) : (
+                <QuestionTile index={i} slot={reorder.slot(i)} item={q} ghost={i === qs.length - 1} focused={focusId === q.id} h={handlers(i, q)} />
+              )}
+            </li>
+          ))}
+        </ol>
+        {over > 0 && (
+          <div className="pointer-events-none absolute -inset-2 z-20 grid place-items-center rounded-2xl border-2 border-dashed border-standout-line bg-standout-soft/80" data-drop-overlay>
+            <p className="font-display text-[24px] text-standout">Drop to add questions</p>
+          </div>
+        )}
+      </div>
+      <input
+        ref={fileInput}
+        type="file"
+        multiple
+        accept="image/png,image/jpeg,image/gif,image/webp"
+        className="hidden"
+        aria-hidden="true"
+        tabIndex={-1}
+        onChange={(e) => {
+          const files = Array.from(e.target.files ?? []);
+          e.target.value = "";
+          void addFiles(files);
+        }}
+        data-file-input
+      />
       <p className="sr-only" aria-live="polite" data-announce>
         {reorder.announced}
       </p>
@@ -203,7 +373,22 @@ function Editor() {
         </p>
       )}
 
-      <div className="fixed bottom-16 right-6 z-30">
+      <div className="fixed bottom-16 right-6 z-30 flex items-center gap-3" data-bar>
+        {note && (
+          <p className="max-w-[440px] rounded-2xl border border-line bg-paper/95 px-4 py-2 text-right text-[13px] leading-snug text-ink-muted shadow-card" data-note>
+            {note}
+          </p>
+        )}
+        {unconfirmed > 0 && (
+          <>
+            <Button variant="secondary" size="lg" onClick={discardAll} className="shadow-lift" data-discard-all>
+              Discard {unconfirmed}
+            </Button>
+            <Button variant="sky" size="lg" onClick={addAll} className="shadow-lift" data-add-all>
+              Add {unconfirmed}
+            </Button>
+          </>
+        )}
         <Button size="lg" disabled={!any} onClick={proceed} className="shadow-lift" data-continue>
           Continue
         </Button>
