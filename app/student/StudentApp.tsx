@@ -16,7 +16,7 @@ import ReportScreen from "./screens/ReportScreen";
 import { useEffect } from "react";
 import { dispatch, useStudentSession } from "@/lib/store";
 import { dispatchClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
-import { isDue, isPending, isProjecting } from "@/lib/classroom";
+import { isDue, isPending, isProjecting, openDiagnostic } from "@/lib/classroom";
 import FrozenScreen from "./screens/FrozenScreen";
 import { useNow } from "@/lib/store";
 import { ASSIGNMENT } from "@/data/assignment";
@@ -106,6 +106,8 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
   }, [onBoard, board, now]);
   const projecting = isProjecting(classroom);
   const frozen = session.stage === "frozen";
+  // A teacher's diagnostic (ticket 137) lives on the classroom, not the session: pushed to every student, answered here.
+  const diagnostic = openDiagnostic(classroom);
   useEffect(() => {
     // Whole-class review: once the grace is over, every student tab is frozen (a late-opened tab too); ending releases to the report.
     if (projecting && !counting && !frozen) dispatch({ type: "freeze" });
@@ -156,8 +158,8 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
             </div>
           </div>
         )}
-        {session.diagnostic && !frozen && (
-          <DiagnosticModal questionId={session.diagnostic.questionId} question={session.diagnostic.question} onAnswer={(option) => dispatch({ type: "diagnostic/answer", option })} />
+        {diagnostic && !frozen && (
+          <DiagnosticModal questionId={diagnostic.questionId} question={diagnostic.question} onAnswer={(option) => dispatchClassroom({ type: "diagnostic/answer", option })} />
         )}
       </StudentChrome>
       <SkipTo />

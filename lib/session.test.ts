@@ -473,28 +473,6 @@ describe("final report", () => {
   });
 });
 
-describe("diagnostic push", () => {
-  it("interrupts, is answered once, and is logged; the stage is untouched", () => {
-    let s = sessionAt("working");
-    s = sessionReducer(s, { type: "diagnostic/push", questionId: "d-factor-check" });
-    expect(s.diagnostic).toEqual({ questionId: "d-factor-check" });
-    expect(s.stage).toBe("working");
-    s = sessionReducer(s, { type: "diagnostic/answer", option: "b" });
-    expect(s.diagnostic).toBeNull();
-    expect(s.diagnosticAnswers).toEqual([{ questionId: "d-factor-check", option: "b" }]);
-    expect(s.stage).toBe("working");
-    // A second answer with nothing pending is ignored.
-    expect(sessionReducer(s, { type: "diagnostic/answer", option: "a" }).diagnosticAnswers.length).toBe(1);
-  });
-
-  it("can be withdrawn before it's answered", () => {
-    let s = sessionReducer(sessionAt("working"), { type: "diagnostic/push", questionId: "d-factor-check" });
-    s = sessionReducer(s, { type: "diagnostic/withdraw" });
-    expect(s.diagnostic).toBeNull();
-    expect(s.diagnosticAnswers).toEqual([]);
-  });
-});
-
 describe("routing by pathway", () => {
   const under = (pathway: Pathway) => (s: ReturnType<typeof sessionAt>, a: Parameters<typeof sessionReducer>[1]) => sessionReducer(s, a, { pathway });
   // Every problem attempted, still on the pad: a plain Hand in goes through (a blank one would open the hand-in check instead).
@@ -700,16 +678,6 @@ describe("whole-class freeze", () => {
     s = sessionReducer(s, { type: "freeze" });
     expect(s.stage).toBe("frozen");
     expect(s.rework.q4).toHaveLength(1);
-  });
-});
-
-describe("teacher-written diagnostic", () => {
-  it("travels with the push and stays with the answer", () => {
-    const q = { id: "custom-1", stem: "Which is larger", tex: "", options: [{ id: "a", tex: "1" }, { id: "b", tex: "2" }], correct: "b" };
-    let s = sessionReducer(sessionAt("working"), { type: "diagnostic/push", questionId: q.id, question: q });
-    expect(s.diagnostic?.question).toEqual(q);
-    s = sessionReducer(s, { type: "diagnostic/answer", option: "b" });
-    expect(s.diagnosticAnswers[0]).toEqual({ questionId: "custom-1", question: q, option: "b" });
   });
 });
 

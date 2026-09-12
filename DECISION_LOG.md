@@ -2520,3 +2520,34 @@ that pays for the bigger name and the inline pill inside the laptop budget witho
 the Pathway column or the guard. Both constants are named in one place each (`min-w-[142px]`
 with its comment, `columnWidth`) and every geometry claim is asserted by `verify.mjs` at 1280
 and 1400.
+
+## 2026-09-12 · The live diagnostic is classroom state, and the class's answers are a function of time
+
+**Decision.** A pushed diagnostic is a `DiagnosticRun` on the classroom store (`diagnostics`,
+oldest first), not a slot on the student session. The demo student's answer is written into the
+run; the nineteen classmates' answers are not stored at all: `tally(run, now)` derives who has
+answered (a fixed arrival offset per classmate from the push time) and what they picked (an
+authored pick per fixture distractor, a rule for a teacher-written question). The board shows the
+latest run when its tally is complete or the teacher has put it up, never while cleared.
+
+**Context.** Ticket 137: the result has to be on the class view, in the mistake view's flyout and
+on the projector at once, counts climbing live, the board joining on its own at 20/20. The
+session store is the student's own state and the board already reads the classroom for
+everything class-level (the race, the slides).
+
+**Alternatives considered.** (1) Keep the push on the session and add a board flag to the
+classroom: two writers for one feature, and the board would read two stores to draw one slide.
+(2) Store every classmate's answer as it "arrives" through timed dispatches from whichever tab is
+open: a background timer per tab, duplicate writes when two tabs are open, and a reload mid-trickle
+that either loses answers or replays them. (3) Random arrival order and picks: unrepeatable
+click-throughs and a demo that reads differently each time.
+
+**Tradeoffs.** Derivation means a tab whose clock differs sees a different count for a second,
+and the counts can only ever be what the fixtures say (a teacher cannot see "who" picked what,
+which the product will want). The picks are authored once per fixture, thirty phrases and lists
+to keep true to the classmates' wrong lines when those change. The session loses a feature it
+had, and stored sessions from before keep a harmless `diagnostic` field.
+
+**Defence.** One store, one writer per action, the same numbers in every tab and after a reload
+without a single message; the whole behaviour is a pure function with 27 tests, and the demo
+tells the same story every time. When answers become real, `tally` is the one seam to replace.

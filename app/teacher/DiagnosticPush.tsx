@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
+import DiagnosticResults from "@/components/DiagnosticResults";
 import M from "@/components/Math";
-import { Button, Card, Eyebrow } from "@/components/ui";
-import { DEMO_STUDENT } from "@/data/assignment";
-import { DIAGNOSTICS, type Diagnostic } from "@/data/diagnostic";
-import { customQuestion, isCorrect, pushBelongsTo } from "@/lib/diagnostic";
-import type { StudentSession } from "@/lib/session";
-import { dispatch } from "@/lib/store";
+import { Button, Card } from "@/components/ui";
+import type { Diagnostic } from "@/data/diagnostic";
+import { boardDiagnostic, customQuestion, openDiagnostic, pushBelongsTo, runFor, tally } from "@/lib/diagnostic";
+import type { DiagnosticRun } from "@/lib/classroom";
+import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
+import { useNow } from "@/lib/store";
+import { DIAGNOSTIC_CHIP as CHIP } from "./DiagnosticCard";
 
 type Tab = "example" | "own";
-
-const CHIP = "inline-flex items-center gap-1.5 rounded-md bg-accent px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-white";
 
 /** The flyout's frame: the card's border (1) plus padding (24) so the chip in flow sits exactly where the card's own chip would. */
 const FRAME = 25;
@@ -34,70 +34,95 @@ function clampToViewport(el: HTMLDivElement | null) {
 }
 
 /**
- * Push a live diagnostic to the (mocked) class. Two tabs in the same shape: the suggested
- * example (the class view's fixture, or the problem's own on the mistake view), and one the
- * teacher writes here (stem, optional expression, up to four options, the right one). One
- * button sends it (no recorded / not-recorded choice, ticket 139); the pending band and the
- * response show in the panel the push came from. On the mistake view the panel is `collapsible`: the "Live
- * diagnostic" chip stays in flow beside the problem and a click opens the card as a flyout
- * from the chip's corner, down and to the right over blank space; the problem card beside it
- * never changes size (ticket 132).
+ * The mistake view's live diagnostic, one beside each problem: the "Live diagnostic" chip in flow,
+ * and on a click the push panel as a flyout from the chip's corner, down and to the right over
+ * blank space; the problem card never changes size (ticket 132). Two tabs in one shape: the
+ * problem's own suggested question, and one the teacher writes here (stem, optional expression,
+ * up to four options, the right one). Once a question is out (ticket 137) the tab's option grid is its result: each option with the
+ * class's count and the misconception it reveals, the right one green, live as the answers land;
+ * Withdraw while the class is still answering, then "show on board" / "clear board". Each tab
+ * keeps its own latest result; a push waits its turn while another panel's is open.
  */
-export default function DiagnosticPush({
-  session,
-  example = DIAGNOSTICS[0],
-  problemId,
-  collapsible = false,
-  className = "",
-}: {
-  session: StudentSession | null;
-  /** The question the example tab suggests. */
-  example?: Diagnostic;
-  /** The problem the panel sits beside; a question written here is filed under it. */
-  problemId?: string;
-  collapsible?: boolean;
-  className?: string;
-}) {
-  const [open, setOpen] = useState(!collapsible);
+export default function DiagnosticPush({ example, problemId, className = "" }: { example: Diagnostic; problemId: string; className?: string }) {
+  const classroom = useClassroom();
+  const now = useNow();
+  const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab>("example");
   const [stem, setStem] = useState("");
   const [tex, setTex] = useState("");
   const [options, setOptions] = useState(["", "", "", ""]);
   const [correct, setCorrect] = useState("a");
   const own = customQuestion(stem, tex, options, correct, 0, problemId);
-  const pending = session?.diagnostic ?? null;
+  const pending = openDiagnostic(classroom);
   /** A push waiting on the class: this panel's own, or another panel's (which holds the send buttons). */
   const mine = !!pending && pushBelongsTo(pending, example, problemId);
   const elsewhere = !!pending && !mine;
-  const answers = (session?.diagnosticAnswers ?? []).filter((a) => pushBelongsTo(a, example, problemId) && (tab === "example" ? !a.question : !!a.question));
-  const last = answers[answers.length - 1];
+  const exampleRun = runFor(classroom, example, problemId, false);
+  const ownRun = runFor(classroom, example, problemId, true);
 
-  const push = (q: Diagnostic) => dispatch({ type: "diagnostic/push", questionId: q.id, question: q.id === example.id ? undefined : q });
+  const push = (q: Diagnostic) => dispatchClassroom({ type: "diagnostic/push", questionId: q.id, question: q.id === example.id ? undefined : q });
 
   const chipLabel = (
     <>
       Live diagnostic
-      {collapsible && (
-        <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden className={`transition-transform ${open ? "rotate-90" : ""}`}>
-          <path d="M3 1.5 6.5 5 3 8.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )}
+      <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden className={`transition-transform ${open ? "rotate-90" : ""}`}>
+        <path d="M3 1.5 6.5 5 3 8.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
     </>
   );
-  const chip = collapsible ? (
+  const chip = (
     <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className={`${CHIP} relative transition-colors hover:bg-accent-deep`} data-diag-toggle={problemId}>
       {chipLabel}
       {/* A badge on the corner, not in the row: the chip keeps its width, so the cards' right edges stay in line. */}
       {mine && !open && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 animate-pulse rounded-full bg-white ring-2 ring-accent" aria-hidden data-diag-waiting />}
     </button>
-  ) : (
-    <Eyebrow className={`${CHIP} inline-block`}>{chipLabel}</Eyebrow>
   );
 
-  /** The card's content; `head` is what sits top-left (the chip, or its footprint under the chip in flow). */
-  const body = (head: ReactNode) => (
+  /** The action row under a tab: the waiting band with Withdraw while this panel's push is out, else send (off while another panel's is). */
+  const actions = (run: DiagnosticRun | null, send: () => void, disabled: boolean, attr: string) => (
+    <div className="mt-4">
+      {mine && run ? (
+        <div className="flex items-center justify-between rounded-xl border border-accent-line bg-accent-soft/50 px-4 py-3 text-[13px] text-ink" data-pending>
+          <span className="flex items-center gap-2">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
+            Waiting · {tally(run, now).answered}/{tally(run, now).total} in
+          </span>
+          <button type="button" className="text-accent-deep hover:underline" onClick={() => dispatchClassroom({ type: "diagnostic/withdraw" })} data-diag-withdraw>
+            Withdraw
+          </button>
+        </div>
+      ) : (
+        <Button variant="sky" disabled={disabled || elsewhere} title={elsewhere ? "Another diagnostic is waiting on the class" : undefined} onClick={send} {...{ [attr]: true }}>
+          send to class
+        </Button>
+      )}
+    </div>
+  );
+
+  /** The board links under a result: "show on board" from the first answer, "clear board" while the board has it. Only the latest run can be on the board. */
+  const boardLinks = (run: DiagnosticRun) => {
+    const t = tally(run, now);
+    const latest = classroom.diagnostics?.[classroom.diagnostics.length - 1] === run;
+    if (!latest || t.answered === 0) return null;
+    const onBoard = boardDiagnostic(classroom, now) === run;
+    return (
+      <div className="mt-2 flex justify-end text-[12.5px]">
+        {onBoard ? (
+          <button type="button" className="text-accent-deep hover:underline" onClick={() => dispatchClassroom({ type: "diagnostic/board", on: false })} data-diag-board="clear">
+            clear board
+          </button>
+        ) : (
+          <button type="button" className="text-accent-deep hover:underline" onClick={() => dispatchClassroom({ type: "diagnostic/board", on: true })} data-diag-board="show">
+            show on board
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  const body = (
     <>
-      <div className="flex items-center">{head}</div>
+      <div className="flex items-center">{chip}</div>
 
       <div className="mt-3 grid grid-cols-2 gap-1 rounded-full border border-line bg-cream/60 p-1 text-[12.5px]" role="tablist">
         {(["example", "own"] as Tab[]).map((t) => (
@@ -117,100 +142,77 @@ export default function DiagnosticPush({
 
       {tab === "example" ? (
         <div data-diag-example>
-          <p className="mt-3 text-[14px] text-ink">
-            {example.stem} <M tex={example.tex} />?
-          </p>
-          <div className="mt-3 flex flex-wrap gap-1.5 text-[12.5px] text-ink-soft">
-            {example.options.map((o) => (
-              <span key={o.id} className={`rounded-lg border px-2 py-1 ${o.id === example.correct ? "border-secure-line bg-secure-soft" : "border-line bg-paper"}`}>
-                <span className="mr-1 text-[10px] font-semibold uppercase text-ink-muted">{o.id}</span>
-                <M tex={o.tex} />
-              </span>
-            ))}
-          </div>
+          {exampleRun ? (
+            <>
+              <DiagnosticResults question={example} tally={tally(exampleRun, now)} className="mt-3" />
+              {!mine && boardLinks(exampleRun)}
+            </>
+          ) : (
+            <>
+              <p className="mt-3 text-[14px] text-ink">
+                {example.stem} <M tex={example.tex} />?
+              </p>
+              <div className="mt-3 flex flex-wrap gap-1.5 text-[12.5px] text-ink-soft">
+                {example.options.map((o) => (
+                  <span key={o.id} className={`rounded-lg border px-2 py-1 ${o.id === example.correct ? "border-secure-line bg-secure-soft" : "border-line bg-paper"}`}>
+                    <span className="mr-1 text-[10px] font-semibold uppercase text-ink-muted">{o.id}</span>
+                    <M tex={o.tex} />
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
+          {actions(exampleRun, () => push(example), false, "data-push")}
         </div>
       ) : (
-        <div className="mt-3 space-y-2" data-diag-own>
-          <input value={stem} onChange={(e) => setStem(e.target.value)} placeholder="Question" aria-label="Question" className="w-full rounded-xl border border-line bg-paper px-3 py-2 text-[14px] text-ink outline-none focus:border-accent" data-own-stem />
-          <input value={tex} onChange={(e) => setTex(e.target.value)} placeholder="Expression (TeX, optional)" aria-label="Expression" className="w-full rounded-xl border border-line bg-paper px-3 py-2 text-[14px] text-ink outline-none focus:border-accent" data-own-tex />
-          <ul className="space-y-1.5">
-            {options.map((o, i) => {
-              const id = "abcd"[i];
-              return (
-                <li key={id} className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setCorrect(id)}
-                    aria-pressed={correct === id}
-                    title="Correct answer"
-                    className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border text-[10px] font-semibold uppercase ${correct === id ? "border-secure-line bg-secure-soft text-secure" : "border-line bg-paper text-ink-muted"}`}
-                    data-own-correct={id}
-                  >
-                    {id}
-                  </button>
-                  <input
-                    value={o}
-                    onChange={(e) => setOptions((os) => os.map((x, n) => (n === i ? e.target.value : x)))}
-                    placeholder={`Option ${id.toUpperCase()}`}
-                    aria-label={`Option ${id.toUpperCase()}`}
-                    className="min-w-0 flex-1 rounded-xl border border-line bg-paper px-3 py-1.5 text-[13.5px] text-ink outline-none focus:border-accent"
-                    data-own-option={id}
-                  />
-                  {o.trim() && (
-                    <span className="hidden w-24 truncate text-[12.5px] text-ink-soft sm:block">
-                      <M tex={o} />
-                    </span>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
-
-      <div className="mt-4">
-        {mine ? (
-          <div className="flex items-center justify-between rounded-xl border border-accent-line bg-accent-soft/50 px-4 py-3 text-[13px] text-ink" data-pending>
-            <span className="flex items-center gap-2">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
-              Waiting for {DEMO_STUDENT.name.split(" ")[0]}
-            </span>
-            <button type="button" className="text-accent-deep hover:underline" onClick={() => dispatch({ type: "diagnostic/withdraw" })}>
-              Withdraw
-            </button>
+        <div data-diag-own>
+          <div className="mt-3 space-y-2">
+            <input value={stem} onChange={(e) => setStem(e.target.value)} placeholder="Question" aria-label="Question" className="w-full rounded-xl border border-line bg-paper px-3 py-2 text-[14px] text-ink outline-none focus:border-accent" data-own-stem />
+            <input value={tex} onChange={(e) => setTex(e.target.value)} placeholder="Expression (TeX, optional)" aria-label="Expression" className="w-full rounded-xl border border-line bg-paper px-3 py-2 text-[14px] text-ink outline-none focus:border-accent" data-own-tex />
+            <ul className="space-y-1.5">
+              {options.map((o, i) => {
+                const id = "abcd"[i];
+                return (
+                  <li key={id} className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setCorrect(id)}
+                      aria-pressed={correct === id}
+                      title="Correct answer"
+                      className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border text-[10px] font-semibold uppercase ${correct === id ? "border-secure-line bg-secure-soft text-secure" : "border-line bg-paper text-ink-muted"}`}
+                      data-own-correct={id}
+                    >
+                      {id}
+                    </button>
+                    <input
+                      value={o}
+                      onChange={(e) => setOptions((os) => os.map((x, n) => (n === i ? e.target.value : x)))}
+                      placeholder={`Option ${id.toUpperCase()}`}
+                      aria-label={`Option ${id.toUpperCase()}`}
+                      className="min-w-0 flex-1 rounded-xl border border-line bg-paper px-3 py-1.5 text-[13.5px] text-ink outline-none focus:border-accent"
+                      data-own-option={id}
+                    />
+                    {o.trim() && (
+                      <span className="hidden w-24 truncate text-[12.5px] text-ink-soft sm:block">
+                        <M tex={o} />
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
           </div>
-        ) : tab === "example" ? (
-          <Button variant="sky" disabled={elsewhere} title={elsewhere ? "Another diagnostic is waiting on the class" : undefined} onClick={() => push(example)} data-push>
-            send to class
-          </Button>
-        ) : (
-          <Button
-            variant="sky"
-            disabled={!own || elsewhere}
-            title={elsewhere ? "Another diagnostic is waiting on the class" : undefined}
-            onClick={() => own && push(customQuestion(stem, tex, options, correct, Date.now(), problemId)!)}
-            data-push-own
-          >
-            send to class
-          </Button>
-        )}
-      </div>
-      {last && !mine && (
-        <div className={`mt-3 rounded-xl border px-4 py-3 text-[13px] ${isCorrect(last.questionId, last.option, last.question) ? "border-secure-line bg-secure-soft" : "border-wrong-line bg-wrong-soft"}`} data-response>
-          <span className="font-medium text-ink">{DEMO_STUDENT.name.split(" ")[0]}</span> · <span className="font-semibold uppercase">{last.option}</span> ·{" "}
-          {isCorrect(last.questionId, last.option, last.question) ? "right" : "wrong"}
-          {answers.length > 1 && <span className="text-ink-muted"> · {answers.length} pushes</span>}
+          {actions(ownRun, () => own && push(customQuestion(stem, tex, options, correct, now, problemId)!), !own, "data-push-own")}
+          {ownRun && ownRun.question && (
+            <>
+              <DiagnosticResults question={ownRun.question} tally={tally(ownRun, now)} className="mt-4 border-t border-line pt-4" />
+              {!mine && boardLinks(ownRun)}
+            </>
+          )}
         </div>
       )}
     </>
   );
-
-  if (!collapsible)
-    return (
-      <Card className={`p-6 ${className}`} data-diagnostic-push="class">
-        {body(chip)}
-      </Card>
-    );
 
   // Closed, the chip sits in flow. Open, its footprint holds that place (the row's layout never changes) and the chip is the
   // card's own, in the flyout laid from the chip's corner over whatever is below and to the right: unshifted, the chip is
@@ -230,7 +232,7 @@ export default function DiagnosticPush({
       </div>
       {open && (
         <div ref={clampToViewport} className="absolute" style={{ top: CHIP_TOP - FRAME, left: -FRAME }} data-diag-flyout>
-          <Card className="w-[380px] p-6 shadow-lift">{body(chip)}</Card>
+          <Card className="w-[380px] p-6 shadow-lift">{body}</Card>
         </div>
       )}
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import Brand from "@/components/Brand";
+import DiagnosticResults from "@/components/DiagnosticResults";
 import M from "@/components/Math";
 import PadSection from "@/components/PadSection";
 import { Eyebrow } from "@/components/ui";
@@ -18,7 +19,8 @@ import Leaderboard from "./Leaderboard";
  * only, except in whole-class review, where the teacher stands at the board: the working pad
  * takes the pen there (mirrored to frozen students and to the laptop) and a toggle switches the
  * students' screens between frozen and write with me. What it shows per stage is `boardContent`;
- * this file only draws it. Nothing here names a student or shows a difficulty.
+ * this file only draws it. Nothing here names a student or shows a difficulty. A live diagnostic
+ * (ticket 137) takes the whole board once the class has answered, or when the teacher puts it up.
  */
 export default function SmartBoard() {
   const classroom = useClassroom();
@@ -33,7 +35,7 @@ export default function SmartBoard() {
       <header className="flex h-14 shrink-0 items-center border-b border-line bg-paper/70 px-10 backdrop-blur" data-board-brand>
         <Brand />
       </header>
-      {content.kind === "whole-class" ? <Slide content={content} /> : content.kind === "group" || content.kind === "holding" ? <Race content={content} /> : <Blank content={content} />}
+      {content.kind === "diagnostic" ? <DiagnosticSlide content={content} /> : content.kind === "whole-class" ? <Slide content={content} /> : content.kind === "group" || content.kind === "holding" ? <Race content={content} /> : <Blank content={content} />}
     </div>
   );
 }
@@ -49,6 +51,34 @@ function Blank({ content }: { content: BoardContent }) {
         </p>
       </div>
     </div>
+  );
+}
+
+/**
+ * The live diagnostic's result: the question and each option with its count, the right one
+ * green, "x/20 students answered this" in the header (a pulse while some are still to come, when
+ * the teacher has put it up early). No misconception wording: that is the teacher's reading.
+ */
+function DiagnosticSlide({ content }: { content: Extract<BoardContent, { kind: "diagnostic" }> }) {
+  const { tally: t } = content;
+  return (
+    <>
+      <header className="flex items-center justify-between px-10 py-6">
+        <div className="flex items-baseline gap-5">
+          <Eyebrow className="text-[13px] tracking-[0.16em]">{content.className}</Eyebrow>
+          <span className="font-display text-[20px] text-ink-muted" data-board-title>
+            {content.title}
+          </span>
+        </div>
+        <span className="flex items-center gap-3 font-display text-[30px] leading-none text-ink" data-board-answered={t.answered}>
+          {!t.complete && <span className="h-3 w-3 animate-pulse rounded-full bg-accent" aria-hidden />}
+          {t.answered}/{t.total} students answered this
+        </span>
+      </header>
+      <main className="grid min-h-0 flex-1 place-items-center px-10 pb-10">
+        <DiagnosticResults question={content.question} tally={t} size="board" className="w-full max-w-[1100px]" />
+      </main>
+    </>
   );
 }
 

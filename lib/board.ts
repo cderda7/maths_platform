@@ -1,7 +1,9 @@
 import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
+import type { Diagnostic } from "@/data/diagnostic";
 import type { Problem, Stage, Stroke } from "@/data/types";
 import { activeAssignment } from "./assignment";
 import { currentSlide, pathwayOf, type BoardView, type ClassroomState, type FollowMode } from "./classroom";
+import { boardDiagnostic, questionFor, tally, type Tally } from "./diagnostic";
 import { boardExamples, type BoardExample } from "./examples";
 import { nextStage } from "./pathway";
 import type { StudentSession } from "./session";
@@ -23,12 +25,15 @@ import { leaderboardAt, type RankedStanding } from "./standings";
  *  - `whole-class` while the teacher is projecting: the current problem, its anonymous examples
  *    with "n/m students" (marks only in the marked view), the teacher's working (a pad the
  *    teacher writes on at the board, or a mirror of the laptop's) and the students' mode.
+ *  - `diagnostic` over any of those (ticket 137): the latest live diagnostic once all twenty
+ *    have answered, or when the teacher has put it up by hand, until cleared or replaced. The
+ *    question, each option with its count, the right one marked; no names, no misconceptions.
  *
  * The run on the classroom is the class's clock for group review; the demo student's session
  * still says when their group review is over (the pathway's next stage), which is the holding
  * moment when no run was ever begun (a jump straight to the report).
  */
-export type BoardKind = "blank" | "group" | "holding" | "whole-class";
+export type BoardKind = "blank" | "group" | "holding" | "whole-class" | "diagnostic";
 
 interface Lesson {
   className: string;
@@ -37,6 +42,7 @@ interface Lesson {
 
 export type BoardContent =
   | ({ kind: "blank" } & Lesson)
+  | ({ kind: "diagnostic"; question: Diagnostic; tally: Tally } & Lesson)
   | ({ kind: "group"; standings: RankedStanding[] } & Lesson)
   | ({ kind: "holding"; standings: RankedStanding[] } & Lesson)
   | ({
@@ -66,6 +72,9 @@ function groupReviewOver(c: ClassroomState | null | undefined, session: StudentS
 /** `now` drives the scripted race; 0 (the server, before the first tick) reads as the start. */
 export function boardContent(c: ClassroomState | null | undefined, session: StudentSession | null, now = 0): BoardContent {
   const lesson: Lesson = { className: ASSIGNMENT.className, title: activeAssignment(c).title };
+  const run = boardDiagnostic(c, now);
+  const question = run && questionFor(run.questionId, run.question);
+  if (run && question) return { kind: "diagnostic", ...lesson, question, tally: tally(run, now) };
   const slide = currentSlide(c);
   if (slide) {
     const problem = PROBLEM_MAP[slide.problemId];

@@ -112,8 +112,10 @@ Teacher, during the lesson (`/teacher`):
   now**; stages over are the lit skill button's blue; stages ahead light blue), **Force assignment submit** (confirm, then a one-minute grace on every screen), the
   **Class review** card (Set up → / Students frozen · End session; first in the column while a
   session runs), the assignment status
-  (in class review · complete), the live diagnostic push (the example, or one you write; one
-  button, nothing to decide first).
+  (in class review · complete), the **Live diagnostic** card: a white box linking to Mistakes
+  until a question is out, then the latest question's result kept on screen (each option with
+  `n/20 students` and the misconception it reveals, the right one green; a pulsing `n/20 in`
+  with **Withdraw** while the class answers; **show on board** / **clear board**).
 - **Whole-class setup** (`/teacher/whole-class`): problems ranked by how many struggled, top
   three pre-checked; 2–3 suggested examples per problem with names and correctness (private),
   swappable. **Project** opens the board and starts the grace.
@@ -141,15 +143,17 @@ teacher shows them, and a mirror of the teacher's working.
   two ways. To the right of every problem a **Live
   diagnostic** chip: click it and the push panel opens from the chip as a flyout, down and to
   the right over the blank space (the problems never move), with that problem's own
-  suggested question (example) or one you write (make your own), **send to
-  class**; the waiting band and the response show in the panel the push came from, a badge on
+  suggested question (example) or one you write (make your own), **send to class**; once the
+  question is out the tab's option grid is its result (the same cells as the class view's card),
+  `Waiting · n/20 in` with Withdraw while the class answers, then the board links; a badge on
   the collapsed chip while its push waits, and the other panels' send buttons wait their turn.
+  The nineteen classmates answer over eight seconds after the push; Sam answers on the iPad.
   **Groups** (only when the pathway has group review), **/teacher/compare**.
   On the class view's roster the name is 16 px with the **in progress** pill beside it (every in-progress
   pill at one x) and the student's initials close the row at the far right.
   **student report** beside a name on the class view opens their individual view (`/teacher/report?student=`):
   the platform's commentary as a few ideas in a light-blue bubble, and what the student wrote
-  back in a purple-bordered box.
+  back in a purple-bordered box. A live diagnostic takes the whole board once all twenty have answered, or when the teacher puts it up: the question, each option with its count, the right one green, `x/20 students answered this`; never while the class is still answering unless the teacher says so, and no misconception wording.
 
 ## Deep links
 

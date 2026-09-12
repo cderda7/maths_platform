@@ -1757,6 +1757,38 @@ agents add sections above it and leave it alone.
   feel recorded by. Needs the board (ticket 44's slide) to carry a diagnostic. Defaults matter
   more than the option: the online push stays the primary, one-tap path.
 
+## The diagnostic's result (from ticket 137, 2026-09-12)
+
+- **Supersedes, in the ticket 127 section above:** "The response line's third word", "'Respond
+  online' off means what?" (the switch and the flag are gone, ticket 139 removes them on main
+  too) and "Answers across the class" (the counts are here, per option).
+- **Reveal the right answer on a click.** The board marks the correct cell green the moment it
+  goes up. A teacher may want the class to vote before seeing it: the cells plain first, a tap
+  to reveal (the class view's card already knows). Deferred as a board control.
+- **Misconception text for a written question.** The four-option editor has no field for the
+  five words a distractor reveals, so a written question's cells show the count alone. A small
+  input per distractor, and a bank of past written questions, deferred.
+- **Who picked what.** The tally is counts only; the fixture picks name the classmates but no
+  screen lists them. A hover or a drill from a cell to the students on it (and from there to
+  their working on the mistake view), deferred until the class's answers are real.
+- **Grounded picks only.** The classmates' picks follow their wrong lists and notes; Chloe (who
+  submitted nothing) is the wrong answer where a distractor would otherwise be empty, and a few
+  plausible stretches (Harper, Ruby and Finn reading the axis as an intercept on Q5). Revisit
+  with the fixtures when the mistakes change again.
+- **Three options on the board.** A written question with three options leaves the 2 × 2 grid's
+  fourth cell empty on the projector. A one-row layout for three, deferred.
+- **The clock's second.** Counts move on the teacher side's one-second clock, so the last
+  classmate can show up to a second after the 8 s mark; the click-through waits 9.8 s. A finer
+  tick for the diagnostic alone, deferred.
+- **Trickle on the board.** The classmates' answers trickle only on the teacher's screens; the
+  board shows counts only once it is up. A live board count while the class answers (the
+  teacher putting it up early sees the pulse and a climbing count already), deferred as a mode.
+- **Older sessions.** A stored student session from before this ticket keeps its `diagnostic`
+  and `diagnosticAnswers` fields, unread; a hydration step that drops them, deferred.
+- **The card's height.** With a result the class view's card is tall and Key moves down; the
+  user chose this over a fixed slot (the teacher returns to the view fresh). A collapse to the
+  question line with the cells folded, deferred until the column gets crowded.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

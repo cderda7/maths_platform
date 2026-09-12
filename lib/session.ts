@@ -5,7 +5,6 @@ import { PRACTICES } from "@/data/practice";
 import { byEase, concernsAnswered, focusLeaves, practiceFor, warmupSequence, type WarmupMessage } from "./warmup";
 import type { DebriefNote, DebriefPrompt } from "./debrief";
 import type { AdvanceKind } from "./classroom";
-import type { Diagnostic } from "@/data/diagnostic";
 import { DEFAULT_PATHWAY, nextStage } from "./pathway";
 import { guardFor, trippedProblems } from "./guard";
 import { feedbackSummary } from "./feedback";
@@ -132,10 +131,6 @@ export interface StudentSession {
   debrief: Record<string, DebriefNote>;
   /** Ids of teacher advances this session has already applied, so tabs and reloads converge. */
   appliedAdvances: string[];
-  /** A diagnostic the teacher has pushed and the student hasn't answered yet. A teacher-written question travels inline. */
-  diagnostic: { questionId: string; question?: Diagnostic } | null;
-  /** Answered diagnostics, oldest first. */
-  diagnosticAnswers: { questionId: string; option: string; question?: Diagnostic }[];
 }
 
 export type SessionAction =
@@ -219,9 +214,6 @@ export type SessionAction =
   | { type: "goto"; stage: Stage; at?: number }
   | { type: "history/open" }
   | { type: "history/close" }
-  | { type: "diagnostic/push"; questionId: string; question?: Diagnostic }
-  | { type: "diagnostic/answer"; option: string }
-  | { type: "diagnostic/withdraw" }
   | { type: "reset" };
 
 /** True while the warm-up offer is open: a not-confident answer is in and the student has not yet chosen. */
@@ -259,8 +251,6 @@ export const INITIAL_SESSION: StudentSession = {
   followInk: {},
   debrief: {},
   appliedAdvances: [],
-  diagnostic: null,
-  diagnosticAnswers: [],
 };
 
 /**
@@ -503,13 +493,6 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       return { ...s, answers: { ...s.answers, [a.problem]: a.text } };
     case "goto":
       return { ...s, stage: a.stage, handedInAt: a.stage === "feedback" && a.at ? a.at : s.handedInAt };
-    case "diagnostic/push":
-      return { ...s, diagnostic: a.question ? { questionId: a.questionId, question: a.question } : { questionId: a.questionId } };
-    case "diagnostic/answer":
-      if (!s.diagnostic) return s;
-      return { ...s, diagnostic: null, diagnosticAnswers: [...s.diagnosticAnswers, { ...s.diagnostic, option: a.option }] };
-    case "diagnostic/withdraw":
-      return { ...s, diagnostic: null };
     case "history/open":
       return { ...s, stage: "history" };
     case "history/close":

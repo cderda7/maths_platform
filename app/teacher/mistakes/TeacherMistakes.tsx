@@ -251,7 +251,7 @@ export default function TeacherMistakes() {
                 </FitGrid>
               </div>
             </Card>
-            <DiagnosticPush session={session} example={diagnosticFor(problem.id)} problemId={problem.id} collapsible className="shrink-0" />
+            <DiagnosticPush example={diagnosticFor(problem.id)} problemId={problem.id} className="shrink-0" />
             </div>
           );
         })}

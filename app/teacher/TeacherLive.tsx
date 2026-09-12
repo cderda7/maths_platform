@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import TeacherChrome from "./TeacherChrome";
-import DiagnosticPush from "./DiagnosticPush";
+import DiagnosticCard from "./DiagnosticCard";
 import ForceSubmit from "./ForceSubmit";
 import GroupProgressCard from "./GroupProgressCard";
 import GroupStart from "./GroupStart";
@@ -446,7 +446,7 @@ export default function TeacherLive() {
           <GroupProgressCard session={live} />
           {!wcInUse && <WholeClassCard />}
 
-          <DiagnosticPush session={live} />
+          <DiagnosticCard />
 
           <Card className="p-6">
             <Eyebrow>Key</Eyebrow>
