@@ -2725,6 +2725,14 @@ uploaded problems) settled the following as later, each on purpose.
   have room; if a confidence label appears in another narrow place (the Mistakes rows, the board),
   reuse `confidenceForms` rather than `FitText`.
 
+## Sticky key (from ticket 192, 2026-09-13)
+
+- **Only Class View's key rides the bottom.** The student report (`/teacher/a/<id>/report`) has the same
+  StatusKey inside its card, left where it is; the request named Class View's right column.
+- **On a window too short for the column, the key waits below the cards above.** On pset-2 at 1280 × 520
+  the Pathway and Live diagnostic cards fill the view, so the key only appears once they scroll away.
+  Collapsing the key to a one-line strip on short windows is not built.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

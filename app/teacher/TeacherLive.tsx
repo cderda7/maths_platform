@@ -551,7 +551,8 @@ export default function TeacherLive() {
         </Card>
         </div>
 
-        <div className="space-y-6">
+        {/* The column stretches to the roster's height (ticket 192): the cards above the key stay at its top, the key rides the bottom of the view. */}
+        <div className="flex flex-col gap-6">
           {/* Class review in use: its card leads the column (ticket 129). */}
           {!finished && wcInUse && <WholeClassCard />}
           {/* A finished set's stages are all over, so it has no pathway card (ticket 191). */}
@@ -597,10 +598,13 @@ export default function TeacherLive() {
             </>
           )}
 
-          <Card className="p-6">
-            <Eyebrow>Key</Eyebrow>
-            <StatusKey className="mt-3" />
-          </Card>
+          {/* The key sticks to the bottom of the teacher frame's scroll region as the roster scrolls (ticket 192). Its own box takes the rest of the column, so it can never rise over the cards above. `bottom-12` is the frame's own bottom padding (`py-12`), so where it rides is where it comes to rest on the table card's bottom at the end of the roster (no jump), and it clears Reset demo at 1280. */}
+          <div className="flex flex-1 flex-col justify-end">
+            <Card className="sticky bottom-12 p-6" data-key-card>
+              <Eyebrow>Key</Eyebrow>
+              <StatusKey className="mt-3" />
+            </Card>
+          </div>
         </div>
       </div>
     </TeacherChrome>
