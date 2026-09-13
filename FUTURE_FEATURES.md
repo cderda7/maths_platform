@@ -3031,6 +3031,11 @@ uploaded problems) settled the following as later, each on purpose.
 - **Denser columns on the iPad report.** With every skill out, the student's six columns set names at 9 px and some three-word names take three lines. A two-row layout (categories over two rows) or giving the Skills card the reflection column's width would give them room. Deferred: the request was the full view in the existing layout.
 - **One text size across columns.** Each column fits its own size, so New skills reads at 13.5 px beside 9 px columns. A shared size would look steadier at the cost of the wider columns.
 
+## Help menu close (ticket 229, 2026-09-13)
+
+- **A × on the stall notice too.** "Let's talk through the previous hint before giving you another" is the same kind of card over the same scrim and still closes only on a scrim click or Escape. Left alone: the request named the "I'd like a…" box.
+- **A shared card-with-close component.** If more student overlays want the corner ×, a `Scrim` option (or a small `DialogCard`) would keep its size and place identical everywhere instead of each card copying the classes.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

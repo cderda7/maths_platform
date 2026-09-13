@@ -279,7 +279,11 @@ function HelpMenu({
   const pill = "block w-full rounded-full border border-accent-deep bg-paper px-6 py-2.5 text-center text-[15px] font-medium text-ink";
   return (
     <Scrim onDismiss={onClose}>
-      <div className="w-fit min-w-[248px] rounded-3xl bg-paper p-7 shadow-lift" data-help-menu>
+      <div className="relative w-fit min-w-[248px] rounded-3xl bg-paper p-7 shadow-lift" data-help-menu>
+        {/* A second way out beside the scrim (ticket 229): a small × in the corner, level with the heading's cap. */}
+        <button type="button" onClick={onClose} aria-label="Close" className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full text-[20px] leading-none text-ink-muted transition-colors hover:bg-cream-deep hover:text-ink" data-help-close>
+          ×
+        </button>
         <h2 className="font-display text-[28px] leading-tight text-ink">I&rsquo;d like a…</h2>
         {/* A fit-width grid: every pill is the width of the widest one ("worked example"), no wider. */}
         <ul className="mt-5 grid w-fit gap-2">
