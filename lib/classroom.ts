@@ -232,8 +232,8 @@ export const INITIAL_CLASSROOM: ClassroomState = { assignment: null, advance: nu
  * A classroom as stored, read tolerantly. A state saved before assignments kept their own groups
  * (ticket 185) had one set of groups doing both jobs, so Problem Set 6 inherits that set as its
  * frozen copy and it stays the class default too. A state saved before the sets were renamed
- * (ticket 208) names them by their old ids and titles: the groups keyed `pset-2` move to `pset-6`
- * (`pset-1` is Problem Set 1's own id since ticket 211), and the created set and the draft take the new seeded title
+ * (ticket 208) names them by their old titles: the created set and the draft take the new seeded title
+ * (`pset-1` and `pset-2` are Problem Sets 1 and 2's own ids since tickets 211 and 212, so no group key moves)
  * (`lib/renamedSets.ts`); a title the teacher typed stays theirs. Anything unreadable is a fresh
  * classroom. A state with nothing to change comes back as it is.
  */

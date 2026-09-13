@@ -4208,3 +4208,15 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** A browser holding a classroom saved before ticket 208 with seating edited on the old Problem Set 1 now sees that seating on Set 1 rather than Set 5 (a demo state from a few hours earlier). Until 212–214 merge, Sets 5 and 6's history can show a two-step neighbour between Set 1 and Set 5, and the test allows exactly those pairs.
 
 **Defense.** The six-set Classroom the user agreed names its sets `pset-1` … `pset-6`, so the retired id has to come back; the test skip is keyed to the sheet and the registry, allows nothing once every sheet set is registered, and needs no one to remember to remove it.
+
+## 2026-09-13 · Problem Set 2 takes back the id pset-2; its sheet column gains two habit problems (ticket 212)
+
+**Decision.** `pset-2` is the real Problem Set 2 — Rationalising and expanding with surds. It leaves `RENAMED_SET_IDS`, which is now empty (ticket 211 took `pset-1` out the same way; see its entry on old ids reused), so `/teacher/a/pset-2/…` no longer redirects to Set 6 and `migrateClassroom` keeps seating stored under `pset-2` as Set 2's. The old seeded titles ("Problem Set 2 — Roots of a quadratic") still migrate. In the story sheet's Set 2 column, Amelia's New skills habit sits on Q7 and Q8 (was Q7) and Grace's communication habit on Q5, Q6 and Q7 (was Q5, Q6); no status changed.
+
+**Context.** Ticket 208 mapped the old ids to Sets 6 and 5 the same day ticket 210 planned Sets 1–4 under those ids. With the map in place Set 2's Class, Mistakes, Groups and report routes all redirected to Set 6, and a teacher's moves on Set 2's Groups tab would be moved onto Set 6 on the next load. On the sheet: one slip on the conjugate reads solid for Amelia whatever the working (the binomial identity has eight or more lines), so developing needs her habit twice; Grace's one-line answers on two problems leave eleven of fourteen lines complete (solid), a third gives developing.
+
+**Alternatives considered.** *Keep the redirect and give Set 2 another id*: every set is `pset-N` by the shared suite and the history links, and the old links date from one day of demo use. *Detect a pre-rename classroom and rename `pset-2` only there*: nothing in the stored state marks it reliably (a new classroom can hold `pset-2` seating without Set 6 created). *Change Amelia's or Grace's status instead of the habit's problems*: would break one-step neighbours on the sheet; adding a problem to an existing habit changes nothing else.
+
+**Tradeoffs.** A bookmark or browser state from before ticket 208 that named the old live set `pset-2` now opens Set 2, and its seating copy is read as Set 2's (the live set falls back to the class default). Amelia now repeats "conjugate on the bottom only" (Chloe's Q8 slip), and Grace's note names three problems.
+
+**Defense.** The ids name the sets by their real numbers, as ticket 208 intended; the redirect only ever served a same-day rename. The sheet stays the single contract with every habit on a problem where it shows.

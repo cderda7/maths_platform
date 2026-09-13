@@ -273,7 +273,7 @@ export const STORY: Readonly<Record<string, StoryRow>> = {
       graphing: LATE_SECURE,
       communication: S6,
       reasoning: [sec, sol(h("the area found, the sentence about the diagonal left out", 10)), dev(h("the last line doesn't say what was shown", 10)), dev(h("the negative width kept in the answer sentence", 10)), gap(h("the landing given as the nozzle's zero", 10)), gap(h("said the graph crosses twice", 10))],
-      new: [sol(h("√12 + √27 collected before simplifying", 3)), dev(h("multiplied only the denominator by the conjugate", 7)), dev(h("(2x − 3)² expanded without the middle term", 2)), dev(h("added 9 to complete the square, never took it away", 6)), dev(h("added 16 to complete the square, never took it away", 6)), dev(h("read “touches once” as discriminant > 0", 6))],
+      new: [sol(h("√12 + √27 collected before simplifying", 3)), dev(h("multiplied only the denominator by the conjugate", 7, 8)), dev(h("(2x − 3)² expanded without the middle term", 2)), dev(h("added 9 to complete the square, never took it away", 6)), dev(h("added 16 to complete the square, never took it away", 6)), dev(h("read “touches once” as discriminant > 0", 6))],
     },
   },
   tomas: {
@@ -403,7 +403,7 @@ export const STORY: Readonly<Record<string, StoryRow>> = {
       algebra: S6,
       functions: [na, na, na, sec, sec, un],
       graphing: [na, na, na, un, sec, un],
-      communication: [sol(h("simplified in one jump, the square factor not shown", 1, 2)), dev(h("rationalised in one line", 5, 6)), dev(h("factorised in one line, the pair not shown", 5, 8)), dev(h("solved in one jump", 3, 4)), dev(h("right every time, but jumps steps a reader can't follow", 1, 2)), dev(h("right every time, but jumps steps a reader can't follow", 1, 2))],
+      communication: [sol(h("simplified in one jump, the square factor not shown", 1, 2)), dev(h("rationalised in one line", 5, 6, 7)), dev(h("factorised in one line, the pair not shown", 5, 8)), dev(h("solved in one jump", 3, 4)), dev(h("right every time, but jumps steps a reader can't follow", 1, 2)), dev(h("right every time, but jumps steps a reader can't follow", 1, 2))],
       reasoning: [un, un, un, un, un, un],
       new: S6,
     },

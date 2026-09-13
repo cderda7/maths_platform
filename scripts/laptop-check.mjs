@@ -44,7 +44,7 @@ const FINISHED_SETS = [
 
   // "pset-3", // ticket 213
 
-  // "pset-2", // ticket 212
+  "pset-2", // ticket 212
 
   "pset-1",
 ];

@@ -4,7 +4,7 @@
 
 **Blocked by:** 210.
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -42,9 +42,16 @@ Authoring notes:
 - If a row genuinely cannot be authored, change `data/story.ts` (not the markdown), run `npm run story:sheet`, keep `data/story.test.ts` green (one step, complete) and say so in this ticket.
 - The board and class review are the live lesson's screens: a finished set has Class, Mistakes, Groups and the student report, as Set 5 does.
 
+### What was done
+
+- `data/pset2/` (assignment, evaluation, classmates, index, pset2.test.ts) registered in `data/finishedSets.ts` and `scripts/laptop-check.mjs`. Ten problems, each model solution checked by hand (Q1 6 − √3, Q2 1 + √5, Q3 11 + 4√7, Q4 7, Q5 2√3, Q6 √10/10, Q7 √5 + 1, Q8 2 + √3, Q9 4, Q10 7 cm² and √22 cm).
+- Every student equals the sheet's Set 2 column (shared suite). Top gap binomial identity on 9 (Liam, Noah, Zara, Harper on Q3; Oliver Q4; Sam, Tomas Q7; Amelia Q7, Q8; Chloe Q8), expansion next on 8, fractions 7. At most four columns per problem; Q10's three sentences are short and fit at 1280.
+- Judgment calls: (1) the sheet's Set 2 column changed in two habit lists only (Amelia New skills Q7 → Q7, Q8; Grace communication Q5, Q6 → Q5, Q6, Q7) because one conjugate slip or two one-line answers cannot read developing with this many lines; no status changed. (2) `pset-2` was still mapped to Set 6 by ticket 208's rename (every Set 2 route redirected to Set 6): removed from `RENAMED_SET_IDS`, so old `pset-2` links open Set 2 and seating stored under `pset-2` is Set 2's (DECISION_LOG). (3) The wrong Q10 sentences are tagged interpreting the question only, so one misread reads solid, not a gap.
+- Board and class review are the live lesson's screens, as for Set 5 (not built for a finished set).
+
 ## Acceptance
 
-- [ ] Shared finished-set suite green; results equal the story sheet's PS2 row (test)
-- [ ] Classroom lists Set 2 under Past; Class View, Mistakes (every name opens real work), Groups, board and class review work
-- [ ] New skills column shows surds and binomial identity only
-- [ ] vitest, eslint, tsc, next build; click-through of every tab on Set 2
+- [x] Shared finished-set suite green; results equal the story sheet's PS2 row (test)
+- [x] Classroom lists Set 2 under Past; Class View, Mistakes (every name opens real work), Groups, board and class review work
+- [x] New skills column shows surds and binomial identity only
+- [x] vitest, eslint, tsc, next build; click-through of every tab on Set 2

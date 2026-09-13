@@ -340,7 +340,7 @@ Low in confidence. Something added or cleared is not taken back (the square's co
 - PS5 · Reasoning · gap: the landing given as the nozzle's zero (Q10)
 - PS6 · Reasoning · gap: said the graph crosses twice (Q10)
 - PS1 · New skills · solid: √12 + √27 collected before simplifying (Q3)
-- PS2 · New skills · developing: multiplied only the denominator by the conjugate (Q7)
+- PS2 · New skills · developing: multiplied only the denominator by the conjugate (Q7, Q8)
 - PS3 · New skills · developing: (2x − 3)² expanded without the middle term (Q2)
 - PS4 · New skills · developing: added 9 to complete the square, never took it away (Q6)
 - PS5 · New skills · developing: added 16 to complete the square, never took it away (Q6)
@@ -628,7 +628,7 @@ Right every time, in one jump a line; starts late, so never reaches the last pro
 | New skills | secure | secure | secure | secure | secure | secure |
 
 - PS1 · Communication · solid: simplified in one jump, the square factor not shown (Q1, Q2)
-- PS2 · Communication · developing: rationalised in one line (Q5, Q6)
+- PS2 · Communication · developing: rationalised in one line (Q5, Q6, Q7)
 - PS3 · Communication · developing: factorised in one line, the pair not shown (Q5, Q8)
 - PS4 · Communication · developing: solved in one jump (Q3, Q4)
 - PS5 · Communication · developing: right every time, but jumps steps a reader can't follow (Q1, Q2)

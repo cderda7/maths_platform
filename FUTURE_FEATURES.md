@@ -3103,6 +3103,13 @@ uploaded problems) settled the following as later, each on purpose.
 - **The sheet's outline text for Q9** still reads "√3 x = √75 − √12"; the set typesets it x√3 (√3x read as √(3x)). Cosmetic, left so the outline stays as ticket 210 wrote it.
 - **More wrong students on Set 1**: eight students get everything right, as the sheet says. A set this early could plausibly carry a slip for more of them (a sign, a square left in), but every extra slip moves a status the sheet fixes.
 
+## Problem Set 2 follow-ups (ticket 212, 2026-09-13)
+
+- **Conclusions leaf on a misread sentence**: Set 2's wrong Q10 sentences are tagged interpreting the question only, so "drawing conclusions in context" reads *not seen* on Amelia's, Isla's and Lucas's reports. Tagging them conclusions too would make one sentence a gap (the leaf has one line per set). A reasoning roll-up that weighs a one-line leaf differently was not in scope.
+- **An unfinished answer as "wrong"**: Sofia's uncancelled (4√5 + 4)/4 is marked wrong. A verdict for "right but not finished" (neither held nor a slip) would describe it better; the evaluation table has only ok and wrong.
+- **History gaps while Sets 3 and 4 are unregistered**: until tickets 213 and 214 land, Set 6's pills put Set 2 beside Set 5 and seven students read solid → gap there (Mia, Jordan, Oliver, Ruby algebra; Amelia, Isla, Lucas reasoning). The sheet has no such jump; it closes once the sets between are in.
+- **Board and class review on Set 2**: as for Set 5, a finished set has Class, Mistakes, Groups and reports only.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

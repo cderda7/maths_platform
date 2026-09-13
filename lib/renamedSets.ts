@@ -8,12 +8,12 @@
  *
  * `pset-1` is no longer an old id (ticket 211): it is the real Problem Set 1 — Surds, so its routes and its
  * stored seating are its own and nothing maps it to Set 5 (DECISION_LOG.md, 2026-09-13, old ids reused).
+ * `pset-2` likewise is the real Problem Set 2 — Rationalising and expanding with surds (ticket 212), so no old
+ * id is left: the map is empty, nothing redirects, and only the old seeded titles are still renamed.
  */
 
 /** Old set id → new set id. */
-export const RENAMED_SET_IDS: Readonly<Record<string, string>> = {
-  "pset-2": "pset-6",
-};
+export const RENAMED_SET_IDS: Readonly<Record<string, string>> = {};
 
 /**
  * Old titles as the demo stored them → the new ones: the fixture's upper-case title (the student

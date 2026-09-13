@@ -10,7 +10,7 @@
 
 export { PS1 } from "./pset1";
 
-// Problem Set 2 — Rationalising and expanding with surds, Fri 28 Aug (ticket 212): export { PS2 } from "./pset2";
+export { PS2 } from "./pset2";
 
 // Problem Set 3 — Expanding and factorising, Tue 1 Sep (ticket 213): export { PS3 } from "./pset3";
 
