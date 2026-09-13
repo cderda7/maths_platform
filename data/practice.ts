@@ -254,9 +254,39 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
           { phrase: "x terms", tex: ["\\dfrac{x}{4}", "\\dfrac{x}{2}"] },
         ],
       },
+      // From here the linked words point at the student's own line in the read-as column (hintAnchor), so the fragments are written against that line.
+      {
+        text: "Before adding the numbers, write the 6 as a fraction over 2, so it matches the other fraction.",
+        at: [1],
+        terms: [
+          { phrase: "6", tex: ["6"] },
+          { phrase: "other fraction", tex: ["\\dfrac{9}{2}"] },
+        ],
+      },
+      {
+        text: "The two numbers on the right have the same denominator now, so add them: the numerators add and the denominator stays.",
+        at: [2],
+        terms: [
+          { phrase: "two numbers", tex: ["\\dfrac{9}{2}", "\\dfrac{12}{2}"] },
+          {
+            phrase: "same denominator",
+            tex: [
+              { tex: "2", within: "\\dfrac{9}{2}" },
+              { tex: "2", within: "\\dfrac{12}{2}" },
+            ],
+          },
+          {
+            phrase: "numerators",
+            tex: [
+              { tex: "9", within: "\\dfrac{9}{2}" },
+              { tex: "12", within: "\\dfrac{12}{2}" },
+            ],
+          },
+        ],
+      },
       {
         text: "To combine the x terms they need a common denominator, but only one those two share. It doesn't have to work for the whole line.",
-        at: [1, 2, 3],
+        at: [3],
         terms: [
           { phrase: "x terms", tex: ["\\dfrac{x}{4}", "\\dfrac{x}{2}"] },
           {
@@ -268,7 +298,6 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
           },
         ],
       },
-      // From here the linked words point at the student's own line in the read-as column (hintAnchor), so the fragments are written against that line.
       {
         text: "The x terms have the same denominator now, so they can be one fraction: the numerators combine and the denominator stays.",
         at: [4],

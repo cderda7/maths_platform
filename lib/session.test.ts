@@ -257,7 +257,7 @@ describe("the warm-up on the pad", () => {
     s = sessionReducer(s, { type: "run/hint", run: "warmup" });
     expect(s.warmup.hinted).toEqual({ "w-monic": [0, 1, 2], "w-monic-2": [0] });
     // The fractions warm-up: on a blank pad the "move the 6" hint; once the pad has read the first
-    // step, the next ask is the common-denominator hint written for that point, not the third in the list.
+    // step, the next ask is the "write the 6 over 2" hint written for that point, not the third in the list.
     let f = sessionAt("practice");
     const p = warmupProblem(f);
     expect(p.id).toBe("w-fractions");
@@ -270,12 +270,12 @@ describe("the warm-up on the pad", () => {
     let g = sessionAt("practice");
     for (const st of p.steps.slice(0, 5)) g = sessionReducer(g, { type: "run/reveal", run: "warmup", problem: "w-fractions", line: { tex: st.tex, strokeCount: 1 } });
     g = sessionReducer(g, { type: "run/hint", run: "warmup" });
-    expect(g.warmup.hinted).toEqual({ "w-fractions": [3] });
+    expect(g.warmup.hinted).toEqual({ "w-fractions": [5] });
     // Asking again without writing the line that hint asks for gives nothing (the pad opens the chat on it); once the line is written, the hint for the step after; then nothing fits.
     expect(sessionReducer(g, { type: "run/hint", run: "warmup" })).toBe(g);
     g = sessionReducer(g, { type: "run/reveal", run: "warmup", problem: "w-fractions", line: { tex: p.steps[5].tex, strokeCount: 5 } });
     g = sessionReducer(g, { type: "run/hint", run: "warmup" });
-    expect(g.warmup.hinted).toEqual({ "w-fractions": [3, 4] });
+    expect(g.warmup.hinted).toEqual({ "w-fractions": [5, 6] });
     expect(sessionReducer(g, { type: "run/hint", run: "warmup" })).toBe(g);
   });
 

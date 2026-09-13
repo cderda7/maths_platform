@@ -222,9 +222,11 @@ describe("warm-up hint terms", () => {
   it("the fractions warm-up's first hint moves the 6 in the problem; the later ones point at the student's own line", () => {
     const p = PRACTICES["algebra.number.fractions"]!;
     expect(p.tex).toBe("\\dfrac{x}{4} + \\dfrac{x}{2} - 6 = \\dfrac{9}{2}");
-    const [first, second, third, fourth, fifth] = p.hints;
+    const [first, overTwo, addNumbers, second, third, fourth, fifth] = p.hints;
     expect(first.text).toMatch(/move the 6/);
     expect(first.text).not.toMatch(/add|subtract/i);
+    expect(overTwo.text).toMatch(/6 as a fraction over 2/);
+    expect(addNumbers.text).toMatch(/add them/);
     expect(second.text).toMatch(/common denominator/);
     expect(second.text).toMatch(/whole line/);
     const [six, otherSide, xTerms] = first.terms!;
@@ -238,7 +240,20 @@ describe("warm-up hint terms", () => {
       "\\dfrac{x}{4} + \\dfrac{x}{2} = \\dfrac{9}{2} + \\dfrac{12}{2}",
       "\\dfrac{x}{4} + \\dfrac{x}{2} = \\dfrac{21}{2}",
     ]);
-    // The second hint is for the student's first, second or third line: its common denominator is the 4 and 2 under the x's there.
+    // Line 1 (… = 9/2 + 6): write the 6 over 2 to match the 9/2 (ticket 206).
+    const line1 = p.steps[0].tex;
+    const [sixOnLine, otherFraction] = overTwo.terms!;
+    expect(termTex(line1, overTwo.terms, sixOnLine)).toBe("\\dfrac{x}{4} + \\dfrac{x}{2} = \\htmlClass{hint-term hint-term-tall}{\\dfrac{9}{2}} + \\htmlClass{hint-term hint-term-lit}{6}");
+    expect(termTex(line1, overTwo.terms, otherFraction)).toBe("\\dfrac{x}{4} + \\dfrac{x}{2} = \\htmlClass{hint-term hint-term-lit hint-term-tall}{\\dfrac{9}{2}} + \\htmlClass{hint-term}{6}");
+    // Line 2 (… = 9/2 + 12/2): add the numbers. "same denominator" lights each 2 underneath, not the 2 inside 12.
+    const line2 = p.steps[1].tex;
+    const denominators = addNumbers.terms!.find((t) => t.phrase === "same denominator")!;
+    expect(termTex(line2, addNumbers.terms, denominators)).toBe(
+      "\\dfrac{x}{4} + \\dfrac{x}{2} = \\htmlClass{hint-term hint-term-tall}{\\dfrac{\\htmlClass{hint-term hint-term-tight-y}{9}}{\\htmlClass{hint-term hint-term-lit hint-term-tight-y}{2}}} + \\htmlClass{hint-term hint-term-tall}{\\dfrac{\\htmlClass{hint-term hint-term-tight-y}{12}}{\\htmlClass{hint-term hint-term-lit hint-term-tight-y}{2}}}",
+    );
+    const nums = addNumbers.terms!.find((t) => t.phrase === "numerators")!;
+    expect(termTex(line2, addNumbers.terms, nums)).toContain("\\htmlClass{hint-term hint-term-lit hint-term-tight-y}{12}");
+    // The x-terms hint is for the student's third line (… = 21/2): its common denominator is the 4 and 2 under the x's there.
     const line3 = p.steps[2].tex;
     const [, common] = second.terms!;
     expect(termTex(line3, second.terms, common)).toBe(
@@ -320,12 +335,14 @@ describe("stalledHint", () => {
   });
 
   it("a hint written for three points stalls until the lines are past all of them; a general hint never stalls", () => {
+    // No warm-up has a multi-point hint since ticket 206 split the fractions one, so the shape is held on its steps directly.
     const f = PRACTICES["algebra.number.fractions"]!;
     const fl = (n: number) => f.steps.slice(0, n).map((s) => s.tex);
-    expect(stalledHint(f, fl(1), [0, 1])).toBe(1);
-    expect(stalledHint(f, fl(2), [0, 1])).toBe(1);
-    expect(stalledHint(f, fl(3), [0, 1])).toBe(1);
-    expect(stalledHint(f, fl(4), [0, 1])).toBeNull();
+    const spread = { steps: f.steps, hints: [{ text: "first", at: [0] }, { text: "three points", at: [1, 2, 3] }] };
+    expect(stalledHint(spread, fl(1), [0, 1])).toBe(1);
+    expect(stalledHint(spread, fl(2), [0, 1])).toBe(1);
+    expect(stalledHint(spread, fl(3), [0, 1])).toBe(1);
+    expect(stalledHint(spread, fl(4), [0, 1])).toBeNull();
     const general = { steps: f.steps, hints: [{ text: "general" }] };
     expect(stalledHint(general, [], [0])).toBeNull();
   });
@@ -376,25 +393,26 @@ describe("pickHint", () => {
   });
 
   it("the fractions hints are written one per point in the working", () => {
-    // The common-denominator hint covers the three lines before the x terms are put over 4: the 6 moved, the 6 written as 12/2, the numbers combined.
-    expect(p.hints.map((h) => h.at)).toEqual([[0], [1, 2, 3], [4], [5], [6]]);
+    // One each (ticket 206): the 6 moved, the 6 written as 12/2, the numbers combined, the x terms over 4, one fraction, 3x = 42.
+    expect(p.hints.map((h) => h.at)).toEqual([[0], [1], [2], [3], [4], [5], [6]]);
     for (const h of p.hints) for (const at of h.at!) expect(at, h.text).toBeLessThanOrEqual(p.steps.length);
   });
 
   it("gives the hint written for where the student is, whatever was shown before", () => {
     expect(pickHint(p, [], [])).toBe(0);
     expect(pickHint(p, [step(0)], [])).toBe(1);
-    expect(pickHint(p, [step(0), step(1)], [])).toBe(1);
-    expect(pickHint(p, [step(0), step(1), step(2)], [])).toBe(1);
-    expect(pickHint(p, [step(0), step(1), step(2), step(3)], [0, 1])).toBe(2);
-    expect(pickHint(p, p.steps.slice(0, 5).map((s) => s.tex), [])).toBe(3);
+    // At 9/2 + 12/2 the hint is to add the numbers, not the x terms' denominator (ticket 206).
+    expect(pickHint(p, [step(0), step(1)], [0, 1])).toBe(2);
+    expect(pickHint(p, [step(0), step(1), step(2)], [0, 1, 2])).toBe(3);
+    expect(pickHint(p, [step(0), step(1), step(2), step(3)], [0, 1])).toBe(4);
+    expect(pickHint(p, p.steps.slice(0, 5).map((s) => s.tex), [])).toBe(5);
   });
 
   it("falls forward to the first hint for a later point when the one for here is spent, never back to a point already passed", () => {
     expect(pickHint(p, [], [0])).toBe(1);
     expect(pickHint(p, [step(0)], [1])).toBe(2);
-    expect(pickHint(p, p.steps.slice(0, 5).map((s) => s.tex), [3])).toBe(4);
-    expect(pickHint(p, p.steps.slice(0, 5).map((s) => s.tex), [3, 4])).toBeNull();
+    expect(pickHint(p, p.steps.slice(0, 5).map((s) => s.tex), [5])).toBe(6);
+    expect(pickHint(p, p.steps.slice(0, 5).map((s) => s.tex), [5, 6])).toBeNull();
     expect(pickHint(p, p.steps.map((s) => s.tex), [])).toBeNull();
   });
 

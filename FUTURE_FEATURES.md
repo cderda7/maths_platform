@@ -2854,6 +2854,17 @@ uploaded problems) settled the following as later, each on purpose.
   path only. Sending "left fractions after one line" to the teacher side would help pick who needs a
   word before the set; out of scope for a chip colour change.
 
+## Fractions hints for the numbers (from ticket 206, 2026-09-13)
+
+- **A student who adds 9/2 + 6 in one go.** Writing "… = 21/2" straight after "… = 9/2 + 6" skips
+  the 12/2 line; the pad places it as line 3 and offers the x-terms hint, so the "over 2" and "add
+  them" hints are never seen. Right for a student who can do it, but nothing checks the 21/2 was
+  reached correctly (a student writing 15/2 gets no hint about it). Deferred: the ask was the missing hint.
+- **Guard against widening a hint when a step is added.** Ticket 106 added a line and stretched a hint
+  over it rather than writing one. The ticket 199 test only requires some hint per point. A test that
+  every warm-up hint has exactly one point would stop this, but some future warm-up may want a hint
+  that honestly covers two lines; left as a review habit for now.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
