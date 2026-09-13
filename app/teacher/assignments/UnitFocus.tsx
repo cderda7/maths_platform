@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button, Card, Eyebrow } from "@/components/ui";
+import { DIAGNOSTIC_CHIP } from "../DiagnosticCard";
 import { inferUnitFromText, UNIT_TITLES } from "@/lib/unit";
 
 /**
@@ -32,7 +33,7 @@ export default function UnitFocus({
   return (
     <Card className="p-6" data-unit-focus>
       <div className="flex items-center justify-between">
-        <Eyebrow>Unit focus</Eyebrow>
+        <Eyebrow className={DIAGNOSTIC_CHIP}>Unit focus</Eyebrow>
         {reassessed !== null && <span className="text-[11.5px] text-ink-muted">reassessed from your note</span>}
       </div>
       <div className="mt-3 flex items-center justify-between gap-4">

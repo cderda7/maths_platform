@@ -4,6 +4,7 @@ import PathwayMap from "../../PathwayMap";
 import UnitFocus from "../../UnitFocus";
 import SeatingBoard from "../../../groups/SeatingBoard";
 import { Button, Card, Eyebrow } from "@/components/ui";
+import { DIAGNOSTIC_CHIP } from "../../../DiagnosticCard";
 import { GROUP_SIZE, type GroupColour, type SeatingGroups } from "@/data/groups";
 import type { Pathway } from "@/data/types";
 import type { ReviewedQuestion, ReviewState } from "@/lib/review";
@@ -44,7 +45,7 @@ export default function PathwayStep({
       <div className="mt-8 max-w-[980px] space-y-4">
         <UnitFocus inferred={inferred} reassessed={review.unit ?? null} onReassess={(u) => onChange({ unit: u })} />
         <Card className="p-6">
-          <Eyebrow>Review pathway</Eyebrow>
+          <Eyebrow className={DIAGNOSTIC_CHIP}>Review pathway</Eyebrow>
           <div className="mt-4">
             <PathwayMap value={review.pathway} onChange={(p: Pathway) => onChange({ pathway: p })} />
           </div>
@@ -53,7 +54,7 @@ export default function PathwayStep({
       {review.pathway.includes("group") && (
         <Card className="mt-4 p-6" data-confirm-groups>
           <div className="flex items-baseline justify-between gap-6">
-            <Eyebrow>Confirm groups</Eyebrow>
+            <Eyebrow className={`${DIAGNOSTIC_CHIP} shrink-0`}>Confirm groups</Eyebrow>
             <span className="text-[12.5px] text-ink-muted">From the class&apos;s default groups. Drag a student to a colour for this assignment only. Groups of {GROUP_SIZE}; any other size is flagged.</span>
           </div>
           <div className="mt-4">
