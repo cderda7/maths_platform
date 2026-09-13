@@ -21,7 +21,7 @@ const mmss = (ms: number) => {
  * student is past the stage or while the teacher projects.
  *
  * The Mistakes tab carries it too (ticket 185), `inline` in its title row: no bottom margin, the
- * countdown on one line.
+ * countdown on one line, and the button a size up (13.5 px, ticket 199) beside the title's 16 px stage pill.
  */
 export default function ForceSubmit({ stage, session, inline = false }: { stage: ClassStageId; session: StudentSession | null; inline?: boolean }) {
   const classroom = useClassroom();
@@ -48,7 +48,7 @@ export default function ForceSubmit({ stage, session, inline = false }: { stage:
   ) : (
     <button
       type="button"
-      className={`${inline ? "" : "mb-1"} whitespace-nowrap rounded-full border border-standout-line bg-standout-soft px-2.5 py-1 text-[12px] font-medium leading-tight text-accent-deep transition-colors hover:bg-standout-line/60 disabled:cursor-not-allowed disabled:opacity-40`}
+      className={`${inline ? "px-3 py-1 text-[13.5px]" : "mb-1 px-2.5 py-1 text-[12px]"} whitespace-nowrap rounded-full border border-standout-line bg-standout-soft font-medium leading-tight text-accent-deep transition-colors hover:bg-standout-line/60 disabled:cursor-not-allowed disabled:opacity-40`}
       disabled={!canForce(stage, classroom, session)}
       onClick={() => dispatchClassroom({ type: "advance/start", kind })}
       data-force={stage}
