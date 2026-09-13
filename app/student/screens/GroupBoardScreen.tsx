@@ -3,6 +3,7 @@
 import { useState } from "react";
 import M from "@/components/Math";
 import PadSection from "@/components/PadSection";
+import HintCard from "@/components/HintCard";
 import ReadAs from "@/components/ReadAs";
 import { Avatar, Button, Eyebrow } from "@/components/ui";
 import { ASSIGNMENT, DEMO_STUDENT, PROBLEM_MAP } from "@/data/assignment";
@@ -11,7 +12,7 @@ import { GROUP_HEX } from "@/data/groups";
 import type { Stroke } from "@/data/types";
 import { branchesOf } from "@/lib/branches";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
-import { attemptsOn, cutAtFirstMistake, currentProblem, lastAttempt, ownAttemptScript, penHolder, resolvedCurrent, type CutView } from "@/lib/groupReview";
+import { attemptsOn, boardHint, cutAtFirstMistake, currentProblem, lastAttempt, ownAttemptScript, penHolder, resolvedCurrent, type CutView } from "@/lib/groupReview";
 import { nextLine, type RevealedLine } from "@/lib/recognition";
 import { assignmentGroupsOf, groupOfStudent } from "@/lib/seating";
 import type { SessionAction, StudentSession } from "@/lib/session";
@@ -27,7 +28,8 @@ const first = (id: string) => (id === DEMO_STUDENT.id ? "You" : CLASSMATE_MAP[id
  * line per burst, on every member's iPad, as on the working screen (ticket 162). Check for the
  * pen-holder only. A wrong check puts the attempt, cut at the first mistake with the rest as a
  * count, at the top of the column; the board is kept and the next attempt's lines read in
- * beneath. A correct check opens the debrief.
+ * beneath; from the second wrong check a hint for the latest first mistake sits under it (ticket
+ * 221). A correct check opens the debrief.
  */
 export default function GroupBoardScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
   const classroom = useClassroom();
@@ -46,6 +48,7 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
   const wrongShown = last && !last.correct && !resolved ? cutAtFirstMistake(pid, last.lines) : null;
   const colour = groupOfStudent(assignmentGroupsOf(classroom, ASSIGNMENT.id), DEMO_STUDENT.id) ?? "sky";
   const attemptNo = attemptsOn(run).length;
+  const hint = boardHint(run);
   // The board's transcription so far, shared by every member: what the column shows and what the next burst reads on from.
   const revealed: RevealedLine[] = run.lines.map((tex, i) => ({ tex, strokeCount: i + 1 }));
 
@@ -120,11 +123,12 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
               <Lines view={wrongShown} compact />
             </div>
           )}
+          {hint && <HintCard hint={hint} label="Hint" lit={null} onLit={() => {}} className="mt-3 shrink-0" />}
           <ReadAs
             lines={revealed}
             recognising={recognising}
             empty={mine ? "Lines appear here as you write." : `Lines appear here as ${first(holder)} writes.`}
-            className={wrongShown ? "mt-4 flex-1" : "flex-1"}
+            className={wrongShown || hint ? "mt-4 flex-1" : "flex-1"}
           />
         </aside>
       </div>

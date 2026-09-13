@@ -3968,3 +3968,31 @@ a reload. Two pure functions replace a prompt rule and two session actions.
 **Tradeoffs.** The region's negative margins assume the chrome's `py-12 px-6` container; a change there must move them too (the comment in `Classroom.tsx` says so, and the click-through measures the scroll-0 rects). A keyboard-focused card needs the measured scroll margin, a small effect. The dashed "Nothing live" note is gone before Create.
 
 **Defense.** One scroll region keeps every native scroll input, the rubber-band behaviour of ticket 68 and find-in-page working exactly as on every other teacher page, and the pinning is a few classes on one wrapper rather than a second scroll container with its own height maths.
+
+## 2026-09-13 · A problem a group cannot get climbs a ladder of wrong checks (tickets 221–223)
+
+**Decision.** The group whiteboard counts wrong checks per problem. After one the group sees its
+attempt up to the first mistake, as before. From two, a hint for the latest first mistake sits
+under it: the evaluation table's clue, which names the move and never the answer (ticket 221). A
+third leaves the problem for now; the board comes back to it after the last problem, with the next
+pen in the deal. A wrong check on that return closes it unsolved, the progress bar counts it, and
+the teacher and the report say so (tickets 222 and 223). In the demo Sam's group never solves Q7.
+
+**Context.** A group that kept checking wrong was stuck on the problem until the teacher ended group
+review for everyone, and nothing told the teacher. The user agreed the ladder on 2026-09-13 and
+asked for the bar to reach 100% without the problem and for the demo group never to solve Q7, which
+gives class review its reason.
+
+**Alternatives considered.** *Bring back a "we're stuck" reveal*: it showed the right answer and
+was removed in ticket 117. *Pass the pen after a wrong check*: the random draw is the point of the
+board (FUTURE_FEATURES). *A time limit instead of a count*: a slow careful group would be moved on
+while working; the count only moves on a group that has checked and been wrong. *Write a new hint
+for the board*: the table's clue already exists for every wrong line and was written not to give
+the answer; linked words (the practice pad's) would need per-problem terms for the set.
+
+**Tradeoffs.** A hint from the latest attempt changes with each wrong attempt, so a group that
+tries something new sees a new hint. The thresholds are fixed numbers, not tuned per problem. The
+clue is a general sentence with no pointer into the working.
+
+**Defense.** Each step adds a little help without handing over the answer, no group can be stuck for
+ever, and the one rule (count the wrong checks) drives the board, the bar and the teacher's view.

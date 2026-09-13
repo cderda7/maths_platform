@@ -2907,6 +2907,19 @@ uploaded problems) settled the following as later, each on purpose.
 - **Filtering or grouping past sets.** With six sets a scroll is fine; a term's worth would want
   grouping by week or unit, or a search.
 
+## A problem the group cannot get (tickets 221–223, 2026-09-13)
+
+- **A student who got it right helps the stuck group.** Raised with the ladder: the teacher could
+  send a student who solved the problem (Priya on Q7) to the group before or instead of the hint.
+  Not answered when the ladder was agreed; the ladder was built without it.
+- **Linked words in the board's hint.** The practice pad's hints light the part of the problem a
+  word points at; the board's hint is the evaluation table's clue, with no terms. Terms per wrong
+  line of every set problem would be needed.
+- **The teacher sees the hint go up.** The teacher's class view does not show that a group has
+  reached the hint, only (ticket 223) a problem it could not solve.
+- **Thresholds per problem or per group.** Hint after 2, leave after 3, close on the return are
+  fixed; a teacher setting, or thresholds that follow the problem's difficulty, were not scoped.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

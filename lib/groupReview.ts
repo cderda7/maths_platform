@@ -1,5 +1,5 @@
 import { GROUP_SCRIPTS } from "@/data/group-scripts";
-import type { Stroke } from "@/data/types";
+import type { Hint, Stroke } from "@/data/types";
 import { evaluateLine } from "./evaluate";
 import type { LineMark } from "./examples";
 import { scribble } from "./synthetic-ink";
@@ -105,6 +105,27 @@ export function cutAtFirstMistake(problem: string, lines: string[]): CutView {
   const cut = lines.findIndex((tex) => evaluateLine(problem, tex).verdict === "wrong");
   if (cut < 0) return { shown: lines.map((tex) => ({ tex, mark: null })), hidden: 0 };
   return { shown: lines.slice(0, cut + 1).map((tex, i) => ({ tex, mark: i === cut ? "wrong" : null })), hidden: lines.length - cut - 1 };
+}
+
+/** How many times the group's check on a problem has come back wrong. */
+export const wrongChecks = (run: GroupRun, problem: string): number => attemptsOn(run, problem).filter((a) => !a.correct).length;
+
+/** A problem that has checked wrong this many times shows the group a hint (ticket 221). */
+export const HINT_AFTER_WRONG = 2;
+
+/**
+ * The hint on the board: once the current problem, still unresolved, has checked wrong
+ * `HINT_AFTER_WRONG` times, the evaluation table's clue for the first wrong line of the latest
+ * attempt, a sentence that names the move without carrying it out. Null otherwise.
+ */
+export function boardHint(run: GroupRun): Hint | null {
+  const problem = currentProblem(run);
+  if (!problem || resolvedCurrent(run) || wrongChecks(run, problem) < HINT_AFTER_WRONG) return null;
+  for (const tex of lastAttempt(run)?.lines ?? []) {
+    const v = evaluateLine(problem, tex);
+    if (v.verdict === "wrong") return v.clue ? { text: v.clue } : null;
+  }
+  return null;
 }
 
 /** Progress toward resolving the union: members' original mistakes on resolved problems over all of them. */

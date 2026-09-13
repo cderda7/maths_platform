@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { beginRun, checkBoard, cutAtFirstMistake, DEMO_SEED, groupProgress, ownAttemptScript, penHolder, penOrder, shuffle, turnScript } from "./groupReview";
+import { beginRun, boardHint, checkBoard, cutAtFirstMistake, DEMO_SEED, groupProgress, HINT_AFTER_WRONG, ownAttemptScript, penHolder, penOrder, shuffle, turnScript, wrongChecks } from "./groupReview";
 import { classroomReducer, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
 import { PROBLEM_MAP } from "@/data/assignment";
 import { GROUP_SCRIPTS } from "@/data/group-scripts";
@@ -63,17 +63,41 @@ describe("check and the first-mistake cut", () => {
     expect(q3.filter((e) => e.kind === "line")).toHaveLength(RECOGNITION.q3.length + RECOGNITION_REWORK.q3.length);
     expect(turnScript("q4")).toEqual([]);
   });
-  it("Liam's Q7 turn checks wrong once, the fraction cleared from two terms, then writes the model solution", () => {
+  it("Liam's Q7 turn checks wrong twice, the fraction cleared from two terms and then the third lost, then writes the model solution", () => {
     const q7 = turnScript("q7");
     const checks = q7.filter((e) => e.kind === "check");
-    expect(checks).toHaveLength(2);
-    const [firstGo, secondGo] = GROUP_SCRIPTS.q7.attempts;
+    expect(checks).toHaveLength(3);
+    const [firstGo, secondGo, thirdGo] = GROUP_SCRIPTS.q7.attempts;
     expect(checkBoard("q7", firstGo)).toEqual({ correct: false, cut: 0 });
     expect(cutAtFirstMistake("q7", firstGo)).toEqual({ shown: [{ tex: firstGo[0], mark: "wrong" }], hidden: 2 });
+    expect(checkBoard("q7", secondGo)).toEqual({ correct: false, cut: 0 });
+    expect(secondGo[0]).toBe("x^2 + 6x + 8");
     // The demo student's own Q7 rework is a second slip, so the group's correct version is the model solution, not the rework path.
-    expect(secondGo).toEqual(PROBLEM_MAP.q7.solution.map((s) => s.tex));
+    expect(thirdGo).toEqual(PROBLEM_MAP.q7.solution.map((s) => s.tex));
     expect(checkBoard("q7", RECOGNITION_REWORK.q7).correct).toBe(false);
-    expect(q7.filter((e) => e.kind === "line").map((e) => e.kind === "line" && e.tex)).toEqual([...firstGo, ...secondGo]);
+    expect(q7.filter((e) => e.kind === "line").map((e) => e.kind === "line" && e.tex)).toEqual([...firstGo, ...secondGo, ...thirdGo]);
+  });
+});
+
+describe("the hint on the board", () => {
+  const at = (attempts: string[][], problem = "q7") => {
+    const run = beginRun(MEMBERS, UNION, 0);
+    return { ...run, index: UNION.indexOf(problem), attempts: { [problem]: attempts.map((lines) => ({ lines, correct: checkBoard(problem, lines).correct })) } };
+  };
+  const [twoTerms, lostThird, model] = GROUP_SCRIPTS.q7.attempts;
+
+  it("appears from the second wrong check, on the latest attempt's first mistake, and names the move", () => {
+    expect(HINT_AFTER_WRONG).toBe(2);
+    expect(boardHint(at([]))).toBeNull();
+    expect(boardHint(at([twoTerms]))).toBeNull();
+    expect(wrongChecks(at([twoTerms, lostThird]), "q7")).toBe(2);
+    expect(boardHint(at([twoTerms, lostThird]))).toEqual({ text: (evaluateLine("q7", "x^2 + 6x + 8") as { clue: string }).clue });
+    expect(boardHint(at([lostThird, twoTerms]))?.text).toMatch(/One of them didn't get the same treatment/);
+  });
+
+  it("goes once the problem checks correct, and never shows on a problem with one wrong check", () => {
+    expect(boardHint({ ...at([twoTerms, lostThird, model]), resolved: ["q7"] })).toBeNull();
+    expect(boardHint(at([RECOGNITION.q3], "q3"))).toBeNull();
   });
 });
 
