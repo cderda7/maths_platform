@@ -2998,7 +2998,7 @@ uploaded problems) settled the following as later, each on purpose.
 
 ## History pills follow-ups (ticket 215, 2026-09-13)
 
-- **Real results that jump.** Twenty student × category pairs move more than one colour step from
+- ~~**Real results that jump.**~~ Done in ticket 210 (the story sheet re-authored Set 5) and confirmed in ticket 217 with all six sets registered: `KNOWN_REAL_JUMPS` is gone and the test allows none. Was: twenty student × category pairs move more than one colour step from
   Set 5 to Set 6 today (listed in `KNOWN_REAL_JUMPS`, `lib/setHistory.test.ts`). Deferred: real
   results are the class story sheet's (ticket 210); the test fails on any new jump and the list
   should empty when the story sheet re-authors them.
@@ -3041,7 +3041,7 @@ uploaded problems) settled the following as later, each on purpose.
 - **Sentence answers in narrow Mistakes columns**: a problem with four or more distinct wrong workings shrinks each column so a long `\text{…}` answer overflows its box at 1280 (the fit clamps at 13 px and maths never wraps). Set 5's Q10 was folded to three columns instead. A real fix would give such a grid a wider floor (scrolling inside the card) or let a text-only sentence line wrap at word boundaries. Deferred: the data can avoid it and the rule "maths never splits" needs the user's call for sentences.
 - **Board and class review on a finished set**: both are the live lesson's screens; a past set has Class, Mistakes, Groups and reports. Reopening a past set's class review (to reuse examples) was not asked for.
 - **Story sheet from the teacher's side**: the sheet is a developer contract; a teacher-facing "class arc" view (each student's categories across all sets) could be built from the same data once Sets 1–4 exist.
-- **Create's New skills inference with more sets**: `recentSets("pset-6", 2)` becomes Sets 5 and 4 once 214 lands; the inferred list should still be discriminant and null factor law, but a test pinning it against the full registry was not added here.
+- ~~**Create's New skills inference with more sets**~~ Done in ticket 217 (`lib/newSkills.test.ts` pins it against Sets 5 and 4). Was: `recentSets("pset-6", 2)` becomes Sets 5 and 4 once 214 lands; the inferred list should still be discriminant and null factor law, but a test pinning it against the full registry was not added here.
 - **Grace, Tomas and Jordan never reach the worded problem**: reasoning is *not seen* for them on most sets, so their reasoning history is mostly hollow. A later set could put a short worded problem earlier.
 
 ## Debrief pane labels (ticket 230, 2026-09-13)
@@ -3099,7 +3099,7 @@ uploaded problems) settled the following as later, each on purpose.
 ## Problem Set 1 follow-ups (ticket 211, 2026-09-13)
 
 - **A worded problem's stem on the Mistakes header**: Q10's header reads only its TeX, "Area = 72 cm²", not "A square tile has an area of 72 cm²…". Set 5's Q10 has the same shape. Showing a short stem beside the TeX for `answerAs: "sentence"` problems would tell the teacher what was asked. Deferred: a shared header change for every set, not this set's data.
-- **Two-step history neighbours until Sets 2–4 land**: while only Sets 1 and 5 are registered, Sets 5 and 6's history shows Set 1 beside Set 5 for some students with a two-step change (Tomas's New skills solid → gap). Nothing to build if 212–214 merge; if one of them is dropped, the sheet's arcs need re-authoring for the sets that remain.
+- ~~**Two-step history neighbours until Sets 2–4 land**~~ Done in ticket 217: all six sets are registered, `unregisteredBetween` is removed from `lib/setHistory.test.ts` and no pair is skipped. Was: while only Sets 1 and 5 are registered, Sets 5 and 6's history shows Set 1 beside Set 5 for some students with a two-step change (Tomas's New skills solid → gap). Nothing to build if 212–214 merge; if one of them is dropped, the sheet's arcs need re-authoring for the sets that remain.
 - **The sheet's outline text for Q9** still reads "√3 x = √75 − √12"; the set typesets it x√3 (√3x read as √(3x)). Cosmetic, left so the outline stays as ticket 210 wrote it.
 - **More wrong students on Set 1**: eight students get everything right, as the sheet says. A set this early could plausibly carry a slip for more of them (a sign, a square left in), but every extra slip moves a status the sheet fixes.
 
@@ -3107,7 +3107,7 @@ uploaded problems) settled the following as later, each on purpose.
 
 - **Conclusions leaf on a misread sentence**: Set 2's wrong Q10 sentences are tagged interpreting the question only, so "drawing conclusions in context" reads *not seen* on Amelia's, Isla's and Lucas's reports. Tagging them conclusions too would make one sentence a gap (the leaf has one line per set). A reasoning roll-up that weighs a one-line leaf differently was not in scope.
 - **An unfinished answer as "wrong"**: Sofia's uncancelled (4√5 + 4)/4 is marked wrong. A verdict for "right but not finished" (neither held nor a slip) would describe it better; the evaluation table has only ok and wrong.
-- **History gaps while Sets 3 and 4 are unregistered**: until tickets 213 and 214 land, Set 6's pills put Set 2 beside Set 5 and seven students read solid → gap there (Mia, Jordan, Oliver, Ruby algebra; Amelia, Isla, Lucas reasoning). The sheet has no such jump; it closes once the sets between are in.
+- ~~**History gaps while Sets 3 and 4 are unregistered**~~ Done in ticket 217 (Sets 3 and 4 landed; the click-through checks every student on Set 6). Was: until tickets 213 and 214 land, Set 6's pills put Set 2 beside Set 5 and seven students read solid → gap there (Mia, Jordan, Oliver, Ruby algebra; Amelia, Isla, Lucas reasoning). The sheet has no such jump; it closes once the sets between are in.
 - **Board and class review on Set 2**: as for Set 5, a finished set has Class, Mistakes, Groups and reports only.
 
 ## PSET in the student header (ticket 236, 2026-09-13)
@@ -3141,6 +3141,13 @@ uploaded problems) settled the following as later, each on purpose.
 - **A category with no earlier set looks the same as one with history** in history mode (its pill only does nothing when clicked, and says so to screen readers). A visual cue (dimmed, or a "first time" note) could help. Deferred: not asked for.
 - **Next/previous set inside the earlier report** (step from Set 4 to Set 5 without going back to the history). Deferred: out of scope.
 - **Short stacks leave empty sheet above them** when a taller stack is open beside them, because the sheet is one rectangle. Per-column sheets would hide less of the roster. Deferred: the rows are faded anyway.
+
+## Six sets verified follow-ups (ticket 217, 2026-09-13)
+
+- **Sam's live row against his history on Set 6**: after any presenter skip past hand-in, Sam's scripted Set 6 session reads reasoning *gap* (Q10's "the graph crosses twice") and graphing *secure*, while his Set 5 pills are reasoning *secure* and graphing *developing*: two steps each in his history stack on Set 6's Class View. The story sheet leaves Sam's Set 6 as *live*, so the one-step rule is not checked there (the click-through reports it separately). Deferred: fixing it means re-authoring Sam's arc across Sets 3–5 (a reasoning slip on Sets 4 and 5, one fewer graphing slip on Set 5), which moves Set 5's card counts and reports, or changing the scripted demo run; the user's call which story Sam should tell.
+- **Board and class review on a finished set**: the ticket's check listed "board and class review on each" set; a finished set has Class, Mistakes, Groups and reports only (ticket 210's note), so the click-through ran the board and class review on Set 6 alone.
+- **Long sentence answers on the Mistakes tab**: left as they are (open question with the user, ticket 210's note); the click-through counts a `\text{…}` line wider than its box apart from maths lines, and on the six sets at 1280 and 1440 none is over.
+- **"Not sent yet" on a finished set's report**: Sam's Set 1 report reads "In their words · Not sent yet" and "Commentary · Nothing to note" for a set handed in two weeks ago; "No reflection" would read better on a past set. Deferred: copy on a shared component, not this ticket's check.
 
 ## Carson's notes
 

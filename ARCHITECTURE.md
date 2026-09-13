@@ -138,6 +138,38 @@ two routes, the help chat's (`/api/help-chat`, ticket 69) and problem extraction
  Dependency rule: app ──▶ components ──▶ data ──▶ types. Nothing points the other way.
 ```
 
+## The six-set Classroom (tickets 208–217, 234, 237)
+
+```
+ data/story.ts  class story sheet: STORY_SETS (PS1–PS6) + STORY (20 students × 6 categories × 6 sets)
+      │  ──► lib/classStory.ts renderClassStory ──► specs/class-story.md (npm run story:sheet)
+      │  ──► data/story.test.ts (complete, one step, Set 6 == classmates' end state)
+      │  ──► data/finishedSets.test.ts (every registered set == its column)
+      ▼
+ data/pset1/ … data/pset5/   assignment.ts · evaluation.ts · classmates.ts · index.ts (PSN: FinishedSet)
+      │
+      ▼
+ data/finishedSets.ts  export { PS1 } … { PS5 }  ──► lib/finishedSets.ts FINISHED_SETS (oldest due first)
+      │                                                   │                 │
+      │   data/assignment.ts ASSIGNMENT (Set 6, live)      ▼                 ▼
+      │          │                              lib/evaluate.ts        lib/seating.ts
+      ▼          ▼                              tables by problem id   frozen groups per set
+ lib/assignments.ts REGISTRY: pset-6 live, then pset-5 … pset-1
+      │  assignmentBundle(id) { title, name, due, problems, newSkills, classmates, sam, groups }
+      │
+      ├─► app/teacher/Classroom.tsx   pinned: heading, + New assignment, LIVE (Set 6); Past scrolls, newest due first
+      ├─► /teacher/a/<id>/class       ClassView ─► TeacherLive: rows, dots, due line; HierarchyDrill
+      │        lib/hierarchy.ts hierarchyFor(ev, set): a set's New skills → "new", others → their home
+      ├─► /teacher/a/<id>/mistakes, /groups, /report?student=
+      ├─► lib/setHistory.ts categoryHistory(id, student, category)
+      │        earlierSources ─► the earlier finished sets that assessed the category, at most five, dated "MON 7 SEP"
+      │        (none: no stack; the first set: no see history)
+      │        └─► TeacherLive history pill: Link ─► /teacher/a/<id>/class?report=<earlier>&student=&open=
+      │                 ClassView ─► EarlierReport: this set's chrome, the earlier set's ReportBody,
+      │                 pulsing "← Return to PSet N" ─► ?history=<student>&open=<category>
+      └─► lib/newSkills.ts inferNewSkills(problems, recentSets("pset-6", 2) = PS5, PS4) ─► Create's review
+```
+
 ## Tickets, in build order
 
 | # | Ticket | Routes | Commit | Note |
@@ -378,6 +410,7 @@ two routes, the help chat's (`/api/help-chat`, ticket 69) and problem extraction
 | 213 | Problem Set 3 — Expanding and factorising as a finished set: `data/pset3/` (ten hand-checked expanding and factorising problems, every written line in the evaluation table, twenty full records equal to the sheet's PS3 column with no sheet change) and its line in `data/finishedSets.ts`; card 19/20, top gap binomial identity (9), monic factorising next (7); the Mistakes tab's slip chips wrap chip by chip, never a word inside a chip | `/teacher`, `/teacher/a/pset-3/*`, `/teacher/a/pset-6/class` (history) | 210, 215 | [architecture/213-problem-set-3-expanding-factorising.md](architecture/213-problem-set-3-expanding-factorising.md) |
 | 214 | Problem Set 4 — Non-monic factorising and completing the square is a finished set (`data/pset4/`): ten hand-checked problems, all twenty students' work equal to the class story sheet's PS4 column, card 20/20, 54 mistakes, top gap non-monic factorising (9, graph features next on 8); the sheet's PS4 column gains Q1 as 2x² + 3x − 2, Zara's Q9 and Ruby's Q4 (no status changed) | `/teacher`, `/teacher/a/pset-4/*`, `/teacher/a/pset-5/class` and `/teacher/a/pset-6/class` (history) | 210, 215 | [architecture/214-problem-set-4-nonmonic-completing-square.md](architecture/214-problem-set-4-nonmonic-completing-square.md) |
 | 237 | Class View history reads only real earlier sets: a category's stack is the earlier sets that assessed it (up to five, none when none did), no simulated pills; pills read the day alone ("MON 7 SEP"); the class's first set has no "see history"; a pill opens the student's report on that set inside this set's Class View (`?report=&student=&open=`, this set's tabs) with a pulsing "← Return to PSet N" back to the history; stacks sit on today's pill at the tallest open stack's spacing | `/teacher/a/<id>/class` | 215 | [architecture/237-history-real-sets-only.md](architecture/237-history-real-sets-only.md) |
+| 217 | Six sets verified end to end: the Classroom (pinned Live, Past PS5 → PS1, before and after Create, short viewports), every set's Class View against the class story sheet with its own New skills, history on Set 6 for all twenty students and every category (exactly the earlier sets that assessed it, dated, each opening that set's report inside Set 6 with Return; no see history on Set 1), Mistakes, Groups and reports on every set, and the live Set 6 demo from Create to End; `lib/setHistory.test.ts`'s skip for unregistered sets removed (the jump test is strict), Create's inference pinned against Sets 5 and 4, the Class View's due line upper-cases a created title; README's six-set Classroom and how to add a finished set | `/teacher`, `/teacher/a/pset-1` … `pset-6` (class, history reports, mistakes, groups, report), `/teacher/assignments/create/review`, `/teacher/board` | 208–216, 234, 237 | [architecture/217-six-sets-verified.md](architecture/217-six-sets-verified.md) |
 
 ## Conventions
 

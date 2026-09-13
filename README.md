@@ -23,9 +23,10 @@ still holds it).
 ```bash
 npm install
 npm run dev        # http://localhost:3000
-npm test           # vitest: 512 tests over the pure logic in lib/
+npm test           # vitest: 753 tests over the pure logic in lib/ and the fixtures in data/
 npm run lint && npx tsc --noEmit && npm run build
-npx next start -p 3121 & npm run check:laptop   # every teacher route at 1440×900 and 1280×800, fails on horizontal overflow
+npx next start -p 3121 & npm run check:laptop   # every teacher route at 1440×900 and 1280×800 (all six sets), fails on horizontal overflow
+npm run story:sheet                             # regenerate specs/class-story.md from data/story.ts
 EXTRACT_FIXTURES=1 npm run dev                  # problem extraction answers from fixtures/extract instead of the model (no key needed)
 node scripts/render-extract-fixtures.mjs        # re-render those fixtures from the demo set (headless Chrome + KaTeX)
 ```
@@ -81,9 +82,11 @@ Teacher, before the lesson (Edexia Classroom at `/teacher`, New assignment → `
    and the decisions kept) and the counts above. "Assess set" runs a bar for five seconds and returns three
    recommendations matched to the set: change Q1 to `x² − 5x + 6 = 0` (the class's sign slip),
    remove the repeat of Q3, add a problem in a context (Try another cycles three). Accept or Keep
-   as is, Undo, the grid follows. "Finalise set" opens the pathway screen: the unit focus (the
-   inferred unit stands; describe the focus and Reassess to change it) above the review-pathway
-   map, then Create.
+   as is, Undo, the grid follows. "Finalise set" opens the pathway screen: the set's **New skills**
+   (ticket 209: the skills at least two problems invoke that the class did not meet under their home in
+   its last two sets, Problem Sets 5 and 4, so the discriminant and the null factor law; on at once,
+   click a chip to change it, "use suggested" to go back, never a confirm gate) above the
+   review-pathway map, then Create.
 1. **New assignment** (the older screen, reachable by URL): title, problems from the bank, the inferred QCAA unit to confirm (or
    describe the focus and reassess), and the review pathway on the map. Every
    pathway starts at student submission; then any of individual review, group review and
@@ -130,7 +133,7 @@ Teacher, during the lesson (Edexia Classroom at `/teacher` lists the assignments
 `/teacher/a/<id>`, landing on Class once everyone has handed in or the class is past individual
 working, else on Mistakes; every assignment page has "← Edexia Classroom" above its eyebrow):
 
-**The class streams in** (ticket 189). From the moment Problem Set 2 is created, the nineteen classmates work
+**The class streams in** (ticket 189). From the moment Problem Set 6 is created, the nineteen classmates work
 through it on a fixed script (`data/stream.ts`, read by `lib/stream.ts`), one problem submission at a time: each
 submission ticks that problem's correct count on Mistakes and drops the student's name into its cluster with a faint
 glow that fades (a name arriving while the pointer rests on its card, or a card above the pointer, waits until the
@@ -142,7 +145,7 @@ student tab), still individual working. A reload continues from the stored start
 presenter skip starts it an hour back (the end state); once Sam hands in (himself or by force submit) the class is
 past working and every classmate who started has handed in.
 
-- **Class** (`/teacher/a/pset-2/class`): one column per skill category the set touches (Algebra, Functions, Graphing,
+- **Class** (`/teacher/a/pset-6/class`; every set has one, `/teacher/a/pset-1/class` … ): one column per skill category the set touches (Algebra, Functions, Graphing,
   Communication, Reasoning, New skills), each a pill in the worst status beneath it (groups and
   skills beneath are round dots), half-filled where a student skipped problems; click a pill to drill
   sideways into groups, skills and the marked-up work behind them. Hover a column header for its **see skills** / **full breakdown** buttons
@@ -157,8 +160,8 @@ past working and every classmate who started has handed in.
   once. **See history** puts
   the roster into history mode for that student: everything else in the card fades, the
   student's six pills widen to carry their category's name in white, and a click on one stacks
-  that category's last five recorded results above it (Aug 31 · Sep 2 · Sep 3 · Sep 7 · Sep 9,
-  oldest at the top, dated in white, the same height as the pill; several can stand open); a white
+  that category's results on the earlier sets above it (oldest at the top, the same height as the pill;
+  several can stand open; see "The Classroom's six sets" below for what they are); a white
   sheet then covers the rows above over the category columns, Algebra through New skills, so
   the stacks never mix with other students' pills, its top edge cutting through a pill halfway
   (or, for the top rows, the heads covered whole and the sheet rising over the "due" line), and
@@ -202,7 +205,7 @@ student's is live); the final standings held once group review is over; during w
 review one slide per problem, examples A/B/C with "n/m students" (the same columns the students
 see, drawn by one component; lines never wrap, they shrink together in a narrow window), no names,
 no marks until the teacher shows them, and the teacher's working pad.
-- **Mistakes** (`/teacher/a/pset-2/mistakes`; the old `/teacher/mistakes` redirects there): the stage, its count and **force submit** after the title (the same control as on the Pathway card); problems first, the students who slipped on each under
+- **Mistakes** (`/teacher/a/pset-6/mistakes`; the old `/teacher/mistakes` redirects there): the stage, its count and **force submit** after the title (the same control as on the Pathway card); problems first, the students who slipped on each under
   one pill per slip, expand for their working; inside a pill the students on the exact same
   wrong line sit together and, open, one box in the pill's red surrounds their working (a
   student alone on theirs boxed alone). Students whose working is identical line for line
@@ -236,6 +239,56 @@ no marks until the teacher shows them, and the teacher's working pad.
   page, nothing to open or close, a skill still showing its work beneath; the platform's
   commentary as a few ideas in a light-blue bubble (an idea lights only the skills behind it),
   and what the student wrote back in a purple-bordered box. A live diagnostic takes the whole board once all twenty have answered, or when the teacher puts it up: the question, each option with its count, the right one green, `x/20 students answered this`; never while the class is still answering unless the teacher says so, and no misconception wording.
+
+## The Classroom's six sets
+
+`/teacher` is the Edexia Classroom for 11 Methods (11MAM2, twenty students: Sam and the nineteen in
+`data/classmates.ts`). Its heading, **+ New assignment**, the LIVE label and the live card are one pinned
+region (ticket 216); only **Past** scrolls, under its edge, newest due first. Before Create there is no
+Live section and Past opens in its place. Problem Set 6 stays in Live through every review stage and
+moves to Past, done and first, when class review ends (ticket 234).
+
+| Set | Due | New skills | Data |
+| --- | --- | --- | --- |
+| Problem Set 1 — Surds | Tue 25 Aug | surds | `data/pset1/` (ticket 211) |
+| Problem Set 2 — Rationalising and expanding with surds | Fri 28 Aug | surds, binomial identity | `data/pset2/` (212) |
+| Problem Set 3 — Expanding and factorising | Tue 1 Sep | binomial identity | `data/pset3/` (213) |
+| Problem Set 4 — Non-monic factorising and completing the square | Fri 4 Sep | binomial identity, null factor law | `data/pset4/` (214) |
+| Problem Set 5 — Features of a parabola | Mon 7 Sep | null factor law, binomial identity | `data/pset5/` (187, 210) |
+| Problem Set 6 — Roots of a quadratic (live) | Thu 10 Sep | discriminant, null factor law | `data/assignment.ts`, `data/classmates.ts` |
+
+Sets 1–5 are finished: each opens on Class, Mistakes, Groups and every student's report with all twenty
+students' real working (every line in the set's evaluation table); the board and class review are the live
+lesson's, Set 6's. Set 6 is created by Create (or any presenter skip) and streams in.
+
+- **New skills are per set** (ticket 209). Every skill has one home in the taxonomy (null factor law in
+  Functions › Zeros, the discriminant in Algebra › Equations, the binomial identity in Algebra › Expanding &
+  factorising, surds in Algebra › Number). A set lists its New skills; on that set their evidence shows in the
+  New skills column and drill instead of the home column, and on every other set under the home. No skill shows
+  in two columns.
+- **History** (tickets 215, 237). On a set's Class View, **see history** on a student and a click on a category
+  pill stacks the student's results on the earlier sets that assessed that category (New skills: every earlier
+  set's New skills result), at most five, oldest at the top, each pill reading its day ("MON 7 SEP"). Only real
+  sets: Set 6's Graphing shows two (Sets 4 and 5), a category no earlier set assessed opens nothing, and Problem
+  Set 1 has no **see history** at all. A pill opens the student's report on that earlier set inside this set's
+  Class View (`?report=<earlier>&student=&open=`, this set's tabs), with a pulsing **← Return to PSet N** back to
+  the history. Neighbouring pills, and the newest against today's, move at most one step gap ↔ developing ↔
+  solid ↔ secure; Priya is secure everywhere. Sam's today on Set 6 is his live session, which the sheet leaves
+  open (after a presenter skip his reasoning and graphing sit two steps from Set 5; see FUTURE_FEATURES.md).
+- **The class story sheet** (ticket 210). `data/story.ts` is the single source for every student × category
+  × set status and the habits behind it; `specs/class-story.md` is generated from it (`npm run story:sheet`;
+  `data/story.test.ts` fails while the two differ). `data/finishedSets.test.ts` checks every registered set
+  equals its sheet column, and `lib/setHistory.test.ts` checks every set × student × category for jumps.
+
+**Adding a finished set.** Author the set to its sheet column first (add the column in `data/story.ts` and
+regenerate the sheet if it is a new set). Then a folder `data/psetN/` with `assignment.ts` (`PSN_PROBLEMS`,
+ids `psN-q1` … `psN-q10`, and `PSN_ASSIGNMENT`: `id: "pset-N"`, the upper-case title, `due` as the card reads
+it, `newSkills` each tagged in at least two problems), `evaluation.ts` (every line anyone wrote, keyed by
+problem then exact TeX, doubled backslashes), `classmates.ts` (Sam's record and the nineteen, in class order,
+every record full) and `index.ts` exporting `PSN: FinishedSet` (`data/finishedSet.ts`). Register it with one
+line in `data/finishedSets.ts` and add `"pset-N"` to `scripts/laptop-check.mjs`. Nothing else changes: the
+registry, the evaluation index, seating, the Classroom card, the tabs and history all read the list. Run
+vitest (the shared suite and the jump test), then check:laptop.
 
 ## Deep links
 

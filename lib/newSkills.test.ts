@@ -3,6 +3,7 @@ import { ASSIGNMENT, PROBLEMS } from "@/data/assignment";
 import { PS5_ASSIGNMENT } from "@/data/pset5/assignment";
 import { tag, type Problem } from "@/data/types";
 import type { LeafId } from "@/data/taxonomy";
+import { LIVE_ASSIGNMENT_ID, recentSets } from "./assignments";
 import { FOCUS_PROBLEMS, inferNewSkills, newSkillCandidates, RECENT_SETS } from "./newSkills";
 
 /** A problem whose one step is tagged with `leaves`. */
@@ -17,6 +18,12 @@ const MONIC: LeafId = "algebra.expand-factor.monic";
 describe("New skills inference (ticket 209)", () => {
   it("reproduces Problem Set 6's New skills from its problems against Problem Set 5", () => {
     expect([...inferNewSkills(PROBLEMS, [PS5_ASSIGNMENT])].sort()).toEqual([...ASSIGNMENT.newSkills].sort());
+  });
+
+  it("with all six sets registered, Create's inference over the Classroom's last two sets (Sets 5 and 4) still gives Problem Set 6's New skills (ticket 217)", () => {
+    const recent = recentSets(LIVE_ASSIGNMENT_ID, RECENT_SETS);
+    expect(recent.map((s) => s.id)).toEqual(["pset-5", "pset-4"]);
+    expect([...inferNewSkills(PROBLEMS, recent)].sort()).toEqual([...ASSIGNMENT.newSkills].sort());
   });
 
   it("a skill the set is focused on is new unless the class met it in either of its last two sets; a third set back is not read", () => {

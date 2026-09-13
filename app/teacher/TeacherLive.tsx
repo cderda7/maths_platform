@@ -382,7 +382,8 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
       </div>
       <p ref={dueRef} className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[14px] text-ink-muted" data-due-line>
         <span>
-          {title} · due {assignment.due}
+          {/* Upper case whatever the title's case (ticket 217): Create stores the teacher's "Problem Set 6 — Roots of a quadratic", the fixtures "PROBLEM SET 5 — …", and every set's line reads alike. */}
+          <span className="uppercase" data-due-title>{title}</span> · due {assignment.due}
           <span data-assignment-status>{status}</span>
         </span>
       </p>

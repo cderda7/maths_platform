@@ -3,7 +3,6 @@ import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATES, type Classmate } from "@/data/classmates";
 import { PS5_ASSIGNMENT, PS5_PROBLEMS } from "@/data/pset5/assignment";
 import { PS5_CLASSMATES, PS5_SAM } from "@/data/pset5/classmates";
-import { STORY_SETS } from "@/data/story";
 import { CATEGORY_ORDER, NEW_SKILLS, type CategoryId } from "@/data/taxonomy";
 import type { Problem } from "@/data/types";
 import { assignmentBundle, assignmentHref, assignmentIds, earlierAssignmentIds } from "./assignments";
@@ -142,7 +141,7 @@ describe("history over the Classroom's registry (tickets 215, 237)", () => {
     expect(earlierSources("pset-6").map((s) => s.id)).toEqual(earlierAssignmentIds("pset-6"));
   });
 
-  it("every set × student × category: no neighbouring pills, nor the newest against today's, more than one step apart (the class story sheet, ticket 210); Priya dark green throughout", () => {
+  it("every set × student × category: no neighbouring pills, nor the newest against today's, more than one step apart (the class story sheet, ticket 210), with every sheet set registered and nothing skipped (ticket 217); Priya dark green throughout", () => {
     const jumps: string[] = [];
     for (const id of ids) {
       const b = assignmentBundle(id, classroom)!;
@@ -150,10 +149,9 @@ describe("history over the Classroom's registry (tickets 215, 237)", () => {
         const today = classmateHierarchy(record, b).categories;
         for (const cat of categoriesTouched(b)) {
           const now = today[cat] ?? "unseen";
-          const chain = [...categoryHistory(id, record.id, cat).map((p) => ({ status: p.status, set: p.set.id, from: p.set.id })), { status: now, set: id, from: `${id} (today)` }];
+          const chain = [...categoryHistory(id, record.id, cat).map((p) => ({ status: p.status, from: p.set.id })), { status: now, from: `${id} (today)` }];
           for (let i = 1; i < chain.length; i++) {
             if (stepsApart(chain[i - 1].status, chain[i].status) <= 1) continue;
-            if (unregisteredBetween(chain[i - 1].set, chain[i].set)) continue;
             jumps.push(`${record.id} ${cat}: ${chain[i - 1].from} ${chain[i - 1].status} → ${chain[i].from} ${chain[i].status}`);
           }
           if (record.id === "priya") expect(chain.every((p) => p.status === "secure"), `${id} ${cat}`).toBe(true);
@@ -167,20 +165,7 @@ describe("history over the Classroom's registry (tickets 215, 237)", () => {
     const h = categoryHistory("pset-6", DEMO_STUDENT.id, "algebra");
     expect(h.at(-1)?.set.id).toBe("pset-5");
     for (let i = 1; i < h.length; i++) {
-      if (unregisteredBetween(h[i - 1].set.id, h[i].set.id)) continue;
       expect(stepsApart(h[i - 1].status, h[i].status), `sam: ${h.map((p) => p.status).join(" ")}`).toBeLessThanOrEqual(1);
     }
   });
 });
-
-/**
- * Whether two real sets in a history have a set of the class story sheet between them that is not registered yet (ticket 211).
- * Once every sheet set is registered this is never true, and every pair is checked.
- */
-function unregisteredBetween(older: string | null, newer: string | null): boolean {
-  if (!older || !newer) return false;
-  const registered = new Set([ASSIGNMENT.id, ...FINISHED_SETS.map((s) => s.fixture.id)]);
-  const from = STORY_SETS.findIndex((s) => s.id === older);
-  const to = STORY_SETS.findIndex((s) => s.id === newer);
-  return from >= 0 && to > from && STORY_SETS.slice(from + 1, to).some((s) => !registered.has(s.id));
-}

@@ -4281,3 +4281,15 @@ rule for pens is untouched and the exception is visible and named.
 
 **Defense.** It is a real URL (reloadable, shareable, and Back works), and the chrome makes it plain the teacher is still in this set. `ReportBody` is the same component as the ordinary report, so nothing is duplicated, and `earlierReportSet` falls back to the roster for anything that is not an earlier set the student sat.
 
+## 2026-09-13 · The history jump test is strict again; Sam's live row stays outside the one-step contract (ticket 217)
+
+**Decision.** With Problem Sets 1–5 all registered, `unregisteredBetween` (ticket 211's skip for a real pair with an unregistered sheet set between them) is removed from `lib/setHistory.test.ts`: every set × student × category pair, and every newest pill against today's classmate result, must be at most one step. Sam's row on Problem Set 6 is not held to the newest-vs-today rule: his today is his live session, and the class story sheet records it as *live*. The click-through reports his two current two-step pairs (after a presenter skip: reasoning Set 5 secure → today gap, graphing Set 5 developing → today secure) instead of failing on them, and they are listed in FUTURE_FEATURES.md for the user's call.
+
+**Context.** Ticket 211's decision promised the skip would be inert once 212–214 merged; ticket 217 checked that it now skips nothing and deleted it rather than leave dead code that could hide a future gap. Checking every student on screen showed Sam's scripted Set 6 run (the demo's story: Q10's negative discriminant read as two crossings, every graph feature right) two steps from his authored Set 5 in two categories.
+
+**Alternatives considered.** *Keep the skip as a guard for future sets*: a set added to the sheet before its data would silently relax the test, the opposite of what the sheet is for. *Re-author Sam's Sets 3–5 now* (a reasoning slip on Sets 4 and 5, one fewer graphing slip on Set 5): changes Set 5's card counts, top gap test and reports from tickets 187, 210 and 214, and picks Sam's story without the user. *Change Sam's scripted Set 6 run*: it is the demo's central narrative on every student screen. *Fail the click-through on Sam*: the check would be red for a data choice no one has made.
+
+**Tradeoffs.** A teacher who opens Sam's history on Set 6 after a skip sees two two-step neighbours until the story is decided. Any live play by a presenter can also land anywhere, so the rule cannot hold for Sam's live row in general.
+
+**Defense.** The unit test covers every fixed record with nothing skipped, which is the contract the user asked for; Sam's live row is by construction not a fixed record, and the one visible exception is named, reported on every run and deferred to the user rather than hidden or patched with a story nobody chose.
+
