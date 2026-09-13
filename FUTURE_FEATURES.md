@@ -3044,6 +3044,11 @@ uploaded problems) settled the following as later, each on purpose.
 - **Create's New skills inference with more sets**: `recentSets("pset-6", 2)` becomes Sets 5 and 4 once 214 lands; the inferred list should still be discriminant and null factor law, but a test pinning it against the full registry was not added here.
 - **Grace, Tomas and Jordan never reach the worded problem**: reasoning is *not seen* for them on most sets, so their reasoning history is mostly hollow. A later set could put a short worded problem earlier.
 
+## Debrief pane labels (ticket 230, 2026-09-13)
+
+- **One word for the two versions everywhere.** The group debrief now says "Your first submission" / "Your second submission", but the student's history screen still marks the final version "reworked" and names it "After rework" (`lib/versions.ts`), and the teacher's report says "Reworked Q…" / "No rework yet". Left alone: the request named the debrief's panes. If "submission" is the student-facing word, those could follow.
+- **"Group's rework" / "Group's last try".** The third pane keeps its name; "The group's submission" would match the new pair if wanted.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

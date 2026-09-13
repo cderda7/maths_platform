@@ -17,7 +17,7 @@ import GroupHeader from "./GroupHeader";
 const first = (id: string) => (id === DEMO_STUDENT.id ? "you" : CLASSMATE_MAP[id]?.name.split(" ")[0] ?? id);
 
 /**
- * After the group's rework checks correct: the student's handed-in and reworked versions beside
+ * After the group's rework checks correct: the student's first and second submissions beside
  * the group's, unmarked, for two seconds; then, on their own, the same three with full marks
  * (blue standouts on the group's rework) and Next, which waits out a ten-second hold. Nothing to
  * write (ticket 218). Both clocks run from the group's check, so a reload keeps the moment. Next

@@ -38,8 +38,8 @@ export const matchesGroup = (lines: string[], group: string[]): boolean => lines
 export function markedVersions(problem: string, own: { lines: string[]; rework: string[] }, group: string[], unsolved = false): MarkedVersion[] {
   const mark = (label: string, lines: string[], green: boolean): MarkedVersion => ({ label, lines: lines.map((tex, i) => ({ tex, mark: lineMarks(problem, lines)[i] })), green });
   const same = (lines: string[]) => !unsolved && matchesGroup(lines, group);
-  const out = [mark("Handed in", own.lines, same(own.lines))];
-  if (own.rework.length > 0) out.push(mark("Reworked", own.rework, same(own.rework)));
+  const out = [mark("Your first submission", own.lines, same(own.lines))];
+  if (own.rework.length > 0) out.push(mark("Your second submission", own.rework, same(own.rework)));
   out.push(unsolved ? mark("Group's last try", group, false) : mark("Group's rework", group, true));
   return out;
 }

@@ -8,16 +8,16 @@ import { sessionAt, sessionReducer } from "./session";
 describe("the marked view", () => {
   it("marks the student's own versions fully and gives the group's rework blue standouts", () => {
     const v = markedVersions("q3", { lines: RECOGNITION.q3, rework: RECOGNITION_REWORK.q3 }, RECOGNITION_REWORK.q3);
-    expect(v.map((x) => x.label)).toEqual(["Handed in", "Reworked", "Group's rework"]);
+    expect(v.map((x) => x.label)).toEqual(["Your first submission", "Your second submission", "Group's rework"]);
     expect(v[0].lines.map((l) => l.mark)).toEqual([null, "wrong", null]);
     expect(v[2].lines.some((l) => l.mark === "standout")).toBe(true); // "expanded first" is the Q3 standout
-    expect(markedVersions("q1", { lines: RECOGNITION.q1, rework: [] }, RECOGNITION_REWORK.q1).map((x) => x.label)).toEqual(["Handed in", "Group's rework"]);
+    expect(markedVersions("q1", { lines: RECOGNITION.q1, rework: [] }, RECOGNITION_REWORK.q1).map((x) => x.label)).toEqual(["Your first submission", "Group's rework"]);
   });
   it("greens the group's rework always, and the student's own version only when it is line for line the same", () => {
     const v = markedVersions("q1", { lines: RECOGNITION.q1, rework: RECOGNITION_REWORK.q1 }, RECOGNITION_REWORK.q1);
     expect(v.map((x) => [x.label, x.green])).toEqual([
-      ["Handed in", false],
-      ["Reworked", true],
+      ["Your first submission", false],
+      ["Your second submission", true],
       ["Group's rework", true],
     ]);
     expect(markedVersions("q1", { lines: RECOGNITION_REWORK.q1, rework: [] }, RECOGNITION_REWORK.q1).map((x) => x.green)).toEqual([true, true]);
@@ -31,8 +31,8 @@ describe("the marked view", () => {
     const last = ["\\tfrac{1}{3}(x^2 + 6x + 8)", "2 \\times 4 = 8,\\quad 2 + 4 = 6", "\\tfrac{1}{3}(x - 2)(x - 4)"];
     const v = markedVersions("q7", { lines: RECOGNITION.q7, rework: RECOGNITION_REWORK.q7 }, last, true);
     expect(v.map((x) => [x.label, x.green])).toEqual([
-      ["Handed in", false],
-      ["Reworked", false],
+      ["Your first submission", false],
+      ["Your second submission", false],
       ["Group's last try", false],
     ]);
     expect(v[2].lines.map((l) => l.mark)).toEqual([null, null, "wrong"]);
