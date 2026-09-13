@@ -3033,8 +3033,8 @@ uploaded problems) settled the following as later, each on purpose.
 
 ## Help menu close (ticket 229, 2026-09-13)
 
-- **A × on the stall notice too.** "Let's talk through the previous hint before giving you another" is the same kind of card over the same scrim and still closes only on a scrim click or Escape. Left alone: the request named the "I'd like a…" box.
-- **A shared card-with-close component.** If more student overlays want the corner ×, a `Scrim` option (or a small `DialogCard`) would keep its size and place identical everywhere instead of each card copying the classes.
+- ~~**A × on the stall notice too.**~~ Done in ticket 231.
+- **A shared card-with-close component.** Ticket 231 made `CardClose` inside `PracticePad.tsx` for the pad's two cards. If overlays elsewhere (the practice prompt, the worked example) want the corner ×, move it beside `Scrim` in `PracticePrompt.tsx` or make `Scrim` take the card and draw it.
 
 ## Finished sets groundwork follow-ups (ticket 210, 2026-09-13)
 
