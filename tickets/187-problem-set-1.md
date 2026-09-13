@@ -4,7 +4,7 @@
 
 **Blocked by:** 185.
 
-**Status:** ready
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -25,9 +25,9 @@ Facts (2026-09-13): categories are derived from the set's problems (`categoriesT
 
 ## Acceptance
 
-- [ ] Classroom shows Problem Set 1 under Past with a computed top gap; clicking lands on Class
-- [ ] Class View: 19 submitted rows with dots, Liam missing, pathway all complete
-- [ ] Mistakes: ten problems, correct/skipped counts, clusters with names; every name opens real work
-- [ ] Groups tab shows its frozen groups
-- [ ] Set 2's history: newest pill equals Set 1's status for that student and skill (test)
-- [ ] vitest (new tests for Set 1 data integrity: 20 students, every wrong problem has attempts, tags exist), eslint, tsc, next build, check:laptop
+- [x] Classroom shows Problem Set 1 under Past with a computed top gap; clicking lands on Class
+- [x] Class View: 19 submitted rows with dots, Liam missing, pathway all complete
+- [x] Mistakes: ten problems, correct/skipped counts, clusters with names; every name opens real work
+- [x] Groups tab shows its frozen groups
+- [x] Set 2's history: newest pill equals Set 1's status for that student and skill (test)
+- [x] vitest (new tests for Set 1 data integrity: 20 students, every wrong problem has attempts, tags exist), eslint, tsc, next build, check:laptop

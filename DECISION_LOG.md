@@ -3664,3 +3664,47 @@ clusters. The sections appear a microtask after the header.
 disagree, and 189's stream reaches the card for free. Aggregating the Mistakes tab's own clusters
 across problems keeps the insight in the teacher's vocabulary (the chip reads like the pills they
 open) and is pure and tested.
+
+## 2026-09-13 · Problem Set 1 is a second fixture beside Problem Set 2, and history reads it as the newest past result (ticket 187)
+
+**Decision.** Problem Set 1 lives in `data/pset1/` as data in Problem Set 2's shapes: `Problem`s with
+their own ids (`ps1-q1` … `ps1-q10`, labels Q1 … Q10), an evaluation table `PS1_EVALUATION` that
+`evaluateLine` reads beside `EVALUATION`, and twenty `Classmate` records, Sam's included
+(`PS1_SAM`). The registry entry is `kind: "finished"` with `sam`, and `AssignmentBundle.sam` carries
+Sam's record on a finished set (null on the live one), so Class View rows, the Mistakes rows and
+counts, and the report read Sam exactly like a classmate there. Every set's individual view is
+`/teacher/a/<id>/report`; `/teacher/report` redirects to Problem Set 2's. A finished set hides the
+live-lesson cards (group progress, class review, live diagnostic) and force submit. History on a
+set's Class View is `categoryHistory(id, student, category)`: the student's category status on
+each earlier finished set in the registry (Problem Set 1's, dated "Sep 3", from
+`classmateHierarchy` of their record), after simulated results dated before it, the last five; the
+simulated ones are drawn around the oldest real result (the student's Problem Set 1 status), so
+Problem Set 1's own five and Problem Set 2's older four are the same pills on the same dates.
+
+**Context.** The user asked for one previous assignment, finished and reviewed, with all twenty
+students and Sam's answers, one student missing, and Problem Set 2's newest history pill per skill
+being that student's real Problem Set 1 result with the older four still generated. Every table
+keyed by problem id (evaluation, diagnostics, standouts) is global, and Problem Set 2's ids are
+`q1` … `q10`. Ticket 175's history was a mix drawn around today's status.
+
+**Alternatives.** *Reuse `q1` … `q10` and key the tables by set*: every caller of `evaluateLine`
+(the drill, the examples, feedback, peers, groups) would need a set id threaded through for no gain
+while ids can simply differ. *A separate Sam row type for finished sets*: two code paths for one
+row. *Keep history drawn around today's status and swap in the real pill*: Problem Set 1's own
+history and Problem Set 2's would disagree on the same August dates, which a teacher flipping
+between the two sets would see. *Store a history table per student*: a second source of truth that
+could drift from the records the Class View colours. *Leave `/teacher/report` as Problem Set 2's
+only and add a second URL for past sets*: two report URL shapes.
+
+**Tradeoffs.** Problem Set 2's history no longer centres its simulated pills on today's status: a
+student red today can show green August pills if they were green on Problem Set 1 (the history is
+"what came before", not a mirror of today). A student who missed Problem Set 1 (Liam) gets a hollow
+Sep 3 pill. Problem Set 1 carries no practice problems, standouts or diagnostics, so it could not
+run live without more authoring.
+
+**Defense.** The data is in the shapes every screen already reads, so Class, Mistakes, Groups, the
+report and the Classroom card worked for Problem Set 1 with small, typed changes and no set-specific
+branches beyond "finished hides the live lesson". History is computed from the same records the
+Class View colours, so the newest past pill cannot disagree with Problem Set 1's own row, and the
+simulated pills are consistent across both sets. All of it is pure and tested (data integrity,
+counts, top gap, history across both sets).

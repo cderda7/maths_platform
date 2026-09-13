@@ -32,12 +32,12 @@ export interface LineVerdict {
   answer?: boolean;
 }
 
-const T = (...leaves: LeafId[]): Tag[] => leaves.map((l) => tag(l));
-const ok = (tags: Tag[], label: string, builtOn = false): LineVerdict => ({ verdict: "ok", tags, label, builtOn });
-const okc = (tags: Tag[], label: string): LineVerdict => ({ verdict: "ok", tags, label, compounds: true });
-const wrong = (tags: Tag[], label: string, clue: string, note: string, name: string): LineVerdict => ({ verdict: "wrong", tags, label, clue, note, name });
+export const T = (...leaves: LeafId[]): Tag[] => leaves.map((l) => tag(l));
+export const ok = (tags: Tag[], label: string, builtOn = false): LineVerdict => ({ verdict: "ok", tags, label, builtOn });
+export const okc = (tags: Tag[], label: string): LineVerdict => ({ verdict: "ok", tags, label, compounds: true });
+export const wrong = (tags: Tag[], label: string, clue: string, note: string, name: string): LineVerdict => ({ verdict: "wrong", tags, label, clue, note, name });
 /** Marks a verdict as an answer line: the problem is finished once this is among its lines. */
-const A = (v: LineVerdict): LineVerdict => ({ ...v, answer: true });
+export const A = (v: LineVerdict): LineVerdict => ({ ...v, answer: true });
 
 const QUAD: LeafId = "algebra.equations.quadratic";
 const LIN: LeafId = "algebra.equations.linear";

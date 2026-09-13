@@ -2658,6 +2658,32 @@ uploaded problems) settled the following as later, each on purpose.
 - **Assignment-level counts on Groups and Class.** The Classroom's numbers (submitted, mistakes so
   far) are not repeated on the assignment's own header.
 
+## Problem Set 1 and past sets (from ticket 187, 2026-09-13)
+
+- **More than one past set.** The history reads every finished set older than the one on screen
+  (`earlierAssignmentIds`), so a Problem Set 0 or a unit test would slot in, but only Problem Set 1
+  exists; the four August pills stay simulated until there is data behind them.
+- **A student absent from a set in their history.** Liam missed Problem Set 1, so his Sep 3 pill on
+  Problem Set 2 is hollow (nothing seen). Skipping the set and showing an older simulated result
+  instead, or marking the pill "missed", is a copy decision for the demo run.
+- **Past sets on the student side.** Problem Set 1 is teacher-side only; the student's own history
+  and report for an earlier set (and a "last time you slipped on this" line in the warm-up) are
+  deferred.
+- **Re-opening a finished set.** A finished set's Class and Mistakes are read-only: no force submit,
+  no live diagnostic, no class review, no group progress. A "review again" or "send a follow-up
+  diagnostic on last week's gap" action from a past set is deferred.
+- **Live-lesson routes per set.** Compare, class review setup and the board are still Problem Set 2's
+  pages outside `/teacher/a/<id>`; only the report moved under the id.
+- **Cross-set insight on Class View.** "Mia slipped on non-monic factorising in both sets" could be
+  a line or a marker on the row; today it is only visible through history mode.
+- **Long confidence skill names.** The confidence column shrinks a named skill to fit on one line
+  (`FitText`), so "non-monic factorising" (Mia's answer on Problem Set 2) and "monic factorising"
+  (Sam's) render at about 5 px at 1400 wide. Problem Set 1's answers avoid long names ("low:
+  factorising"); letting a long skill wrap between words, or a short form per leaf, is deferred: it changes the
+  rule that a named skill never breaks across two lines.
+- **Authored Problem Set 1 practice and warm-ups.** Problem Set 1 has no practice problems, hints,
+  standouts or diagnostics of its own; they would be needed if it ever ran live.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

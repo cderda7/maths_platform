@@ -14,15 +14,17 @@ import StatusKey from "@/components/StatusKey";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { StatusDot, STATUS_WORD } from "@/components/Tag";
 import { DEMO_STUDENT, unitLabel } from "@/data/assignment";
+import type { Classmate } from "@/data/classmates";
 import { categoryLabel, categoryName, categoryOf, isFlat, type CategoryId, type LeafId } from "@/data/taxonomy";
 import { confidenceLabel, confidenceLines } from "@/lib/report";
 import { BEFORE_HAND_IN_STAGES, type Confidence } from "@/data/types";
-import { assignmentStages, rosterProgress } from "@/lib/assignments";
+import { assignmentReportHref, assignmentStages, rosterProgress } from "@/lib/assignments";
 import { currentSlide } from "@/lib/classroom";
 import { useClassroom } from "@/lib/classroom-store";
 import { progressTag } from "@/lib/progress";
 import { classmateEvidence, hierarchyFor, problemsStarted, restrictTo, sessionEvidence, type Evidence } from "@/lib/hierarchy";
-import { historyFor, type HistoryPoint } from "@/lib/history";
+import type { HistoryPoint } from "@/lib/history";
+import { categoryHistory } from "@/lib/setHistory";
 import { useBatchedSession, useNow } from "@/lib/store";
 
 /** How long a second click may follow the first and still count as a double-click. */
@@ -136,7 +138,9 @@ export default function TeacherLive() {
   const { title, problems, unitNumber: unit } = assignment;
   const classroom = useClassroom();
   const wc = classroom.wholeClass;
-  const status = wc?.status === "active" ? " · in class review" : wc?.status === "ended" ? " · complete" : "";
+  // Class review is the live lesson's; a finished set's stages are all over (ticket 187).
+  const finished = assignment.kind === "finished";
+  const status = finished ? " · complete" : wc?.status === "active" ? " · in class review" : wc?.status === "ended" ? " · complete" : "";
   const [open, setOpen] = useState<{ student: string; mode: RowMode; category?: CategoryId; leaf?: LeafId; columns: ColumnBox[]; nonce: number; expandAll?: boolean; keep?: LeafId[] } | null>(null);
   /** A column view: one category open under every student's dot, at group level or with skills too. */
   const [column, setColumn] = useState<{ category: CategoryId; level: "groups" | "expanded"; boxes: Record<string, ColumnBox[]>; nonce: number } | null>(null);
@@ -276,8 +280,23 @@ export default function TeacherLive() {
    * A row still on the set carries its progress beside the name, in the pill that read "in progress" (ticket 185):
    * "Q4 in progress" or "warming up"; the live student before his first screen keeps "not started", and once handed in "in progress" as before.
    */
-  const rows: { id: string; name: string; initials: string; live: boolean; missing: boolean; evidence: Evidence; sub: string; confidence: { text: string; tone: string }; set: string; setSub: string; tag: string | null }[] = [
-    {
+  type Row = { id: string; name: string; initials: string; live: boolean; missing: boolean; evidence: Evidence; sub: string; confidence: { text: string; tone: string }; set: string; setSub: string; tag: string | null };
+  /** A student with a fixed record on the set: a classmate, or Sam on a finished set (ticket 187). */
+  const recordRow = (c: Classmate): Row => ({
+    id: c.id,
+    name: c.name,
+    initials: c.initials,
+    live: false,
+    missing: progress[c.id].kind === "not-started",
+    evidence: progressTag(progress[c.id]) ? NO_EVIDENCE : classmateEvidence(c, problems),
+    sub: "",
+    confidence: c.done === 0 ? confidenceWord(null) : { text: c.confidence, tone: c.confidence === "confident" ? "text-secure" : "text-accent-deep" },
+    set: `${Math.min(c.done, problems.length)}/${problems.length}`,
+    setSub: "",
+    tag: progressTag(progress[c.id]),
+  });
+  const rows: Row[] = [
+    assignment.sam ? recordRow(assignment.sam) : {
       id: DEMO_STUDENT.id,
       name: DEMO_STUDENT.name,
       initials: DEMO_STUDENT.initials,
@@ -290,19 +309,7 @@ export default function TeacherLive() {
       setSub: live && !HANDED_IN.includes(live.stage) ? "handed in" : "",
       tag: progressTag(progress[DEMO_STUDENT.id]) ?? (progress[DEMO_STUDENT.id].kind === "not-started" ? "not started" : "in progress"),
     },
-    ...assignment.classmates.map((c) => ({
-      id: c.id,
-      name: c.name,
-      initials: c.initials,
-      live: false,
-      missing: progress[c.id].kind === "not-started",
-      evidence: progressTag(progress[c.id]) ? NO_EVIDENCE : classmateEvidence(c, problems),
-      sub: "",
-      confidence: c.done === 0 ? confidenceWord(null) : { text: c.confidence, tone: c.confidence === "confident" ? "text-secure" : "text-accent-deep" },
-      set: `${Math.min(c.done, problems.length)}/${problems.length}`,
-      setSub: "",
-      tag: progressTag(progress[c.id]),
-    })),
+    ...assignment.classmates.map(recordRow),
   ];
   const results = rows.map((r) => hierarchyFor(r.evidence, problems));
   const columns = results[0]?.columns ?? [];
@@ -335,7 +342,7 @@ export default function TeacherLive() {
         {history && history.open.length > 0 && (
           <HistoryBlocker
             student={history.student}
-            stacks={history.open.map((c) => ({ category: c, points: historyFor(history.student, c, results[rows.findIndex((r) => r.id === history.student)]?.categories[c] ?? "unseen") }))}
+            stacks={history.open.map((c) => ({ category: c, points: categoryHistory(assignment.id, history.student, c, results[rows.findIndex((r) => r.id === history.student)]?.categories[c] ?? "unseen") }))}
             tableRef={tableRef}
             rosterRef={rosterRef}
             dueRef={dueRef}
@@ -451,7 +458,7 @@ export default function TeacherLive() {
                             <button type="button" onClick={() => (isOpen ? setOpen(null) : openRow(r.id, "expanded"))} className={`${isOpen ? ROW_ACTIVE : ROW_IDLE}`} data-see-skills={r.id} aria-pressed={isOpen}>
                               {isOpen ? "close" : "see dot skills"}
                             </button>
-                            <Link href={`/teacher/report?student=${r.id}`} className={`${ROW_IDLE} text-center`} data-student-link={r.id}>
+                            <Link href={assignmentReportHref(assignment.id, r.id)} className={`${ROW_IDLE} text-center`} data-student-link={r.id}>
                               student report
                             </Link>
                             <button type="button" onClick={() => (inHistory ? setHistory(null) : openHistory(r.id))} className={`${inHistory ? ROW_ACTIVE : ROW_IDLE}`} data-see-history={r.id} aria-pressed={inHistory}>
@@ -534,17 +541,20 @@ export default function TeacherLive() {
                 );
               })}
           </table>
-          <div className={`flex items-center justify-end border-t border-line px-5 py-2.5 text-[12px] text-ink-muted ${history ? "opacity-30" : ""}`}>
-            <span>
-              every {Math.round(everyMs / 1000)}s · updated {ago(updatedAt, now)}
-            </span>
-          </div>
+          {/* A finished set's rows never update (ticket 187): no refresh line under them. */}
+          {!finished && (
+            <div className={`flex items-center justify-end border-t border-line px-5 py-2.5 text-[12px] text-ink-muted ${history ? "opacity-30" : ""}`}>
+              <span>
+                every {Math.round(everyMs / 1000)}s · updated {ago(updatedAt, now)}
+              </span>
+            </div>
+          )}
         </Card>
         </div>
 
         <div className="space-y-6">
           {/* Class review in use: its card leads the column (ticket 129). */}
-          {wcInUse && <WholeClassCard />}
+          {!finished && wcInUse && <WholeClassCard />}
           <Card className="p-6" data-pathway-card>
             <Eyebrow className="inline-block rounded-md bg-accent px-2 py-1 text-white">Pathway</Eyebrow>
             {/* At the card's left (not centred as before ticket 129) so the note beside the current pill has the rest of the card's width. */}
@@ -576,10 +586,14 @@ export default function TeacherLive() {
               ))}
             </ol>
           </Card>
-          <GroupProgressCard session={live} />
-          {!wcInUse && <WholeClassCard />}
-
-          <DiagnosticCard />
+          {/* The live lesson's cards (group review's progress, class review, the live diagnostic) are Problem Set 2's: a finished set's class is not in the room for them (ticket 187). */}
+          {!finished && (
+            <>
+              <GroupProgressCard session={live} />
+              {!wcInUse && <WholeClassCard />}
+              <DiagnosticCard />
+            </>
+          )}
 
           <Card className="p-6">
             <Eyebrow>Key</Eyebrow>

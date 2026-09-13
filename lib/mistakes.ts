@@ -172,12 +172,16 @@ export function rightCount(problem: Problem, index: number, session: StudentSess
 export interface MistakeSet {
   problems: readonly Problem[];
   classmates: readonly Classmate[];
+  /** Sam's handed-in record on a finished set (ticket 187): his row comes from it instead of a session, first like his live row. */
+  sam?: Classmate | null;
 }
 
 export { CLASS_SIZE };
 
 export function mistakesByProblem(session: StudentSession | null, set: MistakeSet = { problems: ASSIGNMENT.problems, classmates: CLASSMATES }): ProblemMistakes[] {
   const mine = session ? feedbackFor(session) : [];
+  // On a finished set Sam is one more record, read like the classmates' and listed first.
+  const records = set.sam ? [set.sam, ...set.classmates] : set.classmates;
   return set.problems
     .map((problem, index) => {
       const rows: MistakeRow[] = [];
@@ -186,12 +190,12 @@ export function mistakesByProblem(session: StudentSession | null, set: MistakeSe
         const lines = me.lines.map((l) => ({ tex: l.tex, verdict: l.verdict }));
         rows.push({ id: DEMO_STUDENT.id, name: DEMO_STUDENT.name, initials: DEMO_STUDENT.initials, live: true, lines, slips: slipsOf(lines) });
       }
-      for (const c of set.classmates) {
+      for (const c of records) {
         if (!c.wrong.includes(problem.id)) continue;
         const lines = evaluateAll(problem.id, c.attempts[problem.id] ?? []);
         rows.push({ id: c.id, name: c.name, initials: c.initials, live: false, lines, slips: slipsOf(lines) });
       }
-      return { problem, rows, right: rightCount(problem, index, session, me, set.classmates) };
+      return { problem, rows, right: rightCount(problem, index, session, me, records) };
     })
     .filter((p) => p.rows.length > 0);
 }

@@ -1,5 +1,5 @@
 import { DEMO_STUDENT } from "@/data/assignment";
-import { CLASSMATE_MAP } from "@/data/classmates";
+import { CLASSMATE_MAP, type Classmate } from "@/data/classmates";
 import { feedbackFor } from "./feedback";
 import type { StudentSession } from "./session";
 
@@ -8,7 +8,8 @@ import type { StudentSession } from "./session";
  * each tied to the problems it is about: for a classmate the fixture's notes, for the demo
  * student the teacher-facing note on every step that didn't hold (the same note the mistakes
  * view shows), one idea per distinct note. The clarification is what the student wrote back:
- * the demo student's reflection once the report is sent, a classmate's scripted line.
+ * the demo student's reflection once the report is sent, a classmate's scripted line. A set other than
+ * Problem Set 2 passes the student's `record` on it (ticket 187), Sam's included on a finished set.
  */
 export interface CommentaryIdea {
   text: string;
@@ -21,7 +22,8 @@ export interface StudentCommentary {
   clarification: string | null;
 }
 
-export function commentaryFor(student: string, session: StudentSession | null): StudentCommentary {
+export function commentaryFor(student: string, session: StudentSession | null, record?: Classmate | null): StudentCommentary {
+  if (record) return { ideas: record.notes.map((n) => ({ text: n.text, problems: [...n.problems] })), clarification: record.clarification ?? null };
   if (student === DEMO_STUDENT.id) {
     if (!session) return { ideas: [], clarification: null };
     const ideas: CommentaryIdea[] = [];

@@ -16,7 +16,7 @@ describe("the assignment registry", () => {
     expect(ASSIGNMENT.id).toBe("pset-2");
     expect(isAssignmentId("pset-2")).toBe(true);
     expect(isAssignmentId("set-3")).toBe(false);
-    expect(assignmentIds(INITIAL_CLASSROOM)).toEqual(["pset-2"]);
+    expect(assignmentIds(INITIAL_CLASSROOM)).toEqual(["pset-2", "pset-1"]);
     expect(assignmentBundle("nope", INITIAL_CLASSROOM)).toBeNull();
   });
 

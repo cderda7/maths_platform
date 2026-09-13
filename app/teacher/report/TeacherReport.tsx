@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { assignmentHref, LIVE_ASSIGNMENT_ID } from "@/lib/assignments";
+import { assignmentHref, studentRecord } from "@/lib/assignments";
 import TeacherChrome from "../TeacherChrome";
 import M from "@/components/Math";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import SkillColumns from "@/components/SkillColumns";
 import StatusKey from "@/components/StatusKey";
-import { DEMO_STUDENT, PROBLEMS } from "@/data/assignment";
-import { CLASSMATE_MAP } from "@/data/classmates";
+import { DEMO_STUDENT } from "@/data/assignment";
 import { groupName } from "@/data/taxonomy";
 import { commentaryFor } from "@/lib/commentary";
 import { reportFacts } from "@/lib/report";
@@ -25,20 +24,22 @@ import { useAssignmentBundle } from "../AssignmentContext";
  * the platform's commentary as a few ideas in a light-blue bubble, and beneath it what the
  * student wrote back in a white box with a purple border. Clicking an idea lights only the
  * skills behind it; the same idea again shows everything. The demo student's report facts and
- * group-review notes follow beneath the skills; a classmate has none.
+ * group-review notes follow beneath the skills; a classmate has none. On a finished set (ticket 187)
+ * everyone, Sam included, is their record on it: no live facts, their notes and their words.
  */
 export default function TeacherReport({ student }: { student: string | null }) {
   const { session } = useBatchedSession(2000);
   const assignment = useAssignmentBundle();
   const { problems, unitNumber: unit } = assignment;
-  const classmate = student && student !== DEMO_STUDENT.id ? CLASSMATE_MAP[student] : undefined;
+  // The set's record of the student: a classmate's, or Sam's on a finished set; none for Sam on the live set, who is his session.
+  const classmate = studentRecord(assignment, student ?? DEMO_STUDENT.id) ?? assignment.sam ?? undefined;
   const who = classmate ?? DEMO_STUDENT;
   const live = !classmate;
   const [idea, setIdea] = useState<number | null>(null);
 
   const evidence: Evidence = classmate ? classmateEvidence(classmate, problems) : session ? sessionEvidence(session) : { lines: {}, submitted: false, caution: [] };
   const full = hierarchyFor(evidence, problems);
-  const commentary = commentaryFor(who.id, session);
+  const commentary = commentaryFor(who.id, session, classmate);
   const chosen = idea !== null ? commentary.ideas[idea] : undefined;
   const result = chosen ? restrictTo(full, leavesBehind(chosen.problems, evidence.lines, problems)) : full;
   const facts = live && session ? reportFacts(session) : null;
@@ -56,7 +57,7 @@ export default function TeacherReport({ student }: { student: string | null }) {
             <H1>{who.name}</H1>
           </div>
         </div>
-        <Link href={assignmentHref(LIVE_ASSIGNMENT_ID, "class")} className="text-[13.5px] text-accent-deep hover:underline">
+        <Link href={assignmentHref(assignment.id, "class")} className="text-[13.5px] text-accent-deep hover:underline">
           ← Class view
         </Link>
       </div>
@@ -111,7 +112,7 @@ export default function TeacherReport({ student }: { student: string | null }) {
                 {facts && facts.stars.length > 0 ? (
                   <ul className="mt-2 space-y-1.5">
                     {facts.stars.map((label) => {
-                      const p = PROBLEMS.find((q) => q.label === label)!;
+                      const p = problems.find((q) => q.label === label)!;
                       return (
                         <li key={label} className="flex items-center gap-2 text-[13.5px] text-ink">
                           <span aria-hidden>★</span> {label}
@@ -150,7 +151,7 @@ export default function TeacherReport({ student }: { student: string | null }) {
                         data-idea={n}
                       >
                         <span className="lowercase">{it.text}</span>
-                        <span className="ml-2 text-[12px] uppercase tracking-wide text-standout">{it.problems.map((id) => PROBLEMS.find((p) => p.id === id)?.label ?? id).join(" ")}</span>
+                        <span className="ml-2 text-[12px] uppercase tracking-wide text-standout">{it.problems.map((id) => problems.find((p) => p.id === id)?.label ?? id).join(" ")}</span>
                       </button>
                     </li>
                   );

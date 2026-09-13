@@ -3,14 +3,14 @@ import type { Status } from "@/data/types";
 
 /**
  * A student's recent history in a category (ticket 175): the status the same category rolled up
- * to on the last five assignments and assessments that touched it, oldest first. Simulated for
- * the demo: there is no earlier work in the data, so the five are drawn from a fixed mix around
- * today's status (a red pill today has red and orange behind it, an orange one mostly orange with
- * some red and some light green, a light green one a mix of orange, light green and dark green,
- * a dark green one mostly dark green with some light green) and shuffled by a seed from the
- * student and category, so every reload and every screenshot shows the same five. An average,
- * not a trend: a dark green three weeks ago on a red-today skill means that set was easier, not
- * that the student has fallen.
+ * to on the last five assignments and assessments that touched it, oldest first. Real where the
+ * data has the set (ticket 187: Problem Set 1's results, `lib/setHistory.ts`), simulated before
+ * it: there is no earlier work in the data, so those points are drawn from a fixed mix around a
+ * status (a red pill has red and orange behind it, an orange one mostly orange with some red and
+ * some light green, a light green one a mix of orange, light green and dark green, a dark green one
+ * mostly dark green with some light green) and shuffled by a seed from the student and category,
+ * so every reload and every screenshot shows the same five. An average, not a trend: a dark green
+ * three weeks ago on a red-today skill means that set was easier, not that the student has fallen.
  */
 export interface HistoryPoint {
   /** The date the evidence was recorded, as the pill's label ("Sep 9"). */
@@ -18,8 +18,14 @@ export interface HistoryPoint {
   status: Status;
 }
 
-/** The five most recent dates a category's status was recorded, oldest first. The same for every student and category. */
-export const HISTORY_DATES = ["Aug 31", "Sep 2", "Sep 3", "Sep 7", "Sep 9"] as const;
+/**
+ * The dates of the five simulated results, oldest first, the same for every student and category: all
+ * before Problem Set 1 (due Thu 3 Sep, ticket 187), whose real result follows them.
+ */
+export const HISTORY_DATES = ["Aug 11", "Aug 14", "Aug 20", "Aug 25", "Aug 28"] as const;
+
+/** How many results a history shows. */
+export const HISTORY_LENGTH = 5;
 
 /** The one student whose history is dark green everywhere: dark green today in every category, and on every earlier set behind it. */
 export const ALL_SECURE_STUDENT = "priya";
@@ -78,7 +84,7 @@ function rng(seed: number): () => number {
   };
 }
 
-/** The five points, oldest first, for one student in one category given the status their pill shows today. */
+/** Five simulated points, oldest first, for one student in one category, drawn around `today` (the status the mix is centred on). */
 export function historyFor(student: string, category: CategoryId, today: Status): HistoryPoint[] {
   if (student === ALL_SECURE_STUDENT) return HISTORY_DATES.map((date) => ({ date, status: "secure" }));
   const next = rng(hash(`${student}/${category}`));
@@ -89,4 +95,21 @@ export function historyFor(student: string, category: CategoryId, today: Status)
     [statuses[i], statuses[j]] = [statuses[j], statuses[i]];
   }
   return HISTORY_DATES.map((date, i) => ({ date, status: statuses[i] }));
+}
+
+/**
+ * A history with real results after the simulated ones (ticket 187): the simulated five, then the
+ * `earlier` sets' results (oldest first), the last five of those. The simulated points are drawn around
+ * the oldest real result when there is one, so a set's history and a later set's agree on every date
+ * they share; with none, around `today`.
+ */
+export function historyWith(student: string, category: CategoryId, today: Status, earlier: readonly HistoryPoint[]): HistoryPoint[] {
+  const simulated = historyFor(student, category, earlier[0]?.status ?? today);
+  return [...simulated, ...earlier].slice(-HISTORY_LENGTH);
+}
+
+/** The pill's date for a set due on a day: "Thu 3 Sep" is "Sep 3". */
+export function historyDate(due: string): string {
+  const m = /(\d{1,2})\s+([A-Za-z]{3})/.exec(due);
+  return m ? `${m[2]} ${m[1]}` : due;
 }

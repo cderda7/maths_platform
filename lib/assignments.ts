@@ -1,5 +1,7 @@
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATES, type Classmate } from "@/data/classmates";
+import { PS1_ASSIGNMENT, PS1_PATHWAY } from "@/data/pset1/assignment";
+import { PS1_CLASSMATES, PS1_SAM } from "@/data/pset1/classmates";
 import type { SeatingGroups } from "@/data/groups";
 import type { Assignment, Pathway, Problem, UnitRef } from "@/data/types";
 import { activeAssignment } from "./assignment";
@@ -26,7 +28,7 @@ export type AssignmentKind = "live" | "finished";
 export type AssignmentTab = "class" | "mistakes" | "groups";
 
 /** A registered set: its fixture and its classmates' results. A live set's pathway is the classroom's; a finished set carries its own. */
-type AssignmentDef = ({ kind: "live" } | { kind: "finished"; pathway: Pathway }) & {
+type AssignmentDef = ({ kind: "live" } | { kind: "finished"; pathway: Pathway; sam: Classmate }) & {
   fixture: Assignment;
   /**
    * The set's name as a teacher writes it, for the Classroom's cards (ticket 186): "Problem Set 2 — Roots of a
@@ -49,7 +51,7 @@ type AssignmentDef = ({ kind: "live" } | { kind: "finished"; pathway: Pathway })
  */
 export const PROBLEM_SET_2_BEFORE_CREATE = true;
 
-/** Newest first. Ticket 187 registers Problem Set 1 (`kind: "finished"`) after Problem Set 2. */
+/** Newest first: Problem Set 2, then Problem Set 1 (ticket 187), which the Classroom always holds. */
 const REGISTRY: readonly AssignmentDef[] = [
   {
     fixture: ASSIGNMENT,
@@ -57,6 +59,15 @@ const REGISTRY: readonly AssignmentDef[] = [
     kind: "live",
     classmates: CLASSMATES,
     exists: (c) => PROBLEM_SET_2_BEFORE_CREATE || !!c?.assignment,
+  },
+  {
+    fixture: PS1_ASSIGNMENT,
+    name: "Problem Set 1 — Features of a parabola",
+    kind: "finished",
+    pathway: PS1_PATHWAY,
+    classmates: PS1_CLASSMATES,
+    sam: PS1_SAM,
+    exists: () => true,
   },
 ];
 
@@ -71,6 +82,12 @@ export const isAssignmentId = (id: string): boolean => defOf(id) !== undefined;
 /** The sets the Classroom holds right now, newest first. */
 export function assignmentIds(c: ClassroomState | null | undefined): string[] {
   return REGISTRY.filter((d) => d.exists(c)).map((d) => d.fixture.id);
+}
+
+/** The registered sets older than `id`, oldest first (ticket 187): the sets a student's history on `id` reads real results from. */
+export function earlierAssignmentIds(id: string): string[] {
+  const i = REGISTRY.findIndex((d) => d.fixture.id === id);
+  return i < 0 ? [] : REGISTRY.slice(i + 1).map((d) => d.fixture.id).reverse();
 }
 
 /** Everything a teacher screen shows about one set. */
@@ -95,6 +112,8 @@ export interface AssignmentBundle {
   classmates: readonly Classmate[];
   /** The set's own groups: frozen when it was created, edited on its Groups tab only. */
   groups: SeatingGroups;
+  /** Sam's handed-in record on a finished set (ticket 187); null on the live set, where his row is his session. */
+  sam: Classmate | null;
 }
 
 /** One set's bundle, or null when the Classroom does not hold it. */
@@ -103,9 +122,18 @@ export function assignmentBundle(id: string, c: ClassroomState | null | undefine
   if (!def || !def.exists(c)) return null;
   const f = def.fixture;
   const base = { id, kind: def.kind, className: f.className, classCode: f.classCode, teacher: f.teacher, due: f.due, unit: f.unit, classmates: def.classmates, groups: assignmentGroupsOf(c, id) };
-  if (def.kind === "finished") return { ...base, title: f.title, name: def.name ?? f.title, unitNumber: f.unit.number, goal: f.goal, problems: f.problems, pathway: def.pathway };
+  if (def.kind === "finished") return { ...base, title: f.title, name: def.name ?? f.title, unitNumber: f.unit.number, goal: f.goal, problems: f.problems, pathway: def.pathway, sam: def.sam };
   const active = activeAssignment(c);
-  return { ...base, title: active.title, name: active.title === f.title ? (def.name ?? f.title) : active.title, unitNumber: active.unit, goal: active.goal, problems: active.problems, pathway: pathwayOf(c) };
+  return { ...base, title: active.title, name: active.title === f.title ? (def.name ?? f.title) : active.title, unitNumber: active.unit, goal: active.goal, problems: active.problems, pathway: pathwayOf(c), sam: null };
+}
+
+/**
+ * One student's fixed record on a set (ticket 187): a classmate's results, or on a finished set Sam's
+ * handed-in record. Null for Sam on the live set (his session is his record) and for an unknown id.
+ */
+export function studentRecord(b: Pick<AssignmentBundle, "classmates" | "sam">, student: string): Classmate | null {
+  if (student === DEMO_STUDENT.id) return b.sam;
+  return b.classmates.find((m) => m.id === student) ?? null;
 }
 
 /**
@@ -157,6 +185,11 @@ export const CLASS_GROUPS_HREF = "/teacher/groups";
 /** A set's page: no tab is the landing, which redirects to Class or Mistakes. */
 export function assignmentHref(id: string, tab?: AssignmentTab): string {
   return tab ? `/teacher/a/${id}/${tab}` : `/teacher/a/${id}`;
+}
+
+/** A student's individual view on a set (ticket 187): no student is Sam. `/teacher/report` redirects to Problem Set 2's. */
+export function assignmentReportHref(id: string, student?: string): string {
+  return `/teacher/a/${id}/report${student ? `?student=${encodeURIComponent(student)}` : ""}`;
 }
 
 /** The tabs a set's header offers: Groups only when its pathway has group review. */

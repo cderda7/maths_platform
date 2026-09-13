@@ -1,4 +1,5 @@
 import { ASSIGNMENT, DEMO_STUDENT } from "./assignment";
+import { PS1_ASSIGNMENT } from "./pset1/assignment";
 
 /**
  * Seating groups: five static groups the teacher sets by hand, in practice the seating chart.
@@ -31,9 +32,9 @@ export const DEFAULT_GROUPS: SeatingGroups = {
 /**
  * Each fixed assignment's frozen copy of the groups, as it was taken when the set was created
  * (ticket 185): what the assignment's Groups tab shows until the teacher moves someone there.
- * Problem Set 2's is the class default fixture; ticket 187 adds Problem Set 1's.
+ * Both sets' are the class default fixture: Problem Set 1 (ticket 187) was taken from the same seating.
  */
-export const FROZEN_GROUPS: Record<string, SeatingGroups> = { [ASSIGNMENT.id]: DEFAULT_GROUPS };
+export const FROZEN_GROUPS: Record<string, SeatingGroups> = { [ASSIGNMENT.id]: DEFAULT_GROUPS, [PS1_ASSIGNMENT.id]: DEFAULT_GROUPS };
 
 /** The intended group size; a group of any other size is flagged, never refused. */
 export const GROUP_SIZE = 4;

@@ -31,8 +31,13 @@ const ACTION_ACTIVE = `${ACTION} bg-accent text-white hover:bg-accent-deep`;
  * takes 10 px of the column.
  */
 const COLUMN_FLOOR = 186;
-/** The two count tags beside a problem card: "15/20 correct" level with the header, "3/20 skipped" right under it (tickets 140, 143). */
-const COUNT = "inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md border border-line bg-cream-deep px-2 py-1 text-[12px] leading-none";
+/** The two count tags beside a problem card: "15/20 correct" level with the header, "3/20 skipped" right under it (tickets 140, 143). Tabular figures, so a count's digits never change its width. */
+const COUNT = "inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md border border-line bg-cream-deep px-2 py-1 text-[12px] leading-none tabular-nums";
+/**
+ * The count column's width, layout px: the widest the tags can be ("20/20 skipped" in tabular figures, 103), so every
+ * problem card starts at the same x whatever its counts (ticket 187: "11/20" left its card 2 px left of "18/20"'s).
+ */
+const COUNT_COLUMN = 103;
 /** A count tag's height: 12 px text on its own line, 4 px padding and 1 px border each side. The column's top padding centres the first tag on the header row. */
 const COUNT_H = 22;
 const LINE = "rounded-xl border px-4 py-2.5 text-[clamp(13px,calc(17px*var(--fit,1)),17px)] whitespace-nowrap text-ink @max-[260px]:px-2 @max-[260px]:py-1.5";
@@ -169,7 +174,7 @@ export default function TeacherMistakes() {
           return (
             <div key={problem.id} className="flex items-start gap-4" data-problem-row={problem.id}>
             {/* The correct count level with the header row (the card's 1 px border, then the header), the skipped count 6 px under it; the two the same width. */}
-            <div className="flex shrink-0 flex-col items-stretch gap-1.5" style={{ paddingTop: (PROBLEM_HEADER + 2 - COUNT_H) / 2 }}>
+            <div className="flex shrink-0 flex-col items-stretch gap-1.5" style={{ width: COUNT_COLUMN, paddingTop: (PROBLEM_HEADER + 2 - COUNT_H) / 2 }}>
               <span className={COUNT} title={`${right} of ${CLASS_SIZE} got it correct · ${rows.length} wrong · ${skipped} skipped`} data-right={`${problem.id}:${right}`}>
                 <span className="font-semibold text-ink">
                   {right}/{CLASS_SIZE}
@@ -296,8 +301,8 @@ export default function TeacherMistakes() {
                 </FitGrid>
               </div>
             </Card>
-            {/* The extra margin keeps the open flyout (laid 25 px left of the chip) clear of the card. */}
-            <DiagnosticPush example={diagnosticFor(problem.id)} problemId={problem.id} className="ml-5 shrink-0" />
+            {/* The extra margin keeps the open flyout (laid 25 px left of the chip) clear of the card. A finished set has no live class to push to (ticket 187). */}
+            {assignment.kind === "live" && <DiagnosticPush example={diagnosticFor(problem.id)} problemId={problem.id} className="ml-5 shrink-0" />}
             </div>
           );
         })}
