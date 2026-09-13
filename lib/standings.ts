@@ -5,7 +5,7 @@ import { RACE_SCHEDULE } from "@/data/race";
 import type { ClassroomState } from "./classroom";
 import { feedbackFor } from "./feedback";
 import { computePhases } from "./group";
-import { currentProblem, groupProgress, penHolder, resolvedMoment, runStartedAt, type GroupRun } from "./groupReview";
+import { closedInOrder, closedMoment, currentProblem, groupProgress, penHolder, runStartedAt, type GroupRun } from "./groupReview";
 import { assignmentGroupsOf } from "./seating";
 import type { StudentSession } from "./session";
 
@@ -32,7 +32,7 @@ export interface GroupStanding {
   names: string[];
   /** The union of the members' mistakes, in assignment order. */
   union: string[];
-  /** Problems of the union resolved so far. */
+  /** Problems of the union closed so far (resolved, or unsolved after the return). */
   resolvedCount: number;
   /** Members' original mistakes: resolved, and in all. */
   resolved: number;
@@ -119,9 +119,10 @@ export function standingsAt(c: ClassroomState | null | undefined, session: Stude
 
 function liveStanding(base: Pick<GroupStanding, "colour" | "members" | "names" | "union" | "live">, run: GroupRun, wrongSets: Record<string, string[]>, startedAt: number): GroupStanding {
   const { resolved, total, percent } = groupProgress(run, wrongSets);
-  const reachedAt = run.resolved.reduce((latest, p) => Math.max(latest, resolvedMoment(run, p)), startedAt);
-  const working = !run.done && run.resolved.length < run.problems.length;
-  return { ...base, resolvedCount: run.resolved.length, resolved, total, percent, reachedAt, pen: working ? (penHolder(run) ?? null) : null, problem: working ? (currentProblem(run) ?? null) : null };
+  const closed = closedInOrder(run);
+  const reachedAt = closed.reduce((latest, p) => Math.max(latest, closedMoment(run, p)), startedAt);
+  const working = !run.done && closed.length < run.problems.length;
+  return { ...base, resolvedCount: closed.length, resolved, total, percent, reachedAt, pen: working ? (penHolder(run) ?? null) : null, problem: working ? (currentProblem(run) ?? null) : null };
 }
 
 /** The leaderboard: percent, then who got there first, then seating order; medals for the first three to finish. */

@@ -7,8 +7,8 @@ import { DEMO_STUDENT, PROBLEM_MAP } from "@/data/assignment";
 import { CLASSMATE_MAP } from "@/data/classmates";
 import { branchesOf } from "@/lib/branches";
 import { dispatchClassroom } from "@/lib/classroom-store";
-import { groupRework, holdOver, holdProgress, markedVersions, marksAt, marksOpen } from "@/lib/debrief";
-import { resolvedMoment, type GroupRun } from "@/lib/groupReview";
+import { groupVersion, holdOver, holdProgress, markedVersions, marksAt, marksOpen } from "@/lib/debrief";
+import { closedMoment, currentProblem, isUnsolved, visitsOf, writerOf, type GroupRun } from "@/lib/groupReview";
 import type { LineMark } from "@/lib/examples";
 import type { SessionAction, StudentSession } from "@/lib/session";
 import { useNow } from "@/lib/store";
@@ -22,21 +22,24 @@ const first = (id: string) => (id === DEMO_STUDENT.id ? "you" : CLASSMATE_MAP[id
  * (blue standouts on the group's rework) and Next, which waits out a ten-second hold. Nothing to
  * write (ticket 218). Both clocks run from the group's check, so a reload keeps the moment. Next
  * moves the group on if it is still on this problem; otherwise the student rejoins the live board.
+ * A problem that closed unsolved on its return (ticket 222) debriefs the same way beside the group's
+ * last try, nothing green, and says the class will look at it together.
  */
 export default function GroupDebrief({ session, dispatch, run, problem }: { session: StudentSession; dispatch: (a: SessionAction) => void; run: GroupRun; problem: string }) {
   const now = useNow();
   const p = PROBLEM_MAP[problem];
   const own = { lines: (session.lines[problem] ?? []).map((l) => l.tex), rework: (session.rework[problem] ?? []).map((l) => l.tex) };
-  const group = groupRework(run, problem)?.lines ?? [];
-  const checkedAt = resolvedMoment(run, problem);
+  const unsolved = isUnsolved(run, problem);
+  const group = groupVersion(run, problem);
+  const checkedAt = closedMoment(run, problem);
   const marked = marksOpen(checkedAt, now);
   const markedAt = marked ? marksAt(checkedAt) : null;
-  const versions = markedVersions(problem, own, group);
+  const versions = markedVersions(problem, own, group, unsolved);
   const progress = holdProgress(markedAt, now);
   const canNext = holdOver(markedAt, now);
-  const holder = run.pen[problem];
-  const groupStillHere = run.problems[run.index] === problem;
-  const last = run.index >= run.problems.length - 1;
+  const holder = writerOf(run, problem) ?? "";
+  const groupStillHere = currentProblem(run) === problem;
+  const last = run.index >= visitsOf(run).length - 1;
 
   const next = () => {
     dispatch({ type: "debrief/done", problem });
@@ -44,15 +47,21 @@ export default function GroupDebrief({ session, dispatch, run, problem }: { sess
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col px-8 py-5" data-debrief={problem} data-phase={marked ? "marked" : "unmarked"}>
+    <div className="flex h-full min-h-0 flex-col px-8 py-5" data-debrief={problem} data-phase={marked ? "marked" : "unmarked"} data-outcome={unsolved ? "unsolved" : "resolved"}>
       <GroupHeader
         session={session}
         label={p.label}
         tex={p.tex}
         right={
-          <span className="rounded-full border border-secure-line bg-secure-soft px-3 py-1 text-[12.5px] font-medium text-ink" data-correct>
-            the group got it · {first(holder)} wrote it
-          </span>
+          unsolved ? (
+            <span className="rounded-full border border-line bg-paper px-3 py-1 text-[12.5px] font-medium text-ink" data-unsolved>
+              not solved yet · we&apos;ll look at it together
+            </span>
+          ) : (
+            <span className="rounded-full border border-secure-line bg-secure-soft px-3 py-1 text-[12.5px] font-medium text-ink" data-correct>
+              the group got it · {first(holder)} wrote it
+            </span>
+          )
         }
       />
 

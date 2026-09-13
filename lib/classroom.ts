@@ -4,7 +4,7 @@ import type { Diagnostic } from "@/data/diagnostic";
 import { ASSIGNMENT } from "@/data/assignment";
 import { DEFAULT_GROUPS, type GroupColour, type SeatingGroups } from "@/data/groups";
 import { assignmentGroupsOf, moveStudent, seatingOf } from "./seating";
-import { beginRun, checkBoard, currentProblem, type GroupRun, type TurnEvent } from "./groupReview";
+import { attemptsOn, beginRun, checkBoard, currentVisit, isClosed, leaving, visitsOf, type GroupRun, type TurnEvent } from "./groupReview";
 import type { ExampleRef } from "./examples";
 import { DEFAULT_PATHWAY } from "./pathway";
 import type { ReviewedQuestion, ReviewState } from "./review";
@@ -191,8 +191,10 @@ export type ClassroomAction =
   | { type: "group/line"; tex: string }
   /** The pen-holder's check; `at` is the moment the standings count from (the store stamps it). */
   | { type: "group/check"; at?: number }
-  /** After a correct check: the next problem, or done after the last. */
+  /** After a problem closes (a correct check, or unsolved on its return): the next visit, or done after the last. */
   | { type: "group/next"; at: number }
+  /** After a third wrong check and its pause: leave the problem for now, guarded by the visit's index so two tabs leave once (ticket 222). */
+  | { type: "group/leave"; index: number; at: number }
   /** A peer's scripted event, applied once by index. */
   | { type: "group/scripted"; index: number; event: TurnEvent; at?: number }
   /** The teacher ended group review (ticket 145): the run is done where it stands and the race holds at `at`. Idempotent. */
@@ -292,7 +294,8 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
     case "group/clear":
     case "group/line":
     case "group/check":
-    case "group/next": {
+    case "group/next":
+    case "group/leave": {
       if (!c.group || c.group.done) return c;
       const next = groupReducer(c.group, a);
       return next === c.group ? c : { ...c, group: next };
@@ -303,7 +306,8 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
       const g = c.group;
       if (!g || a.index !== g.scriptDone) return c;
       const e = a.event;
-      const applied = e.kind === "stroke" ? groupReducer(g, { type: "group/stroke", stroke: e.stroke }) : e.kind === "line" ? groupReducer(g, { type: "group/line", tex: e.tex }) : groupReducer(g, { type: "group/check", at: a.at });
+      const applied =
+        e.kind === "stroke" ? groupReducer(g, { type: "group/stroke", stroke: e.stroke }) : e.kind === "line" ? groupReducer(g, { type: "group/line", tex: e.tex }) : e.kind === "clear" ? groupReducer(g, { type: "group/clear" }) : groupReducer(g, { type: "group/check", at: a.at });
       return { ...c, group: { ...applied, scriptDone: g.scriptDone + 1 } };
     }
     case "wc/setup": {
@@ -385,31 +389,43 @@ type GroupAction = Extract<ClassroomAction, { type: `group/${string}` }>;
 
 /** The board's own rules, one problem at a time. Returns the same run when nothing changes. */
 function groupReducer(g: GroupRun, a: GroupAction): GroupRun {
-  const problem = currentProblem(g);
-  if (!problem) return g;
-  const resolved = g.resolved.includes(problem);
+  const visit = currentVisit(g);
+  if (!visit) return g;
+  const problem = visit.problem;
+  const closed = isClosed(g, problem);
+  // Closed, or holding a third wrong check before leaving: the board takes nothing more on this visit.
+  const shut = closed || leaving(g);
+  // The next visit's turn: a clean board, and the attempts it starts from.
+  const turn = (run: GroupRun, at: number): GroupRun => ({ ...run, index: g.index + 1, strokes: [], lines: [], turnStartedAt: at, scriptDone: 0, turnFrom: attemptsOn(run, visitsOf(run)[g.index + 1]?.problem ?? "").length });
   switch (a.type) {
     case "group/stroke":
-      return resolved ? g : { ...g, strokes: [...g.strokes, a.stroke] };
+      return shut ? g : { ...g, strokes: [...g.strokes, a.stroke] };
     case "group/undo":
-      return resolved || g.strokes.length === 0 ? g : { ...g, strokes: g.strokes.slice(0, -1), lines: g.lines.slice(0, Math.min(g.lines.length, g.strokes.length - 1)) };
+      return shut || g.strokes.length === 0 ? g : { ...g, strokes: g.strokes.slice(0, -1), lines: g.lines.slice(0, Math.min(g.lines.length, g.strokes.length - 1)) };
     case "group/clear":
-      return resolved ? g : { ...g, strokes: [], lines: [] };
+      return shut ? g : { ...g, strokes: [], lines: [] };
     case "group/line":
-      return resolved ? g : { ...g, lines: [...g.lines, a.tex] };
+      return shut ? g : { ...g, lines: [...g.lines, a.tex] };
     case "group/check": {
-      if (resolved || g.lines.length === 0) return g;
+      if (shut || g.lines.length === 0) return g;
       const { correct } = checkBoard(problem, g.lines);
-      const attempt = { lines: g.lines, correct };
+      const at = a.at ?? g.turnStartedAt;
+      const attempt = { lines: g.lines, correct, at };
       const attempts = { ...g.attempts, [problem]: [...(g.attempts[problem] ?? []), attempt] };
+      // Wrong on the return: the problem closes unsolved (ticket 222).
+      if (!correct && visit.returning) return { ...g, attempts, lines: [], unsolved: [...(g.unsolved ?? []), problem], unsolvedAt: { ...(g.unsolvedAt ?? {}), [problem]: at } };
       // A wrong check keeps the board so the line can be fixed; the next attempt's lines start again.
       if (!correct) return { ...g, attempts, lines: [] };
-      return { ...g, attempts, resolved: [...g.resolved, problem], resolvedAt: { ...(g.resolvedAt ?? {}), [problem]: a.at ?? g.turnStartedAt } };
+      return { ...g, attempts, resolved: [...g.resolved, problem], resolvedAt: { ...(g.resolvedAt ?? {}), [problem]: at } };
     }
     case "group/next": {
-      if (!resolved) return g;
-      const last = g.index >= g.problems.length - 1;
-      return last ? { ...g, done: true } : { ...g, index: g.index + 1, strokes: [], lines: [], turnStartedAt: a.at, scriptDone: 0 };
+      if (!closed) return g;
+      const last = g.index >= visitsOf(g).length - 1;
+      return last ? { ...g, done: true } : turn(g, a.at);
+    }
+    case "group/leave": {
+      if (a.index !== g.index || !leaving(g)) return g;
+      return turn({ ...g, left: [...(g.left ?? []), problem] }, a.at);
     }
     default:
       return g;

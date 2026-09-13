@@ -2959,6 +2959,20 @@ uploaded problems) settled the following as later, each on purpose.
   Create no longer infers a unit (the Unit focus card is gone), so a created set in another unit
   would keep the fixture's eyebrow. Deferred: every set in the demo is Unit 1.
 
+## Leaving a problem for now (ticket 222, 2026-09-13)
+
+- **The pen-holder chooses to keep going or move on.** The third wrong check leaves automatically
+  after 6 s; a group that feels close cannot stay. A "one more go" control was not asked for.
+- **More than one return.** A problem left for now comes back once; the ladder ends there. A group
+  that was nearly there on its return still closes unsolved.
+- **The demo student's own turn reaching the leave.** Sam never holds the pen on a problem that is
+  left in the demo; his turns follow the same rules but the presenter would have to write three wrong
+  attempts to see it, and the pad's script has only as many attempts as `GROUP_SCRIPTS` gives.
+- **The unsolved debrief names what to look for.** It shows the three versions and says the class
+  will look at it together; it could point at the step every version got wrong.
+- **A real pen-holder's ink across tries.** A scripted peer now clears the board before each later
+  try; a real pen-holder's ink stays (so a line can be fixed), which piles up over several tries.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

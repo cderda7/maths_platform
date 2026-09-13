@@ -11,7 +11,7 @@ import WorkingScreen from "./screens/WorkingScreen";
 import FeedbackScreen from "./screens/FeedbackScreen";
 import GroupBoardScreen from "./screens/GroupBoardScreen";
 import { groupPlan } from "@/lib/group";
-import { penHolder, turnScript } from "@/lib/groupReview";
+import { closedMoment, currentProblem, currentVisit, isClosed, leaveAt, leaving, penHolder, turnScript, visitsOf } from "@/lib/groupReview";
 import { PEER_DEBRIEF_MS } from "@/lib/debrief";
 import ReportScreen from "./screens/ReportScreen";
 import { useEffect } from "react";
@@ -88,17 +88,25 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
       dispatch({ type: "group/done" });
       return;
     }
-    const resolvedAt = board.resolvedAt?.[board.problems[board.index]];
-    if (resolvedAt !== undefined) {
-      // Resolved: the next pen-holder's first stroke moves the group on. A peer's comes after their own debrief; Sam's is his Next.
-      const nextHolder = board.pen[board.problems[board.index + 1] ?? ""];
-      const last = board.index >= board.problems.length - 1;
-      if ((last || nextHolder !== DEMO_STUDENT.id) && now >= resolvedAt + PEER_DEBRIEF_MS) dispatchClassroom({ type: "group/next", at: now });
+    const problem = currentProblem(board);
+    if (problem === undefined) return;
+    if (isClosed(board, problem)) {
+      // Closed (resolved, or unsolved on its return): the next pen-holder's first stroke moves the group on. A peer's comes after their own debrief; Sam's is his Next.
+      const visits = visitsOf(board);
+      const nextHolder = visits[board.index + 1]?.pen;
+      const last = board.index >= visits.length - 1;
+      if ((last || nextHolder !== DEMO_STUDENT.id) && now >= closedMoment(board, problem) + PEER_DEBRIEF_MS) dispatchClassroom({ type: "group/next", at: now });
+      return;
+    }
+    if (leaving(board)) {
+      // A third wrong check: once the group has read it, the board leaves the problem for now (ticket 222).
+      const at = leaveAt(board);
+      if (now >= at) dispatchClassroom({ type: "group/leave", index: board.index, at });
       return;
     }
     const holder = penHolder(board);
     if (!holder || holder === DEMO_STUDENT.id) return;
-    const events = turnScript(board.problems[board.index]);
+    const events = turnScript(problem, board.turnFrom ?? 0, currentVisit(board)?.returning ?? false);
     const next = events[board.scriptDone];
     if (next && now >= board.turnStartedAt + next.at) dispatchClassroom({ type: "group/scripted", index: board.scriptDone, event: next, at: board.turnStartedAt + next.at });
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -23,15 +23,21 @@ describe("problem outcomes", () => {
     expect(by.wrong).toEqual(["Q7"]);
   });
 
-  it("counts a problem the group's rework checked as correct after group review, once group review is in the pathway", () => {
+  it("counts a problem the group's rework checked as correct after group review, once group review is in the pathway; one the group closed unsolved stays incorrect", () => {
     const { session, classroom } = skipFixture("report", 1_000_000);
-    // Q7: slipped again in the student's own rework, resolved by the group.
+    // Q7: slipped again in the student's own rework, and the group never solved it (ticket 222).
     expect(session.rework.q7?.length).toBeGreaterThan(0);
-    expect(classroom.group?.resolved).toContain("q7");
+    expect(classroom.group?.resolved).not.toContain("q7");
+    expect(classroom.group?.unsolved).toEqual(["q7"]);
     const with_ = labels(outcomeColumns(session, ["individual", "group"], classroom.group));
     expect(with_.individual).toEqual(["Q1", "Q2", "Q3", "Q10"]);
-    expect(with_.group).toEqual(["Q7"]);
-    expect(with_.wrong).toEqual([]);
+    expect(with_.group).toEqual([]);
+    expect(with_.wrong).toEqual(["Q7"]);
+    // Had the group's rework checked, Q7 would sit in the group column.
+    const solved = { ...classroom.group!, resolved: [...classroom.group!.resolved, "q7"], unsolved: [] };
+    const withSolved = labels(outcomeColumns(session, ["individual", "group"], solved));
+    expect(withSolved.group).toEqual(["Q7"]);
+    expect(withSolved.wrong).toEqual([]);
     const without = labels(outcomeColumns(session, ["individual"], classroom.group));
     expect(without.group).toBeUndefined();
     expect(without.wrong).toEqual(["Q7"]);

@@ -12,7 +12,7 @@ import { GROUP_HEX } from "@/data/groups";
 import type { Stroke } from "@/data/types";
 import { branchesOf } from "@/lib/branches";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
-import { attemptsOn, boardHint, cutAtFirstMistake, currentProblem, lastAttempt, ownAttemptScript, penHolder, resolvedCurrent, type CutView } from "@/lib/groupReview";
+import { attemptsOn, boardHint, closedCurrent, comingBack, currentVisit, cutAtFirstMistake, lastAttempt, leaving, ownAttemptScript, type CutView } from "@/lib/groupReview";
 import { nextLine, type RevealedLine } from "@/lib/recognition";
 import { assignmentGroupsOf, groupOfStudent } from "@/lib/seating";
 import type { SessionAction, StudentSession } from "@/lib/session";
@@ -32,7 +32,9 @@ const first = (id: string) => (id === DEMO_STUDENT.id ? "You" : CLASSMATE_MAP[id
  * pen-holder only. A wrong check puts the attempt, cut at the first mistake with the rest as a
  * count, at the top of the column; the board is kept and the next attempt's lines read in
  * beneath; from the second wrong check a hint for the latest first mistake sits under it (ticket
- * 221). A correct check opens the debrief.
+ * 221). The third wrong check holds a moment and leaves the problem for now; the members' row says
+ * which problems come back, and the return is the problem's last try (ticket 222). A correct check,
+ * or a wrong one on the return, opens the debrief.
  */
 export default function GroupBoardScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
   const classroom = useClassroom();
@@ -45,13 +47,18 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
   // A resolved problem the student has not yet moved on from: their debrief, whether or not the group has moved on.
   const debriefing = pendingDebrief(run, session.debrief);
   if (debriefing) return <GroupDebrief session={session} dispatch={dispatch} run={run} problem={debriefing} />;
-  const pid = currentProblem(run)!;
+  const visit = currentVisit(run)!;
+  const pid = visit.problem;
   const problem = PROBLEM_MAP[pid];
-  const holder = penHolder(run)!;
+  const holder = visit.pen;
   const mine = holder === DEMO_STUDENT.id;
-  const resolved = resolvedCurrent(run);
+  const resolved = closedCurrent(run);
+  const moving = leaving(run);
   const last = lastAttempt(run);
   const wrongShown = last && !last.correct && !resolved ? cutAtFirstMistake(pid, last.lines) : null;
+  const later = comingBack(run).map((p) => PROBLEM_MAP[p]?.label ?? p);
+  // Where the problems left for now come back: after the union's last problem, or next once the board is past it.
+  const whenBack = (fromIndex: number) => (fromIndex < run.problems.length - 1 ? `after ${PROBLEM_MAP[run.problems.at(-1)!]?.label}` : "next");
   const colour = groupOfStudent(assignmentGroupsOf(classroom, ASSIGNMENT.id), DEMO_STUDENT.id) ?? "sky";
   const attemptNo = attemptsOn(run).length;
   const hint = boardHint(run);
@@ -85,11 +92,12 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
           </span>
         }
       >
-        <span className="text-[13px] text-ink-muted">
-          {run.index + 1} of {run.problems.length}
+        <span className="text-[13px] text-ink-muted" data-visit={visit.returning ? "return" : "first"}>
+          {visit.returning ? "last try" : `${run.index + 1} of ${run.problems.length}`}
         </span>
       </GroupHeader>
-      <ul className="mt-2 flex gap-1.5" aria-label="Group">
+      <div className="mt-2 flex items-center justify-between gap-3">
+      <ul className="flex gap-1.5" aria-label="Group">
         {run.members.map((id) => (
           <li
             key={id}
@@ -102,6 +110,12 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
           </li>
         ))}
       </ul>
+        {later.length > 0 && (
+          <span className="rounded-full border border-line bg-paper px-2.5 py-0.5 text-[12px] text-ink-soft" data-coming-back={later.join(",")}>
+            {later.join(", ")} {later.length === 1 ? "comes" : "come"} back {whenBack(run.index)}
+          </span>
+        )}
+      </div>
 
       {/* The board takes two thirds, the column the third beside it (the working screen's shape without its problem column). */}
       <div className="mt-3 grid min-h-0 flex-1 grid-cols-[2fr_1fr] gap-5" data-board-row>
@@ -114,7 +128,7 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
             onPenDown={() => setRecognising(true)}
             onUndo={undo}
             onClear={clear}
-            readOnly={!mine || resolved}
+            readOnly={!mine || resolved || moving}
           />
         </div>
 
@@ -140,12 +154,17 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
       </div>
 
       <div className="mt-3 flex items-center justify-end">
-        {mine && !resolved && (
+        {moving && (
+          <span className="rounded-full border border-ink bg-ink px-3.5 py-1.5 text-[13px] font-medium text-white" data-leaving>
+            leaving {problem.label} for now · back to it {whenBack(run.index)}
+          </span>
+        )}
+        {mine && !resolved && !moving && (
           <Button variant="accent" onClick={() => dispatchClassroom({ type: "group/check" })} disabled={run.lines.length === 0 || recognising} data-check>
             Check
           </Button>
         )}
-        {!mine && !resolved && <span className="text-[12.5px] text-ink-muted">{first(holder)} checks when ready</span>}
+        {!mine && !resolved && !moving && <span className="text-[12.5px] text-ink-muted">{first(holder)} checks when ready</span>}
       </div>
     </div>
   );

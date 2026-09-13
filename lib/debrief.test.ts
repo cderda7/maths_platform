@@ -27,6 +27,18 @@ describe("the marked view", () => {
     expect(matchesGroup(RECOGNITION_REWORK.q1.slice(0, 1), RECOGNITION_REWORK.q1)).toBe(false); // a prefix is not a match
     expect(matchesGroup([], [])).toBe(false); // nothing written matches nothing
   });
+  it("an unsolved problem's third pane is the group's last try, marked, and nothing is green (ticket 222)", () => {
+    const last = ["\\tfrac{1}{3}(x^2 + 6x + 8)", "2 \\times 4 = 8,\\quad 2 + 4 = 6", "\\tfrac{1}{3}(x - 2)(x - 4)"];
+    const v = markedVersions("q7", { lines: RECOGNITION.q7, rework: RECOGNITION_REWORK.q7 }, last, true);
+    expect(v.map((x) => [x.label, x.green])).toEqual([
+      ["Handed in", false],
+      ["Reworked", false],
+      ["Group's last try", false],
+    ]);
+    expect(v[2].lines.map((l) => l.mark)).toEqual([null, null, "wrong"]);
+    // An own version the same as the group's last try is still not green.
+    expect(markedVersions("q7", { lines: last, rework: [] }, last, true)[0].green).toBe(false);
+  });
   it("the marks open on their own two seconds after the group's check", () => {
     expect(UNMARKED_MS).toBe(2_000);
     expect(marksAt(1000)).toBe(3_000);

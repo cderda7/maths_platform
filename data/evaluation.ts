@@ -212,6 +212,14 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "pair adds to nine",
     ),
     "\\tfrac{1}{3}(x + 1)(x + 8)": A(ok(T(NONMONIC, BINOM), "Factorised", true)),
+    // Jordan's return to Q7 in group review (ticket 222): the third and the pair right, the brackets' signs flipped.
+    "\\tfrac{1}{3}(x - 2)(x - 4)": A(wrong(
+      T(NONMONIC, BINOM),
+      "Factorised",
+      "Brackets can look right and still be a different expression. Expand them back and compare the middle term with the one you started from.",
+      "Expand (x − 2)(x − 4). Is the middle term +6x?",
+      "signs flipped in the factors",
+    )),
   },
   q8: {
     "x = 1 \\;\\text{or}\\; x = 3": A(ok(T(FEAT, ZERO), "Read from the graph")),

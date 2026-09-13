@@ -64,7 +64,7 @@ const Q2_SIGN = ["2x^2 + 7x - 4 = 0", "ac = -8,\\quad 8 + (-1) = 7", "(2x - 1)(x
 const Q3_EXPAND = ["(x - 3)(x + 2) = 6", "x^2 + x - 6 = 6", "x^2 + x - 12 = 0", "(x + 4)(x - 3) = 0", "x = -4 \\;\\text{or}\\; x = 3"];
 const Q4_B_SIGN = ["a = 3,\\; b = -5,\\; c = -1", "b^2 - 4ac = 25 + 12 = 37", "x = \\dfrac{-5 \\pm \\sqrt{37}}{6}"];
 export const Q7_LOST_THIRD = ["x^2 + 6x + 8", "2 \\times 4 = 8,\\quad 2 + 4 = 6", "(x + 2)(x + 4)"];
-const Q7_PAIR = ["\\tfrac{1}{3}(x^2 + 6x + 8)", "1 \\times 8 = 8,\\quad 1 + 8 = 9", "\\tfrac{1}{3}(x + 1)(x + 8)"];
+export const Q7_PAIR = ["\\tfrac{1}{3}(x^2 + 6x + 8)", "1 \\times 8 = 8,\\quad 1 + 8 = 9", "\\tfrac{1}{3}(x + 1)(x + 8)"];
 const Q9_SIGN = ["-x(x + 6) = 0", "x = 0 \\;\\text{or}\\; x = -6", "x = -3", "h = 9"];
 const Q10_FORMAL = ["b^2 - 4ac = 16 - 20 = -4", "\\Delta < 0 \\Rightarrow \\text{two real solutions}", "\\text{So the graph crosses the x-axis at two points}"];
 

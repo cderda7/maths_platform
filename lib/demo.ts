@@ -5,7 +5,8 @@ import { candidatesFor, problemsByStruggle, suggestExamples } from "./examples";
 import { INITIAL_SESSION, reworkedSession, sessionAt, type StudentSession } from "./session";
 import { LAST_ARRIVAL_MS } from "./readiness";
 import { groupPlan } from "./group";
-import { beginRun, type GroupRun } from "./groupReview";
+import { GROUP_SCRIPTS } from "@/data/group-scripts";
+import { beginRun, checkBoard, type GroupRun } from "./groupReview";
 import { boardOpensAt } from "./groupIntro";
 
 /**
@@ -27,7 +28,11 @@ const everyoneIn = (c: ClassroomState, now: number) => classroomReducer(c, { typ
 /** How many problems the whole-class jump projects: the two the class struggled with most. */
 const PROJECTED = 2;
 
-/** The report jump's group review, already run: begun ten minutes ago, every problem resolved a minute apart, finished six minutes in. */
+/**
+ * The report jump's group review, already run: begun ten minutes ago, the problems closing a minute
+ * apart, finished six minutes in. Each problem's attempts are its script; a problem whose script never
+ * checks correct (Q7, ticket 222) was left for now and closed unsolved on its return, last.
+ */
 export const REPORT_RUN_STARTED_AGO_MS = 10 * 60_000;
 export const REPORT_RUN_FINISHED_AGO_MS = 4 * 60_000;
 function finishedRun(session: StudentSession, now: number): GroupRun {
@@ -41,7 +46,24 @@ function finishedRun(session: StudentSession, now: number): GroupRun {
     problems,
     startedAt,
   );
-  return { ...run, index: Math.max(0, problems.length - 1), resolved: problems, resolvedAt: Object.fromEntries(problems.map((p, i) => [p, i === problems.length - 1 ? finishedAt : Math.round(startedAt + step * (i + 1))])), turnStartedAt: finishedAt, done: true };
+  const attempts = Object.fromEntries(problems.map((p) => [p, (GROUP_SCRIPTS[p]?.attempts ?? []).map((lines) => ({ lines, correct: checkBoard(p, lines).correct }))]));
+  const unsolved = problems.filter((p) => (attempts[p]?.length ?? 0) > 0 && !attempts[p].some((a) => a.correct));
+  const closing = [...problems.filter((p) => !unsolved.includes(p)), ...unsolved];
+  const at = (i: number) => (i === closing.length - 1 ? finishedAt : Math.round(startedAt + step * (i + 1)));
+  const moments = Object.fromEntries(closing.map((p, i) => [p, at(i)]));
+  const resolved = closing.filter((p) => !unsolved.includes(p));
+  return {
+    ...run,
+    attempts,
+    index: Math.max(0, problems.length + unsolved.length - 1),
+    resolved,
+    resolvedAt: Object.fromEntries(resolved.map((p) => [p, moments[p]])),
+    left: unsolved,
+    unsolved,
+    unsolvedAt: Object.fromEntries(unsolved.map((p) => [p, moments[p]])),
+    turnStartedAt: finishedAt,
+    done: true,
+  };
 }
 
 /**

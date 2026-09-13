@@ -4020,3 +4020,30 @@ ever, and the one rule (count the wrong checks) drives the board, the bar and th
 **Tradeoffs.** Escalation and practice prompts group by the home now. A null factor law slip counts toward "finding zeros", and a binomial-identity slip counts toward factorising, where both used to count under "the unit's rules". The New skills column has no group layer, so a set with many new skills lists them flat. The inference reads "met" as assessed under its home and needs two problems. That is a judgment the teacher may disagree with, so the chips stay switchable. Stored sessions and created sets from before this ticket are read through the alias map on every load, which costs a small lookup. The "Unit 1" label beside an open New skills pill is removed: renamed "New skills", it overlapped the Confidence cell and repeated the header. Class review's badge now reads "new skill".
 
 **Defense.** One home per skill means a skill's evidence has one path and one place in the drill. The per-set list is a single field on the assignment, so tickets 211–214 only declare it, and the history can read an earlier set's `categories.new`. The inferred list gives Set 6's agreed list from Set 5, and the rule is consistent with the other agreed lists. Tests check that no evidence is counted twice on either set.
+
+## 2026-09-13 · The board's itinerary is derived from what was left, and "closed" is resolved or unsolved (ticket 222)
+
+**Decision.** The run stores only what happened: `left` (problems left for now, in order),
+`unsolved` and `unsolvedAt`, the `seed`, and `turnFrom` (attempts before this visit). The visits
+are computed (`visitsOf`): the union in order, then one return per left problem, each pen the next
+in the same deal. `resolved` keeps meaning "checked correct"; a problem is closed when it is
+resolved or unsolved, and every consumer that meant "finished with" (progress, the debrief, moving
+on, the standings) reads closed. Leaving happens from the demo's clock loop with the visit's index
+in the action, so two tabs leave once.
+
+**Context.** The ladder needs a second visit to a problem, with another member's pen, after the rest
+of the union; the bar must reach 100% without the problem correct; the report and class review must
+still tell correct from not.
+
+**Alternatives considered.** *Store the visit list* (branch 118's itinerary): every reader of `pen`
+changes and a stored list can disagree with `left`. *Append the left problem to `problems`*: the
+union's count ("4 of 6"), progress and the teacher's union would all double-count it. *Mark an
+unsolved problem resolved with a flag*: every existing "resolved" reader (report columns, the
+"fixed in group review" badge) would need the flag or silently count it as fixed. *Leave in the
+reducer at the check*: the group would never see the third "Not yet" or the notice.
+
+**Tradeoffs.** `visitsOf` recomputes the deal on each read (a handful of shuffles; cheap). A problem
+gets exactly one return. The pause before leaving is a fixed 6 s from the check's stamp.
+
+**Defense.** State stays minimal and replayable, old stored runs read as a first pass, and "closed"
+is one question with one answer for the board, the bar and the debrief.

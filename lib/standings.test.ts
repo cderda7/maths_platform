@@ -4,7 +4,7 @@ import { RACE_SCHEDULE } from "@/data/race";
 import { classroomReducer } from "./classroom";
 import { REPORT_RUN_FINISHED_AGO_MS, REPORT_RUN_STARTED_AGO_MS, skipFixture } from "./demo";
 import { boardOpensAt } from "./groupIntro";
-import { beginRun, groupProgress, ownAttemptScript, resolvedMoment, runStartedAt, type GroupRun } from "./groupReview";
+import { beginRun, closedMoment, groupProgress, ownAttemptScript, resolvedMoment, runStartedAt, type GroupRun } from "./groupReview";
 import { sessionAt } from "./session";
 import { leaderboardAt, ownStanding, raceFinish, raceMoments, raceProgress, rankStandings, standingsAt, unionOf, wrongSetsOf, type GroupStanding } from "./standings";
 
@@ -151,7 +151,10 @@ describe("the leaderboard", () => {
     const run = classroom.group!;
     expect(run.done).toBe(true);
     expect(runStartedAt(run)).toBe(now - REPORT_RUN_STARTED_AGO_MS);
-    expect(resolvedMoment(run, run.problems.at(-1)!)).toBe(now - REPORT_RUN_FINISHED_AGO_MS);
+    // Q7 closed last, unsolved on its return (ticket 222); the rest resolved before it.
+    expect(run.unsolved).toEqual(["q7"]);
+    expect(closedMoment(run, "q7")).toBe(now - REPORT_RUN_FINISHED_AGO_MS);
+    expect(resolvedMoment(run, run.problems.at(-1)!)).toBeLessThan(now - REPORT_RUN_FINISHED_AGO_MS);
     const ranked = leaderboardAt(classroom, session, now);
     expect(ranked.map((r) => r.colour)).toEqual(["mint", "amber", "sky", "coral", "violet"]);
     expect(ranked.map((r) => r.percent)).toEqual([100, 100, 100, 100, 100]);
