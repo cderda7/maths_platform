@@ -182,6 +182,8 @@ export type ClassroomAction =
   | { type: "groups/reset"; assignment?: string }
   /** A student reached the gate into group review. Idempotent per student. */
   | { type: "class/arrive"; student: string; at: number }
+  /** A link that names the gate or the board starts group review over (ticket 226): no run, and this student not yet arrived, so the intro is read again. */
+  | { type: "group/restart"; student: string }
   /** The shared whiteboard. `group/begin` is idempotent: a run already begun is kept. */
   | { type: "group/begin"; members: string[]; problems: string[]; at: number }
   | { type: "group/stroke"; stroke: Stroke }
@@ -287,6 +289,11 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
     }
     case "class/arrive":
       return c.arrivals?.[a.student] !== undefined ? c : { ...c, arrivals: { ...(c.arrivals ?? {}), [a.student]: a.at } };
+    case "group/restart": {
+      const arrivals = { ...(c.arrivals ?? {}) };
+      delete arrivals[a.student];
+      return { ...c, group: null, arrivals };
+    }
     case "group/begin":
       return c.group ? c : { ...c, group: beginRun(a.members, a.problems, a.at) };
     case "group/stroke":

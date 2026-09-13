@@ -4083,3 +4083,15 @@ is one question with one answer for the board, the bar and the debrief.
 **Tradeoffs.** The labels are tight in the Algebra column (73 of 76 px); a two-digit set number will not fit. The simulated walk is seeded by student and category only, so a set's own history and a later set's do not agree pill for pill on the simulated part (different counts and dates). Real jumps stay on screen until the story sheet lands. A linked pill's query is dropped on arrival, so the link is not a shareable deep state after load.
 
 **Defense.** Every rule the user set is one small function (`simulatedWalk`, `simulatedDates`, `assessed`), the core is tested against a synthetic registry today and picks up Sets 1 to 4 without code changes, and the jump test covers every registered set, student and category, so real data that breaks the rule is named rather than hidden.
+
+## 2026-09-13 · A link that names group review starts it over (ticket 226)
+
+**Decision.** `/student?stage=group` and `?stage=class-wait` dispatch `group/restart` on mount: the classroom's group run and the student's arrival are dropped, so group review begins again with the description. The gate and board effects in `StudentApp` do nothing until `useNow` has ticked (it reads 0 during hydration), and the board effect skips a render whose run is not the store's.
+
+**Context.** The user wanted the description every time group review starts. The skip bar already did this (it builds a fresh classroom), but stage links reset only the session: they resumed a stored run (a finished one moved the student straight to the report), and a run begun in the hydration render had `startedAt` = 30 s after the epoch, so its board was open.
+
+**Alternatives considered.** *Reset the whole classroom on a stage link, like the skip bar*: would also drop a `?pathway=` assignment, the teacher's groups and whole-class setup made in another tab. *Clamp `startedAt` in the reducer (ignore times before some date)*: hides the symptom; the arrival at 0 would still open the gate at once. *Keep resuming a stored run on a link*: matches plain `/student`, but the page's rule is that a named stage starts a fresh run.
+
+**Tradeoffs.** A teacher tab watching a run in progress sees it vanish when someone opens a `?stage=group` link in the same browser. A link opened while the class is mid-board restarts the demo group's run. Both are demo-only paths.
+
+**Defense.** The rule is the one the page already states, applied to the classroom half of the state that group review lives in, and the clock guard removes the only way a run could begin with its board already open.

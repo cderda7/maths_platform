@@ -16,7 +16,7 @@ import { PEER_DEBRIEF_MS } from "@/lib/debrief";
 import ReportScreen from "./screens/ReportScreen";
 import { useEffect } from "react";
 import { dispatch, useStudentSession } from "@/lib/store";
-import { dispatchClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
+import { dispatchClassroom, getClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
 import { GRACE_MS, isDue, isPending, isProjecting, openDiagnostic, pathwayOf } from "@/lib/classroom";
 import { pathwayStages } from "@/lib/classStage";
 import FrozenScreen from "./screens/FrozenScreen";
@@ -47,6 +47,8 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
   useEffect(() => {
     // A `?pathway=` deep link creates the demo assignment with that pathway before the run starts.
     if (pathway) dispatchClassroom({ type: "assignment/create", title: ASSIGNMENT.title, problemIds: ASSIGNMENT.problems.map((p) => p.id), pathway, goal: ASSIGNMENT.goal });
+    // A named stage starts a fresh run at that stage: at the gate or on the board, that is a fresh group review, intro first (ticket 226).
+    if (explicit && (initStage === "class-wait" || initStage === "group")) dispatchClassroom({ type: "group/restart", student: DEMO_STUDENT.id });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const session = useStudentSession(initStage, explicit, run);
@@ -70,6 +72,8 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
   const started = readiness.started;
   useEffect(() => {
     // The gate into group review: record the arrival once; go in the moment the class is in (or the teacher started it).
+    // Not before the clock's first tick: the hydration render reads 0, which would date the arrival to 1970 (ticket 226).
+    if (now === 0) return;
     if (atGate && !arrived) dispatchClassroom({ type: "class/arrive", student: DEMO_STUDENT.id, at: now });
     if (atGate && arrived && started) dispatch({ type: "group/start" });
   }, [atGate, arrived, started, now]);
@@ -77,7 +81,9 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
   const onBoard = session.stage === "group";
   const board = classroom.group ?? null;
   useEffect(() => {
-    if (!onBoard) return;
+    // Not before the clock's first tick (a run begun at 0 would have opened its board in 1970, skipping the intro), and not on a
+    // render older than the store (a restart on mount has already dropped this run) (ticket 226).
+    if (!onBoard || now === 0 || (getClassroom().group ?? null) !== board) return;
     if (!board) {
       const plan = groupPlan(session);
       // The board opens once the intro has been read, counted from when the class went in, not from this tab (ticket 220).

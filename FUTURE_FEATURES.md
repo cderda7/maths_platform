@@ -3014,6 +3014,16 @@ uploaded problems) settled the following as later, each on purpose.
 - **Hover detail on a history pill.** A real pill could show the set's title and the student's
   score in the category on hover. Deferred: the link opens the full set.
 
+## Group review entry (ticket 226, 2026-09-13)
+
+- **One clock guard for every effect.** `StudentApp`'s gate and board effects now wait for `useNow`'s
+  first tick; the advance effect is safe only because a deadline is never 0. A `useLiveNow` that
+  returns null until the clock ticks would make the guard impossible to forget. Deferred: three
+  effects, and the rest of the app reads `now` for display only.
+- **Rejoin a group run from a link.** A `?stage=group` link always starts over. A presenter who wants
+  to hand a second device into the same run mid-board has to use plain `/student`. A `?rejoin` flag
+  was not asked for.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

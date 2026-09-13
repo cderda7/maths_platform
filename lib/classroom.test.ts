@@ -93,6 +93,23 @@ describe("ending group review", () => {
   });
 });
 
+describe("starting group review over", () => {
+  it("group/restart drops the run and that student's arrival, keeping everyone else's, so the next begin reads the intro again", async () => {
+    const { beginRun } = await import("./groupReview");
+    const { introShowing, boardOpensFor } = await import("./groupIntro");
+    const { classReadiness } = await import("./readiness");
+    const now = 1_000_000_000;
+    const old = { ...INITIAL_CLASSROOM, arrivals: { sam: now - 3_600_000, liam: now - 3_500_000 }, group: { ...beginRun(["sam", "liam"], ["q1", "q2"], now - 3_000_000), done: true } };
+    const fresh = classroomReducer(old, { type: "group/restart", student: "sam" });
+    expect(fresh.group).toBeNull();
+    expect(fresh.arrivals).toEqual({ liam: now - 3_500_000 });
+    const begun = classroomReducer(fresh, { type: "group/begin", members: ["sam", "liam"], problems: ["q1", "q2"], at: boardOpensFor(classReadiness(fresh, now).startedAt, now) });
+    expect(introShowing(begun.group!, now)).toBe(true);
+    // Without the restart the old arrival would have opened the board at once.
+    expect(boardOpensFor(classReadiness({ ...old, group: null }, now).startedAt, now)).toBeLessThan(now);
+  });
+});
+
 describe("whole-class session", () => {
   const setup = () => classroomReducer(INITIAL_CLASSROOM, { type: "wc/setup", problems: ["q3", "q2", "q1"], examples: { q3: [], q2: [], q1: [] } });
 
