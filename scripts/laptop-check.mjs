@@ -32,16 +32,29 @@ import { join } from "node:path";
 const BEFORE_CREATE = ["/teacher", "/teacher/assignments/create"];
 const CREATE_SET = "/student?pathway=indiv,group";
 const CREATED = `!!JSON.parse(localStorage.getItem("edexia-maths-demo/classroom/v1") ?? "null")?.assignment`;
+/**
+ * The finished sets, newest first; each is measured on Class, Mistakes, Groups and Mia's report. Tickets
+ * 211–214 each uncomment their own line (the blank lines keep four branches from conflicting, as in
+ * `data/finishedSets.ts`).
+ */
+const FINISHED_SETS = [
+  "pset-5",
+
+  // "pset-4", // ticket 214
+
+  // "pset-3", // ticket 213
+
+  // "pset-2", // ticket 212
+
+  // "pset-1", // ticket 211
+];
 const ROUTES = [
   ...BEFORE_CREATE,
   "/teacher",
   "/teacher/a/pset-6/class",
   "/teacher/a/pset-6/mistakes",
   "/teacher/a/pset-6/groups",
-  "/teacher/a/pset-5/class",
-  "/teacher/a/pset-5/mistakes",
-  "/teacher/a/pset-5/groups",
-  "/teacher/a/pset-5/report?student=mia",
+  ...FINISHED_SETS.flatMap((id) => [`/teacher/a/${id}/class`, `/teacher/a/${id}/mistakes`, `/teacher/a/${id}/groups`, `/teacher/a/${id}/report?student=mia`]),
   "/teacher/groups",
   "/teacher/report",
   "/teacher/compare",

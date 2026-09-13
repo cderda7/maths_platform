@@ -2,12 +2,10 @@ import { describe, expect, it } from "vitest";
 import { ASSIGNMENT, DEMO_STUDENT } from "../assignment";
 import { CLASSMATES } from "../classmates";
 import { DEFAULT_GROUPS } from "../groups";
-import { isLeafId } from "../taxonomy";
-import { PS5_ASSIGNMENT, PS5_PATHWAY, PS5_PROBLEMS } from "./assignment";
+import { PS5 } from ".";
+import { PS5_ASSIGNMENT, PS5_PROBLEMS } from "./assignment";
 import { PS5_CLASSMATES, PS5_SAM } from "./classmates";
-import { PS5_EVALUATION } from "./evaluation";
-import { EVALUATION } from "../evaluation";
-import { assignmentBundle, assignmentIds, assignmentReportHref, assignmentStages, earlierAssignmentIds, landingTab, rosterProgress, studentRecord, submittedCount } from "@/lib/assignments";
+import { assignmentBundle, assignmentIds, assignmentReportHref, assignmentStages, landingTab, rosterProgress, studentRecord, submittedCount } from "@/lib/assignments";
 import { evaluateLine } from "@/lib/evaluate";
 import { categoriesTouched } from "@/lib/hierarchy";
 import { groupBySlip, mistakesByProblem } from "@/lib/mistakes";
@@ -23,77 +21,8 @@ const everyone = [PS5_SAM, ...PS5_CLASSMATES];
 const byId = Object.fromEntries(everyone.map((c) => [c.id, c]));
 
 describe("Problem Set 5's data (ticket 187)", () => {
-  it("is Features of a parabola, due Mon 7 Sep, ten problems with their own ids, the same class and unit as Problem Set 6", () => {
-    expect(PS5_ASSIGNMENT).toMatchObject({ id: "pset-5", title: "PROBLEM SET 5 — FEATURES OF A PARABOLA", due: "Mon 7 Sep", className: ASSIGNMENT.className, classCode: ASSIGNMENT.classCode, teacher: ASSIGNMENT.teacher, unit: ASSIGNMENT.unit });
-    expect(PS5_ASSIGNMENT.goal.length).toBeGreaterThan(100);
-    expect(PS5_PROBLEMS.map((p) => p.label)).toEqual(["Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q8", "Q9", "Q10"]);
-    for (const p of PS5_PROBLEMS) expect(EVALUATION[p.id], p.id).toBeUndefined();
-    expect(PS5_PATHWAY).toEqual(["individual", "group"]);
-  });
-
   it("touches the same categories as Problem Set 6, so the class view's columns line up", () => {
     expect(categoriesTouched(PS5_ASSIGNMENT)).toEqual(categoriesTouched(ASSIGNMENT));
-  });
-
-  it("every model-solution step is tagged with real taxonomy leaves and holds in the evaluation table", () => {
-    for (const p of PS5_PROBLEMS) {
-      expect(p.solution.length, p.id).toBeGreaterThan(1);
-      for (const st of p.solution) {
-        expect(st.tags.length, `${p.id}: ${st.tex}`).toBeGreaterThan(0);
-        for (const t of st.tags) expect(isLeafId(t.leaf), t.leaf).toBe(true);
-        expect(evaluateLine(p.id, st.tex).verdict, `${p.id}: ${st.tex}`).toBe("ok");
-      }
-      // A finished problem needs an answer line: the model solution's last step is one.
-      const last = evaluateLine(p.id, p.solution[p.solution.length - 1].tex);
-      expect(last.verdict === "ok" && last.answer, p.id).toBe(true);
-    }
-  });
-
-  it("every verdict's tags exist, and every wrong line has a clue, a note and a short name", () => {
-    for (const [pid, table] of Object.entries(PS5_EVALUATION)) {
-      expect(PS5_PROBLEMS.some((p) => p.id === pid)).toBe(true);
-      for (const [tex, v] of Object.entries(table)) {
-        for (const t of v.tags) expect(isLeafId(t.leaf), `${pid}: ${tex}`).toBe(true);
-        if (v.verdict === "wrong") {
-          expect(v.clue && v.note && v.name, `${pid}: ${tex}`).toBeTruthy();
-          expect(v.name!.split(" ").length, v.name).toBeLessThanOrEqual(5);
-        }
-      }
-    }
-  });
-
-  it("has all twenty students, Sam first, the classmates in Problem Set 6's order", () => {
-    expect(everyone).toHaveLength(CLASS_SIZE);
-    expect(PS5_SAM.id).toBe(DEMO_STUDENT.id);
-    expect(PS5_CLASSMATES.map((c) => [c.id, c.name, c.initials])).toEqual(CLASSMATES.map((c) => [c.id, c.name, c.initials]));
-  });
-
-  it("every student's record is complete: answered count in range, wrong problems reached and worked, every line known, notes on their problems, words and a group line", () => {
-    const ids = PS5_PROBLEMS.map((p) => p.id);
-    for (const c of everyone) {
-      expect(c.done, c.id).toBeGreaterThanOrEqual(0);
-      expect(c.done, c.id).toBeLessThanOrEqual(10);
-      expect(c.groupStatus.length, c.id).toBeGreaterThan(0);
-      for (const pid of c.wrong) {
-        expect(ids.indexOf(pid), `${c.id} ${pid}`).toBeGreaterThanOrEqual(0);
-        expect(ids.indexOf(pid), `${c.id} ${pid} reached`).toBeLessThan(c.done);
-        const lines = c.attempts[pid];
-        expect(lines?.length, `${c.id} ${pid} attempts`).toBeGreaterThan(0);
-        expect(lines.some((tex) => evaluateLine(pid, tex).verdict === "wrong"), `${c.id} ${pid} has a wrong line`).toBe(true);
-        expect(lines.some((tex) => { const v = evaluateLine(pid, tex); return v.verdict !== "unclear" && v.answer; }), `${c.id} ${pid} finished`).toBe(true);
-      }
-      for (const [pid, lines] of Object.entries(c.attempts)) {
-        for (const tex of lines) expect(evaluateLine(pid, tex).verdict, `${c.id} ${pid}: ${tex}`).not.toBe("unclear");
-        // Working on a problem they got right holds line by line.
-        if (!c.wrong.includes(pid)) expect(lines.every((tex) => evaluateLine(pid, tex).verdict === "ok"), `${c.id} ${pid}`).toBe(true);
-      }
-      for (const n of c.notes) for (const pid of n.problems) expect(ids, `${c.id} note`).toContain(pid);
-      if (c.done > 0 && (c.wrong.length > 0 || c.notes.length > 0)) {
-        expect(c.notes.length, c.id).toBeGreaterThan(0);
-        expect(c.clarification?.length, c.id).toBeGreaterThan(0);
-        for (const pid of c.wrong) expect(c.notes.some((n) => n.problems.includes(pid)), `${c.id} ${pid} noted`).toBe(true);
-      }
-    }
   });
 
   it("Liam O'Connell handed nothing in; Priya got everything right; Chloe, missing on Problem Set 6, handed this one in", () => {
@@ -121,19 +50,12 @@ describe("Problem Set 5's data (ticket 187)", () => {
 describe("Problem Set 5 in the registry (ticket 187)", () => {
   const b = assignmentBundle("pset-5", INITIAL_CLASSROOM)!;
 
-  it("is always in the Classroom, after Problem Set 6, finished with its own pathway, classmates, Sam's record and frozen groups", () => {
-    expect(assignmentIds(INITIAL_CLASSROOM)).toContain("pset-5");
-    expect(assignmentIds(null)).toContain("pset-5");
-    expect(b).toMatchObject({ id: "pset-5", kind: "finished", title: PS5_ASSIGNMENT.title, due: "Mon 7 Sep", newSkills: PS5_ASSIGNMENT.newSkills, pathway: ["individual", "group"] });
-    expect(b.problems).toBe(PS5_PROBLEMS);
-    expect(b.classmates).toBe(PS5_CLASSMATES);
-    expect(b.sam).toBe(PS5_SAM);
+  it("is Features of a parabola, due Mon 7 Sep, on the default seating, and does not wait for Problem Set 6 to be created (ticket 188); the shared suite in data/finishedSets.test.ts checks the rest", () => {
+    expect(b).toMatchObject({ id: "pset-5", kind: "finished", title: "PROBLEM SET 5 — FEATURES OF A PARABOLA", due: "Mon 7 Sep", pathway: ["individual", "group"] });
+    expect(PS5.fixture).toBe(PS5_ASSIGNMENT);
     expect(b.groups).toEqual(DEFAULT_GROUPS);
-    // Problem Set 6 exists once created (ticket 188); Problem Set 5 does not wait for it.
-    expect(assignmentIds(INITIAL_CLASSROOM)).toEqual(["pset-5"]);
+    expect(assignmentIds(INITIAL_CLASSROOM)).toContain("pset-5");
     expect(assignmentBundle("pset-6", skipFixture("working", now).classroom)!.sam).toBeNull();
-    expect(earlierAssignmentIds("pset-6")).toEqual(["pset-5"]);
-    expect(earlierAssignmentIds("pset-5")).toEqual([]);
   });
 
   it("nineteen handed in, Liam missing, every stage over, and it lands on Class", () => {
@@ -160,7 +82,7 @@ describe("Problem Set 5 in the registry (ticket 187)", () => {
       expect(CLASS_SIZE - m.right - m.rows.length, m.problem.id).toBeGreaterThanOrEqual(1); // Liam at least
       for (const r of m.rows) expect(r.slips.length, `${m.problem.id} ${r.id}`).toBeGreaterThan(0);
     }
-    expect(ms[3].rows.map((r) => r.id)).toEqual(["sam", "jordan", "tomas", "mia", "chloe", "oliver", "finn", "sofia"]);
+    expect(ms[3].rows.map((r) => r.id)).toEqual(["sam", "jordan", "tomas", "zara", "mia", "chloe", "oliver", "finn", "sofia"]);
     expect(ms[0].right).toBe(18);
   });
 
@@ -179,13 +101,13 @@ describe("Problem Set 5 in the registry (ticket 187)", () => {
     expect(clusters[1].students).toBeLessThan(5);
   });
 
-  it("the Classroom's PAST card: done, 19/20 submitted, top gap non-monic factorising on seven students, well clear of the next", () => {
+  it("the Classroom's PAST card: done, 19/20 submitted, top gap graph features on nine students, non-monic factorising next on seven", () => {
     const card = assignmentCard(b, INITIAL_CLASSROOM, null, now);
-    expect(card).toMatchObject({ id: "pset-5", name: "Problem Set 5 — Features of a parabola", due: "Mon 7 Sep", section: "past", status: "done", submitted: 19, total: 20, mistakes: 45 });
-    expect(card.topGap).toEqual({ slips: ["algebra.expand-factor.nonmonic"], name: "non-monic factorising", students: 7 });
-    // The runners-up (graph features, evaluating) reach five.
-    const rest = mistakesByProblem(null, b).map((m) => ({ ...m, rows: m.rows.filter((r) => !r.slips.includes("algebra.expand-factor.nonmonic")) }));
-    expect(topGap(rest)!.students).toBe(5);
+    expect(card).toMatchObject({ id: "pset-5", name: "Problem Set 5 — Features of a parabola", due: "Mon 7 Sep", section: "past", status: "done", submitted: 19, total: 20, mistakes: 47 });
+    // Ticket 210: the axis given as the height is a graph feature, as on Problem Set 6's Q9, so the sign readers and the height readers make one cluster.
+    expect(card.topGap).toEqual({ slips: ["graphing.quadratics.features"], name: "graph features", students: 9 });
+    const rest = mistakesByProblem(null, b).map((m) => ({ ...m, rows: m.rows.filter((r) => !r.slips.includes("graphing.quadratics.features")) }));
+    expect(topGap(rest)).toEqual({ slips: ["algebra.expand-factor.nonmonic"], name: "non-monic factorising", students: 7 });
   });
 
   it("a name opens that student's own record: report link, commentary and words", () => {

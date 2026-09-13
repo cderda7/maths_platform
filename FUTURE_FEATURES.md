@@ -3036,6 +3036,14 @@ uploaded problems) settled the following as later, each on purpose.
 - **A × on the stall notice too.** "Let's talk through the previous hint before giving you another" is the same kind of card over the same scrim and still closes only on a scrim click or Escape. Left alone: the request named the "I'd like a…" box.
 - **A shared card-with-close component.** If more student overlays want the corner ×, a `Scrim` option (or a small `DialogCard`) would keep its size and place identical everywhere instead of each card copying the classes.
 
+## Finished sets groundwork follow-ups (ticket 210, 2026-09-13)
+
+- **Sentence answers in narrow Mistakes columns**: a problem with four or more distinct wrong workings shrinks each column so a long `\text{…}` answer overflows its box at 1280 (the fit clamps at 13 px and maths never wraps). Set 5's Q10 was folded to three columns instead. A real fix would give such a grid a wider floor (scrolling inside the card) or let a text-only sentence line wrap at word boundaries. Deferred: the data can avoid it and the rule "maths never splits" needs the user's call for sentences.
+- **Board and class review on a finished set**: both are the live lesson's screens; a past set has Class, Mistakes, Groups and reports. Reopening a past set's class review (to reuse examples) was not asked for.
+- **Story sheet from the teacher's side**: the sheet is a developer contract; a teacher-facing "class arc" view (each student's categories across all sets) could be built from the same data once Sets 1–4 exist.
+- **Create's New skills inference with more sets**: `recentSets("pset-6", 2)` becomes Sets 5 and 4 once 214 lands; the inferred list should still be discriminant and null factor law, but a test pinning it against the full registry was not added here.
+- **Grace, Tomas and Jordan never reach the worded problem**: reasoning is *not seen* for them on most sets, so their reasoning history is mostly hollow. A later set could put a short worded problem earlier.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

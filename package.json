@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "check:laptop": "node scripts/laptop-check.mjs",
-    "sweep:hint-boxes": "node scripts/hint-box-sweep.mjs"
+    "sweep:hint-boxes": "node scripts/hint-box-sweep.mjs",
+    "story:sheet": "UPDATE_CLASS_STORY=1 vitest run data/story.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",

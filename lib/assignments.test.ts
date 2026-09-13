@@ -3,6 +3,7 @@ import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
 import { DEFAULT_GROUPS } from "@/data/groups";
 import { PS5_ASSIGNMENT } from "@/data/pset5/assignment";
+import { FINISHED_SETS } from "./finishedSets";
 import { assignmentBundle, assignmentHref, assignmentIds, assignmentStages, assignmentTabs, currentStageOf, isAssignmentId, landingFor, landingTab, LIVE_ASSIGNMENT_ID, liveStartedAt, LIVE_SET_BEFORE_CREATE, recentSets, rosterProgress, submittedCount } from "./assignments";
 import { classroomReducer, INITIAL_CLASSROOM, migrateClassroom, type ClassroomState } from "./classroom";
 import { SKIP_STARTED_AGO_MS, SKIP_TARGETS, skipFixture } from "./demo";
@@ -10,6 +11,8 @@ import { CLASS_SIZE } from "./readiness";
 import { sessionAt } from "./session";
 
 const now = 1_700_000_000_000;
+/** The finished sets, newest first (ticket 210): the Classroom always holds them. */
+const PAST = [...FINISHED_SETS].reverse().map((s) => s.fixture.id);
 /** Problem Set 6 as the create flow leaves it (ticket 188): created with the fixture's set. */
 const CREATED = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: ASSIGNMENT.title, problemIds: ASSIGNMENT.problems.map((p) => p.id), pathway: ["individual", "group"], goal: ASSIGNMENT.goal, at: now });
 
@@ -19,17 +22,18 @@ describe("the assignment registry", () => {
     expect(ASSIGNMENT.id).toBe("pset-6");
     expect(isAssignmentId("pset-6")).toBe(true);
     expect(isAssignmentId("set-3")).toBe(false);
-    expect(assignmentIds(CREATED)).toEqual(["pset-6", "pset-5"]);
+    expect(assignmentIds(CREATED)).toEqual(["pset-6", ...PAST]);
+    expect(PAST[0]).toBe("pset-5");
     expect(assignmentBundle("nope", CREATED)).toBeNull();
   });
 
   it("Problem Set 6 is not in the Classroom until it is created (ticket 188); Reset demo takes it out again", () => {
     expect(LIVE_SET_BEFORE_CREATE).toBe(false);
-    expect(assignmentIds(INITIAL_CLASSROOM)).toEqual(["pset-5"]);
+    expect(assignmentIds(INITIAL_CLASSROOM)).toEqual(PAST);
     expect(assignmentBundle("pset-6", INITIAL_CLASSROOM)).toBeNull();
     expect(isAssignmentId("pset-6")).toBe(true);
     expect(liveStartedAt(INITIAL_CLASSROOM)).toBeNull();
-    expect(assignmentIds(classroomReducer(CREATED, { type: "reset" }))).toEqual(["pset-5"]);
+    expect(assignmentIds(classroomReducer(CREATED, { type: "reset" }))).toEqual(PAST);
   });
 
   it("Create records when the set went live; a skip past creation has it exist, started long before", () => {
@@ -37,7 +41,7 @@ describe("the assignment registry", () => {
     expect(liveStartedAt(classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: "t", problemIds: ["q1"], pathway: [], at: now, startedAt: now - 5 }))).toBe(now - 5);
     for (const t of SKIP_TARGETS) {
       const { classroom } = skipFixture(t, now);
-      expect(assignmentIds(classroom), t).toEqual(["pset-6", "pset-5"]);
+      expect(assignmentIds(classroom), t).toEqual(["pset-6", ...PAST]);
       expect(liveStartedAt(classroom), t).toBe(now - SKIP_STARTED_AGO_MS);
     }
     // An assignment stored before ticket 188 has no startedAt: its creation time stands in.
@@ -76,8 +80,9 @@ describe("the assignment registry", () => {
   });
 
   it("recent sets: the finished sets before a set, newest first (ticket 209)", () => {
-    expect(recentSets("pset-6", 2).map((s) => s.id)).toEqual(["pset-5"]);
-    expect(recentSets("pset-5", 2)).toEqual([]);
+    expect(recentSets("pset-6", 2).map((s) => s.id)).toEqual(PAST.slice(0, 2));
+    expect(recentSets("pset-5", 2).map((s) => s.id)).toEqual(PAST.slice(1, 3));
+    expect(recentSets(PAST[PAST.length - 1], 2)).toEqual([]);
   });
 
   it("links: the landing, each tab, and Groups only on a pathway with group review", () => {

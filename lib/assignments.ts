@@ -1,7 +1,5 @@
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATES, type Classmate } from "@/data/classmates";
-import { PS5_ASSIGNMENT, PS5_PATHWAY } from "@/data/pset5/assignment";
-import { PS5_CLASSMATES, PS5_SAM } from "@/data/pset5/classmates";
 import type { SeatingGroups } from "@/data/groups";
 import type { LeafId } from "@/data/taxonomy";
 import type { Assignment, Pathway, Problem, UnitRef } from "@/data/types";
@@ -9,6 +7,7 @@ import { activeAssignment } from "./assignment";
 import { pathwayOf, type ClassroomState } from "./classroom";
 import { CLASS_STAGE_WORD, classStages, type ClassStage, type ClassStageId } from "./classStage";
 import { isSubmitted, sessionProgress, type StudentProgress } from "./progress";
+import { FINISHED_SETS } from "./finishedSets";
 import { assignmentGroupsOf } from "./seating";
 import type { StudentSession } from "./session";
 import { classmatesAt } from "./stream";
@@ -24,7 +23,8 @@ import { classmatesAt } from "./stream";
  * - `live`: the lesson running now (Problem Set 6). Its title, problems, goal and pathway are the
  *   created assignment's when there is one (`activeAssignment`), its stage follows the classroom
  *   and Sam's session (`classStages`), and Sam's row is his live session.
- * - `finished`: a past set (Problem Set 5, ticket 187): fixed data, every stage over.
+ * - `finished`: a past set (Problem Set 5, ticket 187): fixed data, every stage over. Every finished set
+ *   comes from the one list in `data/finishedSets.ts` (ticket 210), newest due first after the live set.
  */
 export type AssignmentKind = "live" | "finished";
 export type AssignmentTab = "class" | "mistakes" | "groups";
@@ -53,7 +53,7 @@ type AssignmentDef = ({ kind: "live" } | { kind: "finished"; pathway: Pathway; s
  */
 export const LIVE_SET_BEFORE_CREATE = false;
 
-/** Newest first: Problem Set 6, then Problem Set 5 (ticket 187), which the Classroom always holds. */
+/** Newest first: Problem Set 6, then every finished set (ticket 210) newest due first, which the Classroom always holds. */
 const REGISTRY: readonly AssignmentDef[] = [
   {
     fixture: ASSIGNMENT,
@@ -62,15 +62,7 @@ const REGISTRY: readonly AssignmentDef[] = [
     classmates: CLASSMATES,
     exists: (c) => LIVE_SET_BEFORE_CREATE || !!c?.assignment,
   },
-  {
-    fixture: PS5_ASSIGNMENT,
-    name: "Problem Set 5 — Features of a parabola",
-    kind: "finished",
-    pathway: PS5_PATHWAY,
-    classmates: PS5_CLASSMATES,
-    sam: PS5_SAM,
-    exists: () => true,
-  },
+  ...[...FINISHED_SETS].reverse().map((s): AssignmentDef => ({ fixture: s.fixture, name: s.name, kind: "finished", pathway: s.pathway, classmates: s.classmates, sam: s.sam, exists: () => true })),
 ];
 
 /**

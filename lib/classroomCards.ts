@@ -1,5 +1,6 @@
 import type { LeafId } from "@/data/taxonomy";
 import { leafName } from "@/data/taxonomy";
+import { dueOrder } from "./dueDate";
 import { assignmentBundle, assignmentHref, assignmentIds, assignmentStages, currentStageOf, submittedCount, type AssignmentBundle } from "./assignments";
 import type { ClassroomState } from "./classroom";
 import { mistakesByProblem, type ProblemMistakes } from "./mistakes";
@@ -87,18 +88,8 @@ export function assignmentCard(b: AssignmentBundle, c: ClassroomState | null | u
   return { id: b.id, name: b.name, due: b.due, href: assignmentHref(b.id), section, status, submitted, total, mistakes: mistakeCount(mistakes), topGap: topGap(mistakes) };
 }
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
-
-/**
- * A due date's place in the (one) school year, for sorting: "Mon 7 Sep" is later than "Fri 28 Aug".
- * The sets carry their due day as it reads on the card, weekday, day and month with no year (one
- * class, one term, ASSUMPTIONS.md); a date that does not read that way sorts last (-1).
- */
-export function dueOrder(due: string): number {
-  const m = /(\d{1,2})\s+([A-Z][a-z]{2})/.exec(due);
-  const month = m ? MONTHS.indexOf(m[2] as (typeof MONTHS)[number]) : -1;
-  return m && month >= 0 ? month * 31 + Number(m[1]) : -1;
-}
+/** A due date's place in the year (`lib/dueDate.ts`), for sorting. */
+export { dueOrder };
 
 /** Cards newest due first (ticket 216); cards due the same day keep the order given. */
 export const newestFirst = (cards: readonly AssignmentCard[]): AssignmentCard[] => [...cards].sort((a, b) => dueOrder(b.due) - dueOrder(a.due));

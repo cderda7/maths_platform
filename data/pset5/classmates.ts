@@ -10,14 +10,24 @@ import { PS5_PROBLEMS } from "./assignment";
  *
  * The set came before Problem Set 6, and the habits in it are the ones Problem Set 6 catches:
  * - Guessed non-monic pairs, never expanded back (Q4, Q8): Jordan, Mia, Oliver, Sofia, Chloe,
- *   Ethan. Mia and Jordan guess the pair again on Problem Set 6's Q2; this is the set's top gap.
+ *   Ethan. Mia and Jordan guess the pair again on Problem Set 6's Q2.
  * - A turning point's sign read off the bracket (Q2, Q3, Q6): Tomas, Lucas, Finn, and Sam.
- * - The axis given where the height was asked (Q10): Zara, Ethan, Isla, Ruby, as on Problem Set 6's Q9.
+ * - The axis given where the height was asked (Q10): Zara, Ethan, Ruby and Harper, as on Problem Set
+ *   6's Q9. A graph feature, as there (ticket 210), so with the sign readers it is the set's top gap.
+ * - A sentence that does not follow from the working (Q10): Amelia, Isla and Lucas give the landing as the
+ *   nozzle's zero, as Amelia, Isla and Lucas each misread their result on Problem Set 6's Q10.
+ * - Something added or cleared and not taken back (Q6, Q8): Amelia and Zara, as with the third on
+ *   Problem Set 6's Q7.
  * - Fractions and signs (Q1, Q4, Q5): Tomas, whose confidence answer names fractions on both sets.
- * - Scaling part of an expression (Q7): Aiden, the same slip as his Problem Set 6 Q7.
+ * - Scaling part of an expression (Q7): Aiden, the same slip as his Problem Set 6 Q7, and Harper.
+ * - A pair that multiplies but does not add (Q9): Ruby, as on Problem Set 6's Q7.
  * Priya gets everything right; Grace gets everything she reached right in one jump a line;
  * Liam O'Connell handed nothing in (on Problem Set 6 he hands in two problems); Chloe, missing on
  * Problem Set 6, handed this one in.
+ *
+ * Every student's category results equal the class story sheet's Set 5 row (`data/story.ts`), one step
+ * from Problem Set 6 at most. Ticket 210 changed Amelia, Tomas, Zara, Ethan, Isla, Lucas, Harper, Oliver
+ * and Ruby's work to get there (before it, twenty results jumped two or three steps to Problem Set 6).
  */
 
 const solution = (n: number): string[] => PS5_PROBLEMS[n - 1].solution.map((s) => s.tex);
@@ -25,13 +35,11 @@ const solution = (n: number): string[] => PS5_PROBLEMS[n - 1].solution.map((s) =
 /* ---------- the class's workings on the problems they got wrong, one per distinct way ---------- */
 
 /** Q1: the intercepts read off the factors with their signs as printed. */
-const Q1_SIGNS = ["x = 0:\\; y = (-2)(6) = -12", "x = -2 \\;\\text{or}\\; x = 6"];
+const Q1_SIGNS = ["x = 0:\\; y = (-2)(6) = -12", "x + 2 = 0 \\;\\text{or}\\; x - 6 = 0", "x = -2 \\;\\text{or}\\; x = 6"];
 /** Q2: h read as +3 from (x + 3). */
 const Q2_SIGN = ["h = 3,\\; k = -8", "\\text{turning point } (3, -8)", "\\text{axis of symmetry } x = 3"];
 /** Q3: the turning point's x with its sign flipped; the y-intercept still right. */
 const Q3_TP_SIGN = ["\\text{turning point } (-4, 9)", "y = -(0 - 4)^2 + 9", "y = -16 + 9 = -7"];
-/** Q3: −(−4)² squared with its minus. */
-const Q3_MINUS = ["\\text{turning point } (4, 9)", "y = -(0 - 4)^2 + 9", "y = 16 + 9 = 25"];
 /** Q4: a pair that multiplies to −24 but gives +2x. */
 const Q4_GUESSED = ["3x^2 - 10x - 8 = 0", "(3x - 4)(x + 2) = 0", "x = \\tfrac{4}{3} \\;\\text{or}\\; x = -2"];
 /** Q4: the right split, the signs in the wrong brackets. */
@@ -61,8 +69,10 @@ const Q8_NOT_HALVED = ["ac = -6,\\quad 6 + (-1) = 5", "y = (2x - 1)(x + 3)", "x 
 const Q9_UPWARDS = ["a = -1 < 0 \\Rightarrow \\text{concave up}", "y\\text{-intercept } (0, 8)", "-(x^2 - 2x - 8) = -(x - 4)(x + 2) = 0", "x = 4 \\;\\text{or}\\; x = -2", "x = 1,\\; y = -1 + 2 + 8 = 9", "\\text{minimum turning point } (1, 9)"];
 /** Q9: −1 taken out with the signs inside left behind. */
 const Q9_SIGN_LEFT = ["a = -1 < 0 \\Rightarrow \\text{concave down}", "y\\text{-intercept } (0, 8)", "-(x^2 + 2x - 8) = -(x + 4)(x - 2) = 0", "x = -4 \\;\\text{or}\\; x = 2", "x = -1,\\; y = -1 - 2 + 8 = 5", "\\text{maximum turning point } (-1, 5)"];
-/** Q10: the quarter undone by multiplying by a quarter. */
-const Q10_QUARTER = ["\\text{turning point } (2, 1)", "-\\tfrac{1}{4}(x - 2)^2 + 1 = 0", "(x - 2)^2 = \\tfrac{1}{4}", "x - 2 = \\pm \\tfrac{1}{2}", "x = \\tfrac{3}{2} \\;\\text{or}\\; x = \\tfrac{5}{2}", "\\text{The water reaches 1 m and lands 2.5 m from the nozzle}"];
+/** Q9: a pair that multiplies to −8 but does not add to −2, never expanded back; the turning point still found from the rule. */
+const Q9_MONIC_PAIR = ["a = -1 < 0 \\Rightarrow \\text{concave down}", "y\\text{-intercept } (0, 8)", "-(x^2 - 2x - 8) = -(x - 8)(x + 1) = 0", "x = 8 \\;\\text{or}\\; x = -1", "x = 1,\\; y = -1 + 2 + 8 = 9", "\\text{maximum turning point } (1, 9)"];
+/** Q10: the working right, the landing given as the nozzle's own zero. */
+const Q10_NOZZLE = [...solution(10).slice(0, 5), "\\text{The water reaches 1 m and lands 0 m from the nozzle}"];
 /** Q10: the turning point's x given as the height. */
 const Q10_AXIS_HEIGHT = [...solution(10).slice(0, 5), "\\text{The water reaches 2 m and lands 4 m from the nozzle}"];
 const Q10_AXIS_HEIGHT_RUSHED = ["\\text{turning point } (2, 1)", "x = 4", "\\text{The water reaches 2 m and lands 4 m from the nozzle}"];
@@ -128,15 +138,15 @@ export const PS5_CLASSMATES: Classmate[] = [
     initials: "AC",
     confidence: "low",
     done: 10,
-    wrong: [q(3), q(9), q(10)],
+    wrong: [q(6), q(8), q(10)],
     notes: [
-      { text: "the minus squared along with the bracket", problems: [q(3)] },
-      { text: "negative a read as concave up", problems: [q(9)] },
-      { text: "undid the quarter by multiplying by a quarter", problems: [q(10)] },
+      { text: "added 16 to complete the square, never took it away", problems: [q(6)] },
+      { text: "sum of the intercepts never halved", problems: [q(8)] },
+      { text: "the landing given as the nozzle's zero", problems: [q(10)] },
     ],
-    attempts: { [q(3)]: Q3_MINUS, [q(9)]: Q9_UPWARDS, [q(10)]: Q10_QUARTER },
-    clarification: "I pictured the graph the wrong way up in Q9, a negative looked like a smile to me. In Q3 I squared the minus too. In Q10 I got confused about whether to times or divide by the quarter.",
-    groupStatus: "Group review done · sketched Q9 both ways",
+    attempts: { [q(6)]: Q6_NOT_TAKEN_AWAY, [q(8)]: Q8_NOT_HALVED, [q(10)]: Q10_NOZZLE },
+    clarification: "In Q6 I added the 16 and didn't take it back off, and in Q8 I added the intercepts and forgot the halving. In Q10 I had x = 0 and x = 4 and wrote the first one because it came first.",
+    groupStatus: "Group review done · what each answer means in Q10",
   },
   {
     id: "tomas",
@@ -161,13 +171,14 @@ export const PS5_CLASSMATES: Classmate[] = [
     initials: "ZH",
     confidence: "confident",
     done: 10,
-    wrong: [q(6), q(10)],
+    wrong: [q(4), q(6), q(10)],
     notes: [
+      { text: "solved 3x + 2 = 0 as −3/2", problems: [q(4)] },
       { text: "added 16 to complete the square, never took it away", problems: [q(6)] },
       { text: "axis given as the height", problems: [q(10)] },
     ],
-    attempts: { [q(6)]: Q6_NOT_TAKEN_AWAY, [q(10)]: Q10_AXIS_HEIGHT },
-    clarification: "In Q6 I added the 16 to make the square and forgot I had to take it off again. In Q10 I wrote the first number of the turning point as the height.",
+    attempts: { [q(4)]: Q4_UPSIDE_DOWN, [q(6)]: Q6_NOT_TAKEN_AWAY, [q(10)]: Q10_AXIS_HEIGHT },
+    clarification: "In Q4 my brackets were right and I turned the fraction over solving 3x + 2 = 0. In Q6 I added the 16 to make the square and forgot I had to take it off again. In Q10 I wrote the first number of the turning point as the height.",
     groupStatus: "Group review done · Q10, which number is the height",
   },
   {
@@ -243,15 +254,14 @@ export const PS5_CLASSMATES: Classmate[] = [
     initials: "EK",
     confidence: "low",
     done: 10,
-    wrong: [q(5), q(6), q(8), q(10)],
+    wrong: [q(5), q(8), q(10)],
     notes: [
       { text: "(−3)² taken as −9, the axis not shown", problems: [q(5)] },
-      { text: "added 16 to complete the square, never took it away", problems: [q(6)] },
       { text: "non-monic pair guessed, never expanded back", problems: [q(8)] },
       { text: "axis given as the height, jumped straight to it", problems: [q(10)] },
     ],
-    attempts: { [q(5)]: Q5_SQUARE_RUSHED, [q(6)]: Q6_NOT_TAKEN_AWAY, [q(8)]: Q8_GUESSED, [q(10)]: Q10_AXIS_HEIGHT_RUSHED },
-    clarification: "I rushed the end. In Q10 I saw the turning point and wrote it down as the answer. On Q5 I squared −3 and got −9 and on Q6 I didn't take the 16 back off.",
+    attempts: { [q(5)]: Q5_SQUARE_RUSHED, [q(8)]: Q8_GUESSED, [q(10)]: Q10_AXIS_HEIGHT_RUSHED },
+    clarification: "I rushed the end. In Q10 I saw the turning point and wrote it down as the answer. On Q5 I squared −3 and got −9, and in Q8 I wrote brackets that looked right.",
     groupStatus: "Group review done · slowing down on Q10",
   },
   {
@@ -260,13 +270,14 @@ export const PS5_CLASSMATES: Classmate[] = [
     initials: "IM",
     confidence: "confident",
     done: 10,
-    wrong: [q(5), q(10)],
+    wrong: [q(5), q(9), q(10)],
     notes: [
       { text: "axis of symmetry without the minus", problems: [q(5)] },
-      { text: "axis given as the height", problems: [q(10)] },
+      { text: "took −1 out and left the signs inside behind", problems: [q(9)] },
+      { text: "the landing given as the nozzle's zero", problems: [q(10)] },
     ],
-    attempts: { [q(5)]: Q5_NO_MINUS, [q(10)]: Q10_AXIS_HEIGHT },
-    clarification: "I had all the working for Q10 right and wrote the wrong number in the sentence. In Q5 I left the minus off −b.",
+    attempts: { [q(5)]: Q5_NO_MINUS, [q(9)]: Q9_SIGN_LEFT, [q(10)]: Q10_NOZZLE },
+    clarification: "I had all the working for Q10 right and wrote the wrong number in the sentence. In Q5 I left the minus off −b, and in Q9 I took the minus out without changing the signs inside.",
     groupStatus: "Group review done · reading the sentence back",
   },
   {
@@ -275,13 +286,14 @@ export const PS5_CLASSMATES: Classmate[] = [
     initials: "LT",
     confidence: "low: graph features",
     done: 10,
-    wrong: [q(2), q(3), q(9)],
+    wrong: [q(2), q(3), q(9), q(10)],
     notes: [
       { text: "turning point read with the sign flipped", problems: [q(2), q(3)] },
-      { text: "negative a read as concave up", problems: [q(9)] },
+      { text: "took −1 out and left the signs inside behind", problems: [q(9)] },
+      { text: "the landing given as the nozzle's zero", problems: [q(10)] },
     ],
-    attempts: { [q(2)]: Q2_SIGN, [q(3)]: Q3_TP_SIGN, [q(9)]: Q9_UPWARDS },
-    clarification: "I don't really get which way the turning point moves. I thought x + 3 meant right 3. And I mixed up which sign of a makes it open down.",
+    attempts: { [q(2)]: Q2_SIGN, [q(3)]: Q3_TP_SIGN, [q(9)]: Q9_SIGN_LEFT, [q(10)]: Q10_NOZZLE },
+    clarification: "I don't really get which way the turning point moves. I thought x + 3 meant right 3. In Q9 I didn't change the signs when I took the minus out, and in Q10 I wrote down the first x I got as where the water lands.",
     groupStatus: "Group review done · moving the graph left and right",
   },
   {
@@ -301,16 +313,16 @@ export const PS5_CLASSMATES: Classmate[] = [
     name: "Harper Singh",
     initials: "HS",
     confidence: "confident",
-    done: 8,
-    wrong: [q(3), q(5), q(7)],
+    done: 10,
+    wrong: [q(7), q(9), q(10)],
     notes: [
-      { text: "the minus squared along with the bracket", problems: [q(3)] },
-      { text: "(−3)² taken as −9", problems: [q(5)] },
-      { text: "(x − 3)² squared term by term", problems: [q(7)] },
+      { text: "the 2 multiplied x² and nothing else", problems: [q(7)] },
+      { text: "negative a read as concave up", problems: [q(9)] },
+      { text: "axis given as the height, jumped straight to it", problems: [q(10)] },
     ],
-    attempts: { [q(3)]: Q3_MINUS, [q(5)]: Q5_SQUARE, [q(7)]: Q7_SQUARED_APART },
-    clarification: "Every one of mine was a sign or a square done too fast. I got a y-intercept above the top of the graph in Q3 and didn't notice.",
-    groupStatus: "Group review done · squaring negatives",
+    attempts: { [q(7)]: Q7_FIRST_TERM, [q(9)]: Q9_UPWARDS, [q(10)]: Q10_AXIS_HEIGHT_RUSHED },
+    clarification: "Every one of mine was done too fast. In Q7 I only multiplied the first term, in Q9 I wrote concave up without looking at the minus, and in Q10 I jumped to the turning point and called it the height.",
+    groupStatus: "Group review done · Q7 term by term",
   },
   {
     id: "oliver",
@@ -318,13 +330,13 @@ export const PS5_CLASSMATES: Classmate[] = [
     initials: "OB",
     confidence: "low: factorising",
     done: 9,
-    wrong: [q(4), q(8), q(9)],
+    wrong: [q(4), q(7), q(8)],
     notes: [
       { text: "non-monic pairs guessed, never expanded back", problems: [q(4), q(8)] },
-      { text: "took −1 out and left the signs inside behind", problems: [q(9)] },
+      { text: "(x − 3)² squared term by term", problems: [q(7)] },
     ],
-    attempts: { [q(4)]: Q4_GUESSED, [q(8)]: Q8_GUESSED, [q(9)]: Q9_SIGN_LEFT },
-    clarification: "Factorising is the part I guess. I didn't check any of them. I didn't have time for Q10.",
+    attempts: { [q(4)]: Q4_GUESSED, [q(7)]: Q7_SQUARED_APART, [q(8)]: Q8_GUESSED },
+    clarification: "Factorising is the part I guess. I didn't check any of them, and I squared the bracket in Q7 without writing it out. I didn't have time for Q10.",
     groupStatus: "Group review done · checking pairs by expanding",
   },
   {
@@ -333,13 +345,14 @@ export const PS5_CLASSMATES: Classmate[] = [
     initials: "RC",
     confidence: "confident",
     done: 10,
-    wrong: [q(5), q(10)],
+    wrong: [q(5), q(9), q(10)],
     notes: [
       { text: "(−3)² taken as −9", problems: [q(5)] },
+      { text: "a pair that multiplies to −8 but doesn't add to −2", problems: [q(9)] },
       { text: "axis given as the height", problems: [q(10)] },
     ],
-    attempts: { [q(5)]: Q5_SQUARE, [q(10)]: Q10_AXIS_HEIGHT },
-    clarification: "I read the height off the wrong part of the turning point in Q10. In Q5 I did −3 squared without brackets.",
+    attempts: { [q(5)]: Q5_SQUARE, [q(9)]: Q9_MONIC_PAIR, [q(10)]: Q10_AXIS_HEIGHT },
+    clarification: "I read the height off the wrong part of the turning point in Q10. In Q5 I did −3 squared without brackets. In Q9 I took 8 and 1 because they multiply to 8 and didn't check the middle.",
     groupStatus: "Group review done · Q10, which number is the height",
   },
   {
@@ -364,14 +377,10 @@ export const PS5_CLASSMATES: Classmate[] = [
     initials: "SP",
     confidence: "low: fractions",
     done: 10,
-    wrong: [q(4), q(8), q(10)],
-    notes: [
-      { text: "non-monic pair guessed, never expanded back", problems: [q(4)] },
-      { text: "sum of the intercepts never halved", problems: [q(8)] },
-      { text: "undid the quarter by multiplying by a quarter", problems: [q(10)] },
-    ],
-    attempts: { [q(4)]: Q4_GUESSED, [q(8)]: Q8_NOT_HALVED, [q(10)]: Q10_QUARTER },
-    clarification: "The quarter in Q10 threw me, I wasn't sure what undoes it. In Q8 the halves got messy and I forgot to halve again. I guessed the brackets in Q4.",
-    groupStatus: "Group review done · fractions in Q8 and Q10",
+    wrong: [q(4), q(8)],
+    notes: [{ text: "non-monic pairs guessed, never expanded back", problems: [q(4), q(8)] }],
+    attempts: { [q(4)]: Q4_GUESSED, [q(8)]: Q8_GUESSED },
+    clarification: "I guessed the brackets in Q4 and Q8. The numbers in front of x squared made the halves messy, so I tried pairs until one looked right.",
+    groupStatus: "Group review done · the split on Q4 and Q8",
   },
 ];
