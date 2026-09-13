@@ -4059,3 +4059,15 @@ is one question with one answer for the board, the bar and the debrief.
 **Tradeoffs.** Editing the message no longer retimes the screen; a much longer message would need the number changed by hand. At 30 s, a slow reader (130 wpm) may not finish the second paragraph.
 
 **Defense.** The time is a classroom-pacing choice the user made, so it is stated directly where it is used; everything else (the board, peers, race, reload) still runs off the one run start.
+
+## 2026-09-13 · The student's report shows the teacher's key, bands included (ticket 225)
+
+**Decision.** The student's "Your report" renders the shared `StatusKey` under its skills: every status with its word and its band (secure 100%, solid 80–99%, developing 60–79%, gap under 60%, half incomplete, not seen yet).
+
+**Context.** The student's report coloured skills with the same dots as the teacher's report but had no key. The screen's design note said "No scores anywhere", so the user was asked whether the student's key should drop the percentages; they chose the teacher's key as it is.
+
+**Alternatives considered.** *A words-only key for students* (a `bands={false}` prop on `StatusKey`): keeps percentages off the student side, but the two reports would describe the same dots differently and a student could not tell where solid ends. *A separate student key component*: a second copy of the rows to keep in step.
+
+**Tradeoffs.** Students now see the percentage bands behind each colour, which softens the "no scores" framing of the screen (their problems still show no score).
+
+**Defense.** One key, one meaning: the student reads their report exactly as their teacher does, which is what "What Ms Okafor sees" above it promises.

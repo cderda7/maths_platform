@@ -2991,6 +2991,11 @@ uploaded problems) settled the following as later, each on purpose.
 - **The report says what comes next.** The note says Q7 was not solved in group review; it could say
   it will be reviewed with the class, once the class review is known to include it.
 
+## Student report key (ticket 225, 2026-09-13)
+
+- **A words-only key on the student side.** The student's report shows the teacher's key with its percentage bands, on the user's call. If the "no scores" framing for students comes back, `StatusKey` could take a prop that hides the band column on student screens.
+- **Key lined up with the skills.** On both reports the key starts at the card's 20 px padding, about 7 px left of the first category pill and skill dots, which sit inside `SkillColumns`' grid. Aligning the key's dot column to the first skill dot would need the key to read `SkillColumns`' measured pill left. Deferred: the two reports match today, and the offset is the teacher report's existing look.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

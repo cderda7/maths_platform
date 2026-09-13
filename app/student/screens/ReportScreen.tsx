@@ -2,6 +2,7 @@
 
 import { Button, Card, Eyebrow } from "@/components/ui";
 import SkillColumns from "@/components/SkillColumns";
+import StatusKey from "@/components/StatusKey";
 import { ASSIGNMENT } from "@/data/assignment";
 import { pathwayOf } from "@/lib/classroom";
 import { outcomeColumns, unsolvedInGroup, type Outcome } from "@/lib/report";
@@ -24,7 +25,7 @@ const TILE: Record<Outcome, string> = {
  * The final report: the skills laid out as the teacher's class-view row (a column per category,
  * every group shown at once), where every problem ended up as a tile in a column per review
  * stage the teacher set, and a short reflection that must be written before the report can go.
- * No scores anywhere.
+ * No scores on the student's work; the dot key under the skills is the teacher's, bands included (ticket 225).
  */
 export default function ReportScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
   const assignment = useAssignment();
@@ -53,6 +54,8 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
         {/* No overflow-hidden here: as a flex child it would let the card shrink and clip an opened skill's work. */}
         <Card className="mt-5 shrink-0" data-hierarchy>
           <SkillColumns result={hierarchy} lines={sessionEvidence(session).lines} problems={problems} student />
+          {/* The teacher's student report's key, word for word (ticket 225). */}
+          <StatusKey className="mx-5 mb-5 max-w-xs border-t border-line pt-3" />
         </Card>
 
         {mastery && (
