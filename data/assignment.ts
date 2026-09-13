@@ -147,11 +147,12 @@ export const unitLabel = (u: UnitRef) => `Unit ${u.number} · ${u.topic} · ${u.
 
 export const ASSIGNMENT: Assignment = {
   id: "set-3",
-  title: "ROOTS OF A QUADRATIC — SET 3",
-  className: "11 Methods B",
+  title: "PROBLEM SET 2 — ROOTS OF A QUADRATIC",
+  className: "11 Methods",
+  classCode: "11MAM2",
   teacher: "Ms Okafor",
   due: "Thu 10 Sep",
-  unit: { number: 1, topic: "Topic 2", title: "Functions and graphs" },
+  unit: { number: 1, topic: "Topic 1", title: "Surds and quadratic functions" },
   goal: "By the end of this set I want every one of you to look at a quadratic and choose a method on purpose: factorise, complete the square, or the formula, and say why. Getting stuck is part of it. Write down what you tried, not just the answer.",
   problems: PROBLEMS,
 };

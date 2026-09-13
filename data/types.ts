@@ -61,6 +61,8 @@ export interface Assignment {
   id: string;
   title: string;
   className: string;
+  /** The timetable code for the class group (Queensland: year + subject code + group). */
+  classCode: string;
   teacher: string;
   due: string;
   unit: UnitRef;

@@ -3558,3 +3558,26 @@ snaps its edge one pixel wider on the left and top.
 **Defense.** The button that looks pressed is the button that fires, with its own `onClick`
 and `disabled`; nothing on screen moves; and each call site says in one word that it has a
 band, so the next primary action can adopt it in a word too.
+
+## 2026-09-13 · The class is named from the 2025 QCAA syllabus and a Queensland timetable code (ticket 184)
+
+**Decision.** The class is "11 Methods" with the code "11MAM2"; the unit line is "Unit 1 · Topic 1 ·
+Surds and quadratic functions"; the set is "Problem Set 2 — Roots of a quadratic". The header's
+suffix reads the class's short name from the fixture instead of the constant "Maths".
+
+**Context.** The user asked for a class name that fits a Year 11 Queensland (QCE) class doing Unit 1,
+ahead of the Edexia Classroom page (tickets 185–189). The old line "Unit 1 · Topic 2 · Functions and
+graphs" came from the 2019 syllabus; the QCAA Mathematical Methods 2025 syllabus (v1.3) applies to
+students completing in 2026 or later, and places roots of a quadratic in Unit 1 Topic 1.
+
+**Alternatives.** *Keep "11 Methods B"*: a letter group is plausible but not how a Queensland
+timetable codes a class. *"Year 11 Mathematical Methods"*: the subject, not a class group. *A code
+only ("11MAM2") in the header*: accurate but cryptic to anyone outside the school.
+
+**Tradeoffs.** The code is inferred from one school's published subject codes (MAM) and the common
+year + code + group pattern; no public timetable confirmed a class code. The header now depends on
+the fixture, so a second class (deferred) would need the chrome to know which class it is showing.
+
+**Defense.** Teachers say "11 Methods" out loud and see a code in their timetable, so the page can
+use both where each belongs (the header and the Classroom's eyebrow), and the syllabus line is the
+one a 2026 teacher would recognise.

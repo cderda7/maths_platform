@@ -44,7 +44,7 @@ describe("active assignment", () => {
     expect(a.problems.map((p) => p.id)).toEqual(["q2", "q4"]);
     const empty = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: "", problemIds: [], pathway: [] });
     expect(activeAssignment(empty).problems).toHaveLength(10);
-    expect(activeAssignment(empty).title).toBe("ROOTS OF A QUADRATIC — SET 3");
+    expect(activeAssignment(empty).title).toBe("PROBLEM SET 2 — ROOTS OF A QUADRATIC");
   });
 
   it("the goal for the class travels from the draft to the created assignment; blank stays blank, absent reads the fixture's", async () => {

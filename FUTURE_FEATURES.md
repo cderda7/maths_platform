@@ -2574,6 +2574,38 @@ uploaded problems) settled the following as later, each on purpose.
   mirror while empty; the same fix belongs to any other grow-wrap textarea with a long
   placeholder (none today).
 
+
+## Edexia Classroom run (planned 2026-09-13, tickets 184–189)
+
+- **Delete the live diagnostic, or move it into the review stages.** It stays on Class View and
+  Mistakes for now, because the teacher will later push a diagnostic to interrupt students in the
+  review modes; the user flagged that deleting it "might make more sense" (2026-09-13).
+- **Let the teacher end the review stages.** Force submit ends individual working; nothing yet
+  lets the teacher close individual review or group review and mark a set finished. Problem Set 1
+  is simply fixed as finished (2026-09-13).
+- **Insight into how individual review and group review went.** A finished set's Class View shows
+  the individual working results only; what changed in review (who fixed what, which groups
+  resolved which mistakes) has no screen yet (2026-09-13).
+- **More than one class.** Edexia Classroom assumes Ms Okafor teaches one class (11 Methods,
+  twenty students); a class switcher, per-class defaults and cross-class views are deferred
+  (see ASSUMPTIONS.md, 2026-09-13).
+- **The student side waits for an assignment.** Sam's tab works exactly as before, even before the
+  teacher creates Problem Set 2; a "nothing assigned yet" screen that opens the set on Create would
+  make the end-to-end flow honest but would break student-only demos (2026-09-13, round 3 Q3).
+- **Real assignment creation.** The create screen starts blank with one "Generate simulated
+  assignment" button; typing, dropping pictures and PDFs and the Fix line (tickets 170–173) stay in
+  the code but are unreachable from the blank start (2026-09-13).
+- **A due-date picker.** Problem Set 2 is due Thu 10 Sep and Problem Set 1 Thu 3 Sep, fixed; the
+  create review step has no due-date field (2026-09-13).
+- **Updating the class default groups from the create flow.** Moves in "Confirm groups" apply to
+  that assignment only; the user first asked for moves to write back to the defaults, then chose
+  to keep defaults editable only in the Classroom so a one-off absence doesn't pollute future sets.
+  A "also update class groups" option is the middle path (2026-09-13).
+- **Real history.** Only the newest history pill per skill comes from a real set (Problem Set 1);
+  the four older pills stay generated until more past sets exist (2026-09-13).
+- **More past assignments.** The user cut the plan from two past sets to one (Problem Set 1) for
+  cost; a longer back catalogue (and a Surds set, the syllabus's first part) is deferred (2026-09-13).
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
