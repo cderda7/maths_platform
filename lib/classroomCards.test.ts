@@ -3,7 +3,7 @@ import { ASSIGNMENT } from "@/data/assignment";
 import type { LeafId } from "@/data/taxonomy";
 import { assignmentBundle, type AssignmentBundle } from "./assignments";
 import { classroomReducer, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
-import { assignmentCard, classroomCards, mistakeCount, sectionCards, topGap } from "./classroomCards";
+import { assignmentCard, classroomCards, dueOrder, mistakeCount, newestFirst, sectionCards, topGap } from "./classroomCards";
 import { skipFixture } from "./demo";
 import { mistakesByProblem, type MistakeRow, type ProblemMistakes } from "./mistakes";
 import { CLASS_SIZE } from "./readiness";
@@ -109,6 +109,20 @@ describe("the Classroom's cards", () => {
     expect(s.past.map((c) => c.id)).toEqual(["pset-5", "pset-4"]);
     expect(sectionCards([finished], classroom, session, now)).toMatchObject({ live: [], past: [{ id: "pset-5" }] });
     expect(sectionCards([], classroom, session, now)).toEqual({ live: [], past: [] });
+  });
+
+  it("sorts each section newest due first whatever order the sets come in, ties keeping the given order (ticket 216)", () => {
+    const due = (id: string, d: string): AssignmentBundle => ({ ...finished, id, due: d });
+    const given = [due("pset-2", "Fri 28 Aug"), due("pset-4", "Fri 4 Sep"), due("pset-1", "Tue 25 Aug"), due("pset-5", "Mon 7 Sep"), due("pset-3", "Tue 1 Sep"), due("pset-3b", "Tue 1 Sep")];
+    expect(sectionCards(given, CREATED, null, now).past.map((c) => c.id)).toEqual(["pset-5", "pset-4", "pset-3", "pset-3b", "pset-2", "pset-1"]);
+  });
+
+  it("reads a due date's place in the year from its day and month", () => {
+    expect(dueOrder("Thu 10 Sep")).toBeGreaterThan(dueOrder("Mon 7 Sep"));
+    expect(dueOrder("Tue 1 Sep")).toBeGreaterThan(dueOrder("Fri 28 Aug"));
+    expect(dueOrder("Fri 28 Aug")).toBeGreaterThan(dueOrder("Tue 25 Aug"));
+    expect(dueOrder("someday")).toBe(-1);
+    expect(newestFirst([])).toEqual([]);
   });
 
   it("the Classroom holds what the registry holds: Problem Set 6 only once it is created (ticket 188)", () => {

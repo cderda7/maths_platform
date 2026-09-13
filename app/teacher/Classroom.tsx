@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import TeacherChrome from "./TeacherChrome";
 import { Eyebrow, H1 } from "@/components/ui";
@@ -16,7 +16,8 @@ const CREATE_HREF = "/teacher/assignments/create";
 /**
  * Edexia Classroom (ticket 186), the teacher's home: every assignment the class has, as cards, the
  * live ones (the class still working individually) above the past ones (in review, or done), each
- * newest first, and "+ New assignment" on the title row. A card is one link to the assignment's
+ * newest due first, and "+ New assignment" on the title row. The heading and the Live section are
+ * pinned; only Past scrolls (ticket 216). A card is one link to the assignment's
  * landing (ticket 185: Class or Mistakes). The cards are `lib/classroomCards` over the classroom,
  * Sam's session in its 3 s batches and the clock, the inputs the assignment's own tabs read, so the
  * live card's counts move with the class. One class (ASSUMPTIONS.md, ONE CLASS).
@@ -31,56 +32,79 @@ export default function Classroom() {
   // Sam's session and the clock arrive a microtask after mount; until then the counts would be the empty class's.
   const ready = updatedAt !== null && now > 0;
   const { live, past } = classroomCards(classroom, session, now);
+  const hasLive = ready && live.length > 0;
+  const rootRef = useRef<HTMLDivElement>(null);
+  const pinnedRef = useRef<HTMLDivElement>(null);
+  // The pinned region's height, as a CSS variable the past cards' scroll margin reads: a card the
+  // keyboard focuses (or a find-in-page match) scrolls clear of the region instead of under it.
+  useEffect(() => {
+    const root = rootRef.current;
+    const pinned = pinnedRef.current;
+    if (!root || !pinned) return;
+    const sync = () => root.style.setProperty("--classroom-pinned", `${pinned.offsetHeight}px`);
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(pinned);
+    return () => ro.disconnect();
+  }, []);
   return (
     <TeacherChrome>
-      <div data-classroom>
-        <div data-classroom-eyebrow>
-          <Eyebrow>
-            {ASSIGNMENT.classCode} · {CLASS_SUBJECT} · {CLASS_SIZE} students
-          </Eyebrow>
-        </div>
-        <div className="mt-3 flex items-center justify-between gap-6">
-          <H1>Edexia Classroom</H1>
-          <Link
-            href={CREATE_HREF}
-            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-ink py-2.5 pr-5 pl-4 text-[15px] font-medium text-white shadow-card transition-colors hover:bg-ink-soft focus-visible:ring-4 focus-visible:ring-accent/30 focus-visible:outline-none"
-            data-new-assignment
-          >
-            <span aria-hidden className="grid h-5 w-5 place-items-center text-[20px] leading-none font-normal">
-              +
-            </span>
-            New assignment
-          </Link>
+      <div ref={rootRef} data-classroom>
+        {/*
+          Pinned (ticket 216): the heading and the Live section stick to the top of the chrome's
+          scroll region, where they sit at scroll 0; only Past scrolls, passing under the region's
+          bottom edge. The region pulls itself up over the chrome's top padding (-mt-12 undoing
+          py-12, pt-12 putting it back) so it sticks at top 0 and its cream ground covers the strip
+          above the eyebrow too, and out over the side padding the same way (-mx-6 px-6) so a
+          passing card's shadow never shows beside the region; its bottom padding is the gap Past
+          used to open with, so nothing moves at scroll 0. Sticky, not an inner scroll box: the one scroll region keeps its wheel,
+          trackpad, keyboard and scrollbar over the whole page (DECISION_LOG, ticket 216).
+        */}
+        <div ref={pinnedRef} className={`sticky top-0 z-10 -mx-6 -mt-12 bg-cream px-6 pt-12 ${hasLive ? "pb-10" : "pb-12"}`} data-classroom-pinned>
+          <div data-classroom-eyebrow>
+            <Eyebrow>
+              {ASSIGNMENT.classCode} · {CLASS_SUBJECT} · {CLASS_SIZE} students
+            </Eyebrow>
+          </div>
+          <div className="mt-3 flex items-center justify-between gap-6">
+            <H1>Edexia Classroom</H1>
+            <Link
+              href={CREATE_HREF}
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-ink py-2.5 pr-5 pl-4 text-[15px] font-medium text-white shadow-card transition-colors hover:bg-ink-soft focus-visible:ring-4 focus-visible:ring-accent/30 focus-visible:outline-none"
+              data-new-assignment
+            >
+              <span aria-hidden className="grid h-5 w-5 place-items-center text-[20px] leading-none font-normal">
+                +
+              </span>
+              New assignment
+            </Link>
+          </div>
+
+          {/* Before Create nothing is live: no Live section at all, Past opens where it would sit (ticket 216). */}
+          {hasLive && (
+            <Section label="Live" id="live" className="mt-12">
+              {live.map((card) => (
+                <Card key={card.id} card={card} />
+              ))}
+            </Section>
+          )}
         </div>
 
-        {ready && (
-          <>
-            <Section label="Live" id="live">
-              {live.length > 0 ? (
-                live.map((card) => <Card key={card.id} card={card} />)
-              ) : (
-                <li className="rounded-2xl border border-dashed border-line-strong px-9 py-7 text-[17px] text-ink-muted" data-no-live>
-                  Nothing live right now. A new assignment goes live when you create it.
-                </li>
-              )}
-            </Section>
-            {past.length > 0 && (
-              <Section label="Past" id="past">
-                {past.map((card) => (
-                  <Card key={card.id} card={card} />
-                ))}
-              </Section>
-            )}
-          </>
+        {ready && past.length > 0 && (
+          <Section label="Past" id="past">
+            {past.map((card) => (
+              <Card key={card.id} card={card} />
+            ))}
+          </Section>
         )}
       </div>
     </TeacherChrome>
   );
 }
 
-function Section({ label, id, children }: { label: string; id: "live" | "past"; children: ReactNode }) {
+function Section({ label, id, className = "", children }: { label: string; id: "live" | "past"; className?: string; children: ReactNode }) {
   return (
-    <section className={id === "live" ? "mt-12" : "mt-10"} aria-label={label} data-section={id}>
+    <section className={className} aria-label={label} data-section={id}>
       <Eyebrow>{label}</Eyebrow>
       <ul className="mt-3 space-y-3">{children}</ul>
     </section>
@@ -95,7 +119,7 @@ function Card({ card }: { card: AssignmentCard }) {
     <li>
       <Link
         href={card.href}
-        className="group flex items-center gap-8 rounded-2xl border border-line bg-paper px-9 py-7 shadow-card transition-[border-color,box-shadow] duration-150 hover:border-accent-line hover:shadow-lift focus-visible:border-accent focus-visible:ring-4 focus-visible:ring-accent/20 focus-visible:outline-none"
+        className="group flex scroll-mt-(--classroom-pinned) items-center gap-8 rounded-2xl border border-line bg-paper px-9 py-7 shadow-card transition-[border-color,box-shadow] duration-150 hover:border-accent-line hover:shadow-lift focus-visible:border-accent focus-visible:ring-4 focus-visible:ring-accent/20 focus-visible:outline-none"
         data-assignment-card={card.id}
         data-status={card.status}
       >

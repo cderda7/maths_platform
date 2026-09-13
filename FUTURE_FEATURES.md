@@ -2890,6 +2890,23 @@ uploaded problems) settled the following as later, each on purpose.
   but a future rename of Set 6's `q1` … `q10` would. A `migrateSession` beside `hydrateSession` would
   be the place.
 
+## Classroom pinning and ordering (from ticket 216, 2026-09-13)
+
+- **A call to action where the Live section was.** Before Create the Classroom now shows no Live
+  section at all (the dashed "Nothing live right now" note is gone, ticket 216). A quiet prompt to
+  create the next set could take that place; deferred as a copy decision for the demo run.
+- **Pin the PAST label too.** Only the heading and Live are pinned, as asked; the PAST label scrolls
+  away with its cards. A second sticky label under the Live card would keep the section named while
+  scrolling a long history.
+- **A year on due dates.** `dueOrder` reads "Mon 7 Sep" as a day of the year with no year, fine for
+  one class and one term; sets spanning a new year (or a second class's calendar) need a real date on
+  every fixture.
+- **A fade or hairline at the pinned edge.** Past cards pass under a plain cream edge; a soft shadow
+  appearing only once Past has scrolled would signal the pin, but it was left out to keep scroll 0
+  identical to today.
+- **Filtering or grouping past sets.** With six sets a scroll is fine; a term's worth would want
+  grouping by week or unit, or a search.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

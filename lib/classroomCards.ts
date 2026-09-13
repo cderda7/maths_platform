@@ -8,7 +8,7 @@ import type { StudentSession } from "./session";
 /**
  * The Edexia Classroom's cards (ticket 186): one per assignment the Classroom holds, sorted into
  * LIVE (the class is still in individual working) above PAST (a review stage, or every stage
- * over), each keeping the registry's newest-first order. Everything on a card is derived from the
+ * over), each newest due first (ticket 216). Everything on a card is derived from the
  * assignment bundle, the classroom, Sam's session and `now`, the same inputs the assignment's own
  * tabs read, so the live card's counts follow the class as work arrives (ticket 189's stream feeds
  * `rosterProgress` and `mistakesByProblem`, which take `now`). Pure.
@@ -87,9 +87,25 @@ export function assignmentCard(b: AssignmentBundle, c: ClassroomState | null | u
   return { id: b.id, name: b.name, due: b.due, href: assignmentHref(b.id), section, status, submitted, total, mistakes: mistakeCount(mistakes), topGap: topGap(mistakes) };
 }
 
-/** The cards in their sections, each in the order given (the registry's newest first). */
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
+
+/**
+ * A due date's place in the (one) school year, for sorting: "Mon 7 Sep" is later than "Fri 28 Aug".
+ * The sets carry their due day as it reads on the card, weekday, day and month with no year (one
+ * class, one term, ASSUMPTIONS.md); a date that does not read that way sorts last (-1).
+ */
+export function dueOrder(due: string): number {
+  const m = /(\d{1,2})\s+([A-Z][a-z]{2})/.exec(due);
+  const month = m ? MONTHS.indexOf(m[2] as (typeof MONTHS)[number]) : -1;
+  return m && month >= 0 ? month * 31 + Number(m[1]) : -1;
+}
+
+/** Cards newest due first (ticket 216); cards due the same day keep the order given. */
+export const newestFirst = (cards: readonly AssignmentCard[]): AssignmentCard[] => [...cards].sort((a, b) => dueOrder(b.due) - dueOrder(a.due));
+
+/** The cards in their sections, each newest due first (ticket 216), ties in the order given (the registry's). */
 export function sectionCards(bundles: readonly AssignmentBundle[], c: ClassroomState | null | undefined, session: StudentSession | null, now: number): Record<CardSection, AssignmentCard[]> {
-  const cards = bundles.map((b) => assignmentCard(b, c, session, now));
+  const cards = newestFirst(bundles.map((b) => assignmentCard(b, c, session, now)));
   return { live: cards.filter((k) => k.section === "live"), past: cards.filter((k) => k.section === "past") };
 }
 

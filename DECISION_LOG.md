@@ -3956,3 +3956,15 @@ a reload. Two pure functions replace a prompt rule and two session actions.
 **Tradeoffs.** Every classroom load checks the map, which is trivial for two entries. The map and its tests must keep the old names, so a grep for "pset-2" is never quite empty. The redirects are 307, not 308: a permanent redirect cached by a browser would outlive any later rename. A title the teacher typed as "Problem Set 2 — Roots of a quadratic" by hand would also be renamed. That is unlikely, and it is the name the set now has.
 
 **Defense.** The code names the sets by their real numbers from here on. The old names live in one small file that says why it exists, and old links and old demo state keep working without a migration step or storage writes.
+
+## 2026-09-13 · Classroom pinning: a sticky region in the chrome's scroll, not a fixed top with an inner scroll box (ticket 216)
+
+**Decision.** The Classroom's eyebrow, title row and Live section are one `position: sticky; top: 0` region inside the teacher chrome's existing scroll region (`main[data-teacher-scroll]`). Past follows in normal flow and scrolls under the region's bottom edge. The region pulls itself out over the chrome's padding (`-mt-12 pt-12`, `-mx-6 px-6`) with the page's cream ground, and its bottom padding is the gap Past used to open with, so every rect at scroll 0 is unchanged. A `ResizeObserver` writes the region's height to `--classroom-pinned`, which each card reads as `scroll-margin-top`. With nothing live the Live section is dropped, not left as an empty note.
+
+**Context.** The user asked for the Live set to stay visible "as a fixed header, in the position it is now" while the Past list scrolls (tickets 211–214 bring the Classroom to six sets). The chrome already makes `main` the only scrolling element (ticket 68), and the Class View's side column already sticks inside it.
+
+**Alternatives considered.** *A fixed-height top and a Past box with its own `overflow-y: auto`*: the wheel or trackpad over the heading would do nothing, Home/End/Page keys need focus inside the box, the scrollbar would start below the Live card, and the box's height would be `100vh` arithmetic under the 0.72 zoom. *Sticky with `top: 48px` and no padding trick*: the cards would show through the strip above the eyebrow. *Pin the heading and Live separately*: two sticky offsets to keep in step for no gain.
+
+**Tradeoffs.** The region's negative margins assume the chrome's `py-12 px-6` container; a change there must move them too (the comment in `Classroom.tsx` says so, and the click-through measures the scroll-0 rects). A keyboard-focused card needs the measured scroll margin, a small effect. The dashed "Nothing live" note is gone before Create.
+
+**Defense.** One scroll region keeps every native scroll input, the rubber-band behaviour of ticket 68 and find-in-page working exactly as on every other teacher page, and the pinning is a few classes on one wrapper rather than a second scroll container with its own height maths.
