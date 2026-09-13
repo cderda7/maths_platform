@@ -4119,3 +4119,15 @@ is one question with one answer for the board, the bar and the debrief.
 **Tradeoffs.** Set 5's card now reads top gap graph features (9) instead of non-monic factorising (7): the axis-for-height slip is a graph feature on both sets now, so the parabola set's own topic leads. The sheet constrains 211–214 tightly (every status, the problems that carry each habit, the top gap); a row that cannot be authored means editing `data/story.ts` and regenerating, not the markdown. `import *` over a barrel is slightly indirect; the doc comment points at it. Statuses computed by worst leaf make some cells (solid on a thin leaf) awkward to hit; the tickets say how.
 
 **Defense.** Adding a set is one folder and one uncommented line, every problem-keyed and set-keyed index follows from it, and the shared suite plus the story equality test make "agrees with the class" a failing test rather than a review comment. The sheet is data the tests read and markdown people read, from one source.
+
+## 2026-09-13 · The group intro's bar is drawn from an animation-frame clock, not a CSS animation (ticket 232)
+
+**Decision.** The intro's bar width and its time left are both computed in render from one `now`: the larger of `useNow` (1 s) and a new `useFrameNow` (`requestAnimationFrame`, subscribed only while the intro shows). The label rounds to the nearest second. The CSS keyframe drain (ticket 220) is removed.
+
+**Context.** The user saw the bar at 45% beside "0:15" and read it as non-linear. The animation was linear, but the label rounded up on a one-second tick and the animation's start was set from that lagging tick, so the two disagreed by up to 2 s.
+
+**Alternatives considered.** *Keep the CSS animation and derive the label from the animation's `currentTime`*: needs the Web Animations API read in an effect and a state update per second, which the lint rule forbids. *Tick `useNow` faster app-wide*: re-renders every screen that reads it. *Label with `Math.floor` or `Math.ceil`*: whichever way, the bar sits a whole second off half at "0:15"; nearest keeps it within half a second.
+
+**Tradeoffs.** A render of the intro per frame for 30 s instead of a compositor-only animation; the intro is light (text and six tiles) so this costs nothing visible on an iPad, and the frame loop stops when the board opens. The label shows 0:00 for the last half second.
+
+**Defense.** One number drives both marks, so they cannot disagree, and a reload is in step from the first frame with no mount-time bookkeeping.

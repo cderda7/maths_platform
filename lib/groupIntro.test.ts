@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { boardOpensAt, boardOpensFor, GROUP_INTRO_MS, GROUP_INTRO_PARAGRAPHS, introProgress, introShowing, tileColumns } from "./groupIntro";
+import { boardOpensAt, boardOpensFor, GROUP_INTRO_MS, GROUP_INTRO_PARAGRAPHS, introProgress, introSecondsLeft, introShowing, tileColumns } from "./groupIntro";
 import { beginRun } from "./groupReview";
 import { classroomReducer, INITIAL_CLASSROOM } from "./classroom";
 import { standingsAt } from "./standings";
@@ -29,6 +29,25 @@ describe("the group intro's read", () => {
     // No known moment: from now. A moment in the future (a clock skew) never delays past a full read.
     expect(boardOpensFor(null, t0)).toBe(t0 + GROUP_INTRO_MS);
     expect(boardOpensFor(t0 + 5000, t0)).toBe(t0 + GROUP_INTRO_MS);
+  });
+
+  it("reads the time left to the nearest second, so the number and the bar agree: 0:15 only around half", () => {
+    const t0 = 1_000_000;
+    const run = beginRun(MEMBERS, UNION, boardOpensAt(t0));
+    const at = (left: number) => t0 + GROUP_INTRO_MS - left;
+    expect(introSecondsLeft(run, at(30_000))).toBe(30);
+    expect(introSecondsLeft(run, at(15_499))).toBe(15);
+    expect(introSecondsLeft(run, at(14_500))).toBe(15);
+    expect(introSecondsLeft(run, at(14_499))).toBe(14);
+    // Every moment "0:15" shows, the bar is within a sixtieth of half.
+    for (let left = 14_500; left < 15_500; left += 50) {
+      expect(introSecondsLeft(run, at(left))).toBe(15);
+      expect(Math.abs(1 - introProgress(run, at(left)) - 0.5)).toBeLessThanOrEqual(1 / 60 + 1e-9);
+    }
+    expect(introSecondsLeft(run, at(400))).toBe(0);
+    // Never more than the read, never negative.
+    expect(introSecondsLeft(run, t0 - 60_000)).toBe(30);
+    expect(introSecondsLeft(run, t0 + 60_000)).toBe(0);
   });
 
   it("lays the tiles in one row up to five, then two even rows", () => {

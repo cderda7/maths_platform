@@ -30,6 +30,15 @@ export const tileColumns = (count: number): number => (count <= 5 ? Math.max(1, 
 /** Still reading: the run exists but its board has not opened. */
 export const introShowing = (run: GroupRun, now: number): boolean => now < runStartedAt(run);
 
+/**
+ * The time left as the corner shows it: whole seconds, rounded to the nearest, so the number and the bar
+ * (the fraction left) agree at every moment: "0:15" only while the bar is within a sixtieth of half (ticket 232).
+ */
+export function introSecondsLeft(run: GroupRun, now: number): number {
+  const left = Math.min(GROUP_INTRO_MS, Math.max(0, runStartedAt(run) - now));
+  return Math.round(left / 1000);
+}
+
 /** The read's progress, 0 at its start and 1 when the board opens. */
 export function introProgress(run: GroupRun, now: number): number {
   const left = runStartedAt(run) - now;

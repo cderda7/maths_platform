@@ -192,6 +192,35 @@ function subscribeClock(cb: () => void) {
     }
   };
 }
+/**
+ * A clock that ticks every animation frame, for the few things that must move smoothly and stay in step
+ * with a number beside them (the group intro's bar and time left, ticket 232). Runs only while `active`
+ * and some component is subscribed; 0 on the server and before the first frame.
+ */
+let frameClock = 0;
+const frameListeners = new Set<() => void>();
+let frameId: number | null = null;
+function frameTick() {
+  frameClock = Date.now();
+  for (const l of frameListeners) l();
+  frameId = frameListeners.size > 0 ? requestAnimationFrame(frameTick) : null;
+}
+function subscribeFrame(cb: () => void) {
+  frameListeners.add(cb);
+  if (frameId === null) frameId = requestAnimationFrame(frameTick);
+  return () => {
+    frameListeners.delete(cb);
+    if (frameListeners.size === 0 && frameId !== null) {
+      cancelAnimationFrame(frameId);
+      frameId = null;
+    }
+  };
+}
+const noSubscribe = () => () => {};
+export function useFrameNow(active: boolean): number {
+  return useSyncExternalStore(active ? subscribeFrame : noSubscribe, () => (active ? frameClock : 0), () => 0);
+}
+
 export function useNow(): number {
   return useSyncExternalStore(subscribeClock, () => clock, () => 0);
 }

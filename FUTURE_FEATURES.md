@@ -3049,6 +3049,17 @@ uploaded problems) settled the following as later, each on purpose.
 - **One word for the two versions everywhere.** The group debrief now says "Your first submission" / "Your second submission", but the student's history screen still marks the final version "reworked" and names it "After rework" (`lib/versions.ts`), and the teacher's report says "Reworked Q…" / "No rework yet". Left alone: the request named the debrief's panes. If "submission" is the student-facing word, those could follow.
 - **"Group's rework" / "Group's last try".** The third pane keeps its name; "The group's submission" would match the new pair if wanted.
 
+## Group intro bar (ticket 232, 2026-09-13)
+
+- **Open the board on the frame, not the second.** The bar empties on the frame clock, but the board
+  screen still swaps in on `useNow`'s next one-second tick (the frame clock's `max` already covers
+  this for the intro itself). The peers' scripts and the begin effect in `StudentApp` also run on the
+  one-second clock, so a peer's first stroke can land up to a second after the bar empties.
+  Deferred: not visible in the demo.
+- **Other countdowns in the app.** The student's "Group review starts in" pill and the teacher's
+  grace countdown are one-second labels with no bar, so they have nothing to disagree with; if either
+  gains a bar, `useFrameNow` is the clock to draw it from.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

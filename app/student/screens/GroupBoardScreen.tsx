@@ -21,7 +21,7 @@ import { pendingDebrief } from "@/lib/debrief";
 import GroupHeader from "./GroupHeader";
 import GroupIntro from "./GroupIntro";
 import { introShowing } from "@/lib/groupIntro";
-import { useNow } from "@/lib/store";
+import { useFrameNow, useNow } from "@/lib/store";
 
 const first = (id: string) => (id === DEMO_STUDENT.id ? "You" : CLASSMATE_MAP[id]?.name.split(" ")[0] ?? id);
 
@@ -41,9 +41,11 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
   const run = classroom.group ?? null;
   const [recognising, setRecognising] = useState(false);
   const now = useNow();
+  // During the intro the bar and its time left move every frame, in step (ticket 232); the board itself keeps the one-second clock.
+  const frame = useFrameNow(!!run && introShowing(run, now));
   if (!run) return <p className="mt-16 text-center text-[15px] text-ink-muted">Setting up the whiteboard…</p>;
   // Before the board opens, the whole group reads why they are working together (ticket 220).
-  if (introShowing(run, now)) return <GroupIntro run={run} now={now} />;
+  if (introShowing(run, Math.max(now, frame))) return <GroupIntro run={run} now={Math.max(now, frame)} />;
   // A resolved problem the student has not yet moved on from: their debrief, whether or not the group has moved on.
   const debriefing = pendingDebrief(run, session.debrief);
   if (debriefing) return <GroupDebrief session={session} dispatch={dispatch} run={run} problem={debriefing} />;
