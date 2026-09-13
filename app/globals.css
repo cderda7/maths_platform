@@ -206,6 +206,20 @@ body {
   }
 }
 
+/* The Classroom's live card (ticket 186): its green status dot breathes a soft ring, slowly and without end, on its own box-shadow so nothing moves. Reduced motion keeps the dot still. */
+@keyframes live-dot {
+  0% { box-shadow: 0 0 0 0 rgb(47 138 91 / 0.5); }
+  70%, 100% { box-shadow: 0 0 0 6px rgb(47 138 91 / 0); }
+}
+.live-dot {
+  animation: live-dot 2000ms ease-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-dot {
+    animation: none;
+  }
+}
+
 /* The setup page's Student screens options flash light blue, once, when Project is pressed with neither chosen (ticket 147; one beat since 149): the cue points at the choice. Colours only; the element keeps its own layout. */
 @keyframes choose-flash {
   0%, 100% { background-color: var(--color-paper); border-color: var(--color-line); }

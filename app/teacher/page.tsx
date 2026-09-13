@@ -1,6 +1,6 @@
-import ClassroomList from "./ClassroomList";
+import Classroom from "./Classroom";
 
-/** Edexia Classroom: every assignment (ticket 185 lists them; ticket 186 builds the page). */
+/** Edexia Classroom: every assignment, live above past (ticket 186). */
 export default function TeacherHome() {
-  return <ClassroomList />;
+  return <Classroom />;
 }

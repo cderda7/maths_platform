@@ -4,7 +4,7 @@
 
 **Blocked by:** 185.
 
-**Status:** ready
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -42,8 +42,8 @@ Before the teacher creates Problem Set 2 the Classroom holds only Problem Set 1 
 
 ## Acceptance
 
-- [ ] Header, eyebrow, title, New assignment as above; Groups link opens the class default groups
-- [ ] Live above past; card contents as above; top gap computed, not hard-coded
-- [ ] Card click lands per ticket 185
-- [ ] ASSUMPTIONS.md "ONE CLASS" bullet
-- [ ] vitest, eslint, tsc, next build, check:laptop (add the Classroom); screenshots at 1280 and 1400
+- [x] Header, eyebrow, title, New assignment as above; Groups link opens the class default groups
+- [x] Live above past; card contents as above; top gap computed, not hard-coded
+- [x] Card click lands per ticket 185
+- [x] ASSUMPTIONS.md "ONE CLASS" bullet (already added by ticket 184)
+- [x] vitest, eslint, tsc, next build, check:laptop (add the Classroom); screenshots at 1280 and 1400

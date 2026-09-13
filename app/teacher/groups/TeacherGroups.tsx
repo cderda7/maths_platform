@@ -53,8 +53,8 @@ export default function TeacherGroups() {
 
   return (
     <TeacherChrome>
-      {assignment && <BackToClassroom />}
-      <Eyebrow className={assignment ? "mt-3" : ""}>
+      <BackToClassroom />
+      <Eyebrow className="mt-3">
         {ASSIGNMENT.className} · {assignment ? assignment.title : "Edexia Classroom"}
       </Eyebrow>
       <H1 className="mt-3">{assignment ? "Groups" : "Default groups"}</H1>

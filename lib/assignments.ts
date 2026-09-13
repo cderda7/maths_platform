@@ -29,6 +29,11 @@ export type AssignmentTab = "class" | "mistakes" | "groups";
 type AssignmentDef = ({ kind: "live" } | { kind: "finished"; pathway: Pathway }) & {
   fixture: Assignment;
   /**
+   * The set's name as a teacher writes it, for the Classroom's cards (ticket 186): "Problem Set 2 — Roots of a
+   * quadratic". The fixture's `title` is upper-cased for the student's eyebrow; without a name the card shows the title.
+   */
+  name?: string;
+  /**
    * The nineteen classmates' results on this set. A snapshot for now; ticket 189 makes the live set's
    * a function of the start time and `now` (see `rosterProgress`, which already takes `now`).
    */
@@ -48,6 +53,7 @@ export const PROBLEM_SET_2_BEFORE_CREATE = true;
 const REGISTRY: readonly AssignmentDef[] = [
   {
     fixture: ASSIGNMENT,
+    name: "Problem Set 2 — Roots of a quadratic",
     kind: "live",
     classmates: CLASSMATES,
     exists: (c) => PROBLEM_SET_2_BEFORE_CREATE || !!c?.assignment,
@@ -73,6 +79,8 @@ export interface AssignmentBundle {
   kind: AssignmentKind;
   /** As the teacher named it. */
   title: string;
+  /** The display name in sentence case (the registry's `name`, else the title); a created set's own title when it differs from the fixture's. */
+  name: string;
   className: string;
   classCode: string;
   teacher: string;
@@ -95,9 +103,9 @@ export function assignmentBundle(id: string, c: ClassroomState | null | undefine
   if (!def || !def.exists(c)) return null;
   const f = def.fixture;
   const base = { id, kind: def.kind, className: f.className, classCode: f.classCode, teacher: f.teacher, due: f.due, unit: f.unit, classmates: def.classmates, groups: assignmentGroupsOf(c, id) };
-  if (def.kind === "finished") return { ...base, title: f.title, unitNumber: f.unit.number, goal: f.goal, problems: f.problems, pathway: def.pathway };
+  if (def.kind === "finished") return { ...base, title: f.title, name: def.name ?? f.title, unitNumber: f.unit.number, goal: f.goal, problems: f.problems, pathway: def.pathway };
   const active = activeAssignment(c);
-  return { ...base, title: active.title, unitNumber: active.unit, goal: active.goal, problems: active.problems, pathway: pathwayOf(c) };
+  return { ...base, title: active.title, name: active.title === f.title ? (def.name ?? f.title) : active.title, unitNumber: active.unit, goal: active.goal, problems: active.problems, pathway: pathwayOf(c) };
 }
 
 /**

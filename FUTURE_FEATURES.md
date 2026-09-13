@@ -2635,6 +2635,29 @@ uploaded problems) settled the following as later, each on purpose.
   is now the Classroom, and `/teacher/groups` is now the class defaults, so bookmarks to those land
   on the new pages).
 
+## Edexia Classroom cards (from ticket 186, 2026-09-13)
+
+- **One title, cased as typed.** The cards show a registry `name` in sentence case while the
+  fixture's `title` stays upper-cased for the student's eyebrow; storing one title as the teacher
+  typed it and upper-casing it in CSS where the eyebrow wants capitals would drop the second field.
+- **An insight on the live card.** The live card shows counts only; "top gap so far" (already
+  computed for every card) could show once enough work is in, without flickering as it changes.
+- **The top gap by skill, not by exact cluster.** A student slipping on two leaves in one problem
+  forms their own cluster; counting leaves across clusters would name the skill more robustly but
+  would stop matching the Mistakes tab's pills.
+- **The empty LIVE note.** With nothing live the section shows "Nothing live right now. A new
+  assignment goes live when you create it."; a call to action inside it (or hiding the section)
+  is a copy decision left for the demo run.
+- **Ordering by date.** "Newest first" is the registry's order; sorting by due or start date needs
+  dates on every set (created sets have `startedAt`, fixtures do not).
+- **Card actions.** Archive, duplicate, reopen or delete a set from its card; the card is one link.
+- **The brand as a link home.** The header's wordmark still is not a link to the Classroom; the
+  back links and the Groups page's back link cover the way home for now.
+- **A side column.** The cards span the chrome's container; a side column (this week's lessons,
+  class-wide gaps across sets) is deferred.
+- **Assignment-level counts on Groups and Class.** The Classroom's numbers (submitted, mistakes so
+  far) are not repeated on the assignment's own header.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

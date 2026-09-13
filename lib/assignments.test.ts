@@ -22,7 +22,7 @@ describe("the assignment registry", () => {
 
   it("bundles the fixture before anything is created: title, due, problems, classmates, pathway, groups", () => {
     const b = assignmentBundle("pset-2", INITIAL_CLASSROOM)!;
-    expect(b).toMatchObject({ id: "pset-2", kind: "live", title: ASSIGNMENT.title, due: "Thu 10 Sep", className: "11 Methods", classCode: "11MAM2", unitNumber: 1 });
+    expect(b).toMatchObject({ id: "pset-2", kind: "live", title: ASSIGNMENT.title, name: "Problem Set 2 — Roots of a quadratic", due: "Thu 10 Sep", className: "11 Methods", classCode: "11MAM2", unitNumber: 1 });
     expect(b.problems).toBe(ASSIGNMENT.problems);
     expect(b.classmates).toBe(CLASSMATES);
     expect(b.pathway).toEqual(["individual", "group"]);
@@ -33,6 +33,7 @@ describe("the assignment registry", () => {
     const c = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: "Set 4", problemIds: ["q1", "q3"], pathway: ["whole-class"], at: now });
     const b = assignmentBundle("pset-2", c)!;
     expect(b.title).toBe("Set 4");
+    expect(b.name).toBe("Set 4");
     expect(b.problems.map((p) => p.id)).toEqual(["q1", "q3"]);
     expect(b.pathway).toEqual(["whole-class"]);
   });

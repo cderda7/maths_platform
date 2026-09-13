@@ -3625,3 +3625,42 @@ migrated.
 classmates' snapshot inside `rosterProgress` with the stream at `now`, and no screen changes shape.
 The screens read one object from context instead of five module constants, and the pure functions
 (landing, progress, stages, groups) are tested without React.
+
+## 2026-09-13 · The Classroom's cards are derived from the assignment's own readers (ticket 186)
+
+**Decision.** `lib/classroomCards.ts` builds each card from the same inputs and functions the
+assignment's tabs use: its section comes from `assignmentStages` (LIVE while a live set's current
+stage is individual working, PAST otherwise; "in review" while a stage is current, "done" once none
+is), "n/20 submitted" from `submittedCount`, "n mistakes so far" is `mistakeCount` = the number of rows
+on the set's Mistakes tab (one per student per problem answered wrong, Sam's live rows included), and
+"top gap" is `topGap` over the same `mistakesByProblem`: a cluster is the exact set of leaves a
+student slipped on in one problem (the Mistakes tab's slip pill), gathered across problems, counting
+different students; a tie goes to the cluster seen first in problem order. The page renders the
+sections only after the first session batch and clock tick. A card is titled by the registry
+entry's optional `name` (sentence case, "Problem Set 2 — Roots of a quadratic"), falling back to the
+title; the upper-cased fixture title is never lower-cased at runtime.
+
+**Context.** Ticket 189 streams classmates' submissions into `rosterProgress` and
+`mistakesByProblem`; the live card must tick with it without changes. Ticket 187 adds a finished set
+whose card needs a computed top gap. The ticket defined the top gap as "the cluster with the most
+students across all problems; ties by problem order", which reads either as the single biggest
+per-problem cluster or as a cluster aggregated across problems.
+
+**Alternatives.** *Count mistakes as wrong lines*: a student with two wrong lines on one problem
+would count twice, and the number would match nothing on the Mistakes tab. *Count only handed-in
+work*: the Mistakes tab shows Sam's wrong work while he writes, so the card and the tab would
+disagree. *Top gap as the biggest single-problem cluster*: names a problem's slip, not the set's
+gap; a leaf missed by six students on three problems would lose to four on one. *Top gap by leaf
+(a two-leaf slip counted under both leaves)*: closer to "skills", but no longer the clusters the
+teacher sees as pills. *Store the card's numbers when the set finishes*: a second source of truth.
+*Render the cards on the first paint*: the counts flash the empty class (Sam missing) for a frame.
+
+**Tradeoffs.** Every render of the Classroom evaluates every set's work (`mistakesByProblem` per
+set, cheap at two sets of ten problems and twenty students, linear in both). A student whose one
+problem slips on two leaves forms a cluster of their own, so a common leaf can be split across
+clusters. The sections appear a microtask after the header.
+
+**Defense.** One definition per number means the card, the Mistakes tab and the Class tab can never
+disagree, and 189's stream reaches the card for free. Aggregating the Mistakes tab's own clusters
+across problems keeps the insight in the teacher's vocabulary (the chip reads like the pills they
+open) and is pure and tested.
