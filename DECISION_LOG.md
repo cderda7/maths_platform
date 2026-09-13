@@ -4244,3 +4244,16 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Eight identity lines instead of ten, so New skills on Set 3 moves further per slip; a teacher drilling into New skills sees fewer lines under it than under Algebra's expansion. A "4x² + 9" line reads as a right expansion built on a wrong identity rather than a second identity slip.
 
 **Defense.** It is what the two lines are: the first uses the identity, the second multiplies out (2x)² and collects. Each developing student then needs a second real slip where their habit would show again (Amelia's x² − 49 as (x − 7)², Noah's (x + 3)² on Q10, Tomas's (x + 5)², Oliver's perfect square as a difference of squares), which is how a student who misreads the identity actually goes wrong.
+
+## 2026-09-13 · Problem Set 4's sheet column bends to its top gap (ticket 214)
+
+**Decision.** In the class story sheet's PS4 column, Q1's outline is 2x² + 3x − 2 (was 2x² + 5x + 2), Zara's "added the square, never took it away" habit also names Q9, and Ruby's "a pair that multiplies but doesn't add" also names Q4. No status, hand-in count or other set's column changes.
+
+**Context.** The Classroom card's top gap is the largest cluster of students with the same set of slipped leaves on a problem. As written, nine students' PS4 graphing habits were all single graph-features slips on Q8 or Q9, and eight students guessed non-monic pairs, so the card could only read "graph features", not the sheet's "non-monic factorising". Separately, Sam's habit "right split, the signs put into the wrong brackets (Q1, Q2)" cannot happen on 2x² + 5x + 2, which has no minus.
+
+**Alternatives considered.** *Change the sheet's top gap to graph features*: Set 5's is already graph features, and the set is named for non-monic factorising. *Tag some turning-point slips as sketching*: mislabels the mistake for the teacher. *Add unlisted slips to students*: the sheet would no longer describe their work. *Rely on the tie-break (first problem wins) at eight each*: the ticket asks for a clear lead.
+
+**Tradeoffs.** Zara now slips twice on Q9 (the square and then the x for the minimum), a busier problem than her arc's "mostly right"; Ruby's guessed pair on Q4 is the same working as Jordan's. The lead is one student (nine to eight).
+
+**Defense.** Both extensions reuse a habit each student already has on the set, in the category the sheet already gives it, so every status and arc stays as authored and the card reads the set's real subject.
+

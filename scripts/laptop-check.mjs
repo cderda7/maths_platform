@@ -40,7 +40,7 @@ const CREATED = `!!JSON.parse(localStorage.getItem("edexia-maths-demo/classroom/
 const FINISHED_SETS = [
   "pset-5",
 
-  // "pset-4", // ticket 214
+  "pset-4", // ticket 214
 
   "pset-3", // ticket 213
 

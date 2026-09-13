@@ -3122,6 +3122,11 @@ uploaded problems) settled the following as later, each on purpose.
 - **More students on Q3**: only Aiden slips on (3x + 5)(3x − 5). A difference of squares with a coefficient is where a class usually loses the 9 as well; every extra slip there moves a New skills or Algebra status the sheet fixes.
 - **Finn's "check copied from the question"** is a habit the sheet does not name for him on Sets 4–6; if the story is re-authored, it is a natural thread (he checks, but the check agrees with the question, not the brackets).
 
+## Problem Set 4 follow-ups (ticket 214, 2026-09-13)
+
+- **Q5 and Q7 have six and five columns of working** on the Mistakes tab (short maths, nothing overflows at 1280). Folding Isla's kept-sign line in with Lucas and Harper's would read tidier but blurs a habit the sheet names separately. Deferred: fine at today's widths.
+- **A "right after a wrong line" state**: Isla's Q5 writes x² − 3x + 10 = 0 and then the right factors; the table can only call the later lines ok. A verdict for "right, but not from the line above" would describe it.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

@@ -4,9 +4,9 @@
 
 **Blocked by:** 210.
 
-**Status:** ready-for-agent
+**Status:** done
 
-**Triage:** `ready-for-agent`
+**Triage:** done
 
 ---
 
@@ -15,6 +15,20 @@
 One of four earlier sets (211–214) authored in parallel worktrees so Set 6's "last five" history reads real sets; the story sheet (`specs/class-story.md`) is the contract.
 
 ## Solution
+
+### What was done (ticket 214)
+
+- **`data/pset4/`**: ten hand-checked problems (2x² + 3x − 2; 3x² + x − 10; (x − 4)(2x + 1) = 0; 2x² − 7x + 3 = 0; x² − 3x = 10; complete the square on x² + 6x + 2 and x² − 5x + 1; 2x² + 8x − 3 as a(x + h)² + k with its turning point; the minimum of y = x² − 4x + 7; a 35 cm² rectangle whose length is 2w + 3), each model step tagged. A completed square's perfect-square line also carries monic factorising, the turning-point form carries graph features, and Q10's positive-width, check and sentence lines carry conclusions, so a single slip reads the sheet's status. `PS4_EVALUATION` holds every line anyone wrote (a wrong line carries only its slip's leaf; right-given-above lines are `builtOn`); twenty full records with a header naming the habits.
+- **Every student equals the sheet's PS4 column** (the shared suite), card 20/20, 54 mistakes, top gap non-monic factorising on nine students, graph features next on eight. Mistakes columns: Q5 six, Q7 five (short maths lines; nothing wider than its box at 1280), the rest four or fewer.
+- **Registered**: `data/finishedSets.ts` PS4 slot, `scripts/laptop-check.mjs` `"pset-4"`.
+- **The sheet's PS4 column** (`data/story.ts`, regenerated `specs/class-story.md`), no status changed:
+  - Q1's outline reads **2x² + 3x − 2** (was 2x² + 5x + 2): Sam's habit "right split, the signs put into the wrong brackets (Q1, Q2)" needs a problem with a minus in it.
+  - **Zara**'s New skills habit "added the square to complete it, never took it away" now names Q6, Q8 **and Q9**, and **Ruby**'s algebra habit "a pair that multiplies but doesn't add" names **Q4** and Q5. As first written the sheet's graph-features slips (nine students, all on one leaf) outnumbered the guessed non-monic pairs (eight), so the card's top gap could not read non-monic factorising; with Zara's Q9 a two-slip row and Ruby's guess on Q4, it is nine to eight.
+- **Mistakes tab**: two slip chips in one narrow column (Zara's Q9) first wrapped a name inside its pill; ticket 213 landed the same fix (chips wrap whole) while this was in flight, so this ticket keeps main's.
+- Judgment calls: Isla's Q5 moves the 10 across with its sign kept (x² − 3x + 10 = 0) and then writes the pair for −10 anyway, so her answer is right after one wrong line (her arc: she doesn't read back). Sofia's "(5/2)² taken as 5/4" line is tagged fractions first, binomial second: both categories miss on Q7 and her column's chip reads fractions beside Amelia's and Zara's.
+- Hint sweep not run: nothing on the student side or in the hint machinery changed.
+
+### The brief
 
 - A finished-set data folder in ticket 210's shape, one registration line in date order.
 
@@ -44,7 +58,7 @@ Authoring notes:
 
 ## Acceptance
 
-- [ ] Shared finished-set suite green; results equal the story sheet's PS4 row (test)
-- [ ] Classroom lists Set 4 under Past; Class View, Mistakes (every name opens real work), Groups, board and class review work
-- [ ] New skills column shows binomial identity and null factor law only
-- [ ] vitest, eslint, tsc, next build; click-through of every tab on Set 4
+- [x] Shared finished-set suite green; results equal the story sheet's PS4 row (test)
+- [x] Classroom lists Set 4 under Past; Class View, Mistakes (every name opens real work), Groups, board and class review work
+- [x] New skills column shows binomial identity and null factor law only
+- [x] vitest, eslint, tsc, next build; click-through of every tab on Set 4

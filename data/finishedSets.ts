@@ -14,6 +14,6 @@ export { PS2 } from "./pset2";
 
 export { PS3 } from "./pset3";
 
-// Problem Set 4 — Non-monic factorising and completing the square, Fri 4 Sep (ticket 214): export { PS4 } from "./pset4";
+export { PS4 } from "./pset4";
 
 export { PS5 } from "./pset5";

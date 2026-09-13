@@ -154,7 +154,7 @@ Non-monic factorising by the split and grouping, solving factorised equations wi
 
 | Problem | Asks | Model solution carries at least |
 | --- | --- | --- |
-| Q1 | Factorise 2x² + 5x + 2. | non-monic factorising (`algebra.expand-factor.nonmonic`) |
+| Q1 | Factorise 2x² + 3x − 2. | non-monic factorising (`algebra.expand-factor.nonmonic`) |
 | Q2 | Factorise 3x² + x − 10. | non-monic factorising (`algebra.expand-factor.nonmonic`) |
 | Q3 | Solve (x − 4)(2x + 1) = 0. | null factor law (`functions.zeros.nfl`), zero-finding (`functions.zeros.zero-finding`), fractions (`algebra.number.fractions`) |
 | Q4 | Solve 2x² − 7x + 3 = 0. | non-monic factorising (`algebra.expand-factor.nonmonic`), null factor law (`functions.zeros.nfl`), zero-finding (`functions.zeros.zero-finding`), fractions (`algebra.number.fractions`) |
@@ -405,7 +405,7 @@ Confident and mostly right. Reads the axis where the height is asked (from Set 4
 - PS6 · Graphing · solid: axis given as the height (Q9)
 - PS2 · New skills · solid: (√7 + 2)² with 2√7 for the middle term (Q3)
 - PS3 · New skills · solid: x² − 49 factorised as (x − 7)² (Q4)
-- PS4 · New skills · developing: added the square to complete it, never took it away (Q6, Q8)
+- PS4 · New skills · developing: added the square to complete it, never took it away (Q6, Q8, Q9)
 - PS5 · New skills · developing: added 16 to complete the square, never took it away (Q6)
 - PS6 · New skills · solid: null factor law on a product that isn't 0 (Q3)
 
@@ -710,7 +710,7 @@ Confident. Takes a pair that multiplies without checking it adds, and reads the 
 
 - PS2 · Algebra · solid: a common denominator's numerator not scaled (Q9)
 - PS3 · Algebra · developing: a pair that multiplies to −15 but doesn't add to 2 (Q5, Q8)
-- PS4 · Algebra · developing: a pair that multiplies but doesn't add, never expanded back (Q5)
+- PS4 · Algebra · developing: a pair that multiplies but doesn't add, never expanded back (Q4, Q5)
 - PS5 · Algebra · gap: a pair that multiplies to −8 but doesn't add to −2 (Q9)
 - PS6 · Algebra · developing: a pair that multiplies to 8 but adds to 9 (Q7)
 - PS5 · Functions · solid: (−3)² taken as −9 (Q5)

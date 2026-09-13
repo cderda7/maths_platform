@@ -166,7 +166,7 @@ export const STORY_SETS: readonly StorySet[] = [
     pathway: ["individual", "group"],
     categories: ALL,
     outline: [
-      q("Factorise 2x² + 5x + 2.", NONMONIC),
+      q("Factorise 2x² + 3x − 2.", NONMONIC),
       q("Factorise 3x² + x − 10.", NONMONIC),
       q("Solve (x − 4)(2x + 1) = 0.", NFL, ZERO, FRAC),
       q("Solve 2x² − 7x + 3 = 0.", NONMONIC, NFL, ZERO, FRAC),
@@ -297,7 +297,7 @@ export const STORY: Readonly<Record<string, StoryRow>> = {
       graphing: [na, na, na, sol(h("the minimum value given as the x of the turning point", 9)), sol(h("axis given as the height", 10)), sol(h("axis given as the height", 9))],
       communication: S6,
       reasoning: S6,
-      new: [sec, sol(h("(√7 + 2)² with 2√7 for the middle term", 3)), sol(h("x² − 49 factorised as (x − 7)²", 4)), dev(h("added the square to complete it, never took it away", 6, 8)), dev(h("added 16 to complete the square, never took it away", 6)), sol(h("null factor law on a product that isn't 0", 3))],
+      new: [sec, sol(h("(√7 + 2)² with 2√7 for the middle term", 3)), sol(h("x² − 49 factorised as (x − 7)²", 4)), dev(h("added the square to complete it, never took it away", 6, 8, 9)), dev(h("added 16 to complete the square, never took it away", 6)), sol(h("null factor law on a product that isn't 0", 3))],
     },
   },
   liam: {
@@ -436,7 +436,7 @@ export const STORY: Readonly<Record<string, StoryRow>> = {
     done: [10, 10, 10, 10, 10, 10],
     arc: "Confident. Takes a pair that multiplies without checking it adds, and reads the height off the wrong part of the turning point; algebra dips to a gap on Set 5 and recovers.",
     cells: {
-      algebra: [sec, sol(h("a common denominator's numerator not scaled", 9)), dev(h("a pair that multiplies to −15 but doesn't add to 2", 5, 8)), dev(h("a pair that multiplies but doesn't add, never expanded back", 5)), gap(h("a pair that multiplies to −8 but doesn't add to −2", 9)), dev(h("a pair that multiplies to 8 but adds to 9", 7))],
+      algebra: [sec, sol(h("a common denominator's numerator not scaled", 9)), dev(h("a pair that multiplies to −15 but doesn't add to 2", 5, 8)), dev(h("a pair that multiplies but doesn't add, never expanded back", 4, 5)), gap(h("a pair that multiplies to −8 but doesn't add to −2", 9)), dev(h("a pair that multiplies to 8 but adds to 9", 7))],
       functions: [na, na, na, sec, sol(h("(−3)² taken as −9", 5)), sec],
       graphing: [na, na, na, sol(h("the minimum value given as the x of the turning point", 9)), sol(h("axis given as the height", 10)), dev(h("turning point's height from the wrong line", 5), h("axis given as the height", 9))],
       communication: S6,
