@@ -3581,3 +3581,47 @@ the fixture, so a second class (deferred) would need the chrome to know which cl
 **Defense.** Teachers say "11 Methods" out loud and see a code in their timetable, so the page can
 use both where each belongs (the header and the Classroom's eyebrow), and the syllabus line is the
 one a 2026 teacher would recognise.
+
+## 2026-09-13 · Assignments are a registry of bundles read through a route-scoped context (ticket 185)
+
+**Decision.** The teacher side holds assignments by id in `lib/assignments.ts`: a registry of
+definitions (a fixture, the classmates' results, `kind` live or finished, and when the Classroom holds
+it) and one pure `assignmentBundle(id, classroom)` that returns everything a screen shows about a set,
+including its own frozen groups. Each set's pages live under `/teacher/a/<id>/{class,mistakes,groups}`;
+`app/teacher/a/[id]/layout.tsx` 404s an unknown id and wraps the pages in `AssignmentProvider`, which
+recomputes the bundle live from the classroom store and hands it down by React context
+(`useAssignmentBundle`). `/teacher/a/<id>` itself is the landing: it replaces itself with Class or
+Mistakes by `landingTab`. Each set's groups are stored per id in `ClassroomState.assignmentGroups`,
+frozen from the class defaults (`ClassroomState.groups`, edited at `/teacher/groups`) on
+`assignment/create`; `migrateClassroom` gives a classroom stored before this its one set of groups as
+Problem Set 2's copy. "Submitted" has one meaning (`lib/progress.ts`): anyone who handed the set in,
+whole or in part, so the Pathway card's working count is now the class who handed in (18/20 in the
+fixture, was the 10 who finished all ten).
+
+**Context.** The Edexia Classroom run (tickets 185–189) needs a second, finished set (187), a set
+that exists only after Create (188) and classmates whose results are a function of time (189). Until
+now every teacher screen imported `ASSIGNMENT` and `CLASSMATES` directly and there was one set of
+groups. The ticket put Class at `/teacher/a/<id>` and the landing redirect at the same URL, which
+cannot both hold while the class works (the Class tab would always bounce to Mistakes).
+
+**Alternatives.** *Pass the id to every lib function and let screens call them* (no context): every
+screen and card repeats the lookup and the live/finished branching. *A server-side redirect for the
+landing*: the state is in localStorage, the server cannot see it. *Class at `/teacher/a/<id>` with the
+landing at a query (`?open`)*: the Classroom's links would carry a flag, and a bookmark of the plain
+URL during working would show Class, not the landing. *Keep one set of groups and snapshot on read*:
+a later edit of the defaults would move a running assignment's groups. *Keep "finished all ten" as
+the working count*: the landing, the rows and 189's "17/20 submitted" would each mean something else.
+
+**Tradeoffs.** A client provider means the landing paints the chrome for a frame before it replaces
+itself, and after 188 a set that is not yet created would render "Not in the Classroom" on the server
+snapshot before hydration. The live set's bundle still composes `activeAssignment` (the student side's
+reader), so a created title or subset shows on both sides from one place, at the cost of two readers
+of `c.assignment`. The Pathway card's working count jumps from 10/20 to 18/20 on the unchanged
+fixture. The per-assignment groups add a key to the stored classroom that every older store needs
+migrated.
+
+**Defense.** The bundle is the one seam every later ticket needs: 187 registers `pset-1` with
+`kind: "finished"` and its classmates, 188 flips `PROBLEM_SET_2_BEFORE_CREATE`, 189 replaces the
+classmates' snapshot inside `rosterProgress` with the stream at `now`, and no screen changes shape.
+The screens read one object from context instead of five module constants, and the pure functions
+(landing, progress, stages, groups) are tested without React.

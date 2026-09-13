@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { assignmentHref, LIVE_ASSIGNMENT_ID } from "@/lib/assignments";
 import DiagnosticResults from "@/components/DiagnosticResults";
 import { Card, Eyebrow } from "@/components/ui";
 import { boardDiagnostic, latestDiagnostic, questionFor, tally } from "@/lib/diagnostic";
@@ -24,7 +25,7 @@ export default function DiagnosticCard({ className = "" }: { className?: string 
   const question = run && questionFor(run.questionId, run.question);
   if (!run || !question)
     return (
-      <Link href="/teacher/mistakes" className={`block ${className}`} data-diagnostic-card="empty">
+      <Link href={assignmentHref(LIVE_ASSIGNMENT_ID, "mistakes")} className={`block ${className}`} data-diagnostic-card="empty">
         <Card className="flex items-center justify-between p-6 transition-colors hover:border-ink-muted">
           <Eyebrow className={DIAGNOSTIC_CHIP}>Live diagnostic</Eyebrow>
           <span className="text-[12.5px] text-ink-soft">Mistakes →</span>

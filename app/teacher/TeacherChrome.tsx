@@ -7,23 +7,19 @@ import Brand from "@/components/Brand";
 import { Avatar } from "@/components/ui";
 import ResetDemo from "@/components/ResetDemo";
 import { ASSIGNMENT } from "@/data/assignment";
-import type { ReviewStage } from "@/data/types";
-import { pathwayOf } from "@/lib/classroom";
-import { useClassroom } from "@/lib/classroom-store";
-
-/** Tabs; a tab tied to a review stage is offered only when the pathway includes that stage. The individual view (`/teacher/report`) has no tab: it opens from a name on the class view. */
-export const TEACHER_TABS: { href: string; label: string; stage?: ReviewStage }[] = [
-  { href: "/teacher", label: "Class" },
-  { href: "/teacher/mistakes", label: "Mistakes" },
-  { href: "/teacher/groups", label: "Groups", stage: "group" },
-];
+import { assignmentTabs, CLASS_GROUPS_HREF } from "@/lib/assignments";
+import { useOptionalAssignment } from "./AssignmentContext";
 
 /**
- * The teacher side's top bar and page frame. The brand and the tabs (gated by the pathway) form
- * the left group, the tabs directly right of the wordmark at the student header's gap (ticket
- * 165); the teacher's name and avatar form one row at the right. The tabs are indigo pills (the
- * current page filled deep, the others soft, ticket 163). "New assignment" left the bar for the
- * class view, a row of its own above the roster and Pathway cards (tickets 176, 179).
+ * The teacher side's top bar and page frame. The brand and the tabs form the left group. On an
+ * assignment's pages (under an `AssignmentProvider`, ticket 185) the tabs are that assignment's Class ·
+ * Mistakes · Groups (Groups only when its pathway has group review); on a Classroom page there are no
+ * assignment tabs, only a Groups link to the class's default groups. The individual view
+ * (`/teacher/report`) has no tab: it opens from a name on the class view. The tabs sit directly
+ * right of the wordmark at the student header's gap (ticket 165); the teacher's name and avatar
+ * form one row at the right. The tabs are indigo pills (the current page filled deep, the others
+ * soft, ticket 163). "New assignment" left the bar (ticket 176) and then the class view (185): it
+ * is on the Classroom.
  * The frame is the viewport: the bar sits in it and only the region beneath scrolls (ticket 68).
  * The window itself never scrolls, so the rubber-band at the end of a page moves the content,
  * never the bar; a sticky bar rode the bounce with the page. The outer div takes the viewport
@@ -33,8 +29,8 @@ export const TEACHER_TABS: { href: string; label: string; stage?: ReviewStage }[
  */
 export default function TeacherChrome({ children }: { children: ReactNode }) {
   const path = usePathname();
-  const pathway = pathwayOf(useClassroom());
-  const tabs = TEACHER_TABS.filter((t) => !t.stage || pathway.includes(t.stage));
+  const assignment = useOptionalAssignment();
+  const tabs = assignment ? assignmentTabs(assignment) : [{ label: "Groups", href: CLASS_GROUPS_HREF }];
   return (
     <div className="h-screen">
     <div className="flex h-full flex-col [zoom:0.72]" data-teacher-root>
@@ -42,12 +38,12 @@ export default function TeacherChrome({ children }: { children: ReactNode }) {
         <div className="mx-auto flex max-w-[1640px] items-center justify-between px-6 py-4">
           <div className="flex items-center gap-5">
             <Brand />
-            <nav className="flex items-center gap-1.5" data-teacher-tabs>
+            <nav className="flex items-center gap-1.5" data-teacher-tabs={assignment ? assignment.id : "classroom"}>
               {tabs.map((t) => {
                 const active = path === t.href;
                 return (
                   <Link
-                    key={t.href}
+                    key={t.label}
                     href={t.href}
                     aria-current={active ? "page" : undefined}
                     className={`rounded-full border border-transparent px-3 py-1 text-[13.5px] font-medium transition-colors ${active ? "bg-accent-deep text-white" : "bg-accent-soft text-accent-deep hover:bg-accent-line"}`}

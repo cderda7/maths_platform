@@ -34,15 +34,16 @@ export default function StudentChrome({ children, crumb, frozen = false, stages 
         </span>
       </div>
       <header className={`flex h-14 items-center justify-between border-b border-line bg-paper/70 px-7 backdrop-blur ${frozen ? "pointer-events-none" : ""}`} aria-disabled={frozen || undefined}>
-        <div className="flex items-center gap-5">
+        {/* The left group gives way first (ticket 185 side fix): with a four-stage pathway the set's title truncates on one line rather than the brand, title and name each wrapping to two. */}
+        <div className="flex min-w-0 items-center gap-5">
           <Brand />
-          {crumb && <span className="text-[13px] text-ink-muted">{crumb}</span>}
+          {crumb && <span className="min-w-0 truncate text-[13px] text-ink-muted" title={crumb}>{crumb}</span>}
         </div>
         {/* The strip sits with the name, not between the crumb and the name: pinned there it is in the same place on every screen whatever the crumb's length (the assignment title on every screen since ticket 168). */}
-        <div className="flex items-center gap-6">
+        <div className="flex shrink-0 items-center gap-6 pl-6">
           {stages.length > 0 && <PathwayStrip stages={stages} />}
           <div className="flex items-center gap-3 text-[13px] text-ink-soft">
-            <span>{DEMO_STUDENT.name}</span>
+            <span className="whitespace-nowrap">{DEMO_STUDENT.name}</span>
             <Avatar initials={DEMO_STUDENT.initials} />
           </div>
         </div>

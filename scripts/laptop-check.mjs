@@ -26,11 +26,12 @@ import { join } from "node:path";
 
 const ROUTES = [
   "/teacher",
-  "/teacher/assignments/new",
-  "/teacher/report",
-  "/teacher/mistakes",
-  "/teacher/compare",
+  "/teacher/a/pset-2/class",
+  "/teacher/a/pset-2/mistakes",
+  "/teacher/a/pset-2/groups",
   "/teacher/groups",
+  "/teacher/report",
+  "/teacher/compare",
   "/teacher/whole-class",
   "/teacher/board",
 ];

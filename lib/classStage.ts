@@ -1,7 +1,8 @@
-import { CLASSMATES } from "@/data/classmates";
+import { CLASSMATES, type Classmate } from "@/data/classmates";
 import { BEFORE_HAND_IN_STAGES, type ReviewStage } from "@/data/types";
 import { pathwayOf, type AdvanceKind, type ClassroomState } from "./classroom";
 import { STAGE_SHORT } from "./pathway";
+import { classmateProgress, isSubmitted } from "./progress";
 import { classReadiness, CLASS_SIZE } from "./readiness";
 import type { StudentSession } from "./session";
 import { standingsAt } from "./standings";
@@ -16,7 +17,8 @@ import { standingsAt } from "./standings";
  * class review when the teacher projects, group review when the gate opens (everyone in, or the
  * teacher's start), individual review when the live student hands in (the classmates' review is
  * scripted from that moment). Working is over from then on even with a student marked missing on
- * the grid; the count while it is current says how many have finished the set. Once the
+ * the grid; the count while it is current says how many have handed the set in, whole or in part
+ * (the one meaning of submitted, `lib/progress`, ticket 185). Once the
  * whole-class session ends every stage is over and none is current.
  *
  * "Force submit" (ticket 145) sits beside the current pill for the three stages the students work
@@ -79,12 +81,12 @@ export function currentClassStage(c: ClassroomState | null | undefined, session:
 
 const liveHandedIn = (session: StudentSession | null): boolean => !!session && !WORKING_STAGES.includes(session.stage);
 
-/** How many of the class are done with a stage. */
-export function stageDone(id: ClassStageId, c: ClassroomState | null | undefined, session: StudentSession | null, now: number, problemCount: number): number | null {
+/** How many of the class are done with a stage; `classmates` are the assignment's (ticket 185; the fixture's by default). */
+export function stageDone(id: ClassStageId, c: ClassroomState | null | undefined, session: StudentSession | null, now: number, classmates: readonly Classmate[] = CLASSMATES): number | null {
   switch (id) {
     case "working":
-      // The set finished: the live student past working, a classmate with every problem done.
-      return (liveHandedIn(session) ? 1 : 0) + CLASSMATES.filter((m) => m.done >= problemCount).length;
+      // The set handed in: the live student past working, a classmate who submitted.
+      return (liveHandedIn(session) ? 1 : 0) + classmates.filter((m) => isSubmitted(classmateProgress(m, []))).length;
     case "individual":
       return classReadiness(c, now).handedIn;
     case "group":
@@ -115,6 +117,6 @@ export function pathwayStages(c: ClassroomState | null | undefined, session: Stu
   return ids.map((id, i) => ({ id, word: CLASS_STAGE_WORD[id], state: i < at ? "over" : i === at ? "current" : "ahead" }));
 }
 
-export function classStages(c: ClassroomState | null | undefined, session: StudentSession | null, now: number, problemCount: number): ClassStage[] {
-  return pathwayStages(c, session, now).map((s) => ({ ...s, done: s.state === "current" ? stageDone(s.id, c, session, now, problemCount) : null, total: CLASS_SIZE }));
+export function classStages(c: ClassroomState | null | undefined, session: StudentSession | null, now: number, classmates: readonly Classmate[] = CLASSMATES): ClassStage[] {
+  return pathwayStages(c, session, now).map((s) => ({ ...s, done: s.state === "current" ? stageDone(s.id, c, session, now, classmates) : null, total: CLASS_SIZE }));
 }

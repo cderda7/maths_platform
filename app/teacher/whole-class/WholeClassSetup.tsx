@@ -8,7 +8,8 @@ import { Button, Card, Eyebrow, H1 } from "@/components/ui";
 import { DifficultyTag } from "@/components/Tag";
 import { useReorder } from "@/components/useReorder";
 import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
-import { dispatchClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
+import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
+import { useAssignmentBundle } from "../AssignmentContext";
 import { FOLLOW_MODE_WORD, type FollowMode } from "@/lib/classroom";
 import { candidatesFor, MAX_EXAMPLES, optionOf, optionsFor, problemsByStruggle, suggestExamples, type ExampleRef, type PickerContext } from "@/lib/examples";
 import ExamplePicker from "./ExamplePicker";
@@ -31,7 +32,8 @@ const PRECHECK = 3;
 export default function WholeClassSetup() {
   const router = useRouter();
   const { session } = useBatchedSession(3000);
-  const { problems, unit } = useAssignment();
+  const assignment = useAssignmentBundle();
+  const { problems, unitNumber: unit } = assignment;
   const ctx: PickerContext = { unit, group: useClassroom().group ?? null };
   const ranked = problemsByStruggle(session).filter((r) => problems.some((p) => p.id === r.problem.id));
   const [chosen, setChosen] = useState<string[] | null>(null);
@@ -76,7 +78,7 @@ export default function WholeClassSetup() {
   return (
     <TeacherChrome>
       <Eyebrow>
-        {ASSIGNMENT.className} · {useAssignment().title}
+        {assignment.className} · {assignment.title}
       </Eyebrow>
       <H1 className="mt-3">Class review</H1>
 

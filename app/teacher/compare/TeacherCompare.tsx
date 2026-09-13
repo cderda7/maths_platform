@@ -1,20 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import { assignmentHref, LIVE_ASSIGNMENT_ID } from "@/lib/assignments";
 import TeacherChrome from "../TeacherChrome";
 import M from "@/components/Math";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { DifficultyTag, LeafChip } from "@/components/Tag";
-import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
+import { DEMO_STUDENT } from "@/data/assignment";
 import { evaluateLine } from "@/lib/evaluate";
 import { useBatchedSession } from "@/lib/store";
-import { useAssignment } from "@/lib/classroom-store";
+import { useAssignmentBundle } from "../AssignmentContext";
 import { alignVersions, changedRowCount, rowChanged, versionsOf } from "@/lib/versions";
 
 const time = (ms: number) => (ms > 0 ? new Date(ms).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "—");
 
 /** The demo student's handed-in working beside their final working, changed lines called out. */
 export default function TeacherCompare() {
+  const assignment = useAssignmentBundle();
   const { session } = useBatchedSession(3000);
   const versions = session ? versionsOf(session) : null;
   const aligned = versions ? alignVersions(versions[0], versions[1]) : [];
@@ -24,14 +26,14 @@ export default function TeacherCompare() {
   return (
     <TeacherChrome>
       <Eyebrow>
-        {ASSIGNMENT.className} · {useAssignment().title}
+        {assignment.className} · {assignment.title}
       </Eyebrow>
       <div className="mt-3 flex items-end justify-between">
         <div className="flex items-center gap-4">
           <Avatar initials={DEMO_STUDENT.initials} size="h-12 w-12 text-[15px]" />
           <H1>Before and after</H1>
         </div>
-        <Link href="/teacher/mistakes" className="text-[13.5px] text-accent-deep hover:underline">
+        <Link href={assignmentHref(LIVE_ASSIGNMENT_ID, "mistakes")} className="text-[13.5px] text-accent-deep hover:underline">
           ← Where it went wrong
         </Link>
       </div>
@@ -110,7 +112,7 @@ export default function TeacherCompare() {
             ))}
           </div>
           <p className="mt-4 text-[12.5px] text-ink-muted">
-            {changed} lines changed · {reworked} of {ASSIGNMENT.problems.length} problems reworked
+            {changed} lines changed · {reworked} of {assignment.problems.length} problems reworked
           </p>
         </>
       )}

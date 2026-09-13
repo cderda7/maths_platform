@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
+import { assignmentHref, LIVE_ASSIGNMENT_ID } from "@/lib/assignments";
 import { useRouter } from "next/navigation";
 import TeacherChrome from "../../../TeacherChrome";
 import AssessingStep from "./AssessingStep";
@@ -56,7 +57,7 @@ export default function ReviewAssignment({ assessMs }: { assessMs: number }) {
     });
     dispatchClassroom({ type: "draft/set", draft: null });
     dispatchClassroom({ type: "review/set", review: null });
-    router.push("/teacher");
+    router.push(assignmentHref(LIVE_ASSIGNMENT_ID));
   };
 
   const current: StepName = assessing ? "assessment" : review.step === "difficulty" ? "difficulty" : review.step === "recommendations" ? "assessment" : "pathway";

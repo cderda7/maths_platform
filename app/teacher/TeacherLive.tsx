@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import TeacherChrome from "./TeacherChrome";
+import { BackToClassroom, useAssignmentBundle } from "./AssignmentContext";
 import DiagnosticCard from "./DiagnosticCard";
 import ForceSubmit from "./ForceSubmit";
 import GroupProgressCard from "./GroupProgressCard";
@@ -12,14 +13,14 @@ import FitText from "@/components/FitText";
 import StatusKey from "@/components/StatusKey";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { StatusDot, STATUS_WORD } from "@/components/Tag";
-import { ASSIGNMENT, DEMO_STUDENT, unitLabel } from "@/data/assignment";
-import { CLASSMATES } from "@/data/classmates";
+import { DEMO_STUDENT, unitLabel } from "@/data/assignment";
 import { categoryLabel, categoryName, categoryOf, isFlat, type CategoryId, type LeafId } from "@/data/taxonomy";
 import { confidenceLabel, confidenceLines } from "@/lib/report";
 import { BEFORE_HAND_IN_STAGES, type Confidence } from "@/data/types";
+import { assignmentStages, rosterProgress } from "@/lib/assignments";
 import { currentSlide } from "@/lib/classroom";
-import { useAssignment, useClassroom } from "@/lib/classroom-store";
-import { classStages } from "@/lib/classStage";
+import { useClassroom } from "@/lib/classroom-store";
+import { progressTag } from "@/lib/progress";
 import { classmateEvidence, hierarchyFor, problemsStarted, restrictTo, sessionEvidence, type Evidence } from "@/lib/hierarchy";
 import { historyFor, type HistoryPoint } from "@/lib/history";
 import { useBatchedSession, useNow } from "@/lib/store";
@@ -127,10 +128,12 @@ const HANDED_IN = BEFORE_HAND_IN_STAGES;
  * their scripted attempts.
  */
 export default function TeacherLive() {
+  const assignment = useAssignmentBundle();
   const { session, updatedAt, everyMs } = useBatchedSession(3000);
-  const live = session ?? null;
+  // Only the live set is Sam's session; a finished set's row is its own record (ticket 187).
+  const live = assignment.kind === "live" ? (session ?? null) : null;
   const now = useNow();
-  const { title, problems, unit } = useAssignment();
+  const { title, problems, unitNumber: unit } = assignment;
   const classroom = useClassroom();
   const wc = classroom.wholeClass;
   const status = wc?.status === "active" ? " · in class review" : wc?.status === "ended" ? " · complete" : "";
@@ -233,6 +236,7 @@ export default function TeacherLive() {
   const rowClick = (student: string, e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest("button, a")) return;
     if (leaveHistory(student)) return;
+
     const now = e.timeStamp;
     const again = lastClick.current?.student === student && now - lastClick.current.at < DOUBLE_MS;
     lastClick.current = { student, at: now };
@@ -265,42 +269,52 @@ export default function TeacherLive() {
     setHistory((h) => (h ? { ...h, open: h.open.includes(c) ? h.open.filter((x) => x !== c) : [...h.open, c] } : h));
   };
 
-  const rows: { id: string; name: string; initials: string; live: boolean; missing: boolean; evidence: Evidence; sub: string; confidence: { text: string; tone: string }; set: string; setSub: string }[] = [
+  const progress = rosterProgress(assignment, live, now);
+  /** Nothing handed in yet: the row's pills stay not-seen until the student submits (ticket 185). */
+  const NO_EVIDENCE: Evidence = { lines: {}, submitted: false, caution: [] };
+  /**
+   * A row still on the set carries its progress beside the name, in the pill that read "in progress" (ticket 185):
+   * "Q4 in progress" or "warming up"; the live student before his first screen keeps "not started", and once handed in "in progress" as before.
+   */
+  const rows: { id: string; name: string; initials: string; live: boolean; missing: boolean; evidence: Evidence; sub: string; confidence: { text: string; tone: string }; set: string; setSub: string; tag: string | null }[] = [
     {
       id: DEMO_STUDENT.id,
       name: DEMO_STUDENT.name,
       initials: DEMO_STUDENT.initials,
       live: true,
       missing: false,
-      evidence: live ? sessionEvidence(live) : { lines: {}, submitted: false, caution: [] },
+      evidence: live && !progressTag(progress[DEMO_STUDENT.id]) ? sessionEvidence(live) : NO_EVIDENCE,
       sub: "",
       confidence: confidenceWord(live?.confidence ?? null),
       set: `${live ? problemsStarted(live) : 0}/${problems.length}`,
-      setSub: live && !HANDED_IN.includes(live.stage) ? "handed in" : live && problemsStarted(live) > 0 ? "in progress" : "",
+      setSub: live && !HANDED_IN.includes(live.stage) ? "handed in" : "",
+      tag: progressTag(progress[DEMO_STUDENT.id]) ?? (progress[DEMO_STUDENT.id].kind === "not-started" ? "not started" : "in progress"),
     },
-    ...CLASSMATES.map((c) => ({
+    ...assignment.classmates.map((c) => ({
       id: c.id,
       name: c.name,
       initials: c.initials,
       live: false,
-      missing: c.done === 0,
-      evidence: classmateEvidence(c, problems),
+      missing: progress[c.id].kind === "not-started",
+      evidence: progressTag(progress[c.id]) ? NO_EVIDENCE : classmateEvidence(c, problems),
       sub: "",
       confidence: c.done === 0 ? confidenceWord(null) : { text: c.confidence, tone: c.confidence === "confident" ? "text-secure" : "text-accent-deep" },
       set: `${Math.min(c.done, problems.length)}/${problems.length}`,
       setSub: "",
+      tag: progressTag(progress[c.id]),
     })),
   ];
   const results = rows.map((r) => hierarchyFor(r.evidence, problems));
   const columns = results[0]?.columns ?? [];
   const caution = live?.escalation.caution ?? [];
-  const stages = classStages(classroom, live, now, problems.length);
+  const stages = assignmentStages(assignment, classroom, live, now);
   const wcInUse = !!currentSlide(classroom);
 
   return (
     <TeacherChrome>
-      <Eyebrow>
-        {ASSIGNMENT.className} · {unitLabel(ASSIGNMENT.unit)}
+      <BackToClassroom />
+      <Eyebrow className="mt-3">
+        {assignment.className} · {unitLabel(assignment.unit)}
       </Eyebrow>
       <div className="mt-3 grid grid-cols-[1fr_320px] gap-6">
         <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
@@ -309,22 +323,12 @@ export default function TeacherLive() {
       </div>
       <p ref={dueRef} className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[14px] text-ink-muted" data-due-line>
         <span>
-          {title} · due {ASSIGNMENT.due}
+          {title} · due {assignment.due}
           <span data-assignment-status>{status}</span>
         </span>
       </p>
 
-      {/* "New assignment" (ticket 176, the bar's old white pill, now light indigo with deep indigo text and border) has its own row above both cards, over the right column's left edge (ticket 179): the two cards stay level. */}
       <div className="mt-10 grid grid-cols-[1fr_320px] gap-6">
-        <div />
-        <div className="flex">
-          <Link href="/teacher/assignments/create" className="rounded-full border border-accent-deep bg-accent-soft px-3 py-1 text-[13.5px] font-medium text-accent-deep transition-colors hover:bg-accent-line" data-new-assignment>
-            New assignment
-          </Link>
-        </div>
-      </div>
-
-      <div className="mt-6 grid grid-cols-[1fr_320px] gap-6">
         {/* `overflow-clip`, not `overflow-x-auto` (ticket 167): a scroll container would be the header row's nearest scroller, so the heads could only stick within the card, which never scrolls; `clip` still rounds the card's corners over the heads' paper backgrounds and is no scroller, so the heads stick to the top of the teacher frame's scroll region instead. A window narrower than the roster (below the 1280 laptop, where it is 1204 of 1208 px) now scrolls the frame sideways rather than the card. */}
         {/* The roster and, beside it in the same box, the history blocker (ticket 175): the cream that hides the rows above an open history is drawn outside the card, so it can rise past the card's clipped top edge over the "due" line when the history is a top row's. */}
         <div ref={rosterRef} className="relative">
@@ -416,14 +420,14 @@ export default function TeacherLive() {
                           <Avatar initials={r.initials} />
                           <div className="min-w-0">
                             <div className="flex items-center">
-                              {/* The name sits in a fixed slot (the widest name on the roster, Ruby Castellanos at 16 px, plus 10 px), so the live pill of every in-progress student starts at the same x instead of staggering with the name's length (ticket 136). A longer name pushes its own pill right; the slot's padding keeps the 10 px. */}
-                              <span className="box-border min-w-[142px] whitespace-nowrap pr-2.5 text-[16px] font-medium leading-6 text-ink" data-student-name={r.id}>
+                              {/* The name sits in a fixed slot (the widest name on the roster, Ruby Castellanos at 16 px (132.2), plus 8 px), so the progress pill of every student still on the set starts at the same x instead of staggering with the name's length (ticket 136). A longer name pushes its own pill right; the slot's padding keeps the 8 px. Slot and pill were trimmed a few px in ticket 185 so the longest pill, "Q10 in progress", keeps clear of the row's buttons at 1280 and 1400. */}
+                              <span className="box-border min-w-[141px] whitespace-nowrap pr-2 text-[16px] font-medium leading-6 text-ink" data-student-name={r.id}>
                                 {r.name}
                               </span>
-                              {r.live && (
-                                <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-accent-line bg-paper px-1.5 py-0.5 text-[11px] font-medium text-accent-deep" data-live-pill>
+                              {r.tag && (
+                                <span className="inline-flex shrink-0 items-center gap-[3px] whitespace-nowrap rounded-full border border-accent-line bg-paper px-[5px] py-0.5 text-[11px] font-medium text-accent-deep" data-live-pill={r.live || undefined} data-progress-tag={r.tag}>
                                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" aria-hidden />
-                                  {live ? "in progress" : "not started"}
+                                  {r.tag}
                                 </span>
                               )}
                             </div>
@@ -444,13 +448,13 @@ export default function TeacherLive() {
                           {/* Shown while the pointer is in the student's block, except over a marker (a category pill, ticket 128, or a drill dot, ticket 133: each is its own way in) and for PILL_GRACE_MS after it last left one (ticket 131), unless the pointer has gone left of the row's first pill, which ends the grace at once (ticket 180). The CSS :has rules hide at once; the state carries the grace. */}
                           {/* Three buttons (ticket 175): the third opens history mode and reads "close history" while it is on; the stack stays in view for the student in history mode, and never shows on a faded row. */}
                           <div className={`ml-auto flex shrink-0 flex-col gap-[3px] ${inHistory ? "visible" : "invisible"} ${pillQuiet && !faded ? "group-hover/row:visible group-focus-within/row:visible group-has-[[data-dot]:hover]/row:invisible group-has-[[data-node]:hover]/row:invisible" : ""}`} data-row-actions={r.id}>
-                            <button type="button" onClick={() => (isOpen ? setOpen(null) : openRow(r.id, "expanded"))} className={isOpen ? ROW_ACTIVE : ROW_IDLE} data-see-skills={r.id} aria-pressed={isOpen}>
+                            <button type="button" onClick={() => (isOpen ? setOpen(null) : openRow(r.id, "expanded"))} className={`${isOpen ? ROW_ACTIVE : ROW_IDLE}`} data-see-skills={r.id} aria-pressed={isOpen}>
                               {isOpen ? "close" : "see dot skills"}
                             </button>
                             <Link href={`/teacher/report?student=${r.id}`} className={`${ROW_IDLE} text-center`} data-student-link={r.id}>
                               student report
                             </Link>
-                            <button type="button" onClick={() => (inHistory ? setHistory(null) : openHistory(r.id))} className={inHistory ? ROW_ACTIVE : ROW_IDLE} data-see-history={r.id} aria-pressed={inHistory}>
+                            <button type="button" onClick={() => (inHistory ? setHistory(null) : openHistory(r.id))} className={`${inHistory ? ROW_ACTIVE : ROW_IDLE}`} data-see-history={r.id} aria-pressed={inHistory}>
                               {inHistory ? "close history" : "see history"}
                             </button>
                           </div>

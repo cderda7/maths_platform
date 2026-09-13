@@ -10,7 +10,7 @@ export function BrandMark({ className = "h-6 w-6" }: { className?: string }) {
 /** The wordmark with the class's short name ("Edexia · 11 Methods", ticket 184). Not a link: it reads as a label, with the default cursor to say so. */
 export default function Brand({ sub = ASSIGNMENT.className }: { sub?: string }) {
   return (
-    <div className="flex cursor-default select-none items-center gap-2 font-medium tracking-tight text-accent" data-brand>
+    <div className="flex shrink-0 cursor-default select-none items-center gap-2 whitespace-nowrap font-medium tracking-tight text-accent" data-brand>
       <BrandMark />
       <span className="text-[17px] text-accent-deep">Edexia</span>
       <span className="ml-1 text-[13px] font-normal text-ink-muted">· {sub}</span>

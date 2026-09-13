@@ -4,9 +4,11 @@
 
 **Blocked by:** 184.
 
-**Status:** ready
+**Status:** done
 
 **Triage:** `ready-for-agent`
+
+**Note (implementation):** Class is at `/teacher/a/<id>/class`: `/teacher/a/<id>` is the landing, which would otherwise bounce the Class tab to Mistakes while the class works (DECISION_LOG, 2026-09-13).
 
 ---
 
@@ -37,10 +39,10 @@ Current state (read 2026-09-13): one fixture `ASSIGNMENT` (`data/assignment.ts`,
 
 ## Acceptance
 
-- [ ] `/teacher/a/pset-2` lands on Mistakes while anyone has not submitted, on Class once past working; both tabs and Groups (when pathway has group) reachable
-- [ ] "← Edexia Classroom" on all three pages goes to `/teacher`; no "New assignment" on Class View
-- [ ] Force submit present on Class and Mistakes and works from either
-- [ ] Moving a student on an assignment's Groups tab does not change `/teacher/groups` (class defaults), and vice versa
-- [ ] Unsubmitted rows read "Q<n> in progress"/"warming up"
-- [ ] `/teacher/assignments/new` gone; no dead links (grep)
-- [ ] vitest, eslint, tsc, next build, check:laptop; click-through of the three tabs and landing rules
+- [x] `/teacher/a/pset-2` lands on Mistakes while anyone has not submitted, on Class once past working; both tabs and Groups (when pathway has group) reachable
+- [x] "← Edexia Classroom" on all three pages goes to `/teacher`; no "New assignment" on Class View
+- [x] Force submit present on Class and Mistakes and works from either
+- [x] Moving a student on an assignment's Groups tab does not change `/teacher/groups` (class defaults), and vice versa
+- [x] Unsubmitted rows read "Q<n> in progress"/"warming up"
+- [x] `/teacher/assignments/new` gone; no dead links (grep)
+- [x] vitest, eslint, tsc, next build, check:laptop; click-through of the three tabs and landing rules

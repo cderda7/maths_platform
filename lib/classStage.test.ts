@@ -7,20 +7,20 @@ import { DEMO_PATHWAY, skipFixture } from "./demo";
 import { ARRIVAL_OFFSETS_MS, CLASS_SIZE, LAST_ARRIVAL_MS } from "./readiness";
 import { sessionAt } from "./session";
 
-const N = ASSIGNMENT.problems.length;
 const now = 1_700_000_000_000;
-const words = (c: ClassroomState, s: Parameters<typeof classStages>[1]) => classStages(c, s, now, N).map((x) => `${x.word}:${x.state}${x.done === null ? "" : ` ${x.done}/${x.total}`}`);
+const words = (c: ClassroomState, s: Parameters<typeof classStages>[1]) => classStages(c, s, now).map((x) => `${x.word}:${x.state}${x.done === null ? "" : ` ${x.done}/${x.total}`}`);
 
 describe("the class's stage on the pathway", () => {
   it("names every stage of the pathway, the working first", () => {
     const { classroom } = skipFixture("start", now);
-    expect(classStages(classroom, null, now, N).map((s) => s.word)).toEqual(["indiv working", "indiv review", "group review", "class review"]);
-    expect(classStages(INITIAL_CLASSROOM, null, now, N).map((s) => s.id)).toEqual(["working", "individual", "group"]);
+    expect(classStages(classroom, null, now).map((s) => s.word)).toEqual(["indiv working", "indiv review", "group review", "class review"]);
+    expect(classStages(INITIAL_CLASSROOM, null, now).map((s) => s.id)).toEqual(["working", "individual", "group"]);
   });
 
-  it("starts on the working, counting the classmates who have finished the set", () => {
+  it("starts on the working, counting the classmates who have handed the set in, whole or in part", () => {
     const { classroom, session } = skipFixture("working", now);
-    const finished = CLASSMATES.filter((m) => m.done >= N).length;
+    const finished = CLASSMATES.filter((m) => m.done > 0).length;
+    expect(finished).toBe(CLASSMATES.length - 1);
     expect(words(classroom, session)).toEqual([`indiv working:current ${finished}/${CLASS_SIZE}`, "indiv review:ahead", "group review:ahead", "class review:ahead"]);
   });
 
@@ -34,18 +34,18 @@ describe("the class's stage on the pathway", () => {
     const { classroom, session } = skipFixture("class wait", now);
     expect(words(classroom, session)[1]).toBe(`indiv review:current 1/${CLASS_SIZE}`);
     const first = Math.min(...Object.values(ARRIVAL_OFFSETS_MS));
-    expect(classStages(classroom, session, now + first, N)[1].done).toBe(2);
+    expect(classStages(classroom, session, now + first)[1].done).toBe(2);
     // Everyone in: the gate opens and group review is the stage, nothing done yet.
     const later = now + LAST_ARRIVAL_MS;
-    expect(classStages(classroom, session, later, N).map((s) => s.state)).toEqual(["over", "over", "current", "ahead"]);
+    expect(classStages(classroom, session, later).map((s) => s.state)).toEqual(["over", "over", "current", "ahead"]);
   });
 
   it("counts the members of finished groups during group review", () => {
     const { classroom, session } = skipFixture("group review", now);
-    const stages = classStages(classroom, session, now, N);
+    const stages = classStages(classroom, session, now);
     expect(stages.map((s) => s.state)).toEqual(["over", "over", "current", "ahead"]);
     const atStart = stages[2].done!;
-    const tenMinutes = classStages(classroom, session, now + 10 * 60_000, N)[2].done!;
+    const tenMinutes = classStages(classroom, session, now + 10 * 60_000)[2].done!;
     expect(tenMinutes).toBeGreaterThan(atStart);
     expect(tenMinutes).toBeLessThanOrEqual(CLASS_SIZE);
   });
@@ -55,14 +55,14 @@ describe("the class's stage on the pathway", () => {
     expect(words(classroom, session)).toEqual(["indiv working:over", "indiv review:over", "group review:over", "class review:current"]);
     const ended = classroomReducer(classroom, { type: "wc/end" });
     expect(currentClassStage(ended, session, now)).toBeNull();
-    expect(classStages(ended, session, now, N).map((s) => s.state)).toEqual(["over", "over", "over", "over"]);
+    expect(classStages(ended, session, now).map((s) => s.state)).toEqual(["over", "over", "over", "over"]);
   });
 
   it("gives the student's header strip the same stages, without the counts (ticket 151)", () => {
     for (const target of ["start", "working", "indiv review", "class wait", "group review", "class review", "report"] as const) {
       const { classroom, session } = skipFixture(target, now);
       const strip = pathwayStages(classroom, session, now);
-      expect(strip).toEqual(classStages(classroom, session, now, N).map(({ id, word, state }) => ({ id, word, state })));
+      expect(strip).toEqual(classStages(classroom, session, now).map(({ id, word, state }) => ({ id, word, state })));
       expect(strip.map((s) => s.word)).toEqual(["indiv working", "indiv review", "group review", "class review"]);
       expect(strip.filter((s) => s.state === "current").length).toBeLessThanOrEqual(1);
     }
@@ -97,10 +97,10 @@ describe("the class's stage on the pathway", () => {
 
   it("skips stages the pathway lacks", () => {
     let c = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: "t", problemIds: ASSIGNMENT.problems.map((p) => p.id), pathway: ["whole-class"], at: now });
-    expect(classStages(c, sessionAt("waiting"), now, N).map((s) => `${s.id}:${s.state}`)).toEqual(["working:current", "whole-class:ahead"]);
+    expect(classStages(c, sessionAt("waiting"), now).map((s) => `${s.id}:${s.state}`)).toEqual(["working:current", "whole-class:ahead"]);
     c = classroomReducer(c, { type: "wc/setup", problems: [ASSIGNMENT.problems[0].id], examples: {}, mode: "frozen" });
     c = classroomReducer(c, { type: "wc/project", at: now });
-    expect(classStages(c, sessionAt("frozen"), now, N).map((s) => `${s.id}:${s.state}`)).toEqual(["working:over", "whole-class:current"]);
+    expect(classStages(c, sessionAt("frozen"), now).map((s) => `${s.id}:${s.state}`)).toEqual(["working:over", "whole-class:current"]);
     expect(DEMO_PATHWAY).toEqual(["individual", "group", "whole-class"]);
   });
 });

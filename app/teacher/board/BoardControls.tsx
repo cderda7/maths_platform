@@ -1,15 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { assignmentHref, LIVE_ASSIGNMENT_ID } from "@/lib/assignments";
 import { useRouter } from "next/navigation";
 import TeacherChrome from "../TeacherChrome";
 import M from "@/components/Math";
 import PadSection from "@/components/PadSection";
 import { Card, Eyebrow, H1 } from "@/components/ui";
-import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
+import { PROBLEM_MAP } from "@/data/assignment";
 import type { Stroke } from "@/data/types";
 import { currentSlide, FOLLOW_MODE_WORD, type FollowMode } from "@/lib/classroom";
-import { dispatchClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
+import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
+import { useAssignmentBundle } from "../AssignmentContext";
 
 /**
  * The teacher's side of whole-class review, on the laptop: the controls and the pad, nothing
@@ -21,13 +23,13 @@ import { dispatchClassroom, useAssignment, useClassroom } from "@/lib/classroom-
 export default function BoardControls() {
   const router = useRouter();
   const classroom = useClassroom();
-  const { title } = useAssignment();
+  const { title, className } = useAssignmentBundle();
   const slide = currentSlide(classroom);
 
   const heading = (
     <>
       <Eyebrow>
-        {ASSIGNMENT.className} · {title}
+        {className} · {title}
       </Eyebrow>
       <div className="mt-3">
         <H1>Board controls</H1>
@@ -55,7 +57,7 @@ export default function BoardControls() {
   const setMode = (mode: FollowMode) => dispatchClassroom({ type: "wc/mode", problem: pid, mode });
   const end = () => {
     dispatchClassroom({ type: "wc/end" });
-    router.push("/teacher");
+    router.push(assignmentHref(LIVE_ASSIGNMENT_ID, "class"));
   };
 
   return (

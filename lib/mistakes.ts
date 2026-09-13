@@ -1,5 +1,5 @@
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
-import { CLASSMATES } from "@/data/classmates";
+import { CLASSMATES, type Classmate } from "@/data/classmates";
 import type { Problem } from "@/data/types";
 import type { LeafId } from "@/data/taxonomy";
 import { evaluateLine, type Verdict } from "./evaluate";
@@ -163,16 +163,22 @@ const liveRight = (session: StudentSession, me: ProblemFeedback | undefined): bo
  * remainder never finished it (a classmate who stopped before it, the live student with a
  * working that reaches no answer).
  */
-export function rightCount(problem: Problem, index: number, session: StudentSession | null, me?: ProblemFeedback): number {
+export function rightCount(problem: Problem, index: number, session: StudentSession | null, me?: ProblemFeedback, classmates: readonly Classmate[] = CLASSMATES): number {
   const live = session && liveRight(session, me ?? feedbackFor(session).find((p) => p.problem.id === problem.id)) ? 1 : 0;
-  return live + CLASSMATES.filter((c) => index < c.done && !c.wrong.includes(problem.id)).length;
+  return live + classmates.filter((c) => index < c.done && !c.wrong.includes(problem.id)).length;
+}
+
+/** One assignment's problems and classmates' results (ticket 185): the fixture's, or an assignment bundle's (`lib/assignments`). */
+export interface MistakeSet {
+  problems: readonly Problem[];
+  classmates: readonly Classmate[];
 }
 
 export { CLASS_SIZE };
 
-export function mistakesByProblem(session: StudentSession | null): ProblemMistakes[] {
+export function mistakesByProblem(session: StudentSession | null, set: MistakeSet = { problems: ASSIGNMENT.problems, classmates: CLASSMATES }): ProblemMistakes[] {
   const mine = session ? feedbackFor(session) : [];
-  return ASSIGNMENT.problems
+  return set.problems
     .map((problem, index) => {
       const rows: MistakeRow[] = [];
       const me = mine.find((p) => p.problem.id === problem.id);
@@ -180,12 +186,12 @@ export function mistakesByProblem(session: StudentSession | null): ProblemMistak
         const lines = me.lines.map((l) => ({ tex: l.tex, verdict: l.verdict }));
         rows.push({ id: DEMO_STUDENT.id, name: DEMO_STUDENT.name, initials: DEMO_STUDENT.initials, live: true, lines, slips: slipsOf(lines) });
       }
-      for (const c of CLASSMATES) {
+      for (const c of set.classmates) {
         if (!c.wrong.includes(problem.id)) continue;
         const lines = evaluateAll(problem.id, c.attempts[problem.id] ?? []);
         rows.push({ id: c.id, name: c.name, initials: c.initials, live: false, lines, slips: slipsOf(lines) });
       }
-      return { problem, rows, right: rightCount(problem, index, session, me) };
+      return { problem, rows, right: rightCount(problem, index, session, me, set.classmates) };
     })
     .filter((p) => p.rows.length > 0);
 }

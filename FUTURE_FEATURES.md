@@ -2606,6 +2606,35 @@ uploaded problems) settled the following as later, each on purpose.
 - **More past assignments.** The user cut the plan from two past sets to one (Problem Set 1) for
   cost; a longer back catalogue (and a Surds set, the syllabus's first part) is deferred (2026-09-13).
 
+
+## Assignments and their routes (from ticket 185, 2026-09-13)
+
+- **The Classroom is a plain list.** `/teacher` lists the registry's sets as links with "New
+  assignment"; ticket 186 builds the cards (live above past, counts, top gap).
+- **Report, compare, class review setup and the board are Problem Set 2's only.** They stay at
+  `/teacher/report`, `/teacher/compare`, `/teacher/whole-class` and `/teacher/board`, wrapped in
+  Problem Set 2's provider, because they read Sam's live session. Moving them under
+  `/teacher/a/<id>/…` (a finished set's student report, its compare) is deferred to when a second
+  set has that data (ticket 187 or later).
+- **A row still on the set opens empty drills.** Its pills are not-seen until the student hands in, so
+  "see dot skills" and history mode open on nothing, as Chloe's row always did; showing the live
+  student's partial evidence while he works (as before ticket 185) is deferred.
+- **The progress pill has little room.** "Q10 in progress" beside Ruby Castellanos's slot clears the
+  row buttons by under 10 px at 1280 and 1400; longer words (a problem label like "4(a)", a
+  "Q10 · warming up") would need the pill under the name or a wider student column.
+- **The landing is decided once, in the browser.** The classroom and the session live in
+  localStorage, so `/teacher/a/<id>` renders the chrome and then replaces itself; a server-side
+  redirect needs a backend.
+- **The Classroom-level Groups page has no back link.** It opens from the header's Groups link and
+  the header's wordmark is not a link; a link from the brand to the Classroom is deferred to 186's
+  header.
+- **Resetting an assignment's groups to the class defaults.** `groups/reset` with an assignment
+  returns its fixture copy; a "copy the class defaults again" action on the assignment's Groups tab
+  is not built.
+- **Old deep links beyond Mistakes.** Only `/teacher/mistakes` redirects (the class view's old `/teacher`
+  is now the Classroom, and `/teacher/groups` is now the class defaults, so bookmarks to those land
+  on the new pages).
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

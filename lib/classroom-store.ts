@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { classroomReducer, INITIAL_CLASSROOM, type ClassroomAction, type ClassroomState } from "./classroom";
+import { classroomReducer, INITIAL_CLASSROOM, migrateClassroom, type ClassroomAction, type ClassroomState } from "./classroom";
 import { activeAssignment, type ActiveAssignment } from "./assignment";
 
 /**
@@ -21,7 +21,7 @@ let wired = false;
 function load(): ClassroomState {
   try {
     const raw = localStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as ClassroomState) : INITIAL_CLASSROOM;
+    return raw ? migrateClassroom(JSON.parse(raw)) : INITIAL_CLASSROOM;
   } catch {
     return INITIAL_CLASSROOM;
   }

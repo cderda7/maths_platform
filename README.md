@@ -51,7 +51,7 @@ restarts everything in every tab; it is a presenter control, not part of the pro
 
 ## The demo, in order
 
-Teacher, before the lesson (`/teacher/assignments/create`, then the older `/teacher/assignments/new`):
+Teacher, before the lesson (Edexia Classroom at `/teacher`, New assignment → `/teacher/assignments/create`):
 
 0. **Create** (tickets 119, 121, 154): opens prefilled with the demo set (`data/draft-seed.ts`: the title,
    the goal for the class and ten typed questions, Q1 with +5x and a repeated Q9 for the review step); a title, then
@@ -126,9 +126,11 @@ Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the 
 7. **Report** in the teacher's colours (each category's pill carrying its name in white on its
    status colour, the groups beneath), a 2–3 sentence reflection in a 320 px panel, send.
 
-Teacher, during the lesson (`/teacher`):
+Teacher, during the lesson (Edexia Classroom at `/teacher` lists the assignments; each opens at
+`/teacher/a/<id>`, landing on Class once everyone has handed in or the class is past individual
+working, else on Mistakes; every assignment page has "← Edexia Classroom" above its eyebrow):
 
-- **Class**: one column per skill category the set touches (Algebra, Functions, Graphing,
+- **Class** (`/teacher/a/pset-2/class`): one column per skill category the set touches (Algebra, Functions, Graphing,
   Communication, Reasoning, New skills), each a pill in the worst status beneath it (groups and
   skills beneath are round dots), half-filled where a student skipped problems; click a pill to drill
   sideways into groups, skills and the marked-up work behind them. Hover a column header for its **see skills** / **full breakdown** buttons
@@ -188,7 +190,7 @@ student's is live); the final standings held once group review is over; during w
 review one slide per problem, examples A/B/C with "n/m students" (the same columns the students
 see, drawn by one component; lines never wrap, they shrink together in a narrow window), no names,
 no marks until the teacher shows them, and the teacher's working pad.
-- **Mistakes** (`/teacher/mistakes`): problems first, the students who slipped on each under
+- **Mistakes** (`/teacher/a/pset-2/mistakes`; the old `/teacher/mistakes` redirects there): the stage, its count and **force submit** after the title (the same control as on the Pathway card); problems first, the students who slipped on each under
   one pill per slip, expand for their working; inside a pill the students on the exact same
   wrong line sit together and, open, one box in the pill's red surrounds their working (a
   student alone on theirs boxed alone). Students whose working is identical line for line
@@ -211,9 +213,9 @@ no marks until the teacher shows them, and the teacher's working pad.
   `Waiting · n/20 in` with Withdraw while the class answers, then the board links; a badge on
   the collapsed chip while its push waits, and the other panels' send buttons wait their turn.
   The nineteen classmates answer over eight seconds after the push; Sam answers on the iPad.
-  **Groups** (only when the pathway has group review), **/teacher/compare**.
-  On the class view's roster the name is 16 px with the **in progress** pill beside it (every in-progress
-  pill at one x), the avatar before the name and the same initials closing the row at the far right.
+  **Groups** (`/teacher/a/<id>/groups`, only when the pathway has group review): that assignment's own seating groups, frozen from the class defaults when it was created; the class defaults are edited at `/teacher/groups` (the Classroom's Groups link), and a move on one never changes the other. **/teacher/compare**.
+  On the class view's roster the name is 16 px with a pill beside it for a student still on the set, **Q4 in progress**
+  or **warming up** (Sam before his first screen: **not started**), every pill at one x, their dots not seen until they hand in; the avatar before the name and the same initials closing the row at the far right.
   The roster's header row (Student, the category chips, Confidence, Set) stays in view under the bar
   while the page scrolls, so the categories still read beside the later students.
   **student report** beside a name on the class view opens their individual view (`/teacher/report?student=`):

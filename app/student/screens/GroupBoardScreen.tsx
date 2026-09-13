@@ -5,7 +5,7 @@ import M from "@/components/Math";
 import PadSection from "@/components/PadSection";
 import ReadAs from "@/components/ReadAs";
 import { Avatar, Button, Eyebrow } from "@/components/ui";
-import { DEMO_STUDENT, PROBLEM_MAP } from "@/data/assignment";
+import { ASSIGNMENT, DEMO_STUDENT, PROBLEM_MAP } from "@/data/assignment";
 import { CLASSMATE_MAP } from "@/data/classmates";
 import { GROUP_HEX } from "@/data/groups";
 import type { Stroke } from "@/data/types";
@@ -13,7 +13,7 @@ import { branchesOf } from "@/lib/branches";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { attemptsOn, cutAtFirstMistake, currentProblem, lastAttempt, ownAttemptScript, penHolder, resolvedCurrent, type CutView } from "@/lib/groupReview";
 import { nextLine, type RevealedLine } from "@/lib/recognition";
-import { groupOfStudent, seatingOf } from "@/lib/seating";
+import { assignmentGroupsOf, groupOfStudent } from "@/lib/seating";
 import type { SessionAction, StudentSession } from "@/lib/session";
 import GroupDebrief from "./GroupDebrief";
 import { pendingDebrief } from "@/lib/debrief";
@@ -44,7 +44,7 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
   const resolved = resolvedCurrent(run);
   const last = lastAttempt(run);
   const wrongShown = last && !last.correct && !resolved ? cutAtFirstMistake(pid, last.lines) : null;
-  const colour = groupOfStudent(seatingOf(classroom.groups), DEMO_STUDENT.id) ?? "sky";
+  const colour = groupOfStudent(assignmentGroupsOf(classroom, ASSIGNMENT.id), DEMO_STUDENT.id) ?? "sky";
   const attemptNo = attemptsOn(run).length;
   // The board's transcription so far, shared by every member: what the column shows and what the next burst reads on from.
   const revealed: RevealedLine[] = run.lines.map((tex, i) => ({ tex, strokeCount: i + 1 }));

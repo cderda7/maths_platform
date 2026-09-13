@@ -19,8 +19,11 @@ const mmss = (ms: number) => {
  * opened; group review over). While the grace runs the button gives way to the countdown with
  * Cancel. No confirmation step: the minute with Cancel is the undo. Disabled once the live
  * student is past the stage or while the teacher projects.
+ *
+ * The Mistakes tab carries it too (ticket 185), `inline` in its title row: no bottom margin, the
+ * countdown on one line.
  */
-export default function ForceSubmit({ stage, session }: { stage: ClassStageId; session: StudentSession | null }) {
+export default function ForceSubmit({ stage, session, inline = false }: { stage: ClassStageId; session: StudentSession | null; inline?: boolean }) {
   const classroom = useClassroom();
   const now = useNow();
   const kind = FORCE_KIND[stage];
@@ -28,7 +31,7 @@ export default function ForceSubmit({ stage, session }: { stage: ClassStageId; s
   const advance = classroom.advance;
   const pending = isPending(classroom, now) && advance?.kind === kind;
   return pending && advance ? (
-    <span className="flex flex-col items-start text-ink" data-force-pending>
+    <span className={`flex text-ink ${inline ? "items-center gap-1.5" : "flex-col items-start"}`} data-force-pending>
       <span className="flex items-center gap-1.5">
         <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-accent" aria-hidden />
         {FORCE_PENDING_WORD[stage]}
@@ -45,7 +48,7 @@ export default function ForceSubmit({ stage, session }: { stage: ClassStageId; s
   ) : (
     <button
       type="button"
-      className="mb-1 whitespace-nowrap rounded-full border border-standout-line bg-standout-soft px-2.5 py-1 text-[12px] font-medium leading-tight text-accent-deep transition-colors hover:bg-standout-line/60 disabled:cursor-not-allowed disabled:opacity-40"
+      className={`${inline ? "" : "mb-1"} whitespace-nowrap rounded-full border border-standout-line bg-standout-soft px-2.5 py-1 text-[12px] font-medium leading-tight text-accent-deep transition-colors hover:bg-standout-line/60 disabled:cursor-not-allowed disabled:opacity-40`}
       disabled={!canForce(stage, classroom, session)}
       onClick={() => dispatchClassroom({ type: "advance/start", kind })}
       data-force={stage}

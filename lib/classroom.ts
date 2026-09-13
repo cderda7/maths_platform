@@ -1,7 +1,8 @@
 import type { Pathway, Stroke } from "@/data/types";
 import type { Diagnostic } from "@/data/diagnostic";
+import { ASSIGNMENT } from "@/data/assignment";
 import { DEFAULT_GROUPS, type GroupColour, type SeatingGroups } from "@/data/groups";
-import { moveStudent, seatingOf } from "./seating";
+import { assignmentGroupsOf, moveStudent, seatingOf } from "./seating";
 import { beginRun, checkBoard, currentProblem, type GroupRun, type TurnEvent } from "./groupReview";
 import type { ExampleRef } from "./examples";
 import { DEFAULT_PATHWAY } from "./pathway";
@@ -129,8 +130,15 @@ export interface ClassroomState {
   review?: ReviewState | null;
   advance: PendingAdvance | null;
   wholeClass: WholeClassSession | null;
-  /** The teacher's seating groups, per class; absent in older stored state (read through `seatingOf`). */
+  /** The class's default seating groups, edited at `/teacher/groups`; absent in older stored state (read through `seatingOf`). */
   groups?: SeatingGroups;
+  /**
+   * Each assignment's own copy of the groups, by assignment id (ticket 185): frozen from the class
+   * defaults when the assignment is created, then edited on that assignment's Groups tab only. An
+   * assignment with no entry reads its fixture copy (`assignmentGroupsOf`). Always present once
+   * read through `migrateClassroom`; its absence marks a state stored before ticket 185.
+   */
+  assignmentGroups?: Record<string, SeatingGroups>;
   /** When each student arrived at the gate into group review (ms since epoch); the demo student's anchors the classmates' scripted arrivals. */
   arrivals?: Record<string, number>;
   /** The demo student's group on the shared whiteboard, once group review has begun. */
@@ -140,14 +148,16 @@ export interface ClassroomState {
 }
 
 export type ClassroomAction =
-  | { type: "assignment/create"; title: string; problemIds: string[]; pathway: Pathway; unit?: 1 | 2 | 3 | 4; goal?: string; questions?: ReviewedQuestion[]; at?: number }
+  /** `id` names the assignment (Problem Set 2 when absent); its groups are frozen from `groups` or, absent, the class defaults. */
+  | { type: "assignment/create"; id?: string; groups?: SeatingGroups; title: string; problemIds: string[]; pathway: Pathway; unit?: 1 | 2 | 3 | 4; goal?: string; questions?: ReviewedQuestion[]; at?: number }
   /** The create screen's draft as typed; null clears it. */
   | { type: "draft/set"; draft: AssignmentDraft | null }
   /** The review step's decisions; null clears them. */
   | { type: "review/set"; review: ReviewState | null }
-  /** The groups page: move one student to a colour. */
-  | { type: "groups/move"; student: string; to: GroupColour }
-  | { type: "groups/reset" }
+  /** A Groups page: move one student to a colour, in an assignment's own groups when `assignment` is set, else in the class defaults. */
+  | { type: "groups/move"; student: string; to: GroupColour; assignment?: string }
+  /** Back to the fixture: the class defaults, or with `assignment` that assignment's frozen fixture copy. */
+  | { type: "groups/reset"; assignment?: string }
   /** A student reached the gate into group review. Idempotent per student. */
   | { type: "class/arrive"; student: string; at: number }
   /** The shared whiteboard. `group/begin` is idempotent: a run already begun is kept. */
@@ -190,7 +200,19 @@ export type ClassroomAction =
   | { type: "diagnostic/board"; on: boolean }
   | { type: "reset" };
 
-export const INITIAL_CLASSROOM: ClassroomState = { assignment: null, advance: null, wholeClass: null, groups: DEFAULT_GROUPS };
+export const INITIAL_CLASSROOM: ClassroomState = { assignment: null, advance: null, wholeClass: null, groups: DEFAULT_GROUPS, assignmentGroups: {} };
+
+/**
+ * A classroom as stored, read tolerantly (ticket 185): a state saved before assignments kept their
+ * own groups had one set of groups doing both jobs, so Problem Set 2 inherits that set as its
+ * frozen copy and it stays the class default too. Anything unreadable is a fresh classroom.
+ */
+export function migrateClassroom(raw: unknown): ClassroomState {
+  if (!raw || typeof raw !== "object") return INITIAL_CLASSROOM;
+  const c = raw as ClassroomState;
+  if (c.assignmentGroups && typeof c.assignmentGroups === "object") return c;
+  return { ...c, assignmentGroups: c.groups ? { [ASSIGNMENT.id]: c.groups } : {} };
+}
 
 export function classroomReducer(c: ClassroomState, a: ClassroomAction): ClassroomState {
   switch (a.type) {
@@ -199,7 +221,7 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
     case "review/set":
       return { ...c, review: a.review };
     case "assignment/create":
-      return { ...c, assignment: { title: a.title, problemIds: [...a.problemIds], pathway: [...a.pathway], unit: a.unit ?? 1, createdAt: a.at ?? 0, ...(a.goal !== undefined ? { goal: a.goal } : {}), ...(a.questions ? { questions: a.questions.map((q) => ({ ...q })) } : {}) } };
+      return { ...c, assignmentGroups: { ...(c.assignmentGroups ?? {}), [a.id ?? ASSIGNMENT.id]: a.groups ?? seatingOf(c.groups) }, assignment: { title: a.title, problemIds: [...a.problemIds], pathway: [...a.pathway], unit: a.unit ?? 1, createdAt: a.at ?? 0, ...(a.goal !== undefined ? { goal: a.goal } : {}), ...(a.questions ? { questions: a.questions.map((q) => ({ ...q })) } : {}) } };
     case "advance/start": {
       const at = a.at ?? 0;
       return { ...c, advance: { id: `${a.kind}@${at}`, kind: a.kind, deadline: at + GRACE_MS } };
@@ -207,9 +229,14 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
     case "advance/clear":
       return { ...c, advance: null };
     case "groups/move":
-      return { ...c, groups: moveStudent(seatingOf(c.groups), a.student, a.to) };
-    case "groups/reset":
-      return { ...c, groups: DEFAULT_GROUPS };
+      if (a.assignment === undefined) return { ...c, groups: moveStudent(seatingOf(c.groups), a.student, a.to) };
+      return { ...c, assignmentGroups: { ...(c.assignmentGroups ?? {}), [a.assignment]: moveStudent(assignmentGroupsOf(c, a.assignment), a.student, a.to) } };
+    case "groups/reset": {
+      if (a.assignment === undefined) return { ...c, groups: DEFAULT_GROUPS };
+      const rest = { ...(c.assignmentGroups ?? {}) };
+      delete rest[a.assignment];
+      return { ...c, assignmentGroups: rest };
+    }
     case "class/arrive":
       return c.arrivals?.[a.student] !== undefined ? c : { ...c, arrivals: { ...(c.arrivals ?? {}), [a.student]: a.at } };
     case "group/begin":

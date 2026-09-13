@@ -2,16 +2,18 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
-import TeacherChrome from "../TeacherChrome";
+import TeacherChrome from "./TeacherChrome";
+import { BackToClassroom, useAssignmentBundle } from "./AssignmentContext";
+import ForceSubmit from "./ForceSubmit";
 import M from "@/components/Math";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { DifficultyTag, SlipChip } from "@/components/Tag";
-import { ASSIGNMENT } from "@/data/assignment";
+import { assignmentStages, currentStageOf } from "@/lib/assignments";
 import { CLASS_SIZE, groupBySlip, mistakesByProblem, type WorkColumn } from "@/lib/mistakes";
 import { diagnosticFor } from "@/lib/diagnostic";
-import { useBatchedSession } from "@/lib/store";
-import { useAssignment } from "@/lib/classroom-store";
-import DiagnosticPush, { PROBLEM_HEADER } from "../DiagnosticPush";
+import { useBatchedSession, useNow } from "@/lib/store";
+import { useClassroom } from "@/lib/classroom-store";
+import DiagnosticPush, { PROBLEM_HEADER } from "./DiagnosticPush";
 
 // The same button as the class view's row actions ("see dot skills" / "close").
 const ACTION = "w-[96px] rounded-md px-2 py-[3px] text-[11px] font-medium leading-snug transition-colors";
@@ -97,8 +99,14 @@ function FitGrid({ children, ...rest }: React.HTMLAttributes<HTMLDivElement>) {
  * the maths, not at the header's far end (142); no live pill on a name here (142).
  */
 export default function TeacherMistakes() {
-  const { session } = useBatchedSession(3000);
-  const problems = mistakesByProblem(session);
+  const assignment = useAssignmentBundle();
+  const { session: liveSession } = useBatchedSession(3000);
+  // A finished set's work is its own; only the live set reads Sam's session.
+  const session = assignment.kind === "live" ? liveSession : null;
+  const problems = mistakesByProblem(session, assignment);
+  const classroom = useClassroom();
+  const now = useNow();
+  const stage = currentStageOf(assignmentStages(assignment, classroom, session, now));
   const [open, setOpen] = useState<string[]>([]);
   /** The problem just closed by hand: its button offers "close all" until the pointer leaves it. */
   const [armed, setArmed] = useState<string | null>(null);
@@ -112,10 +120,26 @@ export default function TeacherMistakes() {
 
   return (
     <TeacherChrome>
-      <Eyebrow>
-        {ASSIGNMENT.className} · {useAssignment().title}
+      <BackToClassroom />
+      <Eyebrow className="mt-3">
+        {assignment.className} · {assignment.title}
       </Eyebrow>
-      <H1 className="mt-3">Where it went wrong</H1>
+      {/* Force submit for the stage the class is on (ticket 185), the same control as beside the Class view's current pathway pill: after the title, so the countdown that replaces the button grows into blank space and nothing moves. */}
+      <div className="mt-3 flex items-center gap-10">
+        <H1>Where it went wrong</H1>
+        {stage && stage.done !== null && assignment.kind === "live" && (
+          <div className="flex items-center gap-3 text-[12.5px] leading-snug text-ink-muted" data-mistakes-stage={stage.id}>
+            <span className="rounded-lg bg-standout-soft px-3 py-1 font-display text-[16px] text-ink">{stage.word}</span>
+            <span data-stage-count>
+              <span className="tabular-nums">
+                {stage.done}/{stage.total}
+              </span>{" "}
+              done
+            </span>
+            <ForceSubmit stage={stage.id} session={session} inline />
+          </div>
+        )}
+      </div>
 
       <div className="mt-10 space-y-6">
         {problems.map(({ problem, rows, right }) => {

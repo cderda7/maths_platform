@@ -1,4 +1,5 @@
-import { DEFAULT_GROUPS, GROUP_COLOURS, GROUP_SIZE, type GroupColour, type SeatingGroups } from "@/data/groups";
+import { DEFAULT_GROUPS, FROZEN_GROUPS, GROUP_COLOURS, GROUP_SIZE, type GroupColour, type SeatingGroups } from "@/data/groups";
+import type { ClassroomState } from "./classroom";
 
 /** The teacher's seating groups: pure rules over the colour → members map the classroom keeps. */
 
@@ -19,3 +20,12 @@ export const seatingOf = (groups: SeatingGroups | undefined | null): SeatingGrou
 
 /** Every student in every group, once. */
 export const seated = (groups: SeatingGroups): string[] => GROUP_COLOURS.flatMap((c) => groups[c]);
+
+/**
+ * An assignment's groups: its own stored copy, else the fixture copy frozen with it (`FROZEN_GROUPS`),
+ * else the default fixture. Never the class's live defaults, so editing those never moves an
+ * assignment's groups (ticket 185).
+ */
+export function assignmentGroupsOf(c: ClassroomState | null | undefined, id: string): SeatingGroups {
+  return c?.assignmentGroups?.[id] ?? FROZEN_GROUPS[id] ?? DEFAULT_GROUPS;
+}

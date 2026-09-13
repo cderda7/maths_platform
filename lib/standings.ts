@@ -6,7 +6,7 @@ import type { ClassroomState } from "./classroom";
 import { feedbackFor } from "./feedback";
 import { computePhases } from "./group";
 import { currentProblem, groupProgress, penHolder, resolvedMoment, runStartedAt, type GroupRun } from "./groupReview";
-import { seatingOf } from "./seating";
+import { assignmentGroupsOf } from "./seating";
 import type { StudentSession } from "./session";
 
 /**
@@ -94,7 +94,8 @@ export const raceFinish = (schedule: number[], n: number): number => raceMoments
 
 /** Every group's standing, in seating order. Without a run nothing has started: every bar at zero. */
 export function standingsAt(c: ClassroomState | null | undefined, session: StudentSession | null, now: number): GroupStanding[] {
-  const seating = seatingOf(c?.groups);
+  // Group review runs on the live assignment's own groups (ticket 185), not the class defaults.
+  const seating = assignmentGroupsOf(c, ASSIGNMENT.id);
   const run = c?.group ?? null;
   const startedAt = run ? runStartedAt(run) : 0;
   // Ended by the teacher: the scripted groups hold where they were (ticket 145).

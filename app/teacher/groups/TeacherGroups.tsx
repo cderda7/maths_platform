@@ -2,6 +2,7 @@
 
 import { useState, type DragEvent } from "react";
 import TeacherChrome from "../TeacherChrome";
+import { BackToClassroom, useOptionalAssignment } from "../AssignmentContext";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATE_MAP } from "@/data/classmates";
@@ -9,7 +10,7 @@ import { GROUP_COLOURS, GROUP_HEX, GROUP_SIZE, type GroupColour } from "@/data/g
 import { reviewGroups } from "@/lib/groups";
 import { seatingOf, unevenGroups } from "@/lib/seating";
 import { useBatchedSession } from "@/lib/store";
-import { dispatchClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
+import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 
 const person = (id: string) => (id === DEMO_STUDENT.id ? DEMO_STUDENT : CLASSMATE_MAP[id]);
 
@@ -21,16 +22,22 @@ const SHOW_SUGGESTED = false;
  * coloured top edge alone (no dot, no colour name); drag a student between them (or pick a
  * colour from the small menu on each chip); a group of any size other than four is flagged,
  * never refused. The suggested-by-mistakes groups stay in the code behind `SHOW_SUGGESTED`.
+ *
+ * Two pages share it (ticket 185): under an assignment (`/teacher/a/<id>/groups`) it shows and edits
+ * that assignment's own frozen copy; on the Classroom (`/teacher/groups`) the class's default
+ * groups, which a new assignment copies when it is created. A move on one never changes the other.
  */
 export default function TeacherGroups() {
+  const assignment = useOptionalAssignment();
   const { session } = useBatchedSession(3000);
-  const groups = seatingOf(useClassroom().groups);
+  const classroom = useClassroom();
+  const groups = assignment ? assignment.groups : seatingOf(classroom.groups);
   const uneven = unevenGroups(groups);
   const suggested = reviewGroups(session);
   const [dragging, setDragging] = useState<string | null>(null);
   const [over, setOver] = useState<GroupColour | null>(null);
 
-  const move = (student: string, to: GroupColour) => dispatchClassroom({ type: "groups/move", student, to });
+  const move = (student: string, to: GroupColour) => dispatchClassroom(assignment ? { type: "groups/move", student, to, assignment: assignment.id } : { type: "groups/move", student, to });
   const onDragStart = (e: DragEvent, id: string) => {
     e.dataTransfer.setData("text/plain", id);
     e.dataTransfer.effectAllowed = "move";
@@ -46,16 +53,17 @@ export default function TeacherGroups() {
 
   return (
     <TeacherChrome>
-      <Eyebrow>
-        {ASSIGNMENT.className} · {useAssignment().title}
+      {assignment && <BackToClassroom />}
+      <Eyebrow className={assignment ? "mt-3" : ""}>
+        {ASSIGNMENT.className} · {assignment ? assignment.title : "Edexia Classroom"}
       </Eyebrow>
-      <H1 className="mt-3">Groups</H1>
+      <H1 className="mt-3">{assignment ? "Groups" : "Default groups"}</H1>
 
       <div className="mt-8 flex items-baseline justify-between">
         <Eyebrow>Seating groups</Eyebrow>
         <span className="text-[12.5px] text-ink-muted">Drag a student to a colour. Groups of {GROUP_SIZE}; any other size is flagged.</span>
       </div>
-      <div className="mt-3 grid grid-cols-5 gap-4" data-seating>
+      <div className="mt-3 grid grid-cols-5 gap-4" data-seating={assignment ? assignment.id : "class"}>
         {GROUP_COLOURS.map((colour) => {
           const members = groups[colour];
           const flagged = uneven.includes(colour);

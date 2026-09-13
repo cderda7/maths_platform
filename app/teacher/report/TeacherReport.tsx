@@ -2,19 +2,20 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { assignmentHref, LIVE_ASSIGNMENT_ID } from "@/lib/assignments";
 import TeacherChrome from "../TeacherChrome";
 import M from "@/components/Math";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import SkillColumns from "@/components/SkillColumns";
 import StatusKey from "@/components/StatusKey";
-import { ASSIGNMENT, DEMO_STUDENT, PROBLEMS } from "@/data/assignment";
+import { DEMO_STUDENT, PROBLEMS } from "@/data/assignment";
 import { CLASSMATE_MAP } from "@/data/classmates";
 import { groupName } from "@/data/taxonomy";
 import { commentaryFor } from "@/lib/commentary";
 import { reportFacts } from "@/lib/report";
 import { classmateEvidence, hierarchyFor, leavesBehind, restrictTo, sessionEvidence, type Evidence } from "@/lib/hierarchy";
 import { useBatchedSession } from "@/lib/store";
-import { useAssignment } from "@/lib/classroom-store";
+import { useAssignmentBundle } from "../AssignmentContext";
 
 /**
  * The individual view: one student, opened from their name on the class view (`student` from
@@ -28,7 +29,8 @@ import { useAssignment } from "@/lib/classroom-store";
  */
 export default function TeacherReport({ student }: { student: string | null }) {
   const { session } = useBatchedSession(2000);
-  const { problems, unit } = useAssignment();
+  const assignment = useAssignmentBundle();
+  const { problems, unitNumber: unit } = assignment;
   const classmate = student && student !== DEMO_STUDENT.id ? CLASSMATE_MAP[student] : undefined;
   const who = classmate ?? DEMO_STUDENT;
   const live = !classmate;
@@ -45,7 +47,7 @@ export default function TeacherReport({ student }: { student: string | null }) {
   return (
     <TeacherChrome>
       <Eyebrow>
-        {ASSIGNMENT.className} · {useAssignment().title}
+        {assignment.className} · {assignment.title}
       </Eyebrow>
       <div className="mt-3 flex items-end justify-between">
         <div className="flex items-center gap-4">
@@ -54,7 +56,7 @@ export default function TeacherReport({ student }: { student: string | null }) {
             <H1>{who.name}</H1>
           </div>
         </div>
-        <Link href="/teacher" className="text-[13.5px] text-accent-deep hover:underline">
+        <Link href={assignmentHref(LIVE_ASSIGNMENT_ID, "class")} className="text-[13.5px] text-accent-deep hover:underline">
           ← Class view
         </Link>
       </div>
