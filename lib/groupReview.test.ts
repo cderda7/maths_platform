@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { beginRun, boardHint, checkBoard, closedInOrder, comingBack, currentProblem, cutAtFirstMistake, dealPens, DEMO_SEED, groupProgress, HINT_AFTER_WRONG, LEAVE_AFTER_WRONG, LEAVE_PAUSE_MS, leaveAt, leaving, ownAttemptScript, penHolder, penOrder, shuffle, turnScript, visitsOf, writerOf, wrongChecks, type GroupRun } from "./groupReview";
+import { beginRun, boardHint, checkBoard, closedInOrder, comingBack, currentProblem, cutAtFirstMistake, dealPens, DEMO_SEED, groupProgress, HINT_AFTER_WRONG, LEAVE_AFTER_WRONG, LEAVE_PAUSE_MS, leaveAt, leaving, ownAttemptScript, penHolder, penOrder, shuffle, stuckProblems, turnScript, visitsOf, writerOf, wrongChecks, type GroupRun } from "./groupReview";
 import { classroomReducer, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
 import { PROBLEM_MAP } from "@/data/assignment";
 import { GROUP_SCRIPTS } from "@/data/group-scripts";
@@ -263,6 +263,18 @@ describe("a problem the group cannot get (ticket 222)", () => {
     expect(r(c, { type: "group/line", tex: "x" })).toBe(c); // closed
     c = r(c, { type: "group/next", at: 50_000 });
     expect(c.group!.done).toBe(true);
+    expect(stuckProblems(c.group!)).toEqual([{ problem: "q7", tries: 4, status: "unsolved" }]);
+  });
+
+  it("the teacher's list of problems the group could not get: left for now with its tries, then unsolved; a problem solved on its return drops off (ticket 223)", () => {
+    let c = onQ7();
+    expect(stuckProblems(c.group!)).toEqual([]);
+    for (const [i, lines] of [twoTerms, lostThird, wrongPair].entries()) c = write(c, lines, 1000 * (i + 1));
+    expect(stuckProblems(c.group!)).toEqual([]); // still on the board, holding the third wrong check
+    c = r(c, { type: "group/leave", index: Q7, at: 9000 });
+    expect(stuckProblems(c.group!)).toEqual([{ problem: "q7", tries: 3, status: "left" }]);
+    const solved = write({ ...c, group: { ...c.group!, index: 6, resolved: [...c.group!.resolved, "q9", "q10"] } }, PROBLEM_MAP.q7.solution.map((s) => s.tex), 60_000);
+    expect(stuckProblems(solved.group!)).toEqual([]);
   });
 
   it("a problem that checks correct on its return is resolved as usual", () => {

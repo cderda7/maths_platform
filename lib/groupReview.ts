@@ -135,6 +135,16 @@ export const closedInOrder = (run: GroupRun): string[] =>
   [...run.resolved, ...(run.unsolved ?? [])].map((p, i) => ({ p, i, at: closedMoment(run, p) })).sort((a, b) => a.at - b.at || a.i - b.i).map((x) => x.p);
 /** Who wrote a problem's last visit: the correct check's pen, or the return's for an unsolved one. */
 export const writerOf = (run: GroupRun, problem: string): string | undefined => visitsOf(run).filter((v) => v.problem === problem).at(-1)?.pen;
+/**
+ * The problems the group could not get, for the teacher (ticket 223): each left for now (its return
+ * still to come) or closed unsolved, with how many times it has been checked. In the order they were left.
+ */
+export function stuckProblems(run: GroupRun): { problem: string; tries: number; status: "left" | "unsolved" }[] {
+  return (run.left ?? [])
+    .filter((p) => !run.resolved.includes(p))
+    .map((problem) => ({ problem, tries: attemptsOn(run, problem).length, status: isUnsolved(run, problem) ? ("unsolved" as const) : ("left" as const) }));
+}
+
 /** Problems left for now whose return is still ahead of the board. */
 export const comingBack = (run: GroupRun): string[] => visitsOf(run).slice(run.index + 1).filter((v) => v.returning).map((v) => v.problem);
 

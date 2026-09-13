@@ -57,6 +57,8 @@ export interface ExampleOption {
   newSkill: boolean;
   /** Someone on this mistake was in the group whose review checked this problem correct. */
   fixedInGroup: boolean;
+  /** Someone on this mistake was in the group that closed this problem unsolved (ticket 223): the class review is where it gets fixed. */
+  unsolvedInGroup: boolean;
 }
 
 /** What `optionsFor` reads besides the candidates: the set's New skills and the demo student's group run. */
@@ -138,6 +140,7 @@ export function optionsFor(cands: Candidate[], ctx: PickerContext = {}): Example
   for (const c of cands) byKey.set(c.mistake, [...(byKey.get(c.mistake) ?? []), c]);
   const problemId = cands[0]?.problemId;
   const resolvedHere = !!problemId && !!ctx.group?.resolved.includes(problemId);
+  const unsolvedHere = !!problemId && !!ctx.group?.unsolved?.includes(problemId);
   const members = new Set(ctx.group?.members ?? []);
   const options: ExampleOption[] = [...byKey.entries()].map(([key, students]) => {
     const columns = new Map<string, Candidate[]>();
@@ -155,6 +158,7 @@ export function optionsFor(cands: Candidate[], ctx: PickerContext = {}): Example
       columns: [...columns.values()].sort((a, b) => b.length - a.length).map((s) => ({ lines: s[0].lines, students: s })),
       newSkill: !!first && first.tags.some((t) => ctx.newSkills?.includes(t.leaf)),
       fixedInGroup: key !== CORRECT && resolvedHere && students.some((s) => members.has(s.studentId)),
+      unsolvedInGroup: key !== CORRECT && unsolvedHere && students.some((s) => members.has(s.studentId)),
     };
   });
   return options.sort((a, b) => {

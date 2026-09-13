@@ -42,6 +42,11 @@ export default function GroupProgressCard({ session }: { session: StudentSession
                 {firstName(s.pen)} has the pen · {PROBLEM_MAP[s.problem]?.label ?? s.problem}
               </p>
             )}
+            {s.stuck.map((p) => (
+              <p key={p.problem} className="mt-1 text-[12px] text-wrong" data-stuck={p.problem} data-stuck-status={p.status}>
+                {PROBLEM_MAP[p.problem]?.label ?? p.problem} {p.status === "unsolved" ? "not solved" : "left for now"} after {p.tries} {p.tries === 1 ? "try" : "tries"}
+              </p>
+            ))}
             {s.percent >= 100 && (
               <p className="mt-1 text-[12px] text-secure" data-group-done>
                 done

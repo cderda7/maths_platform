@@ -118,7 +118,7 @@ describe("the scripted race", () => {
 });
 
 describe("the leaderboard", () => {
-  const row = (colour: GroupColour, percent: number, reachedAt: number): GroupStanding => ({ colour, members: [], names: [], union: [], resolvedCount: 0, resolved: percent, total: 100, percent, reachedAt, live: false, pen: null, problem: null });
+  const row = (colour: GroupColour, percent: number, reachedAt: number): GroupStanding => ({ colour, members: [], names: [], union: [], resolvedCount: 0, resolved: percent, total: 100, percent, reachedAt, live: false, pen: null, problem: null, stuck: [] });
 
   it("orders by percent, then by who got there first, then by seating", () => {
     const ranked = rankStandings([row("coral", 60, 400), row("amber", 100, 500), row("mint", 100, 300), row("sky", 60, 100), row("violet", 0, 0)]);
@@ -160,6 +160,9 @@ describe("the leaderboard", () => {
     expect(ranked.map((r) => r.percent)).toEqual([100, 100, 100, 100, 100]);
     expect(ranked.map((r) => r.medal)).toEqual(["gold", "silver", "bronze", null, null]);
     expect(ranked.find((r) => r.live)!.pen).toBeNull();
+    // The teacher's card names what the demo group could not get (ticket 223); the scripted groups have nothing.
+    expect(ranked.find((r) => r.live)!.stuck).toEqual([{ problem: "q7", tries: 4, status: "unsolved" }]);
+    expect(ranked.filter((r) => !r.live).every((r) => r.stuck.length === 0)).toBe(true);
   });
 });
 

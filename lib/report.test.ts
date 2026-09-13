@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Confidence } from "@/data/types";
 import { skipFixture } from "./demo";
-import { outcomeColumns, problemOutcome, reportFacts } from "./report";
+import { outcomeColumns, problemOutcome, reportFacts, unsolvedInGroup } from "./report";
 import { INITIAL_SESSION, sessionAt, sessionReducer } from "./session";
 
 const labels = (cols: ReturnType<typeof outcomeColumns>) => Object.fromEntries(cols.map((c) => [c.id, c.problems.map((p) => p.label)]));
@@ -33,6 +33,10 @@ describe("problem outcomes", () => {
     expect(with_.individual).toEqual(["Q1", "Q2", "Q3", "Q10"]);
     expect(with_.group).toEqual([]);
     expect(with_.wrong).toEqual(["Q7"]);
+    // The report names it: not solved in group review (ticket 223).
+    expect(unsolvedInGroup(session, ["individual", "group"], classroom.group).map((p) => p.label)).toEqual(["Q7"]);
+    expect(unsolvedInGroup(session, ["individual"], classroom.group)).toEqual([]);
+    expect(unsolvedInGroup(session, ["individual", "group"], null)).toEqual([]);
     // Had the group's rework checked, Q7 would sit in the group column.
     const solved = { ...classroom.group!, resolved: [...classroom.group!.resolved, "q7"], unsolved: [] };
     const withSolved = labels(outcomeColumns(session, ["individual", "group"], solved));

@@ -50,11 +50,12 @@ export default function ExamplePicker({ letter, candidate, options, taken, onPic
           )}
         </button>
       </div>
-      {current && (current.leaf || current.newSkill || current.fixedInGroup) && (
+      {current && (current.leaf || current.newSkill || current.fixedInGroup || current.unsolvedInGroup) && (
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5 pl-[30px]">
           {current.leaf && <LeafChip id={current.leaf} />}
           {current.newSkill && <span className={`${BADGE} bg-standout-soft text-standout`} data-badge="new">new skill</span>}
           {current.fixedInGroup && <span className={`${BADGE} bg-secure-soft text-secure`} data-badge="group">fixed in group review</span>}
+          {current.unsolvedInGroup && <span className={`${BADGE} bg-wrong-soft text-wrong`} data-badge="group-unsolved">not solved in group review</span>}
         </div>
       )}
       <ol className="mt-3 space-y-1.5">
@@ -93,10 +94,11 @@ export default function ExamplePicker({ letter, candidate, options, taken, onPic
                     <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${correct ? "bg-secure" : "bg-wrong"}`} aria-hidden />
                     <span className="min-w-0 flex-1 text-ink" data-option-name>
                       <span className="block">{o.name}</span>
-                      {(o.newSkill || o.fixedInGroup) && (
+                      {(o.newSkill || o.fixedInGroup || o.unsolvedInGroup) && (
                         <span className="mt-1 flex flex-wrap gap-1.5" data-option-badges>
                           {o.newSkill && <span className={`${BADGE} whitespace-nowrap bg-standout-soft text-standout`}>new skill</span>}
                           {o.fixedInGroup && <span className={`${BADGE} whitespace-nowrap bg-secure-soft text-secure`}>fixed in group review</span>}
+                          {o.unsolvedInGroup && <span className={`${BADGE} whitespace-nowrap bg-wrong-soft text-wrong`}>not solved in group review</span>}
                         </span>
                       )}
                     </span>

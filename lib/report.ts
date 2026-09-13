@@ -119,6 +119,12 @@ export function problemOutcome(session: StudentSession, problem: string, pathway
   return "wrong";
 }
 
+/** Of the problems still incorrect, those the student's group worked on and closed unsolved (ticket 223): the report names them. */
+export function unsolvedInGroup(session: StudentSession, pathway: readonly ReviewStage[], run: GroupRun | null | undefined, problems: Problem[] = ASSIGNMENT.problems): Problem[] {
+  if (!pathway.includes("group")) return [];
+  return problems.filter((p) => run?.unsolved?.includes(p.id) && problemOutcome(session, p.id, pathway, run) === "wrong");
+}
+
 /** The columns the pathway allows, in order, each with its problems in set order. An empty column stays, so the layout never shifts. */
 export function outcomeColumns(session: StudentSession, pathway: readonly ReviewStage[], run: GroupRun | null | undefined, problems: Problem[] = ASSIGNMENT.problems): OutcomeColumn[] {
   const ids: Outcome[] = ["first", ...(pathway.includes("individual") ? (["individual"] as const) : []), ...(pathway.includes("group") ? (["group"] as const) : []), "wrong"];

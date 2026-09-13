@@ -5,7 +5,7 @@ import { RACE_SCHEDULE } from "@/data/race";
 import type { ClassroomState } from "./classroom";
 import { feedbackFor } from "./feedback";
 import { computePhases } from "./group";
-import { closedInOrder, closedMoment, currentProblem, groupProgress, penHolder, runStartedAt, type GroupRun } from "./groupReview";
+import { closedInOrder, closedMoment, currentProblem, groupProgress, penHolder, runStartedAt, stuckProblems, type GroupRun } from "./groupReview";
 import { assignmentGroupsOf } from "./seating";
 import type { StudentSession } from "./session";
 
@@ -46,6 +46,8 @@ export interface GroupStanding {
   pen: string | null;
   /** The problem on the board right now (the live group, while it is still working). */
   problem: string | null;
+  /** Problems the live group could not get: left for now, or closed unsolved (ticket 223). The scripted groups have none. */
+  stuck: { problem: string; tries: number; status: "left" | "unsolved" }[];
 }
 
 export interface RankedStanding extends GroupStanding {
@@ -113,7 +115,7 @@ export function standingsAt(c: ClassroomState | null | undefined, session: Stude
     const { resolvedCount, reachedAfterMs } = raceProgress(RACE_SCHEDULE[colour], union.length, elapsed);
     const done = union.slice(0, resolvedCount);
     const resolved = Object.values(wrongSets).reduce((n, w) => n + w.filter((p) => done.includes(p)).length, 0);
-    return { ...base, resolvedCount, resolved, total, percent: total === 0 ? 100 : Math.round((resolved / total) * 100), reachedAt: startedAt + reachedAfterMs, pen: null, problem: null };
+    return { ...base, resolvedCount, resolved, total, percent: total === 0 ? 100 : Math.round((resolved / total) * 100), reachedAt: startedAt + reachedAfterMs, pen: null, problem: null, stuck: [] };
   });
 }
 
@@ -122,7 +124,7 @@ function liveStanding(base: Pick<GroupStanding, "colour" | "members" | "names" |
   const closed = closedInOrder(run);
   const reachedAt = closed.reduce((latest, p) => Math.max(latest, closedMoment(run, p)), startedAt);
   const working = !run.done && closed.length < run.problems.length;
-  return { ...base, resolvedCount: closed.length, resolved, total, percent, reachedAt, pen: working ? (penHolder(run) ?? null) : null, problem: working ? (currentProblem(run) ?? null) : null };
+  return { ...base, resolvedCount: closed.length, resolved, total, percent, reachedAt, pen: working ? (penHolder(run) ?? null) : null, problem: working ? (currentProblem(run) ?? null) : null, stuck: stuckProblems(run) };
 }
 
 /** The leaderboard: percent, then who got there first, then seating order; medals for the first three to finish. */

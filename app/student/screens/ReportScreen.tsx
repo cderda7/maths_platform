@@ -4,7 +4,7 @@ import { Button, Card, Eyebrow } from "@/components/ui";
 import SkillColumns from "@/components/SkillColumns";
 import { ASSIGNMENT } from "@/data/assignment";
 import { pathwayOf } from "@/lib/classroom";
-import { outcomeColumns, type Outcome } from "@/lib/report";
+import { outcomeColumns, unsolvedInGroup, type Outcome } from "@/lib/report";
 import { isMastery } from "@/lib/peers";
 import { useAssignment, useClassroom } from "@/lib/classroom-store";
 import { sessionEvidence, sessionHierarchy } from "@/lib/hierarchy";
@@ -32,6 +32,7 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
   const classroom = useClassroom();
   const hierarchy = sessionHierarchy(session, assignment);
   const columns = outcomeColumns(session, pathwayOf(classroom), classroom.group, problems);
+  const unsolved = unsolvedInGroup(session, pathwayOf(classroom), classroom.group, problems);
   const n = sentences(session.reflection);
   const written = session.reflection.trim() !== "";
   const sent = session.reportSent;
@@ -80,6 +81,11 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
                       </li>
                     ))}
                   </ul>
+                )}
+                {c.id === "wrong" && unsolved.length > 0 && (
+                  <p className="mt-1.5 text-[12px] leading-snug text-ink-muted" data-unsolved-note>
+                    {unsolved.map((p) => p.label).join(", ")} not solved in group review
+                  </p>
                 )}
               </div>
             ))}

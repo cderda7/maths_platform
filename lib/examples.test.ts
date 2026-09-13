@@ -102,6 +102,21 @@ describe("board examples", () => {
     expect(optionsFor(q3, { group: { ...group, resolved: [] } }).every((o) => !o.fixedInGroup)).toBe(true);
   });
 
+  it("a mistake someone in the group made on a problem the group closed unsolved is badged, and still suggested (ticket 223)", () => {
+    const s = sessionAt("feedback");
+    const q7 = candidatesFor("q7", s);
+    const group = { members: ["sam", "jordan", "zara", "liam"], resolved: [], unsolved: ["q7"] } as unknown as NonNullable<PickerContext["group"]>;
+    const options = optionsFor(q7, { group });
+    const ours = options.filter((o) => o.unsolvedInGroup);
+    expect(ours.length).toBeGreaterThan(0);
+    for (const o of ours) expect(o.columns.some((col) => col.students.some((st) => group.members.includes(st.studentId)))).toBe(true);
+    expect(options.find((o) => o.key === CORRECT)!.unsolvedInGroup).toBe(false);
+    expect(options.every((o) => !o.fixedInGroup)).toBe(true);
+    // Unlike a fixed mistake, an unsolved one is exactly what class review is for: the suggestion keeps it.
+    expect(suggestExamples(q7, 3, { group })).toEqual(suggestExamples(q7, 3));
+    expect(optionsFor(q7, { group: { ...group, unsolved: [] } }).every((o) => !o.unsolvedInGroup)).toBe(true);
+  });
+
   it("the board view model carries letters and lines, and nothing that names a student, marks a line or counts students", () => {
     const s = sessionAt("feedback");
     const cands = candidatesFor("q2", s);

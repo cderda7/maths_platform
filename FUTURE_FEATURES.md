@@ -2980,6 +2980,17 @@ uploaded problems) settled the following as later, each on purpose.
   message is ever teacher-written or much longer, a derived time (or a check that warns when the
   words outrun 30 s) would come back. Deferred: the user chose the number.
 
+## The teacher and a problem the group could not get (ticket 223, 2026-09-13)
+
+- **A nudge when a group reaches the hint or leaves a problem.** The class view's card shows the line
+  once a problem is left; it does not alert, and says nothing at the hint (two wrong checks).
+- **Unsolved problems sort first in class review setup.** The badge marks them; the problem list and
+  the suggested examples keep their order (the problem rows are left alone, as asked on 2026-09-12).
+- **The group's own last try as an example.** Class review's examples are the students' individual
+  working; the group's four tries on Q7 are not offered as a candidate.
+- **The report says what comes next.** The note says Q7 was not solved in group review; it could say
+  it will be reviewed with the class, once the class review is known to include it.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
