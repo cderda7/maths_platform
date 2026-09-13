@@ -3135,6 +3135,13 @@ uploaded problems) settled the following as later, each on purpose.
 - **Sound or haptics.** A soft tap on the iPads as the pill pops. Deferred: the demo has no audio anywhere.
 - **The pill over a peer's strokes.** The pill sits over the board's centre for 1.6 s; if a fast writer starts at once it covers their first line briefly (the pen still writes through it). Move it to the column or shorten it if that bothers anyone.
 
+## History follow-ups (ticket 237, 2026-09-13)
+
+- **Browser Back from an earlier set's report lands on the plain roster**, not history mode: history mode drops its query when it opens. The pulsing return button restores it. Keeping `?history=` in the URL while history mode is open would let Back restore it too. Deferred: the user asked for the button.
+- **A category with no earlier set looks the same as one with history** in history mode (its pill only does nothing when clicked, and says so to screen readers). A visual cue (dimmed, or a "first time" note) could help. Deferred: not asked for.
+- **Next/previous set inside the earlier report** (step from Set 4 to Set 5 without going back to the history). Deferred: out of scope.
+- **Short stacks leave empty sheet above them** when a taller stack is open beside them, because the sheet is one rectangle. Per-column sheets would hide less of the roster. Deferred: the rows are faded anyway.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

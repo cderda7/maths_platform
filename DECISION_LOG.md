@@ -4268,3 +4268,16 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** The class guard runs off the one-second clock, so the pill's element (invisible after its animation) stays in the page up to a second past its life; the ring's CSS delay counts from when the class lands, which is the check's render on every tab, not the stored moment, so a reload in the middle of the 2.5 s would not resume it (it would simply not show if past, or restart its delay if within).
 
 **Defense.** No new state, one source for the timings, and the browser runs the motion smoothly; the rule for which checks prompt a retry sits beside the ladder it follows (`LEAVE_AFTER_WRONG`, `HINT_AFTER_WRONG`) with unit tests.
+
+## 2026-09-13 · An earlier set's report opens inside the later set's Class View route (ticket 237)
+
+**Decision.** A history pill links to `/teacher/a/<this set>/class?report=<earlier set>&student=<id>&open=<category>`. The Class View route then renders the earlier set's student report under this set's chrome (its tabs, with Class current), inside a nested `AssignmentContext` for the earlier set, and a pulsing "← Return to PSet N" links to `?history=<id>&open=<category>`. Simulated history points are removed: a stack holds only earlier sets that assessed the category, and the first set offers no history.
+
+**Context.** The user asked that a pill "simply open the student report from that assignment — NOT taking me to that other pset page", with a pulsing way back. They also asked that history show only previous assignments, with the pill reading the day.
+
+**Alternatives considered.** *Link to the earlier set's own report route* (`/teacher/a/pset-4/report`): its bar carries Set 4's tabs, so the teacher is on the other set's pages. *An in-page overlay held in React state*: no URL, so reload and the browser's Back lose it, and the report's 0.9 zoom would nest inside the roster's 0.72. *Every earlier set in every stack, hollow where not assessed*: the user chose only assessed sets.
+
+**Tradeoffs.** The Class View route now has two faces keyed by the query. Browser Back from the report lands on the plain roster, because history mode drops its query on arrival; the return button restores history mode. Stacks of different heights share one spacing, so a short stack has empty sheet above it.
+
+**Defense.** It is a real URL (reloadable, shareable, and Back works), and the chrome makes it plain the teacher is still in this set. `ReportBody` is the same component as the ordinary report, so nothing is duplicated, and `earlierReportSet` falls back to the roster for anything that is not an earlier set the student sat.
+

@@ -4,23 +4,22 @@ import { CLASSMATES, type Classmate } from "@/data/classmates";
 import { PS5_ASSIGNMENT, PS5_PROBLEMS } from "@/data/pset5/assignment";
 import { PS5_CLASSMATES, PS5_SAM } from "@/data/pset5/classmates";
 import { STORY_SETS } from "@/data/story";
-import { NEW_SKILLS, type CategoryId } from "@/data/taxonomy";
-import type { Problem, Status } from "@/data/types";
+import { CATEGORY_ORDER, NEW_SKILLS, type CategoryId } from "@/data/taxonomy";
+import type { Problem } from "@/data/types";
 import { assignmentBundle, assignmentHref, assignmentIds, earlierAssignmentIds } from "./assignments";
 import { INITIAL_CLASSROOM, classroomReducer } from "./classroom";
 import { categoriesTouched, classmateHierarchy } from "./hierarchy";
 import { FINISHED_SETS } from "./finishedSets";
-import { ALL_SECURE_STUDENT, HISTORY_LENGTH, parseDay, pillLabel, simulatedDates, stepsApart, type HistoryPoint } from "./history";
-import { assessed, categoryHistory, earlierResults, earlierSources, historyFrom, historyPillHref, type HistorySource } from "./setHistory";
+import { HISTORY_LENGTH, parseDay, pillLabel, stepsApart } from "./history";
+import { assessed, categoryHistory, earlierReportSet, earlierResults, earlierSources, hasEarlierSets, historyFrom, historyReportHref, historyReturnHref, type HistorySource } from "./setHistory";
 
 const ps5Everyone = [PS5_SAM, ...PS5_CLASSMATES];
 const ps5Record = (student: string): Classmate | null => ps5Everyone.find((c) => c.id === student) ?? null;
-const DAY = 24 * 60 * 60 * 1000;
 
 /** The problems of Problem Set 5 that do not touch a category, so a synthetic set can skip it. */
 const problemsWithout = (category: CategoryId): Problem[] => PS5_PROBLEMS.filter((p) => !categoriesTouched({ problems: [p], newSkills: [] }).includes(category));
 
-/** A synthetic earlier set built from Problem Set 5's problems and records (the registry has only Sets 5 and 6 today). */
+/** A synthetic earlier set built from Problem Set 5's problems and records. */
 const synthetic = (n: number, due: string, opts: { problems?: Problem[]; newSkills?: HistorySource["newSkills"] } = {}): HistorySource => ({
   id: `synthetic-${n}`,
   name: `Problem Set ${n} — synthetic`,
@@ -30,8 +29,8 @@ const synthetic = (n: number, due: string, opts: { problems?: Problem[]; newSkil
   record: ps5Record,
 });
 
-describe("history reads real earlier sets (ticket 215)", () => {
-  // Six earlier sets like the class's Sets 1 to 5 and one more; Sets 1 and 3 never touch graphing, Set 2 has no New skills.
+describe("history reads real earlier sets only (tickets 215, 237)", () => {
+  // Six earlier sets; Sets 1 and 3 never touch graphing, Set 2 has no New skills.
   const sets: HistorySource[] = [
     synthetic(0, "Fri 21 Aug"),
     synthetic(1, "Tue 25 Aug", { problems: problemsWithout("graphing") }),
@@ -50,84 +49,37 @@ describe("history reads real earlier sets (ticket 215)", () => {
   });
 
   it("a category reaches back past the sets that did not assess it, and takes only the last five", () => {
-    const graphing = historyFrom(sets, "Thu 10 Sep", "mia", "graphing", "solid");
-    expect(graphing.map((p) => p.set?.id ?? null)).toEqual([null, "synthetic-0", "synthetic-2", "synthetic-4", "synthetic-5"]);
-    const algebra = historyFrom(sets, "Thu 10 Sep", "mia", "algebra", "solid");
-    expect(algebra.map((p) => p.set?.id)).toEqual(["synthetic-1", "synthetic-2", "synthetic-3", "synthetic-4", "synthetic-5"]);
-    const news = historyFrom(sets, "Thu 10 Sep", "mia", NEW_SKILLS, "solid");
-    expect(news.map((p) => p.set?.id)).toEqual(["synthetic-0", "synthetic-1", "synthetic-3", "synthetic-4", "synthetic-5"]);
-    for (const h of [graphing, algebra, news]) expect(h).toHaveLength(HISTORY_LENGTH);
-    // The real status is the student's roll-up on that set.
-    expect(graphing[4].status).toBe(classmateHierarchy(ps5Record("mia")!, sets[5]).categories.graphing ?? "unseen");
+    const graphing = historyFrom(sets, "mia", "graphing");
+    expect(graphing.map((p) => p.set.id)).toEqual(["synthetic-0", "synthetic-2", "synthetic-4", "synthetic-5"]);
+    const algebra = historyFrom(sets, "mia", "algebra");
+    expect(algebra.map((p) => p.set.id)).toEqual(["synthetic-1", "synthetic-2", "synthetic-3", "synthetic-4", "synthetic-5"]);
+    const news = historyFrom(sets, "mia", NEW_SKILLS);
+    expect(news.map((p) => p.set.id)).toEqual(["synthetic-0", "synthetic-1", "synthetic-3", "synthetic-4", "synthetic-5"]);
+    // The status is the student's roll-up on that set, and the date its day.
+    expect(graphing[3]).toMatchObject({ date: "Mon 7 Sep", status: classmateHierarchy(ps5Record("mia")!, sets[5]).categories.graphing ?? "unseen" });
   });
 
-  it("too few sets: simulated points fill the top, the oldest a week before the first set, the rest between it and the first set, on weekdays", () => {
+  it("nothing is made up: fewer sets are fewer pills, none is none, a student who sat none has none", () => {
     const two = [synthetic(1, "Tue 25 Aug", { problems: problemsWithout("graphing") }), synthetic(2, "Fri 28 Aug")];
-    const graphing = historyFrom(two, "Tue 1 Sep", "mia", "graphing", "solid");
-    expect(graphing.map((p) => p.date)).toEqual(["Tue 18 Aug", "Wed 19 Aug", "Fri 21 Aug", "Mon 24 Aug", "Fri 28 Aug"]);
-    expect(graphing.map((p) => p.set?.id ?? null)).toEqual([null, null, null, null, "synthetic-2"]);
-    const algebra = historyFrom(two, "Tue 1 Sep", "mia", "algebra", "solid");
-    expect(algebra.map((p) => p.date)).toEqual(["Tue 18 Aug", "Thu 20 Aug", "Mon 24 Aug", "Tue 25 Aug", "Fri 28 Aug"]);
-    // The first set alone: five simulated, the week before it.
-    const own = historyFrom([], "Tue 25 Aug", "mia", "algebra", "solid");
-    expect(own.map((p) => p.date)).toEqual(["Tue 18 Aug", "Wed 19 Aug", "Thu 20 Aug", "Fri 21 Aug", "Mon 24 Aug"]);
-    expect(own.every((p) => p.set === null)).toBe(true);
+    expect(historyFrom(two, "mia", "graphing").map((p) => p.set.id)).toEqual(["synthetic-2"]);
+    expect(historyFrom(two, "mia", "algebra").map((p) => p.date)).toEqual(["Tue 25 Aug", "Fri 28 Aug"]);
+    expect(historyFrom([], "mia", "algebra")).toEqual([]);
+    expect(historyFrom(two, "nobody", "algebra")).toEqual([]);
   });
 
-  it("simulated days never fall on a weekend or on or after the first set, and run oldest first, for any first day and any number", () => {
-    for (let day = 1; day <= 30; day++) {
-      const first = `${day} Sep`;
-      for (let real = 0; real < HISTORY_LENGTH; real++) {
-        const sets = Array.from({ length: real }, (_, i) => synthetic(i + 1, i === 0 ? first : `${Math.min(30, day + i)} Sep`));
-        const h = historyFrom(sets, first, "mia", "algebra", "solid");
-        const simulated = h.filter((p) => !p.set).map((p) => parseDay(p.date)!);
-        expect(simulated).toHaveLength(HISTORY_LENGTH - real);
-        expect(simulated[0], first).toBe(parseDay(first)! - 7 * DAY);
-        for (let i = 1; i < simulated.length; i++) {
-          expect(simulated[i]).toBeGreaterThan(simulated[i - 1]);
-          expect(simulated[i]).toBeLessThan(parseDay(first)!);
-          expect([0, 6]).not.toContain(new Date(simulated[i]).getUTCDay());
-        }
-      }
-    }
-  });
-
-  it("the simulated walk moves at most one step between neighbours and ends within one step of the oldest real pill, for every student, category and status", () => {
-    const statuses: Status[] = ["gap", "developing", "solid", "secure", "unseen"];
-    for (const c of ps5Everyone) {
-      for (const cat of categoriesTouched(ASSIGNMENT)) {
-        // Priya is dark green today everywhere (and so on every set behind): only that anchor is hers.
-        for (const today of c.id === ALL_SECURE_STUDENT ? (["secure"] as Status[]) : statuses) {
-          for (const n of [0, 1, 2, 4]) {
-            const h = historyFrom(sets.slice(0, n), "Thu 10 Sep", c.id, cat, today);
-            // Up to and including the oldest real pill (today's with none): the walk's own steps and its landing.
-            const firstReal = h.findIndex((p) => p.set);
-            if (firstReal < 0) expectNoJumps(h, today, `${c.id} ${cat} ${today} ${n}`);
-            else expectNoJumps(h.slice(0, firstReal), h.slice(firstReal).find((p) => p.status !== "unseen")?.status ?? today, `${c.id} ${cat} ${today} ${n}`);
-            expect(h.filter((p) => !p.set).every((p) => p.status !== "unseen")).toBe(true);
-          }
-        }
-      }
-    }
-  });
-
-  it("is the same on every call, and differs between students", () => {
-    expect(historyFrom([], "Mon 7 Sep", "tomas", "algebra", "developing")).toEqual(historyFrom([], "Mon 7 Sep", "tomas", "algebra", "developing"));
-    const seen = new Set(PS5_CLASSMATES.map((c) => historyFrom([], "Mon 7 Sep", c.id, "algebra", "developing").map((p) => p.status).join()));
-    expect(seen.size).toBeGreaterThan(3);
-  });
-
-  it("a real pill reads the set's short name and day; a simulated one the day alone; its link opens that set's Class View on the student's history", () => {
-    const h = historyFrom(sets.slice(4), "Thu 10 Sep", "mia", "algebra", "solid");
-    expect(pillLabel(h[4])).toBe("PS5 · Mon 7 Sep");
-    expect(pillLabel(h[0])).toBe("Fri 28 Aug");
-    expect(historyPillHref("pset-5", "mia", "algebra")).toBe(`${assignmentHref("pset-5", "class")}?history=mia&open=algebra`);
+  it("a pill reads its day; its link opens the student's report on that set inside this set's Class View; the way back reopens the history", () => {
+    const h = historyFrom(sets.slice(4), "mia", "algebra");
+    expect(h.map(pillLabel)).toEqual(["Fri 4 Sep", "Mon 7 Sep"]);
+    expect(historyReportHref("pset-6", "pset-4", "mia", "graphing")).toBe(`${assignmentHref("pset-6", "class")}?report=pset-4&student=mia&open=graphing`);
+    expect(historyReturnHref("pset-6", "mia", "graphing")).toBe(`${assignmentHref("pset-6", "class")}?history=mia&open=graphing`);
+    expect(historyReturnHref("pset-6", "mia", null)).toBe(`${assignmentHref("pset-6", "class")}?history=mia`);
   });
 });
 
-describe("history over the Classroom's registry (ticket 215)", () => {
+describe("history over the Classroom's registry (tickets 215, 237)", () => {
   const classroom = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: ASSIGNMENT.title, problemIds: ASSIGNMENT.problems.map((p) => p.id), pathway: ["individual", "group"], at: 1_700_000_000_000 });
   const ids = assignmentIds(classroom);
+  const first = FINISHED_SETS[0].fixture;
 
   /** Every registered set's final records: a finished set's bundle, and the live set's full classmates (Sam's live session has no fixed record). */
   const recordsOf = (id: string): Classmate[] => {
@@ -135,31 +87,48 @@ describe("history over the Classroom's registry (ticket 215)", () => {
     return b.kind === "finished" ? [b.sam!, ...b.classmates] : [...CLASSMATES];
   };
 
-  // Registry-derived (ticket 210): these hold as Problem Sets 1–4 are registered (tickets 211–214); the synthetic suite above pins the dates.
-  it("on Problem Set 6 each category's newest pill is Problem Set 5, linked; the real pills are the last registered sets that assessed the category, oldest first; simulated pills come before the class's first set", () => {
+  it("every set's pills are exactly the earlier registered sets that assessed the category, the last five, oldest first", () => {
     expect(ids).toEqual([ASSIGNMENT.id, ...[...FINISHED_SETS].reverse().map((s) => s.fixture.id)]);
-    const sources = earlierSources("pset-6");
-    const firstDay = parseDay(FINISHED_SETS[0].fixture.due)!;
-    for (const c of ps5Everyone) {
-      for (const cat of categoriesTouched(ASSIGNMENT)) {
-        const h = categoryHistory({ id: "pset-6", due: ASSIGNMENT.due }, c.id, cat, "solid");
-        expect(h).toHaveLength(HISTORY_LENGTH);
-        expect(h.flatMap((p) => (p.set ? [p.set.id] : []))).toEqual(sources.filter((s) => assessed(s, cat)).slice(-HISTORY_LENGTH).map((s) => s.id));
-        expect(h[4].set).toMatchObject({ id: "pset-5", short: "PS5", due: "Mon 7 Sep" });
-        expect(h[4].status).toBe(classmateHierarchy(c, PS5_ASSIGNMENT).categories[cat] ?? "unseen");
-        for (const p of h.filter((x) => !x.set)) expect(parseDay(p.date)!, `${c.id} ${cat} ${p.date}`).toBeLessThan(firstDay);
+    for (const id of ids) {
+      const sources = earlierSources(id);
+      const b = assignmentBundle(id, classroom)!;
+      for (const c of recordsOf(id)) {
+        for (const cat of categoriesTouched(b)) {
+          const h = categoryHistory(id, c.id, cat);
+          expect(h.map((p) => p.set.id), `${id} ${c.id} ${cat}`).toEqual(sources.filter((s) => assessed(s, cat)).slice(-HISTORY_LENGTH).map((s) => s.id));
+          const days = h.map((p) => parseDay(p.date)!);
+          for (let i = 1; i < days.length; i++) expect(days[i]).toBeGreaterThan(days[i - 1]);
+        }
       }
     }
-    expect(pillLabel(categoryHistory({ id: "pset-6", due: ASSIGNMENT.due }, "mia", "algebra", "solid")[4])).toBe("PS5 · Mon 7 Sep");
   });
 
-  it("on the class's first set all five are simulated, the week before it", () => {
-    const first = FINISHED_SETS[0].fixture;
-    for (const cat of categoriesTouched(first)) {
-      const h = categoryHistory({ id: first.id, due: first.due }, "mia", cat, "developing");
-      expect(h.map((p) => p.date)).toEqual(simulatedDates(first.due, HISTORY_LENGTH));
-      expect(h.every((p) => p.set === null)).toBe(true);
-    }
+  it("Problem Set 6's Graphing reads Fri 4 Sep and Mon 7 Sep only (Sets 1–3 never assessed it); Problem Set 5's reaches back to Sets 1–4 where they assessed it", () => {
+    expect(categoryHistory("pset-6", "mia", "graphing").map((p) => [p.set.id, pillLabel(p)])).toEqual([
+      ["pset-4", "Fri 4 Sep"],
+      ["pset-5", "Mon 7 Sep"],
+    ]);
+    expect(earlierAssignmentIds("pset-5")).toEqual(["pset-1", "pset-2", "pset-3", "pset-4"]);
+    const ps5Longest = Math.max(...CATEGORY_ORDER.map((cat) => categoryHistory("pset-5", "mia", cat).length));
+    expect(ps5Longest).toBe(4);
+    expect(categoryHistory("pset-5", "mia", "graphing").map((p) => p.set.id)).toEqual(["pset-4"]);
+  });
+
+  it("the class's first set has no history: no earlier set, and every category empty; every later set has some", () => {
+    expect(hasEarlierSets(first.id)).toBe(false);
+    for (const cat of CATEGORY_ORDER) expect(categoryHistory(first.id, "mia", cat)).toEqual([]);
+    for (const id of ids.filter((x) => x !== first.id)) expect(hasEarlierSets(id), id).toBe(true);
+  });
+
+  it("a history pill's report: only an earlier finished set the student sat; anything else shows the roster", () => {
+    expect(earlierReportSet("pset-6", "pset-4", "mia")?.id).toBe("pset-4");
+    expect(earlierReportSet("pset-6", "pset-4", DEMO_STUDENT.id)?.id).toBe("pset-4");
+    expect(earlierReportSet("pset-4", "pset-5", "mia")).toBeNull();
+    expect(earlierReportSet("pset-6", "pset-6", "mia")).toBeNull();
+    expect(earlierReportSet("pset-6", "pset-9", "mia")).toBeNull();
+    expect(earlierReportSet("pset-6", "pset-4", "nobody")).toBeNull();
+    expect(earlierReportSet("pset-6", null, "mia")).toBeNull();
+    expect(earlierReportSet("pset-6", "pset-4", null)).toBeNull();
   });
 
   it("reads real statuses: Priya dark green, Liam nothing seen on Problem Set 5, a student with no record skipped", () => {
@@ -167,12 +136,13 @@ describe("history over the Classroom's registry (ticket 215)", () => {
       expect(earlierResults("pset-6", "priya", cat).every((r) => r.status === "secure")).toBe(true);
       expect(earlierResults("pset-6", "liam", cat).at(-1)).toMatchObject({ status: "unseen" });
       expect(earlierResults("pset-6", "nobody", cat)).toEqual([]);
-      expect(earlierResults(FINISHED_SETS[0].fixture.id, "mia", cat)).toEqual([]);
+      expect(earlierResults(first.id, "mia", cat)).toEqual([]);
+      expect(categoryHistory("pset-6", "mia", cat).at(-1)?.set).toMatchObject({ id: "pset-5", due: "Mon 7 Sep" });
     }
     expect(earlierSources("pset-6").map((s) => s.id)).toEqual(earlierAssignmentIds("pset-6"));
   });
 
-  it("every set × student × category: no neighbouring pills, nor the newest against today's, more than one step apart, real results included (the class story sheet, ticket 210); Priya dark green throughout", () => {
+  it("every set × student × category: no neighbouring pills, nor the newest against today's, more than one step apart (the class story sheet, ticket 210); Priya dark green throughout", () => {
     const jumps: string[] = [];
     for (const id of ids) {
       const b = assignmentBundle(id, classroom)!;
@@ -180,38 +150,32 @@ describe("history over the Classroom's registry (ticket 215)", () => {
         const today = classmateHierarchy(record, b).categories;
         for (const cat of categoriesTouched(b)) {
           const now = today[cat] ?? "unseen";
-          const h = categoryHistory(b, record.id, cat, now);
-          const chain = [...h.map((p) => ({ status: p.status, set: p.set?.id ?? null, from: p.set?.id ?? null })), { status: now, set: id, from: `${id} (today)` }];
+          const chain = [...categoryHistory(id, record.id, cat).map((p) => ({ status: p.status, set: p.set.id, from: p.set.id })), { status: now, set: id, from: `${id} (today)` }];
           for (let i = 1; i < chain.length; i++) {
             if (stepsApart(chain[i - 1].status, chain[i].status) <= 1) continue;
             if (unregisteredBetween(chain[i - 1].set, chain[i].set)) continue;
             jumps.push(`${record.id} ${cat}: ${chain[i - 1].from} ${chain[i - 1].status} → ${chain[i].from} ${chain[i].status}`);
           }
-          if (record.id === ALL_SECURE_STUDENT) expect(chain.every((p) => p.status === "secure"), `${id} ${cat}`).toBe(true);
+          if (record.id === "priya") expect(chain.every((p) => p.status === "secure"), `${id} ${cat}`).toBe(true);
         }
       }
     }
-    // Ticket 210 made Problem Set 5 agree with the class story sheet: no real pair jumps either.
     expect(jumps).toEqual([]);
   });
 
-  it("Sam's live row on Problem Set 6 has no fixed record, and his history still reads his Problem Set 5 result", () => {
-    const h = categoryHistory({ id: "pset-6", due: ASSIGNMENT.due }, DEMO_STUDENT.id, "algebra", "unseen");
-    expect(h[4].set?.id).toBe("pset-5");
-    const chain = h.slice(0, 5);
-    for (let i = 1; i < chain.length; i++) {
-      if (unregisteredBetween(chain[i - 1].set?.id ?? null, chain[i].set?.id ?? null)) continue;
-      expect(stepsApart(chain[i - 1].status, chain[i].status), `sam: ${chain.map((p) => p.status).join(" ")}`).toBeLessThanOrEqual(1);
+  it("Sam's live row on Problem Set 6 has no fixed record, and his history still reads his earlier results", () => {
+    const h = categoryHistory("pset-6", DEMO_STUDENT.id, "algebra");
+    expect(h.at(-1)?.set.id).toBe("pset-5");
+    for (let i = 1; i < h.length; i++) {
+      if (unregisteredBetween(h[i - 1].set.id, h[i].set.id)) continue;
+      expect(stepsApart(h[i - 1].status, h[i].status), `sam: ${h.map((p) => p.status).join(" ")}`).toBeLessThanOrEqual(1);
     }
   });
 });
 
 /**
  * Whether two real sets in a history have a set of the class story sheet between them that is not registered yet (ticket 211).
- * Sets 1–4 land one branch at a time (tickets 211–214), so until they all have, two real pills can sit side by side that
- * the sheet does not make neighbours: Set 1 beside Set 5 for a student who moves secure → solid → developing across
- * Sets 2–4. That pair is not a neighbour pair of the contract (`data/story.test.ts` checks the sheet's own neighbours);
- * once every sheet set is registered this is never true, and every pair is checked.
+ * Once every sheet set is registered this is never true, and every pair is checked.
  */
 function unregisteredBetween(older: string | null, newer: string | null): boolean {
   if (!older || !newer) return false;
@@ -219,9 +183,4 @@ function unregisteredBetween(older: string | null, newer: string | null): boolea
   const from = STORY_SETS.findIndex((s) => s.id === older);
   const to = STORY_SETS.findIndex((s) => s.id === newer);
   return from >= 0 && to > from && STORY_SETS.slice(from + 1, to).some((s) => !registered.has(s.id));
-}
-
-function expectNoJumps(h: readonly HistoryPoint[], today: Status, what: string) {
-  const chain = [...h.map((p) => p.status), today];
-  for (let i = 1; i < chain.length; i++) expect(stepsApart(chain[i - 1], chain[i]), `${what}: ${chain.join(" ")}`).toBeLessThanOrEqual(1);
 }

@@ -28,9 +28,21 @@ import { useAssignmentBundle } from "../AssignmentContext";
  * everyone, Sam included, is their record on it: no live facts, their notes and their words.
  * The page sits at 125% of the teacher side's size (ticket 227).
  */
-const REPORT_ZOOM = TEACHER_ZOOM * 1.25;
+export const REPORT_ZOOM = TEACHER_ZOOM * 1.25;
 
 export default function TeacherReport({ student }: { student: string | null }) {
+  return (
+    <TeacherChrome zoom={REPORT_ZOOM}>
+      <ReportBody student={student} />
+    </TeacherChrome>
+  );
+}
+
+/**
+ * The report under whatever chrome holds it, for the set in the nearest `AssignmentContext`. `back` (ticket 237): shown
+ * from a later set's history, the way back is a pulsing button above the eyebrow and there is no "← Class view" to this set.
+ */
+export function ReportBody({ student, back }: { student: string | null; back?: { href: string; label: string } }) {
   const { session } = useBatchedSession(2000);
   const assignment = useAssignmentBundle();
   const { problems } = assignment;
@@ -49,7 +61,16 @@ export default function TeacherReport({ student }: { student: string | null }) {
   const nothing = live && !session;
 
   return (
-    <TeacherChrome zoom={REPORT_ZOOM}>
+    <>
+      {back && (
+        <Link
+          href={back.href}
+          className="pulse-loop relative mb-4 inline-flex items-center rounded-md bg-accent-dark px-3.5 py-1.5 text-[14px] font-semibold text-white transition-colors hover:bg-accent-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          data-history-return
+        >
+          ← {back.label}
+        </Link>
+      )}
       <Eyebrow>
         {assignment.className} · {assignment.title}
       </Eyebrow>
@@ -60,9 +81,11 @@ export default function TeacherReport({ student }: { student: string | null }) {
             <H1>{who.name}</H1>
           </div>
         </div>
-        <Link href={assignmentHref(assignment.id, "class")} className="text-[13.5px] text-accent-deep hover:underline">
-          ← Class view
-        </Link>
+        {!back && (
+          <Link href={assignmentHref(assignment.id, "class")} className="text-[13.5px] text-accent-deep hover:underline">
+            ← Class view
+          </Link>
+        )}
       </div>
 
       <div className="mt-8 grid grid-cols-[1fr_440px] gap-6">
@@ -161,6 +184,6 @@ export default function TeacherReport({ student }: { student: string | null }) {
           </div>
         </div>
       </div>
-    </TeacherChrome>
+    </>
   );
 }

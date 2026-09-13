@@ -24,7 +24,7 @@ import { progressTag } from "@/lib/progress";
 import { classmatesAt } from "@/lib/stream";
 import { classmateEvidence, columnOf, hierarchyFor, problemsStarted, restrictTo, sessionEvidence, type Evidence } from "@/lib/hierarchy";
 import { pillLabel, type HistoryPoint } from "@/lib/history";
-import { categoryHistory, historyPillHref } from "@/lib/setHistory";
+import { categoryHistory, hasEarlierSets, historyReportHref } from "@/lib/setHistory";
 import { useBatchedSession, useNow } from "@/lib/store";
 
 /** How long a second click may follow the first and still count as a double-click. */
@@ -71,12 +71,16 @@ const ROW_BUTTON = "w-[96px] whitespace-nowrap rounded-md px-1 py-[2px] text-[11
 const ROW_IDLE = `${ROW_BUTTON} bg-standout-soft text-accent-deep hover:bg-standout-line`;
 const ROW_ACTIVE = `${ROW_BUTTON} bg-accent text-white hover:bg-accent-deep`;
 
+/** A history pill's height, layout px, and the least space above each (2 px, the last above today's pill). */
+const HISTORY_PILL_PX = 13;
+const HISTORY_PILL_GAP_PX = 2;
+
 /**
- * The least room the five history pills need above today's pill: 13 px each with 2 px between and 2 px
- * above today's (75 px). The white sheet rises at least this far, and further to the next pill midline;
- * the five then spread evenly over whatever height that gives (ticket 181).
+ * The least room `n` history pills need above today's pill: 13 px each with 2 px above each (five: 75 px). The white
+ * sheet rises at least this far for the tallest open stack, and further to the next pill midline; its pills then spread
+ * evenly over whatever height that gives (ticket 181), and a shorter stack keeps the same spacing from today's pill up (ticket 237).
  */
-const HISTORY_STACK_PX = 5 * 13 + 5 * 2;
+const historyStackPx = (n: number) => n * (HISTORY_PILL_PX + HISTORY_PILL_GAP_PX);
 
 /**
  * The least sheet between the stacks' least top and the cut pill above (ticket 177): a pill whose midline
@@ -88,13 +92,13 @@ const HISTORY_CLEAR_PX = 6;
 
 /**
  * A history pill (ticket 215): the stack's full width, so every pill in a column is one width whatever its label,
- * with no side padding or tracking, so "PS5 · MON 7 SEP" (73 layout px at 9 px) fits the narrowest column's pill
+ * with no side padding or tracking, so "MON 7 SEP" (ticket 237; "PS5 · MON 7 SEP", 73 layout px at 9 px, before it) fits the narrowest column's pill
  * (Algebra's 80 px column less 1 px a side: 78, 76 inside its border).
  */
 const HISTORY_PILL = "w-full! px-0! tracking-normal!";
 /** In history mode a category cell's pill fills its column less 1 px a side (ticket 215), so today's named pill is as wide as the stack above it needs. */
 const HISTORY_CELL = "px-px";
-/** A real history pill's link: the pill's own box, a pointer, a lift on hover and a visible ring on keyboard focus (ticket 215). */
+/** A history pill's link: the pill's own box, a pointer, a lift on hover and a visible ring on keyboard focus (ticket 215). */
 const HISTORY_LINK = "flex rounded outline-none transition-[filter] hover:brightness-110 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:ring-offset-paper";
 
 /**
@@ -132,7 +136,7 @@ function ago(ms: number | null, now: number): string {
 const HANDED_IN = BEFORE_HAND_IN_STAGES;
 
 /**
- * History mode from a real history pill's link (ticket 215): `?history=<student>&open=<category>`, read by the page and handed in as `init`, kept only when the
+ * History mode from a link (tickets 215, 237; since 237 the way back from a history pill's report): `?history=<student>&open=<category>`, read by the page and handed in as `init`, kept only when the
  * set has that student and the category is one the taxonomy knows (a category the set does not show opens no stack).
  */
 export interface ClassViewInit {
@@ -153,7 +157,7 @@ function historyFromQuery(init: ClassViewInit | undefined, set: { classmates: re
  * (canonical order), each a pill in the worst status beneath it (ticket 125; groups and skills are dots). Clicking a pill expands that row into
  * the category → group → leaf → work drill; hovering a student's block (their row and any drill
  * open under it) shows three buttons beside the name: the row's full breakdown (every group open to its skills; "close" while
- * the row is open), the student's individual view and history mode (ticket 175: the pills named, their last five results stacked above). The
+ * the row is open), the student's individual view and history mode (ticket 175: the pills named, their earlier sets' results stacked above; not on the first set, ticket 237). The
  * demo student's row is live (in batches); classmates come through the same evidence path from
  * their scripted attempts.
  */
@@ -174,9 +178,9 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
   const [column, setColumn] = useState<{ category: CategoryId; level: "groups" | "expanded"; boxes: Record<string, ColumnBox[]>; nonce: number } | null>(null);
   /**
    * History mode (ticket 175): one student whose category pills widen to carry their names, every other row
-   * faded; `open` lists the categories whose last five results stand stacked above the pill. Independent of
-   * `open` (a drill under the same student stays), exclusive of `column`. A real history pill on a later set links
-   * here with `?history=<student>&open=<category>` (ticket 215): the page opens in history mode on that student
+   * faded; `open` lists the categories whose earlier results stand stacked above the pill. Independent of
+   * `open` (a drill under the same student stays), exclusive of `column`. The way back from a history pill's report
+   * links here with `?history=<student>&open=<category>` (tickets 215, 237): the page opens in history mode on that student
    * with that category's stack standing, scrolls the row into view and drops the query, so a reload is the plain view.
    */
   const [history, setHistory] = useState<{ student: string; open: CategoryId[] } | null>(() => historyFromQuery(init, assignment));
@@ -313,6 +317,8 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
   const toggleHistory = (c: CategoryId) => {
     setHistory((h) => (h ? { ...h, open: h.open.includes(c) ? h.open.filter((x) => x !== c) : [...h.open, c] } : h));
   };
+  /** The first set has nothing before it (ticket 237): no row offers "see history". */
+  const offersHistory = hasEarlierSets(assignment.id);
 
   const progress = rosterProgress(assignment, live, now);
   /** Each classmate's record as far as the live stream has reached (ticket 189): what they have answered so far; the whole record once handed in, and on a finished set. */
@@ -359,6 +365,9 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
   const caution = live?.escalation.caution ?? [];
   const stages = assignmentStages(assignment, classroom, live, now);
   const wcInUse = !!currentSlide(classroom);
+  /** The history student's pills over each shown category: only earlier sets that assessed it, so a category may have none (ticket 237). */
+  const stacks = history ? columns.map((c) => ({ category: c, points: categoryHistory(assignment.id, history.student, c) })) : [];
+  const openStacks = stacks.filter((s) => history?.open.includes(s.category) && s.points.length > 0);
 
   return (
     <TeacherChrome>
@@ -382,10 +391,11 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
         {/* `overflow-clip`, not `overflow-x-auto` (ticket 167): a scroll container would be the header row's nearest scroller, so the heads could only stick within the card, which never scrolls; `clip` still rounds the card's corners over the heads' paper backgrounds and is no scroller, so the heads stick to the top of the teacher frame's scroll region instead. A window narrower than the roster (below the 1280 laptop, where it is 1204 of 1208 px) now scrolls the frame sideways rather than the card. */}
         {/* The roster and, beside it in the same box, the history blocker (ticket 175): the cream that hides the rows above an open history is drawn outside the card, so it can rise past the card's clipped top edge over the "due" line when the history is a top row's. */}
         <div ref={rosterRef} className="relative">
-        {history && history.open.some((c) => columns.includes(c)) && (
+        {history && openStacks.length > 0 && (
           <HistoryBlocker
             student={history.student}
-            stacks={history.open.filter((c) => columns.includes(c)).map((c) => ({ category: c, points: categoryHistory(assignment, history.student, c, results[rows.findIndex((r) => r.id === history.student)]?.categories[c] ?? "unseen") }))}
+            setId={assignment.id}
+            stacks={openStacks}
             tableRef={tableRef}
             rosterRef={rosterRef}
             dueRef={dueRef}
@@ -504,9 +514,11 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
                             <Link href={assignmentReportHref(assignment.id, r.id)} className={`${ROW_IDLE} text-center`} data-student-link={r.id}>
                               student report
                             </Link>
-                            <button type="button" onClick={() => (inHistory ? setHistory(null) : openHistory(r.id))} className={`${inHistory ? ROW_ACTIVE : ROW_IDLE}`} data-see-history={r.id} aria-pressed={inHistory}>
-                              {inHistory ? "close history" : "see history"}
-                            </button>
+                            {offersHistory && (
+                              <button type="button" onClick={() => (inHistory ? setHistory(null) : openHistory(r.id))} className={`${inHistory ? ROW_ACTIVE : ROW_IDLE}`} data-see-history={r.id} aria-pressed={inHistory}>
+                                {inHistory ? "close history" : "see history"}
+                              </button>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -515,21 +527,23 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
                         const half = h.half.categories.includes(c);
                         const on = isOpen && open.mode === "category" && open.category === c;
                         const blanked = !!column && column.category !== c; // a column view shows only its own column's dots
-                        const historyOpen = inHistory && history.open.includes(c);
+                        const earlierCount = inHistory ? (stacks.find((s) => s.category === c)?.points.length ?? 0) : 0;
+                        const historyOpen = inHistory && earlierCount > 0 && history.open.includes(c);
                         return (
                           <td key={c} className={`relative py-3.5 text-center ${inHistory ? HISTORY_CELL : "px-1"}`}>
                             <button
                               type="button"
-                              onClick={() => (leaveHistory(r.id) ? undefined : inHistory ? toggleHistory(c) : on && !column ? setOpen(null) : openRow(r.id, "category", c))}
+                              onClick={() => (leaveHistory(r.id) ? undefined : inHistory ? (earlierCount > 0 ? toggleHistory(c) : undefined) : on && !column ? setOpen(null) : openRow(r.id, "category", c))}
                               onDoubleClick={() => (history ? undefined : openRow(r.id, "category", c, undefined, true))}
-                              aria-label={inHistory ? `${categoryName(c).name}: ${STATUS_WORD[st]}; ${historyOpen ? "hide" : "show"} the last five results` : `${categoryName(c).name}: ${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}
-                              aria-expanded={inHistory ? historyOpen : on}
+                              aria-label={inHistory ? `${categoryName(c).name}: ${STATUS_WORD[st]}; ${earlierCount === 0 ? "no earlier set assessed it" : `${historyOpen ? "hide" : "show"} the earlier results`}` : `${categoryName(c).name}: ${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}
+                              aria-expanded={inHistory ? (earlierCount > 0 ? historyOpen : undefined) : on}
                               className={`inline-grid h-7 place-items-center rounded-md transition-colors hover:bg-cream-deep ${inHistory ? "w-full px-0" : "w-10"} ${on ? "bg-cream-deep ring-1 ring-ink" : ""} ${blanked ? "invisible" : ""}`}
                               data-dot={c}
                               data-blanked={blanked || undefined}
                               data-history-open={historyOpen || undefined}
+                              data-history-count={inHistory ? earlierCount : undefined}
                             >
-                              {/* One element either way (ticket 181): in history mode the same StatusDot carries the category's name and grows to its column less 1 px a side (ticket 215); its five earlier results are drawn by HistoryBlocker over it. The half fill gives way to the name. */}
+                              {/* One element either way (ticket 181): in history mode the same StatusDot carries the category's name and grows to its column less 1 px a side (ticket 215); its earlier results (up to five) are drawn by HistoryBlocker over it. The half fill gives way to the name. */}
                               <StatusDot status={st} half={half && !inHistory} shape="pill" label={inHistory ? categoryName(c).short : undefined} className={inHistory ? "w-full!" : ""} />
                             </button>
                             {column?.category === c && (
@@ -792,15 +806,17 @@ function RowGroup({ children, onPointerOver, onPointerOut, onPointerMove, faded 
  * nearest pill above the five's least room that would otherwise show in part (so the cut is visibly
  * through a pill, never a clean edge on a gap). When that midline would be in the heads, the heads are
  * covered whole and the sheet rises past the card over the "due" line to that line's midline instead.
- * Over the sheet, one column per open category: the five dated pills, oldest at the top, spread evenly
- * from the sheet's top to today's pill (equal space above the first, between each, and below the last),
- * each the same element and width as today's named pill. Measured from the table (relative to the
+ * Over the sheet, one column per open category: its dated pills (up to five, ticket 237: only earlier sets that
+ * assessed it), oldest at the top. The tallest open stack spreads evenly from the sheet's top to today's pill (equal
+ * space above the first, between each, and below the last); a shorter one keeps that spacing, sitting on today's
+ * pill. Each is the same element and width as today's named pill; a click opens the student's report on that set. Measured from the table (relative to the
  * roster box, in layout px: the teacher frame is zoomed) whenever the table's size changes (a drill
  * opening under the student, the window resizing), by a ResizeObserver, which also fires once when it
  * starts observing; the named pills are measured then too, after their width has settled. Clicking the
- * sheet leaves history mode, like a click on any other student's row; a click on a history does nothing.
+ * sheet leaves history mode, like a click on any other student's row.
  */
-function HistoryBlocker({ student, stacks, tableRef, rosterRef, dueRef, onClick }: { student: string; stacks: { category: CategoryId; points: HistoryPoint[] }[]; tableRef: React.RefObject<HTMLTableElement | null>; rosterRef: React.RefObject<HTMLDivElement | null>; dueRef: React.RefObject<HTMLParagraphElement | null>; onClick: () => void }) {
+function HistoryBlocker({ student, setId, stacks, tableRef, rosterRef, dueRef, onClick }: { student: string; setId: string; stacks: { category: CategoryId; points: HistoryPoint[] }[]; tableRef: React.RefObject<HTMLTableElement | null>; rosterRef: React.RefObject<HTMLDivElement | null>; dueRef: React.RefObject<HTMLParagraphElement | null>; onClick: () => void }) {
+  const tallest = Math.max(...stacks.map((s) => s.points.length));
   const [box, setBox] = useState<{ left: number; top: number; width: number; height: number; cut: "pill" | "due"; pillTop: number; pills: Partial<Record<CategoryId, { left: number; width: number }>> } | null>(null);
   useEffect(() => {
     const table = tableRef.current;
@@ -818,7 +834,7 @@ function HistoryBlocker({ student, stacks, tableRef, rosterRef, dueRef, onClick 
       const firstHead = heads[0].getBoundingClientRect();
       const lastHead = heads[heads.length - 1].getBoundingClientRect();
       const pillTop = y(pill.top);
-      const leastTop = pillTop - HISTORY_STACK_PX;
+      const leastTop = pillTop - historyStackPx(tallest);
       // The rows' own pills (a StatusDot directly in its button), their midlines in layout px: the nearest one far enough above the five's least room is where the sheet stops.
       const mids = [...table.querySelectorAll<HTMLElement>("tr[data-row] [data-dot] > [data-status]")].map((el) => el.getBoundingClientRect()).map((r) => y(r.top + r.height / 2)).filter((m) => m <= leastTop - HISTORY_CLEAR_PX);
       const due = dueRef.current?.getBoundingClientRect();
@@ -837,8 +853,10 @@ function HistoryBlocker({ student, stacks, tableRef, rosterRef, dueRef, onClick 
       ro.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [student, tableRef, rosterRef, dueRef]);
+  }, [student, tallest, tableRef, rosterRef, dueRef]);
   if (!box) return null;
+  // The tallest stack's even spacing, which every stack keeps from today's pill up.
+  const space = (box.pillTop - box.top - tallest * HISTORY_PILL_PX) / (tallest + 1);
   return (
     <>
       <div className="absolute z-[25] cursor-default bg-paper" style={{ left: box.left, top: box.top, width: box.width, height: box.height }} onClick={onClick} role="presentation" data-history-blocker data-cut={box.cut} />
@@ -848,24 +866,18 @@ function HistoryBlocker({ student, stacks, tableRef, rosterRef, dueRef, onClick 
         return (
           <div
             key={category}
-            className="absolute z-30 flex flex-col items-stretch justify-evenly"
-            style={{ left: pill.left, width: pill.width, top: box.top, height: box.pillTop - box.top }}
+            className="absolute z-30 flex flex-col items-stretch justify-end"
+            style={{ left: pill.left, width: pill.width, top: box.top, height: box.pillTop - box.top, gap: space, paddingBottom: space }}
             role="list"
-            aria-label={`${categoryName(category).short}, last five: ${points.map((p) => `${p.set ? `${p.set.name}, ` : ""}${p.date} ${STATUS_WORD[p.status]}`).join("; ")}`}
+            aria-label={`${categoryName(category).short}, earlier sets: ${points.map((p) => `${p.set.name}, ${p.date} ${STATUS_WORD[p.status]}`).join("; ")}`}
             data-history-stack={category}
           >
-            {/* A real set's pill is a link to that set's Class View on this student's history (ticket 215); a simulated one is only its day. */}
-            {points.map((p) =>
-              p.set ? (
-                <Link key={p.date} href={historyPillHref(p.set.id, student, category)} role="listitem" className={HISTORY_LINK} aria-label={`${p.set.name}, ${p.date}: ${STATUS_WORD[p.status]}. Open its Class View`} data-history-point={p.set.id}>
-                  <StatusDot status={p.status} shape="pill" label={pillLabel(p)} className={HISTORY_PILL} />
-                </Link>
-              ) : (
-                <span key={p.date} role="listitem" className="flex" aria-label={`${p.date}: ${STATUS_WORD[p.status]}`} data-history-point="">
-                  <StatusDot status={p.status} shape="pill" label={pillLabel(p)} className={HISTORY_PILL} />
-                </span>
-              ),
-            )}
+            {/* Each pill opens the student's report on that set, inside this set's Class View (ticket 237). */}
+            {points.map((p) => (
+              <Link key={p.set.id} href={historyReportHref(setId, p.set.id, student, category)} role="listitem" className={HISTORY_LINK} aria-label={`${p.set.name}, ${p.date}: ${STATUS_WORD[p.status]}. Open the student's report on it`} data-history-point={p.set.id}>
+                <StatusDot status={p.status} shape="pill" label={pillLabel(p)} className={HISTORY_PILL} />
+              </Link>
+            ))}
           </div>
         );
       })}

@@ -73,7 +73,7 @@ describe("the sets renamed (ticket 208)", () => {
     expect(migrateClassroom(INITIAL_CLASSROOM)).toBe(INITIAL_CLASSROOM);
   });
 
-  it("every simulated history date still sits before Problem Set 5's Mon 7 Sep", () => {
-    for (const p of categoryHistory(PS5_ASSIGNMENT, "mia", "algebra", "solid")) expect(parseDay(p.date)!, p.date).toBeLessThan(parseDay("Mon 7 Sep")!);
+  it("every history date on Problem Set 5 sits before its Mon 7 Sep", () => {
+    for (const p of categoryHistory(PS5_ASSIGNMENT.id, "mia", "algebra")) expect(parseDay(p.date)!, p.date).toBeLessThan(parseDay("Mon 7 Sep")!);
   });
 });
