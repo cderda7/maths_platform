@@ -3,6 +3,7 @@ import { CLASSMATES, type Classmate } from "@/data/classmates";
 import { PS5_ASSIGNMENT, PS5_PATHWAY } from "@/data/pset5/assignment";
 import { PS5_CLASSMATES, PS5_SAM } from "@/data/pset5/classmates";
 import type { SeatingGroups } from "@/data/groups";
+import type { LeafId } from "@/data/taxonomy";
 import type { Assignment, Pathway, Problem, UnitRef } from "@/data/types";
 import { activeAssignment } from "./assignment";
 import { pathwayOf, type ClassroomState } from "./classroom";
@@ -100,6 +101,20 @@ export function earlierAssignmentIds(id: string): string[] {
   return i < 0 ? [] : REGISTRY.slice(i + 1).map((d) => d.fixture.id).reverse();
 }
 
+/**
+ * The registered finished sets older than `id`, newest first, at most `n` (ticket 209): what the class
+ * met most recently, which Create's New skills inference reads (`inferNewSkills`, the last two sets).
+ */
+export function recentSets(id: string, n: number): Pick<Assignment, "id" | "problems" | "newSkills">[] {
+  return earlierAssignmentIds(id)
+    .reverse()
+    .flatMap((e) => {
+      const d = defOf(e);
+      return d && d.kind === "finished" ? [d.fixture] : [];
+    })
+    .slice(0, n);
+}
+
 /** Everything a teacher screen shows about one set. */
 export interface AssignmentBundle {
   id: string;
@@ -114,8 +129,8 @@ export interface AssignmentBundle {
   due: string;
   /** The unit and topic the eyebrow names (`unitLabel`). */
   unit: UnitRef;
-  /** The confirmed unit number the categories are named by (the created set's, else the fixture's). */
-  unitNumber: 1 | 2 | 3 | 4;
+  /** The skills new on this set (ticket 209): their evidence shows under New skills, not their home (`lib/hierarchy`). A finished set's are its fixture's; the live set's the created assignment's (`activeAssignment`). */
+  newSkills: readonly LeafId[];
   goal: string;
   problems: Problem[];
   pathway: Pathway;
@@ -134,9 +149,9 @@ export function assignmentBundle(id: string, c: ClassroomState | null | undefine
   if (!def || !def.exists(c)) return null;
   const f = def.fixture;
   const base = { id, kind: def.kind, className: f.className, classCode: f.classCode, teacher: f.teacher, due: f.due, unit: f.unit, classmates: def.classmates, groups: assignmentGroupsOf(c, id) };
-  if (def.kind === "finished") return { ...base, title: f.title, name: def.name ?? f.title, unitNumber: f.unit.number, goal: f.goal, problems: f.problems, pathway: def.pathway, sam: def.sam, startedAt: null };
+  if (def.kind === "finished") return { ...base, title: f.title, name: def.name ?? f.title, newSkills: f.newSkills, goal: f.goal, problems: f.problems, pathway: def.pathway, sam: def.sam, startedAt: null };
   const active = activeAssignment(c);
-  return { ...base, title: active.title, name: active.title === f.title ? (def.name ?? f.title) : active.title, unitNumber: active.unit, goal: active.goal, problems: active.problems, pathway: pathwayOf(c), sam: null, startedAt: liveStartedAt(c) };
+  return { ...base, title: active.title, name: active.title === f.title ? (def.name ?? f.title) : active.title, newSkills: active.newSkills, goal: active.goal, problems: active.problems, pathway: pathwayOf(c), sam: null, startedAt: liveStartedAt(c) };
 }
 
 /**

@@ -33,8 +33,8 @@ export default function WholeClassSetup() {
   const router = useRouter();
   const { session } = useBatchedSession(3000);
   const assignment = useAssignmentBundle();
-  const { problems, unitNumber: unit } = assignment;
-  const ctx: PickerContext = { unit, group: useClassroom().group ?? null };
+  const { problems, newSkills } = assignment;
+  const ctx: PickerContext = { newSkills, group: useClassroom().group ?? null };
   const ranked = problemsByStruggle(session).filter((r) => problems.some((p) => p.id === r.problem.id));
   const [chosen, setChosen] = useState<string[] | null>(null);
   const [overrides, setOverrides] = useState<Record<string, ExampleRef[]>>({});

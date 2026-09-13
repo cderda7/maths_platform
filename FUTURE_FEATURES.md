@@ -2939,6 +2939,26 @@ uploaded problems) settled the following as later, each on purpose.
   awkwardly with keeping individual mistakes out of group review. Dropping it when group review is
   next was not asked for.
 
+## New skills per set follow-ups (from ticket 209, 2026-09-13)
+
+- **Name a New skill's home in the drill.** The New skills column lists skills flat. A small "from
+  Functions" beside each would tell the teacher where its evidence goes on sets that do not list it.
+  Deferred: the ticket kept the drill's layout, and the review's chips carry the home as a tooltip.
+- **Tune or explain the inference.** Create reads "met" as assessed under its home in either of the
+  last two sets, and needs at least two problems. A one-line reason per chip ("not in Sets 4 or 5")
+  or a teacher setting for the window would make the suggestion easier to trust. Deferred: two sets
+  and two problems reproduce the agreed lists, and every chip can be switched.
+- **Escalation grouping after the move.** Practice prompts count mistakes per home group. The null
+  factor law now shares "finding zeros" with zero-finding, and the binomial identity shares
+  factorising with monic and non-monic. Worth a look once real classes use it, to see whether a New
+  skill's slips should count on their own. Deferred: the demo's scripted runs play the same.
+- **Retire `LEAF_ALIASES`.** The map exists for browsers holding pre-209 sessions and created sets.
+  Remove it with its tests once no demo machine carries that state (see the ticket 208 note on
+  `lib/renamedSets.ts`).
+- **The unit eyebrow is separate from New skills.** `Assignment.unit` still names "Unit 1 · Topic 1".
+  Create no longer infers a unit (the Unit focus card is gone), so a created set in another unit
+  would keep the fixture's eyebrow. Deferred: every set in the demo is Unit 1.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

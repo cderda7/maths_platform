@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CLASSMATES } from "@/data/classmates";
+import { ASSIGNMENT } from "@/data/assignment";
 import { boardExamples, bucketCounts, bucketOf, candidatesFor, CORRECT, exampleOf, mistakeOf, optionOf, optionsFor, problemsByStruggle, struggleCount, suggestExamples, type Bucket, type Candidate, type PickerContext } from "./examples";
 import { sessionAt } from "./session";
 
@@ -80,14 +81,15 @@ describe("board examples", () => {
     expect(exampleOf(guessed).studentId).toBe("jordan");
   });
 
-  it("a mistake on the unit's focus leaf is badged; one the group worked through sinks and is not suggested unless needed", () => {
+  it("a mistake on one of the set's New skills is badged; one the group worked through sinks and is not suggested unless needed", () => {
     const s = sessionAt("feedback");
     const q3 = candidatesFor("q3", s);
-    const plain = optionsFor(q3, { unit: 1 });
+    const plain = optionsFor(q3, { newSkills: ASSIGNMENT.newSkills });
     const nfl = plain.find((o) => o.name === "null factor law without zero")!;
-    expect(nfl.unitFocus).toBe(true); // the wrong line is tagged unit.u1.nfl
-    expect(plain.find((o) => o.key === CORRECT)!.unitFocus).toBe(false);
-    expect(optionsFor(q3, { unit: 2 }).find((o) => o.name === nfl.name)!.unitFocus).toBe(false);
+    expect(nfl.newSkill).toBe(true); // the wrong line is tagged functions.zeros.nfl, new on Problem Set 6
+    expect(plain.find((o) => o.key === CORRECT)!.newSkill).toBe(false);
+    // On a set that does not list the null factor law, the same mistake is not badged.
+    expect(optionsFor(q3, { newSkills: ["algebra.equations.discriminant"] }).find((o) => o.name === nfl.name)!.newSkill).toBe(false);
     // Sam's group (sam, jordan, zara, liam) checked Q3 correct in group review: zara's and liam's mistakes on Q3 are fixed.
     const group = { members: ["sam", "jordan", "zara", "liam"], resolved: ["q3"] } as unknown as NonNullable<PickerContext["group"]>;
     const fixed = optionsFor(q3, { group });

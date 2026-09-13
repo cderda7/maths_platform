@@ -1,18 +1,19 @@
 "use client";
 
 import PathwayMap from "../../PathwayMap";
-import UnitFocus from "../../UnitFocus";
+import NewSkills from "../../NewSkills";
 import SeatingBoard from "../../../groups/SeatingBoard";
 import { Button, Card, Eyebrow } from "@/components/ui";
 import { DIAGNOSTIC_CHIP } from "../../../DiagnosticCard";
 import { GROUP_SIZE, type GroupColour, type SeatingGroups } from "@/data/groups";
 import type { Pathway } from "@/data/types";
-import type { ReviewedQuestion, ReviewState } from "@/lib/review";
-import { inferUnitFromReviewed } from "@/lib/review";
+import { LIVE_ASSIGNMENT_ID, recentSets } from "@/lib/assignments";
+import { RECENT_SETS } from "@/lib/newSkills";
+import { reviewNewSkills, type ReviewedQuestion, type ReviewState } from "@/lib/review";
 
 /**
- * The pathway step, the last before Create: the unit focus (the inferred unit, standing unless
- * the teacher describes the focus and reassesses; nothing to confirm, ticket 123) above the
+ * The pathway step, the last before Create: the set's New skills (inferred from the class's last two
+ * sets, standing unless the teacher switches one; nothing to confirm, tickets 123 and 209) above the
  * review-pathway map (the same map the old create screen has, on a screen of its own). Create is
  * on throughout.
  *
@@ -39,11 +40,11 @@ export default function PathwayStep({
   onBack: () => void;
   onCreate: () => void;
 }) {
-  const inferred = inferUnitFromReviewed(final);
+  const skills = reviewNewSkills(final, review, recentSets(LIVE_ASSIGNMENT_ID, RECENT_SETS));
   return (
     <div className="pb-24" data-pathway-step>
       <div className="mt-8 max-w-[980px] space-y-4">
-        <UnitFocus inferred={inferred} reassessed={review.unit ?? null} onReassess={(u) => onChange({ unit: u })} />
+        <NewSkills candidates={skills.candidates} chosen={skills.chosen} changed={skills.changed} onChange={(next) => onChange({ newSkills: next ?? undefined })} />
         <Card className="p-6">
           <Eyebrow className={DIAGNOSTIC_CHIP}>Review pathway</Eyebrow>
           <div className="mt-4">

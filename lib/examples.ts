@@ -1,7 +1,7 @@
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
 import { STANDOUT } from "@/data/evaluation";
-import { leafName, unitOf, type LeafId } from "@/data/taxonomy";
+import { leafName, type LeafId } from "@/data/taxonomy";
 import { BEFORE_HAND_IN_STAGES, type Problem } from "@/data/types";
 import { evaluateLine } from "./evaluate";
 import type { GroupRun } from "./groupReview";
@@ -53,15 +53,15 @@ export interface ExampleOption {
   leaf: LeafId | null;
   count: number;
   columns: { lines: string[]; students: Candidate[] }[];
-  /** The mistake sits on a Unit Focus leaf of the assignment's unit. */
-  unitFocus: boolean;
+  /** The mistake sits on one of the set's New skills (ticket 209; the unit's focus leaves before it). */
+  newSkill: boolean;
   /** Someone on this mistake was in the group whose review checked this problem correct. */
   fixedInGroup: boolean;
 }
 
-/** What `optionsFor` reads besides the candidates: the unit in force and the demo student's group run. */
+/** What `optionsFor` reads besides the candidates: the set's New skills and the demo student's group run. */
 export interface PickerContext {
-  unit?: 1 | 2 | 3 | 4;
+  newSkills?: readonly LeafId[];
   group?: GroupRun | null;
 }
 
@@ -147,14 +147,13 @@ export function optionsFor(cands: Candidate[], ctx: PickerContext = {}): Example
     }
     const first = key === CORRECT ? null : firstWrong(students[0].problemId, students[0].lines);
     const leaf = first ? first.tags[0].leaf : null;
-    const unitLeaf = first?.tags.map((t) => t.leaf).find((l) => unitOf(l) !== null);
     return {
       key,
       name: key === CORRECT ? "correct" : (first?.name ?? (leaf ? leafName(leaf).short : "mistake")),
       leaf,
       count: students.length,
       columns: [...columns.values()].sort((a, b) => b.length - a.length).map((s) => ({ lines: s[0].lines, students: s })),
-      unitFocus: !!unitLeaf && !!ctx.unit && unitOf(unitLeaf) === ctx.unit,
+      newSkill: !!first && first.tags.some((t) => ctx.newSkills?.includes(t.leaf)),
       fixedInGroup: key !== CORRECT && resolvedHere && students.some((s) => members.has(s.studentId)),
     };
   });

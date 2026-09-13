@@ -18,7 +18,7 @@ export function earlierResults(id: string, student: string, category: CategoryId
     const record = studentRecord(b, student);
     // A student the set has no record of never sat it: nothing to show for that date.
     if (!record) return [];
-    const status: Status = classmateHierarchy(record, b.problems).categories[category] ?? "unseen";
+    const status: Status = classmateHierarchy(record, b).categories[category] ?? "unseen";
     return [{ date: historyDate(b.due), status }];
   });
 }

@@ -14,7 +14,7 @@ import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { StatusDot, STATUS_WORD } from "@/components/Tag";
 import { DEMO_STUDENT, unitLabel } from "@/data/assignment";
 import type { Classmate } from "@/data/classmates";
-import { categoryLabel, categoryName, categoryOf, isFlat, type CategoryId, type LeafId } from "@/data/taxonomy";
+import { categoryName, isFlat, type CategoryId, type LeafId } from "@/data/taxonomy";
 import { confidenceForms, confidenceLabel, type ConfidenceForm } from "@/lib/report";
 import { BEFORE_HAND_IN_STAGES, type Confidence } from "@/data/types";
 import { assignmentReportHref, assignmentStages, rosterProgress } from "@/lib/assignments";
@@ -22,7 +22,7 @@ import { currentSlide } from "@/lib/classroom";
 import { useClassroom } from "@/lib/classroom-store";
 import { progressTag } from "@/lib/progress";
 import { classmatesAt } from "@/lib/stream";
-import { classmateEvidence, hierarchyFor, problemsStarted, restrictTo, sessionEvidence, type Evidence } from "@/lib/hierarchy";
+import { classmateEvidence, columnOf, hierarchyFor, problemsStarted, restrictTo, sessionEvidence, type Evidence } from "@/lib/hierarchy";
 import type { HistoryPoint } from "@/lib/history";
 import { categoryHistory } from "@/lib/setHistory";
 import { useBatchedSession, useNow } from "@/lib/store";
@@ -43,7 +43,7 @@ const PILL_GRACE_MS = 1000;
 /** The markers: the category pill buttons in the row, and the drill's group and skill nodes under it. */
 const MARKER = "[data-dot], [data-node]";
 
-/** The grey uppercase label beside a category pill: the category name in a column view, the unit beside the Unit pill in a drill. */
+/** The grey uppercase label beside a category pill: the category name in a column view. (Until ticket 209 it also named the unit beside the Unit pill in a drill; the New skills column's header names it now.) */
 const LABEL = "pointer-events-none absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink-muted";
 /**
  * Every header cell of the roster (ticket 167): it sticks to the top of the teacher frame's scroll region
@@ -135,7 +135,7 @@ export default function TeacherLive() {
   // Only the live set is Sam's session; a finished set's row is its own record (ticket 187).
   const live = assignment.kind === "live" ? (session ?? null) : null;
   const now = useNow();
-  const { title, problems, unitNumber: unit } = assignment;
+  const { title, problems } = assignment;
   const classroom = useClassroom();
   const wc = classroom.wholeClass;
   // Class review is the live lesson's; a finished set's stages are all over (ticket 187).
@@ -234,7 +234,7 @@ export default function TeacherLive() {
     });
   };
   /** A blamed line asks for another category: re-open this student's drill there, on that skill. */
-  const jump = (student: string, leaf: LeafId) => openRow(student, "category", categoryOf(leaf), leaf);
+  const jump = (student: string, leaf: LeafId) => openRow(student, "category", columnOf(leaf, assignment.newSkills), leaf);
   /**
    * A tap on the row (not a dot) acts at once: close if open, else every category's groups. The
    * second tap of a double-tap is ignored so the row doesn't flicker shut before the double-tap
@@ -316,7 +316,7 @@ export default function TeacherLive() {
     },
     ...assignment.classmates.map((c) => recordRow(records.get(c.id) ?? c)),
   ];
-  const results = rows.map((r) => hierarchyFor(r.evidence, problems));
+  const results = rows.map((r) => hierarchyFor(r.evidence, assignment));
   const columns = results[0]?.columns ?? [];
   const caution = live?.escalation.caution ?? [];
   const stages = assignmentStages(assignment, classroom, live, now);
@@ -484,7 +484,7 @@ export default function TeacherLive() {
                               type="button"
                               onClick={() => (leaveHistory(r.id) ? undefined : inHistory ? toggleHistory(c) : on && !column ? setOpen(null) : openRow(r.id, "category", c))}
                               onDoubleClick={() => (history ? undefined : openRow(r.id, "category", c, undefined, true))}
-                              aria-label={inHistory ? `${categoryLabel(c, unit).name}: ${STATUS_WORD[st]}; ${historyOpen ? "hide" : "show"} the last five results` : `${categoryLabel(c, unit).name}: ${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}
+                              aria-label={inHistory ? `${categoryName(c).name}: ${STATUS_WORD[st]}; ${historyOpen ? "hide" : "show"} the last five results` : `${categoryName(c).name}: ${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}
                               aria-expanded={inHistory ? historyOpen : on}
                               className={`inline-grid h-7 place-items-center rounded-md transition-colors hover:bg-cream-deep ${inHistory ? "w-auto px-1.5" : "w-10"} ${on ? "bg-cream-deep ring-1 ring-ink" : ""} ${blanked ? "invisible" : ""}`}
                               data-dot={c}
@@ -496,13 +496,7 @@ export default function TeacherLive() {
                             </button>
                             {column?.category === c && (
                               <span className={`${LABEL} right-[calc(50%+20px)]`} data-column-label>
-                                {categoryLabel(c, unit).name}
-                              </span>
-                            )}
-                            {/* Not in history mode: the widened pill would cover it, and it names itself. */}
-                            {!column && isOpen && isFlat(c) && !inHistory && (
-                              <span className={`${LABEL} left-[calc(50%+20px)]`} data-unit-label>
-                                {categoryLabel(c, unit).name}
+                                {categoryName(c).name}
                               </span>
                             )}
                           </td>

@@ -7,9 +7,9 @@ import { leavesTouched } from "./hierarchy";
 
 describe("the warm-up offer's lines", () => {
   it("names the ticked skills in tick order and counts one short problem each", () => {
-    expect(offerLines({ level: "low-when", leaves: ["algebra.expand-factor.monic", "unit.u1.discriminant"] })).toEqual({ question: "Warm up on factorising & the discriminant first?", size: "2 short problems, then the set" });
-    expect(offerLines({ level: "low-when", leaves: ["unit.u1.discriminant", "algebra.expand-factor.monic", "algebra.number.fractions"] })).toEqual({ question: "Warm up on the discriminant, factorising, & fractions first?", size: "3 short problems, then the set" });
-    expect(offerLines({ level: "low-when", leaves: ["unit.u1.nfl"] })).toEqual({ question: "Warm up on null factor law first?", size: "1 short problem, then the set" });
+    expect(offerLines({ level: "low-when", leaves: ["algebra.expand-factor.monic", "algebra.equations.discriminant"] })).toEqual({ question: "Warm up on factorising & the discriminant first?", size: "2 short problems, then the set" });
+    expect(offerLines({ level: "low-when", leaves: ["algebra.equations.discriminant", "algebra.expand-factor.monic", "algebra.number.fractions"] })).toEqual({ question: "Warm up on the discriminant, factorising, & fractions first?", size: "3 short problems, then the set" });
+    expect(offerLines({ level: "low-when", leaves: ["functions.zeros.nfl"] })).toEqual({ question: "Warm up on null factor law first?", size: "1 short problem, then the set" });
   });
   it("asks the open question for a plain \"not confident\"", () => {
     expect(offerLines({ level: "low" })).toEqual({ question: "Warm up before the set?", size: "a few short problems, then the set" });
@@ -35,8 +35,8 @@ describe("interpreting the student's words", () => {
 
 describe("the focus", () => {
   it("is the ticked skills plus what the answers named (a skill, a question's skills), communication excluded, in first-mention order", () => {
-    const f = focusLeaves(["unit.u1.discriminant", "algebra.equations.quadratic"], [{ from: "student", text: "fractions and Q1" }, { from: "tutor", text: "monic" }]);
-    expect(f).toEqual(["unit.u1.discriminant", "algebra.number.fractions", "algebra.expand-factor.monic", "unit.u1.nfl"]);
+    const f = focusLeaves(["algebra.equations.discriminant", "algebra.equations.quadratic"], [{ from: "student", text: "fractions and Q1" }, { from: "tutor", text: "monic" }]);
+    expect(f).toEqual(["algebra.equations.discriminant", "algebra.number.fractions", "algebra.expand-factor.monic", "functions.zeros.nfl"]);
     expect(f.some((l) => l.startsWith("communication."))).toBe(false);
     expect(f).not.toContain("algebra.equations.quadratic");
   });
@@ -48,7 +48,7 @@ describe("the focus", () => {
 describe("the warm-up sequence", () => {
   it("walks the focus easiest first: fractions, monic, null factor law, non-monic (quadratic equations is never isolated)", () => {
     const focus = focusLeaves(["algebra.expand-factor.monic"], [{ from: "student", text: "fractions, and Q2 looks hard" }]);
-    expect(warmupSequence(focus).map((p) => p.leaf)).toEqual(["algebra.number.fractions", "algebra.expand-factor.monic", "unit.u1.nfl", "algebra.expand-factor.nonmonic"]);
+    expect(warmupSequence(focus).map((p) => p.leaf)).toEqual(["algebra.number.fractions", "algebra.expand-factor.monic", "functions.zeros.nfl", "algebra.expand-factor.nonmonic"]);
   });
   it("nothing in focus → the default warm-up alone", () => {
     expect(warmupSequence([]).map((p) => p.id)).toEqual([PRACTICE.id]);
@@ -93,14 +93,14 @@ describe("the warm-up sequence", () => {
 });
 
 describe("the concerns chat", () => {
-  const three = ["algebra.expand-factor.monic", "algebra.number.fractions", "unit.u1.nfl"] as const;
+  const three = ["algebra.expand-factor.monic", "algebra.number.fractions", "functions.zeros.nfl"] as const;
   it("asks one turn per ticked skill, the opening in two bubbles naming them all, each later turn a reflection then the question, in the order they were ticked", () => {
     expect(concernTurns([...three])).toEqual([
       ["Let's do a warm up on factorising, fractions, & null factor law.", "First, tell me a little bit about your concerns with **factorising**."],
       ["Gotcha. It sounds like…", "How about with **fractions**?"],
       ["Agreed: that's a tricky skill.", "How about the **null factor law**?"],
     ]);
-    const five = [...three, "unit.u1.discriminant", "algebra.equations.linear"] as const;
+    const five = [...three, "algebra.equations.discriminant", "algebra.equations.linear"] as const;
     expect(concernTurns([...five]).map((t) => t[0])).toEqual([expect.stringMatching(/^Let's do a warm up on /), "Gotcha. It sounds like…", "Agreed: that's a tricky skill.", "A lot of students share that struggle.", "A lot of students share that struggle."]);
     expect(concernTurns(["algebra.number.fractions", "algebra.expand-factor.monic"])[0]).toEqual(["Let's do a warm up on fractions & factorising.", "First, tell me a little bit about your concerns with **fractions**."]);
     expect(concernTurns(["algebra.expand-factor.monic"])).toEqual([["Let's do a warm up on factorising.", "Tell me a little bit about your concerns with **factorising**."]]);

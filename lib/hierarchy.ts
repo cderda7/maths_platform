@@ -1,7 +1,7 @@
 import { ASSIGNMENT } from "@/data/assignment";
 import { isolatable } from "@/data/practice";
-import { ALL_LEAVES, CATEGORY_ORDER, categoryOf, groupsOf, leavesOf, type CategoryId, type GroupId, type LeafId } from "@/data/taxonomy";
-import { BEFORE_HAND_IN_STAGES, type Problem, type Status } from "@/data/types";
+import { ALL_LEAVES, CATEGORY_ORDER, categoryOf, groupsOf, leavesOf, NEW_SKILLS, type CategoryId, type GroupId, type LeafId } from "@/data/taxonomy";
+import { BEFORE_HAND_IN_STAGES, type Assignment, type Problem, type Status } from "@/data/types";
 import { evaluateLine } from "./evaluate";
 
 /**
@@ -9,7 +9,16 @@ import { evaluateLine } from "./evaluate";
  * in, and any groups under caution. From it, a leaf status (proportional, five levels), then
  * groups and categories rolled up worst-first, plus a half-dot marker wherever a submitted
  * student skipped a problem that invokes the node.
+ *
+ * Per set (ticket 209): a skill the set lists as new rolls up under New skills on that set and is
+ * left out of its home group and category, so its evidence counts in exactly one column.
  */
+
+/** What the roll-up reads about a set: its problems and the skills new on it. An `Assignment` or an assignment bundle is one. */
+export type SetScope = Pick<Assignment, "problems" | "newSkills">;
+
+/** The column a skill's evidence shows in on a set: New skills when the set lists it, else its home category. */
+export const columnOf = (leaf: LeafId, newSkills: readonly LeafId[]): CategoryId => (newSkills.includes(leaf) ? NEW_SKILLS : categoryOf(leaf));
 export interface Evidence {
   /** Recognised lines per problem id (tex). */
   lines: Record<string, string[]>;
@@ -25,6 +34,8 @@ export interface HierarchyResult {
   half: { leaves: LeafId[]; groups: GroupId[]; categories: CategoryId[] };
   /** Categories the assignment touches, canonical order. */
   columns: CategoryId[];
+  /** The set's New skills that its problems invoke, in the set's order: the New skills column's leaves, left out of their home groups. */
+  newSkills: LeafId[];
 }
 
 export const STATUS_RANK: Record<Status, number> = { gap: 0, developing: 1, solid: 2, secure: 3, unseen: 4 };
@@ -62,7 +73,6 @@ export function leavesTouched(problems: Problem[] = ASSIGNMENT.problems): LeafId
   return out;
 }
 
-/** Categories with at least one tagged leaf in the assignment, canonical order. */
 /**
  * The set's most relevant skills for a student to name: the moves it leans on, ranked by how many
  * problems invoke each (ties in first-mention order), the top `n`. Whole-task leaves and
@@ -74,8 +84,9 @@ export function relevantSkills(problems: Problem[] = ASSIGNMENT.problems, n = 7)
   return [...count.entries()].sort((a, b) => b[1] - a[1]).slice(0, n).map(([l]) => l);
 }
 
-export function categoriesTouched(problems: Problem[] = ASSIGNMENT.problems): CategoryId[] {
-  const cats = new Set(leavesTouched(problems).map(categoryOf));
+/** Categories with at least one tagged leaf in the set, canonical order: a listed New skill counts for New skills, not its home. */
+export function categoriesTouched(set: SetScope = ASSIGNMENT): CategoryId[] {
+  const cats = new Set(leavesTouched(set.problems).map((l) => columnOf(l, set.newSkills)));
   return CATEGORY_ORDER.filter((c) => cats.has(c));
 }
 
@@ -83,7 +94,8 @@ export function problemsForLeaf(leaf: LeafId, problems: Problem[] = ASSIGNMENT.p
   return problems.filter((p) => problemLeaves(p).includes(leaf));
 }
 
-export function hierarchyFor(ev: Evidence, problems: Problem[] = ASSIGNMENT.problems): HierarchyResult {
+export function hierarchyFor(ev: Evidence, set: SetScope = ASSIGNMENT): HierarchyResult {
+  const { problems } = set;
   const held: Partial<Record<LeafId, number>> = {};
   const attempted: Partial<Record<LeafId, number>> = {};
   let linesSeen = 0;
@@ -114,11 +126,17 @@ export function hierarchyFor(ev: Evidence, problems: Problem[] = ASSIGNMENT.prob
   const categories: Partial<Record<CategoryId, Status>> = {};
   const halfGroups = new Set<GroupId>();
   const halfCats = new Set<CategoryId>();
-  const columns = categoriesTouched(problems);
+  const columns = categoriesTouched(set);
+  const newSkills = set.newSkills.filter((l) => l in leaves);
   for (const c of columns) {
+    if (c === NEW_SKILLS) {
+      categories[c] = rollUp(newSkills.map((l) => leaves[l]!));
+      if (newSkills.some((l) => halfLeaves.has(l))) halfCats.add(c);
+      continue;
+    }
     const gStatuses: Status[] = [];
     for (const g of groupsOf(c)) {
-      const ls = leavesOf(g).filter((l) => l in leaves);
+      const ls = homeLeaves(g, newSkills).filter((l) => l in leaves);
       if (ls.length === 0) continue;
       groups[g] = rollUp(ls.map((l) => leaves[l]!));
       gStatuses.push(groups[g]!);
@@ -129,8 +147,11 @@ export function hierarchyFor(ev: Evidence, problems: Problem[] = ASSIGNMENT.prob
     }
     categories[c] = rollUp(gStatuses);
   }
-  return { leaves, groups, categories, half: { leaves: [...halfLeaves], groups: [...halfGroups], categories: [...halfCats] }, columns };
+  return { leaves, groups, categories, half: { leaves: [...halfLeaves], groups: [...halfGroups], categories: [...halfCats] }, columns, newSkills };
 }
+
+/** A group's leaves that count under it on a set: all of them but the set's New skills. */
+export const homeLeaves = (g: GroupId, newSkills: readonly LeafId[]): LeafId[] => leavesOf(g).filter((l) => !newSkills.includes(l));
 
 /** Leaves that ever appear in a verdict as wrong, i.e. can be a detected mistake. */
 export const allLeaves = ALL_LEAVES;
@@ -166,8 +187,8 @@ export function classmateEvidence(c: Classmate, problems: Problem[] = ASSIGNMENT
   return { lines, submitted: c.done > 0, caution: [] };
 }
 
-export const sessionHierarchy = (session: StudentSession, problems: Problem[] = ASSIGNMENT.problems) => hierarchyFor(sessionEvidence(session), problems);
-export const classmateHierarchy = (c: Classmate, problems: Problem[] = ASSIGNMENT.problems) => hierarchyFor(classmateEvidence(c, problems), problems);
+export const sessionHierarchy = (session: StudentSession, set: SetScope = ASSIGNMENT) => hierarchyFor(sessionEvidence(session), set);
+export const classmateHierarchy = (c: Classmate, set: SetScope = ASSIGNMENT) => hierarchyFor(classmateEvidence(c, set.problems), set);
 
 /** Problems with at least one recognised line. */
 export function problemsStarted(session: StudentSession): number {
@@ -180,8 +201,10 @@ export function restrictTo(result: HierarchyResult, keep: LeafId[]): HierarchyRe
   for (const l of Object.keys(result.leaves) as LeafId[]) leaves[l] = keep.includes(l) ? result.leaves[l] : "unseen";
   const groups: Partial<Record<GroupId, Status>> = {};
   const categories: Partial<Record<CategoryId, Status>> = {};
-  for (const g of Object.keys(result.groups) as GroupId[]) groups[g] = rollUp(leavesOf(g).filter((l) => keep.includes(l)).map((l) => result.leaves[l] ?? "unseen"));
-  for (const c of Object.keys(result.categories) as CategoryId[]) categories[c] = rollUp(groupsOf(c).map((g) => groups[g] ?? "unseen"));
+  for (const g of Object.keys(result.groups) as GroupId[]) groups[g] = rollUp(homeLeaves(g, result.newSkills).filter((l) => keep.includes(l)).map((l) => result.leaves[l] ?? "unseen"));
+  for (const c of Object.keys(result.categories) as CategoryId[]) {
+    categories[c] = c === NEW_SKILLS ? rollUp(result.newSkills.filter((l) => keep.includes(l)).map((l) => result.leaves[l] ?? "unseen")) : rollUp(groupsOf(c).map((g) => groups[g] ?? "unseen"));
+  }
   return { ...result, leaves, groups, categories, half: { leaves: [], groups: [], categories: [] } };
 }
 

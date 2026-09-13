@@ -34,7 +34,7 @@ describe("Problem Set 5's data (ticket 187)", () => {
   });
 
   it("touches the same categories as Problem Set 6, so the class view's columns line up", () => {
-    expect(categoriesTouched(PS5_PROBLEMS)).toEqual(categoriesTouched(ASSIGNMENT.problems));
+    expect(categoriesTouched(PS5_ASSIGNMENT)).toEqual(categoriesTouched(ASSIGNMENT));
   });
 
   it("every model-solution step is tagged with real taxonomy leaves and holds in the evaluation table", () => {
@@ -126,7 +126,7 @@ describe("Problem Set 5 in the registry (ticket 187)", () => {
   it("is always in the Classroom, after Problem Set 6, finished with its own pathway, classmates, Sam's record and frozen groups", () => {
     expect(assignmentIds(INITIAL_CLASSROOM)).toContain("pset-5");
     expect(assignmentIds(null)).toContain("pset-5");
-    expect(b).toMatchObject({ id: "pset-5", kind: "finished", title: PS5_ASSIGNMENT.title, due: "Mon 7 Sep", unitNumber: 1, pathway: ["individual", "group"] });
+    expect(b).toMatchObject({ id: "pset-5", kind: "finished", title: PS5_ASSIGNMENT.title, due: "Mon 7 Sep", newSkills: PS5_ASSIGNMENT.newSkills, pathway: ["individual", "group"] });
     expect(b.problems).toBe(PS5_PROBLEMS);
     expect(b.classmates).toBe(PS5_CLASSMATES);
     expect(b.sam).toBe(PS5_SAM);
@@ -203,11 +203,11 @@ describe("Problem Set 5 in the registry (ticket 187)", () => {
 
 describe("history across the two sets (ticket 187)", () => {
   const ps5 = assignmentBundle("pset-5", INITIAL_CLASSROOM)!;
-  const columns = categoriesTouched(ASSIGNMENT.problems);
+  const columns = categoriesTouched(ASSIGNMENT);
 
   it("on Problem Set 6 every student's newest pill in every category is their Problem Set 5 status, dated Sep 7; the four before it are simulated, dated earlier", () => {
     for (const c of everyone) {
-      const ps5Status = classmateHierarchy(c, PS5_PROBLEMS).categories;
+      const ps5Status = classmateHierarchy(c, PS5_ASSIGNMENT).categories;
       for (const cat of columns) {
         const h = categoryHistory("pset-6", c.id, cat, "gap");
         expect(h).toHaveLength(5);
@@ -221,7 +221,7 @@ describe("history across the two sets (ticket 187)", () => {
   it("Problem Set 5's own history is the five simulated results before it, and agrees with Problem Set 6's on every shared date", () => {
     for (const c of everyone) {
       for (const cat of columns) {
-        const today = classmateHierarchy(c, PS5_PROBLEMS).categories[cat] ?? "unseen";
+        const today = classmateHierarchy(c, PS5_ASSIGNMENT).categories[cat] ?? "unseen";
         const own = categoryHistory("pset-5", c.id, cat, today);
         expect(own.map((p) => p.date)).toEqual([...HISTORY_DATES]);
         expect(own).toEqual(historyFor(c.id, cat, today));

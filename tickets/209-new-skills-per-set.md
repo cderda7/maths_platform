@@ -4,7 +4,7 @@
 
 **Blocked by:** 208.
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -18,17 +18,19 @@ Agreed per-set New skills: PS1 surds · PS2 surds, binomial identity · PS3 bino
 
 ## Solution
 
-- Taxonomy: the unit leaves move to their homes; stored or tagged old leaf ids resolve to the new ones.
-- An assignment carries its New skills list; the hierarchy roll-up routes a listed skill's evidence to the New skills category on that set.
-- Every reader of the old unit list moves over: the Class View column and drill, the student's warm-up skill boxes and hint links, Create's unit inference and the review's unit, class review's "unit focus" option, the diagnostics.
-- Create: infer New skills from the chosen problems against the class's last two sets; editable in the review.
-- Decision log entry (one home per skill; New skills as a per-set designation).
+- **One home per skill (`data/taxonomy.ts`, version `methods-2`).** The Unit Focus category is gone. The null factor law is `functions.zeros.nfl`, the discriminant `algebra.equations.discriminant`, the binomial identity `algebra.expand-factor.binomial`; surds stay `algebra.number.surds`. Special products **merged** into the binomial identity: both leaves named the same facts (perfect squares, the difference of two squares), and two leaves would let a set list "binomial identity" as new while its twin still counted under Algebra. The unused Unit 2–4 leaves got homes too (exp & log laws in Number, series in a new Sequences & series group, the three differentiation rules in a new Calculus category, normal distribution and sampling in Statistics). `LEAF_ALIASES` maps every retired id; `resolveLeaf` reads through it. Every tag in the fixtures, the evaluation tables, the practices, the warm-up word map and ease order, and `scripts/warmup-leaves.json` uses the new ids; leaf names are unchanged, so the student reads the same words.
+- **New skills is a column, not a category of leaves.** `NEW_SKILLS = "new"` joins `CategoryId` (last in `CATEGORY_ORDER`, no groups, named "New skills"); `categoryOf` still returns a skill's home. `isFlat` is `c === "new"`; `unitOf`, `categoryLabel` and `FLAT_CATEGORIES` are removed.
+- **Per-set list in the assignment data.** `Assignment.newSkills` (`data/types.ts`): Set 6 `[discriminant, null factor law]`, Set 5 `[null factor law, binomial identity]`. Tickets 211–214 declare theirs on their fixtures. The bundle carries `newSkills` in place of `unitNumber`; a finished set's is its fixture's, the live set's comes from `activeAssignment`: Create's stored list, else (the student's own create, the presenter skips, a pre-209 stored set) the fixture's list, kept to skills the chosen problems invoke, with old ids resolved.
+- **Roll-up (`lib/hierarchy.ts`).** `hierarchyFor(ev, set)` takes a `SetScope` (`problems` + `newSkills`; an `Assignment` or a bundle). `columnOf(leaf, newSkills)` names the column a skill shows in on a set; `homeLeaves(g, newSkills)` is a group's leaves minus the set's New skills. Listed skills roll up into `categories.new` and are left out of their home group and category; `HierarchyResult.newSkills` lists them for the drill. `categoriesTouched`, `sessionHierarchy`, `classmateHierarchy` and `restrictTo` follow. Every caller passes the set: the Class View, the teacher's and student's reports, `lib/setHistory.ts` (so a New skills history pill is that earlier set's New skills result), the Set 5 tests.
+- **Readers.** `HierarchyDrill`: the flat tree lists `result.newSkills`, a home group never lists one, a blamed-line jump opens the right column. `SkillColumns` and `TeacherLive` drop the "Unit 1" label beside the pill (the header names the column; as "New skills" the label ran into the Confidence cell). Class review's picker badge reads "new skill" for a mistake on one of the set's New skills (`ExampleOption.newSkill`, `PickerContext.newSkills`; was "unit focus" for the unit's leaves). The student session hydrates stored confidence, prompt, overlay and practice leaves through `resolveLeaf`.
+- **Create (`lib/newSkills.ts`, `app/teacher/assignments/NewSkills.tsx`).** `inferNewSkills(problems, recent)`: a skill at least two of the set's problems invoke (`FOCUS_PROBLEMS`) is new unless one of the class's last two sets (`RECENT_SETS`, from `recentSets` in `lib/assignments.ts`) assessed it under its home; a skill a recent set listed as new was still being introduced, so it stays new. Against Set 5 this gives Set 6's own list. The pathway step's first card, "New skills" (replacing "Unit focus"), shows every skill of the set as a chip, the inferred ones on, "suggested from the class's last two sets"; a click switches one ("changed by you · use suggested"), kept in `review.newSkills` across reloads. Create is on throughout and stores the list on the created assignment. `lib/unit.ts`, its test and `UnitFocus.tsx` are deleted; the unit eyebrow (`UnitRef`) is untouched.
+- **Judgment calls.** (1) "Not met in the last two sets" read literally would never make the null factor law new on Set 6 (Set 5 uses it), contradicting the agreed lists; "met" is read as *assessed under its home*, and a skill must be a focus (two problems) so one passing use (binomial identity in Set 6's Q7) is not new. The rule then gives Set 6's agreed list from Set 5, and read against the agreed lists for Sets 1–5 it names the same skills for Sets 2, 4 and 5 (Set 3 would also name surds if two of its problems use them; the authored sets declare their lists, so this only guides Create). (2) The "Unit 1" label beside an open New skills pill on the Class View is removed rather than renamed. (3) Class review's badge now reads "new skill" instead of "unit focus". All three are in DECISION_LOG.
 
 ## Acceptance
 
-- [ ] Set 6's New skills column rolls up only the discriminant and null factor law; binomial-identity evidence on Set 6 sits under Algebra
-- [ ] Set 5's New skills: null factor law and binomial identity
-- [ ] A created set's inferred New skills are visible and changeable; Create is never disabled waiting on them
-- [ ] Warm-up skill boxes, hints and class review read as before (hint-box sweep unchanged)
-- [ ] Tests: routing per set, no evidence counted twice, inference from the last two sets
-- [ ] vitest, eslint, tsc, next build, check:laptop, sweep:hint-boxes; click-through of both sets' Class View drills, Create's review, the warm-up
+- [x] Set 6's New skills column rolls up only the discriminant and null factor law; binomial-identity evidence on Set 6 sits under Algebra
+- [x] Set 5's New skills: null factor law and binomial identity
+- [x] A created set's inferred New skills are visible and changeable; Create is never disabled waiting on them
+- [x] Warm-up skill boxes, hints and class review read as before (hint-box sweep 132, as on main; class review's badge word is now "new skill")
+- [x] Tests: routing per set, no evidence counted twice, inference from the last two sets (`lib/hierarchy.test.ts`, `lib/newSkills.test.ts`, `lib/review.test.ts`, `lib/assignments.test.ts`, `data/taxonomy.test.ts`, `lib/session.test.ts`)
+- [x] vitest 628, eslint, tsc, next build, check:laptop 30, sweep:hint-boxes 132; click-through `click209.mjs` 72 checks (Create's review inferred / switched / reloaded / all off / use suggested at 1440 and 1280, Create stores the list; both sets' Class View full breakdown and New skills pill at 1440 and 1280, no skill in two columns; both sets' student report; the warm-up's skill boxes and a pre-209 stored session)

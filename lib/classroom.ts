@@ -1,4 +1,5 @@
 import type { Pathway, Stroke } from "@/data/types";
+import type { LeafId } from "@/data/taxonomy";
 import type { Diagnostic } from "@/data/diagnostic";
 import { ASSIGNMENT } from "@/data/assignment";
 import { DEFAULT_GROUPS, type GroupColour, type SeatingGroups } from "@/data/groups";
@@ -20,8 +21,13 @@ export interface CreatedAssignment {
   /** Ordered ids from the problem bank. */
   problemIds: string[];
   pathway: Pathway;
-  /** The confirmed QCAA unit for Unit Focus. */
-  unit: 1 | 2 | 3 | 4;
+  /**
+   * The skills new on this set (ticket 209), as Create stored them: inferred from the class's last two
+   * sets, or as the teacher changed them in the review. Absent in assignments stored before it (and in
+   * the student side's own create and the presenter skips): the fixture's list stands (`activeAssignment`).
+   * Assignments stored before 209 also carry a `unit` number, no longer read.
+   */
+  newSkills?: LeafId[];
   createdAt: number;
   /**
    * When the set went live (ticket 188): Create stamps it, a presenter skip past creation sets it
@@ -165,7 +171,7 @@ export type ClassroomAction =
    * `id` names the assignment (Problem Set 6 when absent); its groups are frozen from `groups` or, absent, the class defaults.
    * `at` is the moment of creation (the store stamps it); `startedAt`, when the set went live, is `at` unless given (a skip sets it in the past).
    */
-  | { type: "assignment/create"; id?: string; groups?: SeatingGroups; title: string; problemIds: string[]; pathway: Pathway; unit?: 1 | 2 | 3 | 4; goal?: string; questions?: ReviewedQuestion[]; at?: number; startedAt?: number }
+  | { type: "assignment/create"; id?: string; groups?: SeatingGroups; title: string; problemIds: string[]; pathway: Pathway; newSkills?: LeafId[]; goal?: string; questions?: ReviewedQuestion[]; at?: number; startedAt?: number }
   /** The create screen's draft as typed; null clears it. */
   | { type: "draft/set"; draft: AssignmentDraft | null }
   /** The review step's decisions; null clears them. */
@@ -261,7 +267,7 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
     case "review/set":
       return { ...c, review: a.review };
     case "assignment/create":
-      return { ...c, assignmentGroups: { ...(c.assignmentGroups ?? {}), [a.id ?? ASSIGNMENT.id]: a.groups ?? seatingOf(c.groups) }, assignment: { title: a.title, problemIds: [...a.problemIds], pathway: [...a.pathway], unit: a.unit ?? 1, createdAt: a.at ?? 0, startedAt: a.startedAt ?? a.at ?? 0, ...(a.goal !== undefined ? { goal: a.goal } : {}), ...(a.questions ? { questions: a.questions.map((q) => ({ ...q })) } : {}) } };
+      return { ...c, assignmentGroups: { ...(c.assignmentGroups ?? {}), [a.id ?? ASSIGNMENT.id]: a.groups ?? seatingOf(c.groups) }, assignment: { title: a.title, problemIds: [...a.problemIds], pathway: [...a.pathway], ...(a.newSkills ? { newSkills: [...a.newSkills] } : {}), createdAt: a.at ?? 0, startedAt: a.startedAt ?? a.at ?? 0, ...(a.goal !== undefined ? { goal: a.goal } : {}), ...(a.questions ? { questions: a.questions.map((q) => ({ ...q })) } : {}) } };
     case "advance/start": {
       const at = a.at ?? 0;
       return { ...c, advance: { id: `${a.kind}@${at}`, kind: a.kind, deadline: at + GRACE_MS } };

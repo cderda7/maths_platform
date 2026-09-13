@@ -23,7 +23,7 @@ describe("scripted evaluation", () => {
     expect(wrongs).toEqual([
       ["q1", "algebra.expand-factor.monic"],
       ["q2", "algebra.expand-factor.nonmonic"],
-      ["q3", "unit.u1.nfl"],
+      ["q3", "functions.zeros.nfl"],
       ["q7", "algebra.number.fractions"],
       ["q10", "reasoning.justify.formal"],
     ]);

@@ -33,7 +33,7 @@ import { scriptedSession, sessionAt, sessionReducer } from "./session";
 
 describe("the scripted run through the hierarchy", () => {
   it("lights six of the seven categories, in canonical order, with Stats absent", () => {
-    expect(categoriesTouched()).toEqual(["algebra", "functions", "graphing", "communication", "reasoning", "unit"]);
+    expect(categoriesTouched()).toEqual(["algebra", "functions", "graphing", "communication", "reasoning", "new"]);
   });
 
   it("ends with Algebra developing, Communication solid and Reasoning a gap, the rest secure or solid", () => {
@@ -43,7 +43,7 @@ describe("the scripted run through the hierarchy", () => {
     expect(h.categories.reasoning).toBe("gap");
     expect(["secure", "solid"]).toContain(h.categories.functions);
     expect(["secure", "solid"]).toContain(h.categories.graphing);
-    expect(["secure", "solid"]).toContain(h.categories.unit);
+    expect(["secure", "solid"]).toContain(h.categories.new);
     expect(h.leaves["algebra.number.fractions"]).toBe("developing");
     expect(h.leaves["algebra.expand-factor.monic"]).toBe("developing");
     expect(h.leaves["reasoning.justify.formal"]).toBe("gap");
@@ -61,10 +61,11 @@ describe("the scripted run through the hierarchy", () => {
   it("a caution on a group forces its leaves to gap, whatever the evidence says", () => {
     const s = { ...scriptedSession(), stage: "feedback" as const };
     const base = sessionHierarchy(s);
-    expect(base.leaves["unit.u1.discriminant"]).toBe("secure");
-    const cautioned = hierarchyFor({ ...sessionEvidenceOf(s), caution: ["unit.u1"] });
-    expect(cautioned.leaves["unit.u1.discriminant"]).toBe("gap");
-    expect(cautioned.categories.unit).toBe("gap");
+    expect(base.leaves["algebra.equations.discriminant"]).toBe("secure");
+    const cautioned = hierarchyFor({ ...sessionEvidenceOf(s), caution: ["algebra.equations"] });
+    expect(cautioned.leaves["algebra.equations.discriminant"]).toBe("gap");
+    // The discriminant is new on Problem Set 6: its gap shows under New skills.
+    expect(cautioned.categories.new).toBe("gap");
   });
 
   it("half dots appear only after submit and only where problems were skipped; colour ignores the skipped problems", () => {
@@ -132,7 +133,7 @@ describe("the set's most relevant skills", () => {
     const { relevantSkills } = await import("./hierarchy");
     const top = relevantSkills();
     expect(top).toHaveLength(7);
-    expect(top[0]).toBe("unit.u1.nfl");
+    expect(top[0]).toBe("functions.zeros.nfl");
     expect(top).toContain("algebra.expand-factor.monic");
     expect(top).toContain("algebra.number.fractions");
     expect(top).not.toContain("algebra.equations.quadratic");
@@ -148,13 +149,13 @@ describe("restricting a result to a comment's skills", () => {
     const full = classmateHierarchy(amelia);
     const keep = leavesBehind(["q10"], classmateEvidence(amelia).lines);
     expect(keep).toContain("reasoning.justify.conclusions");
-    expect(keep).toContain("unit.u1.discriminant");
+    expect(keep).toContain("algebra.equations.discriminant");
     const r = restrictTo(full, keep);
     expect(r.leaves["reasoning.justify.conclusions"]).toBe("gap");
     expect(r.groups["reasoning.justify"]).toBe("gap");
     expect(r.categories.reasoning).toBe("gap");
-    expect(r.leaves["unit.u1.discriminant"]).toBe("developing");
-    expect(r.categories.unit).toBe("developing");
+    expect(r.leaves["algebra.equations.discriminant"]).toBe("developing");
+    expect(r.categories.new).toBe("developing");
     expect(r.leaves["algebra.expand-factor.monic"]).toBe("unseen");
     expect(r.categories.algebra).toBe("unseen");
     expect(r.categories.functions).toBe("unseen");
@@ -174,5 +175,75 @@ describe("a classmate with nothing done", () => {
     const h = hierarchyFor(ev);
     expect(h.half.categories).toEqual([]);
     expect(Object.values(h.categories).every((s) => s === "unseen")).toBe(true);
+  });
+});
+
+describe("New skills per set (ticket 209)", () => {
+  it("routes a listed skill's evidence to New skills on that set and to its home on a set that does not list it, never both", async () => {
+    const { ASSIGNMENT } = await import("@/data/assignment");
+    const { PS5_ASSIGNMENT } = await import("@/data/pset5/assignment");
+    const { PS5_CLASSMATES } = await import("@/data/pset5/classmates");
+    const { classmateHierarchy, homeLeaves } = await import("./hierarchy");
+    const { groupsOf, leavesOf } = await import("@/data/taxonomy");
+    type Set = { problems: typeof ASSIGNMENT.problems; newSkills: readonly LeafId[] };
+    const sets: [string, Set, readonly { id: string }[]][] = [
+      ["Problem Set 6", ASSIGNMENT, CLASSMATES],
+      ["Problem Set 5", PS5_ASSIGNMENT, PS5_CLASSMATES],
+    ];
+    expect([...ASSIGNMENT.newSkills].sort()).toEqual(["algebra.equations.discriminant", "functions.zeros.nfl"]);
+    expect([...PS5_ASSIGNMENT.newSkills].sort()).toEqual(["algebra.expand-factor.binomial", "functions.zeros.nfl"]);
+    for (const [name, set, classmates] of sets) {
+      // Every listed skill is tagged in the set's problems.
+      for (const l of set.newSkills) expect(leavesTouched(set.problems), `${name}: ${l}`).toContain(l);
+      for (const c of classmates as typeof CLASSMATES) {
+        const h = classmateHierarchy(c, set);
+        expect(h.newSkills).toEqual(set.newSkills.filter((l) => l in h.leaves));
+        // No evidence counted twice: a leaf is under exactly one of the columns' groups, or New skills.
+        for (const l of Object.keys(h.leaves) as LeafId[]) {
+          const inNew = h.newSkills.includes(l);
+          const inHome = h.columns.some((col) => col !== "new" && groupsOf(col).some((g) => homeLeaves(g, h.newSkills).includes(l)));
+          expect(inNew !== inHome, `${name} · ${c.id} · ${l}`).toBe(true);
+        }
+        // The New skills pill is the worst of the listed skills alone.
+        const worst = h.newSkills.map((l) => h.leaves[l]!);
+        expect(h.categories.new, `${name} · ${c.id}`).toBe(worst.length ? rollUp(worst) : undefined);
+        // A home group's status never reads a New skill.
+        for (const g of Object.keys(h.groups) as (keyof typeof h.groups)[]) {
+          const own = leavesOf(g).filter((l) => l in h.leaves && !h.newSkills.includes(l)).map((l) => h.leaves[l]!);
+          expect(h.groups[g], `${name} · ${c.id} · ${g}`).toBe(rollUp(own));
+        }
+      }
+    }
+  });
+
+  it("on Problem Set 6 binomial-identity evidence sits under Algebra, and the null factor law under New skills, not Functions", () => {
+    const amelia = CLASSMATES.find((c) => c.id === "amelia")!;
+    const h = classmateHierarchy(amelia);
+    expect(h.columns).toContain("new");
+    expect(h.newSkills).toContain("functions.zeros.nfl");
+    expect(h.groups["functions.zeros"]).toBe(h.leaves["functions.zeros.zero-finding"]);
+    expect(h.newSkills).not.toContain("algebra.expand-factor.binomial");
+    expect(h.leaves["algebra.expand-factor.binomial"]).toBeDefined();
+    expect(h.groups["algebra.expand-factor"]).toBeDefined();
+    // The same classmate record read with nothing new: everything goes home, and New skills is gone.
+    const home = classmateHierarchy(amelia, { problems: PROBLEMS, newSkills: [] });
+    expect(home.columns).not.toContain("new");
+    expect(home.categories.new).toBeUndefined();
+    const zeros = (["functions.zeros.zero-finding", "functions.zeros.nfl"] as LeafId[]).map((l) => home.leaves[l]!);
+    expect(home.groups["functions.zeros"]).toBe(rollUp(zeros));
+    // Listing a skill moves it: binomial identity new on a set drops it from Expanding & factorising.
+    const moved = classmateHierarchy(amelia, { problems: PROBLEMS, newSkills: ["algebra.expand-factor.binomial"] });
+    expect(moved.categories.new).toBe(moved.leaves["algebra.expand-factor.binomial"]);
+    expect(moved.categories.new).toBe(home.leaves["algebra.expand-factor.binomial"]);
+  });
+
+  it("restricting keeps New skills apart from home groups", async () => {
+    const { restrictTo } = await import("./hierarchy");
+    const amelia = CLASSMATES.find((c) => c.id === "amelia")!;
+    const full = classmateHierarchy(amelia);
+    const r = restrictTo(full, ["functions.zeros.nfl"]);
+    expect(r.categories.new).toBe(full.leaves["functions.zeros.nfl"]);
+    expect(r.groups["functions.zeros"]).toBe("unseen");
+    expect(r.categories.functions).toBe("unseen");
   });
 });

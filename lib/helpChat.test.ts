@@ -37,7 +37,7 @@ describe("the ways in", () => {
   });
 
   it("a problem with one way in has none listed", () => {
-    expect(PRACTICES["unit.u1.nfl"]?.approaches).toBeUndefined();
+    expect(PRACTICES["functions.zeros.nfl"]?.approaches).toBeUndefined();
     expect(PRACTICES["algebra.number.fractions"]?.approaches).toBeUndefined();
   });
 });
@@ -131,7 +131,7 @@ describe("helpChatSystem", () => {
   });
 
   it("says there is one way in when the problem lists none", () => {
-    expect(helpChatSystem(PRACTICES["unit.u1.nfl"]!, [])).toContain("(one way in; the hints above name it)");
+    expect(helpChatSystem(PRACTICES["functions.zeros.nfl"]!, [])).toContain("(one way in; the hints above name it)");
   });
 
   it("holds the tutor to hints, to a choice of two ways, and to short replies", () => {

@@ -2,7 +2,8 @@
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
-import { assignmentHref, LIVE_ASSIGNMENT_ID, NEW_ASSIGNMENT_HREF } from "@/lib/assignments";
+import { assignmentHref, LIVE_ASSIGNMENT_ID, NEW_ASSIGNMENT_HREF, recentSets } from "@/lib/assignments";
+import { RECENT_SETS } from "@/lib/newSkills";
 import { useRouter } from "next/navigation";
 import TeacherChrome from "../../../TeacherChrome";
 import { BackToClassroom } from "../../../AssignmentContext";
@@ -15,14 +16,14 @@ import { Eyebrow, H1 } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
 import { dispatchClassroom, getClassroom, useClassroom } from "@/lib/classroom-store";
 import { moveItem } from "@/lib/reorder";
-import { applyReview, bankProblemsOf, inferUnitFromReviewed, reviewFor, type ReviewState } from "@/lib/review";
+import { applyReview, bankProblemsOf, reviewFor, reviewNewSkills, type ReviewState } from "@/lib/review";
 import { moveStudent, seatingOf } from "@/lib/seating";
 
 /**
  * Step two of a new assignment (ticket 120), one route with the step in the classroom store:
  * the draft labelled by difficulty, then the assessing bar, then the recommendations, then the
  * pathway, then Create. The decisions (labels, answers, the addition shown, the pathway, the
- * unit) live in `classroom.review`, keyed to the draft they were made about, so a reload lands on
+ * New skills) live in `classroom.review`, keyed to the draft they were made about, so a reload lands on
  * the same step with them intact; only the assessing run is local, and never survives a reload.
  */
 export default function ReviewAssignment({ assessMs }: { assessMs: number }) {
@@ -57,7 +58,7 @@ export default function ReviewAssignment({ assessMs }: { assessMs: number }) {
       title: draft.title,
       problemIds: bankProblemsOf(final).map((p) => p.id),
       pathway: review.pathway,
-      unit: review.unit ?? inferUnitFromReviewed(final),
+      newSkills: reviewNewSkills(final, review, recentSets(LIVE_ASSIGNMENT_ID, RECENT_SETS)).chosen,
       goal: draft.goal ?? "",
       questions: final,
     });

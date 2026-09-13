@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { PROBLEMS } from "@/data/assignment";
+import { ASSIGNMENT, PROBLEMS } from "@/data/assignment";
+import { PS5_ASSIGNMENT } from "@/data/pset5/assignment";
 import { DEMO_PASTE } from "@/data/draft-seed";
 import { ADD_CONTEXT, CHANGE_SIGNS, REMOVE_REPEAT } from "@/data/review";
 import type { DraftQuestion } from "./classroom";
@@ -7,7 +8,7 @@ import { classroomReducer, INITIAL_CLASSROOM } from "./classroom";
 import { parseQuestion, splitPaste, stemText } from "./mathInput";
 import { DEFAULT_GROUPS } from "@/data/groups";
 import { assignmentGroupsOf, moveStudent } from "./seating";
-import { applyReview, bankMatch, bankProblemsOf, countByDifficulty, defaultLabel, draftKey, heuristicLabel, inferUnitFromReviewed, initialReview, labelsOf, nextDifficulty, normTex, recommendationsFor, reviewFor, type ReviewState } from "./review";
+import { applyReview, bankMatch, bankProblemsOf, countByDifficulty, defaultLabel, draftKey, heuristicLabel, initialReview, labelsOf, nextDifficulty, normTex, recommendationsFor, reviewFor, reviewNewSkills, type ReviewState } from "./review";
 
 /** The demo paste as the create screen stores it. */
 function pasted(): DraftQuestion[] {
@@ -128,7 +129,15 @@ describe("recommendations", () => {
     expect(all.find((q) => q.id === "q9")).toBeUndefined();
     expect(all[9]).toMatchObject({ origin: "added", tex: "h = -x^{2} + 6x", difficulty: "complex unfamiliar" });
     expect(bankProblemsOf(all).map((p) => p.id)).toEqual(PROBLEMS.map((p) => p.id));
-    expect(inferUnitFromReviewed(all)).toBe(1);
+    // Its New skills against Problem Set 5 are Problem Set 6's own (ticket 209); the teacher's change stands, kept to skills still in the set.
+    const recent = [PS5_ASSIGNMENT];
+    const inferred = reviewNewSkills(all, {}, recent);
+    expect([...inferred.chosen].sort()).toEqual([...ASSIGNMENT.newSkills].sort());
+    expect(inferred.changed).toBe(false);
+    expect(inferred.candidates).toEqual(expect.arrayContaining([...ASSIGNMENT.newSkills, "algebra.expand-factor.binomial"]));
+    const changed = reviewNewSkills(all, { newSkills: ["algebra.expand-factor.binomial", "calculus.differentiation.chain"] }, recent);
+    expect(changed).toMatchObject({ chosen: ["algebra.expand-factor.binomial"], changed: true, inferred: inferred.inferred });
+    expect(reviewNewSkills(all, { newSkills: [] }, recent).chosen).toEqual([]);
   });
 
   it("applied: kept as is leaves the set as typed, and Try another cycles the addition", () => {

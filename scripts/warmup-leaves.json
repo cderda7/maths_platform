@@ -4,8 +4,8 @@
   "algebra.expand-factor.expand": 2,
   "algebra.equations.linear": 2,
   "algebra.number.fractions": 7,
-  "unit.u1.nfl": 2,
-  "unit.u1.discriminant": 2,
+  "functions.zeros.nfl": 2,
+  "algebra.equations.discriminant": 2,
   "graphing.quadratics.features": 6,
   "reasoning.justify.formal": 2,
   "reasoning.justify.conclusions": 2,
@@ -13,5 +13,5 @@
   "functions.notation.evaluate": 2,
   "reasoning.interpret.worded": 4,
   "functions.zeros.zero-finding": 4,
-  "unit.u1.binomial": 2
+  "algebra.expand-factor.binomial": 2
 }

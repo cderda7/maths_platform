@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { ALL_GROUPS, ALL_LEAVES, CATEGORY_ORDER, categoryOf, groupOf, groupsOf, isLeafId, leafName, leavesOf, resolveLeaf, unitOf } from "./taxonomy";
+import { ALL_GROUPS, ALL_LEAVES, CATEGORY_ORDER, categoryOf, groupOf, groupsOf, HOME_CATEGORIES, isLeafId, LEAF_ALIASES, leafName, leavesOf, resolveLeaf } from "./taxonomy";
 
 describe("taxonomy", () => {
-  it("has seven categories in canonical order", () => {
-    expect(CATEGORY_ORDER).toEqual(["algebra", "functions", "graphing", "communication", "reasoning", "stats", "unit"]);
+  it("has seven home categories in canonical order, then the New skills column", () => {
+    expect(HOME_CATEGORIES).toEqual(["algebra", "functions", "graphing", "communication", "reasoning", "stats", "calculus"]);
+    expect(CATEGORY_ORDER).toEqual([...HOME_CATEGORIES, "new"]);
+    expect(groupsOf("new")).toEqual([]);
   });
 
   it("every leaf round-trips to its group and category, and names resolve", () => {
@@ -28,10 +30,27 @@ describe("taxonomy", () => {
     warn.mockRestore();
   });
 
-  it("unit focus leaves know their unit", () => {
-    expect(unitOf("unit.u1.nfl")).toBe(1);
-    expect(unitOf("unit.u3.chain")).toBe(3);
-    expect(unitOf("algebra.number.fractions")).toBeNull();
+  it("every skill has one home: the old Unit Focus leaves live in their homes, and their old ids resolve there (ticket 209)", () => {
+    expect(categoryOf("functions.zeros.nfl")).toBe("functions");
+    expect(groupOf("algebra.equations.discriminant")).toBe("algebra.equations");
+    expect(groupOf("algebra.expand-factor.binomial")).toBe("algebra.expand-factor");
+    expect(isLeafId("algebra.number.surds")).toBe(true);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(resolveLeaf("unit.u1.nfl")).toBe("functions.zeros.nfl");
+    expect(resolveLeaf("unit.u1.discriminant")).toBe("algebra.equations.discriminant");
+    expect(resolveLeaf("unit.u1.binomial")).toBe("algebra.expand-factor.binomial");
+    // Special products merged into the binomial identity: one leaf for the same facts.
+    expect(isLeafId("algebra.expand-factor.special")).toBe(false);
+    expect(resolveLeaf("algebra.expand-factor.special")).toBe("algebra.expand-factor.binomial");
+    for (const [old, now] of Object.entries(LEAF_ALIASES)) {
+      expect(isLeafId(old), old).toBe(false);
+      expect(isLeafId(now), now).toBe(true);
+    }
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+    // No two leaves share a name: a skill is in one place.
+    const names = ALL_LEAVES.map((l) => leafName(l).name);
+    expect(new Set(names).size).toBe(names.length);
   });
 });
 
@@ -52,20 +71,11 @@ describe("names tell groups and skills apart", () => {
 });
 
 describe("flat categories", () => {
-  it("Unit Focus is drawn with two layers and named after the confirmed unit", async () => {
-    const { FLAT_CATEGORIES, categoryLabel, isFlat } = await import("./taxonomy");
-    expect(FLAT_CATEGORIES).toEqual(["unit"]);
-    expect(isFlat("unit")).toBe(true);
+  it("New skills is drawn with two layers and named New skills", async () => {
+    const { categoryName, isFlat } = await import("./taxonomy");
+    expect(isFlat("new")).toBe(true);
     expect(isFlat("algebra")).toBe(false);
-    expect(categoryLabel("unit", 1)).toEqual({ name: "Unit 1", short: "Unit 1" });
-    expect(categoryLabel("unit", 3).short).toBe("Unit 3");
-    expect(categoryLabel("algebra", 1).name).toBe("Algebra");
-  });
-});
-
-describe("the unit column's header", () => {
-  it("reads New skills to the teacher", async () => {
-    const { categoryName } = await import("./taxonomy");
-    expect(categoryName("unit").short).toBe("New skills");
+    expect(categoryName("new")).toEqual({ name: "New skills", short: "New skills" });
+    expect(categoryName("algebra").name).toBe("Algebra");
   });
 });

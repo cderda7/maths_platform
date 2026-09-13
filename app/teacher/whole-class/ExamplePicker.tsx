@@ -50,10 +50,10 @@ export default function ExamplePicker({ letter, candidate, options, taken, onPic
           )}
         </button>
       </div>
-      {current && (current.leaf || current.unitFocus || current.fixedInGroup) && (
+      {current && (current.leaf || current.newSkill || current.fixedInGroup) && (
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5 pl-[30px]">
           {current.leaf && <LeafChip id={current.leaf} />}
-          {current.unitFocus && <span className={`${BADGE} bg-standout-soft text-standout`} data-badge="unit">unit focus</span>}
+          {current.newSkill && <span className={`${BADGE} bg-standout-soft text-standout`} data-badge="new">new skill</span>}
           {current.fixedInGroup && <span className={`${BADGE} bg-secure-soft text-secure`} data-badge="group">fixed in group review</span>}
         </div>
       )}
@@ -93,9 +93,9 @@ export default function ExamplePicker({ letter, candidate, options, taken, onPic
                     <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${correct ? "bg-secure" : "bg-wrong"}`} aria-hidden />
                     <span className="min-w-0 flex-1 text-ink" data-option-name>
                       <span className="block">{o.name}</span>
-                      {(o.unitFocus || o.fixedInGroup) && (
+                      {(o.newSkill || o.fixedInGroup) && (
                         <span className="mt-1 flex flex-wrap gap-1.5" data-option-badges>
-                          {o.unitFocus && <span className={`${BADGE} whitespace-nowrap bg-standout-soft text-standout`}>unit focus</span>}
+                          {o.newSkill && <span className={`${BADGE} whitespace-nowrap bg-standout-soft text-standout`}>new skill</span>}
                           {o.fixedInGroup && <span className={`${BADGE} whitespace-nowrap bg-secure-soft text-secure`}>fixed in group review</span>}
                         </span>
                       )}

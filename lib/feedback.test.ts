@@ -67,7 +67,7 @@ describe("detective feedback summary", () => {
     const { feedbackSummary, summarySentence } = await import("./feedback");
     const s = feedbackSummary(scriptedSession());
     expect(s.count).toBe(5);
-    expect(s.subskills).toEqual(["algebra.expand-factor.monic", "algebra.expand-factor.nonmonic", "unit.u1.nfl", "algebra.number.fractions", "reasoning.justify.formal"]);
+    expect(s.subskills).toEqual(["algebra.expand-factor.monic", "algebra.expand-factor.nonmonic", "functions.zeros.nfl", "algebra.number.fractions", "reasoning.justify.formal"]);
     // Q9 and Q10 stop short of a final answer in the scripted run (ticket 111), so the clause names the first submission.
     expect(s.sentence).toBe("5 problems in your first submission contain a mistake. Double-check factorising, non-monic factorising and null factor law.");
     expect(summarySentence(5, s.subskills)).toBe("5 of your problems contain a mistake. Double-check factorising, non-monic factorising and null factor law.");
@@ -77,7 +77,7 @@ describe("detective feedback summary", () => {
     const { feedbackSummary, summaryParts } = await import("./feedback");
     const s = feedbackSummary(scriptedSession());
     expect(s.head).toBe("5 problems in your first submission contain a mistake.");
-    expect(s.hint).toEqual(["algebra.expand-factor.monic", "algebra.expand-factor.nonmonic", "unit.u1.nfl"]);
+    expect(s.hint).toEqual(["algebra.expand-factor.monic", "algebra.expand-factor.nonmonic", "functions.zeros.nfl"]);
     expect(summaryParts(5, s.subskills).head).toBe("5 of your problems contain a mistake.");
     expect(summaryParts(0, ["algebra.number.fractions"])).toEqual({ head: "Every problem held.", hint: [], sentence: "Every problem held." });
     expect(summaryParts(2, [], "final")).toEqual({ head: "2 of your problems still contain a mistake.", hint: [], sentence: "2 of your problems still contain a mistake." });

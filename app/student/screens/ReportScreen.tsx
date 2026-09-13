@@ -27,9 +27,10 @@ const TILE: Record<Outcome, string> = {
  * No scores anywhere.
  */
 export default function ReportScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
-  const { problems, unit } = useAssignment();
+  const assignment = useAssignment();
+  const { problems } = assignment;
   const classroom = useClassroom();
-  const hierarchy = sessionHierarchy(session, problems);
+  const hierarchy = sessionHierarchy(session, assignment);
   const columns = outcomeColumns(session, pathwayOf(classroom), classroom.group, problems);
   const n = sentences(session.reflection);
   const written = session.reflection.trim() !== "";
@@ -50,7 +51,7 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
 
         {/* No overflow-hidden here: as a flex child it would let the card shrink and clip an opened skill's work. */}
         <Card className="mt-5 shrink-0" data-hierarchy>
-          <SkillColumns result={hierarchy} lines={sessionEvidence(session).lines} problems={problems} unit={unit} student />
+          <SkillColumns result={hierarchy} lines={sessionEvidence(session).lines} problems={problems} student />
         </Card>
 
         {mastery && (

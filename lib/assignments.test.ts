@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
 import { DEFAULT_GROUPS } from "@/data/groups";
-import { assignmentBundle, assignmentHref, assignmentIds, assignmentStages, assignmentTabs, currentStageOf, isAssignmentId, landingFor, landingTab, LIVE_ASSIGNMENT_ID, liveStartedAt, LIVE_SET_BEFORE_CREATE, rosterProgress, submittedCount } from "./assignments";
+import { PS5_ASSIGNMENT } from "@/data/pset5/assignment";
+import { assignmentBundle, assignmentHref, assignmentIds, assignmentStages, assignmentTabs, currentStageOf, isAssignmentId, landingFor, landingTab, LIVE_ASSIGNMENT_ID, liveStartedAt, LIVE_SET_BEFORE_CREATE, recentSets, rosterProgress, submittedCount } from "./assignments";
 import { classroomReducer, INITIAL_CLASSROOM, migrateClassroom, type ClassroomState } from "./classroom";
 import { SKIP_STARTED_AGO_MS, SKIP_TARGETS, skipFixture } from "./demo";
 import { CLASS_SIZE } from "./readiness";
@@ -46,7 +47,7 @@ describe("the assignment registry", () => {
 
   it("the created set bundles the fixture: title, due, problems, classmates, pathway, groups", () => {
     const b = assignmentBundle("pset-6", CREATED)!;
-    expect(b).toMatchObject({ id: "pset-6", kind: "live", title: ASSIGNMENT.title, name: "Problem Set 6 — Roots of a quadratic", due: "Thu 10 Sep", className: "11 Methods", classCode: "11MAM2", unitNumber: 1 });
+    expect(b).toMatchObject({ id: "pset-6", kind: "live", title: ASSIGNMENT.title, name: "Problem Set 6 — Roots of a quadratic", due: "Thu 10 Sep", className: "11 Methods", classCode: "11MAM2", newSkills: ASSIGNMENT.newSkills });
     expect(b.problems.map((p) => p.id)).toEqual(ASSIGNMENT.problems.map((p) => p.id));
     expect(b.classmates).toBe(CLASSMATES);
     expect(b.pathway).toEqual(["individual", "group"]);
@@ -60,6 +61,23 @@ describe("the assignment registry", () => {
     expect(b.name).toBe("Set 4");
     expect(b.problems.map((p) => p.id)).toEqual(["q1", "q3"]);
     expect(b.pathway).toEqual(["whole-class"]);
+  });
+
+  it("the live set's New skills: Create's stored list, else the fixture's that the chosen problems invoke; old leaf ids resolve (ticket 209)", () => {
+    const create = (extra: object) => classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: "Set 4", problemIds: ["q1", "q4"], pathway: ["whole-class"], at: now, ...extra });
+    // q1 uses the null factor law, q4 the discriminant: both of the fixture's.
+    expect([...assignmentBundle("pset-6", create({}))!.newSkills].sort()).toEqual(["algebra.equations.discriminant", "functions.zeros.nfl"]);
+    expect(assignmentBundle("pset-6", classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: "Set 4", problemIds: ["q1"], pathway: [], at: now }))!.newSkills).toEqual(["functions.zeros.nfl"]);
+    expect(assignmentBundle("pset-6", create({ newSkills: ["algebra.expand-factor.monic"] }))!.newSkills).toEqual(["algebra.expand-factor.monic"]);
+    expect(assignmentBundle("pset-6", create({ newSkills: [] }))!.newSkills).toEqual([]);
+    const stored = { ...create({}), assignment: { ...create({}).assignment!, newSkills: ["unit.u1.discriminant"] } } as unknown as Parameters<typeof assignmentBundle>[1];
+    expect(assignmentBundle("pset-6", stored)!.newSkills).toEqual(["algebra.equations.discriminant"]);
+    expect(assignmentBundle("pset-5", null)!.newSkills).toEqual(PS5_ASSIGNMENT.newSkills);
+  });
+
+  it("recent sets: the finished sets before a set, newest first (ticket 209)", () => {
+    expect(recentSets("pset-6", 2).map((s) => s.id)).toEqual(["pset-5"]);
+    expect(recentSets("pset-5", 2)).toEqual([]);
   });
 
   it("links: the landing, each tab, and Groups only on a pathway with group review", () => {

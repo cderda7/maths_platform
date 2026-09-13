@@ -94,8 +94,8 @@ describe("the confidence label", () => {
   it("names one or two skills, and reads as low overall from three", async () => {
     const { confidenceLabel, confidenceSentence } = await import("./report");
     const one: Confidence = { level: "low-when", leaves: ["algebra.number.fractions"] };
-    const two: Confidence = { level: "low-when", leaves: ["algebra.number.fractions", "unit.u1.discriminant"] };
-    const three: Confidence = { level: "low-when", leaves: ["algebra.number.fractions", "unit.u1.discriminant", "graphing.quadratics.sketch"] };
+    const two: Confidence = { level: "low-when", leaves: ["algebra.number.fractions", "algebra.equations.discriminant"] };
+    const three: Confidence = { level: "low-when", leaves: ["algebra.number.fractions", "algebra.equations.discriminant", "graphing.quadratics.sketch"] };
     expect(confidenceLabel(one)).toBe("low: fractions");
     expect(confidenceLabel(two)).toBe("low: fractions, discriminant");
     expect(confidenceLabel(three)).toBe("low");
@@ -133,7 +133,7 @@ describe("confidenceForms", () => {
   });
   it("reads the grid's own labels back", async () => {
     const { confidenceForms, confidenceLabel } = await import("./report");
-    const label = confidenceLabel({ level: "low-when", leaves: ["unit.u1.discriminant", "graphing.quadratics.features"] });
+    const label = confidenceLabel({ level: "low-when", leaves: ["algebra.equations.discriminant", "graphing.quadratics.features"] });
     expect(confidenceForms(label)[0].words).toEqual(["low:", "discriminant,", "graph", "features"]);
     expect(confidenceForms(label).at(-1)).toEqual({ words: ["low"], hidden: 2 });
   });

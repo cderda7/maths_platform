@@ -18,7 +18,7 @@ export const PROBLEMS: Problem[] = [
     solution: [
       { tex: "x^2 - 5x + 6 = 0", label: "Standard form", tags: [tag("algebra.equations.quadratic")] },
       { tex: "(x-2)(x-3) = 0", label: "Factorised", tags: [tag("algebra.expand-factor.monic")] },
-      { tex: "x = 2 \\;\\text{or}\\; x = 3", label: "Null factor law", tags: [tag("unit.u1.nfl"), tag("algebra.equations.quadratic")] },
+      { tex: "x = 2 \\;\\text{or}\\; x = 3", label: "Null factor law", tags: [tag("functions.zeros.nfl"), tag("algebra.equations.quadratic")] },
     ],
   },
   {
@@ -33,7 +33,7 @@ export const PROBLEMS: Problem[] = [
       { tex: "2x^2 + 8x - x - 4 = 0", label: "Split the middle term", tags: [tag("algebra.expand-factor.nonmonic")] },
       { tex: "2x(x+4) - 1(x+4) = 0", label: "Grouped", tags: [tag("algebra.expand-factor.nonmonic")] },
       { tex: "(2x - 1)(x + 4) = 0", label: "Factorised", tags: [tag("algebra.expand-factor.nonmonic")] },
-      { tex: "x = \\tfrac{1}{2} \\;\\text{or}\\; x = -4", label: "Null factor law", tags: [tag("unit.u1.nfl"), tag("algebra.number.fractions")] },
+      { tex: "x = \\tfrac{1}{2} \\;\\text{or}\\; x = -4", label: "Null factor law", tags: [tag("functions.zeros.nfl"), tag("algebra.number.fractions")] },
     ],
   },
   {
@@ -47,7 +47,7 @@ export const PROBLEMS: Problem[] = [
       { tex: "x^2 - x - 6 = 6", label: "Expanded first", tags: [tag("algebra.expand-factor.expand")] },
       { tex: "x^2 - x - 12 = 0", label: "Rearranged to standard form", tags: [tag("algebra.equations.linear")] },
       { tex: "(x - 4)(x + 3) = 0", label: "Factorised", tags: [tag("algebra.expand-factor.monic")] },
-      { tex: "x = 4 \\;\\text{or}\\; x = -3", label: "Null factor law", tags: [tag("unit.u1.nfl"), tag("algebra.equations.quadratic")] },
+      { tex: "x = 4 \\;\\text{or}\\; x = -3", label: "Null factor law", tags: [tag("functions.zeros.nfl"), tag("algebra.equations.quadratic")] },
     ],
   },
   {
@@ -58,7 +58,7 @@ export const PROBLEMS: Problem[] = [
     tex: "3x^2 - 5x - 1 = 0",
     solution: [
       { tex: "a = 3,\\; b = -5,\\; c = -1", label: "Identified a, b, c", tags: [tag("algebra.equations.quadratic")] },
-      { tex: "b^2 - 4ac = 25 + 12 = 37", label: "Discriminant", tags: [tag("unit.u1.discriminant")] },
+      { tex: "b^2 - 4ac = 25 + 12 = 37", label: "Discriminant", tags: [tag("algebra.equations.discriminant")] },
       { tex: "x = \\dfrac{5 \\pm \\sqrt{37}}{6}", label: "Quadratic formula", tags: [tag("algebra.equations.quadratic"), tag("algebra.number.fractions")] },
     ],
   },
@@ -70,7 +70,7 @@ export const PROBLEMS: Problem[] = [
     tex: "y = x^2 - 4x - 5",
     solution: [
       { tex: "(x - 5)(x + 1) = 0", label: "Factorised", tags: [tag("algebra.expand-factor.monic")] },
-      { tex: "x = 5 \\;\\text{or}\\; x = -1", label: "x-intercepts", tags: [tag("unit.u1.nfl"), tag("functions.zeros.zero-finding")] },
+      { tex: "x = 5 \\;\\text{or}\\; x = -1", label: "x-intercepts", tags: [tag("functions.zeros.nfl"), tag("functions.zeros.zero-finding")] },
       { tex: "x = \\tfrac{5 + (-1)}{2} = 2", label: "Axis of symmetry", tags: [tag("graphing.quadratics.features"), tag("algebra.number.fractions")] },
       { tex: "y = 4 - 8 - 5 = -9", label: "Height on the axis", tags: [tag("graphing.quadratics.features")] },
       { tex: "(2, -9)", label: "Turning point", tags: [tag("graphing.quadratics.features"), tag("graphing.quadratics.sketch")] },
@@ -83,8 +83,8 @@ export const PROBLEMS: Problem[] = [
     stem: "For which value of k does the graph of the following touch the x-axis exactly once?",
     tex: "y = x^2 + 6x + k",
     solution: [
-      { tex: "b^2 - 4ac = 36 - 4k", label: "Discriminant", tags: [tag("unit.u1.discriminant")] },
-      { tex: "36 - 4k = 0", label: "One root: discriminant zero", tags: [tag("unit.u1.discriminant"), tag("functions.zeros.zero-finding")] },
+      { tex: "b^2 - 4ac = 36 - 4k", label: "Discriminant", tags: [tag("algebra.equations.discriminant")] },
+      { tex: "36 - 4k = 0", label: "One root: discriminant zero", tags: [tag("algebra.equations.discriminant"), tag("functions.zeros.zero-finding")] },
       { tex: "k = 9", label: "Solved for k", tags: [tag("algebra.equations.linear")] },
     ],
   },
@@ -97,7 +97,7 @@ export const PROBLEMS: Problem[] = [
     solution: [
       { tex: "\\tfrac{1}{3}(x^2 + 6x + 8)", label: "Took out the third", tags: [tag("algebra.number.fractions"), tag("algebra.expand-factor.nonmonic")] },
       { tex: "2 \\times 4 = 8,\\quad 2 + 4 = 6", label: "Found the pair", tags: [tag("algebra.expand-factor.nonmonic"), tag("algebra.expand-factor.monic")] },
-      { tex: "\\tfrac{1}{3}(x + 2)(x + 4)", label: "Factorised", tags: [tag("algebra.expand-factor.nonmonic"), tag("unit.u1.binomial")] },
+      { tex: "\\tfrac{1}{3}(x + 2)(x + 4)", label: "Factorised", tags: [tag("algebra.expand-factor.nonmonic"), tag("algebra.expand-factor.binomial")] },
     ],
   },
   {
@@ -121,7 +121,7 @@ export const PROBLEMS: Problem[] = [
     answerAs: "sentence",
     solution: [
       { tex: "-x(x - 6) = 0", label: "Height zero, factorised", tags: [tag("reasoning.interpret.worded"), tag("algebra.expand-factor.expand")] },
-      { tex: "x = 0 \\;\\text{or}\\; x = 6", label: "Lands at x = 6", tags: [tag("unit.u1.nfl"), tag("functions.zeros.zero-finding")] },
+      { tex: "x = 0 \\;\\text{or}\\; x = 6", label: "Lands at x = 6", tags: [tag("functions.zeros.nfl"), tag("functions.zeros.zero-finding")] },
       { tex: "x = 3", label: "Axis of symmetry", tags: [tag("graphing.quadratics.features"), tag("graphing.quadratics.sketch")] },
       { tex: "h = -9 + 18 = 9", label: "Greatest height 9 m", tags: [tag("graphing.quadratics.features")] },
     ],
@@ -134,7 +134,7 @@ export const PROBLEMS: Problem[] = [
     tex: "x^2 + 4x + 5 = 0",
     answerAs: "sentence",
     solution: [
-      { tex: "b^2 - 4ac = 16 - 20 = -4", label: "Discriminant", tags: [tag("unit.u1.discriminant")] },
+      { tex: "b^2 - 4ac = 16 - 20 = -4", label: "Discriminant", tags: [tag("algebra.equations.discriminant")] },
       { tex: "\\Delta < 0 \\Rightarrow \\text{no real solutions}", label: "Justified", tags: [tag("reasoning.justify.formal")] },
       { tex: "\\text{The graph never meets the x-axis}", label: "In context", tags: [tag("reasoning.justify.conclusions"), tag("graphing.quadratics.sketch")] },
     ],
@@ -155,6 +155,7 @@ export const ASSIGNMENT: Assignment = {
   unit: { number: 1, topic: "Topic 1", title: "Surds and quadratic functions" },
   goal: "By the end of this set I want every one of you to look at a quadratic and choose a method on purpose: factorise, complete the square, or the formula, and say why. Getting stuck is part of it. Write down what you tried, not just the answer.",
   problems: PROBLEMS,
+  newSkills: ["algebra.equations.discriminant", "functions.zeros.nfl"],
 };
 
 /** The one student the demo follows. */

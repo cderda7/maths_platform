@@ -70,6 +70,12 @@ export interface Assignment {
   goal: string;
   /** Ordered set of core problems. */
   problems: Problem[];
+  /**
+   * The skills that are new on this set (ticket 209), in the order the teacher names them. On this set
+   * their evidence rolls up under the New skills column instead of their home category (never both); on
+   * a set that does not list a skill, it counts under its home. Each must be tagged in the problems.
+   */
+  newSkills: readonly LeafId[];
 }
 
 /** The three confidence-survey answers from the spec; "low when" names a category the set touches. */

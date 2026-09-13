@@ -22,7 +22,7 @@ export const PS5_PROBLEMS: Problem[] = [
     tex: "y = (x - 2)(x + 6)",
     solution: [
       { tex: "x = 0:\\; y = (-2)(6) = -12", label: "y-intercept", tags: [tag("functions.notation.evaluate"), tag("graphing.quadratics.features")] },
-      { tex: "x - 2 = 0 \\;\\text{or}\\; x + 6 = 0", label: "Each factor zero", tags: [tag("unit.u1.nfl"), tag("functions.zeros.zero-finding")] },
+      { tex: "x - 2 = 0 \\;\\text{or}\\; x + 6 = 0", label: "Each factor zero", tags: [tag("functions.zeros.nfl"), tag("functions.zeros.zero-finding")] },
       { tex: "x = 2 \\;\\text{or}\\; x = -6", label: "x-intercepts", tags: [tag("algebra.equations.linear"), tag("functions.zeros.zero-finding")] },
     ],
   },
@@ -61,7 +61,7 @@ export const PS5_PROBLEMS: Problem[] = [
       { tex: "3x^2 - 12x + 2x - 8 = 0", label: "Split the middle term", tags: [tag("algebra.expand-factor.nonmonic")] },
       { tex: "3x(x - 4) + 2(x - 4) = 0", label: "Grouped", tags: [tag("algebra.expand-factor.nonmonic")] },
       { tex: "(3x + 2)(x - 4) = 0", label: "Factorised", tags: [tag("algebra.expand-factor.nonmonic")] },
-      { tex: "x = -\\tfrac{2}{3} \\;\\text{or}\\; x = 4", label: "x-intercepts", tags: [tag("unit.u1.nfl"), tag("functions.zeros.zero-finding"), tag("algebra.number.fractions")] },
+      { tex: "x = -\\tfrac{2}{3} \\;\\text{or}\\; x = 4", label: "x-intercepts", tags: [tag("functions.zeros.nfl"), tag("functions.zeros.zero-finding"), tag("algebra.number.fractions")] },
     ],
   },
   {
@@ -83,8 +83,8 @@ export const PS5_PROBLEMS: Problem[] = [
     stem: "Complete the square to write the rule in turning-point form, and state the turning point.",
     tex: "y = x^2 - 8x + 10",
     solution: [
-      { tex: "y = (x^2 - 8x + 16) - 16 + 10", label: "Added and took away 16", tags: [tag("unit.u1.binomial"), tag("algebra.equations.quadratic")] },
-      { tex: "y = (x - 4)^2 - 6", label: "Turning-point form", tags: [tag("unit.u1.binomial")] },
+      { tex: "y = (x^2 - 8x + 16) - 16 + 10", label: "Added and took away 16", tags: [tag("algebra.expand-factor.binomial"), tag("algebra.equations.quadratic")] },
+      { tex: "y = (x - 4)^2 - 6", label: "Turning-point form", tags: [tag("algebra.expand-factor.binomial")] },
       { tex: "\\text{turning point } (4, -6)", label: "Turning point", tags: [tag("graphing.quadratics.features")] },
     ],
   },
@@ -95,7 +95,7 @@ export const PS5_PROBLEMS: Problem[] = [
     stem: "Expand into standard form, and state the y-intercept.",
     tex: "y = 2(x - 3)^2 - 5",
     solution: [
-      { tex: "y = 2(x^2 - 6x + 9) - 5", label: "Expanded the square", tags: [tag("unit.u1.binomial")] },
+      { tex: "y = 2(x^2 - 6x + 9) - 5", label: "Expanded the square", tags: [tag("algebra.expand-factor.binomial")] },
       { tex: "y = 2x^2 - 12x + 18 - 5", label: "Distributed the 2", tags: [tag("algebra.expand-factor.expand")] },
       { tex: "y = 2x^2 - 12x + 13", label: "Standard form", tags: [tag("algebra.expand-factor.expand")] },
       { tex: "y\\text{-intercept } (0, 13)", label: "y-intercept", tags: [tag("graphing.quadratics.features")] },
@@ -110,7 +110,7 @@ export const PS5_PROBLEMS: Problem[] = [
     solution: [
       { tex: "ac = -6,\\quad 6 + (-1) = 5", label: "Found the split", tags: [tag("algebra.expand-factor.nonmonic")] },
       { tex: "y = (2x - 1)(x + 3)", label: "Factorised", tags: [tag("algebra.expand-factor.nonmonic")] },
-      { tex: "x = \\tfrac{1}{2} \\;\\text{or}\\; x = -3", label: "x-intercepts", tags: [tag("unit.u1.nfl"), tag("functions.zeros.zero-finding"), tag("algebra.number.fractions")] },
+      { tex: "x = \\tfrac{1}{2} \\;\\text{or}\\; x = -3", label: "x-intercepts", tags: [tag("functions.zeros.nfl"), tag("functions.zeros.zero-finding"), tag("algebra.number.fractions")] },
       { tex: "x = \\dfrac{\\tfrac{1}{2} + (-3)}{2} = -\\tfrac{5}{4}", label: "Axis of symmetry", tags: [tag("graphing.quadratics.features"), tag("algebra.number.fractions")] },
     ],
   },
@@ -124,7 +124,7 @@ export const PS5_PROBLEMS: Problem[] = [
       { tex: "a = -1 < 0 \\Rightarrow \\text{concave down}", label: "Shape", tags: [tag("graphing.quadratics.sketch")] },
       { tex: "y\\text{-intercept } (0, 8)", label: "y-intercept", tags: [tag("graphing.quadratics.features")] },
       { tex: "-(x^2 - 2x - 8) = -(x - 4)(x + 2) = 0", label: "Took out −1, factorised", tags: [tag("algebra.expand-factor.expand"), tag("algebra.expand-factor.monic")] },
-      { tex: "x = 4 \\;\\text{or}\\; x = -2", label: "x-intercepts", tags: [tag("unit.u1.nfl"), tag("functions.zeros.zero-finding")] },
+      { tex: "x = 4 \\;\\text{or}\\; x = -2", label: "x-intercepts", tags: [tag("functions.zeros.nfl"), tag("functions.zeros.zero-finding")] },
       { tex: "x = 1,\\; y = -1 + 2 + 8 = 9", label: "Height on the axis", tags: [tag("graphing.quadratics.features"), tag("functions.notation.evaluate")] },
       { tex: "\\text{maximum turning point } (1, 9)", label: "Turning point", tags: [tag("graphing.quadratics.features"), tag("graphing.quadratics.sketch")] },
     ],
@@ -157,6 +157,7 @@ export const PS5_ASSIGNMENT: Assignment = {
   unit: { number: 1, topic: "Topic 1", title: "Surds and quadratic functions" },
   goal: "Every quadratic can be written three ways, and each way hands you something for free: standard form the y-intercept, turning-point form the turning point, factorised form the x-intercepts. By Thursday I want you to know which form gives you which feature, and to move to the form you need when it isn't the one you were given. Sketch as you go. A rough picture catches a wrong sign before I do.",
   problems: PS5_PROBLEMS,
+  newSkills: ["functions.zeros.nfl", "algebra.expand-factor.binomial"],
 };
 
 /** Problem Set 5 ran individual working, then individual review, then group review; every stage is over. */

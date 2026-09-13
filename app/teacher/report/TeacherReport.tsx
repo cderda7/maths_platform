@@ -30,7 +30,7 @@ import { useAssignmentBundle } from "../AssignmentContext";
 export default function TeacherReport({ student }: { student: string | null }) {
   const { session } = useBatchedSession(2000);
   const assignment = useAssignmentBundle();
-  const { problems, unitNumber: unit } = assignment;
+  const { problems } = assignment;
   // The set's record of the student: a classmate's, or Sam's on a finished set; none for Sam on the live set, who is his session.
   const classmate = studentRecord(assignment, student ?? DEMO_STUDENT.id) ?? assignment.sam ?? undefined;
   const who = classmate ?? DEMO_STUDENT;
@@ -38,7 +38,7 @@ export default function TeacherReport({ student }: { student: string | null }) {
   const [idea, setIdea] = useState<number | null>(null);
 
   const evidence: Evidence = classmate ? classmateEvidence(classmate, problems) : session ? sessionEvidence(session) : { lines: {}, submitted: false, caution: [] };
-  const full = hierarchyFor(evidence, problems);
+  const full = hierarchyFor(evidence, assignment);
   const commentary = commentaryFor(who.id, session, classmate);
   const chosen = idea !== null ? commentary.ideas[idea] : undefined;
   const result = chosen ? restrictTo(full, leavesBehind(chosen.problems, evidence.lines, problems)) : full;
@@ -66,7 +66,7 @@ export default function TeacherReport({ student }: { student: string | null }) {
         <div className="space-y-5">
           <Card data-hierarchy>
             <Eyebrow className="px-5 pt-5">Skills</Eyebrow>
-            {nothing ? <p className="mt-3 px-5 text-[13.5px] text-ink-muted">Nothing yet</p> : <SkillColumns key={idea ?? "all"} result={result} lines={evidence.lines} problems={problems} unit={unit} mode="expanded" locked />}
+            {nothing ? <p className="mt-3 px-5 text-[13.5px] text-ink-muted">Nothing yet</p> : <SkillColumns key={idea ?? "all"} result={result} lines={evidence.lines} problems={problems} mode="expanded" locked />}
             <StatusKey className="mx-5 mb-5 max-w-xs border-t border-line pt-3" />
           </Card>
 

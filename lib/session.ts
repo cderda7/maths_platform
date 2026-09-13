@@ -1,6 +1,6 @@
 import { BEFORE_HAND_IN_STAGES, type ChatMessage, type Confidence, type Pathway, type PracticeProblem, type Stage, type Stroke } from "@/data/types";
 import { pickHint, stalledHint } from "./hint";
-import { groupOf, type LeafId } from "@/data/taxonomy";
+import { groupOf, resolveLeaf, type LeafId } from "@/data/taxonomy";
 import { PRACTICES } from "@/data/practice";
 import { byEase, concernsAnswered, focusLeaves, practiceFor, warmupSequence, type WarmupMessage } from "./warmup";
 import type { DebriefNote } from "./debrief";
@@ -264,11 +264,18 @@ export function hydrateSession(raw: unknown): StudentSession {
   const overlayRun = snap.overlayRun && typeof snap.overlayRun === "object" ? snap.overlayRun : {};
   // A "low-when" answer saved as a category (before skills were listed) keeps its level with no skills named.
   const c = snap.confidence as ({ level: string; leaves?: unknown } | null | undefined);
-  const confidence: Confidence | null = c && c.level === "low-when" && !Array.isArray(c.leaves) ? { level: "low-when", leaves: [] } : ((c ?? null) as Confidence | null);
+  const stored: Confidence | null = c && c.level === "low-when" && !Array.isArray(c.leaves) ? { level: "low-when", leaves: [] } : ((c ?? null) as Confidence | null);
+  // Leaf ids stored under an older taxonomy (the Unit Focus leaves before ticket 209) read as their new homes.
+  const leaves = (ls: readonly string[]): LeafId[] => ls.flatMap((l) => resolveLeaf(l) ?? []);
+  const confidence: Confidence | null = stored?.level === "low-when" ? { level: "low-when", leaves: leaves(stored.leaves) } : stored;
+  const prompt = snap.prompt ? resolveLeaf(snap.prompt.leaf) : null;
   return {
     ...INITIAL_SESSION,
     ...snap,
     confidence,
+    ...(snap.prompt ? { prompt: prompt ? { ...snap.prompt, leaf: prompt } : null } : {}),
+    ...(snap.overlay ? { overlay: resolveLeaf(snap.overlay) } : {}),
+    ...(Array.isArray(snap.practices) ? { practices: snap.practices.flatMap((p) => { const l = resolveLeaf(p.leaf); return l ? [{ ...p, leaf: l }] : []; }) } : {}),
     warmup: { ...INITIAL_WARMUP, ...warmup, hinted: hydrateHinted(warmup) },
     overlayRun: { ...INITIAL_RUN, ...overlayRun, hinted: hydrateHinted(overlayRun) },
   };
@@ -634,7 +641,7 @@ const todayAt = (h: number, m: number) => {
 export const DEMO_CONFIDENCE: Confidence = { level: "low-when", leaves: ["algebra.expand-factor.monic"] };
 
 /** The answer behind the warm-up deep links: three skills ticked, so the concerns chat and the chip strip show their shape. */
-export const DEMO_WARMUP_CONFIDENCE: Confidence = { level: "low-when", leaves: ["algebra.expand-factor.monic", "algebra.number.fractions", "unit.u1.nfl"] };
+export const DEMO_WARMUP_CONFIDENCE: Confidence = { level: "low-when", leaves: ["algebra.expand-factor.monic", "algebra.number.fractions", "functions.zeros.nfl"] };
 
 /** The demo's answers in the concerns chat, one per ticked skill: the second names Q2, which adds non-monic factorising to the warm-up. */
 export const DEMO_CONCERNS: WarmupMessage[] = [

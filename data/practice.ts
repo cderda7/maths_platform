@@ -16,7 +16,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "3 + 4 = 7", label: "Add to the middle coefficient", tags: [tag("algebra.expand-factor.monic")] },
       { tex: "(x + 3)(x + 4) = 0", label: "Factorised", tags: [tag("algebra.expand-factor.monic")] },
       { tex: "x^2 + 4x + 3x + 12 \\;\\checkmark", label: "Expanded back to check", tags: [tag("algebra.expand-factor.expand")] },
-      { tex: "x = -3 \\;\\text{or}\\; x = -4", label: "Null factor law", tags: [tag("unit.u1.nfl")] },
+      { tex: "x = -3 \\;\\text{or}\\; x = -4", label: "Null factor law", tags: [tag("functions.zeros.nfl")] },
     ],
     why: "Most of this set leans on factorising. Two minutes here makes it quicker.",
     // One hint per point in the working (`at` counts lines of the steps above); from the second on, the linked words point at the student's own line.
@@ -68,7 +68,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
         { tex: "(-2) \\times (-5) = 10", label: "Multiply to the constant", tags: [tag("algebra.expand-factor.monic")] },
         { tex: "(-2) + (-5) = -7", label: "Add to the middle coefficient", tags: [tag("algebra.expand-factor.monic")] },
         { tex: "(x - 2)(x - 5) = 0", label: "Factorised", tags: [tag("algebra.expand-factor.monic")] },
-        { tex: "x = 2 \\;\\text{or}\\; x = 5", label: "Null factor law", tags: [tag("unit.u1.nfl")] },
+        { tex: "x = 2 \\;\\text{or}\\; x = 5", label: "Null factor law", tags: [tag("functions.zeros.nfl")] },
       ],
       why: "Same move, negative pair: both numbers negative when the constant is positive and the middle term negative.",
       hints: [
@@ -334,13 +334,13 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       },
     ],
   },
-  "unit.u1.nfl": {
+  "functions.zeros.nfl": {
     id: "w-nfl",
-    leaf: "unit.u1.nfl",
+    leaf: "functions.zeros.nfl",
     stem: "Solve.",
     tex: "(x - 2)(x + 5) = 0",
     steps: [
-      { tex: "x - 2 = 0 \\;\\text{or}\\; x + 5 = 0", label: "Product is zero, so a factor is", tags: [tag("unit.u1.nfl")] },
+      { tex: "x - 2 = 0 \\;\\text{or}\\; x + 5 = 0", label: "Product is zero, so a factor is", tags: [tag("functions.zeros.nfl")] },
       { tex: "x = 2 \\;\\text{or}\\; x = -5", label: "Solved each", tags: [tag("algebra.equations.linear")] },
     ],
     why: "The null factor law only works when the product equals zero. That is the whole rule.",
@@ -353,14 +353,14 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       },
     ],
   },
-  "unit.u1.discriminant": {
+  "algebra.equations.discriminant": {
     id: "w-discriminant",
-    leaf: "unit.u1.discriminant",
+    leaf: "algebra.equations.discriminant",
     stem: "How many real roots?",
     tex: "x^2 + 2x + 5 = 0",
     steps: [
-      { tex: "b^2 - 4ac = 4 - 20 = -16", label: "Discriminant", tags: [tag("unit.u1.discriminant")] },
-      { tex: "\\Delta < 0 \\Rightarrow \\text{none}", label: "Negative: no real roots", tags: [tag("unit.u1.discriminant")] },
+      { tex: "b^2 - 4ac = 4 - 20 = -16", label: "Discriminant", tags: [tag("algebra.equations.discriminant")] },
+      { tex: "\\Delta < 0 \\Rightarrow \\text{none}", label: "Negative: no real roots", tags: [tag("algebra.equations.discriminant")] },
     ],
     why: "Positive: two roots. Zero: one. Negative: none. The sign is the whole story.",
     hints: [
@@ -392,7 +392,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     steps: [
       { tex: "x^2 - 2x - 8 = 0", label: "Intercepts: y is 0", tags: [tag("functions.zeros.zero-finding")] },
       { tex: "(x - 4)(x + 2) = 0", label: "Factorised", tags: [tag("algebra.expand-factor.monic")] },
-      { tex: "x = 4 \\;\\text{or}\\; x = -2", label: "x-intercepts", tags: [tag("unit.u1.nfl"), tag("functions.zeros.zero-finding")] },
+      { tex: "x = 4 \\;\\text{or}\\; x = -2", label: "x-intercepts", tags: [tag("functions.zeros.nfl"), tag("functions.zeros.zero-finding")] },
       { tex: "x = \\tfrac{4 + (-2)}{2} = 1", label: "Axis of symmetry", tags: [tag("graphing.quadratics.features")] },
       { tex: "y = 1 - 2 - 8 = -9", label: "Height on the axis", tags: [tag("graphing.quadratics.features")] },
       { tex: "(1, -9)", label: "Turning point", tags: [tag("graphing.quadratics.features")] },
@@ -440,7 +440,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     stem: "Show that this has exactly one real solution.",
     tex: "x^2 - 6x + 9 = 0",
     steps: [
-      { tex: "b^2 - 4ac = 36 - 36 = 0", label: "Discriminant", tags: [tag("unit.u1.discriminant")] },
+      { tex: "b^2 - 4ac = 36 - 36 = 0", label: "Discriminant", tags: [tag("algebra.equations.discriminant")] },
       { tex: "\\Delta = 0 \\Rightarrow \\text{exactly one real solution}", label: "Justified", tags: [tag("reasoning.justify.formal")] },
     ],
     why: "A justification names the fact and draws the one conclusion it allows.",
@@ -539,7 +539,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     steps: [
       { tex: "20t - 5t^2 = 0", label: "Landing means height zero", tags: [tag("reasoning.interpret.worded")] },
       { tex: "5t(4 - t) = 0", label: "Common factor", tags: [tag("algebra.expand-factor.monic")] },
-      { tex: "t = 0 \\;\\text{or}\\; t = 4", label: "Null factor law", tags: [tag("unit.u1.nfl")] },
+      { tex: "t = 0 \\;\\text{or}\\; t = 4", label: "Null factor law", tags: [tag("functions.zeros.nfl")] },
       { tex: "\\text{lands at } t = 4 \\text{ s}", label: "In context", tags: [tag("reasoning.justify.conclusions")] },
     ],
     why: "The words hide an equation. Find it, solve it, then answer the question that was asked.",
@@ -561,8 +561,8 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     tex: "f(x) = x^2 - 9",
     steps: [
       { tex: "x^2 - 9 = 0", label: "A zero is where the output is 0", tags: [tag("functions.zeros.zero-finding")] },
-      { tex: "(x - 3)(x + 3) = 0", label: "Difference of two squares", tags: [tag("unit.u1.binomial")] },
-      { tex: "x = 3 \\;\\text{or}\\; x = -3", label: "Null factor law", tags: [tag("unit.u1.nfl")] },
+      { tex: "(x - 3)(x + 3) = 0", label: "Difference of two squares", tags: [tag("algebra.expand-factor.binomial")] },
+      { tex: "x = 3 \\;\\text{or}\\; x = -3", label: "Null factor law", tags: [tag("functions.zeros.nfl")] },
       { tex: "\\text{the graph meets the x-axis at } \\pm 3", label: "What a zero means", tags: [tag("functions.zeros.zero-finding")] },
     ],
     why: "A zero of a function and an x-intercept of its graph are the same fact, seen twice.",
@@ -577,14 +577,14 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { name: "rearrange and square root", hint: "Set the rule equal to zero, move the $9$ across, and take the square root of both sides, keeping both signs." },
     ],
   },
-  "unit.u1.binomial": {
+  "algebra.expand-factor.binomial": {
     id: "w-binomial",
-    leaf: "unit.u1.binomial",
+    leaf: "algebra.expand-factor.binomial",
     stem: "Expand using the identity.",
     tex: "(x + 5)^2",
     steps: [
-      { tex: "(a + b)^2 = a^2 + 2ab + b^2", label: "The identity", tags: [tag("unit.u1.binomial")] },
-      { tex: "x^2 + 10x + 25", label: "Applied", tags: [tag("unit.u1.binomial"), tag("algebra.expand-factor.expand")] },
+      { tex: "(a + b)^2 = a^2 + 2ab + b^2", label: "The identity", tags: [tag("algebra.expand-factor.binomial")] },
+      { tex: "x^2 + 10x + 25", label: "Applied", tags: [tag("algebra.expand-factor.binomial"), tag("algebra.expand-factor.expand")] },
     ],
     why: "Square the first, double the product, square the last.",
     hints: [

@@ -4,11 +4,11 @@ import { forwardRef, useLayoutEffect, useMemo, useRef, useState } from "react";
 import M from "@/components/Math";
 import { Eyebrow } from "@/components/ui";
 import { DifficultyTag, StatusDot, STATUS_TEXT, STATUS_WORD } from "@/components/Tag";
-import { categoryOf, groupName, groupOf, groupsOf, isFlat, leafName, leavesOf, studentLeafName, type CategoryId, type GroupId, type LeafId } from "@/data/taxonomy";
+import { categoryOf, groupName, groupOf, groupsOf, isFlat, leafName, studentLeafName, type CategoryId, type GroupId, type LeafId } from "@/data/taxonomy";
 import type { Problem, Status } from "@/data/types";
 import { evaluateLine } from "@/lib/evaluate";
 import { lineMarks } from "@/lib/examples";
-import { problemsForLeaf, STATUS_RANK, type HierarchyResult } from "@/lib/hierarchy";
+import { columnOf, homeLeaves, problemsForLeaf, STATUS_RANK, type HierarchyResult } from "@/lib/hierarchy";
 
 /*
  * The skill drill as an outline. Rules, in order: a group's dot sits on the same vertical line as
@@ -121,10 +121,11 @@ interface TreeProps {
 
 export const SkillTree = forwardRef<HTMLUListElement, TreeProps>(function SkillTree({ category, result, openGroups, leaf, onGroup, onLeaf, width, marginLeft, student = false, lockGroups = false }, ref) {
   const groups = worst(groupsOf(category).filter((g) => result.groups[g] !== undefined), (g) => result.groups[g]!);
-  const leavesIn = (g: GroupId) => worst(leavesOf(g).filter((l) => result.leaves[l] !== undefined), (l) => result.leaves[l]!);
+  // A skill new on the set is under New skills only, never under its home group too (ticket 209).
+  const leavesIn = (g: GroupId) => worst(homeLeaves(g, result.newSkills).filter((l) => result.leaves[l] !== undefined), (l) => result.leaves[l]!);
   const name = (l: LeafId) => (student ? studentLeafName(l) : leafName(l)).name;
   const flat = isFlat(category);
-  const flatLeaves = flat ? worst(groups.flatMap(leavesIn), (l) => result.leaves[l]!) : [];
+  const flatLeaves = flat ? worst(result.newSkills.filter((l) => result.leaves[l] !== undefined), (l) => result.leaves[l]!) : [];
   const labels = flat ? flatLeaves.map((l) => ({ text: name(l), depth: 0 })) : groups.flatMap((g) => [{ text: groupName(g).name, depth: 0 }, ...(openGroups.includes(g) ? leavesIn(g).map((l) => ({ text: name(l), depth: 1 })) : [])]);
   const fit = fitLabels(labels, width);
   const centre = (FULL.dot - fit.dot) / 2; // a smaller dot still sits centred on the category dot's line
@@ -304,7 +305,7 @@ export function RowDrill({
   };
   const pickLeaf = (l: LeafId) => setLeaf(leaf === l ? null : l);
   const goTo = (target: LeafId) => {
-    if (mode === "category" && category && categoryOf(target) !== category) {
+    if (mode === "category" && category && columnOf(target, result.newSkills) !== category) {
       onNavigate?.(target);
       return;
     }

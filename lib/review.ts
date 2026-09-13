@@ -4,7 +4,9 @@ import type { Difficulty, Pathway, Problem } from "@/data/types";
 import type { SeatingGroups } from "@/data/groups";
 import type { DraftQuestion } from "./classroom";
 import { DEFAULT_PATHWAY } from "./pathway";
-import { inferUnitFromProblems } from "./unit";
+import type { LeafId } from "@/data/taxonomy";
+import type { SetScope } from "./hierarchy";
+import { inferNewSkills, newSkillCandidates } from "./newSkills";
 
 /**
  * The review step of a new assignment (ticket 120): the typed draft labelled by difficulty, the
@@ -82,8 +84,12 @@ export interface ReviewState {
   /** Which alternative the addition shows. */
   addition: number;
   pathway: Pathway;
-  /** The unit reassessed from the teacher's note, when they wrote one; otherwise the inferred unit stands, nothing to confirm (ticket 123). */
-  unit?: 1 | 2 | 3 | 4;
+  /**
+   * The New skills as the teacher changed them on the pathway step (ticket 209), once they switched one
+   * on or off; absent, the inferred list stands, nothing to confirm (tickets 123, 209). Replaced the unit
+   * reassessed from a note.
+   */
+  newSkills?: LeafId[];
   /**
    * The groups confirmed on the pathway step (ticket 188), once the teacher moved someone there;
    * absent, the class defaults stand. Local to this new assignment: Create freezes them as its
@@ -180,7 +186,16 @@ export function bankProblemsOf(final: { tex: string | null }[]): Problem[] {
   return PROBLEMS.filter((p) => keys.has(normTex(p.tex)));
 }
 
-/** The unit the finalised set points at, from the bank problems it contains. */
-export function inferUnitFromReviewed(final: { tex: string | null }[]): 1 | 2 | 3 | 4 {
-  return inferUnitFromProblems(bankProblemsOf(final));
+/**
+ * The finalised set's New skills on the pathway step (ticket 209): the choices (the skills its bank
+ * problems invoke), the inferred list against the class's recent sets (newest first), and the list in
+ * force: the teacher's when they changed it (kept to skills still in the set), else the inferred one.
+ */
+export function reviewNewSkills(final: { tex: string | null }[], review: Pick<ReviewState, "newSkills">, recent: readonly SetScope[]): { candidates: LeafId[]; inferred: LeafId[]; chosen: LeafId[]; changed: boolean } {
+  const problems = bankProblemsOf(final);
+  const candidates = newSkillCandidates(problems).map((c) => c.leaf);
+  const inferred = inferNewSkills(problems, recent);
+  const changed = review.newSkills !== undefined;
+  const chosen = changed ? candidates.filter((l) => review.newSkills!.includes(l)) : inferred;
+  return { candidates, inferred, chosen, changed };
 }

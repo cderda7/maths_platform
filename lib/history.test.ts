@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ALL_SECURE_STUDENT, HISTORY_DATES, historyFor } from "./history";
 import { classmateEvidence, hierarchyFor } from "./hierarchy";
 import { CLASSMATES } from "@/data/classmates";
-import { PROBLEMS } from "@/data/assignment";
+import { ASSIGNMENT, PROBLEMS } from "@/data/assignment";
 import { CATEGORY_ORDER } from "@/data/taxonomy";
 import type { Status } from "@/data/types";
 
@@ -44,7 +44,7 @@ describe("category history (ticket 175)", () => {
 
   it("the all-secure student is dark green today in every category and dark green on every set behind it", () => {
     const priya = CLASSMATES.find((c) => c.id === ALL_SECURE_STUDENT)!;
-    const result = hierarchyFor(classmateEvidence(priya, PROBLEMS), PROBLEMS);
+    const result = hierarchyFor(classmateEvidence(priya, PROBLEMS), { problems: PROBLEMS, newSkills: ASSIGNMENT.newSkills });
     for (const c of result.columns) {
       expect(result.categories[c]).toBe("secure");
       expect(historyFor(priya.id, c, "secure").every((p) => p.status === "secure")).toBe(true);

@@ -89,7 +89,7 @@ describe("student session flow", () => {
     expect(warmupSeed(s)).toEqual([]);
     const named = sessionReducer(sessionReducer(s, { type: "warmup/say", text: "fractions and Q2" }), { type: "warmup/begin" });
     expect(named.stage).toBe("practice");
-    expect(warmupFocus(named)).toEqual(["algebra.number.fractions", "algebra.expand-factor.nonmonic", "unit.u1.nfl"]);
+    expect(warmupFocus(named)).toEqual(["algebra.number.fractions", "algebra.expand-factor.nonmonic", "functions.zeros.nfl"]);
     s = sessionReducer(sessionReducer(s, { type: "warmup/say", text: "not sure really" }), { type: "warmup/begin" });
     expect(s.stage).toBe("practice");
     expect(warmupProblem(s).id).toBe(PRACTICE.id);
@@ -97,8 +97,8 @@ describe("student session flow", () => {
 
   it("an answer that names a question adds that question's skills to the warm-up", () => {
     const s = sessionAt("practice");
-    expect(warmupSeed(s)).toEqual(["algebra.expand-factor.monic", "algebra.number.fractions", "unit.u1.nfl"]);
-    expect(warmupFocus(s)).toEqual(["algebra.expand-factor.monic", "algebra.number.fractions", "unit.u1.nfl", "algebra.expand-factor.nonmonic"]);
+    expect(warmupSeed(s)).toEqual(["algebra.expand-factor.monic", "algebra.number.fractions", "functions.zeros.nfl"]);
+    expect(warmupFocus(s)).toEqual(["algebra.expand-factor.monic", "algebra.number.fractions", "functions.zeros.nfl", "algebra.expand-factor.nonmonic"]);
   });
 
   it("the warm-up walks its skills one at a time, marks each done, and hands over to the set after the last", () => {
@@ -201,6 +201,19 @@ describe("hydrating a stored session", () => {
     expect(hydrateSession("junk")).toEqual(INITIAL_SESSION);
     expect(hydrateSession({ confidence: { level: "low-when", category: "algebra" } }).confidence).toEqual({ level: "low-when", leaves: [] });
     expect(hydrateSession({ confidence: { level: "low" } }).confidence).toEqual({ level: "low" });
+  });
+
+  it("reads leaf ids stored before ticket 209 as their new homes", () => {
+    const s = hydrateSession({
+      confidence: { level: "low-when", leaves: ["unit.u1.nfl", "algebra.number.fractions", "unit.u1.discriminant"] },
+      prompt: { leaf: "unit.u1.binomial", reason: "help" },
+      overlay: "unit.u1.binomial",
+      practices: [{ leaf: "unit.u1.nfl", reason: "detected", accepted: true, problem: "q1" }],
+    });
+    expect(s.confidence).toEqual({ level: "low-when", leaves: ["functions.zeros.nfl", "algebra.number.fractions", "algebra.equations.discriminant"] });
+    expect(s.prompt).toEqual({ leaf: "algebra.expand-factor.binomial", reason: "help" });
+    expect(s.overlay).toBe("algebra.expand-factor.binomial");
+    expect(s.practices).toEqual([{ leaf: "functions.zeros.nfl", reason: "detected", accepted: true, problem: "q1" }]);
   });
 
   it("a run's hinted in its earlier shapes: a list of ids is the first hint each, a count per id is the first n in order, indices stay", () => {

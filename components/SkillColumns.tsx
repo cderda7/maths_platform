@@ -3,12 +3,9 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { RowDrill, textWidth, type ColumnBox } from "@/components/HierarchyDrill";
 import { DOT_COLOR, STATUS_WORD } from "@/components/Tag";
-import { categoryLabel, categoryName, isFlat, type CategoryId } from "@/data/taxonomy";
+import { categoryName, type CategoryId } from "@/data/taxonomy";
 import type { Problem, Status } from "@/data/types";
 import type { HierarchyResult } from "@/lib/hierarchy";
-
-/** The grey uppercase label beside the Unit pill, as on the teacher's grid. */
-const LABEL = "pointer-events-none absolute left-full top-1/2 ml-2 -translate-y-1/2 whitespace-nowrap text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink-muted";
 
 /** The pill's text sizes, largest first, and the side padding that goes with each: the row picks the largest at which the widest pill clears its column. */
 const PILL_SIZES = [11, 10.5, 10, 9.5, 9];
@@ -72,7 +69,6 @@ export default function SkillColumns({
   result,
   lines,
   problems,
-  unit = 1,
   mode = "groups",
   locked = false,
   student = false,
@@ -80,7 +76,6 @@ export default function SkillColumns({
   result: HierarchyResult;
   lines: Record<string, string[]>;
   problems: Problem[];
-  unit?: 1 | 2 | 3 | 4;
   mode?: "groups" | "expanded";
   /** No group opens or closes; `mode` is the whole view. */
   locked?: boolean;
@@ -134,12 +129,7 @@ export default function SkillColumns({
               return (
                 <div key={c} className="px-1 py-6 text-center" data-dot={c}>
                   <span className="relative inline-block">
-                    <CategoryPill category={c} status={st} half={half} names={names} label={categoryLabel(c, unit).name} size={pillSize} />
-                    {isFlat(c) && (
-                      <span className={LABEL} data-unit-label>
-                        {categoryLabel(c, unit).name}
-                      </span>
-                    )}
+                    <CategoryPill category={c} status={st} half={half} names={names} label={categoryName(c).name} size={pillSize} />
                   </span>
                 </div>
               );
