@@ -15,7 +15,8 @@ const rowMid = (row: number) => row * (NODE_H + ROW_GAP) + NODE_H / 2;
  * stages that may legally follow what is picked so far; the pick is bold, its siblings fade but
  * stay tappable, and picking clears everything downstream. Leaving a column unpicked ends the
  * pathway there. "Continue tomorrow" hangs off 1st submit, dashed and disabled. The arrows into a
- * column leave the node picked in the column before it and curve to each option (ticket 197).
+ * column leave the node picked in the column before it and curve to each option (ticket 197); once the
+ * column has a pick, only the arrow to the pick stays, while its siblings' boxes stay faded (ticket 201).
  */
 export default function PathwayMap({ value, onChange }: { value: Pathway; onChange: (p: Pathway) => void }) {
   const columns = mapColumns(value);
@@ -51,7 +52,7 @@ export default function PathwayMap({ value, onChange }: { value: Pathway; onChan
   );
 }
 
-/** One arrow from the picked node on the left to each option on the right; the picked option's arrow is ink, its siblings' fade with them. */
+/** One arrow from the picked node on the left to each option on the right, all muted; once an option is picked, only its arrow stays, in ink. */
 function Arrows({ from, options, picked, column }: { from: number; options: ReviewStage[]; picked: ReviewStage | undefined; column: number }) {
   const rows = Math.max(from + 1, options.length);
   const height = rowMid(rows - 1) + NODE_H / 2;
@@ -60,11 +61,11 @@ function Arrows({ from, options, picked, column }: { from: number; options: Revi
   const y0 = rowMid(from);
   return (
     <svg width={ARROW_W} height={height} viewBox={`0 0 ${ARROW_W} ${height}`} className="shrink-0 overflow-visible" aria-hidden data-arrows={column} data-arrows-from={from}>
-      {/* The picked arrow is drawn last so it stays on top where the arrows leave the node together. */}
-      {options.map((s, row) => ({ s, row })).sort((a, b) => Number(a.s === picked) - Number(b.s === picked)).map(({ s, row }) => {
+      {options.map((s, row) => {
+        if (picked !== undefined && s !== picked) return null;
         const y1 = rowMid(row);
         const mid = (x0 + x1) / 2;
-        const tone = picked === s ? "text-ink" : picked === undefined ? "text-ink-muted" : "text-ink-muted opacity-35";
+        const tone = picked === s ? "text-ink" : "text-ink-muted";
         return (
           <g key={s} className={tone} fill="none" stroke="currentColor" strokeWidth={1.25} strokeLinecap="round" strokeLinejoin="round" data-arrow={s} data-arrow-y0={y0} data-arrow-y1={y1}>
             <path d={`M ${x0} ${y0} C ${mid} ${y0}, ${mid} ${y1}, ${x1} ${y1}`} />
