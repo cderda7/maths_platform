@@ -55,6 +55,12 @@ export default function PracticePad({
   const [help, setHelp] = useState<"closed" | "menu" | "stall">("closed");
   const setHelpOpen = (open: boolean) => setHelp(open ? "menu" : "closed");
   const [chatOpen, setChatOpen] = useState(false);
+  /** Every ask for the chat counts, so the chat puts the cursor in its box each time, open already or not (ticket 204). */
+  const [chatAsks, setChatAsks] = useState(0);
+  const openChat = () => {
+    setChatOpen(true);
+    setChatAsks((n) => n + 1);
+  };
   /** The hints shown so far, in the order they were given (each picked for where the lines were); their terms together are what the problem wraps. */
   const shown = run.hinted[p.id] ?? [];
   const hints = shown.map((i) => p.hints[i]).filter((h) => h !== undefined);
@@ -100,7 +106,7 @@ export default function PracticePad({
     setHelpOpen(false);
     const last = chat[chat.length - 1];
     if (!(last?.from === "tutor" && last.text === text)) dispatch({ type: "run/chat", run: runKey, problem: p.id, message: { from: "tutor", text } });
-    setChatOpen(true);
+    openChat();
   };
 
   return (
@@ -198,6 +204,7 @@ export default function PracticePad({
                 hinted={shown}
                 runKey={runKey}
                 dispatch={dispatch}
+                asked={chatAsks}
                 onClose={() => setChatOpen(false)}
                 className="mt-5 max-h-[42%] shrink-0 border-t border-line pt-4"
               />
@@ -213,7 +220,7 @@ export default function PracticePad({
           exampled={exampled}
           onChat={() => {
             setHelpOpen(false);
-            setChatOpen(true);
+            openChat();
           }}
           onHint={() => {
             // "hint" while the previous one is still to be acted on: the notice, which leads into the chat on it.

@@ -2834,6 +2834,16 @@ uploaded problems) settled the following as later, each on purpose.
 - **Collapsed cards in the brief.** The tutor's list of cards on screen does not say which earlier cards
   the student has collapsed or reopened.
 
+## Talk it through lands in the chat (from ticket 204, 2026-09-13)
+
+- **The on-screen keyboard on a real iPad.** The box is focused from an effect after the press, which
+  desktop browsers honour. iPad Safari raises the keyboard only for a focus made inside the tap's own
+  handler, so on a real tablet the cursor may sit in the box with no keyboard until tapped. The demo runs
+  in a desktop browser; revisit (focus the box synchronously in the handler) when it runs on tablets.
+- **A closed chat forgets its draft.** Typing in the box, closing the chat and pressing "Talk it through"
+  again reopens an empty box: the draft lives in `HelpChat`'s state and goes with it. Keep the draft in
+  the run (like the messages) if students lose half-written replies.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

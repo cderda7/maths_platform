@@ -31,6 +31,7 @@ export default function HelpChat({
   dispatch,
   onClose,
   exampleShown,
+  asked = 0,
   className = "",
 }: {
   problem: PracticeProblem;
@@ -45,6 +46,8 @@ export default function HelpChat({
   onClose?: () => void;
   /** Set while the worked example is playing beside the chat: how many of its steps are on screen. */
   exampleShown?: number;
+  /** How many times the student has asked for the chat ("Talk it through", the menu's "chat"): each ask puts the cursor in the box, even with the chat already open. */
+  asked?: number;
   /** How the outer box sits in its column: `flex-1` beside the worked example (the column is the chat); under the read-as lines, its cap and the top border. */
   className?: string;
 }) {
@@ -63,8 +66,8 @@ export default function HelpChat({
   useEffect(() => {
     // Beside the worked example the student's next tap is "Next step", so the box waits for them.
     if (!example) box.current?.focus();
-    return () => inFlight.current?.abort();
-  }, [example]);
+  }, [example, asked]);
+  useEffect(() => () => inFlight.current?.abort(), []);
 
   const send = async () => {
     const text = draft.trim();
