@@ -3089,6 +3089,13 @@ uploaded problems) settled the following as later, each on purpose.
 - **The demo strip overlaps the device's bottom edge.** "Skip to" sits over the stage's last ~30 px at 1440 × 900. It is presenter chrome, but content near the bottom (What happened on a tall run) comes within a few pixels of it.
 - **Nudge persistence.** After Send's nudge, clearing a written reflection shows the accent border and note again until text returns. Resetting the nudge on the first keystroke would be quieter.
 
+## Not yet card and the wiped board (ticket 235, 2026-09-13)
+
+- **Bring the last attempt back onto the board.** A wrong check wipes the ink; a group that wanted to fix one line has to rewrite the lot. A "put it back" control beside Undo/Clear could restore the wiped strokes. Deferred: the user asked for the board to erase.
+- **Lines after the first mistake told apart.** The card shows them in the same white rows as the lines before it; they follow from a wrong line, so a muted tone might read better. Deferred: the user asked only that nothing be hidden.
+- **A long attempt in the card.** Q7's attempts are three lines, so the card, the hint and Read as fit the column. A created set with eight-line attempts would push Read as down; the column may need to scroll or the card cap its height then.
+- **Peers' scripted `clear` between attempts.** Now a no-op since the check wipes the board; the scripts could drop it.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

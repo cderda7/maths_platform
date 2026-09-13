@@ -420,9 +420,9 @@ function groupReducer(g: GroupRun, a: GroupAction): GroupRun {
       const attempt = { lines: g.lines, correct, at };
       const attempts = { ...g.attempts, [problem]: [...(g.attempts[problem] ?? []), attempt] };
       // Wrong on the return: the problem closes unsolved (ticket 222).
-      if (!correct && visit.returning) return { ...g, attempts, lines: [], unsolved: [...(g.unsolved ?? []), problem], unsolvedAt: { ...(g.unsolvedAt ?? {}), [problem]: at } };
-      // A wrong check keeps the board so the line can be fixed; the next attempt's lines start again.
-      if (!correct) return { ...g, attempts, lines: [] };
+      if (!correct && visit.returning) return { ...g, attempts, strokes: [], lines: [], unsolved: [...(g.unsolved ?? []), problem], unsolvedAt: { ...(g.unsolvedAt ?? {}), [problem]: at } };
+      // A wrong check wipes the board (ticket 235): the Not yet card holds the attempt, the next one starts on a clean board.
+      if (!correct) return { ...g, attempts, strokes: [], lines: [] };
       return { ...g, attempts, resolved: [...g.resolved, problem], resolvedAt: { ...(g.resolvedAt ?? {}), [problem]: at } };
     }
     case "group/next": {

@@ -7,8 +7,8 @@ import { scribble } from "./synthetic-ink";
 /**
  * Group review on one shared whiteboard. The group works the union of its members' mistakes,
  * one problem at a time; one member holds the pen per visit, drawn by a shuffle that
- * reshuffles when it runs out; only the pen-holder checks. A wrong check is shown up to the
- * first mistake, the rest hidden as a count. A problem that will not come climbs a ladder
+ * reshuffles when it runs out; only the pen-holder checks. A wrong check is shown whole with its
+ * first mistake red, and wipes the board (ticket 235). A problem that will not come climbs a ladder
  * (tickets 221, 222): a hint from the second wrong check, left for now at the third, and one
  * more visit with the next pen after the rest of the union; wrong again there, it closes unsolved.
  * Pure rules over the run the classroom keeps.
@@ -165,18 +165,15 @@ export function checkBoard(problem: string, lines: string[]): { correct: boolean
   return { correct: lines.length > 0 && cut < 0 && last === "ok", cut };
 }
 
-export interface CutView {
-  /** Lines up to and including the first mistake, marked. */
-  shown: { tex: string; mark: LineMark }[];
-  /** Lines after it, not shown. */
-  hidden: number;
+export interface MarkedLine {
+  tex: string;
+  mark: LineMark;
 }
 
-/** The first-mistake rule: everything up to the first wrong line, that line red, the rest a count. A clean attempt shows whole, unmarked. */
-export function cutAtFirstMistake(problem: string, lines: string[]): CutView {
+/** The first-mistake rule: every line of the attempt, the first wrong one red (ticket 235: none hidden). A clean attempt shows unmarked. */
+export function markFirstMistake(problem: string, lines: string[]): MarkedLine[] {
   const cut = lines.findIndex((tex) => evaluateLine(problem, tex).verdict === "wrong");
-  if (cut < 0) return { shown: lines.map((tex) => ({ tex, mark: null })), hidden: 0 };
-  return { shown: lines.slice(0, cut + 1).map((tex, i) => ({ tex, mark: i === cut ? "wrong" : null })), hidden: lines.length - cut - 1 };
+  return lines.map((tex, i) => ({ tex, mark: i === cut ? "wrong" : null }));
 }
 
 /** How many times the group's check on a problem has come back wrong. */

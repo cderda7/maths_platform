@@ -4184,3 +4184,15 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** A document-level listener must name what keeps the working open (`KEEPS_WORK`); a future control that should keep it open needs adding there. The side column is 320 px, so long maths shrinks to fit (FitText) rather than wrap. Only the final lines show, not earlier attempts (Your working → has those).
 
 **Defense.** One place on screen for working, beside everything that opens it, keeps the report on one screen; the outside-press rule is the one the user specified, and the shared `ProblemWork` keeps the teacher's and the student's marked lines identical.
+
+## 2026-09-13 · A wrong check on the group board wipes it, and Not yet shows the whole attempt (ticket 235)
+
+**Decision.** On group review's shared whiteboard a wrong check empties the board's strokes as well as its transcription, and the Not yet card above the hint shows every line of that attempt with the first mistake red. Replaces tickets 162/221's rule (the board kept so a line could be fixed; the card cut at the first mistake with the rest as a count).
+
+**Context.** The user saw Sam's Q7 after a wrong check, one red line and "2 more lines" in the card, four strokes on the board beside an empty Read as, and asked: "don't collapse the 'not yet' thing. keep it fully visible. also, auto erase the board after an incorrect submission."
+
+**Alternatives considered.** *Keep the ink but grey it out*: the old attempt would still sit under the new one and the transcription (which restarts) would not match what is on the board. *Show the lines after the mistake muted or struck through*: marks something the user did not ask to mark. *Collapse the card only once the hint arrives*: the user asked for it always fully visible.
+
+**Tradeoffs.** A group that only needed to change one line rewrites the whole attempt; the card is the only record of the old one on screen. The card grows with the attempt's length, so a long attempt pushes Read as down the column.
+
+**Defense.** Board and Read as now always agree (both empty after a check), the attempt the group is correcting stays in full view beside the clean board, and the stored attempt already held every line, so the rule is one field in the reducer and no new state.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { beginRun, boardHint, checkBoard, closedInOrder, comingBack, currentProblem, cutAtFirstMistake, dealPens, DEMO_SEED, groupProgress, HINT_AFTER_WRONG, LEAVE_AFTER_WRONG, LEAVE_PAUSE_MS, leaveAt, leaving, ownAttemptScript, penHolder, penOrder, shuffle, stuckProblems, turnScript, visitsOf, writerOf, wrongChecks, type GroupRun } from "./groupReview";
+import { beginRun, boardHint, checkBoard, closedInOrder, comingBack, currentProblem, dealPens, DEMO_SEED, groupProgress, HINT_AFTER_WRONG, LEAVE_AFTER_WRONG, LEAVE_PAUSE_MS, leaveAt, leaving, markFirstMistake, ownAttemptScript, penHolder, penOrder, shuffle, stuckProblems, turnScript, visitsOf, writerOf, wrongChecks, type GroupRun } from "./groupReview";
 import { classroomReducer, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
 import { PROBLEM_MAP } from "@/data/assignment";
 import { DEMO_PENS, GROUP_SCRIPTS } from "@/data/group-scripts";
@@ -34,13 +34,13 @@ describe("check and the first-mistake cut", () => {
     expect(checkBoard("q1", ["x^2 - 5x + 6 = 0"]).correct).toBe(true);
     expect(checkBoard("q1", ["\\text{something new}"]).correct).toBe(false);
   });
-  it("shows up to the first wrong line, that line red, the rest as a count; a clean attempt whole and unmarked", () => {
-    const cut = cutAtFirstMistake("q3", RECOGNITION.q3);
-    expect(cut.shown.map((l) => l.mark)).toEqual([null, "wrong"]);
-    expect(cut.hidden).toBe(1);
-    const clean = cutAtFirstMistake("q1", RECOGNITION_REWORK.q1);
-    expect(clean.shown.every((l) => l.mark === null)).toBe(true);
-    expect(clean.hidden).toBe(0);
+  it("shows every line of the attempt, only the first wrong one red; a clean attempt whole and unmarked", () => {
+    const marked = markFirstMistake("q3", RECOGNITION.q3);
+    expect(marked.map((l) => l.tex)).toEqual(RECOGNITION.q3);
+    expect(marked.map((l) => l.mark)).toEqual([null, "wrong", null]);
+    const clean = markFirstMistake("q1", RECOGNITION_REWORK.q1);
+    expect(clean.map((l) => l.tex)).toEqual(RECOGNITION_REWORK.q1);
+    expect(clean.every((l) => l.mark === null)).toBe(true);
   });
   it("every attempt of every union problem is readable line by line, wrong attempts before right ones; Q7 is never right", () => {
     for (const pid of UNION) {
@@ -69,7 +69,7 @@ describe("check and the first-mistake cut", () => {
     const [twoTerms, lostThird, wrongPair, flipped] = GROUP_SCRIPTS.q7.attempts;
     expect(GROUP_SCRIPTS.q7.attempts).toHaveLength(4);
     expect(checkBoard("q7", twoTerms)).toEqual({ correct: false, cut: 0 });
-    expect(cutAtFirstMistake("q7", twoTerms)).toEqual({ shown: [{ tex: twoTerms[0], mark: "wrong" }], hidden: 2 });
+    expect(markFirstMistake("q7", twoTerms)).toEqual([{ tex: twoTerms[0], mark: "wrong" }, { tex: twoTerms[1], mark: null }, { tex: twoTerms[2], mark: null }]);
     expect(checkBoard("q7", lostThird)).toEqual({ correct: false, cut: 0 });
     expect(checkBoard("q7", wrongPair)).toEqual({ correct: false, cut: 1 });
     expect(checkBoard("q7", flipped)).toEqual({ correct: false, cut: 2 });
@@ -144,7 +144,7 @@ describe("the run on the classroom", () => {
     expect(c.group?.turnStartedAt).toBe(200);
   });
 
-  it("a wrong check keeps the board and starts the next attempt's lines afresh; next needs a correct check; the last next finishes", () => {
+  it("a wrong check wipes the board and starts the next attempt afresh; next needs a correct check; the last next finishes", () => {
     let c = begin();
     c = r(c, { type: "group/next", at: 1 });
     expect(c.group?.index).toBe(0);
@@ -152,8 +152,8 @@ describe("the run on the classroom", () => {
     for (const tex of RECOGNITION.q3) c = r(c, { type: "group/line", tex });
     c = r(c, { type: "group/stroke", stroke: [{ x: 1, y: 1 }] });
     c = r(c, { type: "group/check" });
-    expect(c.group?.attempts.q3?.[0].correct).toBe(false);
-    expect(c.group?.strokes).toHaveLength(1);
+    expect(c.group?.attempts.q3?.[0]).toMatchObject({ lines: RECOGNITION.q3, correct: false });
+    expect(c.group?.strokes).toEqual([]);
     expect(c.group?.lines).toEqual([]);
     for (const tex of RECOGNITION_REWORK.q3) c = r(c, { type: "group/line", tex });
     c = r(c, { type: "group/check" });

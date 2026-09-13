@@ -12,7 +12,7 @@ import { GROUP_HEX } from "@/data/groups";
 import type { Stroke } from "@/data/types";
 import { branchesOf } from "@/lib/branches";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
-import { attemptsOn, boardHint, closedCurrent, comingBack, currentVisit, cutAtFirstMistake, lastAttempt, leaving, ownAttemptScript, type CutView } from "@/lib/groupReview";
+import { attemptsOn, boardHint, closedCurrent, comingBack, currentVisit, lastAttempt, leaving, markFirstMistake, ownAttemptScript, type MarkedLine } from "@/lib/groupReview";
 import { nextLine, type RevealedLine } from "@/lib/recognition";
 import { assignmentGroupsOf, groupOfStudent } from "@/lib/seating";
 import type { SessionAction, StudentSession } from "@/lib/session";
@@ -29,9 +29,9 @@ const first = (id: string) => (id === DEMO_STUDENT.id ? "You" : CLASSMATE_MAP[id
  * Group review on one shared whiteboard: the board on the left two thirds while the pen-holder
  * writes (a live mirror for the other three), the "Read as" column on the right filling in one
  * line per burst, on every member's iPad, as on the working screen (ticket 162). Check for the
- * pen-holder only. A wrong check puts the attempt, cut at the first mistake with the rest as a
- * count, at the top of the column; the board is kept and the next attempt's lines read in
- * beneath; from the second wrong check a hint for the latest first mistake sits under it (ticket
+ * pen-holder only. A wrong check puts the whole attempt, its first mistake red, at the top of the
+ * column and wipes the board, so the next attempt starts clean and reads in beneath (ticket 235);
+ * from the second wrong check a hint for the latest first mistake sits under it (ticket
  * 221). The third wrong check holds a moment and leaves the problem for now; the members' row says
  * which problems come back, and the return is the problem's last try (ticket 222). A correct check,
  * or a wrong one on the return, opens the debrief.
@@ -57,7 +57,7 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
   const resolved = closedCurrent(run);
   const moving = leaving(run);
   const last = lastAttempt(run);
-  const wrongShown = last && !last.correct && !resolved ? cutAtFirstMistake(pid, last.lines) : null;
+  const wrongShown = last && !last.correct && !resolved ? markFirstMistake(pid, last.lines) : null;
   const later = comingBack(run).map((p) => PROBLEM_MAP[p]?.label ?? p);
   // Where the problems left for now come back: after the union's last problem, or next once the board is past it.
   const whenBack = (fromIndex: number) => (fromIndex < run.problems.length - 1 ? `after ${PROBLEM_MAP[run.problems.at(-1)!]?.label}` : "next");
@@ -140,9 +140,9 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
             <div className="shrink-0 rounded-2xl border border-wrong-line bg-wrong-soft/60 px-3.5 py-3" data-wrong-check>
               <div className="flex items-center justify-between gap-2">
                 <Eyebrow>Not yet</Eyebrow>
-                <span className="text-[12px] text-ink-muted">up to the first mistake</span>
+                <span className="text-[12px] text-ink-muted">first mistake in red</span>
               </div>
-              <Lines view={wrongShown} compact />
+              <Lines lines={wrongShown} />
             </div>
           )}
           {hint && <HintCard hint={hint} label="Hint" lit={null} onLit={() => {}} className="mt-3 shrink-0" />}
@@ -172,12 +172,12 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
   );
 }
 
-/** Lines cut at the first mistake: the last shown line red, the rest a count. */
-function Lines({ view, compact = false }: { view: CutView; compact?: boolean }) {
-  const size = compact ? "px-2.5 py-1.5 text-[13px]" : "px-3.5 py-2 text-[15px]";
+/** Every line of a wrong attempt, the first mistake red. */
+function Lines({ lines }: { lines: MarkedLine[] }) {
+  const size = "px-2.5 py-1.5 text-[13px]";
   return (
     <ol className="mt-2 space-y-1.5" data-cut>
-      {view.shown.map((l, i) => {
+      {lines.map((l, i) => {
         const tone = l.mark === "wrong" ? "border-wrong-line bg-wrong-soft" : "border-line bg-paper";
         const branches = branchesOf(l.tex);
         return branches.length === 2 ? (
@@ -194,11 +194,6 @@ function Lines({ view, compact = false }: { view: CutView; compact?: boolean }) 
           </li>
         );
       })}
-      {view.hidden > 0 && (
-        <li className="px-1 text-[12px] text-ink-muted" data-hidden={view.hidden}>
-          {view.hidden} more {view.hidden === 1 ? "line" : "lines"}
-        </li>
-      )}
     </ol>
   );
 }
