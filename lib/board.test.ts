@@ -59,8 +59,7 @@ describe("what the board shows per stage", () => {
     expect(first.examples.length).toBeGreaterThanOrEqual(2);
     for (const e of first.examples) {
       expect(e.letter).toMatch(/^[ABC]$/);
-      expect(e.count).toBeGreaterThan(0);
-      expect(e.denominator).toBeGreaterThanOrEqual(e.count);
+      expect(Object.keys(e).sort()).toEqual(["letter", "lines"]);
     }
 
     classroom = classroomReducer(classroom, { type: "wc/marks", on: true });

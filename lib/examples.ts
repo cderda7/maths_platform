@@ -12,8 +12,8 @@ import type { StudentSession } from "./session";
  * Examples for the whole-class board. Every student who handed in a problem is a candidate with
  * their final transcription. A candidate's identity for the picker is the exact mistake they
  * made (the wrong lines' TeX, DECISION_LOG 2026-09-12), or "correct"; `bucket` is the coarser
- * subskill of the first wrong step. The board sees letters, lines and counts only; names and
- * verdicts stay in the private setup view.
+ * subskill of the first wrong step. The board sees letters and lines only; names, verdicts and
+ * counts stay in the private setup view.
  */
 export type Bucket = "correct" | LeafId;
 
@@ -38,10 +38,6 @@ export interface ExampleRef {
 export interface BoardExample {
   letter: string;
   lines: string[];
-  /** Students with the same exact mistake as this example (or, for a correct one, all who got it right). */
-  count: number;
-  /** Students who handed in this problem. */
-  denominator: number;
 }
 
 /**
@@ -180,7 +176,7 @@ export const exampleOf = (o: ExampleOption): ExampleRef => ({ studentId: o.colum
 /**
  * The correct working, then the most common mistakes, capped at three: one example per option in
  * picker order, the group-fixed ones only to reach two. Options are what the teacher swaps
- * between; the board's count is the option's.
+ * between; the setup's count is the option's.
  */
 export function suggestExamples(cands: Candidate[], max = MAX_EXAMPLES, ctx: PickerContext = {}): ExampleRef[] {
   const options = optionsFor(cands, ctx);
@@ -196,15 +192,17 @@ export function resolveRef(ref: ExampleRef, session: StudentSession | null): Can
   return candidatesFor(ref.problemId, session).find((c) => c.studentId === ref.studentId) ?? null;
 }
 
-/** What the board shows for one slide: letters, lines and counts. Nothing that names a student or marks a line. */
+/**
+ * What the board shows for one slide: letters and lines. Nothing that names a student, marks a
+ * line or counts how many students share the working (ticket 202): the counts stay on the
+ * teacher's laptop, in the setup's example picker.
+ */
 export function boardExamples(refs: ExampleRef[], problemId: string, session: StudentSession | null): BoardExample[] {
   const cands = candidatesFor(problemId, session);
-  const counts = new Map<string, number>();
-  for (const c of cands) counts.set(c.mistake, (counts.get(c.mistake) ?? 0) + 1);
   return refs
     .map((r) => cands.find((c) => c.studentId === r.studentId))
     .filter((c): c is Candidate => !!c)
-    .map((c, i) => ({ letter: LETTERS[i], lines: c.lines, count: counts.get(c.mistake) ?? 0, denominator: cands.length }));
+    .map((c, i) => ({ letter: LETTERS[i], lines: c.lines }));
 }
 
 /** Problems ordered by how many struggled, most first; ties keep assignment order. */

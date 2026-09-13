@@ -7,13 +7,13 @@ import type { LineMark } from "@/lib/examples";
 /**
  * The examples of whole-class review, drawn the same way on the smartboard and on the student's
  * screen (ticket 161): two or three columns, the letter at the top left, a corner slot at the top
- * right (the board puts "n/m students" there; the student's screen a "your approach" tag
- * on the example that was their own first hand-in), then the working, one line per box, red or
- * blue only while the board is showing marks. A line never wraps: the lines are set at the size's
- * maximum (fitted so the widest line of the assignment stands on one line at the surface's design
- * width, the board at 1440 and the iPad at 1180) and, in a narrower window, every column's lines
- * shrink together, by the one ratio that fits the widest of them, the way `FitText` fits a line.
- * A column taller than its slot scrolls on its own.
+ * right (empty on the board, which shows no counts since ticket 202; the student's screen a
+ * "your approach" tag on the example that was their own first hand-in), then the working, one
+ * line per box, red or blue only while the board is showing marks. A line never wraps: the lines
+ * are set at the size's maximum (fitted so the widest line of the assignment stands on one line at
+ * the surface's design width, the board at 1440 and the iPad at 1180) and, in a narrower window,
+ * every column's lines shrink together, by the one ratio that fits the widest of them, the way
+ * `FitText` fits a line. A column taller than its slot scrolls on its own.
  */
 export interface ExampleColumn {
   letter: string;

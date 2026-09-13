@@ -8,10 +8,10 @@ import type { StudentSession } from "./session";
  * What a frozen student sees: the board's slide as the board shows it (ticket 161), the problem
  * and its two or three examples, red and blue on the lines only while the board itself is showing
  * marks, beside a pad. The one difference from the board is each example's corner: the board
- * counts students there; the student's screen marks the example that is their own first hand-in
- * ("your approach": the same exact mistake, or correct like them) and says nothing on the
- * others, so no student ever sees a count. The pad follows the board's mode: a mirror of the
- * teacher's writing, or the student's own to write along with.
+ * leaves it empty (no counts since ticket 202); the student's screen marks the example that is
+ * their own first hand-in ("your approach": the same exact mistake, or correct like them) and
+ * says nothing on the others, so no student ever sees a count. The pad follows the board's
+ * mode: a mirror of the teacher's writing, or the student's own to write along with.
  */
 export interface FrozenExample {
   letter: string;
@@ -38,7 +38,7 @@ export function frozenView(session: StudentSession, classroom: ClassroomState | 
   if (!problem) return null;
   const marked = slide.view === "marked";
   const refs = classroom?.wholeClass?.examples[problem.id] ?? [];
-  // The first hand-in, not the rework: the board counts students by their final working, the tag names where they started.
+  // The first hand-in, not the rework: the examples are picked from final workings, the tag names where they started.
   const initial = (session.lines[problem.id] ?? []).map((l) => l.tex);
   const own = initial.length > 0 ? mistakeOf(problem.id, initial) : null;
   const examples: FrozenExample[] = boardExamples(refs, problem.id, session).map((e) => {

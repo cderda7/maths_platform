@@ -101,18 +101,15 @@ describe("board examples", () => {
     expect(optionsFor(q3, { group: { ...group, resolved: [] } }).every((o) => !o.fixedInGroup)).toBe(true);
   });
 
-  it("the board view model carries letters, lines and counts, and nothing that names a student or marks a line", () => {
+  it("the board view model carries letters and lines, and nothing that names a student, marks a line or counts students", () => {
     const s = sessionAt("feedback");
-    const refs = suggestExamples(candidatesFor("q2", s));
+    const cands = candidatesFor("q2", s);
+    const refs = suggestExamples(cands);
     const board = boardExamples(refs, "q2", s);
     expect(board.map((e) => e.letter)).toEqual(["A", "B", "C"]);
-    const handedIn = 1 + CLASSMATES.filter((c) => c.done >= 2).length;
-    const wrongQ2 = 1 + CLASSMATES.filter((c) => c.wrong.includes("q2")).length;
-    expect(board[0]).toEqual({ letter: "A", lines: expect.any(Array), count: handedIn - wrongQ2, denominator: handedIn });
-    expect(board[1].count).toBe(wrongQ2 - 1); // the guessed pair
-    expect(board[2].count).toBe(1); // finn's sign
+    expect(board.map((e) => e.lines)).toEqual(refs.map((r) => cands.find((c) => c.studentId === r.studentId)!.lines));
     for (const e of board) {
-      expect(Object.keys(e).sort()).toEqual(["count", "denominator", "letter", "lines"]);
+      expect(Object.keys(e).sort()).toEqual(["letter", "lines"]);
       expect(JSON.stringify(e)).not.toMatch(/Okonkwo|Raman|Whitlock|verdict|wrong/);
     }
   });

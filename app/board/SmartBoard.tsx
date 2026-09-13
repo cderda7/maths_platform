@@ -150,11 +150,6 @@ function Slide({ content }: { content: Extract<BoardContent, { kind: "whole-clas
             return {
               letter: e.letter,
               lines: e.lines.map((tex, i) => ({ tex, mark: marks[i] ?? null })),
-              corner: (
-                <span className="text-[18px] whitespace-nowrap text-ink-soft" data-count>
-                  {e.count}/{e.denominator} students
-                </span>
-              ),
             };
           })}
         />

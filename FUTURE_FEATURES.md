@@ -2769,6 +2769,13 @@ uploaded problems) settled the following as later, each on purpose.
   button a sticky place under the bar so it stays in reach on long pages; not built, the page is one scroll
   from it.
 
+## No counts on the board (from ticket 202, 2026-09-13)
+
+- **A teacher toggle to show counts on the board.** Removed outright; if a teacher ever wants the class
+  to see how common an approach was, it would be a per-slide switch in the board controls, off by default.
+- **The empty corner on the board's example cards.** Left empty rather than filled (e.g. with the mistake
+  name, which would give the answer away before marks are on); revisit if the letter row looks sparse.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
