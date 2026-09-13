@@ -2750,6 +2750,15 @@ uploaded problems) settled the following as later, each on purpose.
   the create screen (see "Sub-parts (a), (b), (c)" and "Sub-parts as one problem" above). Deferred:
   the demo set has no multi-part problem and the assumption keeps every screen to one stem, one answer.
 
+## Sticky side cards (from ticket 196, 2026-09-13)
+
+- **On a short window the top cards scroll rather than pin.** When the scroll region can't fit the
+  pinned cards and the Key (1280 × 520, or 1280 × 640 with class review's card), the top group scrolls
+  away as before and only the Key pins. Collapsing the Pathway card to a one-line strip once scrolled, so
+  both fit, is not built.
+- **No shadow under the pinned cards.** Rows pass beside them, not under them, so none was added; if the
+  column ever overlaps the roster (a narrower layout), a pinned card would want an edge.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

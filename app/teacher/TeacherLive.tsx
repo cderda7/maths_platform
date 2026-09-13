@@ -151,6 +151,9 @@ export default function TeacherLive() {
   const [history, setHistory] = useState<{ student: string; open: CategoryId[] } | null>(null);
   const tableRef = useRef<HTMLTableElement>(null);
   const rosterRef = useRef<HTMLDivElement>(null);
+  const sideTopRef = useRef<HTMLDivElement>(null);
+  const keyRef = useRef<HTMLDivElement>(null);
+  useSideColumnPins(sideTopRef, keyRef, finished);
   const dueRef = useRef<HTMLParagraphElement>(null);
   const lastClick = useRef<{ student: string; at: number } | null>(null);
   const nonce = useRef(0);
@@ -553,10 +556,11 @@ export default function TeacherLive() {
 
         {/* The column stretches to the roster's height (ticket 192): the cards above the key stay at its top, the key rides the bottom of the view. */}
         <div className="flex flex-col gap-6">
-          {/* Class review in use: its card leads the column (ticket 129). */}
-          {!finished && wcInUse && <WholeClassCard />}
-          {/* A finished set's stages are all over, so it has no pathway card (ticket 191). */}
+          {/* A finished set's column holds only the key: the stages are over (ticket 191) and the live cards are Problem Set 2's (ticket 187). */}
           {!finished && (
+          <div ref={sideTopRef} className="sticky top-12 z-10 flex flex-col gap-6" data-side-top>
+          {/* Class review in use: its card leads the column (ticket 129). */}
+          {wcInUse && <WholeClassCard />}
           <Card className="p-6" data-pathway-card>
             <Eyebrow className="inline-block rounded-md bg-accent px-2 py-1 text-white">Pathway</Eyebrow>
             {/* At the card's left (not centred as before ticket 129) so the note beside the current pill has the rest of the card's width. */}
@@ -588,27 +592,67 @@ export default function TeacherLive() {
               ))}
             </ol>
           </Card>
-          )}
-          {/* The live lesson's cards (group review's progress, class review, the live diagnostic) are Problem Set 2's: a finished set's class is not in the room for them (ticket 187). */}
-          {!finished && (
-            <>
-              <GroupProgressCard session={live} />
-              {!wcInUse && <WholeClassCard />}
-              <DiagnosticCard />
-            </>
+          <GroupProgressCard session={live} />
+          {!wcInUse && <WholeClassCard />}
+          <DiagnosticCard />
+          </div>
           )}
 
           {/* The key sticks to the bottom of the teacher frame's scroll region as the roster scrolls (ticket 192). Its own box takes the rest of the column, so it can never rise over the cards above. `bottom-12` is the frame's own bottom padding (`py-12`), so where it rides is where it comes to rest on the table card's bottom at the end of the roster (no jump), and it clears Reset demo at 1280. */}
           <div className="flex flex-1 flex-col justify-end">
-            <Card className="sticky bottom-12 p-6" data-key-card>
-              <Eyebrow>Key</Eyebrow>
-              <StatusKey className="mt-3" />
-            </Card>
+            <div ref={keyRef} className="sticky bottom-12">
+              <Card className="p-6" data-key-card>
+                <Eyebrow>Key</Eyebrow>
+                <StatusKey className="mt-3" />
+              </Card>
+            </div>
           </div>
         </div>
       </div>
     </TeacherChrome>
   );
+}
+
+/** The side column's pinned offsets, layout px: `top-12` on the cards above the key, `bottom-12` on the key, and the column's `gap-6` between them. */
+const PIN_TOP = 48;
+const PIN_BOTTOM = 48;
+const PIN_GAP = 24;
+
+/**
+ * Keeps the side column's two pinned groups from overlapping (ticket 196). The cards above the key stick
+ * to the top of the teacher frame's scroll region and the key to its bottom; when the region is too short
+ * for both (a short window, or class review and group progress cards joining the pathway), the cards above
+ * scroll away with the roster and only the key stays pinned, if it fits on its own. Styles are set on the nodes from a ResizeObserver (on the
+ * region and both groups, so a card appearing re-checks), not through state. Heights are offsetHeight /
+ * clientHeight: layout px under the chrome's zoom.
+ */
+function useSideColumnPins(topRef: React.RefObject<HTMLDivElement | null>, keyRef: React.RefObject<HTMLDivElement | null>, finished: boolean) {
+  useLayoutEffect(() => {
+    const key = keyRef.current;
+    const scroller = key?.closest<HTMLElement>("[data-teacher-scroll]");
+    if (!key || !scroller) return;
+    const check = () => {
+      const top = topRef.current;
+      const room = scroller.clientHeight;
+      const topHeight = top ? top.offsetHeight : 0;
+      const both = PIN_TOP + (top ? topHeight + PIN_GAP : 0) + key.offsetHeight + PIN_BOTTOM <= room;
+      // Too short for both: the cards above scroll away as before ticket 196 (pinned, they would ride down onto a key resting at the column's end); the key still pins while it fits alone.
+      const topPins = !!top && both;
+      const keyPins = both || key.offsetHeight + PIN_BOTTOM <= room;
+      if (top) {
+        top.style.position = topPins ? "" : "static";
+        top.dataset.pinned = String(topPins);
+      }
+      key.style.position = keyPins ? "" : "static";
+      key.dataset.pinned = String(keyPins);
+    };
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(scroller);
+    ro.observe(key);
+    if (topRef.current) ro.observe(topRef.current);
+    return () => ro.disconnect();
+  }, [topRef, keyRef, finished]);
 }
 
 /** The most lines a confidence label takes: three at 13 px on a 17 px leading (51 px) fit the row's height without growing it; leading-snug's 53.6 px grew a row by a pixel (ticket 190). */
