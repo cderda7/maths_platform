@@ -174,14 +174,19 @@ export default function DiagnosticPush({ example, problemId, className = "" }: {
                   <M tex={example.tex} />?
                 </span>
               </p>
-              <div className="mt-4 flex flex-wrap gap-2 text-[16px] text-ink" data-diag-options>
+              {/* Two equal columns, as the result grid after a send: A and C share a width, B and D start on one line (ticket 207). */}
+              <ul className="mt-4 grid grid-cols-2 gap-2 text-ink" data-diag-options>
                 {example.options.map((o) => (
-                  <span key={o.id} className={`rounded-xl border px-3 py-1.5 ${o.id === example.correct ? "border-secure-line bg-secure-soft" : "border-line bg-paper"}`}>
-                    <span className="mr-1.5 text-[12px] font-semibold uppercase text-ink-muted">{o.id}</span>
-                    <M tex={o.tex} />
-                  </span>
+                  <li key={o.id} className={`flex min-w-0 items-baseline gap-2 rounded-xl border px-3 py-1.5 ${o.id === example.correct ? "border-secure-line bg-secure-soft" : "border-line bg-paper"}`} data-option={o.id}>
+                    <span className="shrink-0 text-[12px] font-semibold uppercase text-ink-muted">{o.id}</span>
+                    <div className="min-w-0 flex-1 text-[16px]">
+                      <FitText max={16} fitKey={`${example.id}:${o.id}`}>
+                        <M tex={o.tex} />
+                      </FitText>
+                    </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </>
           )}
           {actions(exampleRun, () => push(example), false, "data-push")}
