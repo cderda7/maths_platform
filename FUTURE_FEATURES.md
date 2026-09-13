@@ -2999,6 +2999,8 @@ reformat or move anything below it.
 ### BIGGEST CONCERNS
 
 - assignment creation & upload
+- clicking on student name / avatar -- should this link to the student report, or to a more
+  longitudinal tracker?
 
 - **Ask where mistake is** before starting work; in indiv review; student has 3 'tokens' to use
   in asking 'is this problem one that i made a mistake on?' before revising.
