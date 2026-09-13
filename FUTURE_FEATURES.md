@@ -3110,6 +3110,11 @@ uploaded problems) settled the following as later, each on purpose.
 - **History gaps while Sets 3 and 4 are unregistered**: until tickets 213 and 214 land, Set 6's pills put Set 2 beside Set 5 and seven students read solid → gap there (Mia, Jordan, Oliver, Ruby algebra; Amelia, Isla, Lucas reasoning). The sheet has no such jump; it closes once the sets between are in.
 - **Board and class review on Set 2**: as for Set 5, a finished set has Class, Mistakes, Groups and reports only.
 
+## PSET in the student header (ticket 236, 2026-09-13)
+
+- **A short title a teacher writes.** Only "Problem Set N — …" shortens; a created set titled another way ("Quadratics review — roots, discriminant and graphs") still truncates beside the pathway strip. A short-title field on the create screen, or shortening words like "Unit"/"Topic" too, would cover it. Deferred: the demo's sets all follow the Problem Set pattern.
+- **PSET elsewhere.** The overview's heading, history's eyebrow and teacher cards still read "PROBLEM SET 6". If "PSET" becomes the product's word for a set, those could follow; deferred, the user asked about the header only.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

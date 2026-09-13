@@ -4220,3 +4220,15 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** A bookmark or browser state from before ticket 208 that named the old live set `pset-2` now opens Set 2, and its seating copy is read as Set 2's (the live set falls back to the class default). Amelia now repeats "conjugate on the bottom only" (Chloe's Q8 slip), and Grace's note names three problems.
 
 **Defense.** The ids name the sets by their real numbers, as ticket 208 intended; the redirect only ever served a same-day rename. The sheet stays the single contract with every habit on a problem where it shows.
+
+## 2026-09-13 · The student header shortens "Problem Set N" to "PSET N" at display time (ticket 236)
+
+**Decision.** The crumb beside the wordmark in the student header reads `crumbTitle(title)`: a leading "Problem Set N" becomes "PSET N", so "PSET 6 — ROOTS OF A QUADRATIC" fits beside the four-stage pathway strip. The stored title and every other place it shows are unchanged.
+
+**Context.** The user saw "PROBLEM SET 6 — ROOTS OF A QU…" during individual working and asked for "PSET 6 -- ROOTS OF..." so the truncation doesn't need to happen.
+
+**Alternatives considered.** *Rename the set's title to "PSET 6 — …" in the data*: the overview's heading, history's eyebrow and every teacher card would change too, and titles a teacher writes would still truncate. *Add a separate short title field to each set*: every finished set and created draft would need one written by hand for one header. *Shrink the crumb's font or narrow the strip*: the brand and strip are measured on every student screen (tickets 151, 185).
+
+**Tradeoffs.** Only titles that start "Problem Set N" shorten; a long created title in another shape still truncates (the `truncate` stays as the fallback). The header and the overview's heading now word the set differently.
+
+**Defense.** One pure function at the one place the space is short, testable on its own, with the rest of the product reading the title as the teacher wrote it.

@@ -20,6 +20,7 @@ import { dispatch, useStudentSession } from "@/lib/store";
 import { dispatchClassroom, getClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
 import { GRACE_MS, isDue, isPending, isProjecting, openDiagnostic, pathwayOf } from "@/lib/classroom";
 import { pathwayStages } from "@/lib/classStage";
+import { crumbTitle } from "@/lib/crumbTitle";
 import FrozenScreen from "./screens/FrozenScreen";
 import { useNow } from "@/lib/store";
 import { ASSIGNMENT } from "@/data/assignment";
@@ -138,7 +139,8 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
   }, [projecting, counting, frozen]);
   // The header's rule (ticket 168): the assignment title beside the wordmark on every screen. The pathway
   // strip names the stage, each screen's own heading names itself; the crumb is the one thing that never changes.
-  const crumb = title;
+  // "PSET 6" rather than "PROBLEM SET 6" (ticket 236), so the whole title fits beside the four-stage strip.
+  const crumb = crumbTitle(title);
   // Individual review forced with group review next: what the student is waiting for is the group.
   const groupStartPill = counting && advance?.kind === "force-review" && pathwayOf(classroom).includes("group");
   // The header's pathway strip (ticket 151): the same stages the teacher's Pathway card lights, from the same function.
