@@ -19,7 +19,7 @@ export default function StatusKey({ className = "" }: { className?: string }) {
             <>
               <span className="inline-block h-[15px] w-[15px] shrink-0 rounded-full border border-line-strong" style={{ backgroundImage: "linear-gradient(90deg, var(--color-line-strong) 50%, transparent 50%)" }} aria-hidden data-half-key />
               <span className="text-ink">half</span>
-              <span className="text-ink-muted">incomplete · problems skipped</span>
+              <span className="text-ink-muted">incomplete</span>
             </>
           )}
           <StatusDot status={r.status} size="h-[15px] w-[15px]" />

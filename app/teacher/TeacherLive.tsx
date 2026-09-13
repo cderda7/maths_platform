@@ -555,6 +555,8 @@ export default function TeacherLive() {
         <div className="space-y-6">
           {/* Class review in use: its card leads the column (ticket 129). */}
           {!finished && wcInUse && <WholeClassCard />}
+          {/* A finished set's stages are all over, so it has no pathway card (ticket 191). */}
+          {!finished && (
           <Card className="p-6" data-pathway-card>
             <Eyebrow className="inline-block rounded-md bg-accent px-2 py-1 text-white">Pathway</Eyebrow>
             {/* At the card's left (not centred as before ticket 129) so the note beside the current pill has the rest of the card's width. */}
@@ -586,6 +588,7 @@ export default function TeacherLive() {
               ))}
             </ol>
           </Card>
+          )}
           {/* The live lesson's cards (group review's progress, class review, the live diagnostic) are Problem Set 2's: a finished set's class is not in the room for them (ticket 187). */}
           {!finished && (
             <>
