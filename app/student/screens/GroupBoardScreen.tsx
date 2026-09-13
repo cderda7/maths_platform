@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import M from "@/components/Math";
 import PadSection from "@/components/PadSection";
 import HintCard from "@/components/HintCard";
@@ -12,7 +12,7 @@ import { GROUP_HEX } from "@/data/groups";
 import type { Stroke } from "@/data/types";
 import { branchesOf } from "@/lib/branches";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
-import { attemptsOn, boardHint, closedCurrent, comingBack, currentVisit, lastAttempt, leaving, markFirstMistake, ownAttemptScript, type MarkedLine } from "@/lib/groupReview";
+import { attemptsOn, boardHint, closedCurrent, comingBack, currentVisit, HINT_RING_MS, hintRingAt, lastAttempt, leaving, markFirstMistake, ownAttemptScript, TRY_AGAIN_MS, tryAgainAt, tryAgainShowing, type MarkedLine } from "@/lib/groupReview";
 import { nextLine, type RevealedLine } from "@/lib/recognition";
 import { assignmentGroupsOf, groupOfStudent } from "@/lib/seating";
 import type { SessionAction, StudentSession } from "@/lib/session";
@@ -33,7 +33,9 @@ const first = (id: string) => (id === DEMO_STUDENT.id ? "You" : CLASSMATE_MAP[id
  * column and wipes the board, so the next attempt starts clean and reads in beneath (ticket 235);
  * from the second wrong check a hint for the latest first mistake sits under it (ticket
  * 221). The third wrong check holds a moment and leaves the problem for now; the members' row says
- * which problems come back, and the return is the problem's last try (ticket 222). A correct check,
+ * which problems come back, and the return is the problem's last try (ticket 222). A wrong check the
+ * board goes on from pops "Try again" mid-screen, one pulse, and after the second the hint sends out
+ * one purple ring as the pill fades (ticket 238). A correct check,
  * or a wrong one on the return, opens the debrief.
  */
 export default function GroupBoardScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
@@ -64,6 +66,11 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
   const colour = groupOfStudent(assignmentGroupsOf(classroom, ASSIGNMENT.id), DEMO_STUDENT.id) ?? "sky";
   const attemptNo = attemptsOn(run).length;
   const hint = boardHint(run);
+  // Keyed by the check's moment so each wrong check pops its own pill; the time guard keeps a reload from replaying it.
+  const tryAgain = tryAgainShowing(run, now) ? tryAgainAt(run) : null;
+  const ringAt = hintRingAt(run);
+  // The ring's class stays a beat past its end (the clock ticks once a second); its CSS delay is the pill's life.
+  const ringing = ringAt !== null && now < ringAt + HINT_RING_MS + 1_000;
   // The board's transcription so far, shared by every member: what the column shows and what the next burst reads on from.
   const revealed: RevealedLine[] = run.lines.map((tex, i) => ({ tex, strokeCount: i + 1 }));
 
@@ -83,7 +90,14 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col px-8 py-5" data-group-board data-problem={pid} data-holder={holder} data-resolved={resolved || undefined}>
+    <div
+      className="relative flex h-full min-h-0 flex-col px-8 py-5"
+      style={{ "--try-again-ms": `${TRY_AGAIN_MS}ms`, "--hint-ring-ms": `${HINT_RING_MS}ms` } as CSSProperties}
+      data-group-board
+      data-problem={pid}
+      data-holder={holder}
+      data-resolved={resolved || undefined}
+    >
       <GroupHeader
         session={session}
         label={problem.label}
@@ -145,7 +159,7 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
               <Lines lines={wrongShown} />
             </div>
           )}
-          {hint && <HintCard hint={hint} label="Hint" lit={null} onLit={() => {}} className="mt-3 shrink-0" />}
+          {hint && <HintCard hint={hint} label="Hint" lit={null} onLit={() => {}} className={`relative mt-3 shrink-0 ${ringing ? "ring-out" : ""}`} />}
           <ReadAs
             lines={revealed}
             recognising={recognising}
@@ -168,6 +182,14 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
         )}
         {!mine && !resolved && !moving && <span className="text-[12.5px] text-ink-muted">{first(holder)} checks when ready</span>}
       </div>
+
+      {tryAgain !== null && (
+        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center" aria-live="polite">
+          <span key={tryAgain} className="try-again rounded-full border-2 border-accent-dark bg-standout-soft px-6 py-2.5 text-[17px] font-semibold text-accent-dark shadow-card" data-try-again>
+            Try again
+          </span>
+        </div>
+      )}
     </div>
   );
 }

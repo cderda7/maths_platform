@@ -4257,3 +4257,14 @@ rule for pens is untouched and the exception is visible and named.
 
 **Defense.** Both extensions reuse a habit each student already has on the set, in the category the sheet already gives it, so every status and arc stays as authored and the card reads the set's real subject.
 
+## 2026-09-13 · "Try again" and the hint's ring are derived from the wrong check's moment, timed in CSS (ticket 238)
+
+**Decision.** The group board's "Try again" pill and the hint's one ring hold no state of their own: `tryAgainAt` reads the moment already stored on the wrong attempt, the pill renders while `now < at + TRY_AGAIN_MS` (keyed by that moment), and the animation itself (pop, pulse, fade; the ring delayed by the pill's life) runs in CSS from custom properties set from the same constants.
+
+**Context.** The user asked for a pop-up "Try again" pill after a wrong check, a single pulse in the middle of the screen, then for the hint to ring once after the second one fades. Every member's iPad must show it at the same moment, and it must not replay on a reload.
+
+**Alternatives considered.** *A `tryAgainUntil` field in the run set by the reducer*: a second copy of the check's moment. *A per-tab `useEffect` timer that shows and hides the pill*: fails the lint rule against setState in effects, and a reload mid-life would restart it. *Driving opacity and scale from the frame clock (`useFrameNow`) as the intro bar does*: a React render per frame for a 1.6 s cosmetic effect.
+
+**Tradeoffs.** The class guard runs off the one-second clock, so the pill's element (invisible after its animation) stays in the page up to a second past its life; the ring's CSS delay counts from when the class lands, which is the check's render on every tab, not the stored moment, so a reload in the middle of the 2.5 s would not resume it (it would simply not show if past, or restart its delay if within).
+
+**Defense.** No new state, one source for the timings, and the browser runs the motion smoothly; the rule for which checks prompt a retry sits beside the ladder it follows (`LEAVE_AFTER_WRONG`, `HINT_AFTER_WRONG`) with unit tests.

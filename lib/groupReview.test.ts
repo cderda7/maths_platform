@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { beginRun, boardHint, checkBoard, closedInOrder, comingBack, currentProblem, dealPens, DEMO_SEED, groupProgress, HINT_AFTER_WRONG, LEAVE_AFTER_WRONG, LEAVE_PAUSE_MS, leaveAt, leaving, markFirstMistake, ownAttemptScript, penHolder, penOrder, shuffle, stuckProblems, turnScript, visitsOf, writerOf, wrongChecks, type GroupRun } from "./groupReview";
+import { beginRun, boardHint, checkBoard, closedInOrder, comingBack, currentProblem, dealPens, DEMO_SEED, groupProgress, HINT_AFTER_WRONG, LEAVE_AFTER_WRONG, LEAVE_PAUSE_MS, leaveAt, hintRingAt, leaving, markFirstMistake, ownAttemptScript, TRY_AGAIN_MS, tryAgainAt, tryAgainShowing, penHolder, penOrder, shuffle, stuckProblems, turnScript, visitsOf, writerOf, wrongChecks, type GroupRun } from "./groupReview";
 import { classroomReducer, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
 import { PROBLEM_MAP } from "@/data/assignment";
 import { DEMO_PENS, GROUP_SCRIPTS } from "@/data/group-scripts";
@@ -214,6 +214,34 @@ describe("a problem the group cannot get (ticket 222)", () => {
       ["q7", "jordan", true],
     ]);
     expect(visitsOf(beginRun(MEMBERS, UNION, 0))).toHaveLength(6);
+  });
+
+  it("Try again pops after the first and second wrong checks for TRY_AGAIN_MS, never the third or a wrong return; the hint's ring follows the second (ticket 238)", () => {
+    let c = onQ7();
+    expect(tryAgainAt(c.group!)).toBeNull();
+    c = write(c, twoTerms, 1000);
+    expect(tryAgainAt(c.group!)).toBe(1000);
+    expect(tryAgainShowing(c.group!, 1000)).toBe(true);
+    expect(tryAgainShowing(c.group!, 1000 + TRY_AGAIN_MS - 1)).toBe(true);
+    expect(tryAgainShowing(c.group!, 1000 + TRY_AGAIN_MS)).toBe(false); // a reload later never replays it
+    expect(hintRingAt(c.group!)).toBeNull(); // no hint yet
+    c = write(c, lostThird, 5000);
+    expect(tryAgainAt(c.group!)).toBe(5000);
+    expect(boardHint(c.group!)).not.toBeNull();
+    expect(hintRingAt(c.group!)).toBe(5000 + TRY_AGAIN_MS); // as the pill fades
+    c = write(c, wrongPair, 9000);
+    expect(leaving(c.group!)).toBe(true);
+    expect([tryAgainAt(c.group!), tryAgainShowing(c.group!, 9000), hintRingAt(c.group!)]).toEqual([null, false, null]);
+    // The return's wrong check closes the problem unsolved: no pill.
+    c = r(c, { type: "group/leave", index: Q7, at: 15_000 });
+    c = { ...c, group: { ...c.group!, index: visitsOf(c.group!).length - 1, turnFrom: 3 } };
+    expect(tryAgainAt(c.group!)).toBeNull(); // the first visit's checks do not carry into the return
+    c = write(c, flipped, 20_000);
+    expect(tryAgainAt(c.group!)).toBeNull();
+    // A correct check pops nothing either.
+    let q1 = r(INITIAL_CLASSROOM, { type: "group/begin", members: MEMBERS, problems: UNION, at: 0 });
+    q1 = write(q1, RECOGNITION_REWORK.q1, 100);
+    expect(tryAgainAt(q1.group!)).toBeNull();
   });
 
   it("the third wrong check holds, then leaves the problem for now; the board takes nothing meanwhile and two tabs leave once", () => {

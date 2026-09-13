@@ -189,6 +189,44 @@ body {
   }
 }
 
+/* Group review's "Try again" (ticket 238): pops in mid-screen, one pulse, fades, over --try-again-ms. Reduced motion only fades. */
+@keyframes try-again {
+  0% { opacity: 0; transform: scale(0.8); }
+  12% { opacity: 1; transform: scale(1); }
+  32% { transform: scale(1.12); }
+  52% { transform: scale(1); }
+  78% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1); }
+}
+@keyframes try-again-fade {
+  0%, 78% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.try-again {
+  animation: try-again var(--try-again-ms, 1600ms) ease-out 1 both;
+}
+/* Then the hint that second check brought in sends out one purple ring, starting as the pill fades. The element must be positioned. */
+@keyframes hint-ring {
+  0% { box-shadow: 0 0 0 0 rgb(91 74 232 / 0.55); }
+  100% { box-shadow: 0 0 0 22px rgb(91 74 232 / 0); }
+}
+.ring-out::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: hint-ring var(--hint-ring-ms, 900ms) ease-out var(--try-again-ms, 1600ms) 1 both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .try-again {
+    animation-name: try-again-fade;
+  }
+  .ring-out::after {
+    animation: none;
+  }
+}
+
 /* The overview's CONTINUE (ticket 154): the same accent ring, slow and without end, until the button is pressed; the tiles are not buttons and this is. Reduced motion holds a soft halo instead. The element must be positioned. */
 @keyframes pulse-loop {
   0% { box-shadow: 0 0 0 0 rgb(91 74 232 / 0.45); }

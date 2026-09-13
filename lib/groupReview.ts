@@ -186,6 +186,34 @@ export const LEAVE_AFTER_WRONG = 3;
 /** How long the board holds the last wrong check before it moves on, so the group reads it. */
 export const LEAVE_PAUSE_MS = 6_000;
 
+/** How long the "Try again" pill lives: it pops in mid-screen, pulses once and fades (ticket 238). */
+export const TRY_AGAIN_MS = 1_600;
+/** The hint's one purple ring, which starts as the second check's pill fades (ticket 238). */
+export const HINT_RING_MS = 900;
+
+/**
+ * The moment of a wrong check the board goes on from, which pops "Try again" on every member's iPad
+ * (ticket 238): a first visit's first or second wrong check. Not the third (the board leaves the
+ * problem for now) nor a wrong return (it closes unsolved). Null otherwise, and for a run stored without the moment.
+ */
+export function tryAgainAt(run: GroupRun): number | null {
+  const visit = currentVisit(run);
+  if (!visit || visit.returning || isClosed(run, visit.problem)) return null;
+  const last = attemptsOn(run, visit.problem).at(-1);
+  if (!last || last.correct || last.at === undefined) return null;
+  return wrongChecks(run, visit.problem) < LEAVE_AFTER_WRONG ? last.at : null;
+}
+/** The pill is still up: within `TRY_AGAIN_MS` of its check, so a reload later never pops it again. */
+export function tryAgainShowing(run: GroupRun, now: number): boolean {
+  const at = tryAgainAt(run);
+  return at !== null && now < at + TRY_AGAIN_MS;
+}
+/** When the hint's ring starts: the second wrong check's pill gone, the hint that check brought in. Null on any other check. */
+export function hintRingAt(run: GroupRun): number | null {
+  const at = tryAgainAt(run);
+  return at !== null && wrongChecks(run, currentProblem(run) ?? "") === HINT_AFTER_WRONG ? at + TRY_AGAIN_MS : null;
+}
+
 /** The board is holding a third wrong check before leaving the problem for now: nothing more is written on this visit. */
 export function leaving(run: GroupRun): boolean {
   const visit = currentVisit(run);

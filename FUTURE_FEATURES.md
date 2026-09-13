@@ -3127,6 +3127,14 @@ uploaded problems) settled the following as later, each on purpose.
 - **Q5 and Q7 have six and five columns of working** on the Mistakes tab (short maths, nothing overflows at 1280). Folding Isla's kept-sign line in with Lucas and Harper's would read tidier but blurs a habit the sheet names separately. Deferred: fine at today's widths.
 - **A "right after a wrong line" state**: Isla's Q5 writes x² − 3x + 10 = 0 and then the right factors; the table can only call the later lines ok. A verdict for "right, but not from the line above" would describe it.
 
+## Try again pill and hint ring (ticket 238, 2026-09-13)
+
+- **A named pill for the watchers.** All four see "Try again"; the three without the pen could read "Sam is trying again". Deferred: the user chose the same text for everyone.
+- **Tries left.** The pill could say how many checks remain before the problem is left for now. Deferred: it would add pressure and give away the ladder.
+- **A ring on the Not yet card's red line after the first check.** The first wrong check has no hint to point at; the red line could get the same ring. Deferred: the user asked for the hint only.
+- **Sound or haptics.** A soft tap on the iPads as the pill pops. Deferred: the demo has no audio anywhere.
+- **The pill over a peer's strokes.** The pill sits over the board's centre for 1.6 s; if a fast writer starts at once it covers their first line briefly (the pen still writes through it). Move it to the column or shorten it if that bothers anyone.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
