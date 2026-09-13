@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import DiagnosticResults from "@/components/DiagnosticResults";
+import FitText from "@/components/FitText";
 import M from "@/components/Math";
 import { Button, Card } from "@/components/ui";
 import type { Diagnostic } from "@/data/diagnostic";
@@ -99,7 +100,7 @@ export default function DiagnosticPush({ example, problemId, className = "" }: {
   const actions = (run: DiagnosticRun | null, send: () => void, disabled: boolean, attr: string) => (
     <div className="mt-4 flex justify-end">
       {mine && run ? (
-        <div className="flex flex-1 items-center justify-between rounded-xl border border-accent-line bg-accent-soft/50 px-4 py-3 text-[13px] text-ink" data-pending>
+        <div className="flex flex-1 items-center justify-between rounded-xl border border-accent-line bg-accent-soft/50 px-4 py-3 text-[15px] text-ink" data-pending>
           <span className="flex items-center gap-2">
             <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
             Waiting · {tally(run, now).answered}/{tally(run, now).total} in
@@ -109,7 +110,7 @@ export default function DiagnosticPush({ example, problemId, className = "" }: {
           </button>
         </div>
       ) : (
-        <Button variant="sky" disabled={disabled || elsewhere} title={elsewhere ? "Another diagnostic is waiting on the class" : undefined} onClick={send} {...{ [attr]: true }}>
+        <Button variant="sky" size="lg" disabled={disabled || elsewhere} title={elsewhere ? "Another diagnostic is waiting on the class" : undefined} onClick={send} {...{ [attr]: true }}>
           send to class
         </Button>
       )}
@@ -123,7 +124,7 @@ export default function DiagnosticPush({ example, problemId, className = "" }: {
     if (!latest || t.answered === 0) return null;
     const onBoard = boardDiagnostic(classroom, now) === run;
     return (
-      <div className="mt-2 flex justify-end text-[12.5px]">
+      <div className="mt-2 flex justify-end text-[15px]">
         {onBoard ? (
           <button type="button" className="text-accent-deep hover:underline" onClick={() => dispatchClassroom({ type: "diagnostic/board", on: false })} data-diag-board="clear">
             clear board
@@ -141,7 +142,7 @@ export default function DiagnosticPush({ example, problemId, className = "" }: {
     <>
       <div className="flex items-center">{chip}</div>
 
-      <div className="mt-3 grid grid-cols-2 gap-1 rounded-full border border-line bg-cream/60 p-1 text-[12.5px]" role="tablist">
+      <div className="mt-3 grid grid-cols-2 gap-1 rounded-full border border-line bg-cream/60 p-1 text-[15px]" role="tablist">
         {(["example", "own"] as Tab[]).map((t) => (
           <button
             key={t}
@@ -149,7 +150,7 @@ export default function DiagnosticPush({ example, problemId, className = "" }: {
             role="tab"
             aria-selected={tab === t}
             onClick={() => setTab(t)}
-            className={`rounded-full px-3 py-1.5 font-medium transition-colors ${tab === t ? "bg-standout-soft text-standout" : "text-ink-soft hover:text-ink"}`}
+            className={`rounded-full px-3 py-2 font-medium transition-colors ${tab === t ? "bg-standout-soft text-standout" : "text-ink-soft hover:text-ink"}`}
             data-diag-tab={t}
           >
             {t === "example" ? "example" : "make your own"}
@@ -161,18 +162,22 @@ export default function DiagnosticPush({ example, problemId, className = "" }: {
         <div data-diag-example>
           {exampleRun ? (
             <>
-              <DiagnosticResults question={example} tally={tally(exampleRun, now)} className="mt-3" />
+              <DiagnosticResults question={example} tally={tally(exampleRun, now)} size="panel" className="mt-4" />
               {!mine && boardLinks(exampleRun)}
             </>
           ) : (
             <>
-              <p className="mt-3 text-[14px] text-ink">
-                {example.stem} <M tex={example.tex} />?
+              <p className="mt-4 text-[17px] leading-snug text-ink" data-diag-stem>
+                {example.stem}{" "}
+                {/* The question mark stays with the maths: never a line of its own. */}
+                <span className="whitespace-nowrap">
+                  <M tex={example.tex} />?
+                </span>
               </p>
-              <div className="mt-3 flex flex-wrap gap-1.5 text-[12.5px] text-ink-soft">
+              <div className="mt-4 flex flex-wrap gap-2 text-[16px] text-ink" data-diag-options>
                 {example.options.map((o) => (
-                  <span key={o.id} className={`rounded-lg border px-2 py-1 ${o.id === example.correct ? "border-secure-line bg-secure-soft" : "border-line bg-paper"}`}>
-                    <span className="mr-1 text-[10px] font-semibold uppercase text-ink-muted">{o.id}</span>
+                  <span key={o.id} className={`rounded-xl border px-3 py-1.5 ${o.id === example.correct ? "border-secure-line bg-secure-soft" : "border-line bg-paper"}`}>
+                    <span className="mr-1.5 text-[12px] font-semibold uppercase text-ink-muted">{o.id}</span>
                     <M tex={o.tex} />
                   </span>
                 ))}
@@ -184,8 +189,8 @@ export default function DiagnosticPush({ example, problemId, className = "" }: {
       ) : (
         <div data-diag-own>
           <div className="mt-3 space-y-2">
-            <input value={stem} onChange={(e) => setStem(e.target.value)} placeholder="Question" aria-label="Question" className="w-full rounded-xl border border-line bg-paper px-3 py-2 text-[14px] text-ink outline-none focus:border-accent" data-own-stem />
-            <input value={tex} onChange={(e) => setTex(e.target.value)} placeholder="Expression (TeX, optional)" aria-label="Expression" className="w-full rounded-xl border border-line bg-paper px-3 py-2 text-[14px] text-ink outline-none focus:border-accent" data-own-tex />
+            <input value={stem} onChange={(e) => setStem(e.target.value)} placeholder="Question" aria-label="Question" className="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-[16px] text-ink outline-none focus:border-accent" data-own-stem />
+            <input value={tex} onChange={(e) => setTex(e.target.value)} placeholder="Expression (TeX, optional)" aria-label="Expression" className="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-[16px] text-ink outline-none focus:border-accent" data-own-tex />
             <ul className="space-y-1.5">
               {options.map((o, i) => {
                 const id = "abcd"[i];
@@ -196,7 +201,7 @@ export default function DiagnosticPush({ example, problemId, className = "" }: {
                       onClick={() => setCorrect(id)}
                       aria-pressed={correct === id}
                       title="Correct answer"
-                      className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border text-[10px] font-semibold uppercase ${correct === id ? "border-secure-line bg-secure-soft text-secure" : "border-line bg-paper text-ink-muted"}`}
+                      className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border text-[12px] font-semibold uppercase ${correct === id ? "border-secure-line bg-secure-soft text-secure" : "border-line bg-paper text-ink-muted"}`}
                       data-own-correct={id}
                     >
                       {id}
@@ -206,12 +211,14 @@ export default function DiagnosticPush({ example, problemId, className = "" }: {
                       onChange={(e) => setOptions((os) => os.map((x, n) => (n === i ? e.target.value : x)))}
                       placeholder={`Option ${id.toUpperCase()}`}
                       aria-label={`Option ${id.toUpperCase()}`}
-                      className="min-w-0 flex-1 rounded-xl border border-line bg-paper px-3 py-1.5 text-[13.5px] text-ink outline-none focus:border-accent"
+                      className="min-w-0 flex-1 rounded-xl border border-line bg-paper px-3 py-2 text-[16px] text-ink outline-none focus:border-accent"
                       data-own-option={id}
                     />
                     {o.trim() && (
-                      <span className="hidden w-24 truncate text-[12.5px] text-ink-soft sm:block">
-                        <M tex={o} />
+                      <span className="hidden w-32 shrink-0 text-ink sm:block" data-own-preview>
+                        <FitText max={16} fitKey={o}>
+                          <M tex={o} />
+                        </FitText>
                       </span>
                     )}
                   </li>
@@ -222,7 +229,7 @@ export default function DiagnosticPush({ example, problemId, className = "" }: {
           {actions(ownRun, () => own && push(customQuestion(stem, tex, options, correct, now, problemId)!), !own, "data-push-own")}
           {ownRun && ownRun.question && (
             <>
-              <DiagnosticResults question={ownRun.question} tally={tally(ownRun, now)} className="mt-4 border-t border-line pt-4" />
+              <DiagnosticResults question={ownRun.question} tally={tally(ownRun, now)} size="panel" className="mt-4 border-t border-line pt-4" />
               {!mine && boardLinks(ownRun)}
             </>
           )}
@@ -248,7 +255,7 @@ export default function DiagnosticPush({ example, problemId, className = "" }: {
       </div>
       {open && (
         <div ref={clampToViewport} className="absolute" style={{ top: CHIP_TOP - FRAME, left: -FRAME }} data-diag-flyout>
-          <Card className="w-[380px] p-6 shadow-lift">{body}</Card>
+          <Card className="w-[460px] p-6 shadow-lift">{body}</Card>
         </div>
       )}
     </div>

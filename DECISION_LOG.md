@@ -3840,3 +3840,30 @@ can run up to a second long (the 1 s clock).
 
 **Defense.** Nothing moves under the pointer by construction, the rest of the page stays live, and the
 held arrivals still announce themselves when they land.
+
+## 2026-09-13 · Typeset maths never wraps: one global `.katex { white-space: nowrap }` (ticket 194)
+
+**Decision.** `app/globals.css` sets `white-space: nowrap` on `.katex`, so every KaTeX expression in the
+app stays on one line and moves to the next line whole. Containers that could be too narrow scale the
+maths (`FitText`) or are sized for it; the flyout also holds a trailing `?` to its maths.
+
+**Context.** The user (2026-09-13): "ensure that a latex equation never splits lines -- make this a rule
+throughout", after Q7's diagnostic read "⅓x² + / 2x + 8/3". KaTeX 0.18 renders each run between
+operators as a separate `.katex-base` inline box, and browsers may break a line between them; KaTeX's
+own CSS makes only each box nowrap. A sweep of every route found splits in three diagnostic flyouts
+at every width and in nine mistake headers at 400 px.
+
+**Alternatives.** *`whitespace-nowrap` per call site* (the pattern `DiagnosticResults` already used): a
+rule that every new `<M>` must remember, which is how the flyout's stem slipped. *A `nowrap` prop on
+`M`*: same, opt-in. *KaTeX's `\mbox` / a `{...}` group around each expression*: changes the TeX and its
+spacing, which the hint-box rule forbids. *Scaling every inline expression with `FitText`*: a measure
+per expression on every screen for a problem nowrap solves in CSS.
+
+**Tradeoffs.** An expression wider than its box now overflows (or is clipped) instead of wrapping, so a
+narrow container needs a deliberate fit; at 400 px the teacher mistake headers clip by up to 26 px
+(laptop-only page, logged in FUTURE_FEATURES). A long expression beside prose leaves a larger ragged gap
+at the end of the line before it.
+
+**Defense.** One rule, enforced everywhere with no call-site discipline, matching how maths is typeset in
+print; the laptop check (30), the hint-box sweep (30) and the all-route wrap sweep show no overflow at
+the laptop sizes and no layout movement in the practice maths.

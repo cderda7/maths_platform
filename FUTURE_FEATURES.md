@@ -2796,6 +2796,19 @@ uploaded problems) settled the following as later, each on purpose.
   (pset-2 before Create, the finished set's Pathway card, the plain list's links) and no longer run as
   written; ticket 189's stream189.mjs covers their live-set essentials.
 
+## Diagnostic flyout text and unbroken maths (from ticket 194, 2026-09-13)
+
+- **Class View's diagnostic card keeps its compact text.** The request pointed at the mistake view's
+  flyout; `DiagnosticCard` in Class View's narrow side column still sets its result at 14 / 12.5 px.
+  A `size="panel"` pass there would need the side column's width traded with the roster.
+- **Mistake headers on a phone-width window clip their maths.** With maths never wrapping, seven of
+  Problem Set 2's problem headers at 400 px wide end 7–26 px past the card's clip (the teacher side is
+  laptop-only). A header that drops the expression to its own row under the label on narrow widths is
+  not built; it would change `PROBLEM_HEADER`, which the chip and count boxes centre on.
+- **The flyout covers part of its own problem card at 1280.** Wider (460 px) and clamped to the
+  viewport, it lies over the card's right column there, as the 380 px panel already did by less.
+  Opening it leftward or as a side sheet on narrow laptops is not built.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
