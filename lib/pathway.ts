@@ -51,9 +51,9 @@ export function nextStage(pathway: readonly ReviewStage[], from: Transition): St
 export const STAGE_WORD: Record<ReviewStage, string> = { individual: "individual review", group: "group review", "whole-class": "class review" };
 export const STAGE_SHORT: Record<ReviewStage, string> = { individual: "indiv review", group: "group review", "whole-class": "class review" };
 
-/** "student submission → individual review → group review → done" */
+/** "individual working → individual review → group review → done" */
 export function pathwaySentence(p: readonly ReviewStage[]): string {
-  return ["student submission", ...p.map((s) => STAGE_WORD[s]), "done"].join(" → ");
+  return ["individual working", ...p.map((s) => STAGE_WORD[s]), "done"].join(" → ");
 }
 
 /** "indiv working → indiv review → group review" for the chip (the class view's card, ticket 129). */

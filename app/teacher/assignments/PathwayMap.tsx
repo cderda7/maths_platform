@@ -24,7 +24,7 @@ export default function PathwayMap({ value, onChange }: { value: Pathway; onChan
     <div data-pathway-map>
       <div className="flex items-start gap-3">
         <div className="flex flex-col items-start gap-3">
-          <Node bold label="student submission" onClick={() => onChange([])} />
+          <Node bold label="individual working" onClick={() => onChange([])} />
           <button type="button" disabled className="w-40 rounded-xl border border-dashed border-line-strong px-4 py-2.5 text-left text-[13px] leading-snug text-ink-muted opacity-60" data-node="continue-tomorrow" title="Coming soon">
             continue tomorrow
             <span className="ml-2 text-[10.5px] uppercase tracking-wide">soon</span>
