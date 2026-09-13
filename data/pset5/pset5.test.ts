@@ -9,15 +9,13 @@ import { PS5_EVALUATION } from "./evaluation";
 import { EVALUATION } from "../evaluation";
 import { assignmentBundle, assignmentIds, assignmentReportHref, assignmentStages, earlierAssignmentIds, landingTab, rosterProgress, studentRecord, submittedCount } from "@/lib/assignments";
 import { evaluateLine } from "@/lib/evaluate";
-import { categoriesTouched, classmateHierarchy } from "@/lib/hierarchy";
-import { HISTORY_DATES, historyFor } from "@/lib/history";
+import { categoriesTouched } from "@/lib/hierarchy";
 import { groupBySlip, mistakesByProblem } from "@/lib/mistakes";
 import { commentaryFor } from "@/lib/commentary";
 import { INITIAL_CLASSROOM } from "@/lib/classroom";
 import { CLASS_SIZE } from "@/lib/readiness";
 import { sessionAt } from "@/lib/session";
 import { skipFixture } from "@/lib/demo";
-import { categoryHistory, earlierResults } from "@/lib/setHistory";
 import { assignmentCard, topGap } from "@/lib/classroomCards";
 
 const now = 1_700_000_000_000;
@@ -201,43 +199,4 @@ describe("Problem Set 5 in the registry (ticket 187)", () => {
   });
 });
 
-describe("history across the two sets (ticket 187)", () => {
-  const ps5 = assignmentBundle("pset-5", INITIAL_CLASSROOM)!;
-  const columns = categoriesTouched(ASSIGNMENT);
-
-  it("on Problem Set 6 every student's newest pill in every category is their Problem Set 5 status, dated Sep 7; the four before it are simulated, dated earlier", () => {
-    for (const c of everyone) {
-      const ps5Status = classmateHierarchy(c, PS5_ASSIGNMENT).categories;
-      for (const cat of columns) {
-        const h = categoryHistory("pset-6", c.id, cat, "gap");
-        expect(h).toHaveLength(5);
-        expect(h[4], `${c.id} ${cat}`).toEqual({ date: "Sep 7", status: ps5Status[cat] ?? "unseen" });
-        expect(h.slice(0, 4).map((p) => p.date)).toEqual(HISTORY_DATES.slice(1));
-        expect(h.slice(0, 4).every((p) => p.status !== "unseen")).toBe(true);
-      }
-    }
-  });
-
-  it("Problem Set 5's own history is the five simulated results before it, and agrees with Problem Set 6's on every shared date", () => {
-    for (const c of everyone) {
-      for (const cat of columns) {
-        const today = classmateHierarchy(c, PS5_ASSIGNMENT).categories[cat] ?? "unseen";
-        const own = categoryHistory("pset-5", c.id, cat, today);
-        expect(own.map((p) => p.date)).toEqual([...HISTORY_DATES]);
-        expect(own).toEqual(historyFor(c.id, cat, today));
-        expect(categoryHistory("pset-6", c.id, cat, "secure").slice(0, 4)).toEqual(own.slice(1));
-      }
-    }
-  });
-
-  it("reads real statuses: Priya dark green, Liam nothing seen, Mia's algebra not secure after the guessed pairs", () => {
-    for (const cat of columns) {
-      expect(earlierResults("pset-6", "priya", cat)).toEqual([{ date: "Sep 7", status: "secure" }]);
-      expect(earlierResults("pset-6", "liam", cat)).toEqual([{ date: "Sep 7", status: "unseen" }]);
-    }
-    expect(earlierResults("pset-6", "mia", "algebra")[0].status).not.toBe("secure");
-    expect(earlierResults("pset-6", "nobody", "algebra")).toEqual([]);
-    expect(earlierResults("pset-5", "mia", "algebra")).toEqual([]);
-    void ps5;
-  });
-});
+// The two sets' history (ticket 187) is tested over the registry in lib/setHistory.test.ts (ticket 215).

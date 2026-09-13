@@ -2,27 +2,42 @@ import type { CategoryId } from "@/data/taxonomy";
 import type { Status } from "@/data/types";
 
 /**
- * A student's recent history in a category (ticket 175): the status the same category rolled up
- * to on the last five assignments and assessments that touched it, oldest first. Real where the
- * data has the set (ticket 187: Problem Set 5's results, `lib/setHistory.ts`), simulated before
- * it: there is no earlier work in the data, so those points are drawn from a fixed mix around a
- * status (a red pill has red and orange behind it, an orange one mostly orange with some red and
- * some light green, a light green one a mix of orange, light green and dark green, a dark green one
- * mostly dark green with some light green) and shuffled by a seed from the student and category,
- * so every reload and every screenshot shows the same five. An average, not a trend: a dark green
- * three weeks ago on a red-today skill means that set was easier, not that the student has fallen.
+ * A student's recent history in a category (tickets 175, 187, 215): the status the category rolled up to on
+ * the last five earlier sets that assessed it, oldest first, above today's pill on a set's Class View.
+ *
+ * Real where the Classroom holds the set (`lib/setHistory.ts` reads the registry): each real point names its
+ * set and links to it. Too few real sets and simulated points fill the top of the stack, read as the class's
+ * work before Edexia: dated from a week before the class's first set up to (never on or after) that set, on
+ * weekdays, and walked one colour step at a time from the oldest real result (or today's pill with none), so
+ * nothing jumps (red beside light green): a student's results are consistent between sets. Seeded by student
+ * and category, so every reload shows the same walk. An average, not a trend: a dark green a week ago on a
+ * red-today skill means that set was easier, not that the student has fallen. Pure.
  */
-export interface HistoryPoint {
-  /** The date the evidence was recorded, as the pill's label ("Sep 9"). */
-  date: string;
-  status: Status;
+
+/** A set a real history point came from. */
+export interface HistorySet {
+  id: string;
+  /** "PS5": the set's short name on the pill. */
+  short: string;
+  /** "Problem Set 5 — Features of a parabola", for the pill's accessible name. */
+  name: string;
+  /** The set's day, as its fixture's `due` reads ("Mon 7 Sep"). */
+  due: string;
 }
 
-/**
- * The dates of the five simulated results, oldest first, the same for every student and category: all
- * before Problem Set 5 (due Mon 7 Sep, ticket 187), whose real result follows them.
- */
-export const HISTORY_DATES = ["Aug 11", "Aug 14", "Aug 20", "Aug 25", "Aug 28"] as const;
+export interface HistoryPoint {
+  /** The day the evidence was recorded ("Mon 7 Sep"). */
+  date: string;
+  status: Status;
+  /** The set it came from; null on a simulated point. */
+  set: HistorySet | null;
+}
+
+/** An earlier set that assessed the category, and the student's status in it there (oldest first in a list). */
+export interface EarlierResult {
+  set: HistorySet;
+  status: Status;
+}
 
 /** How many results a history shows. */
 export const HISTORY_LENGTH = 5;
@@ -30,39 +45,16 @@ export const HISTORY_LENGTH = 5;
 /** The one student whose history is dark green everywhere: dark green today in every category, and on every earlier set behind it. */
 export const ALL_SECURE_STUDENT = "priya";
 
-/**
- * The mix behind each status today: a few five-pill multisets the seed picks between, so two
- * students red today do not show the same five. A student with nothing seen yet in a category
- * (a hollow pill) gets the orange mix: the past is coloured even when today is not.
- */
-const MIXES: Record<Status, Status[][]> = {
-  gap: [
-    ["gap", "gap", "gap", "developing", "developing"],
-    ["gap", "gap", "developing", "developing", "developing"],
-    ["gap", "gap", "gap", "gap", "developing"],
-  ],
-  developing: [
-    ["developing", "developing", "developing", "gap", "solid"],
-    ["developing", "developing", "gap", "gap", "solid"],
-    ["developing", "developing", "developing", "developing", "gap"],
-  ],
-  solid: [
-    ["solid", "solid", "developing", "secure", "secure"],
-    ["solid", "solid", "solid", "developing", "secure"],
-    ["solid", "developing", "developing", "secure", "solid"],
-  ],
-  secure: [
-    ["secure", "secure", "secure", "secure", "solid"],
-    ["secure", "secure", "secure", "solid", "solid"],
-    ["secure", "secure", "secure", "secure", "secure"],
-  ],
-  unseen: [
-    ["developing", "developing", "developing", "gap", "solid"],
-    ["developing", "developing", "gap", "gap", "solid"],
-  ],
-};
+/** The colour ladder a history walks: red, orange, light green, dark green. A hollow (unseen) pill is off it. */
+const LADDER: readonly Exclude<Status, "unseen">[] = ["gap", "developing", "solid", "secure"];
 
-/** A small string hash (FNV-1a, 32-bit) so the same student and category always seed the same draw. */
+/** How many ladder steps apart two statuses are; 0 when either is hollow (nothing to compare). */
+export function stepsApart(a: Status, b: Status): number {
+  if (a === "unseen" || b === "unseen") return 0;
+  return Math.abs(LADDER.indexOf(a) - LADDER.indexOf(b));
+}
+
+/** A small string hash (FNV-1a, 32-bit) so the same student and category always seed the same walk. */
 function hash(s: string): number {
   let h = 0x811c9dc5;
   for (let i = 0; i < s.length; i++) {
@@ -72,7 +64,7 @@ function hash(s: string): number {
   return h >>> 0;
 }
 
-/** A tiny seeded generator (mulberry32) for the shuffle. */
+/** A tiny seeded generator (mulberry32) for the walk. */
 function rng(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
@@ -84,32 +76,89 @@ function rng(seed: number): () => number {
   };
 }
 
-/** Five simulated points, oldest first, for one student in one category, drawn around `today` (the status the mix is centred on). */
-export function historyFor(student: string, category: CategoryId, today: Status): HistoryPoint[] {
-  if (student === ALL_SECURE_STUDENT) return HISTORY_DATES.map((date) => ({ date, status: "secure" }));
+/**
+ * `n` simulated statuses, oldest first, for one student in one category: a walk back from `anchor` (the status
+ * the newest simulated point sits beside), each point the same as the one after it about half the time and one
+ * step up or down otherwise, so neighbours never differ by more than one step and the newest is within one of
+ * the anchor. A hollow anchor walks around orange. `ALL_SECURE_STUDENT` is dark green throughout.
+ */
+export function simulatedWalk(student: string, category: CategoryId, anchor: Status, n: number): Exclude<Status, "unseen">[] {
+  if (n <= 0) return [];
+  if (student === ALL_SECURE_STUDENT) return Array.from({ length: n }, () => "secure");
   const next = rng(hash(`${student}/${category}`));
-  const mixes = MIXES[today];
-  const statuses = [...mixes[Math.floor(next() * mixes.length)]];
-  for (let i = statuses.length - 1; i > 0; i--) {
-    const j = Math.floor(next() * (i + 1));
-    [statuses[i], statuses[j]] = [statuses[j], statuses[i]];
+  let at = LADDER.indexOf(anchor === "unseen" ? "developing" : anchor);
+  const out: Exclude<Status, "unseen">[] = [];
+  for (let i = 0; i < n; i++) {
+    const r = next();
+    const move = r < 0.5 ? 0 : r < 0.75 ? -1 : 1;
+    // At an end of the ladder a step off it turns back inwards.
+    at = at + move < 0 || at + move >= LADDER.length ? at - move : at + move;
+    out.push(LADDER[at]);
   }
-  return HISTORY_DATES.map((date, i) => ({ date, status: statuses[i] }));
+  return out.reverse();
+}
+
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
+/** The demo's school year: a set's `due` ("Mon 7 Sep") names no year. */
+const YEAR = 2026;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** A set's day ("Mon 7 Sep") as a UTC midnight, or null when it does not read as a day. */
+export function parseDay(due: string): number | null {
+  const m = /(\d{1,2})\s+([A-Za-z]{3})/.exec(due);
+  const month = m ? MONTHS.findIndex((x) => x.toLowerCase() === m[2].toLowerCase()) : -1;
+  return m && month >= 0 ? Date.UTC(YEAR, month, Number(m[1])) : null;
+}
+
+/** A UTC midnight as a pill's day: "Fri 21 Aug". */
+export function formatDay(t: number): string {
+  const d = new Date(t);
+  return `${WEEKDAYS[d.getUTCDay()]} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
 }
 
 /**
- * A history with real results after the simulated ones (ticket 187): the simulated five, then the
- * `earlier` sets' results (oldest first), the last five of those. The simulated points are drawn around
- * the oldest real result when there is one, so a set's history and a later set's agree on every date
- * they share; with none, around `today`.
+ * The days of `n` simulated points, oldest first: the oldest a week before the class's first set (`firstDue`),
+ * the rest spread evenly over the weekdays after it and before that set, so they read as class days before
+ * Edexia and never land on or after the first set.
  */
-export function historyWith(student: string, category: CategoryId, today: Status, earlier: readonly HistoryPoint[]): HistoryPoint[] {
-  const simulated = historyFor(student, category, earlier[0]?.status ?? today);
-  return [...simulated, ...earlier].slice(-HISTORY_LENGTH);
+export function simulatedDates(firstDue: string, n: number): string[] {
+  if (n <= 0) return [];
+  const first = parseDay(firstDue);
+  if (first === null) return Array.from({ length: n }, () => "");
+  const oldest = first - 7 * DAY_MS;
+  const between: number[] = [];
+  for (let t = oldest + DAY_MS; t < first; t += DAY_MS) {
+    const wd = new Date(t).getUTCDay();
+    if (wd !== 0 && wd !== 6) between.push(t);
+  }
+  const pool = between.length >= n - 1 ? between : Array.from({ length: 6 }, (_, i) => oldest + (i + 1) * DAY_MS);
+  // n - 1 picks spread over the pool, the latest on its last day: even steps back from the end.
+  const picks = Array.from({ length: n - 1 }, (_, i) => pool[Math.round(((i + 1) * pool.length) / (n - 1 || 1)) - 1]);
+  return [oldest, ...picks].map(formatDay);
 }
 
-/** The pill's date for a set due on a day: "Mon 7 Sep" is "Sep 7". */
-export function historyDate(due: string): string {
-  const m = /(\d{1,2})\s+([A-Za-z]{3})/.exec(due);
-  return m ? `${m[2]} ${m[1]}` : due;
+/**
+ * A history: the last five `earlier` results (oldest first), topped up with simulated points when there are
+ * fewer than five. The simulated walk ends beside the oldest real result that has a colour (else today's pill,
+ * else orange); its days run from a week before the class's first set (`firstDue`).
+ */
+export function historyWith(student: string, category: CategoryId, today: Status, earlier: readonly EarlierResult[], firstDue: string): HistoryPoint[] {
+  const real = earlier.slice(-HISTORY_LENGTH).map(({ set, status }) => ({ date: set.due, status, set }));
+  const missing = HISTORY_LENGTH - real.length;
+  const anchor = real.find((p) => p.status !== "unseen")?.status ?? today;
+  const dates = simulatedDates(firstDue, missing);
+  const simulated = simulatedWalk(student, category, anchor, missing).map((status, i) => ({ date: dates[i], status, set: null }));
+  return [...simulated, ...real];
+}
+
+/** A set's short name for its pill: "Problem Set 5 — Features of a parabola" is "PS5"; a name without a number keeps its first word. */
+export function shortSetName(name: string): string {
+  const m = /problem\s+set\s+(\d+)/i.exec(name);
+  return m ? `PS${m[1]}` : (name.split(/\s+/)[0] ?? name);
+}
+
+/** The words on a history pill: "PS5 · Mon 7 Sep" for a real set, the day alone ("Fri 21 Aug") for a simulated point. */
+export function pillLabel(p: HistoryPoint): string {
+  return p.set ? `${p.set.short} · ${p.date}` : p.date;
 }

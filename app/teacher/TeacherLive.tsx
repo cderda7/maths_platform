@@ -14,7 +14,7 @@ import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { StatusDot, STATUS_WORD } from "@/components/Tag";
 import { DEMO_STUDENT, unitLabel } from "@/data/assignment";
 import type { Classmate } from "@/data/classmates";
-import { categoryName, isFlat, type CategoryId, type LeafId } from "@/data/taxonomy";
+import { CATEGORY_ORDER, categoryName, isFlat, type CategoryId, type LeafId } from "@/data/taxonomy";
 import { confidenceForms, confidenceLabel, type ConfidenceForm } from "@/lib/report";
 import { BEFORE_HAND_IN_STAGES, type Confidence } from "@/data/types";
 import { assignmentReportHref, assignmentStages, rosterProgress } from "@/lib/assignments";
@@ -23,8 +23,8 @@ import { useClassroom } from "@/lib/classroom-store";
 import { progressTag } from "@/lib/progress";
 import { classmatesAt } from "@/lib/stream";
 import { classmateEvidence, columnOf, hierarchyFor, problemsStarted, restrictTo, sessionEvidence, type Evidence } from "@/lib/hierarchy";
-import type { HistoryPoint } from "@/lib/history";
-import { categoryHistory } from "@/lib/setHistory";
+import { pillLabel, type HistoryPoint } from "@/lib/history";
+import { categoryHistory, historyPillHref } from "@/lib/setHistory";
 import { useBatchedSession, useNow } from "@/lib/store";
 
 /** How long a second click may follow the first and still count as a double-click. */
@@ -87,6 +87,17 @@ const HISTORY_STACK_PX = 5 * 13 + 5 * 2;
 const HISTORY_CLEAR_PX = 6;
 
 /**
+ * A history pill (ticket 215): the stack's full width, so every pill in a column is one width whatever its label,
+ * with no side padding or tracking, so "PS5 · MON 7 SEP" (73 layout px at 9 px) fits the narrowest column's pill
+ * (Algebra's 80 px column less 1 px a side: 78, 76 inside its border).
+ */
+const HISTORY_PILL = "w-full! px-0! tracking-normal!";
+/** In history mode a category cell's pill fills its column less 1 px a side (ticket 215), so today's named pill is as wide as the stack above it needs. */
+const HISTORY_CELL = "px-px";
+/** A real history pill's link: the pill's own box, a pointer, a lift on hover and a visible ring on keyboard focus (ticket 215). */
+const HISTORY_LINK = "flex rounded outline-none transition-[filter] hover:brightness-110 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:ring-offset-paper";
+
+/**
  * A category column's width in px: its header chip (11 px uppercase, 0.06 em tracking, 10 px padding a side: about
  * 20 px plus 8 a letter, so Algebra 75, Graphing 83, Functions and Reasoning 91, New skills 93, Communication 126)
  * with 2 px clear each side, in 8 px steps (ticket 141; ticket 136 gave every column 96 or 132).
@@ -121,6 +132,23 @@ function ago(ms: number | null, now: number): string {
 const HANDED_IN = BEFORE_HAND_IN_STAGES;
 
 /**
+ * History mode from a real history pill's link (ticket 215): `?history=<student>&open=<category>`, read by the page and handed in as `init`, kept only when the
+ * set has that student and the category is one the taxonomy knows (a category the set does not show opens no stack).
+ */
+export interface ClassViewInit {
+  /** `?history=<student>`: open history mode on this student. */
+  history: string | null;
+  /** `?open=<category>`: with that category's stack standing. */
+  open: string | null;
+}
+
+function historyFromQuery(init: ClassViewInit | undefined, set: { classmates: readonly Classmate[] }): { student: string; open: CategoryId[] } | null {
+  const student = init?.history;
+  if (!student || !(student === DEMO_STUDENT.id || set.classmates.some((c) => c.id === student))) return null;
+  return { student, open: CATEGORY_ORDER.filter((c) => c === init.open) };
+}
+
+/**
  * "Where the class is": one row per student, one column per category the assignment touches
  * (canonical order), each a pill in the worst status beneath it (ticket 125; groups and skills are dots). Clicking a pill expands that row into
  * the category → group → leaf → work drill; hovering a student's block (their row and any drill
@@ -129,7 +157,7 @@ const HANDED_IN = BEFORE_HAND_IN_STAGES;
  * demo student's row is live (in batches); classmates come through the same evidence path from
  * their scripted attempts.
  */
-export default function TeacherLive() {
+export default function TeacherLive({ init }: { init?: ClassViewInit }) {
   const assignment = useAssignmentBundle();
   const { session, updatedAt, everyMs } = useBatchedSession(3000);
   // Only the live set is Sam's session; a finished set's row is its own record (ticket 187).
@@ -147,9 +175,19 @@ export default function TeacherLive() {
   /**
    * History mode (ticket 175): one student whose category pills widen to carry their names, every other row
    * faded; `open` lists the categories whose last five results stand stacked above the pill. Independent of
-   * `open` (a drill under the same student stays), exclusive of `column`.
+   * `open` (a drill under the same student stays), exclusive of `column`. A real history pill on a later set links
+   * here with `?history=<student>&open=<category>` (ticket 215): the page opens in history mode on that student
+   * with that category's stack standing, scrolls the row into view and drops the query, so a reload is the plain view.
    */
-  const [history, setHistory] = useState<{ student: string; open: CategoryId[] } | null>(null);
+  const [history, setHistory] = useState<{ student: string; open: CategoryId[] } | null>(() => historyFromQuery(init, assignment));
+  const fromQuery = useRef(history?.student ?? null);
+  useEffect(() => {
+    const student = fromQuery.current;
+    if (!student) return;
+    fromQuery.current = null;
+    document.querySelector(`tr[data-row="${CSS.escape(student)}"]`)?.scrollIntoView({ block: "center" });
+    window.history.replaceState(null, "", window.location.pathname);
+  }, []);
   const tableRef = useRef<HTMLTableElement>(null);
   const rosterRef = useRef<HTMLDivElement>(null);
   const sideTopRef = useRef<HTMLDivElement>(null);
@@ -344,10 +382,10 @@ export default function TeacherLive() {
         {/* `overflow-clip`, not `overflow-x-auto` (ticket 167): a scroll container would be the header row's nearest scroller, so the heads could only stick within the card, which never scrolls; `clip` still rounds the card's corners over the heads' paper backgrounds and is no scroller, so the heads stick to the top of the teacher frame's scroll region instead. A window narrower than the roster (below the 1280 laptop, where it is 1204 of 1208 px) now scrolls the frame sideways rather than the card. */}
         {/* The roster and, beside it in the same box, the history blocker (ticket 175): the cream that hides the rows above an open history is drawn outside the card, so it can rise past the card's clipped top edge over the "due" line when the history is a top row's. */}
         <div ref={rosterRef} className="relative">
-        {history && history.open.length > 0 && (
+        {history && history.open.some((c) => columns.includes(c)) && (
           <HistoryBlocker
             student={history.student}
-            stacks={history.open.map((c) => ({ category: c, points: categoryHistory(assignment.id, history.student, c, results[rows.findIndex((r) => r.id === history.student)]?.categories[c] ?? "unseen") }))}
+            stacks={history.open.filter((c) => columns.includes(c)).map((c) => ({ category: c, points: categoryHistory(assignment, history.student, c, results[rows.findIndex((r) => r.id === history.student)]?.categories[c] ?? "unseen") }))}
             tableRef={tableRef}
             rosterRef={rosterRef}
             dueRef={dueRef}
@@ -479,20 +517,20 @@ export default function TeacherLive() {
                         const blanked = !!column && column.category !== c; // a column view shows only its own column's dots
                         const historyOpen = inHistory && history.open.includes(c);
                         return (
-                          <td key={c} className="relative px-1 py-3.5 text-center">
+                          <td key={c} className={`relative py-3.5 text-center ${inHistory ? HISTORY_CELL : "px-1"}`}>
                             <button
                               type="button"
                               onClick={() => (leaveHistory(r.id) ? undefined : inHistory ? toggleHistory(c) : on && !column ? setOpen(null) : openRow(r.id, "category", c))}
                               onDoubleClick={() => (history ? undefined : openRow(r.id, "category", c, undefined, true))}
                               aria-label={inHistory ? `${categoryName(c).name}: ${STATUS_WORD[st]}; ${historyOpen ? "hide" : "show"} the last five results` : `${categoryName(c).name}: ${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}
                               aria-expanded={inHistory ? historyOpen : on}
-                              className={`inline-grid h-7 place-items-center rounded-md transition-colors hover:bg-cream-deep ${inHistory ? "w-auto px-1.5" : "w-10"} ${on ? "bg-cream-deep ring-1 ring-ink" : ""} ${blanked ? "invisible" : ""}`}
+                              className={`inline-grid h-7 place-items-center rounded-md transition-colors hover:bg-cream-deep ${inHistory ? "w-full px-0" : "w-10"} ${on ? "bg-cream-deep ring-1 ring-ink" : ""} ${blanked ? "invisible" : ""}`}
                               data-dot={c}
                               data-blanked={blanked || undefined}
                               data-history-open={historyOpen || undefined}
                             >
-                              {/* One element either way (ticket 181): in history mode the same StatusDot carries the category's name and its width grows; its five earlier results are drawn by HistoryBlocker over it. The half fill gives way to the name. */}
-                              <StatusDot status={st} half={half && !inHistory} shape="pill" label={inHistory ? categoryName(c).short : undefined} />
+                              {/* One element either way (ticket 181): in history mode the same StatusDot carries the category's name and grows to its column less 1 px a side (ticket 215); its five earlier results are drawn by HistoryBlocker over it. The half fill gives way to the name. */}
+                              <StatusDot status={st} half={half && !inHistory} shape="pill" label={inHistory ? categoryName(c).short : undefined} className={inHistory ? "w-full!" : ""} />
                             </button>
                             {column?.category === c && (
                               <span className={`${LABEL} right-[calc(50%+20px)]`} data-column-label>
@@ -812,13 +850,22 @@ function HistoryBlocker({ student, stacks, tableRef, rosterRef, dueRef, onClick 
             key={category}
             className="absolute z-30 flex flex-col items-stretch justify-evenly"
             style={{ left: pill.left, width: pill.width, top: box.top, height: box.pillTop - box.top }}
-            role="img"
-            aria-label={`${categoryName(category).short}, last five: ${points.map((p) => `${p.date} ${STATUS_WORD[p.status]}`).join(", ")}`}
+            role="list"
+            aria-label={`${categoryName(category).short}, last five: ${points.map((p) => `${p.set ? `${p.set.name}, ` : ""}${p.date} ${STATUS_WORD[p.status]}`).join("; ")}`}
             data-history-stack={category}
           >
-            {points.map((p) => (
-              <StatusDot key={p.date} status={p.status} shape="pill" label={p.date} />
-            ))}
+            {/* A real set's pill is a link to that set's Class View on this student's history (ticket 215); a simulated one is only its day. */}
+            {points.map((p) =>
+              p.set ? (
+                <Link key={p.date} href={historyPillHref(p.set.id, student, category)} role="listitem" className={HISTORY_LINK} aria-label={`${p.set.name}, ${p.date}: ${STATUS_WORD[p.status]}. Open its Class View`} data-history-point={p.set.id}>
+                  <StatusDot status={p.status} shape="pill" label={pillLabel(p)} className={HISTORY_PILL} />
+                </Link>
+              ) : (
+                <span key={p.date} role="listitem" className="flex" aria-label={`${p.date}: ${STATUS_WORD[p.status]}`} data-history-point="">
+                  <StatusDot status={p.status} shape="pill" label={pillLabel(p)} className={HISTORY_PILL} />
+                </span>
+              ),
+            )}
           </div>
         );
       })}

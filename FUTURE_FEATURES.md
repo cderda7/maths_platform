@@ -2996,6 +2996,24 @@ uploaded problems) settled the following as later, each on purpose.
 - **A words-only key on the student side.** The student's report shows the teacher's key with its percentage bands, on the user's call. If the "no scores" framing for students comes back, `StatusKey` could take a prop that hides the band column on student screens.
 - **Key lined up with the skills.** On both reports the key starts at the card's 20 px padding, about 7 px left of the first category pill and skill dots, which sit inside `SkillColumns`' grid. Aligning the key's dot column to the first skill dot would need the key to read `SkillColumns`' measured pill left. Deferred: the two reports match today, and the offset is the teacher report's existing look.
 
+## History pills follow-ups (ticket 215, 2026-09-13)
+
+- **Real results that jump.** Twenty student × category pairs move more than one colour step from
+  Set 5 to Set 6 today (listed in `KNOWN_REAL_JUMPS`, `lib/setHistory.test.ts`). Deferred: real
+  results are the class story sheet's (ticket 210); the test fails on any new jump and the list
+  should empty when the story sheet re-authors them.
+- **Two-digit set numbers.** "PS12 · WED 30 SEP" is about 83 layout px at 9 px, wider than the
+  Algebra column's pill (76 inside). Deferred: the class has six sets; if it passes nine, shorten to
+  "PS12 · 30 Sep" or let the Algebra column grow.
+- **Say where a linked pill came from.** Following "PS5 · Mon 7 Sep" opens Set 5's Class View on the
+  same student's history; a small "from Problem Set 6" back link would make the jump reversible
+  without the browser's back button. Deferred: back works, and the Classroom button is there.
+- **Simulated history on created sets and other classes.** The simulated walk is seeded per student
+  and category only, so a second class with the same student ids would show the same walks, and the
+  year is fixed at 2026 (`parseDay`). Deferred: one demo class, one year.
+- **Hover detail on a history pill.** A real pill could show the set's title and the student's
+  score in the category on hover. Deferred: the link opens the full set.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

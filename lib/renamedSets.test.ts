@@ -7,7 +7,8 @@ import nextConfig from "@/next.config";
 import { assignmentBundle, assignmentIds, isAssignmentId } from "./assignments";
 import { classroomReducer, INITIAL_CLASSROOM, migrateClassroom, type ClassroomState } from "./classroom";
 import { generatedDraft } from "./draft";
-import { HISTORY_DATES } from "./history";
+import { parseDay } from "./history";
+import { categoryHistory } from "./setHistory";
 import { currentSetId, currentSetTitle, RENAMED_SET_IDS, RENAMED_SET_TITLES } from "./renamedSets";
 
 const now = 1_700_000_000_000;
@@ -74,7 +75,6 @@ describe("the sets renamed (ticket 208)", () => {
   });
 
   it("every simulated history date still sits before Problem Set 5's Mon 7 Sep", () => {
-    const day = (d: string) => new Date(`${d} 2026`).getTime();
-    for (const d of HISTORY_DATES) expect(day(d), d).toBeLessThan(day("Sep 7"));
+    for (const p of categoryHistory(PS5_ASSIGNMENT, "mia", "algebra", "solid")) expect(parseDay(p.date)!, p.date).toBeLessThan(parseDay("Mon 7 Sep")!);
   });
 });
