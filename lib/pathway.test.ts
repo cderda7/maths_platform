@@ -49,8 +49,8 @@ describe("next stage under a pathway", () => {
 
 describe("pathway words and deep links", () => {
   it("reads the pathway in words", () => {
-    expect(pathwaySentence([])).toBe("student submission → done");
-    expect(pathwaySentence(["individual", "group"])).toBe("student submission → individual review → group review → done");
+    expect(pathwaySentence([])).toBe("individual working → done");
+    expect(pathwaySentence(["individual", "group"])).toBe("individual working → individual review → group review → done");
     expect(pathwayChip(["group", "whole-class"])).toBe("indiv working → group review → class review");
   });
 

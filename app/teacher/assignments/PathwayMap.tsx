@@ -4,7 +4,7 @@ import type { Pathway, ReviewStage } from "@/data/types";
 import { pathwaySentence, STAGE_WORD, successors } from "@/lib/pathway";
 
 /**
- * The review-pathway map. Column one is "student submission", always bold; tapping it clears
+ * The review-pathway map. Column one is "individual working", always bold; tapping it clears
  * every later column and starts again. Each later column offers the
  * stages that may legally follow what is picked so far; the pick is bold, its siblings fade but
  * stay tappable, and picking clears everything downstream. Leaving a column unpicked ends the
