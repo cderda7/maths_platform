@@ -27,11 +27,11 @@ describe("the marked view", () => {
     expect(matchesGroup(RECOGNITION_REWORK.q1.slice(0, 1), RECOGNITION_REWORK.q1)).toBe(false); // a prefix is not a match
     expect(matchesGroup([], [])).toBe(false); // nothing written matches nothing
   });
-  it("the marks open on their own five seconds after the group's check", () => {
-    expect(UNMARKED_MS).toBe(5_000);
-    expect(marksAt(1000)).toBe(6_000);
-    expect(marksOpen(1000, 5_999)).toBe(false);
-    expect(marksOpen(1000, 6_000)).toBe(true);
+  it("the marks open on their own two seconds after the group's check", () => {
+    expect(UNMARKED_MS).toBe(2_000);
+    expect(marksAt(1000)).toBe(3_000);
+    expect(marksOpen(1000, 2_999)).toBe(false);
+    expect(marksOpen(1000, 3_000)).toBe(true);
     // A peer's whole debrief (unmarked, then the hold) fits before their first stroke moves the group on.
     expect(UNMARKED_MS + HOLD_MS).toBeLessThan(PEER_DEBRIEF_MS);
   });

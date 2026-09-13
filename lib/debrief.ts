@@ -3,11 +3,11 @@ import { lineMarks, type LineMark } from "./examples";
 
 /**
  * The debrief after the group's rework checks correct: each student sees their own two versions
- * beside the group's, unmarked, for five seconds from the check; the marks then open on their own
- * and Next waits ten seconds more. Nothing to write (ticket 218). Pure rules; the session keeps
+ * beside the group's, unmarked, for two seconds from the check; the marks then open on their own
+ * and Next waits ten seconds more. Nothing to write (ticket 218); two seconds, not five (ticket 219). Pure rules; the session keeps
  * only whether the student has moved on, the clock is the group's check.
  */
-export const UNMARKED_MS = 5_000;
+export const UNMARKED_MS = 2_000;
 export const HOLD_MS = 10_000;
 
 export interface DebriefNote {
@@ -39,7 +39,7 @@ export function markedVersions(problem: string, own: { lines: string[]; rework: 
   return out;
 }
 
-/** When the marks open: five seconds after the group's check. */
+/** When the marks open: two seconds after the group's check. */
 export const marksAt = (resolvedAt: number): number => resolvedAt + UNMARKED_MS;
 export const marksOpen = (resolvedAt: number, now: number): boolean => now >= marksAt(resolvedAt);
 
@@ -59,5 +59,5 @@ export function pendingDebrief(run: GroupRun, notes: Record<string, DebriefNote>
   return null;
 }
 
-/** How long a peer who holds the next pen waits before their first stroke moves the group on: their own debrief (five seconds unmarked, ten on the marks), and a second to press Next. */
-export const PEER_DEBRIEF_MS = 16_000;
+/** How long a peer who holds the next pen waits before their first stroke moves the group on: their own debrief (two seconds unmarked, ten on the marks), and a second to press Next. */
+export const PEER_DEBRIEF_MS = 13_000;
