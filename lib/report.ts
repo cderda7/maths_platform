@@ -42,13 +42,30 @@ export function confidenceLabel(c: Confidence | null): string {
 }
 
 /**
- * A confidence word split for a narrow column: the head ("confident", "low", "low:") and the named
- * skills, one per line, so no skill name is ever broken across two lines.
+ * One way to write a confidence label in the roster's narrow Confidence column (ticket 190): its
+ * words, each kept whole ("non-monic" never breaks at its hyphen) with the lines free to wrap
+ * between them, and how many named skills it leaves out, shown as "+1" with the full label on hover.
  */
-export function confidenceLines(label: string): { head: string; skills: string[] } {
+export type ConfidenceForm = { words: string[]; hidden: number };
+
+/**
+ * The forms a label can take, longest first; the cell shows the first that fits its lines at the
+ * column's own size. "confident", "low" and "—" have one form. A named answer tries every skill in
+ * full ("low: fractions, non-monic factorising"), then each skill alone with the rest counted
+ * ("low: fractions +1", "low: non-monic factorising +1"), then none ("low +2"), which always fits.
+ * See DECISION_LOG.md, "A confidence label too long for its column names what fits and counts the rest".
+ */
+export function confidenceForms(label: string): ConfidenceForm[] {
   const i = label.indexOf(":");
-  if (i < 0) return { head: label, skills: [] };
-  return { head: label.slice(0, i + 1), skills: label.slice(i + 1).split(",").map((s) => s.trim()).filter(Boolean) };
+  const skills = i < 0 ? [] : label.slice(i + 1).split(",").map((s) => s.trim()).filter(Boolean);
+  const head = i < 0 ? label : label.slice(0, i);
+  if (skills.length === 0) return [{ words: [head], hidden: 0 }];
+  const words = (shown: string[]) => shown.flatMap((skill, k) => skill.split(/\s+/).map((w, j, all) => (j === all.length - 1 && k < shown.length - 1 ? `${w},` : w)));
+  return [
+    { words: [`${head}:`, ...words(skills)], hidden: 0 },
+    ...(skills.length > 1 ? skills.map((skill) => ({ words: [`${head}:`, ...words([skill])], hidden: skills.length - 1 })) : []),
+    { words: [head], hidden: skills.length },
+  ];
 }
 
 export function confidenceSentence(c: Confidence | null): string {

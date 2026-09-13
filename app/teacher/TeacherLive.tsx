@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import TeacherChrome from "./TeacherChrome";
 import { BackToClassroom, useAssignmentBundle } from "./AssignmentContext";
@@ -9,14 +9,13 @@ import ForceSubmit from "./ForceSubmit";
 import GroupProgressCard from "./GroupProgressCard";
 import WholeClassCard from "./WholeClassCard";
 import { RowDrill, type ColumnBox, type RowMode } from "@/components/HierarchyDrill";
-import FitText from "@/components/FitText";
 import StatusKey from "@/components/StatusKey";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { StatusDot, STATUS_WORD } from "@/components/Tag";
 import { DEMO_STUDENT, unitLabel } from "@/data/assignment";
 import type { Classmate } from "@/data/classmates";
 import { categoryLabel, categoryName, categoryOf, isFlat, type CategoryId, type LeafId } from "@/data/taxonomy";
-import { confidenceLabel, confidenceLines } from "@/lib/report";
+import { confidenceForms, confidenceLabel, type ConfidenceForm } from "@/lib/report";
 import { BEFORE_HAND_IN_STAGES, type Confidence } from "@/data/types";
 import { assignmentReportHref, assignmentStages, rosterProgress } from "@/lib/assignments";
 import { currentSlide } from "@/lib/classroom";
@@ -503,7 +502,7 @@ export default function TeacherLive() {
                           </td>
                         );
                       })}
-                      <td className={`px-2 py-3.5 text-center text-[13px] leading-snug ${r.confidence.tone}`} data-confidence>
+                      <td className={`px-1 py-3.5 text-center text-[13px] leading-snug ${r.confidence.tone}`} data-confidence>
                         <ConfidenceCell label={r.confidence.text} />
                       </td>
                       <td className="px-2 py-3.5 text-center leading-snug text-ink-soft">
@@ -608,17 +607,70 @@ export default function TeacherLive() {
   );
 }
 
-/** The confidence word, split so a named skill never breaks across two lines: shrunk to fit instead. */
+/** The most lines a confidence label takes: three at 13 px on a 17 px leading (51 px) fit the row's height without growing it; leading-snug's 53.6 px grew a row by a pixel (ticket 190). */
+const CONFIDENCE_LINES = 3;
+
+/**
+ * The confidence label at the column's own size, "confident"'s 13 px: the first of its forms
+ * (`confidenceForms`) whose words fit the cell's width and three lines. Every form is laid out
+ * unseen inside the cell to measure it, again whenever the cell's width changes; a form that
+ * leaves skills out shows "+1" and carries the whole label on hover and for screen readers.
+ * See DECISION_LOG.md, "A confidence label too long for its column names what fits and counts the rest".
+ */
 function ConfidenceCell({ label }: { label: string }) {
-  const { head, skills } = confidenceLines(label);
-  if (skills.length === 0) return <>{head}</>;
+  const forms = useMemo(() => confidenceForms(label), [label]);
+  const ref = useRef<HTMLSpanElement>(null);
+  const [fitted, setFitted] = useState<{ label: string; index: number }>({ label, index: 0 });
+  useLayoutEffect(() => {
+    const box = ref.current;
+    if (!box || forms.length < 2) return;
+    const fit = () => {
+      const room = parseFloat(getComputedStyle(box).lineHeight) * CONFIDENCE_LINES + 0.5;
+      const probes = [...box.querySelectorAll<HTMLElement>("[data-confidence-probe]")];
+      const index = probes.findIndex((p) => p.scrollWidth <= p.clientWidth && p.offsetHeight <= room);
+      setFitted({ label, index: index < 0 ? forms.length - 1 : index });
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(box);
+    return () => ro.disconnect();
+  }, [forms, label]);
+  if (forms.length < 2) return <>{label}</>;
+  const form = forms[fitted.label === label ? fitted.index : 0];
   return (
-    <div>
-      <div>{head}</div>
-      {skills.map((skill) => (
-        <FitText key={skill}>{skill}</FitText>
+    <span ref={ref} className="relative block overflow-hidden leading-[17px]" title={form.hidden ? label : undefined} data-confidence-label={label} data-confidence-hidden={form.hidden}>
+      <span aria-hidden={form.hidden > 0 || undefined}>
+        <ConfidenceWords form={form} />
+      </span>
+      {form.hidden > 0 && <span className="sr-only">{label}</span>}
+      {forms.map((f, k) => (
+        <span key={k} aria-hidden className="invisible absolute inset-x-0 top-0 block" data-confidence-probe>
+          <ConfidenceWords form={f} />
+        </span>
       ))}
-    </div>
+    </span>
+  );
+}
+
+/** A form's words, each unbroken, wrapping only at the spaces between them; the count of skills left out last. */
+function ConfidenceWords({ form }: { form: ConfidenceForm }) {
+  return (
+    <>
+      {form.words.map((w, i) => (
+        <Fragment key={i}>
+          {i > 0 && " "}
+          <span className="whitespace-nowrap">{w}</span>
+        </Fragment>
+      ))}
+      {form.hidden > 0 && (
+        <>
+          {" "}
+          <span className="whitespace-nowrap text-ink-muted" data-confidence-more>
+            +{form.hidden}
+          </span>
+        </>
+      )}
+    </>
   );
 }
 

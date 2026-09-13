@@ -3743,3 +3743,37 @@ Generate). A draft stored before this ticket opens blank. `CreatedAssignment` ha
 and Fix paths keep working once generated. The confirmed groups follow the review's own lifetime
 (kept across reloads, cleared with it on Create or Reset) and reach the classroom only through the one
 action that creates the set.
+
+## 2026-09-13 · A confidence label too long for its column names what fits and counts the rest (ticket 190)
+
+**Decision.** Class View's Confidence column never shrinks a label. `confidenceForms(label)` lists
+its forms, longest first: every named skill ("low: fractions, non-monic factorising"), each skill
+alone with the others counted ("low: fractions +1", "low: non-monic factorising +1"), then
+"low +2". `ConfidenceCell` lays every form out unseen inside the cell and shows the first whose words
+fit the cell's width and three 17 px lines at 13 px; a shortened form carries the whole answer as its
+`title` and as screen-reader text. The cell's side padding drops from 8 to 4 px.
+
+**Context.** `FitText` shrank each named skill to one line, so "non-monic factorising" rendered near
+5–7 px and read as broken (user's screenshot, ticket 187's note). The cell is 87 layout px wide
+(71 px of content), rows 82 px (54 px of content). At 13 px, Mia's two skills need four lines, and
+"discriminant" alone (75 px) overflowed 71 px.
+
+**Alternatives.** *Wrap freely with no cap*: Mia's and Lucas's rows would grow by a line, pushing every
+row below. *Widen the column*: the roster is 1204 of the 1280 laptop's 1208 px, any width is a trade
+with another column. *CSS `line-clamp` with an ellipsis*: cuts mid-skill ("low: fractions, non-…"),
+and hides that there is a second skill. *Grid-only short names per leaf*: a third name to author per
+leaf and still no guarantee for a future long one. *A fixed character-count rule in the lib*: breaks
+the moment the font, zoom or column changes (the column is 84 or 87 px by viewport already).
+*Line-height `leading-snug`* (53.6 px for three lines): grew a three-line row by a pixel, hence 17 px.
+
+**Tradeoffs.** A student's second skill is sometimes only on hover (native tooltip: delayed, not on
+touch). Each named label renders its forms twice (visible + probes, at most four short spans) and a
+layout effect measures them, so the first client paint of a long label can briefly be the full form
+before the layout effect picks (before paint in practice). Which skill survives follows tick order,
+not importance. Three-line labels sit on a 17 px leading, 0.9 px tighter than the one-line labels.
+
+**Defense.** Every label is legible at the size of its neighbours, the column and row geometry are
+unchanged, and the rule is measured, not guessed, so it holds for any label length (ticket 189 rewrites
+several answers) and any column width. The teacher still sees that a student is low and on what, with
+a clear "+1" when there is more.
+

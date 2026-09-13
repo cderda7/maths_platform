@@ -108,15 +108,33 @@ describe("the confidence label", () => {
   });
 });
 
-describe("confidenceLines", () => {
-  it("keeps a plain word whole", async () => {
-    const { confidenceLines } = await import("./report");
-    expect(confidenceLines("confident")).toEqual({ head: "confident", skills: [] });
-    expect(confidenceLines("low")).toEqual({ head: "low", skills: [] });
-    expect(confidenceLines("—")).toEqual({ head: "—", skills: [] });
+describe("confidenceForms", () => {
+  it("gives a plain word one form", async () => {
+    const { confidenceForms } = await import("./report");
+    expect(confidenceForms("confident")).toEqual([{ words: ["confident"], hidden: 0 }]);
+    expect(confidenceForms("low")).toEqual([{ words: ["low"], hidden: 0 }]);
+    expect(confidenceForms("—")).toEqual([{ words: ["—"], hidden: 0 }]);
   });
-  it("splits the named skills one per line after the head", async () => {
-    const { confidenceLines } = await import("./report");
-    expect(confidenceLines("low: fractions, non-monic factorising")).toEqual({ head: "low:", skills: ["fractions", "non-monic factorising"] });
+  it("names one skill in full, then counts it", async () => {
+    const { confidenceForms } = await import("./report");
+    expect(confidenceForms("low: monic factorising")).toEqual([
+      { words: ["low:", "monic", "factorising"], hidden: 0 },
+      { words: ["low"], hidden: 1 },
+    ]);
+  });
+  it("tries both skills, then each alone with the other counted, then none", async () => {
+    const { confidenceForms } = await import("./report");
+    expect(confidenceForms("low: fractions, non-monic factorising")).toEqual([
+      { words: ["low:", "fractions,", "non-monic", "factorising"], hidden: 0 },
+      { words: ["low:", "fractions"], hidden: 1 },
+      { words: ["low:", "non-monic", "factorising"], hidden: 1 },
+      { words: ["low"], hidden: 2 },
+    ]);
+  });
+  it("reads the grid's own labels back", async () => {
+    const { confidenceForms, confidenceLabel } = await import("./report");
+    const label = confidenceLabel({ level: "low-when", leaves: ["unit.u1.discriminant", "graphing.quadratics.features"] });
+    expect(confidenceForms(label)[0].words).toEqual(["low:", "discriminant,", "graph", "features"]);
+    expect(confidenceForms(label).at(-1)).toEqual({ words: ["low"], hidden: 2 });
   });
 });

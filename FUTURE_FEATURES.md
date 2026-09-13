@@ -449,9 +449,8 @@ agents add sections above it and leave it alone.
   with every skill unseen and the groups page still seats her; a real build would show
   "nothing submitted" on the report and let the teacher chase or exclude her. Force submit
   counts her among those still working.
-- **Confidence words that shrink.** A named skill in the Confidence column shrinks to one line
-  (`FitText`), down to whatever fits: "non-monic factorising" lands near 9.5 px. If that reads
-  too small, the alternative is a wider column or a tooltip with the full list.
+- ~~**Confidence words that shrink.**~~ Done in ticket 190: labels stay at 13 px, wrap between
+  words onto at most three lines, and a longer answer names what fits and counts the rest ("+1").
 - **Wording of the header control.** "skills" (the groups) and "sub-skills" (the leaves) were
   chosen to match "see dot skills"; the drill itself still says groups and skills in code. The
   user asked to try something and refine, so expect the words to change.
@@ -2676,11 +2675,8 @@ uploaded problems) settled the following as later, each on purpose.
   pages outside `/teacher/a/<id>`; only the report moved under the id.
 - **Cross-set insight on Class View.** "Mia slipped on non-monic factorising in both sets" could be
   a line or a marker on the row; today it is only visible through history mode.
-- **Long confidence skill names.** The confidence column shrinks a named skill to fit on one line
-  (`FitText`), so "non-monic factorising" (Mia's answer on Problem Set 2) and "monic factorising"
-  (Sam's) render at about 5 px at 1400 wide. Problem Set 1's answers avoid long names ("low:
-  factorising"); letting a long skill wrap between words, or a short form per leaf, is deferred: it changes the
-  rule that a named skill never breaks across two lines.
+- ~~**Long confidence skill names.**~~ Done in ticket 190: no confidence label shrinks; a skill wraps
+  between its words and an answer too long for three lines reads "low: fractions +1".
 - **Authored Problem Set 1 practice and warm-ups.** Problem Set 1 has no practice problems, hints,
   standouts or diagnostics of its own; they would be needed if it ever ran live.
 
@@ -2712,6 +2708,22 @@ uploaded problems) settled the following as later, each on purpose.
   content ends above them at max scroll); a full-width footer bar with its own backdrop was not built.
 - **Skips set the start an hour back.** Every presenter skip creates Problem Set 2 with `startedAt` one
   hour before the jump so ticket 189's stream is over; a skip that lands mid-stream is not offered.
+
+## Confidence labels in a narrow column (from ticket 190, 2026-09-13)
+
+- **A richer hover for "+1".** The whole answer of a shortened confidence label ("low: fractions +1")
+  is the native `title` tooltip, which appears after a delay and cannot be styled or reached by touch.
+  A small flyout (over blank space, never reflowing the row) listing the named skills would read
+  better. Deferred: the native tooltip was enough to make the label legible without new UI.
+- **Short names per leaf for the grid.** "non-monic factorising" and "sketching parabolas" take two
+  lines each; a grid-only short form ("non-monic", "sketching") would let both of Mia's skills show
+  in full. Deferred: a third name per leaf beside `name` and `short` to author and keep consistent.
+- **Which skill a shortened label keeps.** A label that cannot show both skills keeps the first that
+  fits, in the student's tick order. Keeping the skill most related to the student's mistakes (or the
+  one the class is weakest on) would be more useful to the teacher. Deferred: needs a ranking rule.
+- **The same rule elsewhere.** The report and the individual view write confidence as a sentence and
+  have room; if a confidence label appears in another narrow place (the Mistakes rows, the board),
+  reuse `confidenceForms` rather than `FitText`.
 
 ## Carson's notes
 
