@@ -2542,6 +2542,16 @@ uploaded problems) settled the following as later, each on purpose.
 - **The fixture Fix rules are three regexes.** Enough for the click-through; a real Fix reads
   the sentence. The live model is still unverified from this machine (ticket 170's open item).
 
+## Deep indigo border on "I need help" (from ticket 182, 2026-09-13)
+
+- **Other secondary buttons stay grey.** Only the two "I need help" buttons moved to the new
+  `deep` variant. If the deep indigo border should become the student side's standard
+  secondary look (Undo, Clear, "Skip to the set" and the rest), that is a one-line change to
+  the `secondary` variant instead; deferred until asked, since the user named only these two.
+- **A `deep` primary.** There is no filled deep-indigo button; `accent` fills with the lighter
+  accent. If a filled version of this button is wanted later it belongs beside `deep` in
+  `components/ui.tsx`.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

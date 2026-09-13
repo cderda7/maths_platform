@@ -3507,3 +3507,23 @@ survives. The fix picture for a PDF page at 1.5× is a few hundred KB per Fix.
 **Defense.** The teacher's words stay theirs, the model's reading is a layer that lifts off on
 the first keystroke, and a Fix is the one place the words are meant to change. Figures cost
 one draw per boxed draft and show where the problem is, on the tile and on the review grid.
+
+## 2026-09-13 · The help button's border is a Button variant, not a className (ticket 182)
+
+**Decision.** `Button` gains a `deep` variant (paper, ink text, 1 px `accent-deep` border,
+`accent-soft` fill on hover) and both student "I need help" buttons use it.
+
+**Context.** The user asked for a dark purple border on each "I need help" button. Both were
+`variant="secondary"`, whose own classes set a grey border and a darker grey border on hover.
+
+**Alternatives.** A `border-accent-deep` in each button's `className`: the same-property
+utilities then fight on source order in the compiled CSS, and the secondary hover would still
+flip the border grey. An inline `style={{ borderColor }}`: wins, but duplicated on two screens
+and invisible to the variant system. Changing `secondary` itself: recolours every secondary
+button on both sides, which was not asked.
+
+**Tradeoffs.** One more variant to know about. The variant's name says the look, like `sky`,
+not the use, so a third button can adopt it without a rename.
+
+**Defense.** The two buttons cannot drift from each other, the hover is designed rather than
+inherited, and no rule depends on Tailwind's utility order.

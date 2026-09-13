@@ -76,7 +76,7 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
           </div>
         )}
         <div className="mt-auto pt-6">
-          <Button variant="secondary" className="mb-6 w-full" onClick={() => setHelpOpen(true)}>
+          <Button variant="deep" className="mb-6 w-full" onClick={() => setHelpOpen(true)}>
             I need help
           </Button>
           <Eyebrow>Problems</Eyebrow>

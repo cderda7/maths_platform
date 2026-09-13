@@ -142,7 +142,7 @@ export default function PracticePad({
         {/* While the worked example plays the help is on screen already, so the button goes, not greys. */}
         {!run.example && (
           <div className="mt-5">
-            <Button variant="secondary" className="w-full" onClick={() => setHelpOpen(true)}>
+            <Button variant="deep" className="w-full" onClick={() => setHelpOpen(true)}>
               I need help
             </Button>
           </div>

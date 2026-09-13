@@ -33,7 +33,7 @@ export function Button({
   size = "md",
   className = "",
   ...rest
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" | "outline" | "ghost" | "accent" | "sky"; size?: "md" | "lg" }) {
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" | "outline" | "deep" | "ghost" | "accent" | "sky"; size?: "md" | "lg" }) {
   const v =
     variant === "primary"
       ? "bg-ink text-white hover:bg-ink-soft"
@@ -45,6 +45,9 @@ export function Button({
           ? "bg-paper text-ink border border-line-strong hover:border-ink-muted"
           : variant === "outline"
             ? "bg-paper text-accent-deep border border-accent hover:bg-accent-soft"
+          : variant === "deep"
+            // The student's "I need help" (ticket 182): ink text on paper inside a deep indigo border, the same soft indigo fill on hover as `outline`.
+            ? "bg-paper text-ink border border-accent-deep hover:bg-accent-soft"
           : "text-ink-soft hover:text-ink hover:bg-cream-deep";
   const s = size === "lg" ? "px-6 py-3 text-[15px]" : "px-4 py-2 text-[13.5px]";
   return (
