@@ -44,21 +44,39 @@ export interface Fit {
 }
 const FULL: Fit = { size: 13.5, dot: 15, indent: 28, wrap: false };
 const SIZES = [13.5, 12.5, 11.5, 10.5, 9.5, 9];
+/** A node's own horizontal box around dot and text (`Node`'s layout: pl-1.5 + pr-2.5 − ml-[7px]); left out, a wrapped name broke a line early (ticket 227). */
+export const NODE_PAD = 6 + 10 - 7;
 
-/** The largest text size at which every label (dot + gap + text, plus its indent) fits in `available`; wrapping as a last resort. */
+/** The largest text size at which every label (its indent, the node's padding, dot + gap + text) fits in `available`; wrapping as a last resort. */
 export function fitLabels(labels: { text: string; depth: number }[], available: number | undefined): Fit {
   if (!available || labels.length === 0) return FULL;
   for (const size of SIZES) {
     const dot = size >= 12 ? 15 : 12;
     const indent = Math.round(size * 2);
     const gap = 8;
-    if (labels.every((l) => l.depth * indent + dot + gap + textWidth(l.text, size) <= available)) return { size, dot, indent, wrap: false };
+    if (labels.every((l) => l.depth * indent + NODE_PAD + dot + gap + textWidth(l.text, size) <= available)) return { size, dot, indent, wrap: false };
   }
   const size = 10.5;
   const dot = 12;
   const indent = 21;
-  const longestWord = Math.max(...labels.flatMap((l) => l.text.split(" ").map((w) => l.depth * indent + dot + 8 + textWidth(w, size))));
-  return longestWord <= available ? { size, dot, indent, wrap: true } : { size: 9, dot: 12, indent: 18, wrap: true };
+  // Wrapped at 10.5 only when no name takes more than two lines; a word alone on a third ("sketching / a / parabola") drops to 9 (ticket 227).
+  const twoLines = labels.every((l) => lineCount(l.text, size, available - (l.depth * indent + NODE_PAD + dot + 8)) <= 2);
+  return twoLines ? { size, dot, indent, wrap: true } : { size: 9, dot: 12, indent: 18, wrap: true };
+}
+
+/** Lines a greedy break of `text` takes in `width` at `size` (balanced wrapping never takes more); Infinity when a word is wider than the line, since the browser would split it ("zero- / finding"). */
+export function lineCount(text: string, size: number, width: number): number {
+  let lines = 0;
+  let line = "";
+  for (const word of text.split(" ")) {
+    if (textWidth(word, size) > width) return Infinity;
+    const next = line ? `${line} ${word}` : word;
+    if (line && textWidth(next, size) > width) {
+      lines++;
+      line = word;
+    } else line = next;
+  }
+  return lines + (line ? 1 : 0);
 }
 
 /* ---------- nodes and trees ---------- */

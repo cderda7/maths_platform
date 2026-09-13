@@ -3024,6 +3024,13 @@ uploaded problems) settled the following as later, each on purpose.
   to hand a second device into the same run mid-board has to use plain `/student`. A `?rejoin` flag
   was not asked for.
 
+## Full reports at 125% (ticket 227, 2026-09-13)
+
+- **A skill still opens its work on the student's report.** Groups are fixed rows now, but a skill row is still a button that shows the lines behind it beneath the columns, as on the teacher's report. Left in because it isn't a collapse/expand of the tree; making skills plain text too is a one-prop change if wanted.
+- **The teacher bar changes size on the report.** The 125% zoom covers the whole frame, so the bar is larger there than on Class view. Zooming only the body would keep the bar steady but misalign it with the page on wide windows.
+- **Denser columns on the iPad report.** With every skill out, the student's six columns set names at 9 px and some three-word names take three lines. A two-row layout (categories over two rows) or giving the Skills card the reflection column's width would give them room. Deferred: the request was the full view in the existing layout.
+- **One text size across columns.** Each column fits its own size, so New skills reads at 13.5 px beside 9 px columns. A shared size would look steadier at the cost of the wider columns.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

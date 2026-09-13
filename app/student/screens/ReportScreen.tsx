@@ -22,10 +22,11 @@ const TILE: Record<Outcome, string> = {
 };
 
 /**
- * The final report: the skills laid out as the teacher's class-view row (a column per category,
- * every group shown at once), where every problem ended up as a tile in a column per review
- * stage the teacher set, and a short reflection that must be written before the report can go.
- * No scores on the student's work; the dot key under the skills is the teacher's, bands included (ticket 225).
+ * The final report: the skills laid out as the teacher's student report (a column per category,
+ * every group and every skill beneath it out at once, fixed, ticket 227), where every problem ended up
+ * as a tile in a column per review stage the teacher set, and a short reflection that must be written
+ * before the report can go. No scores on the student's work; the dot key above the reflection is the
+ * teacher's, bands included (tickets 225, 227).
  */
 export default function ReportScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
   const assignment = useAssignment();
@@ -53,9 +54,8 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
 
         {/* No overflow-hidden here: as a flex child it would let the card shrink and clip an opened skill's work. */}
         <Card className="mt-5 shrink-0" data-hierarchy>
-          <SkillColumns result={hierarchy} lines={sessionEvidence(session).lines} problems={problems} student />
-          {/* The teacher's student report's key, word for word (ticket 225). */}
-          <StatusKey className="mx-5 mb-5 max-w-xs border-t border-line pt-3" />
+          {/* Every group's skills out and fixed, nothing to open or close (ticket 227). */}
+          <SkillColumns result={hierarchy} lines={sessionEvidence(session).lines} problems={problems} mode="expanded" locked student />
         </Card>
 
         {mastery && (
@@ -97,7 +97,12 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
       </section>
 
       <aside className="flex min-h-0 flex-col border-l border-line bg-paper/60 px-8 py-7">
-        <div className="mt-auto">
+        {/* The teacher's student report's key, word for word (ticket 225), in the column's space above the reflection (ticket 227). */}
+        <div data-report-key>
+          <Eyebrow>Key</Eyebrow>
+          <StatusKey className="mt-3" />
+        </div>
+        <div className="mt-auto pt-6">
           <Eyebrow>Reflection</Eyebrow>
           <h2 className="font-display mt-2 text-[24px] leading-tight text-ink">Two or three sentences</h2>
           <textarea

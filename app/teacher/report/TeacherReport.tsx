@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { assignmentHref, studentRecord } from "@/lib/assignments";
-import TeacherChrome from "../TeacherChrome";
+import TeacherChrome, { TEACHER_ZOOM } from "../TeacherChrome";
 import M from "@/components/Math";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import SkillColumns from "@/components/SkillColumns";
@@ -26,7 +26,10 @@ import { useAssignmentBundle } from "../AssignmentContext";
  * skills behind it; the same idea again shows everything. The demo student's report facts and
  * group-review notes follow beneath the skills; a classmate has none. On a finished set (ticket 187)
  * everyone, Sam included, is their record on it: no live facts, their notes and their words.
+ * The page sits at 125% of the teacher side's size (ticket 227).
  */
+const REPORT_ZOOM = TEACHER_ZOOM * 1.25;
+
 export default function TeacherReport({ student }: { student: string | null }) {
   const { session } = useBatchedSession(2000);
   const assignment = useAssignmentBundle();
@@ -46,7 +49,7 @@ export default function TeacherReport({ student }: { student: string | null }) {
   const nothing = live && !session;
 
   return (
-    <TeacherChrome>
+    <TeacherChrome zoom={REPORT_ZOOM}>
       <Eyebrow>
         {assignment.className} · {assignment.title}
       </Eyebrow>

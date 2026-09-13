@@ -25,15 +25,18 @@ import { useOptionalAssignment } from "./AssignmentContext";
  * never the bar; a sticky bar rode the bounce with the page. The outer div takes the viewport
  * height unzoomed: a `100vh` inside the zoomed frame shrinks to 72% of the window with it, a
  * percentage of an unzoomed parent does not. The zoom is 0.72 (ticket 142: the user's browser at
- * 90% of the old 0.8 was the size wanted at 100%), so a 1280 px laptop lays out at 1778 px.
+ * 90% of the old 0.8 was the size wanted at 100%), so a 1280 px laptop lays out at 1778 px. A page
+ * may ask for its own (`zoom`): the whole frame, bar included, as a browser zoom would.
  */
-export default function TeacherChrome({ children }: { children: ReactNode }) {
+export const TEACHER_ZOOM = 0.72;
+
+export default function TeacherChrome({ children, zoom = TEACHER_ZOOM }: { children: ReactNode; zoom?: number }) {
   const path = usePathname();
   const assignment = useOptionalAssignment();
   const tabs = assignment ? assignmentTabs(assignment) : [{ label: "Groups", href: CLASS_GROUPS_HREF }];
   return (
     <div className="h-screen">
-    <div className="flex h-full flex-col [zoom:0.72]" data-teacher-root>
+    <div className="flex h-full flex-col" style={{ zoom }} data-teacher-root>
       <header className="z-30 shrink-0 border-b border-line bg-paper/70 backdrop-blur">
         <div className="mx-auto flex max-w-[1640px] items-center justify-between px-6 py-4">
           <div className="flex items-center gap-5">

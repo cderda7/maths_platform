@@ -4095,3 +4095,15 @@ is one question with one answer for the board, the bar and the debrief.
 **Tradeoffs.** A teacher tab watching a run in progress sees it vanish when someone opens a `?stage=group` link in the same browser. A link opened while the class is mid-board restarts the demo group's run. Both are demo-only paths.
 
 **Defense.** The rule is the one the page already states, applied to the classroom half of the state that group review lives in, and the clock guard removes the only way a run could begin with its board already open.
+
+## 2026-09-13 · A page sets its own teacher zoom, bar included; skill names wrap at most twice (ticket 227)
+
+**Decision.** `TeacherChrome` takes a `zoom` (default `TEACHER_ZOOM`, 0.72) applied to the whole frame, and the student report asks for 0.72 × 1.25. Separately, `fitLabels` counts each node's own padding and wraps at 10.5 px only when every name takes two lines at most without splitting a word; otherwise 9 px.
+
+**Context.** The user asked for the teacher's student report at "125% view compared to current", and for the student's report to show every skill. Six full columns in the iPad's Skills card broke names as "sketching / a / parabola" and "zero- / finding", because the fit ignored the row's 9 px of padding and only checked single words.
+
+**Alternatives considered.** *Zoom only the page body under the bar*: the bar would match the other teacher pages, but on a wide window the bar's 1640 px frame and the body's would no longer line up (about 150 px apart at 1960 px). *Change the global zoom*: every teacher page grows. *A shared text size across all columns*: steadier looking, but every column would drop to the narrowest one's size.
+
+**Tradeoffs.** The bar is 25% larger on the report than on Class view, so it changes size as you move between them. Narrow columns can still give a three-word name three lines at 9 px.
+
+**Defense.** A zoomed frame behaves exactly like the browser zoom the user described, and keeps bar and content aligned at every width; the fitting rules remove the broken wraps without touching the maths or the layout of wider columns.
