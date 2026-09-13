@@ -2996,6 +2996,10 @@ uploaded problems) settled the following as later, each on purpose.
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
 reformat or move anything below it.
 
+### BIGGEST CONCERNS
+
+- assignment creation & upload
+
 - **Ask where mistake is** before starting work; in indiv review; student has 3 'tokens' to use
   in asking 'is this problem one that i made a mistake on?' before revising.
 
