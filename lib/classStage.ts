@@ -1,11 +1,12 @@
-import { CLASSMATES, type Classmate } from "@/data/classmates";
+import { ASSIGNMENT } from "@/data/assignment";
+import { CLASSMATES } from "@/data/classmates";
 import { BEFORE_HAND_IN_STAGES, type ReviewStage } from "@/data/types";
 import { pathwayOf, type AdvanceKind, type ClassroomState } from "./classroom";
 import { STAGE_SHORT } from "./pathway";
-import { classmateProgress, isSubmitted } from "./progress";
 import { classReadiness, CLASS_SIZE } from "./readiness";
 import type { StudentSession } from "./session";
 import { standingsAt } from "./standings";
+import { classmatesAt, type StreamSet } from "./stream";
 
 /**
  * Where the class is on its pathway, for the class view's Pathway card (ticket 129): every stage
@@ -81,12 +82,15 @@ export function currentClassStage(c: ClassroomState | null | undefined, session:
 
 const liveHandedIn = (session: StudentSession | null): boolean => !!session && !WORKING_STAGES.includes(session.stage);
 
-/** How many of the class are done with a stage; `classmates` are the assignment's (ticket 185; the fixture's by default). */
-export function stageDone(id: ClassStageId, c: ClassroomState | null | undefined, session: StudentSession | null, now: number, classmates: readonly Classmate[] = CLASSMATES): number | null {
+/** The fixture's set, fixed: what the counts read without an assignment. */
+const FIXTURE_SET: StreamSet = { problems: ASSIGNMENT.problems, classmates: CLASSMATES };
+
+/** How many of the class are done with a stage; `set` is the assignment's (ticket 185; the fixture's by default), its classmates live on a streamed set (ticket 189). */
+export function stageDone(id: ClassStageId, c: ClassroomState | null | undefined, session: StudentSession | null, now: number, set: StreamSet = FIXTURE_SET): number | null {
   switch (id) {
     case "working":
       // The set handed in: the live student past working, a classmate who submitted.
-      return (liveHandedIn(session) ? 1 : 0) + classmates.filter((m) => isSubmitted(classmateProgress(m, []))).length;
+      return (liveHandedIn(session) ? 1 : 0) + classmatesAt(set, session, now).filter((m) => m.state.submitted).length;
     case "individual":
       return classReadiness(c, now).handedIn;
     case "group":
@@ -117,6 +121,6 @@ export function pathwayStages(c: ClassroomState | null | undefined, session: Stu
   return ids.map((id, i) => ({ id, word: CLASS_STAGE_WORD[id], state: i < at ? "over" : i === at ? "current" : "ahead" }));
 }
 
-export function classStages(c: ClassroomState | null | undefined, session: StudentSession | null, now: number, classmates: readonly Classmate[] = CLASSMATES): ClassStage[] {
-  return pathwayStages(c, session, now).map((s) => ({ ...s, done: s.state === "current" ? stageDone(s.id, c, session, now, classmates) : null, total: CLASS_SIZE }));
+export function classStages(c: ClassroomState | null | undefined, session: StudentSession | null, now: number, set: StreamSet = FIXTURE_SET): ClassStage[] {
+  return pathwayStages(c, session, now).map((s) => ({ ...s, done: s.state === "current" ? stageDone(s.id, c, session, now, set) : null, total: CLASS_SIZE }));
 }

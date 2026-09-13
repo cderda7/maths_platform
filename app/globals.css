@@ -221,6 +221,16 @@ body {
   }
 }
 
+/* A name that has just arrived in a Mistakes cluster while the class streams in (ticket 189): a faint light-blue glow behind the avatar and name that holds a moment and fades over ARRIVAL_FADE_MS (lib/arrivals.ts). Background and a ring on its own box-shadow only, so nothing moves; the delay is set inline so a reload picks the fade up where it was. Reduced motion keeps the fade (a colour change, no movement). */
+@keyframes arrive {
+  0%, 25% { background-color: var(--color-standout-soft); box-shadow: 0 0 0 6px var(--color-standout-soft); }
+  100% { background-color: rgb(232 240 250 / 0); box-shadow: 0 0 0 6px rgb(232 240 250 / 0); }
+}
+.arrive {
+  border-radius: 9999px;
+  animation: arrive 8000ms ease-in both;
+}
+
 /* The setup page's Student screens options flash light blue, once, when Project is pressed with neither chosen (ticket 147; one beat since 149): the cue points at the choice. Colours only; the element keeps its own layout. */
 @keyframes choose-flash {
   0%, 100% { background-color: var(--color-paper); border-color: var(--color-line); }

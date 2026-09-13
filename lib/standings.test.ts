@@ -21,12 +21,12 @@ describe("the progress rule", () => {
     expect(at(["p1", "p2", "p3"])).toBe(100);
   });
 
-  it("the demo group jumps 2, 3, 3, 2, 1, 1 twelfths across its six problems", () => {
+  it("the demo group jumps 2, 3, 3, 3, 1, 1 thirteenths across its six problems (Jordan wrong on Q7 since ticket 189)", () => {
     const { classroom, session } = skipFixture("group review", now);
     const run = classroom.group!;
     const percents = run.problems.map((_, i) => standingsAt({ ...classroom, group: { ...run, resolved: run.problems.slice(0, i + 1) } }, session, now).find((s) => s.live)!.percent);
-    expect(percents).toEqual([17, 42, 67, 83, 92, 100]);
-    expect(wrongSetsOf(run.members, session)).toEqual({ sam: ["q1", "q2", "q3", "q7", "q10"], jordan: ["q2"], zara: ["q3", "q7", "q9"], liam: ["q1", "q2", "q3"] });
+    expect(percents).toEqual([15, 38, 62, 85, 92, 100]);
+    expect(wrongSetsOf(run.members, session)).toEqual({ sam: ["q1", "q2", "q3", "q7", "q10"], jordan: ["q2", "q7"], zara: ["q3", "q7", "q9"], liam: ["q1", "q2", "q3"] });
   });
 });
 
@@ -165,10 +165,10 @@ describe("the demo group's moments", () => {
     expect(classroom.group!.resolved).toEqual(["q1"]);
     expect(classroom.group!.resolvedAt).toEqual({ q1: now + 42_000 });
     const sky = standingsAt(classroom, session, now + 60_000).find((s) => s.live)!;
-    expect(sky.percent).toBe(17);
+    expect(sky.percent).toBe(15);
     expect(sky.reachedAt).toBe(now + 42_000);
     expect(sky.problem).toBe("q1");
-    expect(ownStanding(classroom, session)?.percent).toBe(17);
+    expect(ownStanding(classroom, session)?.percent).toBe(15);
   });
 
   it("a scripted check carries its moment through; a run stored before the moments existed counts from its start", () => {

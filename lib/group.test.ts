@@ -21,7 +21,7 @@ describe("group-phase computation", () => {
     expect(g.quickPass.map((p) => p.id)).toEqual(["q4", "q5", "q6", "q8"]);
     expect(g.discussion.problems.map((p) => p.id)).toEqual(["q1", "q2", "q3", "q7", "q9", "q10"]);
     expect(g.discussion.memberCount).toBe(4);
-    expect(g.discussion.totalWrong).toBe(5 + 1 + 3 + 3);
+    expect(g.discussion.totalWrong).toBe(5 + 2 + 3 + 3); // Jordan wrong on Q2 and (ticket 189) Q7
     expect(g.discussion.perMember).toBe(3);
   });
 

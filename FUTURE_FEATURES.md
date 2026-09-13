@@ -2776,6 +2776,26 @@ uploaded problems) settled the following as later, each on purpose.
 - **The empty corner on the board's example cards.** Left empty rather than filled (e.g. with the mistake
   name, which would give the answer away before marks are on); revisit if the letter row looks sparse.
 
+## Live stream follow-ups (from ticket 189, 2026-09-13)
+
+- **Stream after Sam hands in.** Once Sam hands in the class is past working and every classmate has handed
+  in at once; an early hand-in jumps the counts. Letting classmates keep working through individual review
+  needs the readiness arrivals and group review to read the stream too.
+- **Jordan's work before he hands in on the report.** A classmate's individual report reads the full record
+  even while they are still on the set; it could show only what has been answered, with "still working".
+- **A per-event feed.** A small "Ethan submitted Q1 · 8 s ago" ticker on Class View or the Classroom card.
+- **Unfinished work as its own event.** Liam's Q3 and Ethan's and Harper's Q9 (wrong, past their answered
+  count) arrive with the hand-in; a partial-attempt event would let them arrive while the student works.
+- **Teacher-set pace.** A presenter control to speed the stream up or pause it (the script is a pure
+  function of the start time, so a pause is a stored offset).
+- **Held arrivals hint.** While the pointer holds a card, a quiet "+2 new" beside it would say names are
+  waiting.
+- **Chloe while live.** She reads MISSING from the first second; "not started" until the teacher force
+  submits may read kinder during the lesson.
+- **Older click-throughs refreshed.** classroom186, pset187 and routes185-after188 predate tickets 186–191
+  (pset-2 before Create, the finished set's Pathway card, the plain list's links) and no longer run as
+  written; ticket 189's stream189.mjs covers their live-set essentials.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

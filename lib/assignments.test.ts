@@ -109,13 +109,21 @@ describe("each assignment keeps its own groups", () => {
 describe("the roster's progress and the landing", () => {
   const b = assignmentBundle("pset-2", CREATED)!;
 
-  it("classmates of the fixture have handed in, except Chloe, who never started", () => {
-    const p = rosterProgress(b, null, now);
-    expect(Object.keys(p)).toHaveLength(CLASS_SIZE);
-    expect(p.chloe).toEqual({ kind: "not-started" });
-    expect(p.liam).toEqual({ kind: "submitted" });
-    expect(p[DEMO_STUDENT.id]).toEqual({ kind: "not-started" });
-    expect(submittedCount(b, null, now)).toEqual({ submitted: CLASS_SIZE - 2, total: CLASS_SIZE });
+  it("the classmates stream in from the start (ticket 189): at Create nobody has handed in; at the end everyone but Chloe (never started) and Jordan (stalled on Q8)", () => {
+    expect(b.startedAt).toBe(now);
+    const start = rosterProgress(b, null, now);
+    expect(Object.keys(start)).toHaveLength(CLASS_SIZE);
+    expect(start.chloe).toEqual({ kind: "not-started" });
+    expect(start.jordan).toEqual({ kind: "warming-up" });
+    expect(start.liam).toEqual({ kind: "working", label: "Q1" });
+    expect(submittedCount(b, null, now)).toEqual({ submitted: 0, total: CLASS_SIZE });
+    const end = rosterProgress(b, null, now + SKIP_STARTED_AGO_MS);
+    expect(end.liam).toEqual({ kind: "submitted" });
+    expect(end.jordan).toEqual({ kind: "working", label: "Q8" });
+    expect(end[DEMO_STUDENT.id]).toEqual({ kind: "not-started" });
+    expect(submittedCount(b, null, now + SKIP_STARTED_AGO_MS)).toEqual({ submitted: CLASS_SIZE - 3, total: CLASS_SIZE });
+    // Sam hands in: the class is past working and every classmate who started has handed in, Jordan too.
+    expect(submittedCount(b, sessionAt("feedback"), now)).toEqual({ submitted: CLASS_SIZE - 1, total: CLASS_SIZE });
   });
 
   it("Sam's row follows his session: warming up, then the first problem he has not answered, then handed in", () => {

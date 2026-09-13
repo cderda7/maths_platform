@@ -11,7 +11,7 @@ import type { StudentSession } from "./session";
  * over), each keeping the registry's newest-first order. Everything on a card is derived from the
  * assignment bundle, the classroom, Sam's session and `now`, the same inputs the assignment's own
  * tabs read, so the live card's counts follow the class as work arrives (ticket 189's stream feeds
- * `rosterProgress` and `mistakesByProblem`; nothing here changes). Pure.
+ * `rosterProgress` and `mistakesByProblem`, which take `now`). Pure.
  */
 
 /** The class's subject, named in the Classroom's eyebrow ("11MAM2 · Mathematical Methods · 20 students"). One class (ASSUMPTIONS.md, ONE CLASS). */
@@ -82,7 +82,7 @@ export function assignmentCard(b: AssignmentBundle, c: ClassroomState | null | u
   const current = currentStageOf(assignmentStages(b, c, session, now));
   const section: CardSection = b.kind === "live" && current?.id === "working" ? "live" : "past";
   const status: CardStatus = section === "live" ? "live" : current ? "in review" : "done";
-  const mistakes = mistakesByProblem(session, b);
+  const mistakes = mistakesByProblem(session, b, now);
   const { submitted, total } = submittedCount(b, session, now);
   return { id: b.id, name: b.name, due: b.due, href: assignmentHref(b.id), section, status, submitted, total, mistakes: mistakeCount(mistakes), topGap: topGap(mistakes) };
 }

@@ -7,9 +7,10 @@ import type { Assignment, Pathway, Problem, UnitRef } from "@/data/types";
 import { activeAssignment } from "./assignment";
 import { pathwayOf, type ClassroomState } from "./classroom";
 import { CLASS_STAGE_WORD, classStages, type ClassStage, type ClassStageId } from "./classStage";
-import { classmateProgress, isSubmitted, sessionProgress, type StudentProgress } from "./progress";
+import { isSubmitted, sessionProgress, type StudentProgress } from "./progress";
 import { assignmentGroupsOf } from "./seating";
 import type { StudentSession } from "./session";
+import { classmatesAt } from "./stream";
 
 /**
  * The assignments (ticket 185): every set the teacher's Classroom holds, by id, and everything a
@@ -36,8 +37,8 @@ type AssignmentDef = ({ kind: "live" } | { kind: "finished"; pathway: Pathway; s
    */
   name?: string;
   /**
-   * The nineteen classmates' results on this set. A snapshot for now; ticket 189 makes the live set's
-   * a function of the start time and `now` (see `rosterProgress`, which already takes `now`).
+   * The nineteen classmates' results on this set, as handed in at the end. On the live set they arrive over time
+   * (ticket 189): `lib/stream.ts` reads them at `now` from the bundle's `startedAt`.
    */
   classmates: readonly Classmate[];
   /** Whether the Classroom holds the set in this classroom state. */
@@ -123,6 +124,8 @@ export interface AssignmentBundle {
   groups: SeatingGroups;
   /** Sam's handed-in record on a finished set (ticket 187); null on the live set, where his row is his session. */
   sam: Classmate | null;
+  /** When the live set went live (`liveStartedAt`): the classmates' stream counts from it (ticket 189). Null on a finished set, whose results are fixed. */
+  startedAt: number | null;
 }
 
 /** One set's bundle, or null when the Classroom does not hold it. */
@@ -131,9 +134,9 @@ export function assignmentBundle(id: string, c: ClassroomState | null | undefine
   if (!def || !def.exists(c)) return null;
   const f = def.fixture;
   const base = { id, kind: def.kind, className: f.className, classCode: f.classCode, teacher: f.teacher, due: f.due, unit: f.unit, classmates: def.classmates, groups: assignmentGroupsOf(c, id) };
-  if (def.kind === "finished") return { ...base, title: f.title, name: def.name ?? f.title, unitNumber: f.unit.number, goal: f.goal, problems: f.problems, pathway: def.pathway, sam: def.sam };
+  if (def.kind === "finished") return { ...base, title: f.title, name: def.name ?? f.title, unitNumber: f.unit.number, goal: f.goal, problems: f.problems, pathway: def.pathway, sam: def.sam, startedAt: null };
   const active = activeAssignment(c);
-  return { ...base, title: active.title, name: active.title === f.title ? (def.name ?? f.title) : active.title, unitNumber: active.unit, goal: active.goal, problems: active.problems, pathway: pathwayOf(c), sam: null };
+  return { ...base, title: active.title, name: active.title === f.title ? (def.name ?? f.title) : active.title, unitNumber: active.unit, goal: active.goal, problems: active.problems, pathway: pathwayOf(c), sam: null, startedAt: liveStartedAt(c) };
 }
 
 /**
@@ -147,13 +150,12 @@ export function studentRecord(b: Pick<AssignmentBundle, "classmates" | "sam">, s
 
 /**
  * Every student's progress on the set, Sam first then the classmates in fixture order. On the live
- * set Sam's comes from his session; on a finished set he handed in. `now` is for ticket 189's
- * stream, which makes the classmates' progress a function of the time since the set went live.
+ * set Sam's comes from his session and the classmates' from the stream at `now` (ticket 189); on a
+ * finished set Sam handed in and the classmates' records are fixed.
  */
 export function rosterProgress(b: AssignmentBundle, session: StudentSession | null, now: number): Record<string, StudentProgress> {
-  void now;
   const sam: StudentProgress = b.kind === "live" ? sessionProgress(session, b.problems) : { kind: "submitted" };
-  return { [DEMO_STUDENT.id]: sam, ...Object.fromEntries(b.classmates.map((m) => [m.id, classmateProgress(m, b.problems)])) };
+  return { [DEMO_STUDENT.id]: sam, ...Object.fromEntries(classmatesAt(b, b.kind === "live" ? session : null, now).map((m) => [m.record.id, m.progress])) };
 }
 
 /** How many of the class have handed the set in, and whether that is all of them. */
@@ -168,7 +170,7 @@ export function assignmentStages(b: AssignmentBundle, c: ClassroomState | null |
     const ids: ClassStageId[] = ["working", ...b.pathway];
     return ids.map((id) => ({ id, word: CLASS_STAGE_WORD[id], state: "over", done: null, total: 1 + b.classmates.length }));
   }
-  return classStages(c, session, now, b.classmates);
+  return classStages(c, session, now, b);
 }
 
 /** The stage the set is on, or null once every stage is over. */

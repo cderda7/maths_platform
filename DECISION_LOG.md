@@ -3777,3 +3777,66 @@ unchanged, and the rule is measured, not guessed, so it holds for any label leng
 several answers) and any column width. The teacher still sees that a student is low and on what, with
 a clear "+1" when there is more.
 
+
+## 2026-09-13 · The live stream is a pure function of the start time and now over the classmates' final records (ticket 189)
+
+**Decision.** Each classmate's record in `data/classmates.ts` stays what they hand in at the end. A script
+(`data/stream.ts`: warm-up, ms per difficulty unit, an optional rushed first problem, the hand-in time or
+never) turns it into a schedule (`lib/stream.ts` `scheduleFor`), and every teacher read goes through
+`classmatesAt(set, session, now)`: the visible record at `now` (`recordAt`: done = problems answered,
+their wrongs, working and notes so far, no clarification before hand-in), the row's progress, and when each
+problem's work arrived. `AssignmentBundle.startedAt` (from `liveStartedAt`) switches it on; a finished set
+has none. `rosterProgress`, `classStages`' working count and `mistakesByProblem(session, set, now)` read it,
+so the landing, the Classroom card, the Pathway card, Class View and Mistakes follow without their own
+timing. The stream is over once Sam hands in (on his own or through force submit): every classmate who
+started has then handed in, Jordan's Q1–Q7 included, and every later stage reads the full records as it did.
+Jordan's record grows to Q7 with Q4–Q6 right and Q7 the unchecked 1 × 8 pair (the same habit as his Q2),
+so Sam's group union and quick pass are unchanged; the group's progress becomes thirteenths.
+
+**Context.** The user wants the teacher to sit on Mistakes and watch mistakes arrive per problem
+submission, with five warming up first, Jordan stalling at Q8, Chloe never starting, a 17/20 end state,
+reload continuity, Reset clearing and skips landing at the end. Every downstream flow (group review,
+readiness arrivals, standings, examples, the board, the diagnostic trickle) reads the static records.
+
+**Alternatives.** *Store events in the classroom as a timer fires them*: needs an owner tab running the
+clock, duplicates across tabs, and a reload with no tab open loses time. *A second, per-moment fixture per
+student*: double the data to keep consistent. *Keep streaming after Sam hands in*: individual review's
+scripted arrivals and group review would read students who are still on the set. *Make Jordan wrong on
+Q4–Q6 too*: changes Sam's group's discussion problems and every scripted group review moment.
+
+**Tradeoffs.** A presenter who hands Sam in two minutes after Create sees the counts jump to the end
+state. Sam's live session is not part of the script, so "still working" (`pending`) counts him until he
+hands in, where before he counted as skipped. Work a student hands in unfinished (Liam's Q3, Ethan's and
+Harper's Q9) arrives with the hand-in, not as its own event. Jordan's Q7 changes the class's Q7 counts,
+the Q7 example picker (a third "pair adds to nine") and the group bars (15, 38, 62, 85, 92, 100 %).
+
+**Defense.** One pure function of stored data keeps every tab, a reload and the tests in agreement with
+no timers to own, and the end of the stream is exactly the records the rest of the product already runs
+on, so nothing after individual working needed to change.
+
+## 2026-09-13 · Arrivals on Mistakes are held above the pointer, and a name glows from its arrival time (ticket 189)
+
+**Decision.** While the pointer is over the problem list, every card whose top is at or above the pointer
+keeps the names it shows and no new card is inserted above the pointer (`lib/arrivals.ts`
+`holdAbovePointer`, fed by `usePointerGuard`: pointer moves and scrolls count the problem rows whose top is
+at or above it, outside render). Their correct / skipped counts still tick (fixed-width tabular figures).
+Cards below the pointer update at once. When the pointer moves on, held names land and glow from that
+moment. A name's glow (`.arrive`, background and ring only) runs 8 s from `MistakeRow.arrivedAt`, its
+animation delay fixed at the name's first render, so a reload never replays an old arrival. Rows come in
+arrival order and columns are keyed on their first student.
+
+**Context.** A new name appends to its cluster, but a new working is a new grid column (every `1fr` column
+narrows) and a problem's first slip is a new card (the cards below move down): both would move a name the
+teacher is pointing at.
+
+**Alternatives.** *Show all ten cards from the start*: no insertion, but a new column still reflows the
+card, and cards with no slips would clutter the finished layout. *Freeze the whole list while hovered*: a
+teacher resting the mouse sees nothing arrive. *Scroll anchoring*: does not apply at scroll top and not to
+horizontal reflow. *Fixed-width columns*: breaks ticket 138's even columns.
+
+**Tradeoffs.** A teacher reading one card for a long time does not see that card's new names until moving
+off it (the count beside it does tick). The guard measures rects on pointer moves (≤ ten rows). The glow
+can run up to a second long (the 1 s clock).
+
+**Defense.** Nothing moves under the pointer by construction, the rest of the page stays live, and the
+held arrivals still announce themselves when they land.

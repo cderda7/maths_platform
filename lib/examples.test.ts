@@ -18,8 +18,7 @@ describe("board examples", () => {
     expect(none.map((c) => c.studentId).slice(0, 6)).toEqual(["priya", "jordan", "amelia", "tomas", "zara", "liam"]);
     expect(none).toHaveLength(CLASSMATES.filter((c) => c.done >= 2).length);
     const q4 = candidatesFor("q4", null).map((c) => c.studentId);
-    expect(q4.slice(0, 4)).toEqual(["priya", "amelia", "tomas", "zara"]); // jordan and liam never reached Q4
-    expect(q4).not.toContain("jordan");
+    expect(q4.slice(0, 4)).toEqual(["priya", "jordan", "amelia", "tomas"]); // jordan reaches Q7 since ticket 189; liam never reached Q4
     expect(q4).not.toContain("liam");
     expect(candidatesFor("q2", sessionAt("working")).some((c) => c.studentId === "sam")).toBe(false);
     const reworked = candidatesFor("q2", sessionAt("group"));
@@ -65,7 +64,7 @@ describe("board examples", () => {
     expect(options.slice(1).map((o) => [o.name, o.count])).toEqual([
       ["scaled two of three terms", 7], // six classmates and Sam
       ["tripled, third never restored", 4],
-      ["pair adds to nine", 2],
+      ["pair adds to nine", 3], // Lucas, Ruby and (ticket 189) Jordan
     ]);
     for (const o of options.slice(1)) {
       expect(o.leaf).toBeTruthy();

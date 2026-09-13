@@ -16,7 +16,7 @@ const MONIC: LeafId = "algebra.expand-factor.monic";
 const SURDS: LeafId = "algebra.number.surds";
 
 const row = (id: string, slips: LeafId[]): MistakeRow => ({ id, name: id, initials: id.slice(0, 2).toUpperCase(), live: false, lines: [], slips });
-const problem = (i: number, rows: MistakeRow[]): ProblemMistakes => ({ problem: ASSIGNMENT.problems[i], rows, right: 0 });
+const problem = (i: number, rows: MistakeRow[]): ProblemMistakes => ({ problem: ASSIGNMENT.problems[i], rows, right: 0, pending: 0 });
 
 describe("mistakes so far", () => {
   it("counts every wrong answer to a problem: one per student per problem", () => {
@@ -73,14 +73,16 @@ describe("the top gap", () => {
 describe("the Classroom's cards", () => {
   const live = assignmentBundle("pset-2", CREATED)!;
   /** A finished set standing in for Problem Set 1 (ticket 187) until it is registered: the same work, every stage over. */
-  const finished: AssignmentBundle = { ...live, id: "pset-1", kind: "finished", title: "PROBLEM SET 1 — FEATURES OF A PARABOLA", name: "Problem Set 1 — Features of a parabola", due: "Thu 3 Sep" };
+  const finished: AssignmentBundle = { ...live, id: "pset-1", kind: "finished", title: "PROBLEM SET 1 — FEATURES OF A PARABOLA", name: "Problem Set 1 — Features of a parabola", due: "Thu 3 Sep", startedAt: null };
 
   it("Problem Set 2 while the class works is live: submitted of twenty and its mistakes so far", () => {
     const { classroom, session } = skipFixture("working", now);
     const card = assignmentCard(assignmentBundle("pset-2", classroom)!, classroom, session, now);
     expect(card).toMatchObject({ id: "pset-2", name: "Problem Set 2 — Roots of a quadratic", href: "/teacher/a/pset-2", section: "live", status: "live", total: CLASS_SIZE, due: "Thu 10 Sep" });
-    expect(card.submitted).toBe(CLASS_SIZE - 2);
+    // The stream long over (the skip went live an hour back, ticket 189): everyone but Sam, Chloe and Jordan, stalled on Q8.
+    expect(card.submitted).toBe(CLASS_SIZE - 3);
     expect(card.mistakes).toBe(mistakeCount(mistakesByProblem(session, live)));
+    expect(card.mistakes).toBe(mistakeCount(mistakesByProblem(session, assignmentBundle("pset-2", classroom)!, now)));
   });
 
   it("moves to past, in review, once the class is past individual working; done once every stage is over", () => {

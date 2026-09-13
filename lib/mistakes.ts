@@ -6,6 +6,7 @@ import { evaluateLine, type Verdict } from "./evaluate";
 import { feedbackFor, progressOf, type ProblemFeedback } from "./feedback";
 import { CLASS_SIZE } from "./readiness";
 import type { StudentSession } from "./session";
+import { classmatesAt, streamOver, type StreamSet } from "./stream";
 
 /**
  * The teacher's mistake view: problems first, then the students who slipped on each, with
@@ -20,6 +21,12 @@ export interface MistakeRow {
   lines: { tex: string; verdict: Verdict }[];
   /** Leaves of the steps that didn't hold. */
   slips: LeafId[];
+  /**
+   * When the student submitted this problem, absolute ms, on a live set's stream (ticket 189): the rows come
+   * in this order, so a new name lands at the end of its cluster, and the view highlights it for a moment.
+   * Absent for the live student and on a fixed set.
+   */
+  arrivedAt?: number;
 }
 
 export interface ProblemMistakes {
@@ -27,6 +34,12 @@ export interface ProblemMistakes {
   rows: MistakeRow[];
   /** How many of the class of `CLASS_SIZE` got the problem right (ticket 140); the rest are the rows, or never reached it. */
   right: number;
+  /**
+   * How many are still on the set and have not answered the problem yet (ticket 189): classmates in the live
+   * stream who have not reached it and the live student before he hands in. Neither correct, wrong nor
+   * skipped; always 0 on a fixed set and once the class has handed in.
+   */
+  pending: number;
 }
 
 /** Students who slipped on the same leaves, adjacent, so the view can draw one pill across them. */
@@ -168,20 +181,27 @@ export function rightCount(problem: Problem, index: number, session: StudentSess
   return live + classmates.filter((c) => index < c.done && !c.wrong.includes(problem.id)).length;
 }
 
-/** One assignment's problems and classmates' results (ticket 185): the fixture's, or an assignment bundle's (`lib/assignments`). */
-export interface MistakeSet {
-  problems: readonly Problem[];
-  classmates: readonly Classmate[];
+/**
+ * One assignment's problems and classmates' results (ticket 185): the fixture's, or an assignment bundle's (`lib/assignments`).
+ * With `startedAt` (the live set, ticket 189) the classmates' results are the stream's at `now`.
+ */
+export interface MistakeSet extends StreamSet {
   /** Sam's handed-in record on a finished set (ticket 187): his row comes from it instead of a session, first like his live row. */
   sam?: Classmate | null;
 }
 
 export { CLASS_SIZE };
 
-export function mistakesByProblem(session: StudentSession | null, set: MistakeSet = { problems: ASSIGNMENT.problems, classmates: CLASSMATES }): ProblemMistakes[] {
+/**
+ * `now` places a live set's stream (ticket 189; the end of it when omitted). A classmate's rows on a problem come in
+ * the order they submitted it, so the list only ever grows at the end of a cluster.
+ */
+export function mistakesByProblem(session: StudentSession | null, set: MistakeSet = { problems: ASSIGNMENT.problems, classmates: CLASSMATES }, now: number = Number.POSITIVE_INFINITY): ProblemMistakes[] {
   const mine = session ? feedbackFor(session) : [];
-  // On a finished set Sam is one more record, read like the classmates' and listed first.
-  const records = set.sam ? [set.sam, ...set.classmates] : set.classmates;
+  const roster = classmatesAt(set, session, now);
+  const live = set.startedAt !== null && set.startedAt !== undefined;
+  const over = !live || streamOver(session);
+  const byArrival = (problemId: string) => [...roster].filter((m) => m.record.wrong.includes(problemId)).sort((a, b) => (a.answeredAt[problemId] ?? 0) - (b.answeredAt[problemId] ?? 0));
   return set.problems
     .map((problem, index) => {
       const rows: MistakeRow[] = [];
@@ -190,12 +210,19 @@ export function mistakesByProblem(session: StudentSession | null, set: MistakeSe
         const lines = me.lines.map((l) => ({ tex: l.tex, verdict: l.verdict }));
         rows.push({ id: DEMO_STUDENT.id, name: DEMO_STUDENT.name, initials: DEMO_STUDENT.initials, live: true, lines, slips: slipsOf(lines) });
       }
-      for (const c of records) {
-        if (!c.wrong.includes(problem.id)) continue;
-        const lines = evaluateAll(problem.id, c.attempts[problem.id] ?? []);
-        rows.push({ id: c.id, name: c.name, initials: c.initials, live: false, lines, slips: slipsOf(lines) });
-      }
-      return { problem, rows, right: rightCount(problem, index, session, me, records) };
+      // On a finished set Sam is one more record, read like the classmates' and listed first.
+      if (set.sam?.wrong.includes(problem.id)) rows.push(recordRow(set.sam, problem.id));
+      for (const m of byArrival(problem.id)) rows.push({ ...recordRow(m.record, problem.id), ...(live ? { arrivedAt: m.answeredAt[problem.id] } : {}) });
+      const records = roster.map((m) => m.record);
+      const right = rightCount(problem, index, session, me, set.sam ? [set.sam, ...records] : records);
+      const samPending = !over && !rows.some((r) => r.live) && !(session && liveRight(session, me)) ? 1 : 0;
+      const pending = over ? 0 : samPending + roster.filter((m) => !m.state.submitted && m.record.done <= index).length;
+      return { problem, rows, right, pending };
     })
     .filter((p) => p.rows.length > 0);
+}
+
+function recordRow(c: Classmate, problemId: string): MistakeRow {
+  const lines = evaluateAll(problemId, c.attempts[problemId] ?? []);
+  return { id: c.id, name: c.name, initials: c.initials, live: false, lines, slips: slipsOf(lines) };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode, type RefObject } from "react";
 import Link from "next/link";
 import TeacherChrome from "./TeacherChrome";
 import { BackToClassroom, useAssignmentBundle } from "./AssignmentContext";
@@ -8,6 +8,7 @@ import ForceSubmit from "./ForceSubmit";
 import M from "@/components/Math";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { DifficultyTag, SlipChip } from "@/components/Tag";
+import { arriving, EMPTY_HOLD, holdAbovePointer, holdKey } from "@/lib/arrivals";
 import { assignmentStages, currentStageOf } from "@/lib/assignments";
 import { CLASS_SIZE, groupBySlip, mistakesByProblem, type WorkColumn } from "@/lib/mistakes";
 import { diagnosticFor } from "@/lib/diagnostic";
@@ -82,6 +83,86 @@ function FitGrid({ children, ...rest }: React.HTMLAttributes<HTMLDivElement>) {
 }
 
 /**
+ * How many of the list's problem rows have their top at or above the pointer (ticket 189), 0 while the pointer is off
+ * the list: the cards `holdAbovePointer` keeps still. Measured on pointer moves and scrolls, outside render; the view
+ * re-renders only when the number changes.
+ */
+function usePointerGuard(listRef: RefObject<HTMLElement | null>): number {
+  const [store] = useState(() => {
+    let count = 0;
+    let x = -1;
+    let y = -1;
+    let overList = false;
+    const listeners = new Set<() => void>();
+    const measure = () => {
+      const list = listRef.current;
+      let next = 0;
+      if (list && y >= 0) {
+        const r = list.getBoundingClientRect();
+        // Over the list's box, or over something of the list's that hangs out of it (a diagnostic flyout).
+        if (overList || (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom)) {
+          for (const row of list.querySelectorAll<HTMLElement>("[data-problem-row]")) {
+            if (row.getBoundingClientRect().top > y) break;
+            next++;
+          }
+        }
+      }
+      if (next !== count) {
+        count = next;
+        for (const l of listeners) l();
+      }
+    };
+    const move = (e: PointerEvent) => {
+      x = e.clientX;
+      y = e.clientY;
+      overList = e.target instanceof Node && !!listRef.current?.contains(e.target);
+      measure();
+    };
+    const leave = () => {
+      x = -1;
+      y = -1;
+      overList = false;
+      measure();
+    };
+    return {
+      subscribe(cb: () => void) {
+        listeners.add(cb);
+        if (listeners.size === 1) {
+          document.addEventListener("pointermove", move, { passive: true });
+          document.addEventListener("scroll", measure, { capture: true, passive: true });
+          document.documentElement.addEventListener("pointerleave", leave);
+        }
+        return () => {
+          listeners.delete(cb);
+          if (listeners.size === 0) {
+            document.removeEventListener("pointermove", move);
+            document.removeEventListener("scroll", measure, { capture: true });
+            document.documentElement.removeEventListener("pointerleave", leave);
+          }
+        };
+      },
+      get: () => count,
+    };
+  });
+  return useSyncExternalStore(store.subscribe, store.get, () => 0);
+}
+
+/**
+ * A student's name in a mistake column (ticket 189): one that has just arrived glows faintly and fades (`.arrive`,
+ * background and ring only, so nothing moves). The fade is placed on the arrival time when the name first renders, so a
+ * name that arrived before the view opened (a reload) is already part-way through, or done.
+ */
+function ArrivingName({ arrivedAt, now, children, ...rest }: { arrivedAt: number | undefined; now: number; children: ReactNode } & React.HTMLAttributes<HTMLSpanElement>) {
+  const [since] = useState(() => (arrivedAt === undefined ? null : Math.max(0, now - arrivedAt)));
+  const glow = since !== null && arriving(arrivedAt, now);
+  return (
+    <span {...rest} className={`${rest.className ?? ""} ${glow ? "arrive" : ""}`} style={glow ? { animationDelay: `-${since}ms` } : undefined} data-arriving={glow || undefined} data-arrived-at={arrivedAt}>
+      {children}
+    </span>
+  );
+}
+
+/**
  * Mistakes by problem. Under each problem the students who slipped sit side by side, those who
  * slipped on the same step next to each other under one pill that spans them, and inside a
  * pill those who made the exact same mistake (the same wrong line, whatever the lines around
@@ -108,9 +189,23 @@ export default function TeacherMistakes() {
   const { session: liveSession } = useBatchedSession(3000);
   // A finished set's work is its own; only the live set reads Sam's session.
   const session = assignment.kind === "live" ? liveSession : null;
-  const problems = mistakesByProblem(session, assignment);
   const classroom = useClassroom();
   const now = useNow();
+  // The live set's classmates stream in from its start (ticket 189): nothing to show until the clock has its first tick.
+  const latest = assignment.kind === "live" && now === 0 ? [] : mistakesByProblem(session, assignment, now);
+  const listRef = useRef<HTMLDivElement>(null);
+  const guarded = usePointerGuard(listRef);
+  const [hold, setHold] = useState(EMPTY_HOLD);
+  const shown = holdAbovePointer(
+    latest,
+    hold,
+    guarded,
+    assignment.problems.map((p) => p.id),
+    now,
+  );
+  // Remember what is on screen, so the cards above the pointer can keep it while new work arrives.
+  if (holdKey(shown) !== holdKey(hold)) setHold(shown);
+  const problems = shown.problems;
   const stage = currentStageOf(assignmentStages(assignment, classroom, session, now));
   const [open, setOpen] = useState<string[]>([]);
   /** The problem just closed by hand: its button offers "close all" until the pointer leaves it. */
@@ -149,12 +244,12 @@ export default function TeacherMistakes() {
         {assignment.kind === "live" && <DiagnosticFootprint className="ml-5 shrink-0" />}
       </div>
 
-      <div className="mt-10 space-y-6">
-        {problems.map(({ problem, rows, right }) => {
+      <div ref={listRef} className="mt-10 space-y-6" data-problem-list>
+        {problems.map(({ problem, rows, right, wrong, pending }) => {
           const isOpen = open.includes(problem.id);
           const othersOpen = open.some((id) => id !== problem.id);
-          /** Neither correct nor among the rows: stopped before the problem, or handed it in without an answer (ticket 143). */
-          const skipped = CLASS_SIZE - right - rows.length;
+          /** Neither correct, wrong nor still working on the set: stopped before the problem, or handed it in without an answer (tickets 143, 189). */
+          const skipped = CLASS_SIZE - right - wrong - pending;
           const groups = groupBySlip(rows);
           // One grid column per identical working (ticket 138); boxes and pills span columns.
           const columns = groups.flatMap((g) => g.columns);
@@ -178,13 +273,13 @@ export default function TeacherMistakes() {
             <div key={problem.id} className="flex items-start gap-4" data-problem-row={problem.id}>
             {/* The correct count level with the header row (the card's 1 px border, then the header), the skipped count 6 px under it; the two the same width. */}
             <div className="flex shrink-0 flex-col items-stretch gap-1.5" style={{ width: COUNT_COLUMN, paddingTop: (PROBLEM_HEADER + 2 - COUNT_H) / 2 }}>
-              <span className={COUNT} title={`${right} of ${CLASS_SIZE} got it correct · ${rows.length} wrong · ${skipped} skipped`} data-right={`${problem.id}:${right}`}>
+              <span className={COUNT} title={`${right} of ${CLASS_SIZE} got it correct · ${wrong} wrong · ${skipped} skipped${pending ? ` · ${pending} still working` : ""}`} data-right={`${problem.id}:${right}`}>
                 <span className="font-semibold text-ink">
                   {right}/{CLASS_SIZE}
                 </span>
                 <span className="text-ink-muted">correct</span>
               </span>
-              <span className={COUNT} title="Stopped before this problem, or handed it in without an answer" data-skipped={`${problem.id}:${skipped}`}>
+              <span className={COUNT} title="Stopped before this problem, or handed it in without an answer; a student still working on the set is not counted" data-skipped={`${problem.id}:${skipped}`}>
                 <span className="font-semibold text-ink">
                   {skipped}/{CLASS_SIZE}
                 </span>
@@ -224,8 +319,9 @@ export default function TeacherMistakes() {
                 <FitGrid className="grid" style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(${COLUMN_FLOOR}px, 1fr))` }} data-students>
                   {columns.map((c, i) => (
                     // Every student who wrote this column's working, their names flowing across the column and wrapping as it narrows; the first name in every column on one line.
+                    // Keyed on the column's first student, who stays first as others join it (ticket 189), so a name mid-glow is never re-created.
                     <button
-                      key={ids(c)}
+                      key={c.rows[0].id}
                       type="button"
                       onClick={() => toggle(problem.id)}
                       aria-expanded={isOpen}
@@ -234,10 +330,10 @@ export default function TeacherMistakes() {
                       data-column={`${problem.id}:${ids(c)}`}
                     >
                       {c.rows.map((r) => (
-                        <span key={r.id} className="flex max-w-full items-center gap-3 whitespace-nowrap" data-row={`${problem.id}:${r.id}`}>
+                        <ArrivingName key={r.id} arrivedAt={r.arrivedAt} now={now} className="flex max-w-full items-center gap-3 whitespace-nowrap" data-row={`${problem.id}:${r.id}`}>
                           <Avatar initials={r.initials} />
                           <span className="truncate font-medium text-ink">{r.name}</span>
-                        </span>
+                        </ArrivingName>
                       ))}
                     </button>
                   ))}
@@ -265,7 +361,7 @@ export default function TeacherMistakes() {
                       // The grid cell is the container (its width is the column's, the same for every cell); the box edges sit on the div inside it.
                       return (
                         <div
-                          key={ids(c)}
+                          key={c.rows[0].id}
                           className="@container row-start-3 min-w-0 py-4"
                           style={{ gridColumn: i + 1 }}
                           data-expanded={`${problem.id}:${ids(c)}`}
@@ -309,7 +405,7 @@ export default function TeacherMistakes() {
             </div>
           );
         })}
-        {problems.length === 0 && <Card className="p-6 text-[14px] text-ink-muted">No slips yet</Card>}
+        {problems.length === 0 && (assignment.kind !== "live" || now > 0) && <Card className="p-6 text-[14px] text-ink-muted">No slips yet</Card>}
       </div>
     </TeacherChrome>
   );

@@ -15,7 +15,7 @@ A reload continues from the stored start time. Reset demo clears it. A presenter
 
 **Blocked by:** 186, 188 (and 187 for merge order).
 
-**Status:** ready
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -35,7 +35,7 @@ Facts: teacher screens re-render off `useNow` (1 s tick) and the classroom store
 
 ## Acceptance
 
-- [ ] Tests for the schedule and end state
-- [ ] Click-through (real minutes, or clock override): at ~10 s the first submission shows on Mistakes; the five read "warming up" at the start; Jordan stuck at "Q8 in progress" at the end; Chloe missing; 17/20 on Class and on the Classroom card; reload mid-stream continues; reset clears
-- [ ] Nothing moves under a hovered name when an event lands (geometry before/after)
-- [ ] vitest, eslint, tsc, next build, check:laptop
+- [x] Tests for the schedule and end state
+- [x] Click-through (real minutes, or clock override): at ~10 s the first submission shows on Mistakes; the five read "warming up" at the start; Jordan stuck at "Q8 in progress" at the end; Chloe missing; 17/20 on Class and on the Classroom card; reload mid-stream continues; reset clears
+- [x] Nothing moves under a hovered name when an event lands (geometry before/after)
+- [x] vitest, eslint, tsc, next build, check:laptop

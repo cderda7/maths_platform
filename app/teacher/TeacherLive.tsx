@@ -21,6 +21,7 @@ import { assignmentReportHref, assignmentStages, rosterProgress } from "@/lib/as
 import { currentSlide } from "@/lib/classroom";
 import { useClassroom } from "@/lib/classroom-store";
 import { progressTag } from "@/lib/progress";
+import { classmatesAt } from "@/lib/stream";
 import { classmateEvidence, hierarchyFor, problemsStarted, restrictTo, sessionEvidence, type Evidence } from "@/lib/hierarchy";
 import type { HistoryPoint } from "@/lib/history";
 import { categoryHistory } from "@/lib/setHistory";
@@ -276,6 +277,8 @@ export default function TeacherLive() {
   };
 
   const progress = rosterProgress(assignment, live, now);
+  /** Each classmate's record as far as the live stream has reached (ticket 189): what they have answered so far; the whole record once handed in, and on a finished set. */
+  const records = new Map(classmatesAt(assignment, live, now).map((m) => [m.record.id, m.record]));
   /** Nothing handed in yet: the row's pills stay not-seen until the student submits (ticket 185). */
   const NO_EVIDENCE: Evidence = { lines: {}, submitted: false, caution: [] };
   /**
@@ -292,7 +295,7 @@ export default function TeacherLive() {
     missing: progress[c.id].kind === "not-started",
     evidence: progressTag(progress[c.id]) ? NO_EVIDENCE : classmateEvidence(c, problems),
     sub: "",
-    confidence: c.done === 0 ? confidenceWord(null) : { text: c.confidence, tone: c.confidence === "confident" ? "text-secure" : "text-accent-deep" },
+    confidence: progress[c.id].kind === "not-started" ? confidenceWord(null) : { text: c.confidence, tone: c.confidence === "confident" ? "text-secure" : "text-accent-deep" },
     set: `${Math.min(c.done, problems.length)}/${problems.length}`,
     setSub: "",
     tag: progressTag(progress[c.id]),
@@ -311,7 +314,7 @@ export default function TeacherLive() {
       setSub: live && !HANDED_IN.includes(live.stage) ? "handed in" : "",
       tag: progressTag(progress[DEMO_STUDENT.id]) ?? (progress[DEMO_STUDENT.id].kind === "not-started" ? "not started" : "in progress"),
     },
-    ...assignment.classmates.map(recordRow),
+    ...assignment.classmates.map((c) => recordRow(records.get(c.id) ?? c)),
   ];
   const results = rows.map((r) => hierarchyFor(r.evidence, problems));
   const columns = results[0]?.columns ?? [];
@@ -514,7 +517,7 @@ export default function TeacherLive() {
                         ) : (
                           <>
                             {r.set}
-                            {r.setSub && <div className="text-[12px] text-ink-muted">{r.setSub}</div>}
+                            {r.setSub && <div className="-mx-2 whitespace-nowrap text-[12px] text-ink-muted" data-set-sub>{r.setSub}</div>}
                           </>
                         )}
                       </td>
