@@ -8,6 +8,7 @@ import { classroomReducer, INITIAL_CLASSROOM } from "./classroom";
 import { parseQuestion, splitPaste, stemText } from "./mathInput";
 import { DEFAULT_GROUPS } from "@/data/groups";
 import { assignmentGroupsOf, moveStudent } from "./seating";
+import { DEFAULT_PATHWAY } from "./pathway";
 import { applyReview, bankMatch, bankProblemsOf, countByDifficulty, defaultLabel, draftKey, heuristicLabel, initialReview, labelsOf, nextDifficulty, normTex, recommendationsFor, reviewFor, reviewNewSkills, type ReviewState } from "./review";
 
 /** The demo paste as the create screen stores it. */
@@ -63,6 +64,12 @@ describe("labels", () => {
 });
 
 describe("the review state and the draft it is about", () => {
+  it("starts a new set's pathway on individual working alone, whatever the demo's own pathway is (ticket 239)", () => {
+    expect(initialReview(pasted()).pathway).toEqual([]);
+    expect(reviewFor(pasted(), null).pathway).toEqual([]);
+    expect(DEFAULT_PATHWAY).toEqual(["individual", "group"]);
+  });
+
   it("is fresh for a different draft but keeps the relabels and the pathway", () => {
     const qs = pasted();
     const stored: ReviewState = { ...initialReview(qs), step: "pathway", answers: { [CHANGE_SIGNS.id]: "accept" }, labels: { q2: "complex familiar" }, pathway: ["whole-class"] };

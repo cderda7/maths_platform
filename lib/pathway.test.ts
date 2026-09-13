@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { allPathways, DEFAULT_PATHWAY, isValidPathway, mapColumns, nextStage, parsePathway, pathwayChip, pathwaySentence, successors } from "./pathway";
+import { allPathways, DEFAULT_PATHWAY, isValidPathway, mapColumns, nextStage, NEW_SET_PATHWAY, parsePathway, pathwayChip, pathwaySentence, STAGE_DESCRIPTION, successors } from "./pathway";
 
 describe("pathway rules", () => {
   it("eight pathways exist, including submit-only, and every one is valid", () => {
@@ -66,6 +66,15 @@ describe("pathway words and deep links", () => {
     expect(pathwaySentence([])).toBe("individual working → done");
     expect(pathwaySentence(["individual", "group"])).toBe("individual working → individual review → group review → done");
     expect(pathwayChip(["group", "whole-class"])).toBe("indiv working → group review → class review");
+  });
+
+  it("describes every review stage in a short line for the map's hover (ticket 239)", () => {
+    expect(STAGE_DESCRIPTION).toEqual({
+      individual: "students find and fix their own mistakes",
+      group: "groups compare answers and fix mistakes together",
+      "whole-class": "you lead the class through anonymous examples on the board",
+    });
+    expect(NEW_SET_PATHWAY).toEqual([]);
   });
 
   it("parses deep-link forms and rejects invalid ones", () => {

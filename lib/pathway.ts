@@ -10,6 +10,9 @@ export const REVIEW_ORDER: ReviewStage[] = ["individual", "group", "whole-class"
 /** The build's original pipeline, used whenever no assignment has been created. */
 export const DEFAULT_PATHWAY: Pathway = ["individual", "group"];
 
+/** A new set's map starts on individual working alone (ticket 239); the teacher adds review stages. */
+export const NEW_SET_PATHWAY: Pathway = [];
+
 export function isValidPathway(p: readonly ReviewStage[]): boolean {
   let last = -1;
   for (const s of p) {
@@ -66,7 +69,13 @@ export function nextStage(pathway: readonly ReviewStage[], from: Transition): St
 }
 
 export const STAGE_WORD: Record<ReviewStage, string> = { individual: "individual review", group: "group review", "whole-class": "class review" };
-export const STAGE_SHORT: Record<ReviewStage, string> = { individual: "indiv review", group: "group review", "whole-class": "class review" };
+/** The grey line beside a stage on the creation map while the teacher hovers it (ticket 239). */
+export const STAGE_DESCRIPTION: Record<ReviewStage, string> = {
+  individual: "students find and fix their own mistakes",
+  group: "groups compare answers and fix mistakes together",
+  "whole-class": "you lead the class through anonymous examples on the board",
+};
+export const STAGE_SHORT:Record<ReviewStage, string> = { individual: "indiv review", group: "group review", "whole-class": "class review" };
 
 /** "individual working → individual review → group review → done" */
 export function pathwaySentence(p: readonly ReviewStage[]): string {

@@ -4293,3 +4293,15 @@ rule for pens is untouched and the exception is visible and named.
 
 **Defense.** The unit test covers every fixed record with nothing skipped, which is the contract the user asked for; Sam's live row is by construction not a fixed record, and the one visible exception is named, reported on every run and deferred to the user rather than hidden or patched with a story nobody chose.
 
+
+## 2026-09-14 · A new set's pathway default is separate from the demo's (ticket 239)
+
+**Decision.** Create's review state starts on `NEW_SET_PATHWAY = []` (individual working alone); `DEFAULT_PATHWAY` (individual → group review) stays what the student and teacher screens assume when no set has been created. The map's stage descriptions show only for the last column, beside the pill when at least 200 px remain in the map and under it otherwise.
+
+**Context.** The user asked for the map to start with only individual working filled in, and for a grey description beside a hovered review stage. They agreed the demo keeps its pathway and that the line shows only while nothing is to the right of the pill.
+
+**Alternatives considered.** *Change `DEFAULT_PATHWAY` itself to `[]`*: the demo with no created set would skip every review screen and its deep links and click-throughs. *Show the line for every column as a flyout over the arrows*: covers the arrows the teacher is reading. *Always beside the pill*: class review in the third column has about 60 px before the card edge, so the line would wrap one word a line or spill out of the card.
+
+**Tradeoffs.** Two pathway constants that read alike; the third column's line sits under the pill rather than to its right, the one place the user's "to the right" is not kept. Hover-only text is unseen on touch (focus shows it for keyboards).
+
+**Defense.** The demo's behaviour is untouched and the new set's default is named for what it is; the placement rule is pure geometry from fixed widths, so it cannot drift from the layout.

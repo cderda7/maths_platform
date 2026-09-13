@@ -3149,6 +3149,14 @@ uploaded problems) settled the following as later, each on purpose.
 - **Long sentence answers on the Mistakes tab**: left as they are (open question with the user, ticket 210's note); the click-through counts a `\text{…}` line wider than its box apart from maths lines, and on the six sets at 1280 and 1440 none is over.
 - **"Not sent yet" on a finished set's report**: Sam's Set 1 report reads "In their words · Not sent yet" and "Commentary · Nothing to note" for a set handed in two weeks ago; "No reflection" would read better on a past set. Deferred: copy on a shared component, not this ticket's check.
 
+## Pathway hover descriptions (ticket 239, 2026-09-14)
+
+- **Descriptions on touch.** A teacher on an iPad never hovers; a tap picks the stage. A small info mark or long-press could show the line. Deferred: Create is used on a laptop.
+- **A line for individual working and continue tomorrow.** Only the three review stages describe themselves. Deferred: the user named those three.
+- **Lines for stages with a column to their right.** Hidden so they never cross the arrows; a flyout over the arrows would show them. Deferred: the user chose hiding.
+- **The line under class review in the third column** instead of beside it, for lack of room in the card. A wider map card, or a shorter line there, would keep it to the right. Deferred: flagged to the user.
+- **Remember a teacher's usual pathway.** Every new set starts on individual working alone; the last set's pathway could be the starting point. Deferred: the user asked for the plain default.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

@@ -3,7 +3,7 @@ import { DRAFT_LABELS, RECOMMENDATIONS, type ProposedQuestion, type Recommendati
 import type { Difficulty, Pathway, Problem } from "@/data/types";
 import type { SeatingGroups } from "@/data/groups";
 import type { DraftQuestion } from "./classroom";
-import { DEFAULT_PATHWAY } from "./pathway";
+import { NEW_SET_PATHWAY } from "./pathway";
 import type { LeafId } from "@/data/taxonomy";
 import type { SetScope } from "./hierarchy";
 import { inferNewSkills, newSkillCandidates } from "./newSkills";
@@ -114,14 +114,14 @@ export function draftKey(questions: DraftQuestion[]): string {
 }
 
 export function initialReview(questions: DraftQuestion[]): ReviewState {
-  return { step: "difficulty", forDraft: draftKey(questions), labels: {}, answers: {}, addition: 0, pathway: DEFAULT_PATHWAY };
+  return { step: "difficulty", forDraft: draftKey(questions), labels: {}, answers: {}, addition: 0, pathway: NEW_SET_PATHWAY };
 }
 
 /** The stored review if it was made about these questions, else a fresh one (the relabels kept: they are by id). */
 export function reviewFor(questions: DraftQuestion[], stored: ReviewState | null | undefined): ReviewState {
   const key = draftKey(questions);
   if (stored && stored.forDraft === key) return stored;
-  return { ...initialReview(questions), labels: stored?.labels ?? {}, pathway: stored?.pathway ?? DEFAULT_PATHWAY, ...(stored?.groups ? { groups: stored.groups } : {}) };
+  return { ...initialReview(questions), labels: stored?.labels ?? {}, pathway: stored?.pathway ?? NEW_SET_PATHWAY, ...(stored?.groups ? { groups: stored.groups } : {}) };
 }
 
 /** A recommendation matched against the draft: its target's id when it has one. */
