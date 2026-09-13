@@ -122,31 +122,37 @@ describe("student session flow", () => {
     expect(sessionReducer(s, { type: "warmup/skill-done" })).toBe(s);
   });
 
-  it("a tap on a chip opens that skill; Next then goes to the nearest skill not yet done, wrapping round, and the set only once all are", () => {
+  it("a tap on a chip opens that skill and counts the one left as done; Next goes to the nearest skill never opened, wrapping round, and the set once every skill has been", () => {
     let s = sessionAt("practice");
     expect(sessionReducer(s, { type: "warmup/goto", step: 0 })).toBe(s);
     expect(sessionReducer(s, { type: "warmup/goto", step: 4 })).toBe(s);
     expect(sessionReducer(s, { type: "warmup/goto", step: -1 })).toBe(s);
     s = sessionReducer(s, { type: "warmup/goto", step: 2 });
     expect(warmupProblem(s).id).toBe("w-nfl");
-    expect(s.warmup.done).toEqual([]);
+    expect(s.warmup.done).toEqual(["w-fractions"]);
     s = sessionReducer(s, { type: "warmup/skill-done" });
-    expect(s.warmup.done).toEqual(["w-nfl"]);
+    expect(s.warmup.done).toEqual(["w-fractions", "w-nfl"]);
     expect(warmupProblem(s).id).toBe("w-nonmonic");
-    s = sessionReducer(s, { type: "warmup/skill-done" });
-    expect(warmupProblem(s).id).toBe("w-fractions");
+    // From the last skill, Next wraps only to the skill jumped over, never back to fractions.
     s = sessionReducer(s, { type: "warmup/skill-done" });
     expect(warmupProblem(s).id).toBe("w-monic");
-    // Back to a finished skill: it stays done, and finishing it again does not list it twice.
+    // Back to a skill already left: the one on screen counts, and leaving it again does not list it twice.
     s = sessionReducer(s, { type: "warmup/goto", step: 0 });
     expect(warmupProblem(s).id).toBe("w-fractions");
-    s = sessionReducer(s, { type: "warmup/skill-done" });
-    expect(s.warmup.done).toEqual(["w-nfl", "w-nonmonic", "w-fractions"]);
-    expect(warmupProblem(s).id).toBe("w-monic");
+    expect(s.warmup.done).toEqual(["w-fractions", "w-nfl", "w-nonmonic", "w-monic"]);
     expect(s.stage).toBe("practice");
     s = sessionReducer(s, { type: "warmup/skill-done" });
+    expect(s.warmup.done).toEqual(["w-fractions", "w-nfl", "w-nonmonic", "w-monic"]);
     expect(s.stage).toBe("working");
     expect(sessionReducer(s, { type: "warmup/goto", step: 1 })).toBe(s);
+  });
+
+  it("every skill opened by chip taps alone: Next on the last one is the set, not a loop back (ticket 205)", () => {
+    let s = sessionAt("practice");
+    for (const step of [1, 2, 3]) s = sessionReducer(s, { type: "warmup/goto", step });
+    expect(s.warmup.done).toEqual(["w-fractions", "w-monic", "w-nfl"]);
+    s = sessionReducer(s, { type: "warmup/skill-done" });
+    expect(s.stage).toBe("working");
   });
 
   it("deep-linking past the survey fills in earlier answers", () => {

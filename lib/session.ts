@@ -65,7 +65,7 @@ export interface WarmupState extends PracticeRun {
   messages: WarmupMessage[];
   /** Index into the warm-up sequence (one skill each, easiest first): the skill being warmed up. */
   step: number;
-  /** Ids of the warm-up problems the student has worked through ("Next skill"), in that order. */
+  /** Ids of the warm-up problems the student has been through, in the order they left them: by "Next skill" or a tap on another chip, finished or not. */
   done: string[];
 }
 
@@ -380,16 +380,15 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     case "warmup/skill-done": {
       if (s.stage !== "practice") return s;
       const seq = warmupSequence(warmupFocus(s));
-      const cur = warmupStep(s).id;
-      const done = s.warmup.done.includes(cur) ? s.warmup.done : [...s.warmup.done, cur];
-      // The next skill not yet done, looking past the current one and wrapping round to any skipped over.
+      const done = leaveSkill(s);
+      // The next skill never opened, looking past the current one and wrapping round to any jumped over; the set once every skill has been.
       const next = seq.map((_, i) => (s.warmup.step + 1 + i) % seq.length).find((i) => !done.includes(seq[i].id));
       if (next === undefined) return { ...s, stage: "working", warmup: { ...s.warmup, done } };
       return warm(s, { done, step: next, problem: "first", example: false, exampleShown: 0 });
     }
     case "warmup/goto": {
       if (s.stage !== "practice" || a.step === s.warmup.step || a.step < 0 || a.step >= warmupSequence(warmupFocus(s)).length) return s;
-      return warm(s, { step: a.step, problem: "first", example: false, exampleShown: 0 });
+      return warm(s, { done: leaveSkill(s), step: a.step, problem: "first", example: false, exampleShown: 0 });
     }
     case "problem/goto":
       // A tile pressed under the open hand-in check is a way back too.
@@ -546,6 +545,12 @@ export function reworkNotice(s: StudentSession): string | null {
 }
 
 const warm = (s: StudentSession, patch: Partial<WarmupState>): StudentSession => ({ ...s, warmup: { ...s.warmup, ...patch } });
+
+/** The warm-up's done list once the student leaves the skill on screen: leaving it counts, finished or not (ticket 205). */
+const leaveSkill = (s: StudentSession): string[] => {
+  const cur = warmupStep(s).id;
+  return s.warmup.done.includes(cur) ? s.warmup.done : [...s.warmup.done, cur];
+};
 
 /** The run an action is about. */
 export const runOf = (s: StudentSession, key: RunKey): PracticeRun => (key === "warmup" ? s.warmup : s.overlayRun);

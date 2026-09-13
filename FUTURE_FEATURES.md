@@ -2844,6 +2844,16 @@ uploaded problems) settled the following as later, each on purpose.
   again reopens an empty box: the draft lives in `HelpChat`'s state and goes with it. Keep the draft in
   the run (like the messages) if students lose half-written replies.
 
+## Warm-up skills left count as done (from ticket 205, 2026-09-13)
+
+- **Finished and visited look the same.** A chip turns dark once the student has been on the skill,
+  finished or not, so neither the student nor the teacher can tell a skill worked through from one
+  opened and left. A distinct mark (a tick on a finished chip, or a lighter "opened" shade) would show
+  it; deferred because the ask was one colour for "been there" and the warm-up is not marked.
+- **The teacher never hears which warm-ups were left unfinished.** `warmup.done` is the student's
+  path only. Sending "left fractions after one line" to the teacher side would help pick who needs a
+  word before the set; out of scope for a chip colour change.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

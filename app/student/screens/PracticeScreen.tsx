@@ -9,7 +9,7 @@ import { warmupSequence } from "@/lib/warmup";
 /**
  * The warm-up: the focus skills one at a time, easiest first, each on the pad. The strip above
  * the problem is the sequence as buttons, one per skill: dark blue once the student is on it or
- * has worked through it, light until then; a tap opens that skill.
+ * has been on it (finished or not), light until then; a tap opens that skill.
  */
 export default function PracticeScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
   const w = session.warmup;
@@ -17,7 +17,7 @@ export default function PracticeScreen({ session, dispatch }: { session: Student
   const first = warmupStep(session);
   const remaining = sequence.filter((q, i) => i !== w.step && !w.done.includes(q.id)).length;
   const skip = () => dispatch({ type: "practice/finish" });
-  /** Finishes this skill: the next one not yet done, or the set once every skill is. */
+  /** Leaves this skill: the next one never opened, or the set once every skill has been. */
   const done = () => dispatch({ type: "warmup/skill-done" });
   const doneLabel = remaining === 0 ? "On to the set" : "Next skill →";
 
