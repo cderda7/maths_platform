@@ -6,7 +6,7 @@ import { CLASSROOM_HREF, type AssignmentBundle } from "@/lib/assignments";
 
 /**
  * The assignment a teacher page is about (ticket 185), live in every tab: the bundle for the id in
- * the route (`app/teacher/a/[id]/layout.tsx`), or Problem Set 2 for the live-lesson pages outside
+ * the route (`app/teacher/a/[id]/layout.tsx`), or Problem Set 6 for the live-lesson pages outside
  * it (report, compare, class review setup, board). A page without a provider is a Classroom page
  * (the Classroom, the class's default groups, Create). The provider is `AssignmentProvider.tsx`.
  */

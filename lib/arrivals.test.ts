@@ -69,7 +69,7 @@ describe("arrivals held above the pointer (ticket 189)", () => {
   it("over the real stream with the pointer resting on the first card, nothing on it changes until the pointer leaves", () => {
     const T0 = 1_700_000_000_000;
     const c = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: ASSIGNMENT.title, problemIds: ORDER, pathway: ["individual"], at: T0 });
-    const b = assignmentBundle("pset-2", c)!;
+    const b = assignmentBundle("pset-6", c)!;
     let s = holdAbovePointer(mistakesByProblem(null, b, T0 + 60_000), EMPTY_HOLD, 0, ORDER, T0 + 60_000);
     const first = ids(s)[0];
     for (const e of streamEvents(b.classmates, P)) {

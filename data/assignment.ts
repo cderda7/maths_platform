@@ -146,8 +146,8 @@ export const PROBLEM_MAP = Object.fromEntries(PROBLEMS.map((p) => [p.id, p])) as
 export const unitLabel = (u: UnitRef) => `Unit ${u.number} · ${u.topic} · ${u.title}`;
 
 export const ASSIGNMENT: Assignment = {
-  id: "pset-2",
-  title: "PROBLEM SET 2 — ROOTS OF A QUADRATIC",
+  id: "pset-6",
+  title: "PROBLEM SET 6 — ROOTS OF A QUADRATIC",
   className: "11 Methods",
   classCode: "11MAM2",
   teacher: "Ms Okafor",

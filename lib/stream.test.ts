@@ -17,7 +17,7 @@ const T0 = 1_700_000_000_000;
 const S = 1000;
 const MIN = 60 * S;
 const CREATED = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: ASSIGNMENT.title, problemIds: P.map((p) => p.id), pathway: ["individual", "group", "whole-class"], goal: ASSIGNMENT.goal, at: T0 });
-const LIVE = assignmentBundle("pset-2", CREATED)!;
+const LIVE = assignmentBundle("pset-6", CREATED)!;
 const END = streamEndMs(CLASSMATES, P);
 const tags = (now: number, session = null) => Object.fromEntries(Object.entries(rosterProgress(LIVE, session, now)).map(([id, p]) => [id, progressTag(p) ?? p.kind]));
 const events = streamEvents(CLASSMATES, P);
@@ -136,7 +136,7 @@ describe("the class at a moment", () => {
   it("a pure function of the start and now: the same moment reads the same, whenever it is asked (a reload continues)", () => {
     for (const at of [5 * S, 12 * S, 90 * S, 3 * MIN, 6 * MIN]) {
       expect(tags(T0 + at)).toEqual(tags(T0 + at));
-      const shifted = assignmentBundle("pset-2", classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: ASSIGNMENT.title, problemIds: P.map((p) => p.id), pathway: ["individual"], at: T0 + 7 * MIN }))!;
+      const shifted = assignmentBundle("pset-6", classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: ASSIGNMENT.title, problemIds: P.map((p) => p.id), pathway: ["individual"], at: T0 + 7 * MIN }))!;
       expect(submittedCount(shifted, null, T0 + 7 * MIN + at)).toEqual(submittedCount(LIVE, null, T0 + at));
     }
   });
@@ -198,17 +198,17 @@ describe("the class at a moment", () => {
 
   it("a presenter skip went live an hour back: the stream is at its end", () => {
     const { classroom, session } = skipFixture("working", T0);
-    const b = assignmentBundle("pset-2", classroom)!;
+    const b = assignmentBundle("pset-6", classroom)!;
     expect(b.startedAt).toBe(T0 - SKIP_STARTED_AGO_MS);
     expect(submittedCount(b, session, T0).submitted).toBe(17);
     expect(rosterProgress(b, session, T0).jordan).toEqual({ kind: "working", label: "Q8" });
   });
 
-  it("a finished set has no stream: Problem Set 1's records as they are", () => {
-    const ps1 = assignmentBundle("pset-1", CREATED)!;
-    expect(ps1.startedAt).toBeNull();
-    expect(submittedCount(ps1, null, T0)).toEqual(submittedCount(ps1, null, T0 + END));
-    expect(mistakesByProblem(null, ps1, T0).every((p) => p.pending === 0 && p.rows.every((r) => r.arrivedAt === undefined))).toBe(true);
+  it("a finished set has no stream: Problem Set 5's records as they are", () => {
+    const ps5 = assignmentBundle("pset-5", CREATED)!;
+    expect(ps5.startedAt).toBeNull();
+    expect(submittedCount(ps5, null, T0)).toEqual(submittedCount(ps5, null, T0 + END));
+    expect(mistakesByProblem(null, ps5, T0).every((p) => p.pending === 0 && p.rows.every((r) => r.arrivedAt === undefined))).toBe(true);
   });
 
   it("recordAt hides what is not answered yet and returns the record untouched once handed in", () => {

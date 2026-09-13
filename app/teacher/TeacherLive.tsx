@@ -559,7 +559,7 @@ export default function TeacherLive() {
 
         {/* The column stretches to the roster's height (ticket 192): the cards above the key stay at its top, the key rides the bottom of the view. */}
         <div className="flex flex-col gap-6">
-          {/* A finished set's column holds only the key: the stages are over (ticket 191) and the live cards are Problem Set 2's (ticket 187). */}
+          {/* A finished set's column holds only the key: the stages are over (ticket 191) and the live cards are Problem Set 6's (ticket 187). */}
           {!finished && (
           <div ref={sideTopRef} className="sticky top-12 z-10 flex flex-col gap-6" data-side-top>
           {/* Class review in use: its card leads the column (ticket 129). */}

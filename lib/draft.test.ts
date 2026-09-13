@@ -14,7 +14,7 @@ describe("the create screen's blank start and Generate (ticket 188)", () => {
 
   it("Generate stores the seeded set: the title, the goal, Q1–Q10 read as typed, flagged generated", () => {
     const d = generatedDraft(42);
-    expect(d.title).toBe("Problem Set 2 — Roots of a quadratic");
+    expect(d.title).toBe("Problem Set 6 — Roots of a quadratic");
     expect(d.goal).toBe(ASSIGNMENT.goal);
     expect(d.updatedAt).toBe(42);
     expect(d.generated).toBe(true);

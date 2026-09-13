@@ -7,8 +7,8 @@ import { historyDate, historyWith, type HistoryPoint } from "./history";
 /**
  * A student's history on a set's Class View (ticket 187): the status each earlier finished set in the
  * registry gave them in the category, dated by the set's due day, after the simulated points that come
- * before them. On Problem Set 2 the newest pill is the student's real Problem Set 1 result; on Problem
- * Set 1 all five are simulated, dated before it. Pure: the finished sets are fixed data, whatever the
+ * before them. On Problem Set 6 the newest pill is the student's real Problem Set 5 result; on Problem
+ * Set 5 all five are simulated, dated before it. Pure: the finished sets are fixed data, whatever the
  * classroom holds.
  */
 export function earlierResults(id: string, student: string, category: CategoryId): HistoryPoint[] {

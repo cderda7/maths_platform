@@ -25,7 +25,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 /**
- * Measured in order in one tab. Problem Set 2 only exists once it is created (ticket 188), so the
+ * Measured in order in one tab. Problem Set 6 only exists once it is created (ticket 188), so the
  * Classroom and the blank create screen come first, then `CREATE_SET` (the student's `?pathway=`
  * deep link, which creates the set as the teacher's Create would; not measured), then its pages.
  */
@@ -35,13 +35,13 @@ const CREATED = `!!JSON.parse(localStorage.getItem("edexia-maths-demo/classroom/
 const ROUTES = [
   ...BEFORE_CREATE,
   "/teacher",
-  "/teacher/a/pset-2/class",
-  "/teacher/a/pset-2/mistakes",
-  "/teacher/a/pset-2/groups",
-  "/teacher/a/pset-1/class",
-  "/teacher/a/pset-1/mistakes",
-  "/teacher/a/pset-1/groups",
-  "/teacher/a/pset-1/report?student=mia",
+  "/teacher/a/pset-6/class",
+  "/teacher/a/pset-6/mistakes",
+  "/teacher/a/pset-6/groups",
+  "/teacher/a/pset-5/class",
+  "/teacher/a/pset-5/mistakes",
+  "/teacher/a/pset-5/groups",
+  "/teacher/a/pset-5/report?student=mia",
   "/teacher/groups",
   "/teacher/report",
   "/teacher/compare",
@@ -234,13 +234,13 @@ async function main() {
   try {
     for (const size of SIZES) {
       const tab = await openTab(browser, size);
-      // A fresh classroom for each size: the previous size created Problem Set 2 in this shared profile.
+      // A fresh classroom for each size: the previous size created Problem Set 6 in this shared profile.
       await tab.goto(BASE + "/teacher");
       await tab.clearStorage();
       for (const [i, route] of ROUTES.entries()) {
         if (i === BEFORE_CREATE.length) {
           await tab.goto(BASE + CREATE_SET, "body");
-          if (!(await tab.until(CREATED))) throw new Error(`${CREATE_SET} did not create Problem Set 2`);
+          if (!(await tab.until(CREATED))) throw new Error(`${CREATE_SET} did not create Problem Set 6`);
         }
         await tab.goto(BASE + route);
         const m = await tab.measure();

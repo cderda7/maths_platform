@@ -1,21 +1,21 @@
 import { tag, type Assignment, type Pathway, type Problem } from "../types";
 
 /**
- * Problem Set 1 — Features of a parabola (ticket 187): the class's previous set, due Thu 3 Sep,
+ * Problem Set 5 — Features of a parabola (ticket 187): the class's previous set, due Mon 7 Sep,
  * finished and reviewed. Ten problems on the three forms of a quadratic (standard
  * y = ax² + bx + c, turning-point y = a(x − h)² + k, factorised y = a(x − x₁)(x − x₂)): read the
  * feature a form hands over for free, compute the ones it does not, and move between forms when the
  * one you have is not the one you need. Hand-checked; every step tagged with the same taxonomy leaves
- * as Problem Set 2, so the class view's columns line up across the two sets and a gap here can be
+ * as Problem Set 6, so the class view's columns line up across the two sets and a gap here can be
  * followed there.
  *
- * Ids are `ps1-q1` … `ps1-q10` (labels Q1 … Q10): every table keyed by problem id (the evaluation
- * table, the diagnostics) is shared with Problem Set 2's `q1` … `q10`, so the ids must not collide.
+ * Ids are `ps5-q1` … `ps5-q10` (labels Q1 … Q10): every table keyed by problem id (the evaluation
+ * table, the diagnostics) is shared with Problem Set 6's `q1` … `q10`, so the ids must not collide.
  * Teacher-side only: nothing here reaches a student screen or a hint box.
  */
-export const PS1_PROBLEMS: Problem[] = [
+export const PS5_PROBLEMS: Problem[] = [
   {
-    id: "ps1-q1",
+    id: "ps5-q1",
     label: "Q1",
     difficulty: "simple familiar",
     stem: "Write down the y-intercept and the x-intercepts of the graph of",
@@ -27,7 +27,7 @@ export const PS1_PROBLEMS: Problem[] = [
     ],
   },
   {
-    id: "ps1-q2",
+    id: "ps5-q2",
     label: "Q2",
     difficulty: "simple familiar",
     stem: "Write down the turning point and the axis of symmetry of the graph of",
@@ -39,7 +39,7 @@ export const PS1_PROBLEMS: Problem[] = [
     ],
   },
   {
-    id: "ps1-q3",
+    id: "ps5-q3",
     label: "Q3",
     difficulty: "simple familiar",
     stem: "Find the turning point and the y-intercept of the graph of",
@@ -51,7 +51,7 @@ export const PS1_PROBLEMS: Problem[] = [
     ],
   },
   {
-    id: "ps1-q4",
+    id: "ps5-q4",
     label: "Q4",
     difficulty: "simple unfamiliar",
     stem: "Find the x-intercepts of the graph of",
@@ -65,7 +65,7 @@ export const PS1_PROBLEMS: Problem[] = [
     ],
   },
   {
-    id: "ps1-q5",
+    id: "ps5-q5",
     label: "Q5",
     difficulty: "simple familiar",
     stem: "Find the axis of symmetry and the turning point of the graph of",
@@ -77,7 +77,7 @@ export const PS1_PROBLEMS: Problem[] = [
     ],
   },
   {
-    id: "ps1-q6",
+    id: "ps5-q6",
     label: "Q6",
     difficulty: "complex familiar",
     stem: "Complete the square to write the rule in turning-point form, and state the turning point.",
@@ -89,7 +89,7 @@ export const PS1_PROBLEMS: Problem[] = [
     ],
   },
   {
-    id: "ps1-q7",
+    id: "ps5-q7",
     label: "Q7",
     difficulty: "simple unfamiliar",
     stem: "Expand into standard form, and state the y-intercept.",
@@ -102,7 +102,7 @@ export const PS1_PROBLEMS: Problem[] = [
     ],
   },
   {
-    id: "ps1-q8",
+    id: "ps5-q8",
     label: "Q8",
     difficulty: "complex familiar",
     stem: "Write in factorised form, then give the x-intercepts and the axis of symmetry.",
@@ -115,7 +115,7 @@ export const PS1_PROBLEMS: Problem[] = [
     ],
   },
   {
-    id: "ps1-q9",
+    id: "ps5-q9",
     label: "Q9",
     difficulty: "complex unfamiliar",
     stem: "Before sketching the graph of the following, find its shape, its intercepts and its turning point.",
@@ -130,7 +130,7 @@ export const PS1_PROBLEMS: Problem[] = [
     ],
   },
   {
-    id: "ps1-q10",
+    id: "ps5-q10",
     label: "Q10",
     difficulty: "complex unfamiliar",
     stem: "A fountain's jet follows the path below, where h is the height in metres of the water x metres from the nozzle. How high does the water reach, and how far from the nozzle does it land?",
@@ -147,17 +147,17 @@ export const PS1_PROBLEMS: Problem[] = [
   },
 ];
 
-export const PS1_ASSIGNMENT: Assignment = {
-  id: "pset-1",
-  title: "PROBLEM SET 1 — FEATURES OF A PARABOLA",
+export const PS5_ASSIGNMENT: Assignment = {
+  id: "pset-5",
+  title: "PROBLEM SET 5 — FEATURES OF A PARABOLA",
   className: "11 Methods",
   classCode: "11MAM2",
   teacher: "Ms Okafor",
-  due: "Thu 3 Sep",
+  due: "Mon 7 Sep",
   unit: { number: 1, topic: "Topic 1", title: "Surds and quadratic functions" },
   goal: "Every quadratic can be written three ways, and each way hands you something for free: standard form the y-intercept, turning-point form the turning point, factorised form the x-intercepts. By Thursday I want you to know which form gives you which feature, and to move to the form you need when it isn't the one you were given. Sketch as you go. A rough picture catches a wrong sign before I do.",
-  problems: PS1_PROBLEMS,
+  problems: PS5_PROBLEMS,
 };
 
-/** Problem Set 1 ran individual working, then individual review, then group review; every stage is over. */
-export const PS1_PATHWAY: Pathway = ["individual", "group"];
+/** Problem Set 5 ran individual working, then individual review, then group review; every stage is over. */
+export const PS5_PATHWAY: Pathway = ["individual", "group"];

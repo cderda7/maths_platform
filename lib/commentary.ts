@@ -9,7 +9,7 @@ import type { StudentSession } from "./session";
  * student the teacher-facing note on every step that didn't hold (the same note the mistakes
  * view shows), one idea per distinct note. The clarification is what the student wrote back:
  * the demo student's reflection once the report is sent, a classmate's scripted line. A set other than
- * Problem Set 2 passes the student's `record` on it (ticket 187), Sam's included on a finished set.
+ * Problem Set 6 passes the student's `record` on it (ticket 187), Sam's included on a finished set.
  */
 export interface CommentaryIdea {
   text: string;

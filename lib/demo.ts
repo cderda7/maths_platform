@@ -44,7 +44,7 @@ function finishedRun(session: StudentSession, now: number): GroupRun {
 }
 
 /**
- * A skip jumps past the teacher's Create (ticket 188): Problem Set 2 exists, and went live this long
+ * A skip jumps past the teacher's Create (ticket 188): Problem Set 6 exists, and went live this long
  * before the jump, so a stream counted from its start (ticket 189) is long over.
  */
 export const SKIP_STARTED_AGO_MS = 60 * 60_000;

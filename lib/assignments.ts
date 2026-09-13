@@ -1,7 +1,7 @@
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATES, type Classmate } from "@/data/classmates";
-import { PS1_ASSIGNMENT, PS1_PATHWAY } from "@/data/pset1/assignment";
-import { PS1_CLASSMATES, PS1_SAM } from "@/data/pset1/classmates";
+import { PS5_ASSIGNMENT, PS5_PATHWAY } from "@/data/pset5/assignment";
+import { PS5_CLASSMATES, PS5_SAM } from "@/data/pset5/classmates";
 import type { SeatingGroups } from "@/data/groups";
 import type { Assignment, Pathway, Problem, UnitRef } from "@/data/types";
 import { activeAssignment } from "./assignment";
@@ -20,10 +20,10 @@ import { classmatesAt } from "./stream";
  * constants for "the set" any more. Pure. See DECISION_LOG.md, 2026-09-13.
  *
  * Two kinds of set:
- * - `live`: the lesson running now (Problem Set 2). Its title, problems, goal and pathway are the
+ * - `live`: the lesson running now (Problem Set 6). Its title, problems, goal and pathway are the
  *   created assignment's when there is one (`activeAssignment`), its stage follows the classroom
  *   and Sam's session (`classStages`), and Sam's row is his live session.
- * - `finished`: a past set (Problem Set 1, ticket 187): fixed data, every stage over.
+ * - `finished`: a past set (Problem Set 5, ticket 187): fixed data, every stage over.
  */
 export type AssignmentKind = "live" | "finished";
 export type AssignmentTab = "class" | "mistakes" | "groups";
@@ -32,7 +32,7 @@ export type AssignmentTab = "class" | "mistakes" | "groups";
 type AssignmentDef = ({ kind: "live" } | { kind: "finished"; pathway: Pathway; sam: Classmate }) & {
   fixture: Assignment;
   /**
-   * The set's name as a teacher writes it, for the Classroom's cards (ticket 186): "Problem Set 2 — Roots of a
+   * The set's name as a teacher writes it, for the Classroom's cards (ticket 186): "Problem Set 6 — Roots of a
    * quadratic". The fixture's `title` is upper-cased for the student's eyebrow; without a name the card shows the title.
    */
   name?: string;
@@ -46,28 +46,28 @@ type AssignmentDef = ({ kind: "live" } | { kind: "finished"; pathway: Pathway; s
 };
 
 /**
- * The switch ticket 185 left for ticket 188: whether Problem Set 2 is in the Classroom before the
+ * The switch ticket 185 left for ticket 188: whether Problem Set 6 is in the Classroom before the
  * teacher creates it. Off since 188: the set exists once `assignment/create` has stored it
  * (`c.assignment`), from the create flow's Create or a presenter skip; Reset demo removes it.
  */
-export const PROBLEM_SET_2_BEFORE_CREATE = false;
+export const LIVE_SET_BEFORE_CREATE = false;
 
-/** Newest first: Problem Set 2, then Problem Set 1 (ticket 187), which the Classroom always holds. */
+/** Newest first: Problem Set 6, then Problem Set 5 (ticket 187), which the Classroom always holds. */
 const REGISTRY: readonly AssignmentDef[] = [
   {
     fixture: ASSIGNMENT,
-    name: "Problem Set 2 — Roots of a quadratic",
+    name: "Problem Set 6 — Roots of a quadratic",
     kind: "live",
     classmates: CLASSMATES,
-    exists: (c) => PROBLEM_SET_2_BEFORE_CREATE || !!c?.assignment,
+    exists: (c) => LIVE_SET_BEFORE_CREATE || !!c?.assignment,
   },
   {
-    fixture: PS1_ASSIGNMENT,
-    name: "Problem Set 1 — Features of a parabola",
+    fixture: PS5_ASSIGNMENT,
+    name: "Problem Set 5 — Features of a parabola",
     kind: "finished",
-    pathway: PS1_PATHWAY,
-    classmates: PS1_CLASSMATES,
-    sam: PS1_SAM,
+    pathway: PS5_PATHWAY,
+    classmates: PS5_CLASSMATES,
+    sam: PS5_SAM,
     exists: () => true,
   },
 ];
@@ -81,7 +81,7 @@ export function liveStartedAt(c: ClassroomState | null | undefined): number | nu
   return a ? (a.startedAt ?? a.createdAt) : null;
 }
 
-/** The id of the set the students are working on now: the student side's Problem Set 2. */
+/** The id of the set the students are working on now: the student side's Problem Set 6. */
 export const LIVE_ASSIGNMENT_ID = ASSIGNMENT.id;
 
 const defOf = (id: string): AssignmentDef | undefined => REGISTRY.find((d) => d.fixture.id === id);
@@ -200,7 +200,7 @@ export function assignmentHref(id: string, tab?: AssignmentTab): string {
   return tab ? `/teacher/a/${id}/${tab}` : `/teacher/a/${id}`;
 }
 
-/** A student's individual view on a set (ticket 187): no student is Sam. `/teacher/report` redirects to Problem Set 2's. */
+/** A student's individual view on a set (ticket 187): no student is Sam. `/teacher/report` redirects to Problem Set 6's. */
 export function assignmentReportHref(id: string, student?: string): string {
   return `/teacher/a/${id}/report${student ? `?student=${encodeURIComponent(student)}` : ""}`;
 }

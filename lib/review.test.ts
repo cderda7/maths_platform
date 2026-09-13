@@ -82,8 +82,8 @@ describe("the review state and the draft it is about", () => {
     const stored: ReviewState = { ...initialReview(qs), step: "pathway", groups };
     const edited = [...qs.slice(0, 9), { ...qs[9], text: qs[9].text + " Explain." }];
     expect(reviewFor(edited, stored).groups).toEqual(groups);
-    const c = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", id: "pset-2", groups, title: "t", problemIds: ["q1"], pathway: ["individual", "group"], at: 1 });
-    expect(assignmentGroupsOf(c, "pset-2").mint).toContain("jordan");
+    const c = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", id: "pset-6", groups, title: "t", problemIds: ["q1"], pathway: ["individual", "group"], at: 1 });
+    expect(assignmentGroupsOf(c, "pset-6").mint).toContain("jordan");
     expect(c.groups).toEqual(DEFAULT_GROUPS);
   });
   it("leaves the order out, so a reorder keeps the review's decisions (ticket 150)", () => {

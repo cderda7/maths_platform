@@ -27,7 +27,7 @@ export const DEMO_PASTE_LINES: readonly string[] = [
 export const DEMO_PASTE = DEMO_PASTE_LINES.join("\n");
 
 /** The draft's title: the bank's set, as the teacher would type it (the bank's own is upper-cased for the student's eyebrow). */
-export const DEMO_DRAFT_TITLE = "Problem Set 2 — Roots of a quadratic";
+export const DEMO_DRAFT_TITLE = "Problem Set 6 — Roots of a quadratic";
 
 /** The draft's goal for the class (ticket 154): the fixture's, so the create screen opens with the message written and the student sees the same one either way. */
 export const DEMO_DRAFT_GOAL = ASSIGNMENT.goal;

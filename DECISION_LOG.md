@@ -3944,3 +3944,15 @@ stored sessions keep extra note fields, which are now ignored.
 
 **Defense.** One clock, the check the whole group saw, drives both phases for every member and survives
 a reload. Two pure functions replace a prompt rule and two session actions.
+
+## 2026-09-13 · Sets renamed in place, old names mapped at the edges (ticket 208)
+
+**Decision.** Problem Set 2 becomes Problem Set 6 and Problem Set 1 becomes Problem Set 5 everywhere: ids (`pset-6`, `pset-5`), titles, the data folder (`data/pset5/`) and Set 5's problem ids (`ps5-q*`). One import-free module, `lib/renamedSets.ts`, lists the old ids and the old seeded titles. Two readers use it. `next.config.ts` sends `/teacher/a/<old id>/…` to the new id with a temporary redirect. `migrateClassroom` renames a stored classroom on every load: group copies' keys, and the created set's and draft's titles when they are exactly the old seeded ones.
+
+**Context.** The Classroom grows to six sets (tickets 208–217), so today's two sets take numbers 6 and 5. Demo browsers and bookmarks hold the old ids. The classroom store keys each set's frozen groups by id, and it keeps the seeded title as the created set's title, which the student's header and the Class View show.
+
+**Alternatives.** *Keep the ids, change only the display names*: the smallest change, but `pset-2` would mean Problem Set 6 for good, and every later ticket and URL would carry the mismatch. *Redirect in a proxy or in the `[id]` layout*: the layout cannot see the sub-path, and a proxy runs on every request for two fixed routes. *Rename stored state once and write it back*: saves a lookup per read, but it writes to storage from a read path and races another tab's write. *Drop stored state on a version bump*: simplest, but it throws away a presenter's mid-demo progress, which the ticket rules out.
+
+**Tradeoffs.** Every classroom load checks the map, which is trivial for two entries. The map and its tests must keep the old names, so a grep for "pset-2" is never quite empty. The redirects are 307, not 308: a permanent redirect cached by a browser would outlive any later rename. A title the teacher typed as "Problem Set 2 — Roots of a quadratic" by hand would also be renamed. That is unlikely, and it is the name the set now has.
+
+**Defense.** The code names the sets by their real numbers from here on. The old names live in one small file that says why it exists, and old links and old demo state keep working without a migration step or storage writes.

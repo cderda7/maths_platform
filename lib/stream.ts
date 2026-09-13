@@ -5,7 +5,7 @@ import { classmateProgress, type StudentProgress } from "./progress";
 import type { StudentSession } from "./session";
 
 /**
- * The live stream (ticket 189): Problem Set 2's classmates work through the set from the moment it
+ * The live stream (ticket 189): Problem Set 6's classmates work through the set from the moment it
  * went live, one problem submission at a time, on the script in `data/stream.ts`. Everything here
  * is a pure function of the classmates' records, the set's problems, the start time and `now`, so a
  * reload continues where the stream was, every tab agrees, and a start an hour back (a presenter

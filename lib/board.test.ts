@@ -13,7 +13,7 @@ const created = (pathway: Pathway, title = "Set 4") => classroomReducer(INITIAL_
 describe("what the board shows per stage", () => {
   it("is blank before any assignment exists: the class and the fixture title, nothing else", () => {
     const b = boardContent(INITIAL_CLASSROOM, null);
-    expect(b).toEqual({ kind: "blank", className: "11 Methods", title: "PROBLEM SET 2 — ROOTS OF A QUADRATIC" });
+    expect(b).toEqual({ kind: "blank", className: "11 Methods", title: "PROBLEM SET 6 — ROOTS OF A QUADRATIC" });
     expect(boardContent(null, null).kind).toBe("blank");
   });
 

@@ -7,6 +7,7 @@ import { beginRun, checkBoard, currentProblem, type GroupRun, type TurnEvent } f
 import type { ExampleRef } from "./examples";
 import { DEFAULT_PATHWAY } from "./pathway";
 import type { ReviewedQuestion, ReviewState } from "./review";
+import { currentSetId, currentSetTitle } from "./renamedSets";
 
 /**
  * Teacher-owned state shared by every tab: the created assignment and, from later tickets, the
@@ -161,7 +162,7 @@ export interface ClassroomState {
 
 export type ClassroomAction =
   /**
-   * `id` names the assignment (Problem Set 2 when absent); its groups are frozen from `groups` or, absent, the class defaults.
+   * `id` names the assignment (Problem Set 6 when absent); its groups are frozen from `groups` or, absent, the class defaults.
    * `at` is the moment of creation (the store stamps it); `startedAt`, when the set went live, is `at` unless given (a skip sets it in the past).
    */
   | { type: "assignment/create"; id?: string; groups?: SeatingGroups; title: string; problemIds: string[]; pathway: Pathway; unit?: 1 | 2 | 3 | 4; goal?: string; questions?: ReviewedQuestion[]; at?: number; startedAt?: number }
@@ -218,15 +219,39 @@ export type ClassroomAction =
 export const INITIAL_CLASSROOM: ClassroomState = { assignment: null, advance: null, wholeClass: null, groups: DEFAULT_GROUPS, assignmentGroups: {} };
 
 /**
- * A classroom as stored, read tolerantly (ticket 185): a state saved before assignments kept their
- * own groups had one set of groups doing both jobs, so Problem Set 2 inherits that set as its
- * frozen copy and it stays the class default too. Anything unreadable is a fresh classroom.
+ * A classroom as stored, read tolerantly. A state saved before assignments kept their own groups
+ * (ticket 185) had one set of groups doing both jobs, so Problem Set 6 inherits that set as its
+ * frozen copy and it stays the class default too. A state saved before the sets were renamed
+ * (ticket 208) names them by their old ids and titles: the groups keyed `pset-2` / `pset-1` move to
+ * `pset-6` / `pset-5`, and the created set and the draft take the new seeded title
+ * (`lib/renamedSets.ts`); a title the teacher typed stays theirs. Anything unreadable is a fresh
+ * classroom. A state with nothing to change comes back as it is.
  */
 export function migrateClassroom(raw: unknown): ClassroomState {
   if (!raw || typeof raw !== "object") return INITIAL_CLASSROOM;
-  const c = raw as ClassroomState;
-  if (c.assignmentGroups && typeof c.assignmentGroups === "object") return c;
-  return { ...c, assignmentGroups: c.groups ? { [ASSIGNMENT.id]: c.groups } : {} };
+  const stored = raw as ClassroomState;
+  const c = stored.assignmentGroups && typeof stored.assignmentGroups === "object" ? stored : { ...stored, assignmentGroups: stored.groups ? { [ASSIGNMENT.id]: stored.groups } : {} };
+  return renameSets(c);
+}
+
+/** Ticket 208's rename applied to a stored classroom; the same object when it names nothing old. */
+function renameSets(c: ClassroomState): ClassroomState {
+  const groups = c.assignmentGroups ?? {};
+  const oldKeys = Object.keys(groups).filter((id) => currentSetId(id) !== id);
+  const title = c.assignment && typeof c.assignment.title === "string" ? currentSetTitle(c.assignment.title) : null;
+  const draftTitle = c.draft && typeof c.draft.title === "string" ? currentSetTitle(c.draft.title) : null;
+  const assignmentRenamed = c.assignment && title !== null && title !== c.assignment.title;
+  const draftRenamed = c.draft && draftTitle !== null && draftTitle !== c.draft.title;
+  if (oldKeys.length === 0 && !assignmentRenamed && !draftRenamed) return c;
+  // A group copy already under the new id (written after the rename) wins over the old one.
+  const renamedGroups = Object.fromEntries(Object.entries(groups).map(([id, g]) => [currentSetId(id), g]));
+  for (const [id, g] of Object.entries(groups)) if (currentSetId(id) === id) renamedGroups[id] = g;
+  return {
+    ...c,
+    assignmentGroups: renamedGroups,
+    ...(assignmentRenamed && c.assignment ? { assignment: { ...c.assignment, title: title! } } : {}),
+    ...(draftRenamed && c.draft ? { draft: { ...c.draft, title: draftTitle! } } : {}),
+  };
 }
 
 export function classroomReducer(c: ClassroomState, a: ClassroomAction): ClassroomState {

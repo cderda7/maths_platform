@@ -10,7 +10,7 @@ import { useClassroom } from "@/lib/classroom-store";
 
 /**
  * Provides the bundle for `id` (ticket 185); a set the Classroom does not hold says so under the
- * chrome, with the way to create it. Since ticket 188 that is Problem Set 2 before Create: its
+ * chrome, with the way to create it. Since ticket 188 that is Problem Set 6 before Create: its
  * tabs, the old /teacher/mistakes redirect and the live-lesson pages (report, compare, class review
  * setup, board) all land here until the teacher creates it or a presenter skip does.
  */

@@ -1,5 +1,5 @@
 /**
- * How Problem Set 2's class works through the set once the teacher presses Create (ticket 189): each
+ * How Problem Set 6's class works through the set once the teacher presses Create (ticket 189): each
  * classmate's pace, read by `lib/stream.ts`. Times are milliseconds after the set went live
  * (`liveStartedAt`). A classmate answers their problems in assignment order, as many as their
  * fixture record's `done`, one event each; a problem takes `paceMs` × its difficulty weight
@@ -31,7 +31,7 @@ export interface StreamPace {
   submitAtMs?: number | null;
 }
 
-/** Relative time a problem takes by its difficulty; a set of ten Problem Set 2 problems weighs 10.2. */
+/** Relative time a problem takes by its difficulty; a set of ten Problem Set 6 problems weighs 10.2. */
 export const DIFFICULTY_WEIGHT: Record<Difficulty, number> = {
   "simple familiar": 0.6,
   "simple unfamiliar": 0.9,

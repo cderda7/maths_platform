@@ -1,26 +1,26 @@
 import { DEMO_STUDENT } from "../assignment";
 import type { Classmate } from "../classmates";
-import { PS1_PROBLEMS } from "./assignment";
+import { PS5_PROBLEMS } from "./assignment";
 
 /**
- * Every student's Problem Set 1 (ticket 187): Sam's record and the nineteen classmates', in the
- * shape Problem Set 2's classmates use (`Classmate`), in the same order, every one authored in full:
+ * Every student's Problem Set 5 (ticket 187): Sam's record and the nineteen classmates', in the
+ * shape Problem Set 6's classmates use (`Classmate`), in the same order, every one authored in full:
  * a confidence answer, how far they got, what they got wrong, the working for each wrong problem,
  * the platform's notes, what they wrote back, and a line from group review.
  *
- * The set came before Problem Set 2, and the habits in it are the ones Problem Set 2 catches:
+ * The set came before Problem Set 6, and the habits in it are the ones Problem Set 6 catches:
  * - Guessed non-monic pairs, never expanded back (Q4, Q8): Jordan, Mia, Oliver, Sofia, Chloe,
- *   Ethan. Mia and Jordan guess the pair again on Problem Set 2's Q2; this is the set's top gap.
+ *   Ethan. Mia and Jordan guess the pair again on Problem Set 6's Q2; this is the set's top gap.
  * - A turning point's sign read off the bracket (Q2, Q3, Q6): Tomas, Lucas, Finn, and Sam.
- * - The axis given where the height was asked (Q10): Zara, Ethan, Isla, Ruby, as on Problem Set 2's Q9.
+ * - The axis given where the height was asked (Q10): Zara, Ethan, Isla, Ruby, as on Problem Set 6's Q9.
  * - Fractions and signs (Q1, Q4, Q5): Tomas, whose confidence answer names fractions on both sets.
- * - Scaling part of an expression (Q7): Aiden, the same slip as his Problem Set 2 Q7.
+ * - Scaling part of an expression (Q7): Aiden, the same slip as his Problem Set 6 Q7.
  * Priya gets everything right; Grace gets everything she reached right in one jump a line;
- * Liam O'Connell handed nothing in (on Problem Set 2 he hands in two problems); Chloe, missing on
- * Problem Set 2, handed this one in.
+ * Liam O'Connell handed nothing in (on Problem Set 6 he hands in two problems); Chloe, missing on
+ * Problem Set 6, handed this one in.
  */
 
-const solution = (n: number): string[] => PS1_PROBLEMS[n - 1].solution.map((s) => s.tex);
+const solution = (n: number): string[] => PS5_PROBLEMS[n - 1].solution.map((s) => s.tex);
 
 /* ---------- the class's workings on the problems they got wrong, one per distinct way ---------- */
 
@@ -74,14 +74,14 @@ const Q4_JUMP = ["3x^2 - 10x - 8 = (3x + 2)(x - 4)", "x = -\\tfrac{2}{3} \\;\\te
 const Q6_JUMP = ["x^2 - 8x + 10 = (x - 4)^2 - 6", "\\text{turning point } (4, -6)"];
 
 /** The problem ids, by number, so the records read like the set. */
-const q = (n: number) => `ps1-q${n}`;
+const q = (n: number) => `ps5-q${n}`;
 
 /**
- * Sam's Problem Set 1: confident going in, quick and mostly right, three careless slips (a right
+ * Sam's Problem Set 5: confident going in, quick and mostly right, three careless slips (a right
  * split put into the wrong brackets, a turning point's sign, a negative a read as opening upwards).
- * On Problem Set 2 he names factorising as the skill he is unsure of.
+ * On Problem Set 6 he names factorising as the skill he is unsure of.
  */
-export const PS1_SAM: Classmate = {
+export const PS5_SAM: Classmate = {
   id: DEMO_STUDENT.id,
   name: DEMO_STUDENT.name,
   initials: DEMO_STUDENT.initials,
@@ -98,7 +98,7 @@ export const PS1_SAM: Classmate = {
   groupStatus: "Group review done · checked Q4 by expanding",
 };
 
-export const PS1_CLASSMATES: Classmate[] = [
+export const PS5_CLASSMATES: Classmate[] = [
   {
     id: "priya",
     name: "Priya Raman",

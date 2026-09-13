@@ -2,8 +2,8 @@ import { A, ok, okc, T, wrong, type LineVerdict } from "../evaluation";
 import type { LeafId } from "../taxonomy";
 
 /**
- * Problem Set 1's scripted evaluation (ticket 187): every line any of the class wrote on the set,
- * with its verdict and tags, in the same shape as Problem Set 2's table (`data/evaluation.ts`) and
+ * Problem Set 5's scripted evaluation (ticket 187): every line any of the class wrote on the set,
+ * with its verdict and tags, in the same shape as Problem Set 6's table (`data/evaluation.ts`) and
  * read through the same `evaluateLine`. A wrong line's `name` is the teacher's name for the
  * mistake; the same name on two problems is the same habit (a guessed non-monic pair on Q4 and
  * Q8, a turning point's sign on Q2, Q3 and Q6).
@@ -27,8 +27,8 @@ const CONCL: LeafId = "reasoning.justify.conclusions";
 const GUESSED_PAIR = "guessed pair, not expanded back";
 const TP_SIGN = "turning point sign flipped";
 
-export const PS1_EVALUATION: Record<string, Record<string, LineVerdict>> = {
-  "ps1-q1": {
+export const PS5_EVALUATION: Record<string, Record<string, LineVerdict>> = {
+  "ps5-q1": {
     "x = 0:\\; y = (-2)(6) = -12": ok(T(EVAL, FEAT), "y-intercept"),
     "x - 2 = 0 \\;\\text{or}\\; x + 6 = 0": ok(T(NFL, ZERO), "Each factor zero"),
     "x = 2 \\;\\text{or}\\; x = -6": A(ok(T(LIN, ZERO), "x-intercepts")),
@@ -41,7 +41,7 @@ export const PS1_EVALUATION: Record<string, Record<string, LineVerdict>> = {
     )),
     "y = -12,\\; x = 2, -6": A(okc(T(NFL, FEAT), "Intercepts in one line, the working not shown")),
   },
-  "ps1-q2": {
+  "ps5-q2": {
     "h = -3,\\; k = -8": ok(T(FEAT), "Read h and k"),
     "\\text{turning point } (-3, -8)": A(ok(T(FEAT, SKETCH), "Turning point")),
     "\\text{axis of symmetry } x = -3": A(ok(T(FEAT), "Axis of symmetry")),
@@ -56,7 +56,7 @@ export const PS1_EVALUATION: Record<string, Record<string, LineVerdict>> = {
     "\\text{axis of symmetry } x = 3": A(ok(T(FEAT), "Axis of symmetry", true)),
     "(-3, -8),\\; x = -3": A(okc(T(FEAT, SKETCH), "Turning point and axis in one line, h and k not shown")),
   },
-  "ps1-q3": {
+  "ps5-q3": {
     "\\text{turning point } (4, 9)": ok(T(FEAT), "Turning point"),
     "y = -(0 - 4)^2 + 9": ok(T(EVAL), "Substituted x = 0"),
     "y = -16 + 9 = -7": A(ok(T(EVAL, FEAT), "y-intercept")),
@@ -75,7 +75,7 @@ export const PS1_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "minus squared with the bracket",
     )),
   },
-  "ps1-q4": {
+  "ps5-q4": {
     "3x^2 - 10x - 8 = 0": ok(T(QUAD), "Set y to zero"),
     "ac = -24,\\quad -12 + 2 = -10": ok(T(NONMONIC), "Found the split"),
     "3x^2 - 12x + 2x - 8 = 0": ok(T(NONMONIC), "Split the middle term"),
@@ -107,7 +107,7 @@ export const PS1_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "fraction flipped solving a factor",
     )),
   },
-  "ps1-q5": {
+  "ps5-q5": {
     "x = -\\dfrac{b}{2a} = -\\dfrac{6}{2} = -3": ok(T(FEAT, FRAC), "Axis of symmetry"),
     "y = (-3)^2 + 6(-3) + 5 = -4": ok(T(EVAL), "Height on the axis"),
     "\\text{turning point } (-3, -4)": A(ok(T(FEAT, SKETCH), "Turning point")),
@@ -129,7 +129,7 @@ export const PS1_EVALUATION: Record<string, Record<string, LineVerdict>> = {
     ),
     "\\text{turning point } (-3, -22)": A(ok(T(FEAT, SKETCH), "Turning point", true)),
   },
-  "ps1-q6": {
+  "ps5-q6": {
     "y = (x^2 - 8x + 16) - 16 + 10": ok(T(BINOM, QUAD), "Added and took away 16"),
     "y = (x - 4)^2 - 6": ok(T(BINOM), "Turning-point form"),
     "\\text{turning point } (4, -6)": A(ok(T(FEAT), "Turning point")),
@@ -151,7 +151,7 @@ export const PS1_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       TP_SIGN,
     )),
   },
-  "ps1-q7": {
+  "ps5-q7": {
     "y = 2(x^2 - 6x + 9) - 5": ok(T(BINOM), "Expanded the square"),
     "y = 2x^2 - 12x + 18 - 5": ok(T(EXPAND), "Distributed the 2"),
     "y = 2x^2 - 12x + 13": ok(T(EXPAND), "Standard form"),
@@ -175,7 +175,7 @@ export const PS1_EVALUATION: Record<string, Record<string, LineVerdict>> = {
     "y = 2x^2 - 6x + 4": ok(T(EXPAND), "Standard form", true),
     "y\\text{-intercept } (0, 4)": A(ok(T(FEAT), "y-intercept", true)),
   },
-  "ps1-q8": {
+  "ps5-q8": {
     "ac = -6,\\quad 6 + (-1) = 5": ok(T(NONMONIC), "Found the split"),
     "y = (2x - 1)(x + 3)": ok(T(NONMONIC), "Factorised"),
     "x = \\tfrac{1}{2} \\;\\text{or}\\; x = -3": A(ok(T(NFL, ZERO, FRAC), "x-intercepts")),
@@ -206,7 +206,7 @@ export const PS1_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "roots' sum never halved",
     )),
   },
-  "ps1-q9": {
+  "ps5-q9": {
     "a = -1 < 0 \\Rightarrow \\text{concave down}": ok(T(SKETCH), "Shape"),
     "y\\text{-intercept } (0, 8)": ok(T(FEAT), "y-intercept"),
     "-(x^2 - 2x - 8) = -(x - 4)(x + 2) = 0": ok(T(EXPAND, MONIC), "Took out −1, factorised"),
@@ -232,7 +232,7 @@ export const PS1_EVALUATION: Record<string, Record<string, LineVerdict>> = {
     "x = -1,\\; y = -1 - 2 + 8 = 5": ok(T(FEAT, EVAL), "Height on the axis", true),
     "\\text{maximum turning point } (-1, 5)": A(ok(T(FEAT, SKETCH), "Turning point", true)),
   },
-  "ps1-q10": {
+  "ps5-q10": {
     "\\text{turning point } (2, 1)": ok(T(WORDED, FEAT), "Read the turning point"),
     "-\\tfrac{1}{4}(x - 2)^2 + 1 = 0": ok(T(WORDED, ZERO), "Height zero"),
     "(x - 2)^2 = 4": ok(T(LIN, FRAC), "Rearranged"),

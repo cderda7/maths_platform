@@ -4,7 +4,7 @@ import type { Status } from "@/data/types";
 /**
  * A student's recent history in a category (ticket 175): the status the same category rolled up
  * to on the last five assignments and assessments that touched it, oldest first. Real where the
- * data has the set (ticket 187: Problem Set 1's results, `lib/setHistory.ts`), simulated before
+ * data has the set (ticket 187: Problem Set 5's results, `lib/setHistory.ts`), simulated before
  * it: there is no earlier work in the data, so those points are drawn from a fixed mix around a
  * status (a red pill has red and orange behind it, an orange one mostly orange with some red and
  * some light green, a light green one a mix of orange, light green and dark green, a dark green one
@@ -20,7 +20,7 @@ export interface HistoryPoint {
 
 /**
  * The dates of the five simulated results, oldest first, the same for every student and category: all
- * before Problem Set 1 (due Thu 3 Sep, ticket 187), whose real result follows them.
+ * before Problem Set 5 (due Mon 7 Sep, ticket 187), whose real result follows them.
  */
 export const HISTORY_DATES = ["Aug 11", "Aug 14", "Aug 20", "Aug 25", "Aug 28"] as const;
 
@@ -108,7 +108,7 @@ export function historyWith(student: string, category: CategoryId, today: Status
   return [...simulated, ...earlier].slice(-HISTORY_LENGTH);
 }
 
-/** The pill's date for a set due on a day: "Thu 3 Sep" is "Sep 3". */
+/** The pill's date for a set due on a day: "Mon 7 Sep" is "Sep 7". */
 export function historyDate(due: string): string {
   const m = /(\d{1,2})\s+([A-Za-z]{3})/.exec(due);
   return m ? `${m[2]} ${m[1]}` : due;

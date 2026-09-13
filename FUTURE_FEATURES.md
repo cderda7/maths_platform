@@ -2876,6 +2876,20 @@ uploaded problems) settled the following as later, each on purpose.
 - **Adaptive timings.** The 5 s unmarked view and the 10 s hold are fixed. A longer pause when the
   student's own versions differ a lot from the group's (more to compare) was not scoped.
 
+## Six-set rename leftovers (from ticket 208, 2026-09-13)
+
+- **Retire the old-name map.** `lib/renamedSets.ts`, its redirects and its step in `migrateClassroom`
+  exist only for browsers and links from before the rename. Once no demo machine holds pre-rename
+  state, the map can be deleted with its tests. Kept for now because presenters' browsers carry
+  state across days.
+- **Set numbers are hand-written in three places.** The fixture's upper-case title, the registry's
+  sentence-case name and the draft seed's title each spell "Problem Set 6". Deriving the name from
+  one set number would make the next renumbering a one-line change. Deferred: the rename was the ask,
+  and tickets 211–214 add Sets 1–4 through the same registry.
+- **Session store has no version or migration hook.** It needed none this time (it holds no set ids),
+  but a future rename of Set 6's `q1` … `q10` would. A `migrateSession` beside `hydrateSession` would
+  be the place.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
