@@ -2759,6 +2759,16 @@ uploaded problems) settled the following as later, each on purpose.
 - **No shadow under the pinned cards.** Rows pass beside them, not under them, so none was added; if the
   column ever overlaps the roster (a narrower layout), a pinned card would want an edge.
 
+## Back to Classroom button (from ticket 200, 2026-09-13)
+
+- **The student report's "← Class view" is still a text link.** `/teacher/a/<id>/report` has no
+  Classroom link; its way back is "← Class view" at the right of the header, still small indigo text.
+  Left alone because the request named the Edexia Classroom link; if the button reads well, the report's
+  back link could take the same box (it sits right-aligned beside the student's name, so check the row).
+- **One back affordance per page.** The assignment tabs (Class View, Mistakes, Groups) could also give the
+  button a sticky place under the bar so it stays in reach on long pages; not built, the page is one scroll
+  from it.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
