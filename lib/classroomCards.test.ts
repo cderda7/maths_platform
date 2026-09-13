@@ -85,9 +85,12 @@ describe("the Classroom's cards", () => {
     expect(card.mistakes).toBe(mistakeCount(mistakesByProblem(session, assignmentBundle("pset-6", classroom)!, now)));
   });
 
-  it("moves to past, in review, once the class is past individual working; done once every stage is over", () => {
-    const { classroom, session } = skipFixture("indiv review", now);
-    expect(assignmentCard(assignmentBundle("pset-6", classroom)!, classroom, session, now)).toMatchObject({ section: "past", status: "in review" });
+  it("stays live, in review, through every review stage; moves to past, done, only once class review has ended (ticket 234)", () => {
+    for (const skip of ["indiv review", "class wait", "group review", "report", "class review"] as const) {
+      const { classroom, session } = skipFixture(skip, now);
+      expect(assignmentCard(assignmentBundle("pset-6", classroom)!, classroom, session, now), skip).toMatchObject({ section: "live", status: "in review" });
+    }
+    const { classroom, session } = skipFixture("class review", now);
     const ended: ClassroomState = { ...classroom, wholeClass: { problems: [], examples: {}, slide: 0, view: "unmarked", status: "ended", modes: {}, ink: {} } };
     expect(assignmentCard(assignmentBundle("pset-6", ended)!, ended, session, now)).toMatchObject({ section: "past", status: "done" });
   });

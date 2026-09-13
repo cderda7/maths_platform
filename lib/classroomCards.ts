@@ -8,7 +8,7 @@ import type { StudentSession } from "./session";
 
 /**
  * The Edexia Classroom's cards (ticket 186): one per assignment the Classroom holds, sorted into
- * LIVE (the class is still in individual working) above PAST (a review stage, or every stage
+ * LIVE (the class is still working or in a review stage, ticket 234) above PAST (every stage
  * over), each newest due first (ticket 216). Everything on a card is derived from the
  * assignment bundle, the classroom, Sam's session and `now`, the same inputs the assignment's own
  * tabs read, so the live card's counts follow the class as work arrives (ticket 189's stream feeds
@@ -81,8 +81,9 @@ export interface AssignmentCard {
 
 export function assignmentCard(b: AssignmentBundle, c: ClassroomState | null | undefined, session: StudentSession | null, now: number): AssignmentCard {
   const current = currentStageOf(assignmentStages(b, c, session, now));
-  const section: CardSection = b.kind === "live" && current?.id === "working" ? "live" : "past";
-  const status: CardStatus = section === "live" ? "live" : current ? "in review" : "done";
+  // Live until class review ends (ticket 234): a set in review stays in Live, tagged "in review".
+  const section: CardSection = b.kind === "live" && current !== null ? "live" : "past";
+  const status: CardStatus = current === null ? "done" : current.id === "working" ? "live" : "in review";
   const mistakes = mistakesByProblem(session, b, now);
   const { submitted, total } = submittedCount(b, session, now);
   return { id: b.id, name: b.name, due: b.due, href: assignmentHref(b.id), section, status, submitted, total, mistakes: mistakeCount(mistakes), topGap: topGap(mistakes) };

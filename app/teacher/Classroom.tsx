@@ -15,7 +15,7 @@ const CREATE_HREF = "/teacher/assignments/create";
 
 /**
  * Edexia Classroom (ticket 186), the teacher's home: every assignment the class has, as cards, the
- * live ones (the class still working individually) above the past ones (in review, or done), each
+ * live ones (the class still working, or in review, ticket 234) above the past ones (done), each
  * newest due first, and "+ New assignment" on the title row. The heading and the Live section are
  * pinned; only Past scrolls (ticket 216). A card is one link to the assignment's
  * landing (ticket 185: Class or Mistakes). The cards are `lib/classroomCards` over the classroom,
@@ -128,7 +128,7 @@ function Card({ card }: { card: AssignmentCard }) {
             {card.name}
           </h3>
           <p className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[17px] leading-7 text-ink-soft" data-status-line>
-            {card.section === "live" ? <LiveLine card={card} /> : <PastLine card={card} />}
+            {card.status === "live" ? <LiveLine card={card} /> : <PastLine card={card} />}
           </p>
         </div>
         <span className="shrink-0 text-[16px] whitespace-nowrap text-ink-muted" data-due>
@@ -174,7 +174,8 @@ function PastLine({ card }: { card: AssignmentCard }) {
   const tone = card.status === "done" ? "border-line bg-cream-deep text-ink-soft" : "border-accent-line bg-accent-soft text-accent-deep";
   return (
     <>
-      <span className={`rounded-full border px-3 py-0.5 text-[15px] leading-6 font-medium ${tone}`} data-past-status>
+      {/* The chips overhang the 28 px line (-my-0.5) so a card is as tall in review as live: the Live card never grows when the class moves on (ticket 234). */}
+      <span className={`-my-0.5 rounded-full border px-3 py-0.5 text-[15px] leading-6 font-medium ${tone}`} data-past-status>
         {card.status}
       </span>
       <Dot />
@@ -186,7 +187,7 @@ function PastLine({ card }: { card: AssignmentCard }) {
           <Dot />
           <span className="inline-flex items-center gap-2" data-top-gap>
             top gap:
-            <span className="rounded-full border border-wrong-line bg-wrong-soft px-3 py-0.5 text-[15px] leading-6 font-medium text-wrong-deep" data-top-gap-name>
+            <span className="-my-0.5 rounded-full border border-wrong-line bg-wrong-soft px-3 py-0.5 text-[15px] leading-6 font-medium text-wrong-deep" data-top-gap-name>
               {card.topGap.name}
             </span>
           </span>

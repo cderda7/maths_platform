@@ -4160,3 +4160,15 @@ the union or the group are ignored).
 
 **Defense.** The debrief is one screen at a time, in close order, never behind the board; the product
 rule for pens is untouched and the exception is visible and named.
+
+## 2026-09-13 · A set stays in Live until class review ends (ticket 234)
+
+**Decision.** On the Edexia Classroom a live set is in the Live section while any stage of its pathway is current (working, individual review, group review, class review) and moves to Past only once class review has ended. From individual review on its card carries the "in review" tag in Live; "done" is the only status Past holds for the live set. Replaces ticket 186's rule (Live only during individual working).
+
+**Context.** The user saw Problem Set 6 in Past partway through the demo and asked for it back in Live: "want Live until class review has concluded. when in review tag is on, should never move out of live". The lesson is still running during review; Past read as over.
+
+**Alternatives considered.** *Keep 186's rule and reset the demo*: the set would leave Live again at the next hand-in. *Always Live for the demo's set*: a set whose class review has ended would sit in Live with nothing left to do. *A third "In review" section*: another pinned band on a laptop whose Classroom is already pinned top to Live.
+
+**Tradeoffs.** Live can now hold a set nobody is individually working on, so the pulsing "live" line is not what every Live card shows; the tag says which. With more than one live set in review at once the pinned region grows by a card each (one class, one live set today).
+
+**Defense.** Live means the lesson is not over, which is how the teacher reads it; the stage model already says when it is over (`currentStageOf` null), so the rule is one expression with no new state.

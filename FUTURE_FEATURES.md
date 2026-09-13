@@ -3072,6 +3072,15 @@ uploaded problems) settled the following as later, each on purpose.
   board's rows. A scripted peer clears between tries (ticket 222); clearing a real pen-holder's board
   on a wrong check was not decided.
 
+## Classroom Live section (ticket 234, 2026-09-13)
+
+- **A review-stage line on the Live card.** In review the Live card shows the Past line (tag, submitted,
+  top gap). It could name the stage instead ("group review · 3 of 5 groups done") with the pathway's
+  counts from `classStages`. Deferred: the user asked only that it stay in Live with the tag.
+- **Several live sets in review at once.** The pinned region grows a card per live set; with more than
+  one class or overlapping sets it may need a cap or to stop pinning past the first. Deferred: one class,
+  one live set.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
