@@ -4,7 +4,7 @@
 
 **Blocked by:** 185.
 
-**Status:** ready
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -25,9 +25,9 @@ Facts: `CreateAssignment.tsx` seeds from `data/draft-seed.ts` when no draft; Con
 
 ## Acceptance
 
-- [ ] Blank start: inert title/goal/Q1 ghost, pulsing button centred on the grid; no Continue
-- [ ] Generate fills title, goal, Q1–Q10; Continue appears
-- [ ] Pathway with group review shows Confirm groups; a move changes this assignment's groups only, not `/teacher/groups`
-- [ ] Create → Classroom has Problem Set 2 live; the teacher lands on its Mistakes
-- [ ] Reset → only Problem Set 1; a skip past creation → Problem Set 2 exists
-- [ ] vitest, eslint, tsc, next build, check:laptop; click-through of the whole create flow
+- [x] Blank start: inert title/goal/Q1 ghost, pulsing button centred on the grid; no Continue
+- [x] Generate fills title, goal, Q1–Q10; Continue appears
+- [x] Pathway with group review shows Confirm groups; a move changes this assignment's groups only, not `/teacher/groups`
+- [x] Create → Classroom has Problem Set 2 live; the teacher lands on its Mistakes
+- [x] Reset → only Problem Set 1; a skip past creation → Problem Set 2 exists
+- [x] vitest, eslint, tsc, next build, check:laptop; click-through of the whole create flow

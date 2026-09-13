@@ -306,3 +306,17 @@ body {
     transition: none !important;
   }
 }
+
+/* The create screen's tiles arriving after "Generate simulated assignment" (ticket 188): one after another by an inline delay, opacity only, so nothing moves or resizes under the pointer that pressed it. */
+@keyframes tile-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.tile-in {
+  animation: tile-in 220ms ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tile-in {
+    animation: none;
+  }
+}

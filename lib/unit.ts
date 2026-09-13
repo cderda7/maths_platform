@@ -22,11 +22,12 @@ export function inferUnitFromText(text: string): 1 | 2 | 3 | 4 {
   return 1;
 }
 
+/** The unit titles of the QCAA Mathematical Methods 2025 syllabus (ticket 184 moved the class onto it; the 2019 titles were corrected in ticket 188). */
 export const UNIT_TITLES: Record<1 | 2 | 3 | 4, string> = {
-  1: "Algebra, statistics and functions",
+  1: "Surds, algebra, functions and probability",
   2: "Calculus and further functions",
-  3: "Further calculus",
-  4: "Further functions and statistics",
+  3: "Further calculus, skewness and integration",
+  4: "Further integration, trigonometry and statistics",
 };
 
 export const unitRef = (n: 1 | 2 | 3 | 4, topic = "", title = UNIT_TITLES[n]): UnitRef => ({ number: n, topic, title });

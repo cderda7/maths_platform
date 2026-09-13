@@ -1,6 +1,7 @@
 import { PROBLEMS } from "@/data/assignment";
 import { DRAFT_LABELS, RECOMMENDATIONS, type ProposedQuestion, type Recommendation } from "@/data/review";
 import type { Difficulty, Pathway, Problem } from "@/data/types";
+import type { SeatingGroups } from "@/data/groups";
 import type { DraftQuestion } from "./classroom";
 import { DEFAULT_PATHWAY } from "./pathway";
 import { inferUnitFromProblems } from "./unit";
@@ -83,6 +84,12 @@ export interface ReviewState {
   pathway: Pathway;
   /** The unit reassessed from the teacher's note, when they wrote one; otherwise the inferred unit stands, nothing to confirm (ticket 123). */
   unit?: 1 | 2 | 3 | 4;
+  /**
+   * The groups confirmed on the pathway step (ticket 188), once the teacher moved someone there;
+   * absent, the class defaults stand. Local to this new assignment: Create freezes them as its
+   * groups, and the class defaults never change from here.
+   */
+  groups?: SeatingGroups;
 }
 
 /**
@@ -108,7 +115,7 @@ export function initialReview(questions: DraftQuestion[]): ReviewState {
 export function reviewFor(questions: DraftQuestion[], stored: ReviewState | null | undefined): ReviewState {
   const key = draftKey(questions);
   if (stored && stored.forDraft === key) return stored;
-  return { ...initialReview(questions), labels: stored?.labels ?? {}, pathway: stored?.pathway ?? DEFAULT_PATHWAY };
+  return { ...initialReview(questions), labels: stored?.labels ?? {}, pathway: stored?.pathway ?? DEFAULT_PATHWAY, ...(stored?.groups ? { groups: stored.groups } : {}) };
 }
 
 /** A recommendation matched against the draft: its target's id when it has one. */

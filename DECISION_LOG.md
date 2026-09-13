@@ -3708,3 +3708,38 @@ branches beyond "finished hides the live lesson". History is computed from the s
 Class View colours, so the newest past pill cannot disagree with Problem Set 1's own row, and the
 simulated pills are consistent across both sets. All of it is pure and tested (data integrity,
 counts, top gap, history across both sets).
+
+## 2026-09-13 · Blank create screen is a separate component over a `generated` draft flag; confirmed groups live on the review state (ticket 188)
+
+**Decision.** The create screen shows `BlankStart` until the stored draft carries `generated: true`,
+then the existing editor over that draft. Generate stores the seeded set (`generatedDraft`) through
+the same `draft/set` action; Create and Reset demo clear the draft, so the next visit is blank. The
+pathway step's "Confirm groups" edits `ReviewState.groups` (absent: the class defaults as they stand)
+through a `SeatingBoard` component shared with the Groups page, and Create passes those groups to
+`assignment/create`, which freezes them under `pset-2`. Problem Set 2 exists once `c.assignment`
+does; `CreatedAssignment.startedAt` records when it went live (a skip sets it an hour back), read
+through `liveStartedAt`.
+
+**Context.** The user wanted the create screen to open blank with one pulsing "Generate simulated
+assignment", Q1 shown but not usable, and moves in Confirm groups to apply to the new assignment only.
+Before this, an empty store was seeded straight into the editor, and `assignment/create` always froze
+the class defaults.
+
+**Alternatives.** *A blank mode inside the editor* (flags on every input, the grid, the paste listener,
+the drop zone and the bar): many conditionals across a 500-line component whose upload paths would
+still be wired. *A `generated` flag in the editor's React state only*: a reload would drop back to
+blank. *Write Confirm-groups moves to `c.assignmentGroups["pset-2"]` before Create*: the set would
+have groups before it exists, and a draft abandoned mid-way would leave them behind. *Write them to the
+class defaults*: rejected by the user (a one-off absence would pollute future sets). *A separate
+`startedAt` store key*: two places to clear on reset; the created assignment is already the thing
+Reset removes.
+
+**Tradeoffs.** `BlankStart` duplicates the editor's title and goal markup so the geometry matches;
+a style change to one must be copied to the other (the click-through checks nothing moves on
+Generate). A draft stored before this ticket opens blank. `CreatedAssignment` has both `createdAt` and
+`startedAt`, equal on a real Create. The review state now carries twenty student ids.
+
+**Defense.** The editor is untouched apart from the flag it saves and the fade, so the typing, upload
+and Fix paths keep working once generated. The confirmed groups follow the review's own lifetime
+(kept across reloads, cleared with it on Create or Reset) and reach the classroom only through the one
+action that creates the set.

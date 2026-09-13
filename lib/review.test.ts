@@ -5,6 +5,8 @@ import { ADD_CONTEXT, CHANGE_SIGNS, REMOVE_REPEAT } from "@/data/review";
 import type { DraftQuestion } from "./classroom";
 import { classroomReducer, INITIAL_CLASSROOM } from "./classroom";
 import { parseQuestion, splitPaste, stemText } from "./mathInput";
+import { DEFAULT_GROUPS } from "@/data/groups";
+import { assignmentGroupsOf, moveStudent } from "./seating";
 import { applyReview, bankMatch, bankProblemsOf, countByDifficulty, defaultLabel, draftKey, heuristicLabel, inferUnitFromReviewed, initialReview, labelsOf, nextDifficulty, normTex, recommendationsFor, reviewFor, type ReviewState } from "./review";
 
 /** The demo paste as the create screen stores it. */
@@ -71,6 +73,18 @@ describe("the review state and the draft it is about", () => {
     expect(fresh.answers).toEqual({});
     expect(fresh.labels).toEqual({ q2: "complex familiar" });
     expect(fresh.pathway).toEqual(["whole-class"]);
+    expect(fresh.groups).toBeUndefined();
+  });
+
+  it("keeps the groups confirmed on the pathway step for a different draft too, and Create freezes them without touching the class defaults (ticket 188)", () => {
+    const qs = pasted();
+    const groups = moveStudent(DEFAULT_GROUPS, "jordan", "mint");
+    const stored: ReviewState = { ...initialReview(qs), step: "pathway", groups };
+    const edited = [...qs.slice(0, 9), { ...qs[9], text: qs[9].text + " Explain." }];
+    expect(reviewFor(edited, stored).groups).toEqual(groups);
+    const c = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", id: "pset-2", groups, title: "t", problemIds: ["q1"], pathway: ["individual", "group"], at: 1 });
+    expect(assignmentGroupsOf(c, "pset-2").mint).toContain("jordan");
+    expect(c.groups).toEqual(DEFAULT_GROUPS);
   });
   it("leaves the order out, so a reorder keeps the review's decisions (ticket 150)", () => {
     const qs = pasted();

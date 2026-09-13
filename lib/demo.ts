@@ -43,8 +43,14 @@ function finishedRun(session: StudentSession, now: number): GroupRun {
   return { ...run, index: Math.max(0, problems.length - 1), resolved: problems, resolvedAt: Object.fromEntries(problems.map((p, i) => [p, i === problems.length - 1 ? finishedAt : Math.round(startedAt + step * (i + 1))])), turnStartedAt: finishedAt, done: true };
 }
 
+/**
+ * A skip jumps past the teacher's Create (ticket 188): Problem Set 2 exists, and went live this long
+ * before the jump, so a stream counted from its start (ticket 189) is long over.
+ */
+export const SKIP_STARTED_AGO_MS = 60 * 60_000;
+
 export function skipFixture(target: SkipTarget, now: number): { session: StudentSession; classroom: ClassroomState } {
-  let classroom = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: ASSIGNMENT.title, problemIds: ASSIGNMENT.problems.map((p) => p.id), pathway: DEMO_PATHWAY, goal: ASSIGNMENT.goal, at: now });
+  let classroom = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: ASSIGNMENT.title, problemIds: ASSIGNMENT.problems.map((p) => p.id), pathway: DEMO_PATHWAY, goal: ASSIGNMENT.goal, at: now, startedAt: now - SKIP_STARTED_AGO_MS });
   switch (target) {
     case "start":
       return { session: INITIAL_SESSION, classroom };

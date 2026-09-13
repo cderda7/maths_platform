@@ -22,6 +22,12 @@ export interface CreatedAssignment {
   /** The confirmed QCAA unit for Unit Focus. */
   unit: 1 | 2 | 3 | 4;
   createdAt: number;
+  /**
+   * When the set went live (ticket 188): Create stamps it, a presenter skip past creation sets it
+   * well in the past. The classmates' stream counts from it (ticket 189). Absent in assignments
+   * stored before it; read through `liveStartedAt` (`lib/assignments`), which falls back to `createdAt`.
+   */
+  startedAt?: number;
   /** The teacher's goal for the class (ticket 154), as written; absent in assignments stored before it. */
   goal?: string;
   /**
@@ -102,6 +108,12 @@ export interface AssignmentDraft {
   goal?: string;
   questions: DraftQuestion[];
   updatedAt: number;
+  /**
+   * Set once the teacher pressed "Generate simulated assignment" on the blank create screen
+   * (ticket 188); absent, the screen is the blank start. A draft stored before the flag existed
+   * opens blank too.
+   */
+  generated?: true;
 }
 
 /**
@@ -148,8 +160,11 @@ export interface ClassroomState {
 }
 
 export type ClassroomAction =
-  /** `id` names the assignment (Problem Set 2 when absent); its groups are frozen from `groups` or, absent, the class defaults. */
-  | { type: "assignment/create"; id?: string; groups?: SeatingGroups; title: string; problemIds: string[]; pathway: Pathway; unit?: 1 | 2 | 3 | 4; goal?: string; questions?: ReviewedQuestion[]; at?: number }
+  /**
+   * `id` names the assignment (Problem Set 2 when absent); its groups are frozen from `groups` or, absent, the class defaults.
+   * `at` is the moment of creation (the store stamps it); `startedAt`, when the set went live, is `at` unless given (a skip sets it in the past).
+   */
+  | { type: "assignment/create"; id?: string; groups?: SeatingGroups; title: string; problemIds: string[]; pathway: Pathway; unit?: 1 | 2 | 3 | 4; goal?: string; questions?: ReviewedQuestion[]; at?: number; startedAt?: number }
   /** The create screen's draft as typed; null clears it. */
   | { type: "draft/set"; draft: AssignmentDraft | null }
   /** The review step's decisions; null clears them. */
@@ -221,7 +236,7 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
     case "review/set":
       return { ...c, review: a.review };
     case "assignment/create":
-      return { ...c, assignmentGroups: { ...(c.assignmentGroups ?? {}), [a.id ?? ASSIGNMENT.id]: a.groups ?? seatingOf(c.groups) }, assignment: { title: a.title, problemIds: [...a.problemIds], pathway: [...a.pathway], unit: a.unit ?? 1, createdAt: a.at ?? 0, ...(a.goal !== undefined ? { goal: a.goal } : {}), ...(a.questions ? { questions: a.questions.map((q) => ({ ...q })) } : {}) } };
+      return { ...c, assignmentGroups: { ...(c.assignmentGroups ?? {}), [a.id ?? ASSIGNMENT.id]: a.groups ?? seatingOf(c.groups) }, assignment: { title: a.title, problemIds: [...a.problemIds], pathway: [...a.pathway], unit: a.unit ?? 1, createdAt: a.at ?? 0, startedAt: a.startedAt ?? a.at ?? 0, ...(a.goal !== undefined ? { goal: a.goal } : {}), ...(a.questions ? { questions: a.questions.map((q) => ({ ...q })) } : {}) } };
     case "advance/start": {
       const at = a.at ?? 0;
       return { ...c, advance: { id: `${a.kind}@${at}`, kind: a.kind, deadline: at + GRACE_MS } };

@@ -24,7 +24,16 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+/**
+ * Measured in order in one tab. Problem Set 2 only exists once it is created (ticket 188), so the
+ * Classroom and the blank create screen come first, then `CREATE_SET` (the student's `?pathway=`
+ * deep link, which creates the set as the teacher's Create would; not measured), then its pages.
+ */
+const BEFORE_CREATE = ["/teacher", "/teacher/assignments/create"];
+const CREATE_SET = "/student?pathway=indiv,group";
+const CREATED = `!!JSON.parse(localStorage.getItem("edexia-maths-demo/classroom/v1") ?? "null")?.assignment`;
 const ROUTES = [
+  ...BEFORE_CREATE,
   "/teacher",
   "/teacher/a/pset-2/class",
   "/teacher/a/pset-2/mistakes",
@@ -182,18 +191,26 @@ async function openTab(browser, [width, height]) {
     return r.result.value;
   };
   return {
-    async goto(url) {
+    async goto(url, ready = "[data-teacher-root], [data-board]") {
       await send("Page.navigate", { url });
       const started = Date.now();
       // Loaded and hydrated: every teacher route marks its root once the client component has rendered.
       while (Date.now() - started < 20000) {
-        const ready = await evaluate(`document.readyState === "complete" && !!document.querySelector("[data-teacher-root], [data-board]")`);
-        if (ready) break;
+        if (await evaluate(`document.readyState === "complete" && !!document.querySelector(${JSON.stringify(ready)})`)) break;
         await sleep(150);
       }
       await sleep(600);
     },
     measure: () => evaluate(MEASURE),
+    clearStorage: () => evaluate("localStorage.clear()"),
+    async until(expression, ms = 10000) {
+      const started = Date.now();
+      while (Date.now() - started < ms) {
+        if (await evaluate(expression)) return true;
+        await sleep(150);
+      }
+      return false;
+    },
     close: () => browser.send("Target.closeTarget", { targetId }),
   };
 }
@@ -217,7 +234,14 @@ async function main() {
   try {
     for (const size of SIZES) {
       const tab = await openTab(browser, size);
-      for (const route of ROUTES) {
+      // A fresh classroom for each size: the previous size created Problem Set 2 in this shared profile.
+      await tab.goto(BASE + "/teacher");
+      await tab.clearStorage();
+      for (const [i, route] of ROUTES.entries()) {
+        if (i === BEFORE_CREATE.length) {
+          await tab.goto(BASE + CREATE_SET, "body");
+          if (!(await tab.until(CREATED))) throw new Error(`${CREATE_SET} did not create Problem Set 2`);
+        }
         await tab.goto(BASE + route);
         const m = await tab.measure();
         const label = `${size[0]}x${size[1]} ${route}`;

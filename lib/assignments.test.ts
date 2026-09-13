@@ -2,13 +2,15 @@ import { describe, expect, it } from "vitest";
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
 import { DEFAULT_GROUPS } from "@/data/groups";
-import { assignmentBundle, assignmentHref, assignmentIds, assignmentStages, assignmentTabs, currentStageOf, isAssignmentId, landingFor, landingTab, LIVE_ASSIGNMENT_ID, rosterProgress, submittedCount } from "./assignments";
+import { assignmentBundle, assignmentHref, assignmentIds, assignmentStages, assignmentTabs, currentStageOf, isAssignmentId, landingFor, landingTab, LIVE_ASSIGNMENT_ID, liveStartedAt, PROBLEM_SET_2_BEFORE_CREATE, rosterProgress, submittedCount } from "./assignments";
 import { classroomReducer, INITIAL_CLASSROOM, migrateClassroom, type ClassroomState } from "./classroom";
-import { skipFixture } from "./demo";
+import { SKIP_STARTED_AGO_MS, SKIP_TARGETS, skipFixture } from "./demo";
 import { CLASS_SIZE } from "./readiness";
 import { sessionAt } from "./session";
 
 const now = 1_700_000_000_000;
+/** Problem Set 2 as the create flow leaves it (ticket 188): created with the fixture's set. */
+const CREATED = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: ASSIGNMENT.title, problemIds: ASSIGNMENT.problems.map((p) => p.id), pathway: ["individual", "group"], goal: ASSIGNMENT.goal, at: now });
 
 describe("the assignment registry", () => {
   it("holds Problem Set 2 under the id pset-2, the student side's set", () => {
@@ -16,14 +18,36 @@ describe("the assignment registry", () => {
     expect(ASSIGNMENT.id).toBe("pset-2");
     expect(isAssignmentId("pset-2")).toBe(true);
     expect(isAssignmentId("set-3")).toBe(false);
-    expect(assignmentIds(INITIAL_CLASSROOM)).toEqual(["pset-2", "pset-1"]);
-    expect(assignmentBundle("nope", INITIAL_CLASSROOM)).toBeNull();
+    expect(assignmentIds(CREATED)).toEqual(["pset-2", "pset-1"]);
+    expect(assignmentBundle("nope", CREATED)).toBeNull();
   });
 
-  it("bundles the fixture before anything is created: title, due, problems, classmates, pathway, groups", () => {
-    const b = assignmentBundle("pset-2", INITIAL_CLASSROOM)!;
+  it("Problem Set 2 is not in the Classroom until it is created (ticket 188); Reset demo takes it out again", () => {
+    expect(PROBLEM_SET_2_BEFORE_CREATE).toBe(false);
+    expect(assignmentIds(INITIAL_CLASSROOM)).toEqual(["pset-1"]);
+    expect(assignmentBundle("pset-2", INITIAL_CLASSROOM)).toBeNull();
+    expect(isAssignmentId("pset-2")).toBe(true);
+    expect(liveStartedAt(INITIAL_CLASSROOM)).toBeNull();
+    expect(assignmentIds(classroomReducer(CREATED, { type: "reset" }))).toEqual(["pset-1"]);
+  });
+
+  it("Create records when the set went live; a skip past creation has it exist, started long before", () => {
+    expect(liveStartedAt(CREATED)).toBe(now);
+    expect(liveStartedAt(classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: "t", problemIds: ["q1"], pathway: [], at: now, startedAt: now - 5 }))).toBe(now - 5);
+    for (const t of SKIP_TARGETS) {
+      const { classroom } = skipFixture(t, now);
+      expect(assignmentIds(classroom), t).toEqual(["pset-2", "pset-1"]);
+      expect(liveStartedAt(classroom), t).toBe(now - SKIP_STARTED_AGO_MS);
+    }
+    // An assignment stored before ticket 188 has no startedAt: its creation time stands in.
+    const old: ClassroomState = { ...CREATED, assignment: { ...CREATED.assignment!, startedAt: undefined } };
+    expect(liveStartedAt(old)).toBe(now);
+  });
+
+  it("the created set bundles the fixture: title, due, problems, classmates, pathway, groups", () => {
+    const b = assignmentBundle("pset-2", CREATED)!;
     expect(b).toMatchObject({ id: "pset-2", kind: "live", title: ASSIGNMENT.title, name: "Problem Set 2 — Roots of a quadratic", due: "Thu 10 Sep", className: "11 Methods", classCode: "11MAM2", unitNumber: 1 });
-    expect(b.problems).toBe(ASSIGNMENT.problems);
+    expect(b.problems.map((p) => p.id)).toEqual(ASSIGNMENT.problems.map((p) => p.id));
     expect(b.classmates).toBe(CLASSMATES);
     expect(b.pathway).toEqual(["individual", "group"]);
     expect(b.groups).toEqual(DEFAULT_GROUPS);
@@ -48,7 +72,7 @@ describe("the assignment registry", () => {
 
 describe("each assignment keeps its own groups", () => {
   it("a move on the assignment's Groups tab leaves the class defaults, and a move on the defaults leaves the assignment", () => {
-    let c = classroomReducer(INITIAL_CLASSROOM, { type: "groups/move", student: "jordan", to: "mint", assignment: "pset-2" });
+    let c = classroomReducer(CREATED, { type: "groups/move", student: "jordan", to: "mint", assignment: "pset-2" });
     expect(assignmentBundle("pset-2", c)!.groups.mint).toContain("jordan");
     expect(c.groups).toEqual(DEFAULT_GROUPS);
     c = classroomReducer(c, { type: "groups/move", student: "priya", to: "violet" });
@@ -70,12 +94,12 @@ describe("each assignment keeps its own groups", () => {
   });
 
   it("a classroom stored before ticket 185 keeps its one set of groups as both the defaults and Problem Set 2's", () => {
-    const { assignmentGroups, ...old } = classroomReducer(INITIAL_CLASSROOM, { type: "groups/move", student: "jordan", to: "mint" });
+    const { assignmentGroups, ...old } = classroomReducer(CREATED, { type: "groups/move", student: "jordan", to: "mint" });
     void assignmentGroups;
     const read = migrateClassroom(JSON.parse(JSON.stringify(old)));
     expect(read.groups!.mint).toContain("jordan");
     expect(assignmentBundle("pset-2", read)!.groups.mint).toContain("jordan");
-    const older = migrateClassroom({ assignment: null, advance: null, wholeClass: null });
+    const older = migrateClassroom({ assignment: CREATED.assignment, advance: null, wholeClass: null });
     expect(assignmentBundle("pset-2", older)!.groups).toEqual(DEFAULT_GROUPS);
     expect(migrateClassroom(null)).toEqual(INITIAL_CLASSROOM);
     expect(migrateClassroom(INITIAL_CLASSROOM)).toBe(INITIAL_CLASSROOM);
@@ -83,7 +107,7 @@ describe("each assignment keeps its own groups", () => {
 });
 
 describe("the roster's progress and the landing", () => {
-  const b = assignmentBundle("pset-2", INITIAL_CLASSROOM)!;
+  const b = assignmentBundle("pset-2", CREATED)!;
 
   it("classmates of the fixture have handed in, except Chloe, who never started", () => {
     const p = rosterProgress(b, null, now);

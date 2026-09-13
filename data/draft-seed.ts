@@ -2,9 +2,9 @@ import { ASSIGNMENT } from "./assignment";
 
 /**
  * The demo teacher's draft, as typed on the create screen (ticket 121): the bank's set in the
- * editor's own shorthand, one line per question. The create screen seeds an empty store with it,
- * so the teacher lands mid-creation with the ten tiles filled rather than at a blank (the user,
- * 2026-09-11: "i don't want this blank view -- i want it prefilled for now"). Two lines differ
+ * editor's own shorthand, one line per question. The create screen opened on it at first (the
+ * user, 2026-09-11: "i don't want this blank view -- i want it prefilled for now"); since ticket 188
+ * it opens blank and "Generate simulated assignment" stores it as the draft (`lib/draft`). Two lines differ
  * from the bank on purpose, for the review step (ticket 120) to have something to recommend: Q1
  * is `x^2 + 5x + 6 = 0` (the bank's is −5x) and the ball problem's slot is a repeat of Q3's
  * shape. The bank itself is untouched; the student side reads the bank until an assignment is

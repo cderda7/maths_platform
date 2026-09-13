@@ -45,11 +45,11 @@ type AssignmentDef = ({ kind: "live" } | { kind: "finished"; pathway: Pathway; s
 };
 
 /**
- * The one switch for ticket 188: until Create makes Problem Set 2, it is in the Classroom from the
- * start so the demo runs end to end. Ticket 188 sets this to false; the set then exists once
- * `assignment/create` has stored it (`c.assignment`).
+ * The switch ticket 185 left for ticket 188: whether Problem Set 2 is in the Classroom before the
+ * teacher creates it. Off since 188: the set exists once `assignment/create` has stored it
+ * (`c.assignment`), from the create flow's Create or a presenter skip; Reset demo removes it.
  */
-export const PROBLEM_SET_2_BEFORE_CREATE = true;
+export const PROBLEM_SET_2_BEFORE_CREATE = false;
 
 /** Newest first: Problem Set 2, then Problem Set 1 (ticket 187), which the Classroom always holds. */
 const REGISTRY: readonly AssignmentDef[] = [
@@ -70,6 +70,15 @@ const REGISTRY: readonly AssignmentDef[] = [
     exists: () => true,
   },
 ];
+
+/**
+ * When the live set went live (ticket 188), or null before it is created: the created assignment's
+ * `startedAt`, else (stored before 188) its `createdAt`. Ticket 189's stream counts from it.
+ */
+export function liveStartedAt(c: ClassroomState | null | undefined): number | null {
+  const a = c?.assignment;
+  return a ? (a.startedAt ?? a.createdAt) : null;
+}
 
 /** The id of the set the students are working on now: the student side's Problem Set 2. */
 export const LIVE_ASSIGNMENT_ID = ASSIGNMENT.id;
@@ -181,6 +190,8 @@ export function landingTab(b: AssignmentBundle, c: ClassroomState | null | undef
 /** The Classroom, and the class's default groups on it. */
 export const CLASSROOM_HREF = "/teacher";
 export const CLASS_GROUPS_HREF = "/teacher/groups";
+/** The create flow's first screen (blank until generated, ticket 188). */
+export const NEW_ASSIGNMENT_HREF = "/teacher/assignments/create";
 
 /** A set's page: no tab is the landing, which redirects to Class or Mistakes. */
 export function assignmentHref(id: string, tab?: AssignmentTab): string {

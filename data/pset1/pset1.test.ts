@@ -16,6 +16,7 @@ import { commentaryFor } from "@/lib/commentary";
 import { INITIAL_CLASSROOM } from "@/lib/classroom";
 import { CLASS_SIZE } from "@/lib/readiness";
 import { sessionAt } from "@/lib/session";
+import { skipFixture } from "@/lib/demo";
 import { categoryHistory, earlierResults } from "@/lib/setHistory";
 import { assignmentCard, topGap } from "@/lib/classroomCards";
 
@@ -130,7 +131,9 @@ describe("Problem Set 1 in the registry (ticket 187)", () => {
     expect(b.classmates).toBe(PS1_CLASSMATES);
     expect(b.sam).toBe(PS1_SAM);
     expect(b.groups).toEqual(DEFAULT_GROUPS);
-    expect(assignmentBundle("pset-2", INITIAL_CLASSROOM)!.sam).toBeNull();
+    // Problem Set 2 exists once created (ticket 188); Problem Set 1 does not wait for it.
+    expect(assignmentIds(INITIAL_CLASSROOM)).toEqual(["pset-1"]);
+    expect(assignmentBundle("pset-2", skipFixture("working", now).classroom)!.sam).toBeNull();
     expect(earlierAssignmentIds("pset-2")).toEqual(["pset-1"]);
     expect(earlierAssignmentIds("pset-1")).toEqual([]);
   });

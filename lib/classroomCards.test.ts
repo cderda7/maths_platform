@@ -2,13 +2,15 @@ import { describe, expect, it } from "vitest";
 import { ASSIGNMENT } from "@/data/assignment";
 import type { LeafId } from "@/data/taxonomy";
 import { assignmentBundle, type AssignmentBundle } from "./assignments";
-import { INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
+import { classroomReducer, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
 import { assignmentCard, classroomCards, mistakeCount, sectionCards, topGap } from "./classroomCards";
 import { skipFixture } from "./demo";
 import { mistakesByProblem, type MistakeRow, type ProblemMistakes } from "./mistakes";
 import { CLASS_SIZE } from "./readiness";
 
 const now = 1_700_000_000_000;
+/** Problem Set 2 exists once created (ticket 188): the classroom as the create flow leaves it. */
+const CREATED = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: ASSIGNMENT.title, problemIds: ASSIGNMENT.problems.map((p) => p.id), pathway: ["individual", "group"], goal: ASSIGNMENT.goal, at: now });
 const NON_MONIC: LeafId = "algebra.expand-factor.nonmonic";
 const MONIC: LeafId = "algebra.expand-factor.monic";
 const SURDS: LeafId = "algebra.number.surds";
@@ -23,7 +25,7 @@ describe("mistakes so far", () => {
   });
 
   it("on Problem Set 2 it is the number of rows on its Mistakes tab", () => {
-    const b = assignmentBundle("pset-2", INITIAL_CLASSROOM)!;
+    const b = assignmentBundle("pset-2", CREATED)!;
     const rows = mistakesByProblem(null, b);
     expect(mistakeCount(rows)).toBe(rows.flatMap((p) => p.rows).length);
     expect(mistakeCount(rows)).toBeGreaterThan(0);
@@ -61,7 +63,7 @@ describe("the top gap", () => {
   });
 
   it("is computed from the set's work: Problem Set 2's is the biggest cluster of its Mistakes tab", () => {
-    const b = assignmentBundle("pset-2", INITIAL_CLASSROOM)!;
+    const b = assignmentBundle("pset-2", CREATED)!;
     const gap = topGap(mistakesByProblem(null, b))!;
     expect(gap.students).toBeGreaterThan(1);
     expect(gap.name.length).toBeGreaterThan(0);
@@ -69,7 +71,7 @@ describe("the top gap", () => {
 });
 
 describe("the Classroom's cards", () => {
-  const live = assignmentBundle("pset-2", INITIAL_CLASSROOM)!;
+  const live = assignmentBundle("pset-2", CREATED)!;
   /** A finished set standing in for Problem Set 1 (ticket 187) until it is registered: the same work, every stage over. */
   const finished: AssignmentBundle = { ...live, id: "pset-1", kind: "finished", title: "PROBLEM SET 1 — FEATURES OF A PARABOLA", name: "Problem Set 1 — Features of a parabola", due: "Thu 3 Sep" };
 
@@ -89,7 +91,7 @@ describe("the Classroom's cards", () => {
   });
 
   it("a finished set is past and done, everyone it counts handed in, with its top gap computed from its work", () => {
-    const card = assignmentCard(finished, INITIAL_CLASSROOM, null, now);
+    const card = assignmentCard(finished, CREATED, null, now);
     expect(card).toMatchObject({ id: "pset-1", name: "Problem Set 1 — Features of a parabola", href: "/teacher/a/pset-1", section: "past", status: "done", total: CLASS_SIZE, due: "Thu 3 Sep" });
     expect(card.submitted).toBe(CLASS_SIZE - 1); // Sam handed in; Chloe of this stand-in never started
     expect(card.topGap).toEqual(topGap(mistakesByProblem(null, finished)));
@@ -107,8 +109,10 @@ describe("the Classroom's cards", () => {
     expect(sectionCards([], classroom, session, now)).toEqual({ live: [], past: [] });
   });
 
-  it("the Classroom holds what the registry holds", () => {
-    const s = classroomCards(INITIAL_CLASSROOM, null, now);
-    expect([...s.live, ...s.past].map((c) => c.id)).toContain("pset-2");
+  it("the Classroom holds what the registry holds: Problem Set 2 only once it is created (ticket 188)", () => {
+    const before = classroomCards(INITIAL_CLASSROOM, null, now);
+    expect([...before.live, ...before.past].map((c) => c.id)).not.toContain("pset-2");
+    const s = classroomCards(CREATED, null, now);
+    expect(s.live.map((c) => c.id)).toContain("pset-2");
   });
 });

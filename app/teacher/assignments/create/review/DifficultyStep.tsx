@@ -31,7 +31,8 @@ export default function DifficultyStep({ questions, overrides, onLabel, onMove, 
       </div>
       <QuestionGrid items={questions.map((q) => ({ id: q.id, text: q.text, stem: q.stem, tex: q.tex, figureUrl: q.figureUrl, difficulty: labels[q.id] }))} onLabel={onLabel} onMove={onMove} animate />
       <div className="fixed bottom-16 right-6 z-30 flex items-center gap-3">
-        <Link href="/teacher/assignments/create" className="rounded-full px-4 py-2 text-[13.5px] font-medium text-ink-soft hover:bg-cream-deep hover:text-ink" data-back>
+        {/* Back is a paper pill like the create bar's secondary buttons, so it reads as a control over content scrolling beneath (ticket 188). */}
+        <Link href="/teacher/assignments/create" className="inline-flex items-center justify-center rounded-full border border-line-strong bg-paper px-6 py-3 text-[15px] font-medium text-ink shadow-lift transition-colors hover:border-ink-muted" data-back>
           Back
         </Link>
         <Button size="lg" onClick={onAssess} className="shadow-lift" data-assess>

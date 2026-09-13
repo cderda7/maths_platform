@@ -2,9 +2,10 @@
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
-import { assignmentHref, LIVE_ASSIGNMENT_ID } from "@/lib/assignments";
+import { assignmentHref, LIVE_ASSIGNMENT_ID, NEW_ASSIGNMENT_HREF } from "@/lib/assignments";
 import { useRouter } from "next/navigation";
 import TeacherChrome from "../../../TeacherChrome";
+import { BackToClassroom } from "../../../AssignmentContext";
 import AssessingStep from "./AssessingStep";
 import DifficultyStep from "./DifficultyStep";
 import PathwayStep from "./PathwayStep";
@@ -15,6 +16,7 @@ import { ASSIGNMENT } from "@/data/assignment";
 import { dispatchClassroom, getClassroom, useClassroom } from "@/lib/classroom-store";
 import { moveItem } from "@/lib/reorder";
 import { applyReview, bankProblemsOf, inferUnitFromReviewed, reviewFor, type ReviewState } from "@/lib/review";
+import { moveStudent, seatingOf } from "@/lib/seating";
 
 /**
  * Step two of a new assignment (ticket 120), one route with the step in the classroom store:
@@ -32,6 +34,8 @@ export default function ReviewAssignment({ assessMs }: { assessMs: number }) {
   const [assessing, setAssessing] = useState(false);
 
   const set = (patch: Partial<ReviewState>) => dispatchClassroom({ type: "review/set", review: { ...review, ...patch } });
+  // The groups this assignment will seat (ticket 188): the teacher's moves on the pathway step, else the class defaults as they stand.
+  const groups = review.groups ?? seatingOf(classroom.groups);
 
   const assess = () => {
     set({ answers: {}, addition: 0 });
@@ -48,6 +52,8 @@ export default function ReviewAssignment({ assessMs }: { assessMs: number }) {
     const final = applyReview(questions, review);
     dispatchClassroom({
       type: "assignment/create",
+      id: LIVE_ASSIGNMENT_ID,
+      groups,
       title: draft.title,
       problemIds: bankProblemsOf(final).map((p) => p.id),
       pathway: review.pathway,
@@ -68,13 +74,14 @@ export default function ReviewAssignment({ assessMs }: { assessMs: number }) {
 
   return (
     <TeacherChrome>
-      <Eyebrow>{ASSIGNMENT.className} · new assignment</Eyebrow>
+      <BackToClassroom />
+      <Eyebrow className="mt-3">{ASSIGNMENT.className} · new assignment</Eyebrow>
       <H1 className="mt-3">{draft?.title || "Untitled assignment"}</H1>
       {questions.length === 0 ? (
         <p className="mt-8 text-[14px] text-ink-muted" data-empty>
           Nothing drafted yet.{" "}
-          <Link href="/teacher/assignments/create" className="font-medium text-accent-deep hover:underline">
-            Type the questions
+          <Link href={NEW_ASSIGNMENT_HREF} className="font-medium text-accent-deep hover:underline">
+            Start the assignment
           </Link>
         </p>
       ) : (
@@ -106,7 +113,7 @@ export default function ReviewAssignment({ assessMs }: { assessMs: number }) {
               onFinalise={() => set({ step: "pathway" })}
             />
           ) : (
-            <PathwayStep final={applyReview(questions, review)} review={review} onChange={set} onBack={() => set({ step: "recommendations" })} onCreate={create} />
+            <PathwayStep final={applyReview(questions, review)} review={review} groups={groups} onChange={set} onMoveGroup={(student, to) => set({ groups: moveStudent(groups, student, to) })} onBack={() => set({ step: "recommendations" })} onCreate={create} />
           )}
         </>
       )}

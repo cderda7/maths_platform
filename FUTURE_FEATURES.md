@@ -2684,6 +2684,35 @@ uploaded problems) settled the following as later, each on purpose.
 - **Authored Problem Set 1 practice and warm-ups.** Problem Set 1 has no practice problems, hints,
   standouts or diagnostics of its own; they would be needed if it ever ran live.
 
+## Create from blank (from ticket 188, 2026-09-13)
+
+- **The blank start is a picture, not a form.** Title, goal and the ghost Q1 are inert until Generate;
+  typing a set from scratch, dropping a picture or PDF and the Fix line (tickets 119, 171–173) work only
+  on the generated screen, and the blank screen refuses a dropped file.
+- **Generate is one fixed set.** It always fills Problem Set 2 — Roots of a quadratic; a choice of
+  simulated sets (Problem Set 3, a Surds set) or a generated set from a topic is deferred.
+- **Creating a second time overwrites Problem Set 2.** New assignment after Create opens blank again
+  and a second Create replaces the one live set (same id, a new start time); real multi-set creation
+  needs ids per created set.
+- **A draft stored before ticket 188 opens blank.** Its questions are kept in the store but not shown
+  until Generate replaces them; migrating an old draft to `generated` was not worth it for a demo store.
+- **Reload on the generated screen still scrolls to the ghost Q11.** The editor focuses the ghost on
+  mount (pre-188 behaviour), which scrolls the grid at 1280 × 800; only the Generate press itself skips
+  the focus. Opening without a focused tile, or focusing without scrolling, is a small follow-up.
+- **Confirm groups has no reset.** Moves stay until Create or Reset demo; a "back to the class
+  defaults" link on the card is not built, nor an "also update class groups" option (see the run's
+  section above).
+- **Before Create, Problem Set 2's pages show "Not in the Classroom".** The tabs, `/teacher/mistakes`,
+  report, compare, class review setup and the board all show the card with a New assignment link rather
+  than redirecting; a redirect to the Classroom would hide why.
+- **Turning group review off at the bottom of the pathway step shifts the page.** Confirm groups leaves
+  with it, the scroll clamps, and the map moves under the pointer when the teacher had scrolled down;
+  keeping the step's height, or resetting the scroll on each review step, is deferred.
+- **The review bar floats over scrolling content.** Back and Create are pills over the page (the
+  content ends above them at max scroll); a full-width footer bar with its own backdrop was not built.
+- **Skips set the start an hour back.** Every presenter skip creates Problem Set 2 with `startedAt` one
+  hour before the jump so ticket 189's stream is over; a skip that lands mid-stream is not offered.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

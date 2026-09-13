@@ -4,13 +4,15 @@ import { useEffect, useRef, useState, useSyncExternalStore, type DragEvent, type
 import { useRouter } from "next/navigation";
 import TeacherChrome from "../../TeacherChrome";
 import QuestionTile, { type TileHandlers } from "./QuestionTile";
+import BlankStart from "./BlankStart";
+import { BackToClassroom } from "../../AssignmentContext";
 import { MessageTile, PendingTile } from "./UploadTiles";
 import { Button, Eyebrow } from "@/components/ui";
 import { useReorder } from "@/components/useReorder";
 import { ASSIGNMENT } from "@/data/assignment";
-import { DEMO_DRAFT_GOAL, DEMO_DRAFT_TITLE, DEMO_PASTE_LINES } from "@/data/draft-seed";
 import { GOAL_MAX, type AssignmentDraft, type DraftQuestion } from "@/lib/classroom";
-import { dispatchClassroom, getClassroom } from "@/lib/classroom-store";
+import { dispatchClassroom, getClassroom, useClassroom } from "@/lib/classroom-store";
+import { generatedDraft, isGenerated } from "@/lib/draft";
 import { cropFigure, cropFromImage, type Figure } from "@/lib/crops";
 import type { Draft, FigureBox, Source } from "@/lib/extract";
 import { bytesToBase64, ExtractError, extractSource, fileToSource, fixDraft } from "@/lib/extractClient";
@@ -22,6 +24,9 @@ import { getSource, putSource, thumbOf } from "@/lib/sources";
 import { applyFix, applyRead, confirmAll, discardUnconfirmed, draftItem, dropNote, insertBefore, isPdfFile, isQuestion, messageItem, partitionDrop, pendingItem, removeItem, replaceItem, unconfirmedCount, updateQuestion, without, type FigureRef, type Item, type MessageItem, type PendingItem, type QuestionItem, type ReadFailure } from "@/lib/upload";
 
 export const REVIEW_PATH = "/teacher/assignments/create/review";
+
+/** The gap between one generated tile fading in and the next (ticket 188). */
+const TILE_IN_STEP_MS = 35;
 
 const newId = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2));
 const ghostOf = (): QuestionItem => ({ id: newId(), text: "" });
@@ -86,21 +91,51 @@ export function draftOf(title: string, goal: string, qs: Item[], at: number): As
 export default function CreateAssignment() {
   // The draft lives in localStorage, so the editor mounts on the client only and reads it as its first state.
   const client = useSyncExternalStore(noSubscribe, isClient, isServer);
-  return <TeacherChrome>{client ? <Editor /> : <Eyebrow>{ASSIGNMENT.className}</Eyebrow>}</TeacherChrome>;
+  return (
+    <TeacherChrome>
+      {client ? (
+        <Start />
+      ) : (
+        <>
+          <BackToClassroom />
+          <Eyebrow className="mt-3">{ASSIGNMENT.className}</Eyebrow>
+        </>
+      )}
+    </TeacherChrome>
+  );
+}
+
+/**
+ * Blank until generated (ticket 188): "New assignment" opens `BlankStart`, whose one live control
+ * stores the demo teacher's set as the draft (`generatedDraft`); the editor then opens over it, and
+ * stays across reloads while the draft is flagged generated. Create and Reset demo clear the draft, so
+ * the next visit is blank again. `fresh` is this mount's own Generate: the tiles fade in once.
+ */
+function Start() {
+  const generated = isGenerated(useClassroom());
+  const [fresh, setFresh] = useState(false);
+  if (!generated)
+    return (
+      <BlankStart
+        onGenerate={() => {
+          setFresh(true);
+          dispatchClassroom({ type: "draft/set", draft: generatedDraft(Date.now()) });
+        }}
+      />
+    );
+  return <Editor fresh={fresh} />;
 }
 
 const noSubscribe = () => () => {};
 
 /**
- * The draft in the store, or, when there is none (first visit, or after Reset demo), the demo
- * teacher's set from `data/draft-seed` so the screen opens mid-creation with the tiles filled
- * rather than blank (ticket 121). A draft the teacher has emptied is kept empty.
+ * The draft in the store: the generated set as the teacher left it (ticket 188; before it, an empty
+ * store seeded the set here, ticket 121). The editor only mounts over a generated draft, so the seed
+ * fallback is for a draft cleared from another tab mid-render.
  */
 function storedOrSeed(): { title: string; goal: string; questions: QuestionItem[] } {
-  const d = getClassroom().draft;
-  // A draft stored before the goal existed has none; it is not re-seeded (the teacher may have emptied it on purpose).
-  if (d) return { title: d.title, goal: d.goal ?? "", questions: d.questions.map(itemOf) };
-  return { title: DEMO_DRAFT_TITLE, goal: DEMO_DRAFT_GOAL, questions: DEMO_PASTE_LINES.map((text, i) => ({ id: `seed-${i + 1}`, text })) };
+  const d = getClassroom().draft ?? generatedDraft(0);
+  return { title: d.title, goal: d.goal ?? "", questions: d.questions.map(itemOf) };
 }
 
 /** A stored question back as a tile; an uploaded one keeps its provenance and its unconfirmed state across a reload. */
@@ -159,12 +194,15 @@ async function firstPageThumb(blob: Blob): Promise<string | undefined> {
   }
 }
 
-function Editor() {
+function Editor({ fresh }: { fresh: boolean }) {
   const router = useRouter();
   const [title, setTitle] = useState(() => storedOrSeed().title);
   const [goal, setGoal] = useState(() => storedOrSeed().goal);
   const [qs, setQs] = useState<Item[]>(() => withGhost(storedOrSeed().questions));
-  const [focusId, setFocusId] = useState<string | null>(() => qs[qs.length - 1].id);
+  // Opened by Generate, nothing takes the focus: focusing the ghost would scroll the grid under the pointer that just pressed.
+  const [focusId, setFocusId] = useState<string | null>(() => (fresh ? null : qs[qs.length - 1].id));
+  /** The tiles Generate put on screen, which fade in one after another; a tile added later appears at once. */
+  const [arrived] = useState<ReadonlySet<string> | null>(() => (fresh ? new Set(qs.map((q) => q.id)) : null));
   const [removed, setRemoved] = useState<{ q: QuestionItem; index: number } | null>(null);
   /** What the bar says about the last drop's files that were left out; cleared by the next edit. */
   const [note, setNote] = useState<string | null>(null);
@@ -173,7 +211,7 @@ function Editor() {
   const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    dispatchClassroom({ type: "draft/set", draft: draftOf(title, goal, qs, Date.now()) });
+    dispatchClassroom({ type: "draft/set", draft: { ...draftOf(title, goal, qs, Date.now()), generated: true } });
   }, [title, goal, qs]);
 
   /** A change by the teacher's hand: clears the undo line and the drop note. */
@@ -420,13 +458,14 @@ function Editor() {
   const proceed = () => {
     if (!any) return;
     const kept = confirmAll(qs);
-    dispatchClassroom({ type: "draft/set", draft: draftOf(title, goal, kept, Date.now()) });
+    dispatchClassroom({ type: "draft/set", draft: { ...draftOf(title, goal, kept, Date.now()), generated: true } });
     router.push(REVIEW_PATH);
   };
 
   return (
     <div className="pb-24">
-      <Eyebrow>{ASSIGNMENT.className}</Eyebrow>
+      <BackToClassroom />
+      <Eyebrow className="mt-3">{ASSIGNMENT.className}</Eyebrow>
       <input
         value={title}
         onChange={(e) => {
@@ -464,8 +503,11 @@ function Editor() {
 
       <div className="relative mt-6" onDragEnter={dragEnter} onDragOver={dragOver} onDragLeave={dragLeave} onDrop={drop} onKeyDownCapture={gridKey} data-dropzone data-over={over > 0 || undefined}>
         <ol className="grid grid-cols-5 gap-4" data-questions data-dragging={reorder.drag ? reorder.drag.from + 1 : undefined}>
-          {qs.map((q, i) => (
-            <li key={q.id} className="aspect-square min-h-0" data-question={i + 1} {...reorder.item(i)}>
+          {qs.map((q, i) => {
+            const item = reorder.item(i);
+            const arriving = arrived?.has(q.id) === true;
+            return (
+            <li key={q.id} className={`aspect-square min-h-0 ${arriving ? "tile-in" : ""}`} data-question={i + 1} {...item} style={arriving ? { ...item.style, animationDelay: `${i * TILE_IN_STEP_MS}ms` } : item.style}>
               {q.kind === "pending" ? (
                 <PendingTile index={i} item={q} />
               ) : q.kind === "message" ? (
@@ -474,7 +516,8 @@ function Editor() {
                 <QuestionTile index={i} slot={reorder.slot(i)} item={q} ghost={i === qs.length - 1} focused={focusId === q.id} h={handlers(i, q)} />
               )}
             </li>
-          ))}
+            );
+          })}
         </ol>
         {over > 0 && (
           <div className="pointer-events-none absolute -inset-2 z-20 grid place-items-center rounded-2xl border-2 border-dashed border-standout-line bg-standout-soft/80" data-drop-overlay>
