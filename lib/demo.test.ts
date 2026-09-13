@@ -4,7 +4,7 @@ import { isDue, isPending, isProjecting } from "./classroom";
 import { INITIAL_SESSION } from "./session";
 import { classReadiness, LAST_ARRIVAL_MS } from "./readiness";
 import { boardOpensAt, introShowing } from "./groupIntro";
-import { runStartedAt } from "./groupReview";
+import { runStartedAt, visitsOf } from "./groupReview";
 
 describe("skip-to fixtures", () => {
   const now = 1_700_000_000_000;
@@ -28,7 +28,9 @@ describe("skip-to fixtures", () => {
   it("the group-review jump begins the whiteboard run on the union with the agreed pen order", () => {
     const { classroom } = skipFixture("group review", now);
     expect(classroom.group?.problems).toEqual(["q1", "q2", "q3", "q7", "q9", "q10"]);
-    expect(classroom.group?.pen).toEqual({ q1: "sam", q2: "zara", q3: "jordan", q7: "liam", q9: "sam", q10: "zara" });
+    // The simulation's fixed pens (ticket 228): Sam writes Q1 and Q7, both of Q7's visits.
+    expect(classroom.group?.pen).toEqual({ q1: "sam", q2: "zara", q3: "jordan", q7: "sam", q9: "liam", q10: "zara" });
+    expect(visitsOf({ ...classroom.group!, left: ["q7"] }).map((v) => v.pen)).toEqual(["sam", "zara", "jordan", "sam", "liam", "zara", "sam"]);
     expect(classroom.group?.index).toBe(0);
     // The jump lands on the intro: the class has just gone in and the board opens once it is read (ticket 220).
     expect(introShowing(classroom.group!, now)).toBe(true);

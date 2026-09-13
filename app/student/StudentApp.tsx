@@ -12,7 +12,8 @@ import FeedbackScreen from "./screens/FeedbackScreen";
 import GroupBoardScreen from "./screens/GroupBoardScreen";
 import { groupPlan } from "@/lib/group";
 import { closedMoment, currentProblem, currentVisit, isClosed, leaveAt, leaving, penHolder, turnScript, visitsOf } from "@/lib/groupReview";
-import { PEER_DEBRIEF_MS } from "@/lib/debrief";
+import { debriefEndsAt, PEER_DEBRIEF_MS, pendingDebrief } from "@/lib/debrief";
+import { DEMO_PENS } from "@/data/group-scripts";
 import ReportScreen from "./screens/ReportScreen";
 import { useEffect } from "react";
 import { dispatch, useStudentSession } from "@/lib/store";
@@ -87,17 +88,24 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
     if (!board) {
       const plan = groupPlan(session);
       // The board opens once the intro has been read, counted from when the class went in, not from this tab (ticket 220).
-      dispatchClassroom({ type: "group/begin", members: plan.members.map((m) => m.id), problems: plan.discussion.problems.map((p) => p.id), at: boardOpensFor(readiness.startedAt, now) });
+      dispatchClassroom({ type: "group/begin", members: plan.members.map((m) => m.id), problems: plan.discussion.problems.map((p) => p.id), at: boardOpensFor(readiness.startedAt, now), pens: DEMO_PENS });
+      return;
+    }
+    // The debrief moves on by itself once its hold is over (ticket 228): the student is done with it, and the group moves on if it is still there.
+    const debriefing = pendingDebrief(board, session.debrief);
+    if (debriefing && now >= debriefEndsAt(board, debriefing)) {
+      dispatch({ type: "debrief/done", problem: debriefing });
+      if (!board.done && currentProblem(board) === debriefing) dispatchClassroom({ type: "group/next", at: now });
       return;
     }
     if (board.done) {
-      dispatch({ type: "group/done" });
+      if (!debriefing) dispatch({ type: "group/done" });
       return;
     }
     const problem = currentProblem(board);
     if (problem === undefined) return;
     if (isClosed(board, problem)) {
-      // Closed (resolved, or unsolved on its return): the next pen-holder's first stroke moves the group on. A peer's comes after their own debrief; Sam's is his Next.
+      // Closed (resolved, or unsolved on its return): the group moves on when the demo student's debrief ends (above); a peer's own debrief, a moment longer, is the fallback when no student tab is on it.
       const visits = visitsOf(board);
       const nextHolder = visits[board.index + 1]?.pen;
       const last = board.index >= visits.length - 1;

@@ -44,6 +44,12 @@ export interface GroupRun {
   turnFrom?: number;
   /** The shuffle's seed, which also deals the pen for return visits; a run stored without one used the demo's. */
   seed?: number;
+  /**
+   * Simulation only (ticket 228): fixed pens by problem, for its first visit and its return alike,
+   * so the presenter writes the problems they want to pace. The rule is the shuffle (`dealPens`):
+   * equitable and random, nobody writing twice before everyone has once. A real run never sets this.
+   */
+  pens?: Record<string, string>;
   /** When each resolved problem checked correct (ms since epoch): the standings' tie-break. */
   resolvedAt?: Record<string, number>;
   /** When group review began for this group (ms since epoch); the other groups' race runs from here. */
@@ -92,8 +98,11 @@ export function penOrder(problems: string[], members: string[], seed: number): R
 /** The seed that deals the demo's agreed order (Sam, Zara, Jordan, Liam, then Sam, Zara, and Jordan for a return). */
 export const DEMO_SEED = 1368;
 
-export function beginRun(members: string[], problems: string[], at: number, seed = DEMO_SEED): GroupRun {
-  return { members, problems, pen: penOrder(problems, members, seed), index: 0, strokes: [], lines: [], attempts: {}, resolved: [], resolvedAt: {}, startedAt: at, turnStartedAt: at, scriptDone: 0, done: false, seed };
+export function beginRun(members: string[], problems: string[], at: number, seed = DEMO_SEED, pens?: Record<string, string>): GroupRun {
+  // The simulation's fixed pens, only for problems on the board and members of the group.
+  const pinned = pens ? Object.fromEntries(Object.entries(pens).filter(([p, m]) => problems.includes(p) && members.includes(m))) : undefined;
+  const dealt = penOrder(problems, members, seed);
+  return { members, problems, pen: { ...dealt, ...pinned }, index: 0, strokes: [], lines: [], attempts: {}, resolved: [], resolvedAt: {}, startedAt: at, turnStartedAt: at, scriptDone: 0, done: false, seed, ...(pinned ? { pens: pinned } : {}) };
 }
 
 /** When the run began; a run stored before `startedAt` existed began with its first turn. */
@@ -114,7 +123,7 @@ export function visitsOf(run: GroupRun): Visit[] {
   const left = run.left ?? [];
   if (left.length === 0) return first;
   const deal = dealPens(run.problems.length + left.length, run.members, run.seed ?? DEMO_SEED);
-  return [...first, ...left.map((problem, i) => ({ problem, pen: deal[run.problems.length + i], returning: true }))];
+  return [...first, ...left.map((problem, i) => ({ problem, pen: run.pens?.[problem] ?? deal[run.problems.length + i], returning: true }))];
 }
 
 export const currentVisit = (run: GroupRun): Visit | undefined => visitsOf(run)[run.index];

@@ -5,7 +5,7 @@ import { candidatesFor, problemsByStruggle, suggestExamples } from "./examples";
 import { INITIAL_SESSION, reworkedSession, sessionAt, type StudentSession } from "./session";
 import { LAST_ARRIVAL_MS } from "./readiness";
 import { groupPlan } from "./group";
-import { GROUP_SCRIPTS } from "@/data/group-scripts";
+import { DEMO_PENS, GROUP_SCRIPTS } from "@/data/group-scripts";
 import { beginRun, checkBoard, type GroupRun } from "./groupReview";
 import { boardOpensAt } from "./groupIntro";
 
@@ -45,6 +45,8 @@ function finishedRun(session: StudentSession, now: number): GroupRun {
     plan.members.map((m) => m.id),
     problems,
     startedAt,
+    undefined,
+    DEMO_PENS,
   );
   const attempts = Object.fromEntries(problems.map((p) => [p, (GROUP_SCRIPTS[p]?.attempts ?? []).map((lines) => ({ lines, correct: checkBoard(p, lines).correct }))]));
   const unsolved = problems.filter((p) => (attempts[p]?.length ?? 0) > 0 && !attempts[p].some((a) => a.correct));
@@ -90,7 +92,7 @@ export function skipFixture(target: SkipTarget, now: number): { session: Student
       // The class has just gone in: the intro is read first, then the board opens (ticket 220).
       const session = sessionAt("group");
       const c = everyoneIn(classroom, now);
-      return { session, classroom: classroomReducer(c, { type: "group/begin", members: groupPlan(session).members.map((m) => m.id), problems: groupPlan(session).discussion.problems.map((p) => p.id), at: boardOpensAt(now) }) };
+      return { session, classroom: classroomReducer(c, { type: "group/begin", members: groupPlan(session).members.map((m) => m.id), problems: groupPlan(session).discussion.problems.map((p) => p.id), at: boardOpensAt(now), pens: DEMO_PENS }) };
     }
     case "report": {
       // Group review is behind the class: the standings hold on the board with the demo group's run finished.

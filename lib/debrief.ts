@@ -1,4 +1,4 @@
-import { closedInOrder, type Attempt, type GroupRun } from "./groupReview";
+import { closedInOrder, closedMoment, type Attempt, type GroupRun } from "./groupReview";
 import { lineMarks, type LineMark } from "./examples";
 
 /**
@@ -57,17 +57,18 @@ export const holdOver = (markedAt: number | null, now: number): boolean => marke
 
 /**
  * The problem whose debrief the student is in: the most recently closed problem (resolved, or
- * unsolved on its return) they have not pressed Next on. Null once they have moved on (or before
- * anything has closed).
+ * unsolved on its return), until they move on from it. Only the latest: once a later problem
+ * closes, an earlier debrief the student had not finished is gone, never waiting behind the new one
+ * to send them back to a problem the group is past (ticket 228). Null once they have moved on (or
+ * before anything has closed).
  */
 export function pendingDebrief(run: GroupRun, notes: Record<string, DebriefNote>): string | null {
-  const closed = closedInOrder(run);
-  for (let i = closed.length - 1; i >= 0; i--) {
-    const p = closed[i];
-    if (!notes[p]?.done) return p;
-  }
-  return null;
+  const latest = closedInOrder(run).at(-1);
+  return latest !== undefined && !notes[latest]?.done ? latest : null;
 }
+
+/** When a closed problem's debrief moves on by itself: the unmarked view, then the hold (ticket 228). */
+export const debriefEndsAt = (run: GroupRun, problem: string): number => marksAt(closedMoment(run, problem)) + HOLD_MS;
 
 /** How long a peer who holds the next pen waits before their first stroke moves the group on: their own debrief (two seconds unmarked, ten on the marks), and a second to press Next. */
 export const PEER_DEBRIEF_MS = 13_000;

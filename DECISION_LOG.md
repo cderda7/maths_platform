@@ -4131,3 +4131,32 @@ is one question with one answer for the board, the bar and the debrief.
 **Tradeoffs.** A render of the intro per frame for 30 s instead of a compositor-only animation; the intro is light (text and six tiles) so this costs nothing visible on an iPad, and the frame loop stops when the board opens. The label shows 0:00 for the last half second.
 
 **Defense.** One number drives both marks, so they cannot disagree, and a reload is in step from the first frame with no mount-time bookkeeping.
+
+## 2026-09-13 · The debrief ends itself, only the latest one waits, and the demo pins its pens (ticket 228)
+
+**Decision.** Group review's debrief moves on by itself when its hold ends, driven by the student
+app's clock from the problem's close, so it survives a reload. Only the most recently closed problem
+can hold a debrief; an earlier one the student had not finished is dropped when a later problem
+closes. For the simulation, `group/begin` takes fixed pens by problem (`DEMO_PENS`: Sam on Q1 and on
+both visits to Q7), stored on the run and read by `visitsOf`; the shuffle (`dealPens`) stays the rule
+and a real run never passes pens.
+
+**Context.** The user saw finished questions come back. Reproduced: `pendingDebrief` queued every
+unfinished debrief behind the newest, so a student still reading Q1's when Q2 closed went Q1 → Q2 → Q1.
+The user also wanted no press on Next, and to write Q7 themselves to see the ladder at their own pace,
+while keeping equitable random pens as the product rule.
+
+**Alternatives considered.** *Keep the queue but auto-advance*: the timer makes lingering rare but a
+reload or a slow tab could still send a student back. *Auto-advance inside the debrief component with
+an effect*: the lint rule on effects, and it would stop when the component unmounts; the clock loop
+already drives the group. *Change the demo seed until the shuffle deals Sam Q1 and Q7*: no seed gives
+Sam both visits of Q7 without breaking "nobody twice before everyone once", and it would hide that
+the demo is an exception. *Hard-code Sam in `visitsOf`*: the rule and the exception would be mixed in
+the product code.
+
+**Tradeoffs.** A student who wanted longer on a debrief cannot have it; the hold is the time. The
+demo's pens are a table to keep in step with the union if the demo's mistakes change (pins outside
+the union or the group are ignored).
+
+**Defense.** The debrief is one screen at a time, in close order, never behind the board; the product
+rule for pens is untouched and the exception is visible and named.

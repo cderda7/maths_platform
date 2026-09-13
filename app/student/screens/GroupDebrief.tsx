@@ -19,7 +19,8 @@ const first = (id: string) => (id === DEMO_STUDENT.id ? "you" : CLASSMATE_MAP[id
 /**
  * After the group's rework checks correct: the student's first and second submissions beside
  * the group's, unmarked, for two seconds; then, on their own, the same three with full marks
- * (blue standouts on the group's rework) and Next, which waits out a ten-second hold. Nothing to
+ * (blue standouts on the group's rework) and Next, which waits out a ten-second hold and then goes by
+ * itself (ticket 228; StudentApp's clock does it, so a reload keeps the moment). Nothing to
  * write (ticket 218). Both clocks run from the group's check, so a reload keeps the moment. Next
  * moves the group on if it is still on this problem; otherwise the student rejoins the live board.
  * A problem that closed unsolved on its return (ticket 222) debriefs the same way beside the group's

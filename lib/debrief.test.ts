@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { groupRework, HOLD_MS, holdOver, holdProgress, markedVersions, marksAt, marksOpen, matchesGroup, pendingDebrief, PEER_DEBRIEF_MS, UNMARKED_MS } from "./debrief";
+import { debriefEndsAt, groupRework, HOLD_MS, holdOver, holdProgress, markedVersions, marksAt, marksOpen, matchesGroup, pendingDebrief, PEER_DEBRIEF_MS, UNMARKED_MS } from "./debrief";
 import { beginRun } from "./groupReview";
 import { classroomReducer, INITIAL_CLASSROOM } from "./classroom";
 import { RECOGNITION, RECOGNITION_REWORK } from "@/data/recognition";
@@ -77,7 +77,19 @@ describe("the session's debrief notes", () => {
     expect(pendingDebrief(c.group!, { q1: { done: true } })).toBeNull();
     c = classroomReducer(c, { type: "group/next", at: 99 });
     expect(c.group?.resolvedAt?.q1).toBe(70); // the finish moment is kept for the standings
-    expect(pendingDebrief(c.group!, {})).toBe("q1"); // the group moved on; the student lingers until Next
+    expect(pendingDebrief(c.group!, {})).toBe("q1"); // the group moved on; the student is still in it
     expect(beginRun(["a"], ["q1"], 0).resolvedAt).toEqual({});
+    // Q2 closes while the student is still in Q1's debrief: Q2's takes over, and Q1's never comes back (ticket 228).
+    for (const tex of RECOGNITION_REWORK.q2) c = classroomReducer(c, { type: "group/line", tex });
+    c = classroomReducer(c, { type: "group/check", at: 5000 });
+    expect(pendingDebrief(c.group!, {})).toBe("q2");
+    expect(pendingDebrief(c.group!, { q2: { done: true } })).toBeNull();
+  });
+
+  it("the debrief moves on by itself two seconds plus the hold after the problem closed (ticket 228)", () => {
+    let c = classroomReducer(INITIAL_CLASSROOM, { type: "group/begin", members: ["sam", "jordan", "zara", "liam"], problems: ["q1", "q2"], at: 0 });
+    for (const tex of RECOGNITION_REWORK.q1) c = classroomReducer(c, { type: "group/line", tex });
+    c = classroomReducer(c, { type: "group/check", at: 70 });
+    expect(debriefEndsAt(c.group!, "q1")).toBe(70 + UNMARKED_MS + HOLD_MS);
   });
 });

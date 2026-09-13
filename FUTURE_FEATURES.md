@@ -3060,6 +3060,18 @@ uploaded problems) settled the following as later, each on purpose.
   grace countdown are one-second labels with no bar, so they have nothing to disagree with; if either
   gains a bar, `useFrameNow` is the clock to draw it from.
 
+## Group review pacing (ticket 228, 2026-09-13)
+
+- **A student who wants longer on a debrief.** The debrief now goes by itself at the end of the hold;
+  there is no "stay" or pause. A student who was mid-thought is moved on.
+- **The teacher (or presenter) chooses who writes.** The demo pins pens in data (`DEMO_PENS`); in a
+  real class the shuffle deals them. A teacher override, or a "pass the pen" (FUTURE_FEATURES above),
+  was not asked for.
+- **A pen-holder's own ink across tries.** Writing Q7 three times keeps each try's ink on the board
+  (the transcription resets, the ink does not), so the third try needs Clear first or runs past the
+  board's rows. A scripted peer clears between tries (ticket 222); clearing a real pen-holder's board
+  on a wrong check was not decided.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

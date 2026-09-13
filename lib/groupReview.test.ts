@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { beginRun, boardHint, checkBoard, closedInOrder, comingBack, currentProblem, cutAtFirstMistake, dealPens, DEMO_SEED, groupProgress, HINT_AFTER_WRONG, LEAVE_AFTER_WRONG, LEAVE_PAUSE_MS, leaveAt, leaving, ownAttemptScript, penHolder, penOrder, shuffle, stuckProblems, turnScript, visitsOf, writerOf, wrongChecks, type GroupRun } from "./groupReview";
 import { classroomReducer, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
 import { PROBLEM_MAP } from "@/data/assignment";
-import { GROUP_SCRIPTS } from "@/data/group-scripts";
+import { DEMO_PENS, GROUP_SCRIPTS } from "@/data/group-scripts";
 import { RECOGNITION, RECOGNITION_REWORK } from "@/data/recognition";
 import { evaluateLine } from "./evaluate";
 import { pendingDebrief } from "./debrief";
@@ -291,5 +291,21 @@ describe("a problem the group cannot get (ticket 222)", () => {
     const old = { ...beginRun(MEMBERS, UNION, 0) } as Partial<GroupRun>;
     delete old.seed;
     expect(visitsOf(old as GroupRun).map((v) => v.pen)).toEqual(["sam", "zara", "jordan", "liam", "sam", "zara"]);
+  });
+});
+
+describe("the simulation's fixed pens (ticket 228)", () => {
+  it("pin a problem to a member on its first visit and its return; the rest keep the deal; a real run has none", () => {
+    const run = beginRun(MEMBERS, UNION, 0, DEMO_SEED, DEMO_PENS);
+    expect(run.pen).toEqual(DEMO_PENS);
+    expect(visitsOf({ ...run, left: ["q7"] }).at(-1)).toEqual({ problem: "q7", pen: "sam", returning: true });
+    // Sam writes Q1 and Q7, nothing else.
+    expect(Object.entries(DEMO_PENS).filter(([, m]) => m === "sam").map(([p]) => p)).toEqual(["q1", "q7"]);
+    // A pen for a problem not on the board, or for someone not in the group, is ignored.
+    const partial = beginRun(MEMBERS, ["q1", "q2"], 0, DEMO_SEED, { q2: "liam", q9: "sam", q1: "priya" });
+    expect(partial.pen).toEqual({ q1: "sam", q2: "liam" });
+    expect(partial.pens).toEqual({ q2: "liam" });
+    expect(beginRun(MEMBERS, UNION, 0).pens).toBeUndefined();
+    expect(beginRun(MEMBERS, UNION, 0).pen).toEqual(penOrder(UNION, MEMBERS, DEMO_SEED));
   });
 });
