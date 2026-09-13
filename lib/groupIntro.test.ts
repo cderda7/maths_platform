@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { boardOpensAt, boardOpensFor, GROUP_INTRO_MS, GROUP_INTRO_PARAGRAPHS, introProgress, introShowing, LOOK_MS, tileColumns, readMs, READING_WPM, wordCount } from "./groupIntro";
+import { boardOpensAt, boardOpensFor, GROUP_INTRO_MS, GROUP_INTRO_PARAGRAPHS, introProgress, introShowing, tileColumns } from "./groupIntro";
 import { beginRun } from "./groupReview";
 import { classroomReducer, INITIAL_CLASSROOM } from "./classroom";
 import { standingsAt } from "./standings";
@@ -9,13 +9,8 @@ const MEMBERS = ["sam", "jordan", "zara", "liam"];
 const UNION = ["q1", "q2", "q3", "q7", "q9", "q10"];
 
 describe("the group intro's read", () => {
-  it("is the words at a slow reading pace plus a look at the screen, to the next whole second", () => {
-    expect(wordCount("  one two\n three ")).toBe(3);
-    expect(readMs(["word ".repeat(130)])).toBe(60_000 + LOOK_MS);
-    expect(readMs(["a b c"])).toBe(Math.ceil((3 / READING_WPM) * 60 + LOOK_MS / 1000) * 1000);
-    // The agreed message: 75 words, so 35 s of reading and the 4 s look.
-    expect(GROUP_INTRO_PARAGRAPHS.reduce((n, p) => n + wordCount(p), 0)).toBe(75);
-    expect(GROUP_INTRO_MS).toBe(39_000);
+  it("holds for 30 seconds", () => {
+    expect(GROUP_INTRO_MS).toBe(30_000);
   });
 
   it("says 'and', never '&', and names no student and no mark", () => {

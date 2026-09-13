@@ -2973,6 +2973,13 @@ uploaded problems) settled the following as later, each on purpose.
 - **A real pen-holder's ink across tries.** A scripted peer now clears the board before each later
   try; a real pen-holder's ink stays (so a line can be fixed), which piles up over several tries.
 
+## Group intro at 30 s (ticket 224, 2026-09-13)
+
+- **A read time that follows the message.** Ticket 220 worked the time out from the words (130 wpm
+  plus a 4 s look); ticket 224 fixed it at 30 s on the user's call and removed the formula. If the
+  message is ever teacher-written or much longer, a derived time (or a check that warns when the
+  words outrun 30 s) would come back. Deferred: the user chose the number.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

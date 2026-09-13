@@ -340,5 +340,5 @@ body {
   to { width: 0; }
 }
 .intro-drain {
-  animation: intro-drain 39s linear both;
+  animation: intro-drain 30s linear both;
 }

@@ -4047,3 +4047,15 @@ gets exactly one return. The pause before leaving is a fixed 6 s from the check'
 
 **Defense.** State stays minimal and replayable, old stored runs read as a first pass, and "closed"
 is one question with one answer for the board, the bar and the debrief.
+
+## 2026-09-13 · The group intro's time is a fixed 30 s, not derived from the words (ticket 224)
+
+**Decision.** `GROUP_INTRO_MS` is 30 000, written as a number. The reading-pace calculation from ticket 220 (75 words at 130 wpm plus a 4 s look, 39 s) is removed. This supersedes "The read time comes from the words" in the ticket 220 entry.
+
+**Context.** The user asked for 30 seconds after seeing the 39 s read.
+
+**Alternatives considered.** *Keep the formula and raise the pace to about 173 wpm so it lands on 30 s*: a made-up pace that would silently move the time again when the message is edited. *Keep the formula beside a 30 s cap*: two numbers where one decides.
+
+**Tradeoffs.** Editing the message no longer retimes the screen; a much longer message would need the number changed by hand. At 30 s, a slow reader (130 wpm) may not finish the second paragraph.
+
+**Defense.** The time is a classroom-pacing choice the user made, so it is stated directly where it is used; everything else (the board, peers, race, reload) still runs off the one run start.
