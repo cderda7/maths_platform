@@ -49,7 +49,7 @@ export default function DiagnosticModal({ questionId, question, onAnswer }: { qu
           })}
         </ul>
         <div className="mt-6 flex justify-end">
-          <Button size="lg" disabled={!pick} onClick={() => pick && onAnswer(pick)}>
+          <Button size="lg" hit disabled={!pick} onClick={() => pick && onAnswer(pick)} data-send>
             Send
           </Button>
         </div>

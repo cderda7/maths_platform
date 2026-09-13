@@ -180,8 +180,9 @@ export default function QuestionTile({ index, slot = index, item, ghost, focused
           </span>
         )}
       </div>
+      {/* The mirror takes the placeholder while the text is empty (ticket 183), so the box is as tall as the placeholder's two lines and nothing is clipped. */}
       {focused && (
-        <div className="grow-wrap mt-2 text-[13.5px] leading-snug text-ink" data-value={text}>
+        <div className="grow-wrap mt-2 text-[13.5px] leading-snug text-ink" data-value={text || (ghost ? GHOST_PLACEHOLDER : "Type a question")}>
           <textarea
             ref={area}
             value={text}

@@ -107,7 +107,7 @@ export default function WarmupChatScreen({ session, dispatch }: { session: Stude
             }`}
           />
         </div>
-        <Button variant="accent" size="lg" onClick={send} disabled={!yourTurn || draft.trim() === ""} data-send>
+        <Button variant="accent" size="lg" hit className="before:-left-2" onClick={send} disabled={!yourTurn || draft.trim() === ""} data-send>
           send
         </Button>
       </div>

@@ -3527,3 +3527,34 @@ not the use, so a third button can adopt it without a rename.
 
 **Defense.** The two buttons cannot drift from each other, the hover is designed rather than
 inherited, and no rule depends on Tailwind's utility order.
+
+## 2026-09-13 · A primary action's hit area is a pseudo-element on the Button, not padding or a wrapper (ticket 183)
+
+**Decision.** `Button` gains `hit`: the button is `relative` and draws an absolute `::before`
+12 px beyond its box on every side (`-inset-3`, empty content). A press in that band is a
+click on the button itself. The eight Continue / Submit / Send buttons in a bottom-right
+corner carry it; the two chat sends narrow the textarea side to their 8 px gap.
+
+**Context.** The user asked for 12 px of extra hit area around each Continue, Submit and Send,
+with the click handler on the outer element, the visible pill unchanged, and a fingertip-sized
+target. The pills are 46–48 px tall, so the visible target already clears 44 pt; the band
+makes a press that lands just off the pill count too.
+
+**Alternatives.** *More padding on the pill*: grows the visible pill, which the user did not
+want, and moves every neighbour. *A wrapper element with padding and negative margins holding
+the `onClick`*: the click handler leaves the button, `disabled` and focus stay on the inner
+element, and every call site gains a second element to keep in step. *Negative margin plus
+padding on the button with the look on an inner span*: the same split between the element
+that looks like the button and the one that is it. *A global rule on every `Button`*: a 12 px
+band around a button in a tight row (the create bar's Discard · Add · Continue at 12 px gaps,
+the warm-up offer's two buttons at 8 px) would cover its neighbour's edge; opting in per
+button keeps the band where there is room, and lets a caller trim a side.
+
+**Tradeoffs.** One more prop to know about, and a hover tint that starts 12 px early on the
+buttons that carry it. The band is invisible, so a reader of the markup learns of it from the
+prop, not the screen. Under the teacher's 0.72 zoom the band is 8.64 screen px, and Chrome
+snaps its edge one pixel wider on the left and top.
+
+**Defense.** The button that looks pressed is the button that fires, with its own `onClick`
+and `disabled`; nothing on screen moves; and each call site says in one word that it has a
+band, so the next primary action can adopt it in a word too.

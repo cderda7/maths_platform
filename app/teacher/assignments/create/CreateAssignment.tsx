@@ -526,7 +526,7 @@ function Editor() {
             </Button>
           </>
         )}
-        <Button size="lg" disabled={!any} onClick={proceed} className="shadow-lift" data-continue>
+        <Button size="lg" hit disabled={!any} onClick={proceed} className="shadow-lift" data-continue>
           Continue
         </Button>
       </div>

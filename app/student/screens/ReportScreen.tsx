@@ -106,7 +106,7 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
                 Sent to {ASSIGNMENT.teacher}
               </div>
             ) : (
-              <Button size="lg" className="w-full" disabled={!written} onClick={() => dispatch({ type: "report/send" })}>
+              <Button size="lg" hit className="w-full" disabled={!written} onClick={() => dispatch({ type: "report/send" })} data-send>
                 Send to {ASSIGNMENT.teacher}
               </Button>
             )}

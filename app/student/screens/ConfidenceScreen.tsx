@@ -159,7 +159,7 @@ export default function ConfidenceScreen({
             </Button>
           </>
         ) : (
-          <Button size="lg" disabled={!ready} onClick={submit} data-submit>
+          <Button size="lg" hit disabled={!ready} onClick={submit} data-submit>
             Submit
           </Button>
         )}

@@ -37,7 +37,7 @@ export default function OverviewScreen({ onStart }: { onStart: () => void }) {
       </ol>
 
       <div className="mt-auto flex shrink-0 justify-end pt-4" data-start>
-        <Button variant="accent" size="lg" className="pulse-loop relative uppercase tracking-[0.08em]" onClick={onStart} data-continue>
+        <Button variant="accent" size="lg" hit className="pulse-loop uppercase tracking-[0.08em]" onClick={onStart} data-continue>
           continue
         </Button>
       </div>

@@ -159,7 +159,7 @@ export default function HelpChat({
           aria-label="Your message to the tutor"
           className="min-h-[52px] flex-1 resize-none rounded-2xl border border-line bg-paper px-3.5 py-2.5 text-[14px] text-ink placeholder:text-ink-muted focus:border-ink-muted focus:outline-none"
         />
-        <Button variant="accent" onClick={() => void send()} disabled={draft.trim() === "" || pending !== null} data-send>
+        <Button variant="accent" hit className="before:-left-2" onClick={() => void send()} disabled={draft.trim() === "" || pending !== null} data-send>
           send
         </Button>
       </div>

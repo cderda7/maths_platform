@@ -2552,6 +2552,28 @@ uploaded problems) settled the following as later, each on purpose.
   accent. If a filled version of this button is wanted later it belongs beside `deep` in
   `components/ui.tsx`.
 
+## Bigger hit areas on the primary actions (from ticket 183, 2026-09-13)
+
+- **Only the named eight carry the band.** Other bottom-right actions were left as they are:
+  the working screen's "Hand in" and "Next: Q2 →", the warm-up offer's "Warm up" / "Start the
+  set" (8 px apart, so a band would cover the neighbour), the feedback screen's "Done", the
+  practice prompt's buttons, the teacher's review steps' Assess / Create / Finalise, the setup
+  page's Create, the create bar's Discard / Add (12 px from Continue: their bands would meet
+  Continue's). Deferred because the user named Continue, Submit and Send.
+- **The reach is fixed at 12 px.** A `hit={8}` or a `reach` size would let a button in a tight
+  row take a smaller band; not built, a class on the side (`before:-left-2`) does it for now.
+- **The hover tint starts 12 px early.** A pointer in the band hovers the button, so the pill
+  tints before the pointer reaches it. Harmless on a touch screen (no hover); on a laptop a
+  `:hover` that keys off the pill only would need the band to be a sibling, not a pseudo-element.
+- **Not tested on an iPad.** The click-through emulates a finger tap through Chrome's touch
+  events; the real device (Safari, its own tap slop, the pencil) is the test the review asked
+  for and this machine cannot run.
+- **The two chat sends' left band is the 8 px gap.** A wider gap (12 px) would let the band be
+  even; deferred because the gap is the chat's design.
+- **A grow-wrap that mirrors the placeholder.** `QuestionTile` now feeds the placeholder to the
+  mirror while empty; the same fix belongs to any other grow-wrap textarea with a long
+  placeholder (none today).
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

@@ -40,7 +40,7 @@ export default function GoalScreen({ goal, onContinue }: { goal: string; onConti
       </div>
 
       <div className="mt-auto flex shrink-0 justify-end pt-4">
-        <Button variant="accent" size="lg" className="uppercase tracking-[0.08em]" onClick={onContinue} data-continue>
+        <Button variant="accent" size="lg" hit className="uppercase tracking-[0.08em]" onClick={onContinue} data-continue>
           continue
         </Button>
       </div>

@@ -31,9 +31,10 @@ export function Button({
   children,
   variant = "primary",
   size = "md",
+  hit = false,
   className = "",
   ...rest
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" | "outline" | "deep" | "ghost" | "accent" | "sky"; size?: "md" | "lg" }) {
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" | "outline" | "deep" | "ghost" | "accent" | "sky"; size?: "md" | "lg"; hit?: boolean }) {
   const v =
     variant === "primary"
       ? "bg-ink text-white hover:bg-ink-soft"
@@ -50,9 +51,15 @@ export function Button({
             ? "bg-paper text-ink border border-accent-deep hover:bg-accent-soft"
           : "text-ink-soft hover:text-ink hover:bg-cream-deep";
   const s = size === "lg" ? "px-6 py-3 text-[15px]" : "px-4 py-2 text-[13.5px]";
+  // `hit` (ticket 183): a primary action (Continue, Submit, Send) answers a press up to 12 px outside its pill. The zone is a
+  // `::before` laid over the button's own box and 12 px beyond on every side, absolute so nothing on screen moves and the pill
+  // looks exactly as before; a pseudo-element belongs to its element, so the click lands on the button itself, not a child.
+  // `::after` stays free for the pulse ring (`.pulse-loop`, `.pulse-once`). A caller beside another control narrows one side
+  // (`before:-left-2` when the gap is 8 px) so the zone never covers a neighbour.
+  const h = hit ? "relative before:absolute before:-inset-3 before:content-['']" : "";
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${s} ${v} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${s} ${v} ${h} ${className}`}
       {...rest}
     >
       {children}
