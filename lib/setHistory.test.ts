@@ -3,6 +3,7 @@ import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATES, type Classmate } from "@/data/classmates";
 import { PS5_ASSIGNMENT, PS5_PROBLEMS } from "@/data/pset5/assignment";
 import { PS5_CLASSMATES, PS5_SAM } from "@/data/pset5/classmates";
+import { STORY_SETS } from "@/data/story";
 import { NEW_SKILLS, type CategoryId } from "@/data/taxonomy";
 import type { Problem, Status } from "@/data/types";
 import { assignmentBundle, assignmentHref, assignmentIds, earlierAssignmentIds } from "./assignments";
@@ -180,9 +181,10 @@ describe("history over the Classroom's registry (ticket 215)", () => {
         for (const cat of categoriesTouched(b)) {
           const now = today[cat] ?? "unseen";
           const h = categoryHistory(b, record.id, cat, now);
-          const chain = [...h.map((p) => ({ status: p.status, from: p.set?.id ?? null })), { status: now, from: `${id} (today)` }];
+          const chain = [...h.map((p) => ({ status: p.status, set: p.set?.id ?? null, from: p.set?.id ?? null })), { status: now, set: id, from: `${id} (today)` }];
           for (let i = 1; i < chain.length; i++) {
             if (stepsApart(chain[i - 1].status, chain[i].status) <= 1) continue;
+            if (unregisteredBetween(chain[i - 1].set, chain[i].set)) continue;
             jumps.push(`${record.id} ${cat}: ${chain[i - 1].from} ${chain[i - 1].status} → ${chain[i].from} ${chain[i].status}`);
           }
           if (record.id === ALL_SECURE_STUDENT) expect(chain.every((p) => p.status === "secure"), `${id} ${cat}`).toBe(true);
@@ -196,9 +198,28 @@ describe("history over the Classroom's registry (ticket 215)", () => {
   it("Sam's live row on Problem Set 6 has no fixed record, and his history still reads his Problem Set 5 result", () => {
     const h = categoryHistory({ id: "pset-6", due: ASSIGNMENT.due }, DEMO_STUDENT.id, "algebra", "unseen");
     expect(h[4].set?.id).toBe("pset-5");
-    expectNoJumps(h.slice(0, 5), h[4].status, "sam");
+    const chain = h.slice(0, 5);
+    for (let i = 1; i < chain.length; i++) {
+      if (unregisteredBetween(chain[i - 1].set?.id ?? null, chain[i].set?.id ?? null)) continue;
+      expect(stepsApart(chain[i - 1].status, chain[i].status), `sam: ${chain.map((p) => p.status).join(" ")}`).toBeLessThanOrEqual(1);
+    }
   });
 });
+
+/**
+ * Whether two real sets in a history have a set of the class story sheet between them that is not registered yet (ticket 211).
+ * Sets 1–4 land one branch at a time (tickets 211–214), so until they all have, two real pills can sit side by side that
+ * the sheet does not make neighbours: Set 1 beside Set 5 for a student who moves secure → solid → developing across
+ * Sets 2–4. That pair is not a neighbour pair of the contract (`data/story.test.ts` checks the sheet's own neighbours);
+ * once every sheet set is registered this is never true, and every pair is checked.
+ */
+function unregisteredBetween(older: string | null, newer: string | null): boolean {
+  if (!older || !newer) return false;
+  const registered = new Set([ASSIGNMENT.id, ...FINISHED_SETS.map((s) => s.fixture.id)]);
+  const from = STORY_SETS.findIndex((s) => s.id === older);
+  const to = STORY_SETS.findIndex((s) => s.id === newer);
+  return from >= 0 && to > from && STORY_SETS.slice(from + 1, to).some((s) => !registered.has(s.id));
+}
 
 function expectNoJumps(h: readonly HistoryPoint[], today: Status, what: string) {
   const chain = [...h.map((p) => p.status), today];

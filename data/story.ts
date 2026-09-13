@@ -357,7 +357,7 @@ export const STORY: Readonly<Record<string, StoryRow>> = {
       graphing: [na, na, na, sec, sec, un],
       communication: [sec, sec, sec, sec, sec, un],
       reasoning: [sec, sec, sec, sec, sec, un],
-      new: [sol(h("√48 simplified to 2√12 and left there", 1)), sol(h("the conjugate multiplied on the bottom only", 8)), sec, sec, sec, un],
+      new: [sol(h("√48 simplified to 2√12 and left there", 1), h("√60 taken as 4√15, the 4 not rooted", 5)), sol(h("the conjugate multiplied on the bottom only", 8)), sec, sec, sec, un],
     },
   },
   ethan: {
@@ -429,7 +429,7 @@ export const STORY: Readonly<Record<string, StoryRow>> = {
       graphing: LATE_SECURE,
       communication: S6,
       reasoning: [sec, sec, un, un, un, un],
-      new: [sol(h("√8 simplified as 4√2", 4)), sol(h("(3 − √2)(3 + √2) taken as 9 + 2", 4)), dev(h("(2x − 3)² squared term by term", 2)), dev(h("null factor law on x(x − 3) = 10, a product that isn't 0", 5)), dev(h("(x − 3)² squared term by term", 7)), dev(h("null factor law on a product that isn't 0", 3))],
+      new: [sol(h("√8 simplified as 4√2", 4), h("√(72 + 72) split into √72 + √72", 10)), sol(h("(3 − √2)(3 + √2) taken as 9 + 2", 4)), dev(h("(2x − 3)² squared term by term", 2)), dev(h("null factor law on x(x − 3) = 10, a product that isn't 0", 5)), dev(h("(x − 3)² squared term by term", 7)), dev(h("null factor law on a product that isn't 0", 3))],
     },
   },
   ruby: {
@@ -441,7 +441,7 @@ export const STORY: Readonly<Record<string, StoryRow>> = {
       graphing: [na, na, na, sol(h("the minimum value given as the x of the turning point", 9)), sol(h("axis given as the height", 10)), dev(h("turning point's height from the wrong line", 5), h("axis given as the height", 9))],
       communication: S6,
       reasoning: S6,
-      new: [sol(h("√48 simplified with a square factor left under the root", 1)), sec, sec, sec, sec, sec],
+      new: [sol(h("a square factor left under the root", 1, 6)), sec, sec, sec, sec, sec],
     },
   },
   finn: {

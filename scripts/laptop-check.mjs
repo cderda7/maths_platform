@@ -46,7 +46,7 @@ const FINISHED_SETS = [
 
   // "pset-2", // ticket 212
 
-  // "pset-1", // ticket 211
+  "pset-1",
 ];
 const ROUTES = [
   ...BEFORE_CREATE,

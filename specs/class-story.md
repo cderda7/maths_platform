@@ -518,6 +518,7 @@ Confident; guesses a pair and does negatives in her head. Hands in every set unt
 - PS4 · Functions · solid: a root's sign lost rearranging (Q5)
 - PS5 · Functions · solid: (−3)² taken as −9 (Q5)
 - PS1 · New skills · solid: √48 simplified to 2√12 and left there (Q1)
+- PS1 · New skills · solid: √60 taken as 4√15, the 4 not rooted (Q5)
 - PS2 · New skills · solid: the conjugate multiplied on the bottom only (Q8)
 
 ### Ethan Kowalski (`ethan`)
@@ -686,6 +687,7 @@ Low on factorising: guesses pairs and hopes, squares a bracket without writing i
 - PS6 · Algebra · developing: guesses factor pairs without expanding back (Q1, Q2)
 - PS6 · Algebra · developing: scaled two of three terms (Q7)
 - PS1 · New skills · solid: √8 simplified as 4√2 (Q4)
+- PS1 · New skills · solid: √(72 + 72) split into √72 + √72 (Q10)
 - PS2 · New skills · solid: (3 − √2)(3 + √2) taken as 9 + 2 (Q4)
 - PS3 · New skills · developing: (2x − 3)² squared term by term (Q2)
 - PS4 · New skills · developing: null factor law on x(x − 3) = 10, a product that isn't 0 (Q5)
@@ -716,7 +718,7 @@ Confident. Takes a pair that multiplies without checking it adds, and reads the 
 - PS5 · Graphing · solid: axis given as the height (Q10)
 - PS6 · Graphing · developing: turning point's height from the wrong line (Q5)
 - PS6 · Graphing · developing: axis given as the height (Q9)
-- PS1 · New skills · solid: √48 simplified with a square factor left under the root (Q1)
+- PS1 · New skills · solid: a square factor left under the root (Q1, Q6)
 
 ### Finn Dlamini (`finn`)
 

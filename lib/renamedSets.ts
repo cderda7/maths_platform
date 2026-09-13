@@ -5,12 +5,14 @@
  * the path and the query kept, and `migrateClassroom` (`lib/classroom.ts`) renames what a browser
  * stored before the rename. No imports, so the Next config can load it. See DECISION_LOG.md,
  * 2026-09-13 (sets renamed in place).
+ *
+ * `pset-1` is no longer an old id (ticket 211): it is the real Problem Set 1 — Surds, so its routes and its
+ * stored seating are its own and nothing maps it to Set 5 (DECISION_LOG.md, 2026-09-13, old ids reused).
  */
 
 /** Old set id → new set id. */
 export const RENAMED_SET_IDS: Readonly<Record<string, string>> = {
   "pset-2": "pset-6",
-  "pset-1": "pset-5",
 };
 
 /**

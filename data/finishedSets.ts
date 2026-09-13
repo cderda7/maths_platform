@@ -8,7 +8,7 @@
  * they merge cleanly in any order.
  */
 
-// Problem Set 1 — Surds, Tue 25 Aug (ticket 211): export { PS1 } from "./pset1";
+export { PS1 } from "./pset1";
 
 // Problem Set 2 — Rationalising and expanding with surds, Fri 28 Aug (ticket 212): export { PS2 } from "./pset2";
 

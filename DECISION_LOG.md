@@ -4196,3 +4196,15 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** A group that only needed to change one line rewrites the whole attempt; the card is the only record of the old one on screen. The card grows with the attempt's length, so a long attempt pushes Read as down the column.
 
 **Defense.** Board and Read as now always agree (both empty after a check), the attempt the group is correcting stays in full view beside the clean board, and the stored attempt already held every line, so the rule is one field in the reducer and no new state.
+
+## 2026-09-13 · The old id pset-1 is Problem Set 1's own again; history's jump test waits for unregistered sets (ticket 211)
+
+**Decision.** `pset-1` is the real Problem Set 1 — Surds. Ticket 208's map `pset-1 → pset-5` is removed from `lib/renamedSets.ts`, so `next.config.ts` no longer redirects `/teacher/a/pset-1/…` to Set 5 and `migrateClassroom` no longer moves seating stored under `pset-1` to Set 5 (`pset-2 → pset-6` is left for ticket 212). Separately, the registry-wide "no jumps" test in `lib/setHistory.test.ts` skips a pair of real pills only when the class story sheet has a set between them that is not registered yet.
+
+**Context.** Ticket 211 is told to use `id: "pset-1"`, the id ticket 208 retired the same day when the old Set 1 became Set 5. With the map in place Set 1's Class, Mistakes, Groups and report routes all redirected to Set 5, and any regrouping on Set 1 would move to Set 5 on the next load. Sets 1–4 land on four branches one at a time; with only Sets 1 and 5 registered, fourteen students' histories put Set 1 beside Set 5 two steps apart, a gap the sheet fills with Sets 2–4.
+
+**Alternatives considered.** *Give Set 1 another id (`ps1`, `pset-1b`)*: the ticket, the sheet, the shared suite and history links all expect `pset-N`, and a different id for one set is a lasting oddity to save a same-day demo migration. *Keep the redirect for old links only*: a redirect cannot tell an old Set 5 link from a new Set 1 link. *Author Set 1 to be one step from Set 5*: breaks the agreed sheet and the arcs through Sets 2–4. *Leave the history test failing until 214 merges*: every branch would commit red.
+
+**Tradeoffs.** A browser holding a classroom saved before ticket 208 with seating edited on the old Problem Set 1 now sees that seating on Set 1 rather than Set 5 (a demo state from a few hours earlier). Until 212–214 merge, Sets 5 and 6's history can show a two-step neighbour between Set 1 and Set 5, and the test allows exactly those pairs.
+
+**Defense.** The six-set Classroom the user agreed names its sets `pset-1` … `pset-6`, so the retired id has to come back; the test skip is keyed to the sheet and the registry, allows nothing once every sheet set is registered, and needs no one to remember to remove it.

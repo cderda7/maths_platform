@@ -3096,6 +3096,13 @@ uploaded problems) settled the following as later, each on purpose.
 - **A long attempt in the card.** Q7's attempts are three lines, so the card, the hint and Read as fit the column. A created set with eight-line attempts would push Read as down; the column may need to scroll or the card cap its height then.
 - **Peers' scripted `clear` between attempts.** Now a no-op since the check wipes the board; the scripts could drop it.
 
+## Problem Set 1 follow-ups (ticket 211, 2026-09-13)
+
+- **A worded problem's stem on the Mistakes header**: Q10's header reads only its TeX, "Area = 72 cm²", not "A square tile has an area of 72 cm²…". Set 5's Q10 has the same shape. Showing a short stem beside the TeX for `answerAs: "sentence"` problems would tell the teacher what was asked. Deferred: a shared header change for every set, not this set's data.
+- **Two-step history neighbours until Sets 2–4 land**: while only Sets 1 and 5 are registered, Sets 5 and 6's history shows Set 1 beside Set 5 for some students with a two-step change (Tomas's New skills solid → gap). Nothing to build if 212–214 merge; if one of them is dropped, the sheet's arcs need re-authoring for the sets that remain.
+- **The sheet's outline text for Q9** still reads "√3 x = √75 − √12"; the set typesets it x√3 (√3x read as √(3x)). Cosmetic, left so the outline stays as ticket 210 wrote it.
+- **More wrong students on Set 1**: eight students get everything right, as the sheet says. A set this early could plausibly carry a slip for more of them (a sign, a square left in), but every extra slip moves a status the sheet fixes.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

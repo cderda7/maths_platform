@@ -4,9 +4,9 @@
 
 **Blocked by:** 210.
 
-**Status:** ready-for-agent
+**Status:** done
 
-**Triage:** `ready-for-agent`
+**Triage:** done
 
 ---
 
@@ -15,6 +15,14 @@
 One of four earlier sets (211–214) so the Class View's "last five" history reads real sets (the user, 2026-09-13: "have PSet 6 demonstrate the '5 prev history' in a more sensible way, & link to actual dates & assignmetns"). Authored in its own worktree in parallel with 212–214; the story sheet (`specs/class-story.md`) is the contract.
 
 ## Solution
+
+### What was done (ticket 211)
+
+- `data/pset1/`: ten hand-checked problems (√48 = 4√3, 3√50 = 15√2, √12 + √27 = 5√3, 2√18 − √8 = 4√2, √6 × √10 = 2√15, 2√3 × 5√6 = 30√2, 6√10 ÷ 2√5 = 3√2, √2(3 + √8) = 3√2 + 4, x√3 = √75 − √12 gives x = 3, a tile of area 72 cm² has side 6√2 cm and diagonal 12 cm), every line written whole; the evaluation table holds every line anyone wrote; twenty full records. Q9 is typeset `x\sqrt{3}` rather than `\sqrt{3}x`, which read as √(3x) on the Mistakes header.
+- Every student equals the sheet's PS1 column (shared suite). The card reads 20/20, 15 mistakes, top gap **surds** on seven students (Chloe, Ruby, Liam, Amelia, Tomas, Isla, Oliver), fractions next on three (Amelia, Tomas, Sofia). Every problem keeps to three columns of working at most; the longest sentence answer fits at 1280.
+- **Sheet change, PS1 column only** (`data/story.ts`, regenerated): the sheet's habits left Q5, Q6 and Q10 with nobody wrong, and the Mistakes tab (and the shared suite) needs all ten problems. Chloe gains a second New skills habit "√60 taken as 4√15, the 4 not rooted" (Q5), Oliver "√(72 + 72) split into √72 + √72" (Q10, the start of his term-by-term squaring), and Ruby's habit reads "a square factor left under the root" (Q1, Q6). No status changed.
+- **`pset-1` reused** (judgment call, DECISION_LOG): ticket 208 mapped the old id `pset-1` to `pset-5`, so `/teacher/a/pset-1/…` redirected to Set 5 and stored seating under `pset-1` moved to Set 5. `pset-1` is now Set 1's own: the mapping, its redirect and its migration are gone (`pset-2 → pset-6` kept; ticket 212 meets the same question).
+- **History test while Sets 2–4 land**: with only Sets 1 and 5 registered, a history can show a real Set 1 pill beside a real Set 5 pill two steps apart (Tomas's New skills solid → gap, 14 students in all); the sheet fills the gap with Sets 2–4. `lib/setHistory.test.ts` skips a real pair only when a sheet set between them is not registered yet, so the check is complete again once 212–214 merge. Until then the teacher sees those two-step neighbours on Sets 5 and 6's history.
 
 - A finished-set data folder in ticket 210's shape, one registration line in date order.
 
@@ -44,8 +52,8 @@ Authoring notes:
 
 ## Acceptance
 
-- [ ] Shared finished-set suite green; results equal the story sheet's PS1 row for every student and category (test)
-- [ ] Classroom lists Set 1 under Past with a computed top gap; Class View rows, dots and the missing student match the sheet
-- [ ] Mistakes: ten problems, counts, clusters, every name opens real work; Groups, board and class review open
-- [ ] New skills column shows surds only
-- [ ] vitest, eslint, tsc, next build; click-through of every tab on Set 1
+- [x] Shared finished-set suite green; results equal the story sheet's PS1 row for every student and category (test)
+- [x] Classroom lists Set 1 under Past with a computed top gap; Class View rows, dots and the missing student match the sheet
+- [x] Mistakes: ten problems, counts, clusters, every name opens real work; Groups, board and class review open
+- [x] New skills column shows surds only
+- [x] vitest, eslint, tsc, next build; click-through of every tab on Set 1
