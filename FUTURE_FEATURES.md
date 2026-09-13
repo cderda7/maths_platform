@@ -2740,6 +2740,16 @@ uploaded problems) settled the following as later, each on purpose.
   dropped (a gap before the button in the normal state). A countdown that fits the button's own width (e.g. the
   button itself turning into "1:00 · cancel") would keep everything still; not built.
 
+## Multi-part problems (assumption added 2026-09-13)
+
+- **Problems with parts (a), (b), (c) or i, ii, iii.** Every problem is assumed to be one part
+  (`ASSUMPTIONS.md`), so nothing models a stem shared by parts, marks per part, or a part that uses
+  an earlier part's answer. Real worksheets and exams are full of these; supporting them touches the
+  problem data shape, the student's writing screen (which part is being answered), mistakes and the
+  report (a mistake belongs to a part), the pathway and class review (examples chosen per part), and
+  the create screen (see "Sub-parts (a), (b), (c)" and "Sub-parts as one problem" above). Deferred:
+  the demo set has no multi-part problem and the assumption keeps every screen to one stem, one answer.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
