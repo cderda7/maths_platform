@@ -52,7 +52,7 @@ export default function UnitFocus({
         <input
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="Not quite? describe the focus"
+          placeholder="Not quite? Describe the focus."
           aria-label="Describe the focus"
           className="min-w-0 flex-1 rounded-xl border border-line bg-paper px-3 py-2 text-[13.5px] text-ink outline-none focus:border-accent"
           data-unit-note

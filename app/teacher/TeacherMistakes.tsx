@@ -131,7 +131,7 @@ export default function TeacherMistakes() {
       </Eyebrow>
       {/* Force submit for the stage the class is on (ticket 185), the same control as beside the Class view's current pathway pill: after the title, so the countdown that replaces the button grows into blank space and nothing moves. */}
       <div className="mt-3 flex items-center gap-10">
-        <H1>Where it went wrong</H1>
+        <H1>Where students went wrong</H1>
         {stage && stage.done !== null && assignment.kind === "live" && (
           <div className="flex items-center gap-3 text-[12.5px] leading-snug text-ink-muted" data-mistakes-stage={stage.id}>
             <span className="rounded-lg bg-standout-soft px-3 py-1 font-display text-[16px] text-ink">{stage.word}</span>
