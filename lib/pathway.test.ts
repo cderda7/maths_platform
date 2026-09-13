@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { allPathways, DEFAULT_PATHWAY, isValidPathway, nextStage, parsePathway, pathwayChip, pathwaySentence, successors } from "./pathway";
+import { allPathways, DEFAULT_PATHWAY, isValidPathway, mapColumns, nextStage, parsePathway, pathwayChip, pathwaySentence, successors } from "./pathway";
 
 describe("pathway rules", () => {
   it("eight pathways exist, including submit-only, and every one is valid", () => {
@@ -24,6 +24,20 @@ describe("pathway rules", () => {
     expect(successors(["group"])).toEqual(["whole-class"]);
     expect(successors(["whole-class"])).toEqual([]);
     expect(successors(["individual", "group"])).toEqual(["whole-class"]);
+  });
+
+  it("maps each column's arrows from the row of the stage picked before it", () => {
+    const all = ["individual", "group", "whole-class"];
+    expect(mapColumns([])).toEqual([{ options: all, from: 0 }]);
+    expect(mapColumns(["group"])).toEqual([{ options: all, from: 0 }, { options: ["whole-class"], from: 1 }]);
+    expect(mapColumns(["individual"])).toEqual([{ options: all, from: 0 }, { options: ["group", "whole-class"], from: 0 }]);
+    expect(mapColumns(["individual", "whole-class"])).toEqual([{ options: all, from: 0 }, { options: ["group", "whole-class"], from: 0 }]);
+    expect(mapColumns(["individual", "group"])).toEqual([
+      { options: all, from: 0 },
+      { options: ["group", "whole-class"], from: 0 },
+      { options: ["whole-class"], from: 0 },
+    ]);
+    expect(mapColumns(["whole-class"])).toEqual([{ options: all, from: 0 }]);
   });
 });
 

@@ -26,6 +26,23 @@ export function successors(prefix: readonly ReviewStage[]): ReviewStage[] {
   return REVIEW_ORDER.slice(last + 1);
 }
 
+/**
+ * The creation map's columns after "individual working": each offers the successors of what is
+ * picked before it, and `from` is the row of that pick in the column to its left (ticket 197), so
+ * the arrows leave the node actually picked. Stops at the first unpicked column.
+ */
+export function mapColumns(p: readonly ReviewStage[]): { options: ReviewStage[]; from: number }[] {
+  const columns: { options: ReviewStage[]; from: number }[] = [];
+  for (let i = 0; ; i++) {
+    if (i > 0 && p[i - 1] === undefined) break;
+    const options = successors(p.slice(0, i));
+    if (options.length === 0) break;
+    const from = i === 0 ? 0 : columns[i - 1].options.indexOf(p[i - 1]);
+    columns.push({ options, from });
+  }
+  return columns;
+}
+
 /** Every valid pathway, shortest first. */
 export function allPathways(): Pathway[] {
   const out: Pathway[] = [];
