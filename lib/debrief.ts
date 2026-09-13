@@ -1,37 +1,19 @@
 import type { Attempt, GroupRun } from "./groupReview";
-import { checkBoard } from "./groupReview";
 import { lineMarks, type LineMark } from "./examples";
 
 /**
  * The debrief after the group's rework checks correct: each student sees their own two versions
- * beside the group's, names a mistake in their own words, then looks at the marks for at least
- * ten seconds. Pure rules; the session keeps each student's note and when the marks opened.
+ * beside the group's, unmarked, for five seconds from the check; the marks then open on their own
+ * and Next waits ten seconds more. Nothing to write (ticket 218). Pure rules; the session keeps
+ * only whether the student has moved on, the clock is the group's check.
  */
+export const UNMARKED_MS = 5_000;
 export const HOLD_MS = 10_000;
 
-export type DebriefPrompt = "own" | "peers";
-
 export interface DebriefNote {
-  prompt: DebriefPrompt;
-  text: string;
-  /** When the annotated view opened; null while the student is still on the unmarked comparison. */
-  markedAt: number | null;
   /** True once the student pressed Next and left the debrief. */
   done: boolean;
 }
-
-/** A version is functional when it would pass the same check the group's rework passed. */
-export const functional = (problem: string, lines: string[]): boolean => checkBoard(problem, lines).correct;
-
-/** Describe your own mistake when neither earlier attempt was functional; otherwise the mistake your peers most likely made. */
-export function debriefPrompt(problem: string, own: { lines: string[]; rework: string[] }): DebriefPrompt {
-  return functional(problem, own.lines) || (own.rework.length > 0 && functional(problem, own.rework)) ? "peers" : "own";
-}
-
-export const PROMPT_TEXT: Record<DebriefPrompt, string> = {
-  own: "Describe the mistake you made.",
-  peers: "Describe the mistake your peers most likely made.",
-};
 
 /** The group's correct rework of a problem, if it has one. */
 export const groupRework = (run: GroupRun, problem: string): Attempt | undefined => run.attempts[problem]?.find((a) => a.correct);
@@ -57,6 +39,10 @@ export function markedVersions(problem: string, own: { lines: string[]; rework: 
   return out;
 }
 
+/** When the marks open: five seconds after the group's check. */
+export const marksAt = (resolvedAt: number): number => resolvedAt + UNMARKED_MS;
+export const marksOpen = (resolvedAt: number, now: number): boolean => now >= marksAt(resolvedAt);
+
 /** How much of the hold has passed, 0–1. */
 export const holdProgress = (markedAt: number | null, now: number): number => (markedAt === null ? 0 : Math.max(0, Math.min(1, (now - markedAt) / HOLD_MS)));
 export const holdOver = (markedAt: number | null, now: number): boolean => markedAt !== null && now - markedAt >= HOLD_MS;
@@ -73,5 +59,5 @@ export function pendingDebrief(run: GroupRun, notes: Record<string, DebriefNote>
   return null;
 }
 
-/** How long a peer who holds the next pen waits before their first stroke moves the group on: their own debrief, roughly. */
+/** How long a peer who holds the next pen waits before their first stroke moves the group on: their own debrief (five seconds unmarked, ten on the marks), and a second to press Next. */
 export const PEER_DEBRIEF_MS = 16_000;

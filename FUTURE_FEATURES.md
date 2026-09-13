@@ -2865,6 +2865,17 @@ uploaded problems) settled the following as later, each on purpose.
   every warm-up hint has exactly one point would stop this, but some future warm-up may want a hint
   that honestly covers two lines; left as a review habit for now.
 
+## Group debrief without a note (ticket 218, 2026-09-13)
+
+- **A lighter way for students to say what went wrong.** The written note ("Describe the mistake you
+  made" / "your peers most likely made") was removed as too much cognitive demand. If the teacher
+  wants that signal back, a one-tap choice from the problem's taxonomy mistakes, or an optional
+  note after Next, would ask less. Deferred: the user wanted the step gone, not replaced.
+- **The teacher report's "In group review" notes.** Removed with the note. A replacement could show
+  how long each student stayed on the marks, or whether they fell behind the board.
+- **Adaptive timings.** The 5 s unmarked view and the 10 s hold are fixed. A longer pause when the
+  student's own versions differ a lot from the group's (more to compare) was not scoped.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

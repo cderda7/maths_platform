@@ -3,7 +3,7 @@ import { pickHint, stalledHint } from "./hint";
 import { groupOf, type LeafId } from "@/data/taxonomy";
 import { PRACTICES } from "@/data/practice";
 import { byEase, concernsAnswered, focusLeaves, practiceFor, warmupSequence, type WarmupMessage } from "./warmup";
-import type { DebriefNote, DebriefPrompt } from "./debrief";
+import type { DebriefNote } from "./debrief";
 import type { AdvanceKind } from "./classroom";
 import { DEFAULT_PATHWAY, nextStage } from "./pathway";
 import { guardFor, trippedProblems } from "./guard";
@@ -127,7 +127,7 @@ export interface StudentSession {
   handInCheck: "open" | "returning" | null;
   /** What the student wrote along with the teacher during whole-class review, per problem. Never marked, never a version. */
   followInk: Record<string, Stroke[]>;
-  /** The debrief after each group rework: the prompt, the student's note, when the marks opened, whether they moved on. Teacher-only reading. */
+  /** The debrief after each group rework: whether the student has moved on (Next). */
   debrief: Record<string, DebriefNote>;
   /** Ids of teacher advances this session has already applied, so tabs and reloads converge. */
   appliedAdvances: string[];
@@ -204,9 +204,7 @@ export type SessionAction =
   | { type: "release" }
   /** The gate opened: everyone is in, or the teacher started group review. */
   | { type: "group/start" }
-  /** The debrief: the note (the prompt is fixed on first write), the marks opened, and moving on. */
-  | { type: "debrief/note"; problem: string; prompt: DebriefPrompt; text: string }
-  | { type: "debrief/marks"; problem: string; at: number }
+  /** The debrief: moving on once the marks' hold is over. */
   | { type: "debrief/done"; problem: string }
   | { type: "group/done" }
   | { type: "reflection/set"; text: string }
@@ -473,20 +471,8 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       return s.stage === "frozen" ? { ...s, stage: "report" } : s;
     case "group/start":
       return s.stage === "class-wait" ? { ...s, stage: "group" } : s;
-    case "debrief/note": {
-      const cur = s.debrief[a.problem];
-      return { ...s, debrief: { ...s.debrief, [a.problem]: { prompt: cur?.prompt ?? a.prompt, text: a.text, markedAt: cur?.markedAt ?? null, done: cur?.done ?? false } } };
-    }
-    case "debrief/marks": {
-      const cur = s.debrief[a.problem];
-      if (!cur || cur.text.trim() === "" || cur.markedAt !== null) return s;
-      return { ...s, debrief: { ...s.debrief, [a.problem]: { ...cur, markedAt: a.at } } };
-    }
-    case "debrief/done": {
-      const cur = s.debrief[a.problem];
-      if (!cur || cur.markedAt === null || cur.done) return s;
-      return { ...s, debrief: { ...s.debrief, [a.problem]: { ...cur, done: true } } };
-    }
+    case "debrief/done":
+      return s.debrief[a.problem]?.done ? s : { ...s, debrief: { ...s.debrief, [a.problem]: { done: true } } };
     case "group/done":
       return { ...s, stage: nextStage(env.pathway, "group-done") };
     case "reflection/set":

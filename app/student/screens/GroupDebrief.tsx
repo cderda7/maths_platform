@@ -7,8 +7,8 @@ import { DEMO_STUDENT, PROBLEM_MAP } from "@/data/assignment";
 import { CLASSMATE_MAP } from "@/data/classmates";
 import { branchesOf } from "@/lib/branches";
 import { dispatchClassroom } from "@/lib/classroom-store";
-import { debriefPrompt, groupRework, holdOver, holdProgress, markedVersions, PROMPT_TEXT } from "@/lib/debrief";
-import type { GroupRun } from "@/lib/groupReview";
+import { groupRework, holdOver, holdProgress, markedVersions, marksAt, marksOpen } from "@/lib/debrief";
+import { resolvedMoment, type GroupRun } from "@/lib/groupReview";
 import type { LineMark } from "@/lib/examples";
 import type { SessionAction, StudentSession } from "@/lib/session";
 import { useNow } from "@/lib/store";
@@ -18,23 +18,22 @@ const first = (id: string) => (id === DEMO_STUDENT.id ? "you" : CLASSMATE_MAP[id
 
 /**
  * After the group's rework checks correct: the student's handed-in and reworked versions beside
- * the group's, unmarked, with one prompt from their own history; then, once they have written,
- * the same three with full marks (blue standouts on the group's rework) and a ten-second hold
- * before Next. The note stays editable throughout. Next moves the group on if it is still on
- * this problem; otherwise the student simply rejoins the live board.
+ * the group's, unmarked, for five seconds; then, on their own, the same three with full marks
+ * (blue standouts on the group's rework) and Next, which waits out a ten-second hold. Nothing to
+ * write (ticket 218). Both clocks run from the group's check, so a reload keeps the moment. Next
+ * moves the group on if it is still on this problem; otherwise the student rejoins the live board.
  */
 export default function GroupDebrief({ session, dispatch, run, problem }: { session: StudentSession; dispatch: (a: SessionAction) => void; run: GroupRun; problem: string }) {
   const now = useNow();
   const p = PROBLEM_MAP[problem];
   const own = { lines: (session.lines[problem] ?? []).map((l) => l.tex), rework: (session.rework[problem] ?? []).map((l) => l.tex) };
   const group = groupRework(run, problem)?.lines ?? [];
-  const note = session.debrief[problem];
-  const prompt = note?.prompt ?? debriefPrompt(problem, own);
-  const text = note?.text ?? "";
-  const marked = note?.markedAt !== null && note?.markedAt !== undefined;
+  const checkedAt = resolvedMoment(run, problem);
+  const marked = marksOpen(checkedAt, now);
+  const markedAt = marked ? marksAt(checkedAt) : null;
   const versions = markedVersions(problem, own, group);
-  const progress = holdProgress(note?.markedAt ?? null, now);
-  const canNext = holdOver(note?.markedAt ?? null, now);
+  const progress = holdProgress(markedAt, now);
+  const canNext = holdOver(markedAt, now);
   const holder = run.pen[problem];
   const groupStillHere = run.problems[run.index] === problem;
   const last = run.index >= run.problems.length - 1;
@@ -45,7 +44,7 @@ export default function GroupDebrief({ session, dispatch, run, problem }: { sess
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col px-8 py-5" data-debrief={problem} data-phase={marked ? "marked" : "note"}>
+    <div className="flex h-full min-h-0 flex-col px-8 py-5" data-debrief={problem} data-phase={marked ? "marked" : "unmarked"}>
       <GroupHeader
         session={session}
         label={p.label}
@@ -71,36 +70,14 @@ export default function GroupDebrief({ session, dispatch, run, problem }: { sess
         ))}
       </div>
 
-      <div className="mt-4 rounded-2xl border border-line bg-paper p-4" data-note>
-        <div className="flex items-center justify-between">
-          <span className="text-[14px] font-medium text-ink">{PROMPT_TEXT[prompt]}</span>
-          <span className="text-[12px] text-ink-muted">only your teacher reads this</span>
-        </div>
-        <textarea
-          value={text}
-          onChange={(e) => dispatch({ type: "debrief/note", problem, prompt, text: e.target.value })}
-          rows={2}
-          placeholder="one or two sentences…"
-          aria-label={PROMPT_TEXT[prompt]}
-          data-note-text
-          className="mt-2 w-full resize-none rounded-xl border border-line bg-cream/40 px-3.5 py-2.5 text-[14.5px] text-ink placeholder:text-ink-muted focus:border-ink-muted focus:outline-none"
-        />
-        <div className="mt-3 flex items-center justify-end gap-3">
-          {!marked ? (
-            <Button variant="accent" disabled={text.trim() === ""} onClick={() => dispatch({ type: "debrief/marks", problem, at: Date.now() })} data-show-marks>
-              show me the marks
-            </Button>
-          ) : (
-            <>
-              {!canNext && <span className="text-[12.5px] text-ink-muted">take a moment to reflect</span>}
-              <HoldRing progress={progress}>
-                <Button variant="accent" disabled={!canNext} onClick={next} data-next>
-                  {last && groupStillHere ? "finish" : "next"}
-                </Button>
-              </HoldRing>
-            </>
-          )}
-        </div>
+      {/* The row keeps its height before the marks open, so the versions do not shrink when Next appears. */}
+      <div className={`mt-4 flex items-center justify-end gap-3 ${marked ? "" : "invisible"}`} aria-hidden={!marked} data-next-row>
+        {!canNext && <span className="text-[12.5px] text-ink-muted">take a moment to reflect</span>}
+        <HoldRing progress={progress}>
+          <Button variant="accent" disabled={!canNext} onClick={next} data-next>
+            {last && groupStillHere ? "finish" : "next"}
+          </Button>
+        </HoldRing>
       </div>
     </div>
   );

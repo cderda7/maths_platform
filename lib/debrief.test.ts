@@ -1,20 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { debriefPrompt, groupRework, HOLD_MS, holdOver, holdProgress, markedVersions, matchesGroup, pendingDebrief } from "./debrief";
+import { groupRework, HOLD_MS, holdOver, holdProgress, markedVersions, marksAt, marksOpen, matchesGroup, pendingDebrief, PEER_DEBRIEF_MS, UNMARKED_MS } from "./debrief";
 import { beginRun } from "./groupReview";
 import { classroomReducer, INITIAL_CLASSROOM } from "./classroom";
 import { RECOGNITION, RECOGNITION_REWORK } from "@/data/recognition";
 import { sessionAt, sessionReducer } from "./session";
-
-describe("the debrief prompt", () => {
-  it("asks for your own mistake when neither earlier attempt was functional, else your peers' likely mistake", () => {
-    expect(debriefPrompt("q3", { lines: RECOGNITION.q3, rework: [] })).toBe("own");
-    expect(debriefPrompt("q3", { lines: RECOGNITION.q3, rework: RECOGNITION_REWORK.q3 })).toBe("peers");
-    expect(debriefPrompt("q1", { lines: RECOGNITION_REWORK.q1, rework: [] })).toBe("peers");
-    expect(debriefPrompt("q1", { lines: [], rework: [] })).toBe("own");
-    // The demo's Q7: handed in wrong, reworked wrong a different way, so the debrief asks for the student's own mistake.
-    expect(debriefPrompt("q7", { lines: RECOGNITION.q7, rework: RECOGNITION_REWORK.q7 })).toBe("own");
-  });
-});
 
 describe("the marked view", () => {
   it("marks the student's own versions fully and gives the group's rework blue standouts", () => {
@@ -38,6 +27,14 @@ describe("the marked view", () => {
     expect(matchesGroup(RECOGNITION_REWORK.q1.slice(0, 1), RECOGNITION_REWORK.q1)).toBe(false); // a prefix is not a match
     expect(matchesGroup([], [])).toBe(false); // nothing written matches nothing
   });
+  it("the marks open on their own five seconds after the group's check", () => {
+    expect(UNMARKED_MS).toBe(5_000);
+    expect(marksAt(1000)).toBe(6_000);
+    expect(marksOpen(1000, 5_999)).toBe(false);
+    expect(marksOpen(1000, 6_000)).toBe(true);
+    // A peer's whole debrief (unmarked, then the hold) fits before their first stroke moves the group on.
+    expect(UNMARKED_MS + HOLD_MS).toBeLessThan(PEER_DEBRIEF_MS);
+  });
   it("the hold: ten seconds from the marks opening", () => {
     expect(HOLD_MS).toBe(10_000);
     expect(holdProgress(null, 5)).toBe(0);
@@ -49,19 +46,12 @@ describe("the marked view", () => {
 });
 
 describe("the session's debrief notes", () => {
-  it("keeps the note and its prompt, opens the marks only with a note, and moves on only after the marks", () => {
+  it("marks the student moved on, once, with nothing to write", () => {
     let s = sessionAt("group");
-    expect(sessionReducer(s, { type: "debrief/marks", problem: "q1", at: 5 })).toBe(s);
-    s = sessionReducer(s, { type: "debrief/note", problem: "q1", prompt: "own", text: "I picked the wrong signs" });
-    expect(s.debrief.q1).toEqual({ prompt: "own", text: "I picked the wrong signs", markedAt: null, done: false });
-    expect(sessionReducer(s, { type: "debrief/done", problem: "q1" })).toBe(s);
-    s = sessionReducer(s, { type: "debrief/marks", problem: "q1", at: 5 });
-    expect(s.debrief.q1.markedAt).toBe(5);
-    expect(sessionReducer(s, { type: "debrief/marks", problem: "q1", at: 9 }).debrief.q1.markedAt).toBe(5);
-    s = sessionReducer(s, { type: "debrief/note", problem: "q1", prompt: "peers", text: "I picked the wrong signs, both of them" });
-    expect(s.debrief.q1.prompt).toBe("own"); // the prompt is fixed on first write; the text stays editable
+    expect(s.debrief).toEqual({});
     s = sessionReducer(s, { type: "debrief/done", problem: "q1" });
-    expect(s.debrief.q1.done).toBe(true);
+    expect(s.debrief.q1).toEqual({ done: true });
+    expect(sessionReducer(s, { type: "debrief/done", problem: "q1" })).toBe(s);
   });
 
   it("the pending debrief is the latest resolved problem not yet moved on from", () => {
@@ -72,7 +62,7 @@ describe("the session's debrief notes", () => {
     expect(c.group?.resolvedAt?.q1).toBe(70);
     expect(pendingDebrief(c.group!, {})).toBe("q1");
     expect(groupRework(c.group!, "q1")?.lines).toEqual(RECOGNITION_REWORK.q1);
-    expect(pendingDebrief(c.group!, { q1: { prompt: "own", text: "x", markedAt: 1, done: true } })).toBeNull();
+    expect(pendingDebrief(c.group!, { q1: { done: true } })).toBeNull();
     c = classroomReducer(c, { type: "group/next", at: 99 });
     expect(c.group?.resolvedAt?.q1).toBe(70); // the finish moment is kept for the standings
     expect(pendingDebrief(c.group!, {})).toBe("q1"); // the group moved on; the student lingers until Next

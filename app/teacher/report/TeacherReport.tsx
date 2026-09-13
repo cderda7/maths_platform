@@ -95,20 +95,7 @@ export default function TeacherReport({ student }: { student: string | null }) {
                 )}
               </Card>
               <Card className="p-5">
-                <Eyebrow>In group review</Eyebrow>
-                {facts && facts.groupNotes.length > 0 ? (
-                  <ul className="mt-2 space-y-2" data-group-notes>
-                    {facts.groupNotes.map((n) => (
-                      <li key={n.label} className="text-[13.5px] text-ink" data-group-note={n.label}>
-                        <span className="font-medium">{n.label}</span> <span className="text-ink-muted">· {n.prompt === "own" ? "their own mistake" : "their peers' likely mistake"}</span>
-                        <p className="mt-0.5 text-ink-soft">“{n.text}”</p>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="mt-2 text-[13.5px] text-ink-muted">Nothing written yet</p>
-                )}
-                <Eyebrow className="mt-5">Starred</Eyebrow>
+                <Eyebrow>Starred</Eyebrow>
                 {facts && facts.stars.length > 0 ? (
                   <ul className="mt-2 space-y-1.5">
                     {facts.stars.map((label) => {

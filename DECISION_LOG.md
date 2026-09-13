@@ -3921,3 +3921,26 @@ unplaced lines by position), as fractions already did.
 **Defense.** One behaviour for every warm-up, checked by test and by the pixel sweep across all 15.
 The demo's three warm-ups no longer work better than the rest.
 
+
+## 2026-09-13 · The group debrief asks for nothing; the marks open on a timer from the check (ticket 218)
+
+**Decision.** The debrief's written note is removed along with its two prompts ("Describe the mistake
+you made." / "…your peers most likely made."). The unmarked comparison shows for five seconds from the
+group's `resolvedAt`, then the marks open on their own, and Next waits the ten-second hold. Session
+state per problem is only `{ done }`, and the teacher report no longer lists group notes. This
+supersedes the note half of "The debrief is per student" (2026-09-10).
+
+**Context.** The user found the note too much cognitive demand straight after the group's rework.
+They asked for the green view, a five-second pause, the marks automatically, then the existing hold.
+
+**Alternatives considered.** *Keep the note optional beside a timed reveal*: the box would still ask
+for writing, which the user wanted gone. *Time from the component's mount or a session `openedAt`*:
+the first resets on a reload, and the second needs an effect to dispatch on mount. *Keep the report's
+notes block*: it would always read "Nothing written yet".
+
+**Tradeoffs.** The teacher loses the student's words about each group problem. A student who opens a
+debrief more than five seconds after the check (a reload, a late join) sees the marks at once. Older
+stored sessions keep extra note fields, which are now ignored.
+
+**Defense.** One clock, the check the whole group saw, drives both phases for every member and survives
+a reload. Two pure functions replace a prompt rule and two session actions.
