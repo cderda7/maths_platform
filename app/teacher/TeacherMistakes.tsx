@@ -340,12 +340,13 @@ export default function TeacherMistakes() {
                   {groups.map((g) => (
                     <div
                       key={g.slips.join("|")}
-                      className={`row-start-2 flex min-w-0 items-start gap-1.5 pr-5 pb-4 pl-5 ${column(g.start)} ${isOpen ? "bg-accent-soft/30" : ""}`}
+                      className={`row-start-2 flex min-w-0 flex-wrap items-start gap-1.5 pr-5 pb-4 pl-5 ${column(g.start)} ${isOpen ? "bg-accent-soft/30" : ""}`}
                       style={{ gridColumn: `${g.start + 1} / span ${g.columns.length}` }}
                       data-slip-group={g.rows.map((r) => r.id).join(",")}
                     >
+                      {/* Two leaves in one narrow column wrap chip by chip, never a word inside a chip (ticket 213). */}
                       {g.slips.map((id) => (
-                        <SlipChip key={id} id={id} className="min-w-0 flex-1 justify-start" />
+                        <SlipChip key={id} id={id} className="min-w-0 max-w-full flex-[1_1_auto] justify-start whitespace-nowrap" />
                       ))}
                     </div>
                   ))}

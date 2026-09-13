@@ -3115,6 +3115,13 @@ uploaded problems) settled the following as later, each on purpose.
 - **A short title a teacher writes.** Only "Problem Set N — …" shortens; a created set titled another way ("Quadratics review — roots, discriminant and graphs") still truncates beside the pathway strip. A short-title field on the create screen, or shortening words like "Unit"/"Topic" too, would cover it. Deferred: the demo's sets all follow the Problem Set pattern.
 - **PSET elsewhere.** The overview's heading, history's eyebrow and teacher cards still read "PROBLEM SET 6". If "PSET" becomes the product's word for a set, those could follow; deferred, the user asked about the header only.
 
+## Problem Set 3 follow-ups (ticket 213, 2026-09-13)
+
+- **A show-that's own verdict for "claimed, not shown"**: Tomas and Lucas write a wrong line and then the true conclusion; the conclusion is marked right because the statement is true. A verdict for "a true line that does not follow from the one above" would let the teacher see the gap on the conclusion itself. Deferred: a new verdict kind across the evaluation, the Mistakes tab and the reports, not one set's data.
+- **The mistake header's two-slip chips in one column** now wrap chip by chip; a single leaf name longer than a lone narrow column ("conclusions in context" in a fifth column at 1280) would overflow its chip. No set has that today (checked on Sets 3, 5, 6); a truncate-with-tooltip rule would cover it if one appears.
+- **More students on Q3**: only Aiden slips on (3x + 5)(3x − 5). A difference of squares with a coefficient is where a class usually loses the 9 as well; every extra slip there moves a New skills or Algebra status the sheet fixes.
+- **Finn's "check copied from the question"** is a habit the sheet does not name for him on Sets 4–6; if the story is re-authored, it is a natural thread (he checks, but the check agrees with the question, not the brackets).
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

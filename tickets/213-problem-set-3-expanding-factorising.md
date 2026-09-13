@@ -4,7 +4,7 @@
 
 **Blocked by:** 210.
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -29,6 +29,15 @@ Read `data/finishedSet.ts` (the shape), `data/pset5/` (the model at full depth),
 5. **`data/pset3/pset3.test.ts`**: only what is particular to the set (its top gap's clusters, named habits, Sam's wrongs); the shared suite checks the rest.
 6. **Register**: in `data/finishedSets.ts` replace the commented `PS3` slot with `export { PS3 } from "./pset3";` (keep the blank lines around it). In `scripts/laptop-check.mjs` uncomment the `"pset-3"` line. Nothing else in `lib/` or `app/` needs to change; the registry, the evaluation index, the frozen groups, the Classroom, history pills and Create's New skills inference read the list.
 
+### What was done (2026-09-13)
+
+- **Problems** (`data/pset3/assignment.ts`), hand-checked: Q1 (x + 4)(x − 7) = x² − 3x − 28; Q2 (2x − 3)² = 4x² − 12x + 9; Q3 (3x + 5)(3x − 5) = 9x² − 25; Q4 x² − 49 = (x − 7)(x + 7); Q5 x² + 2x − 15 = (x + 5)(x − 3); Q6 x² − 10x + 25 = (x − 5)²; Q7 3x² − 12x − 36 = 3(x − 6)(x + 2); Q8 x² − 11x + 24 = (x − 3)(x − 8), expanded back; Q9 2x² + 7x + 3 = (2x + 1)(x + 3) by the split; Q10 (x + 3)² − (x − 3)² = 12x shown in six lines.
+- **Tagging rule**: the line that applies (a ± b)² or (a + b)(a − b) carries the binomial identity; the line that simplifies what it produced (4x² − 12x + 9, 9x² − 25) is expansion. That leaves eight identity lines per full hand-in, so a student with one identity slip reads solid and two developing, as the sheet needs.
+- **Every student equals the sheet's PS3 column**, with no change to `data/story.ts`. Extra misses beyond the sheet's habits, where a status needed a second slip and the habit would really show twice: Amelia's x² − 49 as (x − 7)² (Q4, the same belief as her Q2), Tomas's (x + 5)² (Q6), Noah squaring (x + 3)² term by term on Q10 before the show-that forced him to write it out, Oliver's Q6 as a difference of squares, Aiden's (3x)² as 3x² (Q3, which also puts Q3 on the Mistakes tab), Finn's sign flip and copied check on Q5 as well as Q8.
+- **Top gap** binomial identity on 9 students; monic factorising next on 7 (Finn's rows carry monic + expansion, his copied check, so they are their own cluster). Every problem has four working columns or fewer; no line overflows at 1280 or 1440.
+- **Mistakes tab chips** (`app/teacher/TeacherMistakes.tsx`): Finn is alone in a column with two slips, and the chips' names wrapped inside the chip ("monic / factorising"). The chip row now wraps chip by chip and a chip's name never wraps (`flex-wrap`, `whitespace-nowrap`, `flex-[1_1_auto]`); the click-through checks every chip's name fits on Sets 3, 5 and 6.
+- Class View history on Set 6 shows a real "PS3 · Tue 1 Sep" link in Algebra, Communication, Reasoning and New skills (checked for Mia, Noah and Tomas), none on Functions or Graphing, which Set 3 does not assess.
+
 ### The rows to hit
 
 The sheet's **PS3** column, for all twenty students: status per category (Algebra, Communication, Reasoning, New skills), hand-in count (Liam missing; Jordan 9, Grace 9, Oliver 9), the habits and the problems that carry them, and the Classroom card's top gap **binomial identity**. `data/finishedSets.test.ts` fails on any mismatch and names it ("mia algebra: solid, the sheet says developing"). Highlights: Jordan's unchecked pairs (Q8, Q9), Mia trying brackets until one looks close (Q9), Aiden's common factor out of two terms (Q7), Noah/Oliver/Amelia's (2x − 3)² (Q2), Isla and Lucas's reasoning slipping to solid/developing (Q10).
@@ -44,7 +53,7 @@ Authoring notes:
 
 ## Acceptance
 
-- [ ] Shared finished-set suite green; results equal the story sheet's PS3 row (test)
-- [ ] Classroom lists Set 3 under Past; Class View, Mistakes (every name opens real work), Groups, board and class review work
-- [ ] New skills column shows binomial identity only
-- [ ] vitest, eslint, tsc, next build; click-through of every tab on Set 3
+- [x] Shared finished-set suite green; results equal the story sheet's PS3 row (test)
+- [x] Classroom lists Set 3 under Past; Class View, Mistakes (every name opens real work), Groups and the student report work (a finished set has no board or class review, as the authoring notes say)
+- [x] New skills column shows binomial identity only
+- [x] vitest, eslint, tsc, next build; click-through of every tab on Set 3

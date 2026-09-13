@@ -4232,3 +4232,15 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Only titles that start "Problem Set N" shorten; a long created title in another shape still truncates (the `truncate` stays as the fallback). The header and the overview's heading now word the set differently.
 
 **Defense.** One pure function at the one place the space is short, testable on its own, with the rest of the product reading the title as the teacher wrote it.
+
+## 2026-09-13 · On Problem Set 3 an identity line is the binomial identity, the line simplifying it is expansion (ticket 213)
+
+**Decision.** In Problem Set 3's model solutions and evaluation table, the step that applies (a ± b)² or (a + b)(a − b) (`(2x)^2 - 2(2x)(3) + 3^2`, `(3x)^2 - 5^2`, `x^2 - 7^2`, the squares in Q10) is tagged the binomial identity, the set's New skill; the next line that simplifies what it produced (`4x^2 - 12x + 9`, `9x^2 - 25`) is tagged distributive expansion. A built-on line after a wrong identity step is expansion too, so it never counts against the identity.
+
+**Context.** A status is held ÷ attempted lines on a leaf. Tagging both lines of every identity problem with the binomial identity gave ten identity lines per hand-in, so one slip read solid (0.9) and two read solid (0.8) as well; the sheet has four students developing on New skills with a single habit on Q2. Ticket 213 must equal the sheet without changing another set's column.
+
+**Alternatives considered.** *Tag both lines with the identity and author three identity slips for each developing student*: three unrelated slips on a set that tests one idea read as a weaker student than the sheet describes. *Change the four students to solid in the sheet*: breaks the arcs Sets 2 and 4 are authored to (Amelia, Tomas, Noah, Oliver developing), for a tagging convenience. *Tag the simplifying line with indices*: a leaf the set's outline does not name, adding an Algebra leaf a slip on it would turn into a gap.
+
+**Tradeoffs.** Eight identity lines instead of ten, so New skills on Set 3 moves further per slip; a teacher drilling into New skills sees fewer lines under it than under Algebra's expansion. A "4x² + 9" line reads as a right expansion built on a wrong identity rather than a second identity slip.
+
+**Defense.** It is what the two lines are: the first uses the identity, the second multiplies out (2x)² and collects. Each developing student then needs a second real slip where their habit would show again (Amelia's x² − 49 as (x − 7)², Noah's (x + 3)² on Q10, Tomas's (x + 5)², Oliver's perfect square as a difference of squares), which is how a student who misreads the identity actually goes wrong.
