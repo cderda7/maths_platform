@@ -2920,6 +2920,25 @@ uploaded problems) settled the following as later, each on purpose.
 - **Thresholds per problem or per group.** Hint after 2, leave after 3, close on the return are
   fixed; a teacher setting, or thresholds that follow the problem's difficulty, were not scoped.
 
+## Group intro leftovers (ticket 220, 2026-09-13)
+
+- **Reading pace per student.** The read is 130 words a minute for everyone. A student with a
+  reading support plan, or English as an additional language, may need longer; a per-student
+  multiplier set by the teacher (the board would still open for the group together) was not scoped.
+- **Read aloud.** A play button that reads the two paragraphs, for students who read slowly.
+  Deferred: no audio anywhere in the build yet.
+- **Teacher-edited message.** The paragraphs are fixed in `lib/groupIntro.ts`. The teacher could
+  write their own at Create, like the goal (ticket 154), and the read time would follow the words.
+- **The teacher sees the read.** The class view shows group review at 0% for the 39 s; a "reading
+  the intro · 0:24" label on the group review card would say why nothing moves.
+- **Show it once per student, or shorter the second time.** Every group review shows the full read.
+  A student on their fifth set might get a one-line reminder instead. Deferred until there is more
+  than one set's group review in a run.
+- **The forced notice on the board.** The "N of your problems still contain a mistake" notice now
+  waits for the board, but it still tells the student their own count once there, which sits
+  awkwardly with keeping individual mistakes out of group review. Dropping it when group review is
+  next was not asked for.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

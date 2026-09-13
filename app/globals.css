@@ -333,3 +333,12 @@ body {
     animation: none;
   }
 }
+
+/* The group intro's timer (ticket 220): the bar drains over the read, its duration and a negative delay (the time already read) set inline, so a reload lands where the clock is. */
+@keyframes intro-drain {
+  from { width: 100%; }
+  to { width: 0; }
+}
+.intro-drain {
+  animation: intro-drain 39s linear both;
+}

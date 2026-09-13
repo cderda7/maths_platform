@@ -3,6 +3,7 @@ import { GROUP_COLOURS, type GroupColour } from "@/data/groups";
 import { RACE_SCHEDULE } from "@/data/race";
 import { classroomReducer } from "./classroom";
 import { REPORT_RUN_FINISHED_AGO_MS, REPORT_RUN_STARTED_AGO_MS, skipFixture } from "./demo";
+import { boardOpensAt } from "./groupIntro";
 import { beginRun, groupProgress, ownAttemptScript, resolvedMoment, runStartedAt, type GroupRun } from "./groupReview";
 import { sessionAt } from "./session";
 import { leaderboardAt, ownStanding, raceFinish, raceMoments, raceProgress, rankStandings, standingsAt, unionOf, wrongSetsOf, type GroupStanding } from "./standings";
@@ -76,7 +77,10 @@ describe("the scripted race", () => {
 
   it("at the start every bar is at zero and the demo group holds the pen on Q1; five minutes in, mint and amber are home and coral is ahead of violet", () => {
     const { classroom, session } = skipFixture("group review", now);
-    const start = standingsAt(classroom, session, now);
+    // The board opens once the intro is read (ticket 220): until then, and at the opening, every bar is at zero.
+    const opens = boardOpensAt(now);
+    expect(standingsAt(classroom, session, now + 10_000).map((s) => s.percent)).toEqual([0, 0, 0, 0, 0]);
+    const start = standingsAt(classroom, session, opens);
     expect(start.map((s) => s.colour)).toEqual([...GROUP_COLOURS]);
     expect(start.map((s) => s.percent)).toEqual([0, 0, 0, 0, 0]);
     expect(start.map((s) => s.names.length)).toEqual([4, 4, 4, 4, 4]);
@@ -88,7 +92,7 @@ describe("the scripted race", () => {
     expect(start.filter((s) => s.live)).toHaveLength(1);
     for (const s of start) if (!s.live) expect(s.pen).toBeNull();
 
-    const later = standingsAt(classroom, session, now + 5 * MIN);
+    const later = standingsAt(classroom, session, opens + 5 * MIN);
     const by = Object.fromEntries(later.map((s) => [s.colour, s])) as Record<GroupColour, GroupStanding>;
     expect(by.mint.percent).toBe(100);
     expect(by.amber.percent).toBe(100);

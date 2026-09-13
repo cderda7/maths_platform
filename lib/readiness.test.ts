@@ -8,13 +8,15 @@ describe("the gate into group review", () => {
 
   it("counts nobody until the demo student arrives, then the scripted classmates as their offsets pass", () => {
     expect(CLASS_SIZE).toBe(20);
-    expect(classReadiness(INITIAL_CLASSROOM, t0)).toEqual({ handedIn: 0, total: 20, started: false, reason: null });
+    expect(classReadiness(INITIAL_CLASSROOM, t0)).toEqual({ handedIn: 0, total: 20, started: false, reason: null, startedAt: null });
     expect(classReadiness(arrived, t0).handedIn).toBe(1);
     const offsets = Object.values(ARRIVAL_OFFSETS_MS).sort((a, b) => a - b);
     expect(classReadiness(arrived, t0 + offsets[0]).handedIn).toBe(2);
     expect(classReadiness(arrived, t0 + offsets[9]).handedIn).toBe(11);
     expect(classReadiness(arrived, t0 + LAST_ARRIVAL_MS - 1).started).toBe(false);
-    expect(classReadiness(arrived, t0 + LAST_ARRIVAL_MS)).toEqual({ handedIn: 20, total: 20, started: true, reason: "everyone" });
+    expect(classReadiness(arrived, t0 + LAST_ARRIVAL_MS)).toEqual({ handedIn: 20, total: 20, started: true, reason: "everyone", startedAt: t0 + LAST_ARRIVAL_MS });
+    // Read later, it still started at the last hand-in, not when it was read (the group intro counts from here, ticket 220).
+    expect(classReadiness(arrived, t0 + LAST_ARRIVAL_MS + 60_000).startedAt).toBe(t0 + LAST_ARRIVAL_MS);
     expect(LAST_ARRIVAL_MS).toBeLessThan(30_000);
   });
 
@@ -27,9 +29,16 @@ describe("the gate into group review", () => {
     // Sam arrived a moment ago, so only a few classmates are in when the grace ends: it is the teacher's force that opens the gate.
     const forced = classroomReducer(arrived, { type: "advance/start", kind: "force-review", at: t0 - GRACE_MS + 5000 });
     expect(classReadiness(forced, t0 + 4999).started).toBe(false);
-    expect(classReadiness(forced, t0 + 5000)).toMatchObject({ started: true, reason: "teacher" });
+    expect(classReadiness(forced, t0 + 5000)).toMatchObject({ started: true, reason: "teacher", startedAt: t0 + 5000 });
     expect(classReadiness(forced, t0 + 5000).handedIn).toBeLessThan(20);
     const other = classroomReducer(arrived, { type: "advance/start", kind: "force-submit", at: t0 - GRACE_MS + 5000 });
     expect(classReadiness(other, t0 + 5000).started).toBe(false);
+  });
+
+  it("started at whichever came first: the teacher's grace ending or the last hand-in", () => {
+    const late = classroomReducer(arrived, { type: "advance/start", kind: "force-review", at: t0 + LAST_ARRIVAL_MS - GRACE_MS + 9000 });
+    expect(classReadiness(late, t0 + LAST_ARRIVAL_MS + 20_000)).toMatchObject({ reason: "everyone", startedAt: t0 + LAST_ARRIVAL_MS });
+    const early = classroomReducer(arrived, { type: "advance/start", kind: "force-review", at: t0 - GRACE_MS + 3000 });
+    expect(classReadiness(early, t0 + LAST_ARRIVAL_MS + 20_000).startedAt).toBe(t0 + 3000);
   });
 });

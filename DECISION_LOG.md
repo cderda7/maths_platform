@@ -3996,3 +3996,15 @@ clue is a general sentence with no pointer into the working.
 
 **Defense.** Each step adds a little help without handing over the answer, no group can be stuck for
 ever, and the one rule (count the wrong checks) drives the board, the bar and the teacher's view.
+
+## 2026-09-13 · The group intro is a timed read inside group review, carried by the run's start (ticket 220)
+
+**Decision.** Before the shared whiteboard, every student reads a short screen about working as a team, over the group's problems as tiles. There is no button. The screen is not a new session stage: the group run's `startedAt` (and first `turnStartedAt`) is set to when the board opens, `GROUP_INTRO_MS` after the class went into group review (`readiness.startedAt`: the last hand-in, or the end of the teacher's grace), and `GroupBoardScreen` shows the intro while `now < startedAt`. The read time comes from the words: 130 words a minute plus a 4 s look, 39 s for the agreed 75 words.
+
+**Context.** The user wanted the motivation for working the union of mistakes explained, without showing who got what wrong (students would otherwise know which problems they had right and copy), and a forced read so no group gets onto the board ahead of another in the race. It must also show when the teacher ends individual review, which today sends a correcting student straight to `group`, skipping the class gate.
+
+**Alternatives considered.** *A new `group-intro` stage between `class-wait` and `group`*: every entry route (the gate, the forced end, deep links, demo jumps, the class stage and progress maps, the pathway strip) would need to learn it, and the run, peers' scripts and race would still need a delayed start. *A Continue button per student*: fair only if the board waited for all four, and a student who taps at once reads nothing. *A fixed duration*: goes stale the moment the text is edited. *Explaining on the class-wait screen*: the last student in, or a forced one, never sees it.
+
+**Tradeoffs.** A run's `startedAt` is now in the future for 39 s, so any new reader of it must not assume it has passed (the three existing readers already clamp). The slowest readers may still want longer, and the fastest wait up to half a minute. The read is counted from the class's start, so a tab that arrives late reads only what is left. The forced hand-in notice ("N of your problems still contain a mistake") is held until the board opens, since on the intro it would name the student's own mistakes.
+
+**Defense.** One number, the run's start, already drove the board, the peers and the race; moving it gives the read to every group at once with no new stage and no change to those clocks, and a reload lands exactly where the class is.

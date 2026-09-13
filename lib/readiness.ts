@@ -24,6 +24,8 @@ export interface Readiness {
   started: boolean;
   /** Why it started, when it has. */
   reason: "everyone" | "teacher" | null;
+  /** The moment it started (the last hand-in, or the end of the teacher's grace, whichever came first); null until then. The group intro's clock runs from here (ticket 220). */
+  startedAt: number | null;
 }
 
 export function classReadiness(c: ClassroomState | null | undefined, now: number): Readiness {
@@ -32,5 +34,6 @@ export function classReadiness(c: ClassroomState | null | undefined, now: number
   const handedIn = (samAt === undefined ? 0 : 1) + classmatesIn;
   const everyone = handedIn >= CLASS_SIZE;
   const forced = !!c?.advance && c.advance.kind === "force-review" && now >= c.advance.deadline;
-  return { handedIn, total: CLASS_SIZE, started: everyone || forced, reason: everyone ? "everyone" : forced ? "teacher" : null };
+  const moments = [...(everyone && samAt !== undefined ? [samAt + LAST_ARRIVAL_MS] : []), ...(forced ? [c!.advance!.deadline] : [])];
+  return { handedIn, total: CLASS_SIZE, started: everyone || forced, reason: everyone ? "everyone" : forced ? "teacher" : null, startedAt: moments.length ? Math.min(...moments) : null };
 }

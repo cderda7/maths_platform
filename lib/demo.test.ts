@@ -3,6 +3,8 @@ import { skipFixture, SKIP_TARGETS } from "./demo";
 import { isDue, isPending, isProjecting } from "./classroom";
 import { INITIAL_SESSION } from "./session";
 import { classReadiness, LAST_ARRIVAL_MS } from "./readiness";
+import { boardOpensAt, introShowing } from "./groupIntro";
+import { runStartedAt } from "./groupReview";
 
 describe("skip-to fixtures", () => {
   const now = 1_700_000_000_000;
@@ -28,6 +30,9 @@ describe("skip-to fixtures", () => {
     expect(classroom.group?.problems).toEqual(["q1", "q2", "q3", "q7", "q9", "q10"]);
     expect(classroom.group?.pen).toEqual({ q1: "sam", q2: "zara", q3: "jordan", q7: "liam", q9: "sam", q10: "zara" });
     expect(classroom.group?.index).toBe(0);
+    // The jump lands on the intro: the class has just gone in and the board opens once it is read (ticket 220).
+    expect(introShowing(classroom.group!, now)).toBe(true);
+    expect(runStartedAt(classroom.group!)).toBe(boardOpensAt(now));
   });
 
   it("the class-wait jump has Sam just arrived and the count climbing; the later jumps have everyone in", () => {

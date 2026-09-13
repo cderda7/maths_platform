@@ -27,6 +27,7 @@ import { warmupOffered, type RunKindParam } from "@/lib/session";
 import WaitingScreen from "./screens/WaitingScreen";
 import ClassWaitScreen from "./screens/ClassWaitScreen";
 import { classReadiness } from "@/lib/readiness";
+import { boardOpensFor, introShowing } from "@/lib/groupIntro";
 import { DEMO_STUDENT } from "@/data/assignment";
 import PeerScreen from "./screens/PeerScreen";
 import HistoryScreen from "./screens/HistoryScreen";
@@ -65,7 +66,8 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
   }, [due, advance, now]);
   const atGate = session.stage === "class-wait";
   const arrived = classroom.arrivals?.[DEMO_STUDENT.id] !== undefined;
-  const started = classReadiness(classroom, now).started;
+  const readiness = classReadiness(classroom, now);
+  const started = readiness.started;
   useEffect(() => {
     // The gate into group review: record the arrival once; go in the moment the class is in (or the teacher started it).
     if (atGate && !arrived) dispatchClassroom({ type: "class/arrive", student: DEMO_STUDENT.id, at: now });
@@ -78,7 +80,8 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
     if (!onBoard) return;
     if (!board) {
       const plan = groupPlan(session);
-      dispatchClassroom({ type: "group/begin", members: plan.members.map((m) => m.id), problems: plan.discussion.problems.map((p) => p.id), at: now });
+      // The board opens once the intro has been read, counted from when the class went in, not from this tab (ticket 220).
+      dispatchClassroom({ type: "group/begin", members: plan.members.map((m) => m.id), problems: plan.discussion.problems.map((p) => p.id), at: boardOpensFor(readiness.startedAt, now) });
       return;
     }
     if (board.done) {
@@ -100,6 +103,8 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
     if (next && now >= board.turnStartedAt + next.at) dispatchClassroom({ type: "group/scripted", index: board.scriptDone, event: next, at: board.turnStartedAt + next.at });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onBoard, board, now]);
+  // The group intro hides what each student got wrong, so a forced hand-in's "still contain a mistake" notice waits for the board (ticket 220).
+  const reading = onBoard && !!board && introShowing(board, now);
   const projecting = isProjecting(classroom);
   const frozen = session.stage === "frozen";
   // A teacher's diagnostic (ticket 137) lives on the classroom, not the session: pushed to every student, answered here.
@@ -153,7 +158,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
             </div>
           </div>
         )}
-        {session.notice && !frozen && (
+        {session.notice && !frozen && !reading && (
           <div className="absolute inset-x-0 bottom-6 z-20 flex justify-center px-8" data-notice>
             <div className="flex items-center gap-4 rounded-full border border-accent-line bg-paper px-5 py-2.5 text-[14px] text-ink shadow-lift">
               <span>{session.notice}</span>

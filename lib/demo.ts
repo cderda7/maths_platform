@@ -6,6 +6,7 @@ import { INITIAL_SESSION, reworkedSession, sessionAt, type StudentSession } from
 import { LAST_ARRIVAL_MS } from "./readiness";
 import { groupPlan } from "./group";
 import { beginRun, type GroupRun } from "./groupReview";
+import { boardOpensAt } from "./groupIntro";
 
 /**
  * Presenter shortcuts, not product: jump the demo to a moment in Sam's run. Every jump rebuilds the
@@ -64,9 +65,10 @@ export function skipFixture(target: SkipTarget, now: number): { session: Student
       // Sam has just handed in corrections: the classmates' scripted arrivals start now.
       return { session: sessionAt("class-wait"), classroom: classroomReducer(classroom, { type: "class/arrive", student: DEMO_STUDENT.id, at: now }) };
     case "group review": {
+      // The class has just gone in: the intro is read first, then the board opens (ticket 220).
       const session = sessionAt("group");
       const c = everyoneIn(classroom, now);
-      return { session, classroom: classroomReducer(c, { type: "group/begin", members: groupPlan(session).members.map((m) => m.id), problems: groupPlan(session).discussion.problems.map((p) => p.id), at: now }) };
+      return { session, classroom: classroomReducer(c, { type: "group/begin", members: groupPlan(session).members.map((m) => m.id), problems: groupPlan(session).discussion.problems.map((p) => p.id), at: boardOpensAt(now) }) };
     }
     case "report": {
       // Group review is behind the class: the standings hold on the board with the demo group's run finished.
