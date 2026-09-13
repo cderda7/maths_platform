@@ -25,7 +25,7 @@ export async function POST(req: Request): Promise<Response> {
   const stream = client.beta.messages.stream({
     model: HELP_CHAT_MODEL,
     max_tokens: HELP_CHAT_MAX_TOKENS,
-    system: helpChatSystem(problem, body.lines, body.messages, body.shown),
+    system: helpChatSystem(problem, body.lines, body.messages, body.shown, body.hinted),
     messages: helpChatMessages(body.messages),
     // A declined turn re-runs on a fallback model server-side rather than leaving the student with nothing.
     betas: ["server-side-fallback-2026-07-01"],

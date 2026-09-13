@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { PRACTICE, PRACTICES, WARMUP_BANK } from "@/data/practice";
 import { studentLeafName } from "@/data/taxonomy";
 import type { PracticeProblem } from "@/data/types";
-import { CHAT_OPENER, chatOpener, chatSegments, EXAMPLE_OPENER, findPractice, helpChatMessages, helpChatSystem, HINT_OPENER_START, hintOpener, parseHelpChatRequest } from "./helpChat";
+import { CHAT_OPENER, chatOpener, chatSegments, EXAMPLE_OPENER, findPractice, helpChatMessages, helpChatSystem, HINT_OPENER_START, hintOpener, parseHelpChatRequest, TALK_OPENER } from "./helpChat";
 
 const every = (): PracticeProblem[] => WARMUP_BANK.flatMap((p) => (p.followUp ? [p, p.followUp] : [p]));
 
@@ -67,10 +67,30 @@ describe("helpChatSystem", () => {
     expect(s).not.toContain(`"${CHAT_OPENER}"`);
     expect(s).toContain(`beginning "${HINT_OPENER_START}"`);
     expect(s).toContain("Do not say what the next hint would say until they have used this one.");
-    expect(hintOpener(2)).toBe("Let's talk more about hint 2 before another one. What is it asking you to do here, in your own words?");
+    expect(hintOpener(2)).toBe("Let's talk about hint 2 before another one. What is the hint asking you to do, in your own words?");
     expect(chatOpener([])).toBe(CHAT_OPENER);
     expect(chatOpener([{ from: "student", text: "hi" }])).toBe(CHAT_OPENER);
     expect(chatOpener(opened)).toBe(hintOpener(2));
+  });
+
+  it("the card's Talk it through opens on the question alone, and the brief knows the pad said it", () => {
+    expect(TALK_OPENER).toBe("What is the hint asking you to do, in your own words?");
+    expect(TALK_OPENER).not.toContain("before another one");
+    const opened = [
+      { from: "tutor" as const, text: TALK_OPENER },
+      { from: "student" as const, text: "move the 6?" },
+    ];
+    const s = helpChatSystem(p, [], opened);
+    expect(chatOpener(opened)).toBe(TALK_OPENER);
+    expect(s).toContain(`reading exactly "${TALK_OPENER}" was also said by the pad`);
+    expect(s).toContain("pressed \"Talk it through\" on the latest hint");
+  });
+
+  it("lists the hint cards on the student's screen in the order given, numbered as the pad numbers them", () => {
+    expect(helpChatSystem(p, [])).toContain("the last is the latest.\n(none yet)");
+    const s = helpChatSystem(p, [], [], undefined, [0, 2]);
+    expect(s).toContain(`Hint 1: ${p.hints[0].text}\nHint 2: ${p.hints[2].text}`);
+    expect(s).not.toContain("(none yet)");
   });
 
   it("lists the lines the pad has read, numbered, or says there are none", () => {
@@ -177,6 +197,10 @@ describe("parseHelpChatRequest", () => {
     expect(parseHelpChatRequest({ ...good, shown: -1 })).toBeNull();
     expect(parseHelpChatRequest({ ...good, shown: 1.5 })).toBeNull();
     expect(parseHelpChatRequest({ ...good, shown: "2" })).toBeNull();
+    expect(parseHelpChatRequest({ ...good, hinted: [0, 2] })).toEqual({ ...good, hinted: [0, 2] });
+    expect(parseHelpChatRequest(good)).not.toHaveProperty("hinted");
+    expect(parseHelpChatRequest({ ...good, hinted: [-1] })).toBeNull();
+    expect(parseHelpChatRequest({ ...good, hinted: "0" })).toBeNull();
   });
 
   it("refuses a missing or malformed field", () => {

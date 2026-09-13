@@ -21,13 +21,16 @@ export const HELP_CHAT_MAX_TOKENS = 2048;
 export const CHAT_OPENER = "What's got you stuck?";
 
 /**
- * The tutor's line when the pad opens the chat on a hint: the student asked for another hint
- * while their lines had not moved past what hint `n` (as numbered on the pad) asks for. Said by
- * the pad for the tutor and stored in the chat, so it is there on a reopen and the brief can see
- * it; `HINT_OPENER_START` is how the brief and the pad recognise one.
+ * The pad opens the chat on a hint two ways, and says a line for the tutor each way, stored in the
+ * chat so it is there on a reopen and the brief can see it. `hintOpener(n)`: the student pressed
+ * "hint" for another while their lines had not moved past what hint `n` (as numbered on the pad)
+ * asks for, and went on from the stall notice; `HINT_OPENER_START` is how the brief recognises
+ * one. `TALK_OPENER`: the student pressed "Talk it through" on the latest hint card, asking for
+ * nothing more, so the line is only the question.
  */
-export const HINT_OPENER_START = "Let's talk more about hint ";
-export const hintOpener = (n: number): string => `${HINT_OPENER_START}${n} before another one. What is it asking you to do here, in your own words?`;
+export const HINT_OPENER_START = "Let's talk about hint ";
+export const TALK_OPENER = "What is the hint asking you to do, in your own words?";
+export const hintOpener = (n: number): string => `${HINT_OPENER_START}${n} before another one. ${TALK_OPENER}`;
 
 /** The tutor's fixed first line beside the worked example, under the heading "Question about a step?". Not stored. */
 export const EXAMPLE_OPENER = "Which step, and what about it?";
@@ -48,11 +51,12 @@ export function findPractice(id: string): PracticeProblem | null {
   return null;
 }
 
-/** What the pad sends for one turn: the problem, the lines read so far, and the chat so far, the student's newest message last. `shown` is sent while the worked example is playing beside the chat: how many of its steps are on the student's screen. */
+/** What the pad sends for one turn: the problem, the lines read so far, and the chat so far, the student's newest message last. `hinted` is the pad's hint cards, in the order they were given (indices into the problem's hints), so "hint 2" and "the hint" mean the card the student sees. `shown` is sent while the worked example is playing beside the chat: how many of its steps are on the student's screen. */
 export interface HelpChatRequest {
   problem: string;
   lines: string[];
   messages: ChatMessage[];
+  hinted?: number[];
   shown?: number;
 }
 
@@ -62,15 +66,21 @@ const isMessage = (m: unknown): m is ChatMessage =>
 /** A request body checked field by field, or null. The transcript must end with the student. */
 export function parseHelpChatRequest(raw: unknown): HelpChatRequest | null {
   if (!raw || typeof raw !== "object") return null;
-  const { problem, lines, messages, shown } = raw as Record<string, unknown>;
+  const { problem, lines, messages, hinted, shown } = raw as Record<string, unknown>;
   if (typeof problem !== "string") return null;
   if (!Array.isArray(lines) || !lines.every((l) => typeof l === "string")) return null;
   if (!Array.isArray(messages) || !messages.every(isMessage)) return null;
   if (shown !== undefined && (typeof shown !== "number" || !Number.isInteger(shown) || shown < 0)) return null;
+  if (hinted !== undefined && (!Array.isArray(hinted) || !hinted.every((i) => Number.isInteger(i) && i >= 0))) return null;
   const last = messages[messages.length - 1];
   if (!last || last.from !== "student" || last.text.trim() === "") return null;
-  const out: HelpChatRequest = { problem, lines: lines as string[], messages: messages as ChatMessage[] };
-  return shown === undefined ? out : { ...out, shown };
+  return {
+    problem,
+    lines: lines as string[],
+    messages: messages as ChatMessage[],
+    ...(hinted === undefined ? {} : { hinted: hinted as number[] }),
+    ...(shown === undefined ? {} : { shown }),
+  };
 }
 
 /**
@@ -78,9 +88,10 @@ export function parseHelpChatRequest(raw: unknown): HelpChatRequest | null {
  * the tutor knows the ground; the rules below are what make it a hint chat rather than an answer
  * machine, and what make it offer a choice of ways in before it settles on one. With `shown`
  * the worked example is playing beside the chat with that many steps on screen: those steps
- * are open to talk about, the rest stay the tutor's alone.
+ * are open to talk about, the rest stay the tutor's alone. `hinted` is the pad's hint cards in the
+ * order given, so the brief can say which hint "hint 2" and "the hint" are.
  */
-export function helpChatSystem(p: PracticeProblem, lines: string[], messages: ChatMessage[] = [], shown?: number): string {
+export function helpChatSystem(p: PracticeProblem, lines: string[], messages: ChatMessage[] = [], shown?: number, hinted: number[] = []): string {
   const skill = studentLeafName(p.leaf).name;
   const example = shown !== undefined;
   const opener = chatOpener(messages, example);
@@ -89,6 +100,8 @@ export function helpChatSystem(p: PracticeProblem, lines: string[], messages: Ch
   const ways = p.approaches?.length ? p.approaches.map((a) => `- ${a.name}: ${a.hint}`).join("\n") : "(one way in; the hints above name it)";
   const where = (h: Hint) => (!h.at ? "anywhere" : h.at.includes(0) ? "on a blank pad" : `after line ${h.at.join(" or ")} of the reference working`);
   const hints = p.hints.map((h, i) => `${i + 1}. (${where(h)}) ${h.text}`).join("\n");
+  const cards = hinted.filter((i) => p.hints[i]).map((i) => p.hints[i]);
+  const onPad = cards.length ? cards.map((h, i) => `Hint ${i + 1}: ${h.text}`).join("\n") : "(none yet)";
   const written = lines.length ? lines.map((l, i) => `${i + 1}. ${l}`).join("\n") : "(nothing yet)";
   const situation = example
     ? `is watching the worked example for it, one step at a time in place of the pad, and has a chat beside it headed "Question about a step?". You are talking to one student in a narrow chat panel.`
@@ -113,6 +126,9 @@ ${hints}
 Ways in at this stage. Offer these before inventing your own; each is a name and the hint that goes with it.
 ${ways}
 
+The hints on the student's screen, numbered as the pad numbers them; the last is the latest.
+${onPad}
+
 What the student has written so far, one line per row, as the pad read it.
 ${written}
 
@@ -125,7 +141,7 @@ How you help
 - If they are simply right, say so and stop; do not add a nudge they do not need.
 - Two or three short sentences. Plain words, Australian spelling (factorise, not factorize). Maths goes inside $...$ as TeX, nothing else does. No headings, no lists, no bold.
 ${example ? "- The worked example is the exception to hints-only: a step on screen you may explain in full, in the student's terms, and say why it follows from the step before. Hints-only still holds for every step not yet shown.\n" : ""}- The chat opened with your line "${opener}"; the student's first message is their answer to it. Stay with this problem; if they ask about something else, bring them back to it.
-- A line of yours beginning "${HINT_OPENER_START}" was said for you by the pad: the student asked for another hint while their lines had not moved past what that hint asks for, so the pad opened this chat instead of giving the next hint. Talk that hint through. Ask what it is asking them to do with their lines, in their own words; if they have it, send them back to the pad to write that line; if they have not, help them read the hint, one piece at a time. Do not say what the next hint would say until they have used this one.`;
+- A line of yours beginning "${HINT_OPENER_START}" was said for you by the pad: the student asked for another hint while their lines had not moved past what that hint asks for, so the pad opened this chat instead of giving the next hint. A line of yours reading exactly "${TALK_OPENER}" was also said by the pad: the student pressed "Talk it through" on the latest hint on their screen. Either way, talk that hint through. Ask what it is asking them to do with their lines, in their own words; if they have it, send them back to the pad to write that line; if they have not, help them read the hint, one piece at a time. Do not say what the next hint would say until they have used this one.`;
 }
 
 /**

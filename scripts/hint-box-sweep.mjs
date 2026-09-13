@@ -1,7 +1,8 @@
 /**
  * Lit hint box sweep for the student's practice pad (ticket 104; the check behind tickets 96–100).
  *
- * For every warm-up on offer at /student?stage=practice: opens it, writes each line of the working
+ * For every warm-up in the bank (every leaf in scripts/warmup-leaves.json with its line count, which a unit test holds to
+ * data/practice.ts, ticked on the confidence screen so the warm-up strip offers them all): opens it, writes each line of the working
  * in turn (a scribble on the pad reveals the next scripted line), opens the hint offered at each
  * point and hovers every linked word. With each word lit it checks, in the problem and in every
  * read-as line:
@@ -28,7 +29,7 @@
  * profile dir is deleted. Needs Node 22+ (global WebSocket and fetch); no dependencies.
  */
 import { spawn } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -38,13 +39,16 @@ const CDP_PORT = Number(process.env.CDP_PORT ?? 9382);
 const CHROME = process.env.CHROME ?? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const PROFILE = process.env.CDP_PROFILE ?? mkdtempSync(join(tmpdir(), "edexia-cdp-hint-sweep-"));
 const CANVAS = "[data-run] canvas";
-const MAX_LINES = 8;
+/** Every warm-up in the bank, leaf → lines in its working; a unit test holds it to data/practice.ts. */
+const LINES = JSON.parse(readFileSync(new URL("./warmup-leaves.json", import.meta.url), "utf8"));
+const LEAVES = Object.keys(LINES);
+const SESSION_KEY = "edexia-maths-demo/session/v1";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/** Runs in the page: every glyph and fraction bar under `root`, in DOM order, with its box. KaTeX's zero-width helper spans are not glyphs. */
+/** Runs in the page: every glyph and fraction bar under `root`, in DOM order, with its box. KaTeX's zero-width helper spans are not glyphs, and neither is a conjured fragment (the 1 hung in the margin before x², inside a `.llap`): it shows only while lit, at zero width, and the check is that everything else stays put. */
 const glyphsIn = (root) => `(() => {
-  const leaves = [...document.querySelectorAll(${JSON.stringify(root)} + " .katex-html span")].filter((s) => s.childElementCount === 0 && (s.textContent.replace(/\\u200b/g, "").trim() || s.classList.contains("frac-line")));
+  const leaves = [...document.querySelectorAll(${JSON.stringify(root)} + " .katex-html span")].filter((s) => s.childElementCount === 0 && !s.closest(".llap") && (s.textContent.replace(/\\u200b/g, "").trim() || s.classList.contains("frac-line")));
   return leaves.map((s) => { const r = s.getBoundingClientRect(); return { ch: s.classList.contains("frac-line") ? "—" : s.textContent, l: +r.left.toFixed(1), t: +r.top.toFixed(1) }; });
 })()`;
 
@@ -167,6 +171,12 @@ async function openTab(browser) {
   };
   const tab = {
     evaluate,
+    /** The practice stage with every warm-up in the bank ticked, so the strip offers them all. */
+    async gotoEveryWarmup() {
+      await tab.goto(BASE + "/student?stage=practice");
+      await evaluate(`(() => { const s = JSON.parse(localStorage.getItem(${JSON.stringify(SESSION_KEY)})); s.confidence = { level: "low-when", leaves: ${JSON.stringify(LEAVES)} }; localStorage.setItem(${JSON.stringify(SESSION_KEY)}, JSON.stringify(s)); })()`);
+      await tab.goto(BASE + "/student");
+    },
     async goto(url) {
       await send("Page.navigate", { url });
       const started = Date.now();
@@ -229,23 +239,25 @@ async function main() {
   const failures = [];
   try {
     const first = await openTab(browser);
-    await first.goto(BASE + "/student?stage=practice");
+    await first.gotoEveryWarmup();
     const leaves = await first.evaluate(`[...document.querySelectorAll("[data-sequence] button[data-leaf]")].map((b) => b.dataset.leaf)`);
     await first.close();
-    if (!leaves.length) throw new Error("no warm-ups on offer at /student?stage=practice");
+    if (leaves.length !== LEAVES.length) throw new Error(`the warm-up strip offers ${leaves.length} of the bank's ${LEAVES.length} warm-ups`);
     console.log(`warm-ups: ${leaves.join(", ")}`);
     for (const leaf of leaves) {
       const tab = await openTab(browser);
-      await tab.goto(BASE + "/student?stage=practice");
+      await tab.gotoEveryWarmup();
       await tab.click(`[data-sequence] button[data-leaf="${leaf}"]`);
       await sleep(500);
       const short = leaf.split(".").pop();
-      for (let k = 0; k < MAX_LINES; k++) {
+      /** Lines in the warm-up's working: the sweep reads every one, and fails rather than silently stopping short. */
+      const steps = LINES[leaf];
+      for (let k = 0; k <= steps; k++) {
         if (k > 0) {
-          const before = await tab.evaluate(`document.querySelectorAll("[data-run] aside ol li .katex").length`);
+          const before = await tab.evaluate(`document.querySelectorAll("[data-run] aside ol > li:has(.katex)").length`);
           await tab.scribble(k);
-          const after = await tab.evaluate(`document.querySelectorAll("[data-run] aside ol li .katex").length`);
-          if (after === before) break;
+          const after = await tab.evaluate(`document.querySelectorAll("[data-run] aside ol > li:has(.katex)").length`);
+          if (after === before) throw new Error(`${short}: the pad read no line ${k} of ${steps}`);
         }
         await tab.clickButton("I need help");
         await sleep(200);
@@ -258,6 +270,13 @@ async function main() {
         const plainLines = await tab.evaluate(glyphsIn("[data-run] aside"));
         await tab.click('[data-help-option="hint"]');
         await sleep(500);
+        // The latest hint is still to be used: "hint" shows the stall notice, not a new hint. Close it and write the next line.
+        if (await tab.evaluate(`!!document.querySelector("[data-stall-notice]")`)) {
+          await tab.evaluate(`document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }))`);
+          await sleep(300);
+          if (await tab.evaluate(`!!document.querySelector("[data-stall-notice]")`)) throw new Error(`${short} · ${k} lines: the stall notice did not close`);
+          continue;
+        }
         const label = (word) => `${short} · ${k} line${k === 1 ? "" : "s"} · "${word}"`;
         const wrappedMoved = moved(plainProblem, await tab.evaluate(glyphsIn("[data-run] .katex-display"))) || moved(plainLines, await tab.evaluate(glyphsIn("[data-run] aside")));
         checks++;

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import katex from "katex";
 import { PRACTICES } from "@/data/practice";
+import sweepLeaves from "../scripts/warmup-leaves.json";
 import type { PracticeProblem } from "@/data/types";
 import { findFragment, hintAnchor, hintSegments, hoistSpacing, locateFragment, pickHint, positionOf, stalledHint, termTex } from "./hint";
 
@@ -325,9 +326,41 @@ describe("stalledHint", () => {
     expect(stalledHint(f, fl(2), [0, 1])).toBe(1);
     expect(stalledHint(f, fl(3), [0, 1])).toBe(1);
     expect(stalledHint(f, fl(4), [0, 1])).toBeNull();
-    const nfl = PRACTICES["unit.u1.nfl"]!;
-    expect(nfl.hints[0].at).toBeUndefined();
-    expect(stalledHint(nfl, [], [0])).toBeNull();
+    const general = { steps: f.steps, hints: [{ text: "general" }] };
+    expect(stalledHint(general, [], [0])).toBeNull();
+  });
+});
+
+describe("every warm-up's hints (ticket 199)", () => {
+  it("cover every point in the working, so from a blank pad to the last line 'hint' gives one or leads into the chat on the one showing", () => {
+    for (const q of every()) {
+      for (let k = 0; k < q.steps.length; k++) {
+        const covering = q.hints.filter((h) => h.at?.includes(k));
+        expect(covering.length, `${q.id}: a hint for ${k} lines`).toBeGreaterThan(0);
+      }
+      for (const h of q.hints) expect(h.at?.length, `${q.id}: "${h.text}" names its point`).toBeGreaterThan(0);
+    }
+  });
+
+  it("the hint-box sweep's list is the whole bank with each working's line count, so the sweep opens every warm-up and reads every line", () => {
+    expect(sweepLeaves).toEqual(Object.fromEntries(Object.entries(PRACTICES).map(([leaf, q]) => [leaf, q.steps.length])));
+  });
+
+  it("walking a warm-up line by line, the hint pressed at each point is the one for it and then stalls until the next line", () => {
+    for (const q of every()) {
+      const upTo = (n: number) => q.steps.slice(0, n).map((s) => s.tex);
+      const shown: number[] = [];
+      for (let k = 0; k < q.steps.length; k++) {
+        const stalled = stalledHint(q, upTo(k), shown);
+        if (stalled !== null) continue;
+        const next = pickHint(q, upTo(k), shown);
+        expect(next, `${q.id} at ${k}`).not.toBeNull();
+        expect(q.hints[next!].at, `${q.id} at ${k}`).toContain(k);
+        shown.push(next!);
+        expect(stalledHint(q, upTo(k), shown), `${q.id} at ${k}`).toBe(next);
+      }
+      expect(pickHint(q, upTo(q.steps.length), shown), `${q.id} at the end`).toBeNull();
+    }
   });
 });
 
@@ -386,11 +419,10 @@ describe("pickHint", () => {
   });
 
   it("a general hint (no `at`) is offered wherever the student is, once", () => {
-    const nfl = PRACTICES["unit.u1.nfl"]!;
-    expect(nfl.hints.every((h) => !h.at)).toBe(true);
-    expect(pickHint(nfl, [], [])).toBe(0);
-    expect(pickHint(nfl, ["x - 2 = 0", "anything"], [])).toBe(0);
-    expect(pickHint(nfl, [], [0])).toBeNull();
+    const general = { steps: p.steps, hints: [{ text: "general" }] };
+    expect(pickHint(general, [], [])).toBe(0);
+    expect(pickHint(general, [step(0), "anything"], [])).toBe(0);
+    expect(pickHint(general, [], [0])).toBeNull();
     // A general hint yields to one written for the point, and is offered after it.
     const mixed = { steps: p.steps, hints: [{ text: "general" }, { text: "here", at: [1] }] };
     expect(pickHint(mixed, [step(0)], [])).toBe(1);

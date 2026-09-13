@@ -26,6 +26,7 @@ export default function HelpChat({
   problem,
   lines,
   messages,
+  hinted,
   runKey,
   dispatch,
   onClose,
@@ -36,6 +37,8 @@ export default function HelpChat({
   /** The lines the pad has read on this problem, as TeX. */
   lines: string[];
   messages: ChatMessage[];
+  /** The pad's hint cards on this problem, in the order given (indices into its hints). */
+  hinted: number[];
   runKey: RunKey;
   dispatch: (a: SessionAction) => void;
   /** Back to the read-back; absent beside the worked example, which has no read-back to go back to. */
@@ -78,7 +81,7 @@ export default function HelpChat({
       const res = await fetch("/api/help-chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ problem: problem.id, lines, messages: [...messages, said], ...(example ? { shown: exampleShown } : {}) }),
+        body: JSON.stringify({ problem: problem.id, lines, messages: [...messages, said], hinted, ...(example ? { shown: exampleShown } : {}) }),
         signal: ctl.signal,
       });
       if (!res.ok || !res.body) {

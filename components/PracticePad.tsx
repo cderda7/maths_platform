@@ -10,7 +10,7 @@ import PracticeCard from "@/components/PracticeCard";
 import ReadAs from "@/components/ReadAs";
 import { Button, Eyebrow } from "@/components/ui";
 import { LeafChip } from "@/components/Tag";
-import { hintOpener } from "@/lib/helpChat";
+import { hintOpener, TALK_OPENER } from "@/lib/helpChat";
 import { hintAnchor, pickHint, stalledHint, termTex } from "@/lib/hint";
 import { nextLine } from "@/lib/recognition";
 import type { PracticeRun, RunKey, SessionAction } from "@/lib/session";
@@ -91,10 +91,13 @@ export default function PracticePad({
     setRecognising(false);
     dispatch({ type: "run/clear", run: runKey, problem: p.id });
   };
-  /** "Talk it through" on the latest hint: opens the chat on it, with the tutor's line about the hint said by the pad and stored, once: a second press on the same hint adds nothing. */
-  const talkHint = () => {
+  /**
+   * Opens the chat on the latest hint, with the tutor's line about it said by the pad and stored, once: a second press
+   * the same way adds nothing. From the stall notice (another hint was asked for) the line says why there is no new one
+   * yet (`hintOpener`); from the card's "Talk it through" it is only the question (`TALK_OPENER`).
+   */
+  const talkHint = (text: string) => {
     setHelpOpen(false);
-    const text = hintOpener(hints.length);
     const last = chat[chat.length - 1];
     if (!(last?.from === "tutor" && last.text === text)) dispatch({ type: "run/chat", run: runKey, problem: p.id, message: { from: "tutor", text } });
     setChatOpen(true);
@@ -135,7 +138,7 @@ export default function PracticePad({
             onLit={setLit}
             collapsed={i < hints.length - 1 && !reopened.includes(shown[i])}
             onToggle={i < hints.length - 1 ? () => toggle(shown[i]) : undefined}
-            onTalk={i === hints.length - 1 && !run.example ? talkHint : undefined}
+            onTalk={i === hints.length - 1 && !run.example ? () => talkHint(TALK_OPENER) : undefined}
             className={i === 0 ? "mt-5" : "mt-2"}
           />
         ))}
@@ -174,7 +177,7 @@ export default function PracticePad({
       <aside className="flex min-h-0 flex-col border-l border-line px-6 py-6">
         {run.example ? (
           // Beside the worked example there is nothing to read back, so the column is the chat, headed "Question about a step?".
-          <HelpChat key={p.id} problem={p} lines={lines.map((l) => l.tex)} messages={chat} runKey={runKey} dispatch={dispatch} exampleShown={run.exampleShown} className="flex-1" />
+          <HelpChat key={p.id} problem={p} lines={lines.map((l) => l.tex)} messages={chat} hinted={shown} runKey={runKey} dispatch={dispatch} exampleShown={run.exampleShown} className="flex-1" />
         ) : (
           <>
             {/* The student's read lines keep the column while the chat is open: the chat sits under them, only as tall as it needs up to about the bottom third, and scrolls past that. */}
@@ -192,6 +195,7 @@ export default function PracticePad({
                 problem={p}
                 lines={lines.map((l) => l.tex)}
                 messages={chat}
+                hinted={shown}
                 runKey={runKey}
                 dispatch={dispatch}
                 onClose={() => setChatOpen(false)}
@@ -224,7 +228,7 @@ export default function PracticePad({
           onClose={() => setHelpOpen(false)}
         />
       )}
-      {help === "stall" && <StallNotice onTalk={talkHint} onClose={() => setHelpOpen(false)} />}
+      {help === "stall" && <StallNotice onTalk={() => talkHint(hintOpener(hints.length))} onClose={() => setHelpOpen(false)} />}
     </div>
   );
 }

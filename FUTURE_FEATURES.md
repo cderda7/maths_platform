@@ -2809,6 +2809,31 @@ uploaded problems) settled the following as later, each on purpose.
   viewport, it lies over the card's right column there, as the 380 px panel already did by less.
   Opening it leftward or as a side sheet on narrow laptops is not built.
 
+## Hint openers and hints on every warm-up (from tickets 198 and 203, 2026-09-13)
+
+- **Straight from "hint" to the chat, no stall notice.** Asked in ticket 198. The user kept the notice, so
+  pressing "hint" on a stalled hint still shows "Let's talk through the previous hint before giving you
+  another." first. Revisit if the extra tap feels slow in a classroom run.
+- **The card's opener names no hint.** "What is the hint asking you to do, in your own words?" is
+  correct when the card is the only one on screen, but with three cards the student may not know which
+  hint is meant. The brief knows (the latest card), and the chat opens beside it. Consider lighting the
+  latest card while its chat is open.
+- **Hints for a student's own route.** Every warm-up now has a hint per reference step, picked by the
+  step the last line matches, else by line count. A student who expands first on linear, or uses the
+  quadratic formula on factorising, gets the reference path's hint for that position. Hints per
+  approach (the `approaches` list already names two ways in on most warm-ups) would follow their route.
+- **Split-looking linked letters in a word.** Discriminant's "b² − 4ac" lights b, a and c as boxes
+  inside the word, so at rest it reads "b ² − 4 a c" with gaps from the ring padding. Formal
+  justification's first hint does the same. A tighter in-word box style (no side padding when `within`
+  is set) would read as one expression.
+- **The sweep does not open the chat.** `sweep:hint-boxes` now walks all 15 warm-ups and passes the stall
+  notice, but checks only lit boxes. The openers are covered by the scratchpad click-through
+  (`click199.mjs`), not a repo script. Fold a chat check into a checked-in script if the openers change again.
+- **Follow-up problems on other warm-ups.** Only factorising has a "Try one more" follow-up. The new
+  per-point hints make adding follow-ups for the rest mechanical.
+- **Collapsed cards in the brief.** The tutor's list of cards on screen does not say which earlier cards
+  the student has collapsed or reopened.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

@@ -3867,3 +3867,57 @@ at the end of the line before it.
 **Defense.** One rule, enforced everywhere with no call-site discipline, matching how maths is typeset in
 print; the laptop check (30), the hint-box sweep (30) and the all-route wrap sweep show no overflow at
 the laptop sizes and no layout movement in the practice maths.
+
+## 2026-09-13 · The chat request carries the hint cards on screen (ticket 198)
+
+**Decision.** `HelpChatRequest` gains an optional `hinted: number[]`: the pad's hint cards in the order they
+were given, as indices into the problem's hints. `helpChatSystem` lists them as "Hint 1: …, Hint 2: …",
+numbered as the pad numbers them, the last being the latest. The two lines the pad says for the tutor
+are recognised in the brief: `hintOpener(n)` (from the stall notice) and `TALK_OPENER` (from the card's
+pill, which names no hint).
+
+**Context.** The user split one opener into two: the card's "Talk it through" now says only "What is
+the hint asking you to do, in your own words?". Before this the brief listed every hint the problem
+has, never which ones the student had seen or in what order. "Hint 2" in the stall line was therefore
+ambiguous, since cards are numbered in the order given, which is not the index when a student jumps
+ahead. The card's new line names no hint at all.
+
+**Alternatives.** *Name the hint in the card's line* ("What is hint 2 asking…"): the user specified the
+wording. *Put the hint text into the stored tutor line*: the student would see it twice, and the stored
+chat would carry display text the brief then has to parse. *Derive the cards server-side from the lines*:
+`pickHint` depends on the order of asks, not just the lines, so it cannot be replayed from the lines
+alone.
+
+**Tradeoffs.** One more client-supplied field the route trusts for prompt content, though it is only
+indices, checked as non-negative integers, and out-of-range ones are dropped. Earlier cards the
+student collapsed are still listed, since the brief does not know what is expanded.
+
+**Defense.** The tutor now sees what the student sees, so either opener leads into talking about the
+right hint. The field is optional, so an old client's request still parses and gets "(none yet)".
+
+## 2026-09-13 · Every warm-up has a hint for every point in its working (ticket 203)
+
+**Decision.** Every problem in the warm-up bank, follow-ups included, carries one hint per point in its
+reference working (`at: [k]` for k = 0 … steps − 1). A unit test enforces it, and none of them has a
+general hint (no `at`). Each later hint's linked words point at the student's own line. The hint-box
+sweep reads its warm-up list from `scripts/warmup-leaves.json`, which a test holds to the bank.
+
+**Context.** 13 of 15 warm-ups had one general hint. A general hint never stalls, and once shown it
+leaves nothing to pick, so "hint" greyed out after one press. The stall notice and the chat on a
+hint, the core of the practice pad's help, were unreachable on those warm-ups. The sweep hid it: it
+opened only the default sequence (4 warm-ups) and stopped silently at the first stall notice.
+
+**Alternatives.** *Let a general hint stall until the last line*: the student would get one hint for
+the whole problem and then only the chat, where fractions gives a hint for each step. *Let "hint" open
+the chat once the hints run out*: it changes the pill's meaning per problem, and a student on line 1 of
+6 would be sent to talk through a hint about the whole method. *Generate the hints from the step
+labels*: the labels describe what was done ("Grouped"), not the next move, and would read as answers.
+
+**Tradeoffs.** About 35 more hand-written hints to keep in step with the working. A change to a step's TeX
+now breaks the terms test, which is intended. Hints for later points are less general, so a student
+who writes a different valid line gets the hint for the reference position (`positionOf` counts
+unplaced lines by position), as fractions already did.
+
+**Defense.** One behaviour for every warm-up, checked by test and by the pixel sweep across all 15.
+The demo's three warm-ups no longer work better than the rest.
+

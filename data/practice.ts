@@ -125,6 +125,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     hints: [
       {
         text: "Multiply a by c, then split the middle term into two parts that add to b and multiply to ac.",
+        at: [0],
         terms: [
           { phrase: "a", tex: ["3"] },
           { phrase: "b", tex: ["10"] },
@@ -132,6 +133,34 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
           { phrase: "ac", tex: ["3", "8"] },
           { phrase: "middle term", tex: ["10x"] },
         ],
+      },
+      {
+        text: "Look for a pair of numbers that multiplies to 24 and adds to b, the 10 in the middle term.",
+        at: [1],
+        terms: [{ phrase: "24", tex: ["24"] }],
+      },
+      {
+        text: "Once you have a pair that multiplies to 24, check it adds to 10 as well.",
+        at: [2],
+        terms: [{ phrase: "pair", tex: ["6", "4"] }],
+      },
+      {
+        text: "The pair checks out. Split the middle term into two x terms using those two numbers; the first and last terms stay as they are.",
+        at: [3],
+        terms: [{ phrase: "two numbers", tex: ["6", "4"] }],
+      },
+      {
+        text: "Take a common factor out of the first two terms, then out of the last two. The brackets left over should match.",
+        at: [4],
+        terms: [
+          { phrase: "first two terms", tex: ["3x^2 + 6x"] },
+          { phrase: "last two", tex: ["4x + 8"] },
+        ],
+      },
+      {
+        text: "Both parts share the same bracket. Take it out as a common factor, and what is left makes the other factor.",
+        at: [5],
+        terms: [{ phrase: "same bracket", tex: ["(x + 2)", { tex: "(x + 2)", within: "4(x + 2)" }] }],
       },
     ],
     approaches: [
@@ -152,10 +181,16 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     hints: [
       {
         text: "Every term in the first bracket meets every term in the second: four products.",
+        at: [0],
         terms: [
           { phrase: "first bracket", tex: ["(x - 4)"] },
           { phrase: "second", tex: ["(x + 1)"] },
         ],
+      },
+      {
+        text: "Two of the four products are x terms. Collect them into one.",
+        at: [1],
+        terms: [{ phrase: "x terms", tex: [{ tex: "x", within: "+ x" }, "- 4x"] }],
       },
     ],
     approaches: [
@@ -176,10 +211,16 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     hints: [
       {
         text: "Get everything onto one side first, so the other side is zero.",
+        at: [0],
         terms: [
           { phrase: "one side", tex: ["x(x + 3)"] },
           { phrase: "other side", tex: ["10"] },
         ],
+      },
+      {
+        text: "Now move the 10 across so the right side is zero. It changes sign as it goes.",
+        at: [1],
+        terms: [{ phrase: "10", tex: ["10"] }],
       },
     ],
     approaches: [
@@ -274,7 +315,14 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "x = 2 \\;\\text{or}\\; x = -5", label: "Solved each", tags: [tag("algebra.equations.linear")] },
     ],
     why: "The null factor law only works when the product equals zero. That is the whole rule.",
-    hints: [{ text: "A product is zero only when one of its factors is zero.", terms: [{ phrase: "factors", tex: ["(x - 2)", "(x + 5)"] }] }],
+    hints: [
+      { text: "A product is zero only when one of its factors is zero.", at: [0], terms: [{ phrase: "factors", tex: ["(x - 2)", "(x + 5)"] }] },
+      {
+        text: "Each of those is its own small equation. Solve both, and mind the signs.",
+        at: [1],
+        terms: [{ phrase: "both", tex: ["x - 2 = 0", "x + 5 = 0"] }],
+      },
+    ],
   },
   "unit.u1.discriminant": {
     id: "w-discriminant",
@@ -289,11 +337,17 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     hints: [
       {
         text: "Work out b² − 4ac and look only at its sign.",
+        at: [0],
         terms: [
           { phrase: "b", tex: ["2"] },
           { phrase: "a", within: "4ac", tex: [], insert: { before: "x^2", tex: "1" } },
           { phrase: "c", within: "4ac", tex: ["5"] },
         ],
+      },
+      {
+        text: "Only the sign of the discriminant matters now. Think about what the quadratic formula would do with the square root of a negative number.",
+        at: [1],
+        terms: [{ phrase: "discriminant", tex: ["-16"] }],
       },
     ],
     approaches: [
@@ -315,7 +369,37 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "(1, -9)", label: "Turning point", tags: [tag("graphing.quadratics.features")] },
     ],
     why: "The axis of symmetry is halfway between the intercepts; the turning point's height is the function there.",
-    hints: [{ text: "The axis of symmetry sits halfway between the two intercepts." }],
+    hints: [
+      { text: "Start with where the graph crosses the x-axis: there, y is 0.", at: [0], terms: [{ phrase: "y", tex: ["y"] }] },
+      {
+        text: "Factorise: look for two numbers that multiply to -8 and add to -2.",
+        at: [1],
+        terms: [
+          { phrase: "-8", tex: ["- 8"] },
+          { phrase: "-2", tex: ["- 2"] },
+        ],
+      },
+      {
+        text: "The product is zero, so one of the factors must be. Set each one to zero on its own.",
+        at: [2],
+        terms: [{ phrase: "factors", tex: ["(x - 4)", "(x + 2)"] }],
+      },
+      {
+        text: "The axis of symmetry sits halfway between the two intercepts.",
+        at: [3],
+        terms: [{ phrase: "two intercepts", tex: ["4", "-2"] }],
+      },
+      {
+        text: "The turning point sits on the axis of symmetry, so its height is the value of y there. Substitute this x into the rule.",
+        at: [4],
+        terms: [{ phrase: "this x", tex: ["1"] }],
+      },
+      {
+        text: "You have both coordinates of the turning point now. Write it as a point, x first.",
+        at: [5],
+        terms: [{ phrase: "both coordinates", tex: ["1", "-9"] }],
+      },
+    ],
     approaches: [
       { name: "halfway between the intercepts", hint: "Factorise to find where the graph crosses the $x$-axis; the axis of symmetry is halfway between, and the turning point sits on it." },
       { name: "the formula for the axis", hint: "The axis of symmetry is at $x = -\\frac{b}{2a}$; substitute that $x$ back in for the height." },
@@ -331,7 +415,22 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "\\Delta = 0 \\Rightarrow \\text{exactly one real solution}", label: "Justified", tags: [tag("reasoning.justify.formal")] },
     ],
     why: "A justification names the fact and draws the one conclusion it allows.",
-    hints: [{ text: "Name the fact you are using, then say what it forces." }],
+    hints: [
+      {
+        text: "How many real solutions there are comes from the discriminant. Work out b² − 4ac.",
+        at: [0],
+        terms: [
+          { phrase: "b", tex: ["- 6"] },
+          { phrase: "a", within: "4ac", tex: [], insert: { before: "x^2", tex: "1" } },
+          { phrase: "c", within: "4ac", tex: ["9"] },
+        ],
+      },
+      {
+        text: "The discriminant is 0. Name that fact, then say what it forces about the number of real solutions.",
+        at: [1],
+        terms: [{ phrase: "0", tex: ["0"] }],
+      },
+    ],
     approaches: [
       { name: "the discriminant", hint: "Work out $b^2 - 4ac$; a particular value of it is exactly what \"one real solution\" means, so name that fact." },
       { name: "factorise", hint: "Try writing the left side as a perfect square; a squared bracket equal to zero has one solution, and say why." },
@@ -347,7 +446,10 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "\\text{The graph never meets the x-axis}", label: "In context", tags: [tag("reasoning.justify.conclusions")] },
     ],
     why: "Finish the sentence: say what the algebra means for the picture.",
-    hints: [{ text: "Say what the number means for the picture, in a sentence.", terms: [{ phrase: "number", tex: ["-11"] }] }],
+    hints: [
+      { text: "Start with the sign of the number: what does a negative discriminant say about the real roots?", at: [0], terms: [{ phrase: "number", tex: ["-11"] }] },
+      { text: "Now say what that means for the picture, in a sentence. Where on the graph would a real root show up?", at: [1] },
+    ],
   },
   "graphing.quadratics.sketch": {
     id: "w-sketch",
@@ -364,7 +466,15 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "\\text{opens up through } (1,0),\\ (3,0),\\ (0,3),\\ \\text{min } (2,-1)", label: "Sketched", tags: [tag("graphing.quadratics.sketch")] },
     ],
     why: "A sketch is four facts placed on the axes: two intercepts, the y-intercept and the turning point.",
-    hints: [{ text: "Intercepts first, then the turning point halfway between them, then join with a smooth curve.", terms: [{ phrase: "intercepts", tex: ["(x - 1)", "(x - 3)"] }] }],
+    hints: [
+      { text: "Intercepts first. The graph meets the x-axis where one of the factors is zero.", at: [0], terms: [{ phrase: "factors", tex: ["(x - 1)", "(x - 3)"] }] },
+      { text: "Now the y-intercept: the graph meets the y-axis where x is 0, so put 0 in for x.", at: [1] },
+      { text: "Write that height as a point on the y-axis, x first.", at: [2], terms: [{ phrase: "height", tex: [{ tex: "3", within: "= 3" }] }] },
+      { text: "The turning point sits halfway between the two x-intercepts. Find that x first.", at: [3] },
+      { text: "Its height is the value of y at that x: put it into the rule.", at: [4], terms: [{ phrase: "that x", tex: [{ tex: "2", within: "= 2" }] }] },
+      { text: "That height and the x before it make the turning point. Write it as a point, x first.", at: [5], terms: [{ phrase: "height", tex: [{ tex: "-1", within: "= -1" }] }] },
+      { text: "Now draw it: mark the intercepts and the turning point, then join them with a smooth curve. Does it open up or down?", at: [6], terms: [{ phrase: "turning point", tex: ["(2, -1)"] }] },
+    ],
     approaches: [
       { name: "from the factors", hint: "The factors give the $x$-intercepts straight away; the turning point is halfway between them, and $x = 0$ gives the $y$-intercept." },
       { name: "expand first", hint: "Expand to $y = x^2 - 4x + 3$, read the $y$-intercept from the constant, and find the axis from $x = -\\frac{b}{2a}$." },
@@ -380,7 +490,17 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "= 4 + 6 + 1 = 11", label: "Evaluated", tags: [tag("functions.notation.evaluate")] },
     ],
     why: "The brackets around a negative input are the whole skill.",
-    hints: [{ text: "Put brackets around the value before you substitute, especially a negative one.", terms: [{ phrase: "value", tex: ["-2"] }] }],
+    hints: [
+      { text: "Put brackets around the value before you substitute, especially a negative one.", at: [0], terms: [{ phrase: "value", tex: ["-2"] }] },
+      {
+        text: "Work out each term on its own first. A negative squared is positive, and minus a negative is plus.",
+        at: [1],
+        terms: [
+          { phrase: "negative squared", tex: ["(-2)^2"] },
+          { phrase: "minus a negative", tex: ["- 3(-2)"] },
+        ],
+      },
+    ],
   },
   "reasoning.interpret.worded": {
     id: "w-worded",
@@ -394,7 +514,12 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "\\text{lands at } t = 4 \\text{ s}", label: "In context", tags: [tag("reasoning.justify.conclusions")] },
     ],
     why: "The words hide an equation. Find it, solve it, then answer the question that was asked.",
-    hints: [{ text: "Landing means the height is zero. Write that as an equation before anything else.", terms: [{ phrase: "height", tex: ["h"] }] }],
+    hints: [
+      { text: "Landing means the height is zero. Write that as an equation before anything else.", at: [0], terms: [{ phrase: "height", tex: ["h"] }] },
+      { text: "Both terms share a common factor. Take out the biggest one you can.", at: [1], terms: [{ phrase: "Both terms", tex: ["20t", "5t^2"] }] },
+      { text: "The product is zero, so one of its factors must be. Set each one to zero on its own.", at: [2], terms: [{ phrase: "factors", tex: ["5t", "(4 - t)"] }] },
+      { text: "Two times come out. Which one is the ball landing, and which is the moment it is thrown?", at: [3], terms: [{ phrase: "Two times", tex: ["0", "4"] }] },
+    ],
     approaches: [
       { name: "common factor", hint: "Landing means $h = 0$; then both terms share a factor of $5t$, so take it out and use the null factor law." },
       { name: "divide through", hint: "Landing means $h = 0$; divide every term by $-5$ to get a plain monic quadratic, then factorise that." },
@@ -412,7 +537,12 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "\\text{the graph meets the x-axis at } \\pm 3", label: "What a zero means", tags: [tag("functions.zeros.zero-finding")] },
     ],
     why: "A zero of a function and an x-intercept of its graph are the same fact, seen twice.",
-    hints: [{ text: "Set the rule equal to zero and solve. Each answer is where the graph crosses the x-axis.", terms: [{ phrase: "rule", tex: ["x^2 - 9"] }] }],
+    hints: [
+      { text: "A zero is where the output is 0, so set the rule equal to zero.", at: [0], terms: [{ phrase: "rule", tex: ["x^2 - 9"] }] },
+      { text: "The 9 is a square number, so this is a difference of two squares. That factorises straight away.", at: [1], terms: [{ phrase: "difference of two squares", tex: ["x^2 - 9"] }] },
+      { text: "The product is zero, so one of the factors must be. Set each one to zero on its own.", at: [2], terms: [{ phrase: "factors", tex: ["(x - 3)", "(x + 3)"] }] },
+      { text: "Say what these answers mean for the graph: where does it meet the x-axis?", at: [3], terms: [{ phrase: "these answers", tex: ["3", "-3"] }] },
+    ],
     approaches: [
       { name: "difference of two squares", hint: "Set the rule equal to zero; $x^2 - 9$ is a difference of two squares, so it factorises straight away." },
       { name: "rearrange and square root", hint: "Set the rule equal to zero, move the $9$ across, and take the square root of both sides, keeping both signs." },
@@ -429,11 +559,13 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     ],
     why: "Square the first, double the product, square the last.",
     hints: [
+      { text: "Start from the identity for a squared bracket, written with a and b.", at: [0], terms: [{ phrase: "squared bracket", tex: ["(x + 5)^2"] }] },
       {
-        text: "Square the first term, double the product of the two, square the last term.",
+        text: "Here a is x and b is 5. Square the first, double the product of the two, square the last.",
+        at: [1],
         terms: [
-          { phrase: "first term", tex: ["x"] },
-          { phrase: "last term", tex: ["5"] },
+          { phrase: "a", tex: [{ tex: "a", within: "(a + b)" }] },
+          { phrase: "b", tex: [{ tex: "b", within: "(a + b)" }] },
         ],
       },
     ],
