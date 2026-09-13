@@ -2733,6 +2733,13 @@ uploaded problems) settled the following as later, each on purpose.
   the Pathway and Live diagnostic cards fill the view, so the key only appears once they scroll away.
   Collapsing the key to a one-line strip on short windows is not built.
 
+## Stage group right-justified (from ticket 195, 2026-09-13)
+
+- **The countdown pushes the pill and count left for its minute.** With the group pinned to the cards' right
+  edge, "handing in 1:00 · Cancel" is wider than "force submit". Reserving its width all the time was built and
+  dropped (a gap before the button in the normal state). A countdown that fits the button's own width (e.g. the
+  button itself turning into "1:00 · cancel") would keep everything still; not built.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

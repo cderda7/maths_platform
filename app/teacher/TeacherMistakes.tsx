@@ -13,7 +13,7 @@ import { CLASS_SIZE, groupBySlip, mistakesByProblem, type WorkColumn } from "@/l
 import { diagnosticFor } from "@/lib/diagnostic";
 import { useBatchedSession, useNow } from "@/lib/store";
 import { useClassroom } from "@/lib/classroom-store";
-import DiagnosticPush, { PROBLEM_HEADER } from "./DiagnosticPush";
+import DiagnosticPush, { DiagnosticFootprint, PROBLEM_HEADER } from "./DiagnosticPush";
 
 // The same button as the class view's row actions ("see dot skills" / "close").
 const ACTION = "w-[96px] rounded-md px-2 py-[3px] text-[11px] font-medium leading-snug transition-colors";
@@ -129,21 +129,24 @@ export default function TeacherMistakes() {
       <Eyebrow className="mt-3">
         {assignment.className} · {assignment.title}
       </Eyebrow>
-      {/* Force submit for the stage the class is on (ticket 185), the same control as beside the Class view's current pathway pill: after the title, so the countdown that replaces the button grows into blank space and nothing moves. */}
-      <div className="mt-3 flex items-center gap-10">
-        <H1>Where students went wrong</H1>
-        {stage && stage.done !== null && assignment.kind === "live" && (
-          <div className="flex items-center gap-3 text-[12.5px] leading-snug text-ink-muted" data-mistakes-stage={stage.id}>
-            <span className="rounded-lg bg-standout-soft px-3 py-1 font-display text-[16px] text-ink">{stage.word}</span>
-            <span data-stage-count>
-              <span className="tabular-nums">
-                {stage.done}/{stage.total}
-              </span>{" "}
-              done
-            </span>
-            <ForceSubmit stage={stage.id} session={session} inline />
-          </div>
-        )}
+      {/* Force submit for the stage the class is on (ticket 185), the same control as beside the Class view's current pathway pill. The stage group ends on the problem cards' right edge (ticket 195): the row mirrors a problem row, its diagnostic column held by the chip's unseen footprint. The countdown that replaces the button grows leftward, pushing the pill and count for its minute, rather than a reserved gap before the button the rest of the time. */}
+      <div className="mt-3 flex items-center gap-4">
+        <div className="flex min-w-0 flex-1 items-center justify-between gap-10">
+          <H1>Where students went wrong</H1>
+          {stage && stage.done !== null && assignment.kind === "live" && (
+            <div className="flex items-center gap-3 text-[12.5px] leading-snug text-ink-muted" data-mistakes-stage={stage.id}>
+              <span className="rounded-lg bg-standout-soft px-3 py-1 font-display text-[16px] text-ink">{stage.word}</span>
+              <span data-stage-count>
+                <span className="tabular-nums">
+                  {stage.done}/{stage.total}
+                </span>{" "}
+                done
+              </span>
+              <ForceSubmit stage={stage.id} session={session} inline />
+            </div>
+          )}
+        </div>
+        {assignment.kind === "live" && <DiagnosticFootprint className="ml-5 shrink-0" />}
       </div>
 
       <div className="mt-10 space-y-6">

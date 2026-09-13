@@ -20,6 +20,26 @@ export const PROBLEM_HEADER = 69;
 /** The collapsed chip's top: centred on the problem card's header row beside it (1 px border, then the header, the chip 25 tall). */
 const CHIP_TOP = 1 + (PROBLEM_HEADER - 25) / 2;
 
+function ChipLabel({ open }: { open: boolean }) {
+  return (
+    <>
+      Live diagnostic
+      <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden className={`transition-transform ${open ? "rotate-90" : ""}`}>
+        <path d="M3 1.5 6.5 5 3 8.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </>
+  );
+}
+
+/** The chip's footprint, unseen: holds the chip's place while its flyout is open, and the diagnostic column's width in the mistake view's title row (ticket 195). */
+export function DiagnosticFootprint({ className = "", ...rest }: React.HTMLAttributes<HTMLSpanElement>) {
+  return (
+    <span className={`${CHIP} invisible ${className}`} aria-hidden {...rest}>
+      <ChipLabel open={false} />
+    </span>
+  );
+}
+
 /**
  * Keeps an open flyout inside the viewport: measured after it mounts, shifted left by however
  * much it would overrun the right edge (a 16 px margin kept). Rects are in window px while the
@@ -67,17 +87,9 @@ export default function DiagnosticPush({ example, problemId, className = "" }: {
 
   const push = (q: Diagnostic) => dispatchClassroom({ type: "diagnostic/push", questionId: q.id, question: q.id === example.id ? undefined : q });
 
-  const chipLabel = (
-    <>
-      Live diagnostic
-      <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden className={`transition-transform ${open ? "rotate-90" : ""}`}>
-        <path d="M3 1.5 6.5 5 3 8.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </>
-  );
   const chip = (
     <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className={`${CHIP} relative transition-colors hover:bg-accent-deep`} data-diag-toggle={problemId}>
-      {chipLabel}
+      <ChipLabel open={open} />
       {/* A badge on the corner, not in the row: the chip keeps its width, so the cards' right edges stay in line. */}
       {mine && !open && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 animate-pulse rounded-full bg-white ring-2 ring-accent" aria-hidden data-diag-waiting />}
     </button>
@@ -229,9 +241,7 @@ export default function DiagnosticPush({ example, problemId, className = "" }: {
       {/* A flex box, not a line box: an inline chip would sit a fraction lower on the text baseline than the card's flex row puts it. */}
       <div className="flex" style={{ paddingTop: CHIP_TOP }}>
         {open ? (
-          <span className={`${CHIP} invisible`} aria-hidden data-diag-footprint>
-            {chipLabel}
-          </span>
+          <DiagnosticFootprint data-diag-footprint />
         ) : (
           chip
         )}
