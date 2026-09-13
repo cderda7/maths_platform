@@ -4172,3 +4172,15 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Live can now hold a set nobody is individually working on, so the pulsing "live" line is not what every Live card shows; the tag says which. With more than one live set in review at once the pinned region grows by a card each (one class, one live set today).
 
 **Defense.** Live means the lesson is not over, which is how the teacher reads it; the stage model already says when it is over (`currentStageOf` null), so the rule is one expression with no new state.
+
+## 2026-09-13 · The student report's working opens in the side column, closed by any press outside it (ticket 233)
+
+**Decision.** On the student's report, a Q tile or a skill row shows its marked working in the right-hand column in place of the key and the reflection. The state is one value in the screen (`ReportWork`); a capturing document click closes it unless the press lands in the working's content, a tile, a skill row or Send. Send is never `disabled`: faded with no reflection, it closes the working and nudges (focus, accent ring, a line of text). `WorkPanel`'s per-problem block became `ProblemWork`, and `RowDrill` can hand the picked skill to its caller instead of opening work beneath.
+
+**Context.** The user asked for the report to fit without scrolling, for tiles to open a marked transcription, and, "as a rule", for working to take over the key and reflection column; a press elsewhere closes it, another tile or skill switches it, and the faded Send closes it and tells the student to write the reflection.
+
+**Alternatives considered.** *A modal or popover over the page*: covers the tiles and skills the student is meant to switch between. *Keep the work panel beneath the skills*: pushes the report off the screen, which is what the user asked to end. *A transparent backdrop to catch outside presses*: the press that switches to another tile would land on the backdrop, so switching would take two presses. *Keep Send `disabled`*: a disabled button receives no click, so it could not close the working or nudge.
+
+**Tradeoffs.** A document-level listener must name what keeps the working open (`KEEPS_WORK`); a future control that should keep it open needs adding there. The side column is 320 px, so long maths shrinks to fit (FitText) rather than wrap. Only the final lines show, not earlier attempts (Your working → has those).
+
+**Defense.** One place on screen for working, beside everything that opens it, keeps the report on one screen; the outside-press rule is the one the user specified, and the shared `ProblemWork` keeps the teacher's and the student's marked lines identical.

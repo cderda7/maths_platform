@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { RowDrill, textWidth, type ColumnBox } from "@/components/HierarchyDrill";
 import { DOT_COLOR, STATUS_WORD } from "@/components/Tag";
-import { categoryName, type CategoryId } from "@/data/taxonomy";
+import { categoryName, type CategoryId, type LeafId } from "@/data/taxonomy";
 import type { Problem, Status } from "@/data/types";
 import type { HierarchyResult } from "@/lib/hierarchy";
 
@@ -72,6 +72,8 @@ export default function SkillColumns({
   mode = "groups",
   locked = false,
   student = false,
+  pickedLeaf,
+  onPickLeaf,
 }: {
   result: HierarchyResult;
   lines: Record<string, string[]>;
@@ -81,6 +83,9 @@ export default function SkillColumns({
   locked?: boolean;
   /** The student's own report: student-facing skill names, no difficulty tags. */
   student?: boolean;
+  /** A picked skill's work shows elsewhere, not beneath the columns (ticket 233). */
+  pickedLeaf?: LeafId | null;
+  onPickLeaf?: (l: LeafId) => void;
 }) {
   const columns = result.columns;
   const names = columns.map((c) => categoryName(c).short);
@@ -135,7 +140,7 @@ export default function SkillColumns({
               );
             })}
           </div>
-          {boxes.length > 0 && <RowDrill mode={mode} result={result} lines={lines} problems={problems} columns={boxes} student={student} locked={locked} />}
+          {boxes.length > 0 && <RowDrill mode={mode} result={result} lines={lines} problems={problems} columns={boxes} student={student} locked={locked} pickedLeaf={pickedLeaf} onPickLeaf={onPickLeaf} />}
         </div>
       </div>
     </div>

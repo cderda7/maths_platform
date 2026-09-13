@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef, useLayoutEffect, useMemo, useRef, useState } from "react";
+import FitText from "@/components/FitText";
 import M from "@/components/Math";
 import { Eyebrow } from "@/components/ui";
 import { DifficultyTag, StatusDot, STATUS_TEXT, STATUS_WORD } from "@/components/Tag";
@@ -181,8 +182,86 @@ export const SkillTree = forwardRef<HTMLUListElement, TreeProps>(function SkillT
 
 /* ---------- the work behind a skill ---------- */
 
-/** The student's work on the problems that invoke a leaf: marked lines, a left rule on the lines tagged to that leaf, and a ⚠ chip on a red line whose mistake belongs to another skill. */
-export function WorkPanel({ leaf, lines, problems, status, wide, onGoTo, student = false }: { leaf: LeafId; lines: Record<string, string[]>; problems: Problem[]; status: Status; wide: boolean; onGoTo: (l: LeafId) => void; /** The student's own report: no difficulty tags. */ student?: boolean }) {
+/**
+ * One problem's marked transcription (the student's final lines): red on a step that didn't hold, blue on a
+ * curated standout, a left rule on lines tagged to `leaf` when there is one, and a ⚠ chip on a red line whose
+ * mistake belongs to another skill (a click opens that skill). `narrow` (the student report's side column,
+ * ticket 233) puts the problem under its label and fits each line to the column, since maths never splits.
+ */
+export function ProblemWork({ problem: p, texs, leaf = null, onGoTo, student = false, narrow = false }: { problem: Problem; texs: string[]; leaf?: LeafId | null; onGoTo: (l: LeafId) => void; student?: boolean; narrow?: boolean }) {
+  const marks = lineMarks(p.id, texs);
+  return (
+    <section className="rounded-xl border border-line bg-paper p-3" data-work-problem={p.id}>
+      <div className={narrow ? "min-w-0" : "flex items-center gap-2.5"}>
+        <span className="font-display text-[16px] text-ink">{p.label}</span>
+        {!student && <DifficultyTag d={p.difficulty} />}
+        {narrow ? (
+          <div className="mt-1 min-w-0 text-ink-soft">
+            <FitText max={13} fitKey={p.tex}>
+              <M tex={p.tex} />
+            </FitText>
+          </div>
+        ) : (
+          <span className="ml-auto text-[13px] text-ink-soft">
+            <M tex={p.tex} />
+          </span>
+        )}
+      </div>
+      {texs.length === 0 ? (
+        <p className="mt-2 text-[12.5px] text-ink-muted" data-not-attempted>
+          not attempted
+        </p>
+      ) : (
+        <ol className="mt-2 space-y-1.5">
+          {texs.map((tex, i) => {
+            const v = evaluateLine(p.id, tex);
+            const tagged = leaf !== null && v.verdict !== "unclear" && v.tags.some((t) => t.leaf === leaf);
+            const mark = marks[i];
+            const blamed = v.verdict === "wrong" && v.tags[0].leaf !== leaf ? v.tags[0].leaf : null;
+            return (
+              <li
+                key={i}
+                data-mark={mark ?? undefined}
+                data-tagged={tagged || undefined}
+                className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-lg border px-3 py-1.5 text-[14.5px] text-ink ${tagged ? "border-l-[3px] border-l-ink" : ""} ${
+                  mark === "wrong" ? "border-wrong-line bg-wrong-soft" : mark === "standout" ? "border-standout-line bg-standout-soft" : "border-line bg-cream/40"
+                }`}
+              >
+                {narrow ? (
+                  <span className="block w-full min-w-0">
+                    <FitText max={14.5} fitKey={tex}>
+                      <M tex={tex} />
+                    </FitText>
+                  </span>
+                ) : (
+                  <M tex={tex} />
+                )}
+                {blamed && (
+                  <button
+                    type="button"
+                    onClick={() => onGoTo(blamed)}
+                    className="flex shrink-0 items-center gap-1.5 rounded-full border border-wrong-line bg-paper px-2 py-0.5 text-[11.5px] text-wrong hover:bg-wrong-soft"
+                    title={`Identified as ${leafName(blamed).short}. Open that skill.`}
+                    data-blame={blamed}
+                  >
+                    <svg viewBox="0 0 16 16" className="h-3 w-3" aria-hidden>
+                      <path d="M8 1.5 15 14H1z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+                      <path d="M8 6v4M8 11.6v.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                    </svg>
+                    {(student ? studentLeafName(blamed) : leafName(blamed)).short}
+                  </button>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </section>
+  );
+}
+
+/** The student's work on the problems that invoke a leaf, one `ProblemWork` each. `wide` lays them in three columns, `narrow` in one. */
+export function WorkPanel({ leaf, lines, problems, status, wide, onGoTo, student = false, narrow = false }: { leaf: LeafId; lines: Record<string, string[]>; problems: Problem[]; status: Status; wide: boolean; onGoTo: (l: LeafId) => void; /** The student's own report: no difficulty tags. */ student?: boolean; narrow?: boolean }) {
   const invoking = problemsForLeaf(leaf, problems);
   return (
     <div className={wide ? "w-full" : "min-w-0 flex-1"} data-col="work" data-leaf={leaf}>
@@ -190,63 +269,10 @@ export function WorkPanel({ leaf, lines, problems, status, wide, onGoTo, student
         <Eyebrow>{(student ? studentLeafName(leaf) : leafName(leaf)).name}</Eyebrow>
         <span className={`text-[11.5px] ${STATUS_TEXT[status]}`}>{STATUS_WORD[status]}</span>
       </div>
-      <div className={`mt-2 grid gap-3 ${wide ? "grid-cols-3" : "grid-cols-2"}`}>
-        {invoking.map((p) => {
-          const texs = lines[p.id] ?? [];
-          const marks = lineMarks(p.id, texs);
-          return (
-            <section key={p.id} className="rounded-xl border border-line bg-paper p-3" data-work-problem={p.id}>
-              <div className="flex items-center gap-2.5">
-                <span className="font-display text-[16px] text-ink">{p.label}</span>
-                {!student && <DifficultyTag d={p.difficulty} />}
-                <span className="ml-auto text-[13px] text-ink-soft">
-                  <M tex={p.tex} />
-                </span>
-              </div>
-              {texs.length === 0 ? (
-                <p className="mt-2 text-[12.5px] text-ink-muted" data-not-attempted>
-                  not attempted
-                </p>
-              ) : (
-                <ol className="mt-2 space-y-1.5">
-                  {texs.map((tex, i) => {
-                    const v = evaluateLine(p.id, tex);
-                    const tagged = v.verdict !== "unclear" && v.tags.some((t) => t.leaf === leaf);
-                    const mark = marks[i];
-                    const blamed = v.verdict === "wrong" && v.tags[0].leaf !== leaf ? v.tags[0].leaf : null;
-                    return (
-                      <li
-                        key={i}
-                        data-mark={mark ?? undefined}
-                        data-tagged={tagged || undefined}
-                        className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border px-3 py-1.5 text-[14.5px] text-ink ${tagged ? "border-l-[3px] border-l-ink" : ""} ${
-                          mark === "wrong" ? "border-wrong-line bg-wrong-soft" : mark === "standout" ? "border-standout-line bg-standout-soft" : "border-line bg-cream/40"
-                        }`}
-                      >
-                        <M tex={tex} />
-                        {blamed && (
-                          <button
-                            type="button"
-                            onClick={() => onGoTo(blamed)}
-                            className="flex shrink-0 items-center gap-1.5 rounded-full border border-wrong-line bg-paper px-2 py-0.5 text-[11.5px] text-wrong hover:bg-wrong-soft"
-                            title={`Identified as ${leafName(blamed).short}. Open that skill.`}
-                            data-blame={blamed}
-                          >
-                            <svg viewBox="0 0 16 16" className="h-3 w-3" aria-hidden>
-                              <path d="M8 1.5 15 14H1z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-                              <path d="M8 6v4M8 11.6v.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                            </svg>
-                            {leafName(blamed).short}
-                          </button>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ol>
-              )}
-            </section>
-          );
-        })}
+      <div className={`mt-2 grid gap-3 ${narrow ? "grid-cols-1" : wide ? "grid-cols-3" : "grid-cols-2"}`}>
+        {invoking.map((p) => (
+          <ProblemWork key={p.id} problem={p} texs={lines[p.id] ?? []} leaf={leaf} onGoTo={onGoTo} student={student} narrow={narrow} />
+        ))}
       </div>
     </div>
   );
@@ -280,6 +306,8 @@ export function RowDrill({
   onNavigate,
   student = false,
   locked = false,
+  pickedLeaf,
+  onPickLeaf,
 }: {
   mode: RowMode;
   result: HierarchyResult;
@@ -295,12 +323,17 @@ export function RowDrill({
   student?: boolean;
   /** No group opens or closes; the mode's initial state is the whole view. */
   locked?: boolean;
+  /** The picked skill, held by the caller, who shows its work elsewhere: nothing opens beneath (the student's report, ticket 233). */
+  pickedLeaf?: LeafId | null;
+  onPickLeaf?: (l: LeafId) => void;
 }) {
   const allGroups = useMemo(() => result.columns.flatMap((c) => groupsOf(c).filter((g) => result.groups[g] !== undefined)), [result]);
   const [openGroups, setOpenGroups] = useState<GroupId[]>(() =>
     mode === "expanded" ? allGroups : expandAll && category ? allGroups.filter((g) => categoryOf(g) === category) : initialLeaf ? [groupOf(initialLeaf)] : [],
   );
-  const [leaf, setLeaf] = useState<LeafId | null>(initialLeaf);
+  const [ownLeaf, setLeaf] = useState<LeafId | null>(initialLeaf);
+  const outside = onPickLeaf !== undefined;
+  const leaf = outside ? (pickedLeaf ?? null) : ownLeaf;
   const rootRef = useRef<HTMLDivElement>(null);
   const treeRef = useRef<HTMLUListElement>(null);
   const [below, setBelow] = useState(mode !== "category");
@@ -321,7 +354,7 @@ export function RowDrill({
     setOpenGroups((os) => (os.includes(g) ? os.filter((x) => x !== g) : [...os, g]));
     setLeaf(null);
   };
-  const pickLeaf = (l: LeafId) => setLeaf(leaf === l ? null : l);
+  const pickLeaf = (l: LeafId) => (outside ? onPickLeaf(l) : setLeaf(leaf === l ? null : l));
   const goTo = (target: LeafId) => {
     if (mode === "category" && category && columnOf(target, result.newSkills) !== category) {
       onNavigate?.(target);
@@ -350,7 +383,7 @@ export function RowDrill({
           <SkillTree key={c.category} category={c.category} result={result} openGroups={openGroups} leaf={leaf} onGroup={toggleGroup} onLeaf={pickLeaf} width={c.width} student={student} lockGroups={locked} />
         ))}
       </div>
-      {leaf && <WorkPanel leaf={leaf} lines={lines} problems={problems} status={result.leaves[leaf]!} wide onGoTo={goTo} student={student} />}
+      {leaf && !outside && <WorkPanel leaf={leaf} lines={lines} problems={problems} status={result.leaves[leaf]!} wide onGoTo={goTo} student={student} />}
     </div>
   );
 }

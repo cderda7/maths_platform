@@ -3081,6 +3081,14 @@ uploaded problems) settled the following as later, each on purpose.
   one class or overlapping sets it may need a cap or to stop pinning past the first. Deferred: one class,
   one live set.
 
+## Report working in the side column (ticket 233, 2026-09-13)
+
+- **Earlier attempts in the side column.** A tile shows the problem's final lines only. Handed in vs reworked (as the group debrief shows) or a Compare like Your working's would tell the rework story; deferred to keep the column simple.
+- **A visible close control.** The working closes on a press elsewhere, Escape, or the same tile again; there is no × in the column. Add one if students don't find the outside press.
+- **Fixed height budget.** The report fits because the live set's skill tree is about 420 px tall. A created set with many more skills could overflow again; a compact skills layout (two rows of categories) would be the fallback.
+- **The demo strip overlaps the device's bottom edge.** "Skip to" sits over the stage's last ~30 px at 1440 × 900. It is presenter chrome, but content near the bottom (What happened on a tall run) comes within a few pixels of it.
+- **Nudge persistence.** After Send's nudge, clearing a written reflection shows the accent border and note again until text returns. Resetting the nudge on the first keystroke would be quieter.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
