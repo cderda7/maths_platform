@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { classroomReducer, INITIAL_CLASSROOM, migrateClassroom, type ClassroomAction, type ClassroomState } from "./classroom";
 import { activeAssignment, type ActiveAssignment } from "./assignment";
+import type { ChainAction } from "./diagnosticChain";
 
 /**
  * The classroom store: teacher-owned state shared between every tab on this machine, same shape
@@ -72,9 +73,12 @@ export function setClassroom(next: ClassroomState) {
   emit();
 }
 
+const isChainAction = (a: ClassroomAction): a is ChainAction => a.type.startsWith("diagnostic/");
+
 export function dispatchClassroom(action: ClassroomAction) {
+  // Every diagnostic chain action carries its moment (ticket 241): a step's close is derived from them.
   const stamped: ClassroomAction =
-    action.type === "assignment/create" || action.type === "advance/start" || action.type === "wc/project" || action.type === "group/check" || action.type === "group/scripted" || action.type === "diagnostic/push"
+    action.type === "assignment/create" || action.type === "advance/start" || action.type === "wc/project" || action.type === "group/check" || action.type === "group/scripted" || isChainAction(action)
       ? { ...action, at: action.at ?? Date.now() }
       : action;
   setClassroom(classroomReducer(getClassroom(), stamped));

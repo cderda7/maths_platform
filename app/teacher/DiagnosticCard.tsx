@@ -2,27 +2,28 @@
 
 import Link from "next/link";
 import { assignmentHref, LIVE_ASSIGNMENT_ID } from "@/lib/assignments";
+import DiagnosticControl from "@/components/DiagnosticControl";
 import DiagnosticResults from "@/components/DiagnosticResults";
 import { Card, Eyebrow } from "@/components/ui";
-import { boardDiagnostic, latestDiagnostic, questionFor, tally } from "@/lib/diagnostic";
+import { liveDiagnostic, questionFor, tally } from "@/lib/diagnostic";
+import { chainPosition, currentIndex } from "@/lib/diagnosticChain";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { useNow } from "@/lib/store";
 
 export const DIAGNOSTIC_CHIP = "inline-flex items-center gap-1.5 rounded-md bg-accent px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-white";
 
 /**
- * The class view's diagnostic card (ticket 137). Nothing sent yet: a white box with the chip, a
- * link to the mistake view where questions are chosen and sent. Once a question is out it shows
- * the latest one's result and stays that way: the question, each option with its count and its
- * misconception, the right one green; while the class is still answering, a pulsing count and
- * Withdraw. "show on board" from the first answer, "clear board" while the board has it (by hand
- * or on its own at 20/20).
+ * The class view's diagnostic card (ticket 137). No chain out: a white box with the chip, a link to the mistake view where
+ * steps are chosen and sent. While a chain is out (ticket 241) it shows the current step only, never an earlier or a later
+ * one: "1st of 3" on a longer chain, how many have answered, the question and its live result grid (each option's count and
+ * misconception, the right one green from the push), Withdraw, and the teacher's one control (force submit, next step,
+ * back to work). Back to work or a withdraw returns it to the empty box.
  */
 export default function DiagnosticCard({ className = "" }: { className?: string }) {
   const classroom = useClassroom();
   const now = useNow();
-  const run = latestDiagnostic(classroom);
-  const question = run && questionFor(run.questionId);
+  const run = liveDiagnostic(classroom);
+  const question = run && questionFor(run.steps[currentIndex(run)]);
   if (!run || !question)
     return (
       <Link href={assignmentHref(LIVE_ASSIGNMENT_ID, "mistakes")} className={`block ${className}`} data-diagnostic-card="empty">
@@ -33,37 +34,33 @@ export default function DiagnosticCard({ className = "" }: { className?: string 
       </Link>
     );
   const t = tally(run, now);
-  const open = run.answer === undefined;
-  const onBoard = boardDiagnostic(classroom, now) === run;
+  const position = chainPosition(run);
   return (
-    <Card className={`p-6 ${className}`} data-diagnostic-card={open ? "open" : "done"}>
-      <div className="flex items-center justify-between">
-        <Eyebrow className={DIAGNOSTIC_CHIP}>Live diagnostic</Eyebrow>
-        <span className="flex items-center gap-2 text-[12.5px] text-ink-soft" data-diag-status>
-          {open && <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />}
-          {t.answered}/{t.total} {open ? "in" : "answered"}
+    <Card className={`p-6 ${className}`} data-diagnostic-card={t.revealed ? "revealed" : "open"} data-step={question.id}>
+      <div className="flex items-center justify-between gap-3">
+        <Eyebrow className={`${DIAGNOSTIC_CHIP} shrink-0 whitespace-nowrap`}>Live diagnostic</Eyebrow>
+        <span className="flex items-center gap-2 whitespace-nowrap text-[12.5px] text-ink-soft" data-diag-status>
+          {!t.revealed && <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />}
+          <span data-diag-answered>
+            <span className="tabular-nums">
+              {t.answered}/{t.total}
+            </span>{" "}
+            answered
+          </span>
         </span>
       </div>
-      <DiagnosticResults question={question} tally={t} className="mt-3" />
-      <div className="mt-3 flex items-center justify-between text-[12.5px]">
-        <span>
-          {open && (
-            <button type="button" className="text-accent-deep hover:underline" onClick={() => dispatchClassroom({ type: "diagnostic/withdraw" })} data-diag-withdraw>
-              Withdraw
-            </button>
-          )}
-        </span>
-        {onBoard ? (
-          <button type="button" className="text-accent-deep hover:underline" onClick={() => dispatchClassroom({ type: "diagnostic/board", on: false })} data-diag-board="clear">
-            clear board
-          </button>
-        ) : (
-          t.answered > 0 && (
-            <button type="button" className="text-accent-deep hover:underline" onClick={() => dispatchClassroom({ type: "diagnostic/board", on: true })} data-diag-board="show">
-              show on board
-            </button>
-          )
-        )}
+      {/* Where the step is in a longer chain, on its own line above the question (ticket 242 puts the problem's label beside it). */}
+      {position && (
+        <Eyebrow className="mt-3">
+          <span data-chain-position>{position}</span>
+        </Eyebrow>
+      )}
+      <DiagnosticResults question={question} tally={t} className={position ? "mt-1.5" : "mt-3"} />
+      <div className="mt-3 flex min-h-[26px] items-center justify-between text-[12.5px]">
+        <button type="button" className="text-accent-deep hover:underline" onClick={() => dispatchClassroom({ type: "diagnostic/withdraw" })} data-diag-withdraw>
+          Withdraw
+        </button>
+        <DiagnosticControl size="card" />
       </div>
     </Card>
   );

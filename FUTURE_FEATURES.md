@@ -3195,6 +3195,18 @@ uploaded problems) settled the following as later, each on purpose.
 - **A notes line that cannot grow.** A live run with several practices wraps the confidence and practice line beside What happened, adding a line to the card. Deferred: the demo's runs fit; truncating with the full text on hover is the fallback.
 - **The key's two lists on a narrower column** would wrap "no evidence yet"; the right column is fixed at 440 px today. Deferred: nothing narrower exists.
 
+## Paced diagnostic chains (ticket 241, 2026-09-14)
+
+- **Anonymous per-option counts on the board at the reveal.** Deferred: a lone student on a wrong option ("1/20 answered this way") could be embarrassed in front of the class. Could come back with a minimum count per option, or as percentages.
+- **Going back a step in a chain.** Deferred by the user: the chain only moves forward (next step, back to work).
+- **Withdraw from the board.** The board carries the one control only; Withdraw stays on the laptop (flyout and class card). Deferred: withdrawing is a teacher-side correction, not something to do in front of the class; add it if teachers stand at the board through a chain.
+- **The class card keeping the last chain's result after back to work.** It returns to the empty "Live diagnostic → Mistakes" box; the results stay in the Mistakes flyout per step. Deferred: the class card shows only what is running; a "last chain" summary could come back.
+- **A chain across several problems.** A chain is chosen in one problem's flyout; selections do not carry to another problem's flyout. Deferred: the agreed flow selects steps within a flyout.
+- **Labels for the chain's later steps in the flyout ("up next").** The chain's steps keep their tick and the current one carries the band; later steps show their question. Deferred: not agreed, the tick already marks them.
+- **Auto-advance or a discussion timer between steps.** The teacher moves on by hand. Deferred: the user wants a teacher-led discussion.
+- **A shared clock across devices.** Reveals and refusals use each tab's own `Date.now()`, fine on one machine. Deferred: real devices would need a server time.
+- **Stage timers pausing during a chain.** Only the classmates' work stream pauses; stage graces and group review timers run on. Deferred by the ticket.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

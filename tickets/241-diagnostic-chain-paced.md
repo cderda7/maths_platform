@@ -4,7 +4,7 @@
 
 **Blocked by:** 240.
 
-**Status:** todo
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -58,7 +58,16 @@ The user (2026-09-14), in the grilling session after 240's step questions were a
 
 ## Acceptance
 
-- [ ] Unit: the reducer walks a three-step chain push → answer → reveal → next → … → end; answers and force submit are refused outside their phase; a second push is refused while a chain is out; withdraw clears it.
-- [ ] Unit: reveal only when all 20 have answered; force submit closes at 10 s, the totals leave out non-responders, cancel restores answering; the stream clock excludes chain time.
-- [ ] Click-through at 1280×800 and 1440×900, three tabs (teacher, board, Sam's iPad), on a production build: select steps 3 and 1 and the chain runs 1 then 3 with "1st of 2"/"2nd of 2"; the board and iPad show no counts and no green before the reveal; Sam's pick locks neutral; green appears on the board and iPad when the 20th answer lands and Sam's own pick loses its highlight; **next step** from the board advances the laptop and the iPad, and **next step** from the laptop advances the board; force submit counts down 10 s, cancel works, and at zero the totals read /19 without Sam; **back to work** returns the iPad to Sam's working and the board to its previous screen; Mistakes rows do not grow during the chain and resume after; the class card shows only the current step.
-- [ ] vitest, eslint, tsc, next build, check:laptop
+- [x] Unit: the reducer walks a three-step chain push → answer → reveal → next → … → end; answers and force submit are refused outside their phase; a second push is refused while a chain is out; withdraw clears it.
+- [x] Unit: reveal only when all 20 have answered; force submit closes at 10 s, the totals leave out non-responders, cancel restores answering; the stream clock excludes chain time.
+- [x] Click-through at 1280×800 and 1440×900, three tabs (teacher, board, Sam's iPad), on a production build: select steps 3 and 1 and the chain runs 1 then 3 with "1st of 2"/"2nd of 2"; the board and iPad show no counts and no green before the reveal; Sam's pick locks neutral; green appears on the board and iPad when the 20th answer lands and Sam's own pick loses its highlight; **next step** from the board advances the laptop and the iPad, and **next step** from the laptop advances the board; force submit counts down 10 s, cancel works, and at zero the totals read /19 without Sam; **back to work** returns the iPad to Sam's working and the board to its previous screen; Mistakes rows do not grow during the chain and resume after; the class card shows only the current step.
+- [x] vitest, eslint, tsc, next build, check:laptop
+
+## Done (2026-09-14)
+
+- **Numbers.** vitest 784 (18 new chain tests in `lib/diagnostic.test.ts`, 3 in `lib/stream.test.ts`; ticket 137's board and one-question tests replaced), eslint clean, tsc clean, next build, check:laptop 62/62, sweep:hint-boxes 132/132. Click-through `chain241.mjs` 104/104 checks at 1280×800 and 1440×900 on a production build, three tabs (teacher, board, Sam's iPad).
+- **Run state.** `lib/diagnosticChain.ts` stores moments only (steps, when each opened, Sam's pick and when, when force submit was pressed, when the chain ended); a step's close is derived: the twentieth answer or force submit plus 10 s, whichever is first. Nothing is written at a reveal, so every tab agrees and a reload replays nothing (DECISION_LOG 2026-09-14). A withdrawn chain is kept, flagged, so its time still pauses the stream; its results show nowhere.
+- **Where things sit.** Flyout: step cards take an accent border and a corner tick; `send N to class` under the stack (off at zero and while a chain is out); the chain's steps keep their tick while it runs, each opened step shows its live grid, the current one a band (`1st of 2 · 14/20 answered` and the control) with Withdraw on its own line beneath (the countdown and Withdraw did not fit one line at 460 px). Class card: `1ST OF 3` on its own line above the question, `n/20 answered` beside the chip, Withdraw left and the control right under the grid; back to work or a withdraw returns it to the empty box. Board: `1st of 2` and `14/20 answered` in the header, the control at the bottom right, no Withdraw. iPad: `1ST OF 2` in the eyebrow row, the status line's height held under the options.
+- **The iPad shows a chain over every screen**, whole-class review's frozen screen included (the old modal hid there): the board takes over during a chain, so the students follow it.
+- **Old stored runs** (one question each) read as ended chains of one.
+- **Also fixed.** The board and iPad stems balance their lines, so a lone "12?" no longer sits on a line of its own.

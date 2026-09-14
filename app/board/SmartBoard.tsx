@@ -1,6 +1,7 @@
 "use client";
 
 import Brand from "@/components/Brand";
+import DiagnosticControl from "@/components/DiagnosticControl";
 import DiagnosticResults from "@/components/DiagnosticResults";
 import ExampleColumns from "@/components/ExampleColumns";
 import M from "@/components/Math";
@@ -21,7 +22,7 @@ import Leaderboard from "./Leaderboard";
  * takes the pen there (mirrored to frozen students and to the laptop) and a toggle switches the
  * students' screens between frozen and write with me. What it shows per stage is `boardContent`;
  * this file only draws it. Nothing here names a student or shows a difficulty. A live diagnostic
- * (ticket 137) takes the whole board once the class has answered, or when the teacher puts it up.
+ * chain (ticket 241) takes the whole board from the push until back to work, with the teacher's one control.
  */
 export default function SmartBoard() {
   const classroom = useClassroom();
@@ -56,9 +57,10 @@ function Blank({ content }: { content: BoardContent }) {
 }
 
 /**
- * The live diagnostic's result: the question and each option with its count, the right one
- * green, "x/20 students answered this" in the header (a pulse while some are still to come, when
- * the teacher has put it up early). No misconception wording: that is the teacher's reading.
+ * A live diagnostic chain's current step (ticket 241): the question and its options, "1st of 3" on a longer chain and
+ * "14/20 answered" in the header (a pulse while answers are still coming in), the right option green once the step is
+ * revealed, and the teacher's one control at the bottom right (force submit, next step, back to work). Never a count per
+ * option, a name or a misconception.
  */
 function DiagnosticSlide({ content }: { content: Extract<BoardContent, { kind: "diagnostic" }> }) {
   const { tally: t } = content;
@@ -71,14 +73,29 @@ function DiagnosticSlide({ content }: { content: Extract<BoardContent, { kind: "
             {content.title}
           </span>
         </div>
-        <span className="flex items-center gap-3 font-display text-[30px] leading-none text-ink" data-board-answered={t.answered}>
-          {!t.complete && <span className="h-3 w-3 animate-pulse rounded-full bg-accent" aria-hidden />}
-          {t.answered}/{t.total} students answered this
+        <span className="flex items-center gap-6 font-display text-[30px] leading-none text-ink">
+          {content.position && (
+            <span className="text-ink-muted" data-chain-position>
+              {content.position}
+            </span>
+          )}
+          <span className="flex items-center gap-3" data-board-answered={t.answered}>
+            {!t.revealed && <span className="h-3 w-3 animate-pulse rounded-full bg-accent" aria-hidden />}
+            <span>
+              <span className="tabular-nums">
+                {t.answered}/{t.total}
+              </span>{" "}
+              answered
+            </span>
+          </span>
         </span>
       </header>
-      <main className="grid min-h-0 flex-1 place-items-center px-10 pb-10">
+      <main className="grid min-h-0 flex-1 place-items-center px-10">
         <DiagnosticResults question={content.question} tally={t} size="board" className="w-full max-w-[1100px]" />
       </main>
+      <footer className="flex h-24 shrink-0 items-center justify-end px-10" data-board-chain-footer>
+        <DiagnosticControl size="board" />
+      </footer>
     </>
   );
 }

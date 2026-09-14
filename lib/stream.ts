@@ -9,7 +9,8 @@ import type { StudentSession } from "./session";
  * went live, one problem submission at a time, on the script in `data/stream.ts`. Everything here
  * is a pure function of the classmates' records, the set's problems, the start time and `now`, so a
  * reload continues where the stream was, every tab agrees, and a start an hour back (a presenter
- * skip) is the end state. See DECISION_LOG.md, 2026-09-13 (the live stream).
+ * skip) is the end state. See DECISION_LOG.md, 2026-09-13 (the live stream). While a live diagnostic chain is out
+ * (ticket 241) the classmates' clock stands still and picks up where it left off (`streamElapsed`).
  *
  * A classmate's record (`data/classmates.ts`) is what they have handed in at the end; at a moment
  * before that the teacher sees the part of it they have answered (`recordAt`): the first `answered`
@@ -125,11 +126,46 @@ export function recordAt(m: Classmate, problems: readonly Problem[], st: StreamS
 /** Whether the live student has handed the set in: the class is past individual working and the stream is over. */
 export const streamOver = (session: StudentSession | null): boolean => !!session && !BEFORE_HAND_IN_STAGES.includes(session.stage);
 
-/** A set as the stream reads it: its problems, its classmates, and when it went live (null or absent: a fixed set, no stream). */
+/** A stretch of wall time the stream stood still: a diagnostic chain from its push to its end (`to` null: still out). */
+export interface StreamPause {
+  from: number;
+  to: number | null;
+}
+
+/** A set as the stream reads it: its problems, its classmates, when it went live (null or absent: a fixed set, no stream), and when it stood still. */
 export interface StreamSet {
   problems: readonly Problem[];
   classmates: readonly Classmate[];
   startedAt?: number | null;
+  /** The live diagnostic chains (ticket 241): the classmates put their work down while one is out and pick it up where they left off. */
+  pauses?: readonly StreamPause[];
+}
+
+/** A pause's stretch after the set went live and before `now` (a pause still open runs to `now`), or null when it has none. */
+function clipped(p: StreamPause, start: number, now: number): [number, number] | null {
+  const from = Math.max(p.from, start);
+  const to = Math.min(p.to ?? now, now);
+  return to > from ? [from, to] : null;
+}
+
+/** The stream's own clock (ticket 241): ms of working since the set went live at `now`, the time inside diagnostic chains left out. */
+export function streamElapsed(start: number, pauses: readonly StreamPause[], now: number): number {
+  const paused = pauses.reduce((sum, p) => {
+    const span = clipped(p, start, now);
+    return sum + (span ? span[1] - span[0] : 0);
+  }, 0);
+  return now - start - paused;
+}
+
+/** The wall moment the stream's clock reaches `t` ms, as known at `now`: the set's start plus `t`, pushed back by every pause that began before it. */
+export function wallAt(start: number, pauses: readonly StreamPause[], t: number, now: number): number {
+  let wall = start + t;
+  for (const p of [...pauses].sort((a, b) => a.from - b.from)) {
+    const span = clipped(p, start, Math.max(now, p.to ?? now));
+    if (!span || span[0] >= wall) continue;
+    wall += span[1] - span[0];
+  }
+  return wall;
 }
 
 export interface ClassmateNow {
@@ -160,12 +196,13 @@ export function classmatesAt(set: StreamSet, session: StudentSession | null, now
     });
   }
   const over = streamOver(session);
+  const pauses = set.pauses ?? [];
   return set.classmates.map((m) => {
     const s = scheduleFor(m, set.problems);
     const final = finalState(s);
-    const state = over ? { ...final, submitted: s.starts } : stateAt(s, now - start);
-    const answeredAt: Record<string, number> = Object.fromEntries(s.answeredAt.map((t, i) => [set.problems[i].id, start + t]));
-    const handIn = start + (s.submitAt ?? s.answeredAt[s.answeredAt.length - 1] ?? 0);
+    const state = over ? { ...final, submitted: s.starts } : stateAt(s, streamElapsed(start, pauses, now));
+    const answeredAt: Record<string, number> = Object.fromEntries(s.answeredAt.map((t, i) => [set.problems[i].id, wallAt(start, pauses, t, now)]));
+    const handIn = wallAt(start, pauses, s.submitAt ?? s.answeredAt[s.answeredAt.length - 1] ?? 0, now);
     for (const id of m.wrong) if (!(id in answeredAt)) answeredAt[id] = handIn;
     return { record: recordAt(m, set.problems, state), progress: classmateProgress(m, set.problems, state), state, answeredAt };
   });

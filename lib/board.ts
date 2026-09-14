@@ -3,7 +3,8 @@ import type { Diagnostic } from "@/data/diagnostic";
 import type { Problem, Stage, Stroke } from "@/data/types";
 import { activeAssignment } from "./assignment";
 import { currentSlide, pathwayOf, type BoardView, type ClassroomState, type FollowMode } from "./classroom";
-import { boardDiagnostic, questionFor, tally, type Tally } from "./diagnostic";
+import { liveDiagnostic, questionFor, tally, type Tally } from "./diagnostic";
+import { chainPosition, currentIndex, isLastStep, type DiagnosticRun } from "./diagnosticChain";
 import { boardExamples, type BoardExample } from "./examples";
 import { nextStage } from "./pathway";
 import type { StudentSession } from "./session";
@@ -25,9 +26,11 @@ import { leaderboardAt, type RankedStanding } from "./standings";
  *  - `whole-class` while the teacher is projecting: the current problem, its anonymous examples
  *    with "n/m students" (marks only in the marked view), the teacher's working (a pad the
  *    teacher writes on at the board, or a mirror of the laptop's) and the students' mode.
- *  - `diagnostic` over any of those (ticket 137): the latest live diagnostic once all twenty
- *    have answered, or when the teacher has put it up by hand, until cleared or replaced. The
- *    question, each option with its count, the right one marked; no names, no misconceptions.
+ *  - `diagnostic` over any of those while a live diagnostic chain is out (ticket 241): the board
+ *    takes over at the push and shows the current step, "1st of 3" on a longer chain and how many
+ *    have answered, the right option green only once the step has closed (all in, or force
+ *    submit), and the teacher's one control. Never a count per option, a name or a
+ *    misconception. Back to work (or a withdraw) gives the board back to whatever it showed.
  *
  * The run on the classroom is the class's clock for group review; the demo student's session
  * still says when their group review is over (the pathway's next stage), which is the holding
@@ -42,7 +45,15 @@ interface Lesson {
 
 export type BoardContent =
   | ({ kind: "blank" } & Lesson)
-  | ({ kind: "diagnostic"; question: Diagnostic; tally: Tally } & Lesson)
+  | ({
+      kind: "diagnostic";
+      run: DiagnosticRun;
+      question: Diagnostic;
+      tally: Tally;
+      /** "1st of 3", or null on a chain of one. */
+      position: string | null;
+      last: boolean;
+    } & Lesson)
   | ({ kind: "group"; standings: RankedStanding[] } & Lesson)
   | ({ kind: "holding"; standings: RankedStanding[] } & Lesson)
   | ({
@@ -72,9 +83,9 @@ function groupReviewOver(c: ClassroomState | null | undefined, session: StudentS
 /** `now` drives the scripted race; 0 (the server, before the first tick) reads as the start. */
 export function boardContent(c: ClassroomState | null | undefined, session: StudentSession | null, now = 0): BoardContent {
   const lesson: Lesson = { className: ASSIGNMENT.className, title: activeAssignment(c).title };
-  const run = boardDiagnostic(c, now);
-  const question = run && questionFor(run.questionId);
-  if (run && question) return { kind: "diagnostic", ...lesson, question, tally: tally(run, now) };
+  const run = liveDiagnostic(c);
+  const question = run && questionFor(run.steps[currentIndex(run)]);
+  if (run && question) return { kind: "diagnostic", ...lesson, run, question, tally: tally(run, now), position: chainPosition(run), last: isLastStep(run) };
   const slide = currentSlide(c);
   if (slide) {
     const problem = PROBLEM_MAP[slide.problemId];

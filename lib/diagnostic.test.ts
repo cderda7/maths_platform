@@ -3,8 +3,9 @@ import { PROBLEMS } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
 import { DIAGNOSTIC_MAP, FALLBACK_STEP, PROBLEM_DIAGNOSTICS, type DiagnosticOption, type DiagnosticStep } from "@/data/diagnostic";
 import { boardContent } from "./board";
-import { classroomReducer, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
-import { arrivesAt, boardDiagnostic, CLASS_SIZE, classmatePick, isCorrect, latestDiagnostic, openDiagnostic, questionFor, runFor, slippedAt, stepsFor, tally, TRICKLE_FROM_MS, TRICKLE_TO_MS } from "./diagnostic";
+import { classroomReducer, INITIAL_CLASSROOM, migrateClassroom, type ClassroomState } from "./classroom";
+import { arrivesAt, CLASS_SIZE, classmatePick, isCorrect, latestDiagnostic, liveDiagnostic, questionFor, runFor, slippedAt, stepsFor, tally, TRICKLE_FROM_MS, TRICKLE_TO_MS } from "./diagnostic";
+import { chainPauses, chainPosition, closedAt, currentIndex, DIAGNOSTIC_FORCE_MS, forceDeadline, inSolutionOrder, isRevealed, migrateRun, ordinal, type DiagnosticRun } from "./diagnosticChain";
 import { evaluateLine } from "./evaluate";
 import { mistakeKey, mistakesByProblem } from "./mistakes";
 import { sessionAt } from "./session";
@@ -394,19 +395,25 @@ describe("diagnostic correctness", () => {
 });
 
 const T0 = 1_700_000_000_000;
-const push = (c: ClassroomState, questionId: string, at = T0) => classroomReducer(c, { type: "diagnostic/push", questionId, at });
+type Act = Parameters<typeof classroomReducer>[1];
+const act = (c: ClassroomState, a: Act) => classroomReducer(c, a);
+const push = (c: ClassroomState, steps: string[], at = T0) => act(c, { type: "diagnostic/push", steps, at });
 const Q3 = "d-q3-expand";
 const Q5 = "d-q5-intercepts";
+const Q1 = ["d-q1-pair", "d-q1-factorise", "d-q1-zeros"];
+/** The moment the last classmate's answer lands on a step opened at `at`. */
+const allIn = (at: number) => at + TRICKLE_TO_MS;
+const run = (c: ClassroomState) => c.diagnostics![c.diagnostics!.length - 1];
 
-describe("the class's answers (ticket 137)", () => {
-  const run = push(INITIAL_CLASSROOM, Q3).diagnostics![0];
+describe("the class's answers (tickets 137, 241)", () => {
+  const chain = run(push(INITIAL_CLASSROOM, [Q3]));
 
   it("twenty answer: the demo student and the nineteen classmates", () => {
     expect(CLASS_SIZE).toBe(20);
     expect(CLASSMATES.length).toBe(19);
   });
 
-  it("the classmates' answers land spread between 1.5 and 8 seconds after the push, no two at once, in a fixed order", () => {
+  it("the classmates' answers land spread between 1.5 and 8 seconds after the step opens, no two at once, in a fixed order", () => {
     const times = CLASSMATES.map((_, i) => arrivesAt(i));
     expect(Math.min(...times)).toBe(TRICKLE_FROM_MS);
     expect(Math.max(...times)).toBe(TRICKLE_TO_MS);
@@ -416,130 +423,269 @@ describe("the class's answers (ticket 137)", () => {
   });
 
   it("the tally at the push is empty, climbs as the classmates land, and is complete only with the demo student's answer", () => {
-    const t0 = tally(run, T0);
-    expect(t0.answered).toBe(0);
-    expect(t0.total).toBe(20);
+    const t0 = tally(chain, T0);
+    expect(t0).toMatchObject({ answered: 0, total: 20, revealed: false });
     expect(Object.keys(t0.counts).sort()).toEqual(["a", "b", "c", "d"]);
     expect(Object.values(t0.counts).every((n) => n === 0)).toBe(true);
-    const mid = tally(run, T0 + (TRICKLE_FROM_MS + TRICKLE_TO_MS) / 2);
+    const mid = tally(chain, T0 + (TRICKLE_FROM_MS + TRICKLE_TO_MS) / 2);
     expect(mid.answered).toBeGreaterThan(0);
     expect(mid.answered).toBeLessThan(19);
-    const late = tally(run, T0 + TRICKLE_TO_MS);
-    expect(late.answered).toBe(19);
-    expect(late.complete).toBe(false);
+    const late = tally(chain, allIn(T0));
+    expect(late).toMatchObject({ answered: 19, total: 20, complete: false, revealed: false });
     // Q3's first step: Tomas, Zara, Liam, Noah and Oliver on the null factor law, Harper's sign, thirteen right.
     expect(late.counts).toEqual({ a: 5, b: 1, c: 0, d: 13 });
-    const answered = classroomReducer(push(INITIAL_CLASSROOM, Q3), { type: "diagnostic/answer", option: "d" }).diagnostics![0];
-    const done = tally(answered, T0 + TRICKLE_TO_MS);
-    expect(done.answered).toBe(20);
-    expect(done.complete).toBe(true);
+    const answered = run(act(push(INITIAL_CLASSROOM, [Q3]), { type: "diagnostic/answer", option: "d", at: T0 + 500 }));
+    const done = tally(answered, allIn(T0));
+    expect(done).toMatchObject({ answered: 20, total: 20, complete: true, revealed: true });
     expect(done.counts.d).toBe(14);
     // The demo student's answer counts the moment it is given, before the classmates are all in.
-    expect(tally(answered, T0).answered).toBe(1);
+    expect(tally(answered, T0 + 500).answered).toBe(1);
   });
 
-  it("a push of a question nobody knows tallies nothing", () => {
-    const t = tally({ questionId: "nope", pushedAt: T0 }, T0 + TRICKLE_TO_MS);
+  it("a step nobody knows tallies nothing", () => {
+    const t = tally({ steps: ["nope"], pushedAt: T0, openedAt: [T0], answers: {}, forcedAt: {} }, allIn(T0));
     expect(t.answered).toBe(0);
     expect(t.counts).toEqual({});
   });
 });
 
-describe("diagnostic runs on the classroom (ticket 137)", () => {
-  it("a push opens a run stamped with its time; a second push is refused while it is open", () => {
-    const c = push(INITIAL_CLASSROOM, Q3);
-    expect(openDiagnostic(c)).toEqual({ questionId: Q3, pushedAt: T0 });
-    expect(latestDiagnostic(c)).toBe(openDiagnostic(c));
-    expect(push(c, Q5, T0 + 1)).toBe(c);
-    expect(openDiagnostic(INITIAL_CLASSROOM)).toBeNull();
+describe("a chain on the classroom (ticket 241)", () => {
+  it("a push runs the selected steps in solution order, whatever order they were picked in; unknown and repeated ids drop out", () => {
+    expect(inSolutionOrder(["d-q1-zeros", "d-q1-pair"])).toEqual(["d-q1-pair", "d-q1-zeros"]);
+    expect(inSolutionOrder(["d-q3-expand", "d-q1-zeros", "nope", "d-q1-zeros"])).toEqual(["d-q1-zeros", "d-q3-expand"]);
+    const c = push(INITIAL_CLASSROOM, ["d-q1-zeros", "d-q1-pair"]);
+    expect(liveDiagnostic(c)).toEqual({ steps: ["d-q1-pair", "d-q1-zeros"], pushedAt: T0, openedAt: [T0], answers: {}, forcedAt: {} });
+    expect(latestDiagnostic(c)).toBe(liveDiagnostic(c));
+    expect(push(INITIAL_CLASSROOM, [])).toBe(INITIAL_CLASSROOM);
+    expect(push(INITIAL_CLASSROOM, ["nope"])).toBe(INITIAL_CLASSROOM);
+    expect(liveDiagnostic(INITIAL_CLASSROOM)).toBeNull();
     expect(latestDiagnostic(null)).toBeNull();
   });
 
-  it("the demo student's answer closes the run and keeps it as the latest result; a second answer is ignored", () => {
-    let c = push(INITIAL_CLASSROOM, Q3);
-    c = classroomReducer(c, { type: "diagnostic/answer", option: "d" });
-    expect(openDiagnostic(c)).toBeNull();
-    expect(latestDiagnostic(c)?.answer).toBe("d");
-    expect(classroomReducer(c, { type: "diagnostic/answer", option: "a" })).toBe(c);
-    c = push(c, Q5, T0 + 60_000);
-    expect(c.diagnostics).toHaveLength(2);
-    expect(latestDiagnostic(c)?.questionId).toBe(Q5);
+  it("walks a three-step chain: push, answer, reveal, next, answer, reveal, next, answer, reveal, back to work", () => {
+    let c = push(INITIAL_CLASSROOM, Q1);
+    let at = T0;
+    for (let i = 0; i < 3; i++) {
+      const r = run(c);
+      expect(currentIndex(r)).toBe(i);
+      expect(chainPosition(r)).toBe(`${ordinal(i + 1)} of 3`);
+      expect(isRevealed(r, i, allIn(at) - 1)).toBe(false);
+      // Next and back to work are refused while the step is still being answered.
+      expect(act(c, { type: "diagnostic/next", at: allIn(at) })).toBe(c);
+      expect(act(c, { type: "diagnostic/end", at: allIn(at) })).toBe(c);
+      c = act(c, { type: "diagnostic/answer", option: step(Q1[i]).correct, at: at + 1000 });
+      // The pick is final.
+      expect(act(c, { type: "diagnostic/answer", option: "a", at: at + 2000 })).toBe(c);
+      expect(closedAt(run(c), i)).toBe(allIn(at));
+      expect(isRevealed(run(c), i, allIn(at) - 1)).toBe(false);
+      expect(isRevealed(run(c), i, allIn(at))).toBe(true);
+      expect(tally(run(c), allIn(at)).answered).toBe(20);
+      // Too early for the next step; answers and force submit are refused once the step is revealed.
+      expect(act(c, { type: "diagnostic/next", at: allIn(at) - 1 })).toBe(c);
+      expect(act(c, { type: "diagnostic/force", at: allIn(at) + 10 })).toBe(c);
+      at = allIn(at) + 30_000;
+      if (i < 2) {
+        expect(act(c, { type: "diagnostic/end", at })).toBe(c);
+        c = act(c, { type: "diagnostic/next", at });
+        expect(run(c).openedAt).toHaveLength(i + 2);
+        // An earlier step keeps its result: counted up to its close, the demo student's answer in it.
+        expect(tally(run(c), at + 60_000, i).answered).toBe(20);
+        expect(tally(run(c), at).answered).toBe(0);
+      }
+    }
+    // The last step: no next step, back to work closes the chain.
+    expect(act(c, { type: "diagnostic/next", at })).toBe(c);
+    c = act(c, { type: "diagnostic/end", at });
+    expect(liveDiagnostic(c)).toBeNull();
+    expect(run(c).endedAt).toBe(at);
+    expect(act(c, { type: "diagnostic/answer", option: "a", at })).toBe(c);
+    expect(act(c, { type: "diagnostic/force", at })).toBe(c);
+    // A new chain can go out once it is closed.
+    expect(push(c, [Q3], at + 1).diagnostics).toHaveLength(2);
   });
 
-  it("withdrawing drops the open run and nothing else; with nothing open it is a no-op", () => {
-    let c = push(INITIAL_CLASSROOM, Q3);
-    c = classroomReducer(c, { type: "diagnostic/answer", option: "d" });
-    c = push(c, Q5, T0 + 60_000);
-    c = classroomReducer(c, { type: "diagnostic/withdraw" });
-    expect(c.diagnostics?.map((r) => r.questionId)).toEqual([Q3]);
-    expect(classroomReducer(c, { type: "diagnostic/withdraw" })).toBe(c);
-    expect(classroomReducer(INITIAL_CLASSROOM, { type: "diagnostic/withdraw" })).toBe(INITIAL_CLASSROOM);
+  it("a second push is refused while a chain is out, from any problem", () => {
+    const c = push(INITIAL_CLASSROOM, Q1);
+    expect(push(c, [Q5], T0 + 1)).toBe(c);
+    expect(push(c, Q1, allIn(T0) + 60_000)).toBe(c);
   });
 
-  it("each step reads its own latest run: Q3's first step keeps its result after a Q5 step goes out", () => {
-    let c = push(INITIAL_CLASSROOM, Q3);
-    c = classroomReducer(c, { type: "diagnostic/answer", option: "d" });
-    c = push(c, Q5, T0 + 60_000);
-    expect(runFor(c, Q3)?.pushedAt).toBe(T0);
-    expect(runFor(c, Q5)?.pushedAt).toBe(T0 + 60_000);
+  it("a chain of one has no position count", () => {
+    expect(chainPosition(run(push(INITIAL_CLASSROOM, [Q3])))).toBeNull();
+    expect([1, 2, 3, 4, 11, 12, 13, 21, 22].map(ordinal)).toEqual(["1st", "2nd", "3rd", "4th", "11th", "12th", "13th", "21st", "22nd"]);
+  });
+
+  it("reveals only once all twenty have answered: nineteen classmates in is not enough, and a late answer from the demo student is the twentieth", () => {
+    let c = push(INITIAL_CLASSROOM, [Q3]);
+    expect(isRevealed(run(c), 0, allIn(T0) + 600_000)).toBe(false);
+    expect(closedAt(run(c), 0)).toBeNull();
+    c = act(c, { type: "diagnostic/answer", option: "a", at: allIn(T0) + 5000 });
+    expect(isRevealed(run(c), 0, allIn(T0) + 4999)).toBe(false);
+    expect(isRevealed(run(c), 0, allIn(T0) + 5000)).toBe(true);
+    expect(tally(run(c), allIn(T0) + 5000)).toMatchObject({ answered: 20, total: 20, revealed: true });
+  });
+
+  it("withdraw discards the whole chain at any step; the withdrawn run shows its result nowhere", () => {
+    let c = push(INITIAL_CLASSROOM, Q1);
+    c = act(c, { type: "diagnostic/answer", option: "c", at: T0 + 100 });
+    c = act(c, { type: "diagnostic/next", at: allIn(T0) });
+    c = act(c, { type: "diagnostic/withdraw", at: allIn(T0) + 50 });
+    expect(liveDiagnostic(c)).toBeNull();
+    expect(run(c)).toMatchObject({ endedAt: allIn(T0) + 50, withdrawn: true });
+    expect(runFor(c, Q1[0])).toBeNull();
+    expect(act(c, { type: "diagnostic/withdraw", at: allIn(T0) + 60 })).toBe(c);
+    expect(act(INITIAL_CLASSROOM, { type: "diagnostic/withdraw", at: T0 })).toBe(INITIAL_CLASSROOM);
+    expect(push(c, [Q3], allIn(T0) + 70).diagnostics).toHaveLength(2);
+  });
+
+  it("each step reads its own latest send: Q3's first step keeps its result after a Q5 step goes out", () => {
+    let c = push(INITIAL_CLASSROOM, [Q3]);
+    c = act(c, { type: "diagnostic/answer", option: "d", at: T0 });
+    c = act(c, { type: "diagnostic/end", at: allIn(T0) });
+    c = push(c, [Q5], T0 + 60_000);
+    expect(runFor(c, Q3)).toMatchObject({ index: 0, run: { pushedAt: T0 } });
+    expect(runFor(c, Q5)).toMatchObject({ index: 0, run: { pushedAt: T0 + 60_000 } });
     expect(runFor(c, "d-q3-rearrange")).toBeNull();
   });
 
+  it("an answer that is not one of the step's options is refused", () => {
+    const c = push(INITIAL_CLASSROOM, [Q3]);
+    expect(act(c, { type: "diagnostic/answer", option: "z", at: T0 })).toBe(c);
+  });
+
   it("reset clears the runs", () => {
-    expect(classroomReducer(push(INITIAL_CLASSROOM, Q3), { type: "reset" }).diagnostics).toBeUndefined();
+    expect(act(push(INITIAL_CLASSROOM, [Q3]), { type: "reset" }).diagnostics).toBeUndefined();
+  });
+
+  it("a run stored before ticket 241 reads as an ended chain of one; a stored chain comes back as it is", () => {
+    const old = { assignment: null, advance: null, wholeClass: null, assignmentGroups: {}, diagnostics: [{ questionId: Q3, pushedAt: T0, answer: "d", board: "shown" }] };
+    const c = migrateClassroom(old);
+    expect(c.diagnostics).toEqual([{ steps: [Q3], pushedAt: T0, openedAt: [T0], answers: { [Q3]: { option: "d", at: T0 } }, forcedAt: {}, endedAt: T0 }]);
+    expect(liveDiagnostic(c)).toBeNull();
+    const fresh = push(INITIAL_CLASSROOM, [Q3]);
+    expect(migrateClassroom(fresh)).toBe(fresh);
+    const stored = run(fresh);
+    expect(migrateRun(stored)).toBe(stored);
   });
 });
 
-describe("the diagnostic on the board (ticket 137)", () => {
-  const allIn = T0 + TRICKLE_TO_MS;
-
-  it("stays off the board while the run is open, even with every classmate in", () => {
-    const c = push(INITIAL_CLASSROOM, Q3);
-    expect(boardDiagnostic(c, allIn)).toBeNull();
-    expect(boardContent(c, null, allIn).kind).toBe("blank");
+describe("force submit on a step (ticket 241)", () => {
+  it("counts down ten seconds, then closes the step over the responders: the totals leave out anyone who had not answered", () => {
+    let c = push(INITIAL_CLASSROOM, [Q3]);
+    const pressed = allIn(T0) + 2000;
+    c = act(c, { type: "diagnostic/force", at: pressed });
+    // A second press while counting changes nothing.
+    expect(act(c, { type: "diagnostic/force", at: pressed + 1000 })).toBe(c);
+    expect(DIAGNOSTIC_FORCE_MS).toBe(10_000);
+    expect(forceDeadline(run(c), pressed)).toBe(pressed + 10_000);
+    expect(isRevealed(run(c), 0, pressed + 9999)).toBe(false);
+    expect(tally(run(c), pressed + 9999)).toMatchObject({ answered: 19, total: 20, revealed: false });
+    const zero = pressed + 10_000;
+    expect(isRevealed(run(c), 0, zero)).toBe(true);
+    expect(forceDeadline(run(c), zero)).toBeNull();
+    // Sam never answered: 19 of 19, his count in no option.
+    const t = tally(run(c), zero + 60_000);
+    expect(t).toMatchObject({ answered: 19, total: 19, complete: false, revealed: true });
+    expect(Object.values(t.counts).reduce((a, b) => a + b, 0)).toBe(19);
+    // The step is closed: no late answer, no cancel.
+    expect(act(c, { type: "diagnostic/answer", option: "d", at: zero })).toBe(c);
+    expect(act(c, { type: "diagnostic/force-cancel", at: zero })).toBe(c);
+    c = act(c, { type: "diagnostic/end", at: zero + 1 });
+    expect(liveDiagnostic(c)).toBeNull();
   });
 
-  it("goes up on its own once all twenty have answered, with the step's question and the counts", () => {
-    const c = classroomReducer(push(INITIAL_CLASSROOM, Q3), { type: "diagnostic/answer", option: "d" });
-    expect(boardDiagnostic(c, T0)).toBeNull();
-    expect(boardDiagnostic(c, allIn)?.questionId).toBe(Q3);
-    const b = boardContent(c, null, allIn);
+  it("classmates still to come when force submit closes the step are left out too", () => {
+    let c = push(INITIAL_CLASSROOM, [Q3]);
+    c = act(c, { type: "diagnostic/answer", option: "d", at: T0 + 100 });
+    // Pressed at once: the countdown ends at 10 s, after the last classmate at 8 s, so everyone is in first and the reveal is at 8 s.
+    const early = act(c, { type: "diagnostic/force", at: T0 + 200 });
+    expect(closedAt(run(early), 0)).toBe(allIn(T0));
+    // Without the demo student, pressed at once: closes at 10 s with the nineteen classmates.
+    let d = push(INITIAL_CLASSROOM, [Q3]);
+    d = act(d, { type: "diagnostic/force", at: T0 - 5000 });
+    expect(closedAt(run(d), 0)).toBe(T0 + 5000);
+    const t = tally(run(d), T0 + 60_000);
+    expect(t.revealed).toBe(true);
+    expect(t.answered).toBe(CLASSMATES.filter((_, i) => arrivesAt(i) <= 5000).length);
+    expect(t.total).toBe(t.answered);
+  });
+
+  it("cancel restores answering: no countdown, no reveal, and force submit can be pressed again", () => {
+    let c = push(INITIAL_CLASSROOM, [Q3]);
+    c = act(c, { type: "diagnostic/force", at: T0 + 1000 });
+    c = act(c, { type: "diagnostic/force-cancel", at: T0 + 4000 });
+    expect(run(c).forcedAt).toEqual({});
+    expect(forceDeadline(run(c), T0 + 4000)).toBeNull();
+    expect(isRevealed(run(c), 0, T0 + 600_000)).toBe(false);
+    expect(act(c, { type: "diagnostic/force-cancel", at: T0 + 5000 })).toBe(c);
+    c = act(c, { type: "diagnostic/answer", option: "d", at: T0 + 5000 });
+    expect(isRevealed(run(c), 0, allIn(T0))).toBe(true);
+    const again = act(push(INITIAL_CLASSROOM, [Q3]), { type: "diagnostic/force", at: T0 });
+    expect(run(act(act(again, { type: "diagnostic/force-cancel", at: T0 + 1 }), { type: "diagnostic/force", at: T0 + 2 })).forcedAt).toEqual({ [Q3]: T0 + 2 });
+  });
+
+  it("force submit belongs to the step it was pressed on: the next step opens answering", () => {
+    let c = push(INITIAL_CLASSROOM, Q1);
+    c = act(c, { type: "diagnostic/force", at: T0 });
+    c = act(c, { type: "diagnostic/next", at: T0 + DIAGNOSTIC_FORCE_MS });
+    const r = run(c);
+    expect(currentIndex(r)).toBe(1);
+    expect(forceDeadline(r, T0 + DIAGNOSTIC_FORCE_MS)).toBeNull();
+    expect(tally(r, allIn(T0 + DIAGNOSTIC_FORCE_MS))).toMatchObject({ answered: 19, total: 20, revealed: false });
+  });
+});
+
+describe("the chain on the board (ticket 241)", () => {
+  it("takes the board from the push, one step at a time, and gives it back after back to work", () => {
+    let c = push(INITIAL_CLASSROOM, ["d-q1-zeros", "d-q1-pair"]);
+    let b = boardContent(c, null, T0);
     expect(b.kind).toBe("diagnostic");
     if (b.kind === "diagnostic") {
-      expect(b.question.id).toBe(Q3);
-      expect(b.tally.answered).toBe(20);
-      expect(b.tally.counts.d).toBe(14);
+      expect(b.question.id).toBe("d-q1-pair");
+      expect(b.position).toBe("1st of 2");
+      expect(b.last).toBe(false);
+      expect(b.tally.revealed).toBe(false);
     }
+    c = act(c, { type: "diagnostic/answer", option: "c", at: T0 + 10 });
+    c = act(c, { type: "diagnostic/next", at: allIn(T0) });
+    b = boardContent(c, null, allIn(T0));
+    expect(b.kind === "diagnostic" && [b.question.id, b.position, b.last]).toEqual(["d-q1-zeros", "2nd of 2", true]);
+    c = act(c, { type: "diagnostic/force", at: allIn(T0) });
+    c = act(c, { type: "diagnostic/end", at: allIn(T0) + DIAGNOSTIC_FORCE_MS });
+    expect(boardContent(c, null, allIn(T0) + DIAGNOSTIC_FORCE_MS).kind).toBe("blank");
   });
 
-  it("the teacher can put it up before everyone is in, and clear it after; a cleared run stays cleared", () => {
-    let c = push(INITIAL_CLASSROOM, Q3);
-    c = classroomReducer(c, { type: "diagnostic/board", on: true });
-    expect(boardDiagnostic(c, T0)?.questionId).toBe(Q3);
-    expect(boardContent(c, null, T0).kind).toBe("diagnostic");
-    c = classroomReducer(c, { type: "diagnostic/board", on: false });
-    expect(boardDiagnostic(c, T0)).toBeNull();
-    c = classroomReducer(c, { type: "diagnostic/answer", option: "d" });
-    expect(boardDiagnostic(c, allIn)).toBeNull();
-    expect(classroomReducer(INITIAL_CLASSROOM, { type: "diagnostic/board", on: true })).toBe(INITIAL_CLASSROOM);
-  });
-
-  it("a new question replaces the old one on the board: only the latest run is ever shown", () => {
-    let c = classroomReducer(push(INITIAL_CLASSROOM, Q3), { type: "diagnostic/answer", option: "d" });
-    expect(boardDiagnostic(c, allIn)?.questionId).toBe(Q3);
-    c = push(c, Q5, allIn);
-    expect(boardDiagnostic(c, allIn)).toBeNull();
-    c = classroomReducer(c, { type: "diagnostic/answer", option: "d" });
-    expect(boardDiagnostic(c, allIn + TRICKLE_TO_MS)?.questionId).toBe(Q5);
-  });
-
-  it("outranks the race and a projected slide", () => {
-    let c = classroomReducer(INITIAL_CLASSROOM, { type: "wc/setup", problems: ["q1"], examples: {} });
-    c = classroomReducer(c, { type: "wc/project", at: T0 });
+  it("outranks the race and a projected slide, which comes back after the chain", () => {
+    let c = act(INITIAL_CLASSROOM, { type: "wc/setup", problems: ["q1"], examples: {} });
+    c = act(c, { type: "wc/project", at: T0 });
     expect(boardContent(c, null, T0).kind).toBe("whole-class");
-    c = classroomReducer(push(c, Q3), { type: "diagnostic/board", on: true });
+    c = push(c, [Q3]);
     expect(boardContent(c, null, T0).kind).toBe("diagnostic");
-    c = classroomReducer(c, { type: "diagnostic/board", on: false });
-    expect(boardContent(c, null, T0).kind).toBe("whole-class");
+    c = act(c, { type: "diagnostic/withdraw", at: T0 + 1 });
+    expect(boardContent(c, null, T0 + 1).kind).toBe("whole-class");
   });
+});
+
+describe("the stream stands still during a chain (ticket 241)", () => {
+  it("chainPauses: each chain from its push to its end, the one out still open", () => {
+    let c = push(INITIAL_CLASSROOM, [Q3]);
+    c = act(c, { type: "diagnostic/withdraw", at: T0 + 5000 });
+    c = push(c, [Q5], T0 + 20_000);
+    expect(chainPauses(c.diagnostics)).toEqual([
+      { from: T0, to: T0 + 5000 },
+      { from: T0 + 20_000, to: null },
+    ]);
+    expect(chainPauses(undefined)).toEqual([]);
+  });
+});
+
+// A chain's run is plain JSON: what one tab stores, another reads back identically.
+it("a chain survives a round trip through storage", () => {
+  let c = push(INITIAL_CLASSROOM, Q1);
+  c = act(c, { type: "diagnostic/answer", option: "c", at: T0 + 1 });
+  c = act(c, { type: "diagnostic/force", at: T0 + 2 });
+  const back = migrateClassroom(JSON.parse(JSON.stringify(c)));
+  expect(back.diagnostics).toEqual(c.diagnostics);
+  const r: DiagnosticRun = run(back);
+  expect(tally(r, allIn(T0))).toEqual(tally(run(c), allIn(T0)));
 });

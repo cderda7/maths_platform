@@ -8,6 +8,9 @@ import type { ExampleRef } from "./examples";
 import { DEFAULT_PATHWAY } from "./pathway";
 import type { ReviewedQuestion, ReviewState } from "./review";
 import { currentSetId, currentSetTitle } from "./renamedSets";
+import { chainReducer, latestRun, liveRun, migrateRun, type ChainAction, type DiagnosticRun } from "./diagnosticChain";
+
+export type { DiagnosticRun } from "./diagnosticChain";
 
 /**
  * Teacher-owned state shared by every tab: the created assignment and, from later tickets, the
@@ -122,22 +125,6 @@ export interface AssignmentDraft {
   generated?: true;
 }
 
-/**
- * One live diagnostic (ticket 137): pushed from the mistake view to every student's screen, never
- * to the board while it is open. The demo student answers for real; the classmates' answers are
- * a function of the question and the time since the push (`lib/diagnostic`). The run is open
- * until the demo student answers; a withdrawn run is dropped. `board` is the teacher's hand on
- * the projector: "shown" before everyone is in, "cleared" after; unset, the board shows the run
- * on its own once all twenty have answered.
- */
-export interface DiagnosticRun {
-  questionId: string;
-  pushedAt: number;
-  /** The demo student's option, once they have answered. */
-  answer?: string;
-  board?: "shown" | "cleared";
-}
-
 export interface ClassroomState {
   assignment: CreatedAssignment | null;
   /** The teacher's draft on the create screen; kept across reloads, cleared by reset. */
@@ -159,7 +146,7 @@ export interface ClassroomState {
   arrivals?: Record<string, number>;
   /** The demo student's group on the shared whiteboard, once group review has begun. */
   group?: GroupRun | null;
-  /** Every diagnostic pushed this lesson, oldest first; the last is the current one (open, or the latest result). */
+  /** Every diagnostic chain sent this lesson (ticket 241), oldest first; the last is the one out, if any is (`lib/diagnosticChain`). */
   diagnostics?: DiagnosticRun[];
 }
 
@@ -213,14 +200,8 @@ export type ClassroomAction =
   | { type: "wc/prev" }
   | { type: "wc/marks"; on: boolean }
   | { type: "wc/end" }
-  /** A diagnostic to every student's screen; refused while one is still open. The store stamps `at`. */
-  | { type: "diagnostic/push"; questionId: string; at?: number }
-  /** The demo student's answer to the open run. */
-  | { type: "diagnostic/answer"; option: string }
-  /** Drops the open run: nothing to show anywhere. */
-  | { type: "diagnostic/withdraw" }
-  /** The teacher's hand on the projector for the latest run: show it now, or clear it. */
-  | { type: "diagnostic/board"; on: boolean }
+  /** The live diagnostic chain (ticket 241): push, answer, force submit and cancel, next step, back to work, withdraw. */
+  | ChainAction
   | { type: "reset" };
 
 export const INITIAL_CLASSROOM: ClassroomState = { assignment: null, advance: null, wholeClass: null, groups: DEFAULT_GROUPS, assignmentGroups: {} };
@@ -237,8 +218,15 @@ export const INITIAL_CLASSROOM: ClassroomState = { assignment: null, advance: nu
 export function migrateClassroom(raw: unknown): ClassroomState {
   if (!raw || typeof raw !== "object") return INITIAL_CLASSROOM;
   const stored = raw as ClassroomState;
-  const c = stored.assignmentGroups && typeof stored.assignmentGroups === "object" ? stored : { ...stored, assignmentGroups: stored.groups ? { [ASSIGNMENT.id]: stored.groups } : {} };
-  return renameSets(c);
+  const grouped = stored.assignmentGroups && typeof stored.assignmentGroups === "object" ? stored : { ...stored, assignmentGroups: stored.groups ? { [ASSIGNMENT.id]: stored.groups } : {} };
+  return renameSets(chainRuns(grouped));
+}
+
+/** Diagnostic runs stored before ticket 241 (one question each) read as ended chains of one; the same object when there are none. */
+function chainRuns(c: ClassroomState): ClassroomState {
+  const runs = Array.isArray(c.diagnostics) ? c.diagnostics : [];
+  const migrated = runs.map(migrateRun);
+  return migrated.every((r, i) => r === runs[i]) ? c : { ...c, diagnostics: migrated };
 }
 
 /** Ticket 208's rename applied to a stored classroom; the same object when it names nothing old. */
@@ -354,39 +342,27 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
       return c.wholeClass ? { ...c, wholeClass: { ...c.wholeClass, view: a.on ? "marked" : "unmarked" } } : c;
     case "wc/end":
       return c.wholeClass ? { ...c, wholeClass: { ...c.wholeClass, status: "ended" }, advance: null } : c;
-    case "diagnostic/push": {
+    case "diagnostic/push":
+    case "diagnostic/answer":
+    case "diagnostic/force":
+    case "diagnostic/force-cancel":
+    case "diagnostic/next":
+    case "diagnostic/end":
+    case "diagnostic/withdraw": {
       const runs = c.diagnostics ?? [];
-      if (openDiagnostic(c)) return c;
-      return { ...c, diagnostics: [...runs, { questionId: a.questionId, pushedAt: a.at ?? 0 }] };
-    }
-    case "diagnostic/answer": {
-      const runs = c.diagnostics ?? [];
-      if (!openDiagnostic(c)) return c;
-      return { ...c, diagnostics: [...runs.slice(0, -1), { ...runs[runs.length - 1], answer: a.option }] };
-    }
-    case "diagnostic/withdraw":
-      return openDiagnostic(c) ? { ...c, diagnostics: (c.diagnostics ?? []).slice(0, -1) } : c;
-    case "diagnostic/board": {
-      const runs = c.diagnostics ?? [];
-      if (runs.length === 0) return c;
-      return { ...c, diagnostics: [...runs.slice(0, -1), { ...runs[runs.length - 1], board: a.on ? "shown" : "cleared" }] };
+      const next = chainReducer(runs, a);
+      return next === runs ? c : { ...c, diagnostics: next };
     }
     case "reset":
       return INITIAL_CLASSROOM;
   }
 }
 
-/** The latest diagnostic, open or answered; null before the first push. */
-export function latestDiagnostic(c: ClassroomState | null | undefined): DiagnosticRun | null {
-  const runs = c?.diagnostics ?? [];
-  return runs.length > 0 ? runs[runs.length - 1] : null;
-}
+/** The latest diagnostic chain, out or ended; null before the first push. */
+export const latestDiagnostic = (c: ClassroomState | null | undefined): DiagnosticRun | null => latestRun(c?.diagnostics);
 
-/** The diagnostic the demo student has yet to answer, if one is out. Only the latest run can be open. */
-export function openDiagnostic(c: ClassroomState | null | undefined): DiagnosticRun | null {
-  const run = latestDiagnostic(c);
-  return run && run.answer === undefined ? run : null;
-}
+/** The diagnostic chain that is out (ticket 241), if one is: sent and neither back to work nor withdrawn. */
+export const liveDiagnostic = (c: ClassroomState | null | undefined): DiagnosticRun | null => liveRun(c?.diagnostics);
 
 type GroupAction = Extract<ClassroomAction, { type: `group/${string}` }>;
 

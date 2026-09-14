@@ -10,7 +10,7 @@ import { mistakesByProblem } from "./mistakes";
 import { progressTag } from "./progress";
 import { CLASS_SIZE } from "./readiness";
 import { sessionAt } from "./session";
-import { classmatesAt, jitter, recordAt, scheduleFor, stateAt, streamEndMs, streamEvents } from "./stream";
+import { classmatesAt, jitter, recordAt, scheduleFor, stateAt, streamElapsed, streamEndMs, streamEvents, wallAt } from "./stream";
 
 const P = ASSIGNMENT.problems;
 const T0 = 1_700_000_000_000;
@@ -215,5 +215,57 @@ describe("the class at a moment", () => {
     const m = CLASSMATE_MAP.amelia;
     expect(recordAt(m, P, stateAt(scheduleFor(m, P), 0))).toMatchObject({ done: 0, wrong: [], notes: [], attempts: {} });
     expect(recordAt(m, P, { started: true, warmingUp: false, answered: 10, submitted: true })).toBe(m);
+  });
+});
+
+describe("the class's work pauses while a diagnostic chain is out (ticket 241)", () => {
+  const chainAt = (c: typeof CREATED, at: number) => classroomReducer(c, { type: "diagnostic/push", steps: ["d-q1-pair"], at });
+  const endAt = (c: typeof CREATED, at: number) => classroomReducer(c, { type: "diagnostic/withdraw", at });
+  const rows = (b: NonNullable<ReturnType<typeof assignmentBundle>>, now: number) => mistakesByProblem(null, b, now).reduce((n, p) => n + p.rows.length, 0);
+
+  it("the stream clock leaves out the time inside chains, the one still out running to now", () => {
+    const pauses = [
+      { from: T0 + 10 * S, to: T0 + 40 * S },
+      { from: T0 + 60 * S, to: null },
+    ];
+    expect(streamElapsed(T0, pauses, T0 + 10 * S)).toBe(10 * S);
+    expect(streamElapsed(T0, pauses, T0 + 25 * S)).toBe(10 * S);
+    expect(streamElapsed(T0, pauses, T0 + 50 * S)).toBe(20 * S);
+    expect(streamElapsed(T0, pauses, T0 + 90 * S)).toBe(30 * S);
+    // A pause before the set went live takes nothing off.
+    expect(streamElapsed(T0, [{ from: T0 - 50 * S, to: T0 - 20 * S }], T0 + 5 * S)).toBe(5 * S);
+    // The wall moment a stream time is reached: pushed back by each pause that began before it.
+    expect(wallAt(T0, pauses, 5 * S, T0 + 90 * S)).toBe(T0 + 5 * S);
+    expect(wallAt(T0, pauses, 10 * S, T0 + 90 * S)).toBe(T0 + 10 * S);
+    expect(wallAt(T0, pauses, 15 * S, T0 + 90 * S)).toBe(T0 + 45 * S);
+    expect(wallAt(T0, [pauses[0]], 25 * S, T0 + 90 * S)).toBe(T0 + 55 * S);
+    for (const t of [0, 9 * S, 15 * S, 19 * S]) expect(streamElapsed(T0, [pauses[0]], wallAt(T0, [pauses[0]], t, T0 + 90 * S))).toBe(t);
+  });
+
+  it("Mistakes rows do not grow while a chain is out, and resume where they left off after", () => {
+    const from = 90 * S;
+    const length = 3 * MIN;
+    const out = assignmentBundle("pset-6", chainAt(CREATED, T0 + from))!;
+    const before = rows(LIVE, T0 + from);
+    expect(rows(LIVE, T0 + from + length)).toBeGreaterThan(before);
+    // Out: nothing arrives, however long the discussion.
+    for (const at of [S, MIN, length]) {
+      expect(rows(out, T0 + from + at)).toBe(before);
+      expect(tags(T0 + from)).toEqual(Object.fromEntries(Object.entries(rosterProgress(out, null, T0 + from + at)).map(([id, p]) => [id, progressTag(p) ?? p.kind])));
+    }
+    // Ended: the class is where it would have been `length` earlier, and carries on from there.
+    const after = assignmentBundle("pset-6", endAt(chainAt(CREATED, T0 + from), T0 + from + length))!;
+    for (const at of [0, 20 * S, 2 * MIN, 6 * MIN]) {
+      expect(rows(after, T0 + from + length + at)).toBe(rows(LIVE, T0 + from + at));
+      expect(submittedCount(after, null, T0 + from + length + at)).toEqual(submittedCount(LIVE, null, T0 + from + at));
+    }
+    // The rows arrive in the same order, each at its moment pushed back by the chain.
+    const arrived = (b: typeof LIVE, now: number) => mistakesByProblem(null, b, now).flatMap((p) => p.rows.map((r) => [r.id, r.arrivedAt]));
+    const shifted = arrived(after, T0 + from + length + 6 * MIN).map(([id, at]) => [id, typeof at === "number" && at > T0 + from ? at - length : at]);
+    expect(shifted).toEqual(arrived(LIVE, T0 + from + 6 * MIN));
+  });
+
+  it("a finished set has no pauses; the fixed records ignore chains", () => {
+    expect(assignmentBundle("pset-5", chainAt(CREATED, T0))?.pauses).toEqual([]);
   });
 });

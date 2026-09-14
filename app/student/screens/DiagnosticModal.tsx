@@ -1,38 +1,61 @@
 "use client";
 
-import { useState } from "react";
 import DiagnosticStem from "@/components/DiagnosticStem";
 import FitText from "@/components/FitText";
 import M from "@/components/Math";
-import { Button, Eyebrow } from "@/components/ui";
+import { Eyebrow } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
 import { questionFor } from "@/lib/diagnostic";
+import { chainPosition, currentIndex, isRevealed, type DiagnosticRun } from "@/lib/diagnosticChain";
 
-/** A diagnostic pushed by the teacher, over whatever the student was doing. Answer, then straight back. */
-export default function DiagnosticModal({ questionId, onAnswer }: { questionId: string; onAnswer: (option: string) => void }) {
-  const d = questionFor(questionId);
-  const [pick, setPick] = useState<string | null>(null);
+/**
+ * A live diagnostic chain from the teacher, over whatever the student was doing (ticket 241): the current step, "1st of 3"
+ * on a longer chain. The first tap is the answer and cannot be changed: that option holds a neutral highlight with
+ * "Waiting for the class…". Once the step is revealed (everyone in, or force submit) the right option turns green and the
+ * student's own highlight goes; nothing marks a pick wrong. There is no way back to the work: the modal stays until the
+ * teacher's back to work ends the chain, and the next step replaces this one. Everything comes from the stored run, so a
+ * reload lands on the same state.
+ */
+export default function DiagnosticModal({ run, now, onAnswer }: { run: DiagnosticRun; now: number; onAnswer: (option: string) => void }) {
+  const index = currentIndex(run);
+  const d = questionFor(run.steps[index]);
   if (!d) return null;
+  const mine = run.answers[d.id]?.option ?? null;
+  const revealed = isRevealed(run, index, now);
+  const position = chainPosition(run, index);
+  const open = mine === null && !revealed;
   return (
-    <div className="absolute inset-0 z-30 grid place-items-center bg-ink/40 p-10 backdrop-blur-[2px]" role="dialog" aria-modal data-diagnostic>
+    <div className="absolute inset-0 z-30 grid place-items-center bg-ink/40 p-10 backdrop-blur-[2px]" role="dialog" aria-modal data-diagnostic={d.id} data-revealed={revealed || undefined}>
       <div className="w-[600px] rounded-3xl bg-paper p-8 shadow-lift">
-        <Eyebrow>Quick check from {ASSIGNMENT.teacher}</Eyebrow>
-        <h2 className="font-display mt-2 text-[26px] leading-tight text-ink">
+        <div className="flex items-baseline justify-between gap-4">
+          <Eyebrow>Quick check from {ASSIGNMENT.teacher}</Eyebrow>
+          {position && (
+            <Eyebrow className="shrink-0">
+              <span data-chain-position>{position}</span>
+            </Eyebrow>
+          )}
+        </div>
+        <h2 className="font-display mt-2 text-balance text-[26px] leading-tight text-ink">
           <DiagnosticStem question={d} />
         </h2>
         <ul className="mt-5 grid grid-cols-2 gap-2.5">
           {d.options.map((o) => {
-            const on = pick === o.id;
+            const picked = !revealed && mine === o.id;
+            const correct = revealed && o.id === d.correct;
+            const tone = picked ? "border-ink bg-ink text-white" : correct ? "border-secure-line bg-secure-soft text-ink" : `border-line bg-paper text-ink ${open ? "hover:border-ink-muted" : ""}`;
             return (
               <li key={o.id}>
                 <button
                   type="button"
-                  onClick={() => setPick(o.id)}
-                  aria-pressed={on}
-                  className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left text-[18px] transition-colors ${on ? "border-ink bg-ink text-white" : "border-line bg-paper text-ink hover:border-ink-muted"}`}
+                  onClick={() => open && onAnswer(o.id)}
+                  disabled={!open}
+                  aria-pressed={picked}
+                  className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left text-[18px] transition-colors disabled:cursor-default ${tone}`}
                   data-option={o.id}
+                  data-picked={picked || undefined}
+                  data-correct={correct || undefined}
                 >
-                  <span className={`shrink-0 text-[12px] font-semibold uppercase ${on ? "text-white/70" : "text-ink-muted"}`}>{o.id}</span>
+                  <span className={`shrink-0 text-[12px] font-semibold uppercase ${picked ? "text-white/70" : "text-ink-muted"}`}>{o.id}</span>
                   {/* A long option (a sentence in maths) scales to its button rather than running out of it. */}
                   <span className="min-w-0 flex-1">
                     <FitText max={18} fitKey={`${d.id}:${o.id}`}>
@@ -44,11 +67,15 @@ export default function DiagnosticModal({ questionId, onAnswer }: { questionId: 
             );
           })}
         </ul>
-        <div className="mt-6 flex justify-end">
-          <Button size="lg" hit disabled={!pick} onClick={() => pick && onAnswer(pick)} data-send>
-            Send
-          </Button>
-        </div>
+        {/* One line under the options, its height held so nothing moves when the words come and go. */}
+        <p className="mt-5 flex h-6 items-center justify-end gap-2 text-[15px] text-ink-soft" data-chain-status>
+          {mine !== null && !revealed && (
+            <>
+              <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
+              Waiting for the class…
+            </>
+          )}
+        </p>
       </div>
     </div>
   );

@@ -10,7 +10,8 @@ import { isSubmitted, sessionProgress, type StudentProgress } from "./progress";
 import { FINISHED_SETS } from "./finishedSets";
 import { assignmentGroupsOf } from "./seating";
 import type { StudentSession } from "./session";
-import { classmatesAt } from "./stream";
+import { chainPauses } from "./diagnosticChain";
+import { classmatesAt, type StreamPause } from "./stream";
 
 /**
  * The assignments (ticket 185): every set the teacher's Classroom holds, by id, and everything a
@@ -133,6 +134,8 @@ export interface AssignmentBundle {
   sam: Classmate | null;
   /** When the live set went live (`liveStartedAt`): the classmates' stream counts from it (ticket 189). Null on a finished set, whose results are fixed. */
   startedAt: number | null;
+  /** When the live set's stream stood still (ticket 241): each diagnostic chain while it was out. Empty on a finished set. */
+  pauses: StreamPause[];
 }
 
 /** One set's bundle, or null when the Classroom does not hold it. */
@@ -141,9 +144,9 @@ export function assignmentBundle(id: string, c: ClassroomState | null | undefine
   if (!def || !def.exists(c)) return null;
   const f = def.fixture;
   const base = { id, kind: def.kind, className: f.className, classCode: f.classCode, teacher: f.teacher, due: f.due, unit: f.unit, classmates: def.classmates, groups: assignmentGroupsOf(c, id) };
-  if (def.kind === "finished") return { ...base, title: f.title, name: def.name ?? f.title, newSkills: f.newSkills, goal: f.goal, problems: f.problems, pathway: def.pathway, sam: def.sam, startedAt: null };
+  if (def.kind === "finished") return { ...base, title: f.title, name: def.name ?? f.title, newSkills: f.newSkills, goal: f.goal, problems: f.problems, pathway: def.pathway, sam: def.sam, startedAt: null, pauses: [] };
   const active = activeAssignment(c);
-  return { ...base, title: active.title, name: active.title === f.title ? (def.name ?? f.title) : active.title, newSkills: active.newSkills, goal: active.goal, problems: active.problems, pathway: pathwayOf(c), sam: null, startedAt: liveStartedAt(c) };
+  return { ...base, title: active.title, name: active.title === f.title ? (def.name ?? f.title) : active.title, newSkills: active.newSkills, goal: active.goal, problems: active.problems, pathway: pathwayOf(c), sam: null, startedAt: liveStartedAt(c), pauses: chainPauses(c?.diagnostics) };
 }
 
 /**

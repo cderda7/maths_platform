@@ -18,7 +18,7 @@ import ReportScreen from "./screens/ReportScreen";
 import { useEffect } from "react";
 import { dispatch, useStudentSession } from "@/lib/store";
 import { dispatchClassroom, getClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
-import { GRACE_MS, isDue, isPending, isProjecting, openDiagnostic, pathwayOf } from "@/lib/classroom";
+import { GRACE_MS, isDue, isPending, isProjecting, liveDiagnostic, pathwayOf } from "@/lib/classroom";
 import { pathwayStages } from "@/lib/classStage";
 import { crumbTitle } from "@/lib/crumbTitle";
 import FrozenScreen from "./screens/FrozenScreen";
@@ -130,8 +130,8 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
   const reading = onBoard && !!board && introShowing(board, now);
   const projecting = isProjecting(classroom);
   const frozen = session.stage === "frozen";
-  // A teacher's diagnostic (ticket 137) lives on the classroom, not the session: pushed to every student, answered here.
-  const diagnostic = openDiagnostic(classroom);
+  // A teacher's diagnostic chain (tickets 137, 241) lives on the classroom, not the session: sent to every student, answered here, over every screen until back to work.
+  const diagnostic = liveDiagnostic(classroom);
   useEffect(() => {
     // Whole-class review: once the grace is over, every student tab is frozen (a late-opened tab too); ending releases to the report.
     if (projecting && !counting && !frozen) dispatch({ type: "freeze" });
@@ -192,9 +192,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
             </div>
           </div>
         )}
-        {diagnostic && !frozen && (
-          <DiagnosticModal questionId={diagnostic.questionId} onAnswer={(option) => dispatchClassroom({ type: "diagnostic/answer", option })} />
-        )}
+        {diagnostic && <DiagnosticModal run={diagnostic} now={now} onAnswer={(option) => dispatchClassroom({ type: "diagnostic/answer", option })} />}
       </StudentChrome>
       <SkipTo />
     </IpadStage>

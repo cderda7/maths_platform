@@ -1,6 +1,7 @@
 import { CLASSMATES } from "@/data/classmates";
 import { DIAGNOSTIC_MAP, FALLBACK_STEP, PROBLEM_DIAGNOSTICS, type Diagnostic, type DiagnosticStep } from "@/data/diagnostic";
-import { latestDiagnostic, openDiagnostic, type ClassroomState, type DiagnosticRun } from "./classroom";
+import { latestDiagnostic, liveDiagnostic, type ClassroomState } from "./classroom";
+import { arrivesAt, CLASS_SIZE, closedAt, currentIndex, type DiagnosticRun } from "./diagnosticChain";
 
 /** The question behind a push, by id. An id no longer known (a push stored before ticket 240) finds nothing. */
 export function questionFor(questionId: string): DiagnosticStep | undefined {
@@ -32,23 +33,11 @@ export function slippedAt(step: Diagnostic, rows: readonly { lines: readonly { t
 }
 
 // ---------------------------------------------------------------------------------------------
-// The class's answers (ticket 137). The demo student answers for real; the nineteen classmates'
-// answers are a function of the question and the time since the push, so every tab agrees
-// without a message: which option each picks (`classmatePick`) and when it lands (`arrivesAt`).
+// The class's answers (ticket 137; per step of a chain since ticket 241). The demo student answers for real; the nineteen
+// classmates' answers are a function of the step and the time since it opened, so every tab agrees without a message:
+// which option each picks (`classmatePick`) and when it lands (`arrivesAt`, in `lib/diagnosticChain`).
 
-/** Everyone who answers a diagnostic: the demo student and the classmates. */
-export const CLASS_SIZE = CLASSMATES.length + 1;
-
-/** The classmates' answers land between `TRICKLE_FROM_MS` and `TRICKLE_TO_MS` after the push, spread evenly in a fixed order. */
-export const TRICKLE_FROM_MS = 1500;
-export const TRICKLE_TO_MS = 8000;
-
-/** When the classmate at `index` answers, ms after the push: a fixed shuffle so the counts climb unevenly across the options, not in roster order. */
-export function arrivesAt(index: number): number {
-  const n = CLASSMATES.length;
-  const slot = (index * 7) % n;
-  return TRICKLE_FROM_MS + Math.round(((TRICKLE_TO_MS - TRICKLE_FROM_MS) * slot) / (n - 1));
-}
+export { arrivesAt, CLASS_SIZE, TRICKLE_FROM_MS, TRICKLE_TO_MS } from "./diagnosticChain";
 
 /**
  * The option the classmate at `index` of the roster picks (ticket 240): the distractor mirroring a wrong line in their own
@@ -67,50 +56,54 @@ export function classmatePick(q: Diagnostic, index: number): string {
 export interface Tally {
   /** Answers in so far, the demo student's included once given. */
   answered: number;
+  /** Twenty while the step is open or once all twenty are in; the responders once force submit has closed it without everyone. */
   total: number;
   /** Answers per option id, every option present. */
   counts: Record<string, number>;
   /** Everyone has answered. */
   complete: boolean;
+  /** The step has closed at `now` (all in, or force submit's zero): its correct answer is shown on the board and the iPads. */
+  revealed: boolean;
 }
 
-/** The count per option at `now`: the classmates whose answers have landed and the demo student's once given. Unknown questions tally nothing. */
-export function tally(run: DiagnosticRun, now: number): Tally {
-  const q = questionFor(run.questionId);
+/**
+ * The count per option on the step at `index` (the current one by default) at `now`: the classmates whose answers landed
+ * after the step opened and before it closed, and the demo student's once given. Anyone who had not answered when force
+ * submit closed the step is left out, so the totals read over the responders. Unknown steps tally nothing.
+ */
+export function tally(run: DiagnosticRun, now: number, index = currentIndex(run)): Tally {
+  const id = run.steps[index];
+  const q = id === undefined ? undefined : questionFor(id);
   const counts: Record<string, number> = Object.fromEntries((q?.options ?? []).map((o) => [o.id, 0]));
-  if (!q) return { answered: 0, total: CLASS_SIZE, counts, complete: false };
+  const opened = run.openedAt[index];
+  const close = closedAt(run, index);
+  const revealed = close !== null && now >= close;
+  if (!q || opened === undefined) return { answered: 0, total: CLASS_SIZE, counts, complete: false, revealed: false };
+  const cutoff = revealed ? close : now;
   let answered = 0;
-  const since = now - run.pushedAt;
   CLASSMATES.forEach((_, i) => {
-    if (since >= arrivesAt(i)) {
+    if (opened + arrivesAt(i) <= cutoff) {
       counts[classmatePick(q, i)] += 1;
       answered += 1;
     }
   });
-  if (run.answer !== undefined && run.answer in counts) {
-    counts[run.answer] += 1;
+  const mine = run.answers[id];
+  if (mine && mine.at <= cutoff && mine.option in counts) {
+    counts[mine.option] += 1;
     answered += 1;
   }
-  return { answered, total: CLASS_SIZE, counts, complete: answered === CLASS_SIZE };
+  const complete = answered === CLASS_SIZE;
+  return { answered, total: revealed ? answered : CLASS_SIZE, counts, complete, revealed };
 }
 
-/** The latest run of this question, open or answered. */
-export function runFor(c: ClassroomState | null | undefined, questionId: string): DiagnosticRun | null {
+/** The latest run that sent this step and was not withdrawn, and the step's place in it. */
+export function runFor(c: ClassroomState | null | undefined, questionId: string): { run: DiagnosticRun; index: number } | null {
   const runs = c?.diagnostics ?? [];
-  for (let i = runs.length - 1; i >= 0; i--) if (runs[i].questionId === questionId) return runs[i];
+  for (let i = runs.length - 1; i >= 0; i--) {
+    const index = runs[i].steps.indexOf(questionId);
+    if (!runs[i].withdrawn && index >= 0) return { run: runs[i], index };
+  }
   return null;
 }
 
-/**
- * The run the board shows at `now`, if any: only ever the latest, never while the teacher has
- * cleared it, and otherwise either by the teacher's hand ("shown") or on its own once all twenty
- * answers are in. An open run the teacher has not shown stays off the board.
- */
-export function boardDiagnostic(c: ClassroomState | null | undefined, now: number): DiagnosticRun | null {
-  const run = latestDiagnostic(c);
-  if (!run || run.board === "cleared") return null;
-  if (run.board === "shown") return run;
-  return tally(run, now).complete ? run : null;
-}
-
-export { latestDiagnostic, openDiagnostic };
+export { latestDiagnostic, liveDiagnostic };
