@@ -3401,6 +3401,12 @@ uploaded problems) settled the following as later, each on purpose.
 - **Group rows as toggles.** The flyout opens every group, fixed, as asked; closing a group to shorten a tall tree was left out.
 - **A link from the problems to the set's report.** The problems panel has no "open in report"; the set's row head and the patterns' Q links still open the report.
 
+## Skill tree closes on another row (ticket 280, 2026-09-14)
+
+- **A way to the groups-only view from the roster.** A row tap and a pill both open the full tree now; the groups-only row view (the old single tap) has no entry. Not asked for; the column header's "see skills" still shows groups for every student.
+- **Anchoring for the column view.** A header "see skills" / "full breakdown" opens trees under every row and moves rows below the pointer; the pressed header is sticky, so it was left as is.
+- **Clicks outside the roster closing a tree.** A click on the cream page or side cards does not close an open tree (history's sheet does close history); not asked for.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

@@ -4710,3 +4710,19 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Zoom to fit makes the heaviest lists small (a 10-problem skill at ~0.7, Tomas's patterns at ~0.85 at 1280×800) and the user may ask for a different trade. The flyout covers the rows below it while open, and at the grid's right edge its tree starts left of the pill rather than under it. The grid's columns are narrower (272 px set column, results ~107 px) to make room. Arrows are drawn from measured layout, not by React.
 
 **Defense.** One tree, the Class View's, for one result means the flyout can never disagree with the pill (tested for all twenty, three lesson states). Nothing on the page moves when a result opens, and the patterns stay whole on a laptop for every student however many lines they have.
+
+## 2026-09-14 · A click on another row only closes an open skill tree; one click opens the full tree; the pressed row is anchored (ticket 280)
+
+**Decision.** On the Class View roster, with a student's tree open, a click on another student's row that is not a button, pill or link only closes it; pills and row buttons act at once. A category pill opens the category's full tree (`expandAll`), and a row tap the full tree (`expanded`), where both used to open groups and needed a double-click for the rest; the double-click handlers are removed. When a tree above the pressed row opens or closes, the teacher frame scrolls by the row's move so the row stays under the pointer.
+
+**Context.** The user wanted the tree to behave like history mode, which closes on a click in another row, and spelled out each target: buttons open at once, a pill opens that category's dot skills, anywhere else closes, a second click opens the full tree. Testing showed that closing a tall tree above the clicked row moved the page, so the pointer landed on a different student and the "second click" would have opened the wrong row.
+
+**Alternatives considered.**
+- *Close-only for pills too*: exactly history's rule, but the user asked for pills to open at once.
+- *Keep double-click for the full tree*: redundant once one click opens it, and a double-click would otherwise open then shut.
+- *CSS `overflow-anchor`*: the browser's scroll anchoring picks its own anchor node (often inside the closing tree) and does not reliably hold the row the teacher pressed inside the zoomed frame.
+- *Scroll the pressed row into view after the change*: moves the row to a fixed place instead of leaving it where the pointer is.
+
+**Tradeoffs.** A teacher comparing students by row taps needs two clicks per switch. The groups-only view (`RowMode` "groups") is no longer reachable from the roster (the student's report still uses it through `SkillColumns`). Near the top of the scroll a row can move slightly if there is not enough scroll left to take up the change.
+
+**Defense.** One rule across history and skill trees (another row's empty space closes), with the targets that are clearly actions still acting at once; anchoring makes "click again" hit the same student, which the rule depends on.

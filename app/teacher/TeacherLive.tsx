@@ -221,7 +221,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
   const keyRef = useRef<HTMLDivElement>(null);
   useSideColumnPins(sideTopRef, keyRef, finished);
   const dueRef = useRef<HTMLParagraphElement>(null);
-  const lastClick = useRef<{ student: string; at: number } | null>(null);
+  const lastClick = useRef<{ target: string; at: number } | null>(null);
   const nonce = useRef(0);
   /** True once the pointer has been off every marker (pill or drill dot) for PILL_GRACE_MS; the row buttons need it. One timer for the grid: markers in any row count. */
   const [pillQuiet, setPillQuiet] = useState(true);
@@ -280,7 +280,29 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
       return { category: c, left, width };
     });
   };
+  /**
+   * The row the teacher just pressed, and where it stood on screen (ticket 280). A drill opening or closing above it (another
+   * student's tree, a column view) would move it by the drill's height, putting a different student under the pointer; the
+   * layout effect below scrolls the frame back so this row stays put.
+   */
+  const anchor = useRef<{ student: string; top: number } | null>(null);
+  const anchorRow = (student: string) => {
+    const row = tableRef.current?.querySelector(`tr[data-row="${CSS.escape(student)}"]`);
+    anchor.current = row ? { student, top: row.getBoundingClientRect().top } : null;
+  };
+  useLayoutEffect(() => {
+    const a = anchor.current;
+    anchor.current = null;
+    const row = a && tableRef.current?.querySelector<HTMLElement>(`tr[data-row="${CSS.escape(a.student)}"]`);
+    const scroller = row?.closest<HTMLElement>("[data-teacher-scroll]");
+    if (!a || !row || !scroller) return;
+    const moved = row.getBoundingClientRect().top - a.top;
+    // Rects are in the frame's zoomed px, scrollTop in layout px.
+    const scale = row.getBoundingClientRect().height / (row.offsetHeight || 1);
+    if (Math.abs(moved) > 0.5) scroller.scrollTop += moved / scale;
+  }, [open, column, history]);
   const openRow = (student: string, mode: RowMode, category?: CategoryId, leaf?: LeafId, expandAll = false) => {
+    anchorRow(student);
     setColumn(null);
     setOpen({ student, mode, category, leaf, columns: columnBoxes(student), nonce: ++nonce.current, expandAll });
   };
@@ -301,25 +323,42 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
   /** A blamed line asks for another category: re-open this student's drill there, on that skill. */
   const jump = (student: string, leaf: LeafId) => openRow(student, "category", columnOf(leaf, assignment.newSkills), leaf);
   /**
-   * A tap on the row (not a dot) acts at once: close if open, else every category's groups. The
-   * second tap of a double-tap is ignored so the row doesn't flicker shut before the double-tap
-   * opens everything.
+   * The second click of a double-click on the same target (a row, or one of its pills) within DOUBLE_MS: ignored, so a
+   * double-click never opens and then shuts what one click opened.
+   */
+  const repeated = (target: string, e: React.MouseEvent): boolean => {
+    const now = e.timeStamp;
+    const again = lastClick.current?.target === target && now - lastClick.current.at < DOUBLE_MS;
+    lastClick.current = { target, at: now };
+    return again;
+  };
+  /**
+   * A tap on the row (not a dot, button or link) acts at once: close if open, else every category's full tree, the dot
+   * skills too (ticket 280; was the groups, the full tree on a double-click). Like history mode, another student's open tree is
+   * one student's: a tap on this row while it stands only closes it, and the next tap opens this row's.
    */
   const rowClick = (student: string, e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest("button, a")) return;
-    if (leaveHistory(student)) return;
-
-    const now = e.timeStamp;
-    const again = lastClick.current?.student === student && now - lastClick.current.at < DOUBLE_MS;
-    lastClick.current = { student, at: now };
-    if (again) return;
+    if (leaveHistory(student) || leaveDrill(student)) return;
+    if (repeated(student, e)) return;
     if (open?.student === student) setOpen(null);
-    else openRow(student, "groups");
+    else openRow(student, "expanded");
   };
-  const rowDouble = (student: string, e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest("button, a")) return;
-    if (history && history.student !== student) return;
-    openRow(student, "expanded");
+  /** Another student's drill is open: close it and do nothing else (ticket 280). Returns true when the click was that. */
+  const leaveDrill = (student: string): boolean => {
+    if (!open || open.student === student) return false;
+    anchorRow(student);
+    setOpen(null);
+    return true;
+  };
+  /**
+   * A category pill (outside history mode): that category's full tree under it, dot skills too (ticket 280; was its groups,
+   * the full tree on a double-click), closing any other student's drill; pressed again, it closes.
+   */
+  const pillClick = (student: string, c: CategoryId, on: boolean, e: React.MouseEvent) => {
+    if (repeated(`${student}:${c}`, e)) return;
+    if (on && !column) setOpen(null);
+    else openRow(student, "category", c, undefined, true);
   };
   /**
    * History mode is one student's: a click anywhere on another student's row (or on the cream that hides the
@@ -339,6 +378,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
    * a column view closes, another student's drill closes, this student's own drill stays.
    */
   const openHistory = (student: string) => {
+    anchorRow(student);
     setColumn(null);
     if (open && open.student !== student) setOpen(null);
     setHistory({ student, open: historyCategories(assignment.id, student, columns) });
@@ -518,7 +558,6 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
                       data-row={r.id}
                       data-open={isOpen ? open.mode : undefined}
                       onClick={(e) => rowClick(r.id, e)}
-                      onDoubleClick={(e) => rowDouble(r.id, e)}
                     >
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
@@ -599,8 +638,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
                           <td key={c} className={`relative py-3.5 text-center ${inHistory ? HISTORY_CELL : "px-1"}`}>
                             <button
                               type="button"
-                              onClick={() => (leaveHistory(r.id) ? undefined : inHistory ? (earlierCount > 0 ? toggleHistory(c) : undefined) : on && !column ? setOpen(null) : openRow(r.id, "category", c))}
-                              onDoubleClick={() => (history ? undefined : openRow(r.id, "category", c, undefined, true))}
+                              onClick={(e) => (leaveHistory(r.id) ? undefined : inHistory ? (earlierCount > 0 ? toggleHistory(c) : undefined) : pillClick(r.id, c, on, e))}
                               aria-label={inHistory ? `${categoryName(c).name}: ${STATUS_WORD[st]}; ${earlierCount === 0 ? "no earlier set assessed it" : `${historyOpen ? "hide" : "show"} the earlier results`}` : `${categoryName(c).name}: ${r.absent ? "absent, " : ""}${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}
                               aria-expanded={inHistory ? (earlierCount > 0 ? historyOpen : undefined) : on}
                               className={`inline-grid h-7 place-items-center rounded-md transition-colors hover:bg-cream-deep ${inHistory ? "w-full px-0" : "w-10"} ${on ? "bg-cream-deep ring-1 ring-ink" : ""} ${blanked ? "invisible" : ""}`}

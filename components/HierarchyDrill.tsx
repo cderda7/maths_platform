@@ -323,7 +323,7 @@ export function RowDrill({
   columns: ColumnBox[];
   category?: CategoryId;
   initialLeaf?: LeafId | null;
-  /** Category mode: open every group of the category (a double-click on the dot, or a column view at skill level). */
+  /** Category mode: open every group of the category (a click on the dot since ticket 280, or a column view at skill level). */
   expandAll?: boolean;
   onNavigate?: (leaf: LeafId) => void;
   /** The student's own report: student-facing skill names, no difficulty tags. */
