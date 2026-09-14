@@ -1,5 +1,7 @@
 # 269: Holistic grid, sets down and categories across
 
+> Since ticket 276 (`architecture/276-patterns.md`): habits are called patterns and a set's row head has no live pill.
+
 ## Files touched
 
 | File | What it does |
@@ -17,8 +19,8 @@
  data/story.ts ──► lib/holistic.ts holisticView(student, now)
                      │  sets:       [PS1 … PS6]                 ◄269 was columns
                      │  categories: [{category, cells[per set]}] ◄269 was rows
-                     │  habits
-                     ├──────────────► lib/holisticTiles.ts (strengths, habit tags)
+                     │  patterns
+                     ├──────────────► lib/holisticTiles.ts (strengths, pattern tags)
                      ▼
  app/teacher/students/HolisticPage.tsx
    Grid ◄269
@@ -29,5 +31,5 @@
    │ Surds  ──────────┼──► /teacher/a/pset-1/report?student=…      │
    │ PS2 …            │   solid      │     —        │     │   app/teacher/TeacherLive.tsx
    └──────────────────┴──────────────┴──────────────┴─────┘   (Class View roster head)
-   Habits (unchanged)
+   Patterns (unchanged)
 ```

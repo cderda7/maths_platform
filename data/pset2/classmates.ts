@@ -10,7 +10,7 @@ import { PS2_REVIEW } from "./review";
  * confidence answer, how far they got, what they got wrong, the working for each wrong problem, the
  * platform's notes, what they wrote back, and a line from group review.
  *
- * The habits, as the class story sheet (`data/story.ts`, Set 2's column) has them:
+ * The patterns, as the class story sheet (`data/story.ts`, Set 2's column) has them:
  * - The binomial identity, the set's top gap (nine students): (√7 + 2)² squared term by term (Q3: Liam,
  *   Noah) or with its middle term not doubled (Q3: Zara, Harper); (3 − √2)(3 + √2) added (Q4: Oliver); the
  *   same bracket used for the conjugate and then squared as a difference (Q7: Sam, Tomas); the conjugate

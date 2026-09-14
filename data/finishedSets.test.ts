@@ -138,7 +138,7 @@ describe.each(FINISHED_SETS.map((s) => [s.fixture.id, s] as const))("finished se
     for (const c of categoriesTouched(f)) expect(recordStatus(priya, f, c as (typeof STORY_CATEGORIES)[number]), c).toBe("secure");
   });
 
-  it("equals the story sheet for every student and category: status, hand-in count, and each habit on a problem where they missed it", () => {
+  it("equals the story sheet for every student and category: status, hand-in count, and each pattern on a problem where they missed it", () => {
     const mismatches: string[] = [];
     for (const c of everyone) {
       const row = STORY[c.id];
@@ -148,7 +148,7 @@ describe.each(FINISHED_SETS.map((s) => [s.fixture.id, s] as const))("finished se
         const real = story.categories.includes(cat) ? recordStatus(c, f, cat) : "none";
         if (real !== cell.status) mismatches.push(`${c.id} ${cat}: ${real}, the sheet says ${cell.status}`);
         const missed = missedProblems(c, f, cat);
-        for (const hb of cell.habits) for (const q of hb.problems) if (!missed.includes(q)) mismatches.push(`${c.id} ${cat} "${hb.text}": nothing missed on Q${q}`);
+        for (const pt of cell.patterns) for (const q of pt.problems) if (!missed.includes(q)) mismatches.push(`${c.id} ${cat} "${pt.text}": nothing missed on Q${q}`);
       }
     }
     expect(mismatches).toEqual([]);

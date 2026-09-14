@@ -3407,6 +3407,15 @@ uploaded problems) settled the following as later, each on purpose.
 - **Anchoring for the column view.** A header "see skills" / "full breakdown" opens trees under every row and moves rows below the pointer; the pressed header is sticky, so it was left as is.
 - **Clicks outside the roster closing a tree.** A click on the cream page or side cards does not close an open tree (history's sheet does close history); not asked for.
 
+## Patterns, recent ones only (ticket 276, 2026-09-14)
+
+- **The page groups rows by pattern.** The student's page still lists a pattern's wordings as separate rows in set order (Tomas's "the fraction turned over dividing surds" on PS1 and "solved 2x + 1 = 0 as x = −2" on PS4 are one pattern three rows apart). The rows now carry their tag (`data-pattern-tag`); a row per pattern with its wordings under it would read the way the tiles do. Not asked for: the ticket changed which patterns surface, not how the page lays them out.
+- **A per-student window.** The window is the class's latest five sets; a student who missed recent sets (Liam, PS3 and PS5) loses an old pattern he had no chance to repeat. A window over the sets each student sat was considered and left out (DECISION_LOG, ticket 276).
+- **Hidden patterns on request.** A "show older patterns" disclosure on the student's page for what the window drops (ten PS1-only patterns once PS6 is sent). The user asked for them not to surface; a teacher looking back over a term may still want them.
+- **The window's size as a setting.** `RECENT_SETS` is 5 in code; a term with more sets may want a teacher's choice, or a date window.
+- **Long tiles.** With one-set patterns on tiles, Tomas's tile carries twelve tags and sets its row's height. Deferred: a cap with "+ n more" or most-sets-first truncation would hide what the user asked to see; revisit if a real class makes rows unreadably tall.
+- **PS1-only patterns vanish the moment PS6 is sent.** Sending counts as an assignment before anyone hands it in, so the tiles change with the send. Kept to the rule as worded; a window that waits for the live set's first results would soften the jump.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

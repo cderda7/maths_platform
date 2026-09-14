@@ -10,7 +10,7 @@ import { PS1_REVIEW } from "./review";
  * how far they got, what they got wrong, the working for each wrong problem, the platform's notes, what they
  * wrote back, and a line from group review.
  *
- * The first set of the unit, and the habits in it are the ones later sets catch:
+ * The first set of the unit, and the patterns in it are the ones later sets catch:
  * - A surd slip, the set's top gap (seven students): a square factor left under the root (Q1, Q6: Chloe,
  *   Ruby); the square taken out without its root (Q2, Q4, Q5: Liam, Oliver, Chloe); surds added under one
  *   root before simplifying (Q3: Amelia); a sign lost or changed collecting like surds (Q4: Tomas, Isla);

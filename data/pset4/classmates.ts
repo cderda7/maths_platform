@@ -11,7 +11,7 @@ import { PS4_REVIEW } from "./review";
  * back, and a line from group review. Each student's results equal the class story sheet's PS4 column
  * (`data/story.ts`, checked by `data/finishedSets.test.ts`).
  *
- * The habits on the set, most of which Problem Sets 5 and 6 catch again:
+ * The patterns on the set, most of which Problem Sets 5 and 6 catch again:
  * - Guessed non-monic pairs, never expanded back (Q1, Q2, Q4): Jordan, Liam, Mia, Oliver, Chloe, Ethan,
  *   Sofia and Ruby (a pair that multiplies but doesn't add, as on her monic Q5); Sam finds the right split and
  *   puts its signs in the wrong brackets. The set's top gap, on nine students.

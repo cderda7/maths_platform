@@ -27,7 +27,7 @@ describe("Problem Set 1 — Surds (ticket 211)", () => {
     expect(everyone.filter((c) => c.done < 10).map((c) => [c.id, c.done])).toEqual([["tomas", 9], ["liam", 2], ["grace", 8]]);
   });
 
-  it("the habits later sets catch start here, each under one name across problems", () => {
+  it("the patterns later sets catch start here, each under one name across problems", () => {
     expect(names("liam")).toEqual(["square out, root not taken"]);
     expect(names("oliver")).toEqual(["square out, root not taken", "root of a sum split"]);
     expect(names("chloe")).toEqual(["square factor left under root", "square out, root not taken"]);

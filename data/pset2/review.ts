@@ -6,7 +6,7 @@ import { PS2_PROBLEMS } from "./assignment";
  * and each seating group's version of every problem it took on. Which problem ends where, and why, is the class story
  * sheet's review part for the set (`STORY_REVIEW` in `data/story.ts`, checked against `lib/reviewRule.ts`):
  * a one-off slip is rewritten right on the student's own (the model solution's working, line by line); a repeated
- * slip is put right by the group's rework; a habit stays wrong, and the group's last try is the first habit-holder's
+ * slip is put right by the group's rework; a pattern stays wrong, and the group's last try is the first pattern-holder's
  * own working in seating order.
  */
 

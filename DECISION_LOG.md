@@ -4726,3 +4726,20 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** A teacher comparing students by row taps needs two clicks per switch. The groups-only view (`RowMode` "groups") is no longer reachable from the roster (the student's report still uses it through `SkillColumns`). Near the top of the scroll a row can move slightly if there is not enough scroll left to take up the change.
 
 **Defense.** One rule across history and skill trees (another row's empty space closes), with the targets that are clearly actions still acting at once; anchoring makes "click again" hit the same student, which the rule depends on.
+
+## 2026-09-14 · Patterns surface from the class's five most recent sets, as one rule the page and the tiles share (ticket 276)
+
+**Decision.** What ticket 251 and 252 called habits are **patterns**, in the UI and the code (`data/patternTags.ts`, `Pattern`, `PatternRef`, `PatternGroup`, the review rule's `pattern` basis). A pattern is a tag's wordings in a category (`patternTagLabel`: an authored label, else the words). `lib/holistic.ts` holds the rule: `recentSets(sets)` is the ids of the class's latest `RECENT_SETS` (5) sets by due date (`dueOrder`), and `surfacing(patterns, window)` keeps a pattern when one of its occurrences is on a set in the window, with every wording and occurrence, older sets included. `holisticView` applies it; `holisticTile` reads the view (each row carries its `tag`), so the tiles show exactly the page's patterns, one-set ones included ("· 1 set"). The live set is in the window, but its occurrences are only those the teacher has seen (as before). The page loses its Habits eyebrow and the live pill on Sam's live set; `HolisticSet.live` goes.
+
+**Context.** The user (2026-09-14): one-set patterns belong on tiles; call them patterns; "a pattern that hasn't shown up in 5 assignments doesn't surface. IF it's a pattern that's happened in more recent assignments, then yes show the earlier pset as part of that pattern." With PS1–PS6 in the Classroom the window is PS2–PS6, and ten PS1-only patterns leave (Amelia 2, Oliver 2, Chloe 2, Tomas, Liam, Isla, Ruby 1 each). Before PS6 is sent the Classroom holds five sets, so the window is all of them and those ten still show.
+
+**Alternatives considered.**
+- *The student's latest five sets with a result* (skipping sets they missed or were absent for): kinder to Liam, who missed PS3 and PS5, but "assignments" in the user's words are the class's, and a window that differs per student makes two tiles side by side mean different spans.
+- *Count only sets with results for the live set* (leave PS6 out of the window until its results are in): keeps PS1-only patterns on screen through the lesson, but the user's rule counts assignments, and PS6 is assigned the moment it is sent.
+- *A window by date (the last N weeks)*: closer to a real term, but the demo's sets are days apart and the user named a count.
+- *Apply the rule per wording instead of per tag*: simpler, but would drop PS1's wording of a pattern that came back worded differently (Tomas's "the fraction turned over dividing surds"), the exact case the user said to keep.
+- *Tiles apply their own filter*: two copies of a rule that must agree; the page's model already groups by category and now carries the tag.
+
+**Tradeoffs.** Sending PS6 hides ten patterns at once, before anyone has handed PS6 in. A student who missed recent sets can lose an old pattern they never had the chance to repeat. Tiles now carry every recent pattern (Tomas twelve tags once PS6 is in, three before ticket 276), so rows grow taller. The review rule's basis is renamed with the rest (`"pattern"`), so the generated story sheet and the review reasoning read "Pattern:" too.
+
+**Defense.** One pure function, one window for the whole class, the user's words as the rule: "5 assignments" is a count of the class's sets by due date, a surfacing pattern keeps its history, and the page and the tiles cannot disagree because the tiles read the page's model.

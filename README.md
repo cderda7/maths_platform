@@ -289,7 +289,7 @@ lesson's, Set 6's. Set 6 is created by Create (or any presenter skip) and stream
   solid ↔ secure; Priya is secure everywhere. Sam's today on Set 6 is his live session, which the sheet leaves
   open (after a presenter skip his reasoning and graphing sit two steps from Set 5; see FUTURE_FEATURES.md).
 - **The class story sheet** (ticket 210). `data/story.ts` is the single source for every student × category
-  × set status and the habits behind it; `specs/class-story.md` is generated from it (`npm run story:sheet`;
+  × set status and the patterns behind it; `specs/class-story.md` is generated from it (`npm run story:sheet`;
   `data/story.test.ts` fails while the two differ). `data/finishedSets.test.ts` checks every registered set
   equals its sheet column, and `lib/setHistory.test.ts` checks every set × student × category for jumps.
 

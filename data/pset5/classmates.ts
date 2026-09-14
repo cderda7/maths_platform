@@ -10,7 +10,7 @@ import { PS5_REVIEW } from "./review";
  * a confidence answer, how far they got, what they got wrong, the working for each wrong problem,
  * the platform's notes, what they wrote back, and a line from group review.
  *
- * The set came before Problem Set 6, and the habits in it are the ones Problem Set 6 catches:
+ * The set came before Problem Set 6, and the patterns in it are the ones Problem Set 6 catches:
  * - Guessed non-monic pairs, never expanded back (Q4, Q8): Jordan, Mia, Oliver, Sofia, Chloe,
  *   Ethan. Mia and Jordan guess the pair again on Problem Set 6's Q2.
  * - A turning point's sign read off the bracket (Q2, Q3, Q6): Tomas, Lucas, Finn, and Sam.

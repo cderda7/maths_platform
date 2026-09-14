@@ -5,7 +5,7 @@ import type { LeafId } from "../taxonomy";
  * Problem Set 5's scripted evaluation (ticket 187): every line any of the class wrote on the set,
  * with its verdict and tags, in the same shape as Problem Set 6's table (`data/evaluation.ts`) and
  * read through the same `evaluateLine`. A wrong line's `name` is the teacher's name for the
- * mistake; the same name on two problems is the same habit (a guessed non-monic pair on Q4 and
+ * mistake; the same name on two problems is the same pattern (a guessed non-monic pair on Q4 and
  * Q8, a turning point's sign on Q2, Q3 and Q6).
  */
 const QUAD: LeafId = "algebra.equations.quadratic";

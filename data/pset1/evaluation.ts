@@ -5,7 +5,7 @@ import type { LeafId } from "../taxonomy";
  * Problem Set 1's scripted evaluation (ticket 211): every line any of the class wrote on the set, with its
  * verdict and tags, in the same shape as Problem Set 6's table (`data/evaluation.ts`) and read through the
  * same `evaluateLine`. A wrong line's `name` is the teacher's name for the mistake; the same name on two
- * problems is the same habit (a square taken out of the root without its root, on Q2, Q4 and Q5; a square
+ * problems is the same pattern (a square taken out of the root without its root, on Q2, Q4 and Q5; a square
  * factor left under the root, on Q1 and Q6).
  *
  * A wrong line's first tag is its slip (`lib/mistakes.ts`). The surd slips carry surds alone, so they count

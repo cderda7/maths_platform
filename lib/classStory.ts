@@ -123,7 +123,7 @@ export function renderClassStory(sets: readonly StorySet[]): string {
   out.push("");
   out.push("<!-- Generated from data/story.ts by `npm run story:sheet`. Do not edit by hand: change data/story.ts and regenerate; `data/story.test.ts` fails while the two differ. -->");
   out.push("");
-  out.push("The contract for the six sets in the Classroom (ticket 210). For every student and every category a set assesses, the status the Class View shows on that set and the one or two habits behind anything short of secure, with the problems that carry them. Sets 5 and 6 are read from the real data (Set 6: the classmates' end state; Sam's Set 6 is his live session). Sets 1–4 are authored to it (tickets 211–214), and `data/finishedSets.test.ts` checks every registered set equals its rows.");
+  out.push("The contract for the six sets in the Classroom (ticket 210). For every student and every category a set assesses, the status the Class View shows on that set and the one or two patterns behind anything short of secure, with the problems that carry them. Sets 5 and 6 are read from the real data (Set 6: the classmates' end state; Sam's Set 6 is his live session). Sets 1–4 are authored to it (tickets 211–214), and `data/finishedSets.test.ts` checks every registered set equals its rows.");
   out.push("");
   out.push("## Rules");
   out.push("");
@@ -131,7 +131,7 @@ export function renderClassStory(sets: readonly StorySet[]): string {
   out.push("- **One step**: in each category, a student's neighbouring results (skipping *—*, *not seen* and *absent*) differ by at most one step, gap ↔ developing ↔ solid ↔ secure. Variation, never a jump.");
   out.push("- **How a status comes out** (`lib/hierarchy.ts`): a leaf is held lines ÷ attempted lines tagged with it (1 secure, ≥ 0.8 solid, ≥ 0.6 developing, else gap); a group and a category take their worst leaf. So one slip on a leaf the student wrote on five or more times reads solid, on three or four times developing, on one or two a gap. Communication is the share of lines that skip no step. A set's New skills count under New skills on that set, not under their home.");
   out.push("- **Priya** is secure in every category on every set. **Sam** is the demo student.");
-  out.push("- **Review** (ticket 244; every set runs individual review, then group review, and a group takes on every problem one of its members got wrong): a *one-off* slip (that mistake on one problem of the set, the habit naming only it) is fixed on the student's own rework; a *repeated* slip is fixed in group review when a groupmate handed that problem in without making it; a *habit* (a gap in the slip's category on the set) stays wrong, and the group closes the problem unsolved on the first habit-holder's working. A group's version is one: when its rework checks, every member still wrong there is fixed in group review, a habit included (the case says so); the demo group's Set 6 versions are its scripted run (`data/group-scripts.ts`). `lib/reviewRule.ts` applies the rules; each set's review below lists every case with its reasoning.");
+  out.push("- **Review** (ticket 244; every set runs individual review, then group review, and a group takes on every problem one of its members got wrong): a *one-off* slip (that mistake on one problem of the set, the pattern naming only it) is fixed on the student's own rework; a *repeated* slip is fixed in group review when a groupmate handed that problem in without making it; a *pattern* (a gap in the slip's category on the set) stays wrong, and the group closes the problem unsolved on the first pattern-holder's working. A group's version is one: when its rework checks, every member still wrong there is fixed in group review, a pattern included (the case says so); the demo group's Set 6 versions are its scripted run (`data/group-scripts.ts`). `lib/reviewRule.ts` applies the rules; each set's review below lists every case with its reasoning.");
   out.push("");
   out.push("## The sets");
   out.push("");
@@ -159,7 +159,7 @@ export function renderClassStory(sets: readonly StorySet[]): string {
     }
     out.push("");
     const i = s.n - 1;
-    out.push(`The set's rows (each student's habits are under their name below):`);
+    out.push(`The set's rows (each student's patterns are under their name below):`);
     out.push("");
     out.push(`| Student | Handed in | ${s.categories.map((c) => categoryName(c).short).join(" | ")} |`);
     out.push(`| --- | --- | ${s.categories.map(() => "---").join(" | ")} |`);
@@ -195,9 +195,9 @@ export function renderClassStory(sets: readonly StorySet[]): string {
     out.push(`| handed in | ${row.done.map((_, i) => handedIn(row, i)).join(" | ")} |`);
     for (const c of STORY_CATEGORIES) out.push(`| ${categoryName(c).name} | ${row.cells[c].map((cell) => WORD[cell.status]).join(" | ")} |`);
     out.push("");
-    const habits = STORY_CATEGORIES.flatMap((c) => row.cells[c].flatMap((cell, i) => cell.habits.map((hb) => `- ${setLabel(sets[i])} · ${categoryName(c).name} · ${cell.status}: ${hb.text} (${qs(hb.problems)})`)));
-    if (habits.length > 0) {
-      out.push(...habits);
+    const patterns = STORY_CATEGORIES.flatMap((c) => row.cells[c].flatMap((cell, i) => cell.patterns.map((pt) => `- ${setLabel(sets[i])} · ${categoryName(c).name} · ${cell.status}: ${pt.text} (${qs(pt.problems)})`)));
+    if (patterns.length > 0) {
+      out.push(...patterns);
       out.push("");
     }
   }

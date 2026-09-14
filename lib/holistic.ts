@@ -3,21 +3,27 @@ import { CLASSMATE_MAP } from "@/data/classmates";
 import { STORY, STORY_CATEGORIES, STORY_SETS, type StoryCategory } from "@/data/story";
 import { categoryName } from "@/data/taxonomy";
 import type { Problem, Status } from "@/data/types";
+import { patternTagLabel } from "@/data/patternTags";
 import { assignmentBundle, rosterEvidence, type AssignmentBundle } from "./assignments";
 import type { ClassroomState } from "./classroom";
+import { dueOrder } from "./dueDate";
 import { categoriesTouched, hierarchyFor, type HierarchyResult } from "./hierarchy";
 import type { StudentSession } from "./session";
 
 /**
  * A student across every set (ticket 251): the view model of the holistic page, one student's summary line,
- * the category × set grid and the habits behind every result short of secure, organised by category. Pure.
+ * the category × set grid and the patterns behind every result short of secure, organised by category. Pure.
  *
  * The source is the class story sheet (`data/story.ts`), which the finished sets equal (`data/finishedSets.test.ts`).
  * The live set (Problem Set 6) is read as its Class View reads it now (`rosterEvidence`): Sam from his session, each
  * classmate as far as the stream has reached, so the page never shows a result the class has not produced yet; its
- * habits are the sheet's, on the problems the teacher can see so far. A set the Classroom does not hold (Problem Set 6
+ * patterns are the sheet's, on the problems the teacher can see so far. A set the Classroom does not hold (Problem Set 6
  * before Create) has no column: the page shows the sets a teacher could open. A student marked absent on a set (ticket 250,
- * the bundle's `absent`, the list the Class View greys its row by) reads absent in every category that set assesses, with no habits. See DECISION_LOG.md, 2026-09-14 (ticket 251).
+ * the bundle's `absent`, the list the Class View greys its row by) reads absent in every category that set assesses, with no patterns. See DECISION_LOG.md, 2026-09-14 (ticket 251).
+ *
+ * Only recent patterns surface (ticket 276, `surfacing`): a pattern shows when it occurred on one of the class's five
+ * most recent sets, and then with every set it occurred on, older ones included. The tiles read the view, so they
+ * surface exactly what the page does. See DECISION_LOG.md, 2026-09-14 (ticket 276).
  */
 
 /**
@@ -35,8 +41,6 @@ export interface HolisticSet {
   topic: string;
   /** As on the card: "Fri 4 Sep". */
   due: string;
-  /** Sam's column on the live set: his session, still moving. */
-  live: boolean;
   /** A finished set: its results are final. The live set is still being handed in, so "not seen" there is not yet a result (ticket 252's strengths). */
   finished: boolean;
 }
@@ -48,24 +52,29 @@ export interface HolisticCategory {
   cells: HolisticStatus[];
 }
 
-/** One set a habit shows on: the set, its result there, and the problems that carry it. */
-export interface HabitRef {
+/** One set a pattern shows on: the set, its result there, and the problems that carry it. */
+export interface PatternRef {
   set: string;
   label: string;
   status: Status;
   problems: { id: string; label: string }[];
 }
 
-/** A habit, once per category however many sets it shows on (the same words on two sets are one habit with two refs), oldest set first. */
-export interface HolisticHabit {
+/**
+ * One wording of a pattern, once per category however many sets it shows on (the same words on two sets are one
+ * wording with two refs), oldest set first. Wordings that share a `tag` are one pattern (`data/patternTags.ts`).
+ */
+export interface HolisticPattern {
   text: string;
-  refs: HabitRef[];
+  /** The pattern this wording belongs to: its tag's label, or the wording itself (`patternTagLabel`). */
+  tag: string;
+  refs: PatternRef[];
 }
 
-export interface HabitGroup {
+export interface PatternGroup {
   category: StoryCategory;
   name: string;
-  habits: HolisticHabit[];
+  patterns: HolisticPattern[];
 }
 
 export interface HolisticView {
@@ -76,8 +85,8 @@ export interface HolisticView {
   sets: HolisticSet[];
   /** Every story category in canonical order, each with its cell per set: the grid's columns (ticket 269). */
   categories: HolisticCategory[];
-  /** Categories with a habit, in canonical order; none for a student secure everywhere. */
-  habits: HabitGroup[];
+  /** Categories with a pattern that surfaces (`surfacing`), in canonical order; none for a student secure everywhere. */
+  patterns: PatternGroup[];
 }
 
 /** The live world the live set is read from: the classroom, Sam's session, the clock. */
@@ -92,6 +101,26 @@ export const isHolisticStudent = (id: string): boolean => Object.hasOwn(STORY, i
 
 const SHORT: readonly Status[] = ["gap", "developing", "solid"];
 
+/** How many of the class's most recent sets a pattern must have occurred on one of to surface (ticket 276). */
+export const RECENT_SETS = 5;
+
+/** The recent window (ticket 276): the ids of the class's latest `RECENT_SETS` sets by due date; sets due the same day keep the order given. */
+export function recentSets(sets: readonly { id: string; due: string }[]): Set<string> {
+  const byDue = [...sets].sort((a, b) => dueOrder(a.due) - dueOrder(b.due));
+  return new Set(byDue.slice(-RECENT_SETS).map((s) => s.id));
+}
+
+/**
+ * The patterns that surface (ticket 276), the one rule the page and the tiles read: a pattern (the wordings sharing a
+ * tag) surfaces when one of its occurrences is on a set in the recent window, and a surfacing pattern keeps every
+ * wording and every occurrence, older sets included. A pattern seen on one set only surfaces too, if that set is recent.
+ * The live set's occurrences are only those the teacher has seen, so an unseen one does not count. Order kept.
+ */
+export function surfacing<T extends { tag: string; refs: readonly { set: string }[] }>(patterns: readonly T[], window: ReadonlySet<string>): T[] {
+  const recent = new Set(patterns.filter((p) => p.refs.some((r) => window.has(r.set))).map((p) => p.tag));
+  return patterns.filter((p) => recent.has(p.tag));
+}
+
 /** The set's name after its dash ("Problem Set 4 — Non-monic …" → "Non-monic …"); a name without one whole. */
 const topicOf = (name: string): string => name.split(" — ").slice(1).join(" — ") || name;
 
@@ -104,41 +133,43 @@ export function holisticView(student: string, { classroom, session, now }: Holis
     return bundle ? [{ story: s, bundle }] : [];
   });
 
-  /** Each set's cell and habits for the student. */
+  /** Each set's cell and patterns for the student. */
   const read = bundles.map(({ story, bundle }) => {
     const i = story.n - 1;
-    if (bundle.absent.includes(student)) return STORY_CATEGORIES.map((c) => ({ status: (categoriesTouched(bundle).includes(c) ? "absent" : "none") as HolisticStatus, habits: [] }));
+    if (bundle.absent.includes(student)) return STORY_CATEGORIES.map((c) => ({ status: (categoriesTouched(bundle).includes(c) ? "absent" : "none") as HolisticStatus, patterns: [] }));
     if (bundle.kind === "finished") {
       return STORY_CATEGORIES.map((c) => {
         const cell = row.cells[c][i];
         // The sheet's absent is the demo's list; a set the teacher has marked them present on reads what they have (none).
         const status: HolisticStatus = cell.status === "live" || cell.status === "absent" ? "unseen" : cell.status;
-        return { status, habits: cell.habits.map((h) => ({ text: h.text, problems: h.problems.flatMap((n) => problemAt(bundle, n)) })) };
+        return { status, patterns: cell.patterns.map((h) => ({ text: h.text, problems: h.problems.flatMap((n) => problemAt(bundle, n)) })) };
       });
     }
     return liveCells(bundle, student, i, { classroom, session, now });
   });
 
-  const sets: HolisticSet[] = bundles.map(({ story, bundle }) => ({ id: bundle.id, label: `PS${story.n}`, topic: topicOf(bundle.name), due: bundle.due, live: bundle.kind === "live" && student === DEMO_STUDENT.id, finished: bundle.kind === "finished" }));
+  const sets: HolisticSet[] = bundles.map(({ story, bundle }) => ({ id: bundle.id, label: `PS${story.n}`, topic: topicOf(bundle.name), due: bundle.due, finished: bundle.kind === "finished" }));
   const categories: HolisticCategory[] = STORY_CATEGORIES.map((c, k) => ({ category: c, name: categoryName(c).name, cells: read.map((cells) => cells[k].status) }));
 
-  const habits: HabitGroup[] = STORY_CATEGORIES.flatMap((c, k) => {
-    const out: HolisticHabit[] = [];
+  const window = recentSets(sets);
+  const patterns: PatternGroup[] = STORY_CATEGORIES.flatMap((c, k) => {
+    const all: HolisticPattern[] = [];
     read.forEach((cells, j) => {
-      const { status, habits: hs } = cells[k];
+      const { status, patterns: ps } = cells[k];
       if (!SHORT.includes(status as Status)) return;
-      for (const h of hs) {
-        if (h.problems.length === 0) continue;
-        const ref: HabitRef = { set: sets[j].id, label: sets[j].label, status: status as Status, problems: h.problems };
-        const same = out.find((x) => x.text === h.text);
+      for (const p of ps) {
+        if (p.problems.length === 0) continue;
+        const ref: PatternRef = { set: sets[j].id, label: sets[j].label, status: status as Status, problems: p.problems };
+        const same = all.find((x) => x.text === p.text);
         if (same) same.refs.push(ref);
-        else out.push({ text: h.text, refs: [ref] });
+        else all.push({ text: p.text, tag: patternTagLabel(student, c, p.text), refs: [ref] });
       }
     });
-    return out.length ? [{ category: c, name: categoryName(c).name, habits: out }] : [];
+    const out = surfacing(all, window);
+    return out.length ? [{ category: c, name: categoryName(c).name, patterns: out }] : [];
   });
 
-  return { student: { id: student, name: who.name, initials: who.initials }, summary: row.arc, sets, categories, habits };
+  return { student: { id: student, name: who.name, initials: who.initials }, summary: row.arc, sets, categories, patterns };
 }
 
 /** The work behind a student's row of results on one set (ticket 277): the set's skill hierarchy for them, their lines, the set's problems. */
@@ -171,18 +202,18 @@ function problemAt(bundle: Pick<AssignmentBundle, "problems">, n: number, fixtur
 
 /**
  * The live set's cells for a student, as its Class View reads them now: the status from the student's evidence (a
- * category the set's problems do not touch is "—"), and the sheet's habits kept on the problems the teacher has seen.
+ * category the set's problems do not touch is "—"), and the sheet's patterns kept on the problems the teacher has seen.
  */
-function liveCells(bundle: AssignmentBundle, student: string, i: number, at: HolisticNow): { status: HolisticStatus; habits: { text: string; problems: { id: string; label: string }[] }[] }[] {
+function liveCells(bundle: AssignmentBundle, student: string, i: number, at: HolisticNow): { status: HolisticStatus; patterns: { text: string; problems: { id: string; label: string }[] }[] }[] {
   const evidence = rosterEvidence(bundle, at.session, at.now)[student];
   const result = hierarchyFor(evidence, bundle);
   const touched = categoriesTouched(bundle);
   // The sheet numbers the live set's problems as the fixture has them; a created set may hold fewer.
   const fixture = ASSIGNMENT.problems;
   return STORY_CATEGORIES.map((c) => {
-    if (!touched.includes(c)) return { status: "none" as const, habits: [] };
+    if (!touched.includes(c)) return { status: "none" as const, patterns: [] };
     const status: HolisticStatus = result.categories[c] ?? "unseen";
-    const habits = STORY[student].cells[c][i].habits.map((h) => ({ text: h.text, problems: h.problems.flatMap((n) => problemAt(bundle, n, fixture)).filter((p) => (evidence.lines[p.id]?.length ?? 0) > 0) }));
-    return { status, habits };
+    const patterns = STORY[student].cells[c][i].patterns.map((h) => ({ text: h.text, problems: h.problems.flatMap((n) => problemAt(bundle, n, fixture)).filter((p) => (evidence.lines[p.id]?.length ?? 0) > 0) }));
+    return { status, patterns };
   });
 }

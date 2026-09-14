@@ -96,20 +96,20 @@ describe("the class story sheet (ticket 210)", () => {
     expect(DEMO_ABSENCES).toEqual({ "pset-6": ["chloe"] });
   });
 
-  it("gives every result short of secure one or two habits on real problems of the set, and nothing else a habit", () => {
+  it("gives every result short of secure one or two patterns on real problems of the set, and nothing else a pattern", () => {
     for (const id of students) {
       for (const c of STORY_CATEGORIES) {
         STORY[id].cells[c].forEach((cell, i) => {
           const set = STORY_SETS[i];
           const where = `${id} ${c} ${set.id}`;
           const shortOfSecure = cell.status === "gap" || cell.status === "developing" || cell.status === "solid";
-          if (!shortOfSecure) return expect(cell.habits, where).toEqual([]);
-          expect(cell.habits.length, where).toBeGreaterThanOrEqual(1);
-          expect(cell.habits.length, where).toBeLessThanOrEqual(2);
-          for (const hb of cell.habits) {
-            expect(hb.text.length, where).toBeGreaterThan(5);
-            expect(hb.problems.length, where).toBeGreaterThan(0);
-            for (const n of hb.problems) {
+          if (!shortOfSecure) return expect(cell.patterns, where).toEqual([]);
+          expect(cell.patterns.length, where).toBeGreaterThanOrEqual(1);
+          expect(cell.patterns.length, where).toBeLessThanOrEqual(2);
+          for (const pt of cell.patterns) {
+            expect(pt.text.length, where).toBeGreaterThan(5);
+            expect(pt.problems.length, where).toBeGreaterThan(0);
+            for (const n of pt.problems) {
               expect(n, where).toBeGreaterThanOrEqual(1);
               expect(n, where).toBeLessThanOrEqual(10);
               // On a set still to be authored, the problem must carry the category (communication: any problem).
@@ -140,7 +140,7 @@ describe("the class story sheet (ticket 210)", () => {
     });
   });
 
-  it("Problem Set 6's rows equal the classmates' end state: status, hand-in count, and each habit on a problem where they missed it", () => {
+  it("Problem Set 6's rows equal the classmates' end state: status, hand-in count, and each pattern on a problem where they missed it", () => {
     const six = STORY_SETS[5];
     for (const m of CLASSMATES) {
       const row = STORY[m.id];
@@ -150,7 +150,7 @@ describe("the class story sheet (ticket 210)", () => {
         const away = (DEMO_ABSENCES[six.id] ?? []).includes(m.id);
         expect(cell.status, `${m.id} ${c}`).toBe(!six.categories.includes(c) ? "none" : away ? "absent" : recordStatus(m, ASSIGNMENT, c));
         const missed = missedProblems(m, ASSIGNMENT, c);
-        for (const hb of cell.habits) for (const n of hb.problems) expect(missed, `${m.id} ${c} "${hb.text}"`).toContain(n);
+        for (const pt of cell.patterns) for (const n of pt.problems) expect(missed, `${m.id} ${c} "${pt.text}"`).toContain(n);
       }
     }
   });

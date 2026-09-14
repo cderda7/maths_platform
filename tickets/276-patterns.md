@@ -4,7 +4,7 @@
 
 **Blocked by:** none.
 
-**Status:** open
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -23,6 +23,6 @@ The user (2026-09-14), answering whether habits seen on one set belong on tiles:
 
 ## Acceptance
 
-- [ ] Unit: the window rule (only-PS1 hidden; PS1 + PS4 shows both; only PS6 shows; single-set shown); tiles and page read the same function; no identifier or UI string "habit" remains outside historical docs (grep)
-- [ ] Click-through at 1280×800 and 1440×900, all twenty students on tiles and both page routes: every shown pattern has an occurrence in PS2–PS6 and lists its PS1 occurrence when it has one; a PS1-only pattern appears nowhere; one-set patterns on tiles; no Habits header; no live tag with PS6 live; tiles stay equal height per row and nothing clips
-- [ ] vitest, eslint, tsc, next build, check:laptop
+- [x] Unit: the window rule (only-PS1 hidden; PS1 + PS4 shows both; only PS6 shows; single-set shown); tiles and page read the same function; no identifier or UI string "habit" remains outside historical docs (grep)
+- [x] Click-through at 1280×800 and 1440×900, all twenty students on tiles and both page routes: every shown pattern has an occurrence in PS2–PS6 and lists its PS1 occurrence when it has one; a PS1-only pattern appears nowhere; one-set patterns on tiles; no Habits header; no live tag with PS6 live; tiles stay equal height per row and nothing clips
+- [x] vitest, eslint, tsc, next build, check:laptop

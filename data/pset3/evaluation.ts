@@ -4,7 +4,7 @@ import type { LeafId } from "../taxonomy";
 /**
  * Problem Set 3's scripted evaluation (ticket 213): every line any of the class wrote on the set, with its
  * verdict and tags, read through the same `evaluateLine` as every other set. A wrong line's `name` is the
- * teacher's name for the mistake; the same name on two problems is the same habit (a pair guessed and not
+ * teacher's name for the mistake; the same name on two problems is the same pattern (a pair guessed and not
  * expanded back on Q5 and Q8, a pair that multiplies but does not add on Q5 and Q8, x² − 49 as (x − 7)² on Q4).
  */
 const EXPAND: LeafId = "algebra.expand-factor.expand";

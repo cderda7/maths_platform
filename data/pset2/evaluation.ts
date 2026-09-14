@@ -5,7 +5,7 @@ import type { LeafId } from "../taxonomy";
  * Problem Set 2's scripted evaluation (ticket 212): every line any of the class wrote on the set, with its
  * verdict and tags, in the same shape as Problem Set 6's table (`data/evaluation.ts`) and read through the
  * same `evaluateLine`. A wrong line's first tag is the slip the Mistakes tab clusters on; its `name` is the
- * teacher's name for the mistake, and the same name on two problems is the same habit (a fraction turned
+ * teacher's name for the mistake, and the same name on two problems is the same pattern (a fraction turned
  * over on Q5 and Q6, the root moved onto the top on Q5 and Q6, the conjugate multiplied on the bottom only
  * on Q7 and Q8, a denominator dropped on Q9).
  */

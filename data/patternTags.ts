@@ -1,23 +1,23 @@
 import type { StoryCategory } from "./story";
 
 /**
- * One habit's tag on Holistic Assessment's tiles (ticket 252): the short label a habit reads as, and the
- * habit's wordings in the class story sheet (`data/story.ts`), one per set it shows on. The sheet words a
- * habit for the set it shows on ("right split, the signs put into the wrong brackets" on Set 4, "right split,
- * signs in the wrong brackets" on Set 5), so the tile could not tell those are one habit without this table;
- * it is authored, never matched by similarity. A habit worded alike on every set needs no entry: its words
- * are its tag. Every text here is a habit of that student in that category (`data/habitTags.test.ts`).
+ * One pattern's tag on Holistic Assessment's tiles (ticket 252): the short label a pattern reads as, and the
+ * pattern's wordings in the class story sheet (`data/story.ts`), one per set it shows on. The sheet words a
+ * pattern for the set it shows on ("right split, the signs put into the wrong brackets" on Set 4, "right split,
+ * signs in the wrong brackets" on Set 5), so the tile could not tell those are one pattern without this table;
+ * it is authored, never matched by similarity. A pattern worded alike on every set needs no entry: its words
+ * are its tag. Every text here is a pattern of that student in that category (`data/patternTags.test.ts`).
  */
-export interface HabitTag {
+export interface PatternTag {
   label: string;
-  /** The sheet's wordings of the habit, exactly, in that student's category. */
+  /** The sheet's wordings of the pattern, exactly, in that student's category. */
   texts: readonly string[];
 }
 
-const tag = (label: string, ...texts: string[]): HabitTag => ({ label, texts });
+const tag = (label: string, ...texts: string[]): PatternTag => ({ label, texts });
 
-/** Per student, per category: the habits the sheet words differently from set to set. Students in the class order. */
-export const HABIT_TAGS: Readonly<Record<string, Partial<Record<StoryCategory, readonly HabitTag[]>>>> = {
+/** Per student, per category: the patterns the sheet words differently from set to set. Students in the class order. */
+export const PATTERN_TAGS: Readonly<Record<string, Partial<Record<StoryCategory, readonly PatternTag[]>>>> = {
   sam: {
     algebra: [tag("signs in the wrong brackets", "right split, the signs put into the wrong brackets", "right split, signs in the wrong brackets")],
   },
@@ -200,7 +200,7 @@ export const HABIT_TAGS: Readonly<Record<string, Partial<Record<StoryCategory, r
   },
 };
 
-/** The tag a habit reads as: its entry's label, or its own words. */
-export function habitTagLabel(student: string, category: StoryCategory, text: string): string {
-  return HABIT_TAGS[student]?.[category]?.find((t) => t.texts.includes(text))?.label ?? text;
+/** The tag a pattern reads as: its entry's label, or its own words. */
+export function patternTagLabel(student: string, category: StoryCategory, text: string): string {
+  return PATTERN_TAGS[student]?.[category]?.find((t) => t.texts.includes(text))?.label ?? text;
 }

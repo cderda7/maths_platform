@@ -8,7 +8,7 @@ import { evaluateLine } from "@/lib/evaluate";
 import { groupBySlip, mistakesByProblem } from "@/lib/mistakes";
 
 /**
- * Problem Set 2's particulars (ticket 212): its top gap's clusters, its named habits and Sam's slips. The shared
+ * Problem Set 2's particulars (ticket 212): its top gap's clusters, its named patterns and Sam's slips. The shared
  * suite (`data/finishedSets.test.ts`) checks the contract and every student's results against the class story sheet.
  */
 
@@ -29,7 +29,7 @@ describe("Problem Set 2's data (ticket 212)", () => {
     expect(names("sam")).toEqual(["√5 × (−√5) as +5", "same bracket, not the conjugate", "square taken as difference"]);
   });
 
-  it("the habits the sheet names: Liam and Noah square term by term, Amelia puts the conjugate on the bottom twice, Tomas turns fractions over", () => {
+  it("the patterns the sheet names: Liam and Noah square term by term, Amelia puts the conjugate on the bottom twice, Tomas turns fractions over", () => {
     expect(names("liam")).toContain("squared each term separately");
     expect(names("noah")).toEqual(["squared each term separately"]);
     expect(names("amelia").filter((n) => n === "conjugate on the bottom only")).toHaveLength(2);

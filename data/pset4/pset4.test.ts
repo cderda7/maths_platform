@@ -35,7 +35,7 @@ describe("Problem Set 4's data (ticket 214)", () => {
     expect(byId.priya).toMatchObject({ done: 10, wrong: [], attempts: {} });
   });
 
-  it("the habits Problem Sets 5 and 6 catch start here, under the same names", () => {
+  it("the patterns Problem Sets 5 and 6 catch start here, under the same names", () => {
     for (const id of ["jordan", "liam", "oliver"]) expect(names(id).filter((n) => n === "guessed pair, not expanded back").length, id).toBeGreaterThanOrEqual(2);
     expect(names("mia")).toContain("guessed pair, not expanded back");
     expect(names("zara")).toEqual(["square added, never taken away", "(5/2)² taken as 25/2", "square added, never taken away", "square added, never taken away", "x given as the minimum"]);

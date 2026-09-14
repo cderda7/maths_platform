@@ -13,8 +13,8 @@ import { useBatchedSession, useNow } from "@/lib/store";
 
 /**
  * Holistic Assessment (ticket 252), from Edexia Classroom: every student as a tile, in the class order. A tile
- * reads the story sheet's line for the student, their recurring habits as tags under their category (each with
- * the sets it shows on), and their strengths; the whole tile opens the student's page (ticket 251), whose Back
+ * reads the story sheet's line for the student, their patterns as tags under their category (each with the
+ * sets it shows on; only recent patterns surface, ticket 276), and their strengths; the whole tile opens the student's page (ticket 251), whose Back
  * returns here at the scroll the teacher left (`tilesScroll.ts`).
  *
  * The tiles are `lib/holisticTiles` over the classroom, Sam's session in its 3 s batches and the clock, the
@@ -58,7 +58,7 @@ export default function HolisticTiles() {
 }
 
 function Tile({ tile }: { tile: HolisticTile }) {
-  const empty = tile.habits.length === 0 && tile.strengths.length === 0;
+  const empty = tile.patterns.length === 0 && tile.strengths.length === 0;
   return (
     <Link
       href={tile.href}
@@ -83,16 +83,16 @@ function Tile({ tile }: { tile: HolisticTile }) {
       </p>
       {empty ? (
         <p className="mt-5 border-t border-line pt-4 text-[15px] text-ink-muted" data-tile-nothing>
-          No habit on two sets yet
+          Nothing to note
         </p>
       ) : (
         <div className="mt-5 space-y-3.5 border-t border-line pt-4">
-          {tile.habits.map((g) => (
-            <div key={g.category} data-tile-habits={g.category}>
+          {tile.patterns.map((g) => (
+            <div key={g.category} data-tile-patterns={g.category}>
               <Eyebrow>{g.name}</Eyebrow>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
                 {g.tags.map((t) => (
-                  <HabitTag key={t.label} tag={t} />
+                  <PatternTag key={t.label} tag={t} />
                 ))}
               </div>
             </div>
@@ -115,12 +115,12 @@ function Tile({ tile }: { tile: HolisticTile }) {
   );
 }
 
-/** "signs in the wrong brackets · 2 sets": the habit's tag and how many sets it shows on (which ones on hover). */
-function HabitTag({ tag }: { tag: TileTag }) {
+/** "signs in the wrong brackets · 2 sets" (or "· 1 set", ticket 276): the pattern's tag and how many sets it shows on (which ones on hover). */
+function PatternTag({ tag }: { tag: TileTag }) {
   return (
     <span className="max-w-full rounded-lg border border-wrong-line bg-wrong-soft px-2.5 py-1 text-[15.5px] leading-snug text-wrong-deep" title={tag.sets.join(", ")} data-tile-tag={tag.label} data-tile-sets={tag.sets.join(" ")}>
       {tag.label}
-      <span className="whitespace-nowrap text-wrong-deep/70"> · {tag.sets.length} sets</span>
+      <span className="whitespace-nowrap text-wrong-deep/70"> · {tag.sets.length} {tag.sets.length === 1 ? "set" : "sets"}</span>
     </span>
   );
 }

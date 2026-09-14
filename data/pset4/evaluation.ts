@@ -6,7 +6,7 @@ import type { LeafId } from "../taxonomy";
  * verdict and tags, in the shape of Problem Set 6's table (`data/evaluation.ts`) and read through the same
  * `evaluateLine`. A wrong line carries only the leaf of its slip (the Mistakes tab's chip reads the first);
  * a line that is right given a wrong line above is `builtOn`. The same name on two problems is the same
- * habit: a guessed non-monic pair (Q1, Q2, Q4), a square added and never taken away (Q6, Q8, Q9), half of
+ * pattern: a guessed non-monic pair (Q1, Q2, Q4), a square added and never taken away (Q6, Q8, Q9), half of
  * b with the wrong sign (Q6, Q7), a turning point's sign (Q8, Q9), a fraction flipped solving a factor (Q3, Q4).
  */
 const QUAD: LeafId = "algebra.equations.quadratic";

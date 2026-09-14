@@ -58,7 +58,7 @@ const ROUTES = [
   "/teacher/groups",
   // Holistic Assessment's tiles (ticket 252), every student.
   "/teacher/students",
-  // A student across every set (ticket 251), on both routes: the most habits (Tomas) and the live set (Sam), and a habit's working.
+  // A student across every set (ticket 251), on both routes: the most patterns (Tomas) and the live set (Sam), and a pattern's working.
   "/teacher/students/tomas",
   "/teacher/students/sam",
   "/teacher/a/pset-6/students/tomas",

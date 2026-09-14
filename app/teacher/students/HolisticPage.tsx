@@ -16,24 +16,24 @@ import type { Status } from "@/data/types";
 import { assignmentHref, assignmentReportHref, HOLISTIC_HREF, holisticHref } from "@/lib/assignments";
 import { useClassroom } from "@/lib/classroom-store";
 import { columnOf } from "@/lib/hierarchy";
-import { holisticView, holisticWork, type HabitRef, type HolisticNow, type HolisticSet, type HolisticStatus, type HolisticView } from "@/lib/holistic";
+import { holisticView, holisticWork, type PatternRef, type HolisticNow, type HolisticSet, type HolisticStatus, type HolisticView } from "@/lib/holistic";
 import { useBatchedSession, useNow } from "@/lib/store";
 
 /**
  * A student across every set (ticket 251): the story sheet's line for them, the set × category grid (sets down since
- * ticket 269, newest first since ticket 277), and the habits behind every result short of secure under their category,
- * each naming its set and problems and opening that working on the set's report. A set's row head opens the student's
+ * ticket 269, newest first since ticket 277), and the patterns behind every result short of secure under their category
+ * (only recent ones and no header over them since ticket 276), each naming its set and problems and opening that working on the set's report. A set's row head opens the student's
  * report on that set.
  *
- * Ticket 277: the habits run down a side column beside the header and grid, as tall as the screen and zoomed to fit it,
+ * Ticket 277: the patterns run down a side column beside the header and grid, as tall as the screen and zoomed to fit it,
  * so a laptop sees every line without scrolling. A coloured cell opens its category's whole tree on that set as a
- * flyout (`HolisticDrill.tsx`); a skill picked there puts its problems in the side column in the habits' place. A press
+ * flyout (`HolisticDrill.tsx`); a skill picked there puts its problems in the side column in the patterns' place. A press
  * outside the flyout and the problems, or Escape (the problems first), closes them.
  *
  * One page, two routes: `/teacher/students/<id>` (Back to Holistic Assessment's tiles, ticket 252) and
  * `/teacher/a/<set>/students/<id>` (`set`: Back to that set's Class View, under its tabs). Only Back differs.
  * The live set is read as its Class View reads it (`lib/holistic.ts`): the classroom, Sam's session in its 3 s
- * batches and the clock; until those have arrived the grid and habits wait, so the live row never flashes in.
+ * batches and the clock; until those have arrived the grid and patterns wait, so the live row never flashes in.
  */
 export default function HolisticPage({ student, set }: { student: string; set?: string }) {
   const classroom = useClassroom();
@@ -68,7 +68,7 @@ export default function HolisticPage({ student, set }: { student: string; set?: 
   );
 }
 
-/** The side column's width and its gap from the grid, layout px: a habit's words and two sets of refs on one row. */
+/** The side column's width and its gap from the grid, layout px: a pattern's words and two sets of refs on one row. */
 const SIDE_COL = 540;
 const SIDE_GAP = 40;
 /** The scroll region's bottom padding (`TeacherChrome`'s py-12), which the side column stops above. */
@@ -127,8 +127,8 @@ function Body({ view, at, from }: { view: HolisticView; at: HolisticNow; from: s
           {(wrapRef) => shown && <CellDrill work={shown.work} set={shown.set} category={shown.category} picked={picked} onPick={(l) => setPicked((p) => (p === l ? null : l))} wrapRef={wrapRef} />}
         </Grid>
       </div>
-      <aside ref={sideRef} className="flex shrink-0 flex-col" style={{ width: SIDE_COL }} data-holistic-side={shown && picked ? "work" : "habits"}>
-        {shown && picked ? <SkillWork work={shown.work} set={shown.set} category={shown.category} leaf={picked} onGoTo={goTo} onClose={() => setPicked(null)} /> : <Habits view={view} from={from} />}
+      <aside ref={sideRef} className="flex shrink-0 flex-col" style={{ width: SIDE_COL }} data-holistic-side={shown && picked ? "work" : "patterns"}>
+        {shown && picked ? <SkillWork work={shown.work} set={shown.set} category={shown.category} leaf={picked} onGoTo={goTo} onClose={() => setPicked(null)} /> : <Patterns view={view} from={from} />}
       </aside>
     </div>
   );
@@ -171,7 +171,7 @@ function Header({ view }: { view: HolisticView }) {
   );
 }
 
-/** The set column's width, layout px: "PS6 Thu 10 Sep · live" on one line and the longest topic in two. */
+/** The set column's width, layout px: "PS6 Thu 10 Sep" on one line and the longest topic in two. */
 const SET_COL = 272;
 
 /**
@@ -229,7 +229,7 @@ function Grid({ view, from, open, onCell, children }: { view: HolisticView; from
   );
 }
 
-/** A set's head: its label and day, its topic in two lines (held at two, so every row is one height), "live" on Sam's live set; the whole head opens the student's report on the set. */
+/** A set's head: its label and day, its topic in two lines (held at two, so every row is one height; no live pill since ticket 276); the whole head opens the student's report on the set. */
 function SetHead({ set, href }: { set: HolisticSet; href: string }) {
   return (
     <Link
@@ -241,12 +241,6 @@ function SetHead({ set, href }: { set: HolisticSet; href: string }) {
       <span className="flex items-baseline gap-2 whitespace-nowrap">
         <span className="font-display text-[23px] leading-none text-accent-deep">{set.label}</span>
         <span className="text-[13.5px] text-ink-muted">{set.due}</span>
-        {set.live && (
-          <span className="ml-auto inline-flex items-center gap-1 self-center rounded-full border border-accent-line bg-paper px-2 py-0.5 text-[12px] font-medium text-accent-deep" data-live-pill>
-            <span aria-hidden className="live-dot h-1.5 w-1.5 rounded-full bg-accent" />
-            live
-          </span>
-        )}
       </span>
       <span className="mt-1 line-clamp-2 min-h-[2lh] text-[13.5px] leading-snug text-ink-soft group-hover:text-ink">{set.topic}</span>
     </Link>
@@ -288,26 +282,25 @@ function Cell({ status, set, category, open, onOpen }: { status: HolisticStatus;
   );
 }
 
-/** A habit's refs column, layout px: "PS4 · Q1, Q2, Q4" on a line, a second set wrapping under. */
+/** A pattern's refs column, layout px: "PS4 · Q1, Q2, Q4" on a line, a second set wrapping under. */
 const REFS_COL = 176;
 
-/** The habits down the side column, zoomed down to its height when there are more than fit (never scrolled). */
-function Habits({ view, from }: { view: HolisticView; from: string }) {
+/** The patterns down the side column, zoomed down to its height when there are more than fit (never scrolled); no header over them (ticket 276), the category names head them. */
+function Patterns({ view, from }: { view: HolisticView; from: string }) {
   return (
-    <section className="flex h-full min-h-0 flex-col" aria-label="Habits" data-holistic-habits>
-      <Eyebrow>Habits</Eyebrow>
-      {view.habits.length === 0 ? (
-        <p className="mt-3 text-[17px] text-ink-muted" data-no-habits>
-          Nothing to note
+    <section className="flex h-full min-h-0 flex-col" aria-label="Patterns" data-holistic-patterns>
+      {view.patterns.length === 0 ? (
+        <p className="text-[17px] text-ink-muted" data-no-patterns>
+          No patterns to note
         </p>
       ) : (
-        <FitHeight className="mt-3 flex-1" fitKey={view.habits.map((g) => g.habits.length).join(",")} data-habits-fit>
-          {view.habits.map((g) => (
-            <div key={g.category} className="mb-5 last:mb-0" data-habit-group={g.category}>
+        <FitHeight className="flex-1" fitKey={view.patterns.map((g) => g.patterns.length).join(",")} data-patterns-fit>
+          {view.patterns.map((g) => (
+            <div key={g.category} className="mb-5 last:mb-0" data-pattern-group={g.category}>
               <h2 className="font-display text-[22px] leading-tight text-ink">{g.name}</h2>
               <ul className="mt-1">
-                {g.habits.map((h) => (
-                  <li key={h.text} className="flex items-baseline gap-4 border-b border-line py-2 last:border-b-0" data-habit={h.text}>
+                {g.patterns.map((h) => (
+                  <li key={h.text} className="flex items-baseline gap-4 border-b border-line py-2 last:border-b-0" data-pattern={h.text} data-pattern-tag={h.tag}>
                     <span className="min-w-0 flex-1 text-[16px] leading-snug text-ink">{h.text}</span>
                     {/* The refs in a column of their own, so every row's first set starts on one line down the list. */}
                     <span className="flex shrink-0 flex-col gap-y-1" style={{ width: REFS_COL }}>
@@ -327,9 +320,9 @@ function Habits({ view, from }: { view: HolisticView; from: string }) {
 }
 
 /** "● PS4 · Q1, Q2": the set's result there, the set, and each problem opening the student's working on it. */
-function Ref({ student, ref_, from }: { student: string; ref_: HabitRef; from: string }) {
+function Ref({ student, ref_, from }: { student: string; ref_: PatternRef; from: string }) {
   return (
-    <span className="inline-flex items-center gap-2 whitespace-nowrap text-[14.5px] leading-snug text-ink-soft" data-habit-ref={ref_.set} data-ref-status={ref_.status}>
+    <span className="inline-flex items-center gap-2 whitespace-nowrap text-[14.5px] leading-snug text-ink-soft" data-pattern-ref={ref_.set} data-ref-status={ref_.status}>
       <StatusDot status={ref_.status as Status} shape="pill" />
       <span>
         {ref_.label} ·{" "}

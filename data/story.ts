@@ -3,7 +3,7 @@ import type { Pathway } from "./types";
 
 /**
  * The class story sheet (ticket 210): for every set in the Classroom (Problem Sets 1–6) and every one of
- * the twenty students, the status each category reads on that set and the habit behind every result short
+ * the twenty students, the status each category reads on that set and the pattern behind every result short
  * of secure, with the problems that carry it. It is the contract the four earlier sets (tickets 211–214)
  * are authored against, so they agree with each other and with Sets 5 and 6, and a student's history
  * never jumps: neighbouring results in a category (skipping sets that did not assess it and sets the
@@ -17,21 +17,21 @@ import type { Pathway } from "./types";
 /** A result a set can give a category: the four colours of the Class View. */
 export type StoryStatus = "gap" | "developing" | "solid" | "secure";
 
-/** A habit behind a result: what the student does, and the problems (by number, Q1 = 1) in that set where it shows. */
-export interface Habit {
+/** A pattern behind a result: what the student does, and the problems (by number, Q1 = 1) in that set where it shows. */
+export interface Pattern {
   text: string;
   problems: readonly number[];
 }
 
 /**
  * One student × category × set:
- * - a result with its habits (one or two for anything short of secure, none for secure);
+ * - a result with its patterns (one or two for anything short of secure, none for secure);
  * - `unseen`: the set assesses the category but the student has nothing on it (missing, or never reached those problems);
  * - `absent`: the student was away for the set (ticket 250; `DEMO_ABSENCES`), every category it assesses alike;
  * - `none`: the set does not assess the category (the "—" in the sheet);
  * - `live`: Sam on Problem Set 6, whose row is his live session.
  */
-export type StoryCell = { status: StoryStatus; habits: readonly Habit[] } | { status: "unseen" | "absent" | "none" | "live"; habits: readonly [] };
+export type StoryCell = { status: StoryStatus; patterns: readonly Pattern[] } | { status: "unseen" | "absent" | "none" | "live"; patterns: readonly [] };
 
 /** The categories the six sets assess, in the Class View's order. */
 export const STORY_CATEGORIES = ["algebra", "functions", "graphing", "communication", "reasoning", "new"] as const satisfies readonly CategoryId[];
@@ -211,15 +211,15 @@ export const STORY_SETS: readonly StorySet[] = [
 
 /* ---------- the cells ---------- */
 
-const h = (text: string, ...problems: number[]): Habit => ({ text, problems });
-const sec: StoryCell = { status: "secure", habits: [] };
-const sol = (...habits: Habit[]): StoryCell => ({ status: "solid", habits });
-const dev = (...habits: Habit[]): StoryCell => ({ status: "developing", habits });
-const gap = (...habits: Habit[]): StoryCell => ({ status: "gap", habits });
-const un: StoryCell = { status: "unseen", habits: [] };
-const ab: StoryCell = { status: "absent", habits: [] };
-const na: StoryCell = { status: "none", habits: [] };
-const live: StoryCell = { status: "live", habits: [] };
+const h = (text: string, ...problems: number[]): Pattern => ({ text, problems });
+const sec: StoryCell = { status: "secure", patterns: [] };
+const sol = (...patterns: Pattern[]): StoryCell => ({ status: "solid", patterns });
+const dev = (...patterns: Pattern[]): StoryCell => ({ status: "developing", patterns });
+const gap = (...patterns: Pattern[]): StoryCell => ({ status: "gap", patterns });
+const un: StoryCell = { status: "unseen", patterns: [] };
+const ab: StoryCell = { status: "absent", patterns: [] };
+const na: StoryCell = { status: "none", patterns: [] };
+const live: StoryCell = { status: "live", patterns: [] };
 
 type Six = readonly [StoryCell, StoryCell, StoryCell, StoryCell, StoryCell, StoryCell];
 
@@ -499,13 +499,13 @@ const kept = (q: number, why: string): ReviewCase => ({ q, outcome: "wrong", why
  * The review part (ticket 244): for Problem Sets 1–6 (index 0–5), every student's wrong problems and where review
  * left each, with the reasoning checked against the student's real slip. The rules, agreed 2026-09-14
  * (`lib/reviewRule.ts` applies them literally and `data/story.test.ts` holds this sheet to them):
- * - a **one-off** (the mistake on that one problem of the set, the sheet's habit naming only it) is fixed on the
+ * - a **one-off** (the mistake on that one problem of the set, the sheet's pattern naming only it) is fixed on the
  *   student's own rework;
  * - a **repeated** slip is fixed in group review when a groupmate handed that problem in without making it;
- * - a **habit** (a gap in the slip's category on the set) stays wrong, and the group closes the problem unsolved
- *   on the first habit-holder's working;
+ * - a **pattern** (a gap in the slip's category on the set) stays wrong, and the group closes the problem unsolved
+ *   on the first pattern-holder's working;
  * - a group's version of a problem is one, so when its rework checks every member still wrong there reads fixed
- *   in group review, a habit included (each such case says so), and the demo group's Set 6 run is its script.
+ *   in group review, a pattern included (each such case says so), and the demo group's Set 6 run is its script.
  * The records (`data/psetN/review.ts`, `data/classmates-review.ts`) equal it: `data/finishedSets.test.ts`.
  */
 export const STORY_REVIEW: readonly StoryReview[] = [
@@ -573,7 +573,7 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     ],
     liam: [
       own(2, "One-off: only two of the four terms expanded, on Q2 alone. Found on the second submission."),
-      kept(3, "Habit: New skills is a gap on the set ((√7 + 2)² squared term by term). The group's last try is their own first submission."),
+      kept(3, "Pattern: New skills is a gap on the set ((√7 + 2)² squared term by term). The group's last try is their own first submission."),
     ],
     aiden: [
       own(1, "One-off: √3 multiplied into the first term only, on Q1 alone. Found on the second submission."),
@@ -636,10 +636,10 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       own(10, "One-off: the last line doesn't say what was shown, on Q10 alone. Found on the second submission."),
     ],
     tomas: [
-      kept(1, "Habit: Algebra is a gap on the set (signs in the second bracket copied, not multiplied). The group's last try is their own first submission."),
+      kept(1, "Pattern: Algebra is a gap on the set (signs in the second bracket copied, not multiplied). The group's last try is their own first submission."),
       own(2, "One-off: the middle term's sign copied from the bracket, on Q2 alone. Found on the second submission."),
       own(6, "One-off: the square's sign flipped, on Q6 alone. Found on the second submission."),
-      kept(7, "Habit: Algebra is a gap on the set (a negative common factor's sign lost). The group's last try is their own first submission."),
+      kept(7, "Pattern: Algebra is a gap on the set (a negative common factor's sign lost). The group's last try is their own first submission."),
       own(10, "One-off: both squares expanded, the subtraction's signs not shown, on Q10 alone. Found on the second submission."),
     ],
     zara: [
@@ -706,9 +706,9 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       own(8, "One-off: turning point read with the sign flipped, on Q8 alone. Found on the second submission."),
     ],
     jordan: [
-      grp(1, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back), but the group's rework holds (Sam's repeated slip here was the group's to fix) and the group's version is one."),
-      grp(2, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back), but the group's rework holds (Sam's repeated slip here was the group's to fix) and the group's version is one."),
-      kept(4, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+      grp(1, "Pattern: Algebra is a gap on the set (non-monic pairs guessed, never expanded back), but the group's rework holds (Sam's repeated slip here was the group's to fix) and the group's version is one."),
+      grp(2, "Pattern: Algebra is a gap on the set (non-monic pairs guessed, never expanded back), but the group's rework holds (Sam's repeated slip here was the group's to fix) and the group's version is one."),
+      kept(4, "Pattern: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
     ],
     amelia: [
       own(6, "One-off: added 9 to complete the square, never took it away, on Q6 alone. Found on the second submission."),
@@ -716,10 +716,10 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       own(10, "One-off: the negative width kept in the answer sentence, on Q10 alone. Found on the second submission."),
     ],
     tomas: [
-      kept(3, "Habit: New skills is a gap on the set (factors set to zero with their signs flipped). The group's last try is their own first submission."),
+      kept(3, "Pattern: New skills is a gap on the set (factors set to zero with their signs flipped). The group's last try is their own first submission."),
       own(5, "One-off: a root's sign copied from its bracket, on Q5 alone. Found on the second submission."),
-      kept(6, "Habit: New skills is a gap on the set (half of b taken with the wrong sign). The group's last try is their own first submission."),
-      kept(7, "Habit: Algebra is a gap on the set (fractions lost in half of b). The group's last try is their own first submission."),
+      kept(6, "Pattern: New skills is a gap on the set (half of b taken with the wrong sign). The group's last try is their own first submission."),
+      kept(7, "Pattern: Algebra is a gap on the set (fractions lost in half of b). The group's last try is their own first submission."),
       own(9, "One-off: the minimum's x read with the sign flipped, on Q9 alone. Found on the second submission."),
     ],
     zara: [
@@ -729,15 +729,15 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       grp(9, "Repeated: added the square to complete it, never took it away (Q6, Q8, Q9). Sam handed Q9 in without it, and the group's rework holds."),
     ],
     liam: [
-      grp(1, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back), but the group's rework holds (Sam's repeated slip here was the group's to fix) and the group's version is one."),
-      grp(2, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back), but the group's rework holds (Sam's repeated slip here was the group's to fix) and the group's version is one."),
+      grp(1, "Pattern: Algebra is a gap on the set (non-monic pairs guessed, never expanded back), but the group's rework holds (Sam's repeated slip here was the group's to fix) and the group's version is one."),
+      grp(2, "Pattern: Algebra is a gap on the set (non-monic pairs guessed, never expanded back), but the group's rework holds (Sam's repeated slip here was the group's to fix) and the group's version is one."),
     ],
     aiden: [
       own(8, "One-off: the 2 taken out of 2x² only, on Q8 alone. Found on the second submission."),
     ],
     mia: [
-      kept(1, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
-      kept(4, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+      kept(1, "Pattern: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+      kept(4, "Pattern: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
       own(6, "One-off: half of b squared without its sign, on Q6 alone. Found on the second submission."),
     ],
     noah: [
@@ -758,7 +758,7 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     isla: [
       own(5, "One-off: x² − 3x = 10 rearranged with the 10's sign copied, on Q5 alone. Found on the second submission."),
       own(8, "One-off: the turning point's sign copied from the bracket, on Q8 alone. Found on the second submission."),
-      kept(10, "Habit: Reasoning is a gap on the set (the negative width given in the sentence). The group's last try is their own first submission."),
+      kept(10, "Pattern: Reasoning is a gap on the set (the negative width given in the sentence). The group's last try is their own first submission."),
     ],
     lucas: [
       own(5, "One-off: x² − 3x = 10 rearranged with a sign lost, on Q5 alone. Found on the second submission."),
@@ -771,8 +771,8 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       own(9, "One-off: the minimum value read off the wrong line, on Q9 alone. Found on the second submission."),
     ],
     oliver: [
-      kept(1, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
-      kept(2, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+      kept(1, "Pattern: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+      kept(2, "Pattern: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
       own(5, "One-off: null factor law on x(x − 3) = 10, a product that isn't 0, on Q5 alone. Found on the second submission."),
     ],
     ruby: [
@@ -786,8 +786,8 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       own(8, "One-off: turning point read with the sign flipped, on Q8 alone. Found on the second submission."),
     ],
     sofia: [
-      kept(2, "Habit: Algebra is a gap on the set (a non-monic pair guessed). The group's last try is Oliver's first submission."),
-      kept(7, "Habit: Algebra is a gap on the set (halves lost completing the square). The group's last try is their own first submission."),
+      kept(2, "Pattern: Algebra is a gap on the set (a non-monic pair guessed). The group's last try is Oliver's first submission."),
+      kept(7, "Pattern: Algebra is a gap on the set (halves lost completing the square). The group's last try is their own first submission."),
     ],
   },
   // Problem Set 5
@@ -798,18 +798,18 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       own(9, "One-off: negative a read as concave up, on Q9 alone. Found on the second submission."),
     ],
     jordan: [
-      kept(4, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
-      kept(8, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+      kept(4, "Pattern: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+      kept(8, "Pattern: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
     ],
     amelia: [
       own(6, "One-off: added 16 to complete the square, never took it away, on Q6 alone. Found on the second submission."),
       own(8, "One-off: sum of the intercepts never halved, on Q8 alone. Found on the second submission."),
-      kept(10, "Habit: Reasoning is a gap on the set (the landing given as the nozzle's zero). The group's last try is their own first submission."),
+      kept(10, "Pattern: Reasoning is a gap on the set (the landing given as the nozzle's zero). The group's last try is their own first submission."),
     ],
     tomas: [
-      kept(1, "Habit: New skills is a gap on the set (intercepts read off the factors with the signs flipped). The group's last try is their own first submission."),
+      kept(1, "Pattern: New skills is a gap on the set (intercepts read off the factors with the signs flipped). The group's last try is their own first submission."),
       own(2, "One-off: h read as +3 from (x + 3), on Q2 alone. Found on the second submission."),
-      kept(4, "Habit: Algebra is a gap on the set (solved 3x + 2 = 0 as −3/2). The group's last try is their own first submission."),
+      kept(4, "Pattern: Algebra is a gap on the set (solved 3x + 2 = 0 as −3/2). The group's last try is their own first submission."),
       own(5, "One-off: axis of symmetry without the minus, on Q5 alone. Found on the second submission."),
     ],
     zara: [
@@ -821,9 +821,9 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       own(7, "One-off: the 2 multiplied x² and nothing else, on Q7 alone. Found on the second submission."),
     ],
     mia: [
-      kept(4, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
-      kept(8, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
-      kept(9, "Habit: Algebra is a gap on the set (sign left behind in bracket). The group's last try is their own first submission."),
+      kept(4, "Pattern: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+      kept(8, "Pattern: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+      kept(9, "Pattern: Algebra is a gap on the set (sign left behind in bracket). The group's last try is their own first submission."),
     ],
     noah: [
       own(7, "One-off: (x − 3)² squared term by term, on Q7 alone. Found on the second submission."),
@@ -841,13 +841,13 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     isla: [
       own(5, "One-off: axis of symmetry without the minus, on Q5 alone. Found on the second submission."),
       own(9, "One-off: took −1 out and left the signs inside behind, on Q9 alone. Found on the second submission."),
-      kept(10, "Habit: Reasoning is a gap on the set (the landing given as the nozzle's zero). The group's last try is their own first submission."),
+      kept(10, "Pattern: Reasoning is a gap on the set (the landing given as the nozzle's zero). The group's last try is their own first submission."),
     ],
     lucas: [
       grp(2, "Repeated: turning point read with the sign flipped (Q2, Q3). Isla, Grace and Harper handed Q2 in without it, and the group's rework holds."),
       grp(3, "Repeated: turning point read with the sign flipped (Q2, Q3). Isla, Grace and Harper handed Q3 in without it, and the group's rework holds."),
       own(9, "One-off: took −1 out and left the signs inside behind, on Q9 alone. Found on the second submission."),
-      kept(10, "Habit: Reasoning is a gap on the set (the landing given as the nozzle's zero). The group's last try is Isla's first submission."),
+      kept(10, "Pattern: Reasoning is a gap on the set (the landing given as the nozzle's zero). The group's last try is Isla's first submission."),
     ],
     harper: [
       own(7, "One-off: the 2 multiplied x² and nothing else, on Q7 alone. Found on the second submission."),
@@ -855,13 +855,13 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       own(10, "One-off: axis given as the height, jumped straight to it, on Q10 alone. Found on the second submission."),
     ],
     oliver: [
-      kept(4, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+      kept(4, "Pattern: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
       own(7, "One-off: (x − 3)² squared term by term, on Q7 alone. Found on the second submission."),
-      kept(8, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+      kept(8, "Pattern: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
     ],
     ruby: [
       own(5, "One-off: (−3)² taken as −9, on Q5 alone. Found on the second submission."),
-      kept(9, "Habit: Algebra is a gap on the set (a pair that multiplies to −8 but doesn't add to −2). The group's last try is their own first submission."),
+      kept(9, "Pattern: Algebra is a gap on the set (a pair that multiplies to −8 but doesn't add to −2). The group's last try is their own first submission."),
       own(10, "One-off: axis given as the height, on Q10 alone. Found on the second submission."),
     ],
     finn: [
@@ -870,8 +870,8 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       own(8, "One-off: sum of the intercepts never halved, on Q8 alone. Found on the second submission."),
     ],
     sofia: [
-      kept(4, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is Oliver's first submission."),
-      kept(8, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is Oliver's first submission."),
+      kept(4, "Pattern: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is Oliver's first submission."),
+      kept(8, "Pattern: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is Oliver's first submission."),
     ],
   },
   // Problem Set 6
@@ -883,13 +883,13 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     amelia: [
       own(6, "One-off: read “touches once” as discriminant > 0, on Q6 alone. Found on the second submission."),
       own(7, "One-off: multiplied through by 3 and never took it back out, on Q7 alone. Found on the second submission."),
-      kept(10, "Habit: Reasoning is a gap on the set (said the graph crosses twice). The group's last try is their own first submission."),
+      kept(10, "Pattern: Reasoning is a gap on the set (said the graph crosses twice). The group's last try is their own first submission."),
     ],
     tomas: [
       own(3, "One-off: null factor law on a product that isn't 0, on Q3 alone. Found on the second submission."),
-      kept(4, "Habit: Algebra is a gap on the set (divided by a, not 2a). The group's last try is their own first submission."),
-      kept(5, "Habit: Algebra is a gap on the set (roots with the signs flipped). The group's last try is their own first submission."),
-      kept(7, "Habit: Algebra is a gap on the set (scaled two of three terms). The group's last try is their own first submission."),
+      kept(4, "Pattern: Algebra is a gap on the set (divided by a, not 2a). The group's last try is their own first submission."),
+      kept(5, "Pattern: Algebra is a gap on the set (roots with the signs flipped). The group's last try is their own first submission."),
+      kept(7, "Pattern: Algebra is a gap on the set (scaled two of three terms). The group's last try is their own first submission."),
     ],
     zara: [
       own(3, "One-off: null factor law on a product that isn't 0, on Q3 alone. Found on the second submission."),
@@ -897,17 +897,17 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       own(9, "One-off: axis given as the height, on Q9 alone. Found on the second submission."),
     ],
     liam: [
-      grp(1, "Habit: Algebra is a gap on the set (guessed a factor pair without expanding back), but the group's rework holds (the demo group's scripted run solves it) and the group's version is one."),
-      grp(2, "Habit: Algebra is a gap on the set (guessed a factor pair without expanding back), but the group's rework holds (the demo group's scripted run solves it) and the group's version is one."),
-      grp(3, "Habit: New skills is a gap on the set (null factor law on a product that isn't 0), but the group's rework holds (the demo group's scripted run solves it) and the group's version is one."),
+      grp(1, "Pattern: Algebra is a gap on the set (guessed a factor pair without expanding back), but the group's rework holds (the demo group's scripted run solves it) and the group's version is one."),
+      grp(2, "Pattern: Algebra is a gap on the set (guessed a factor pair without expanding back), but the group's rework holds (the demo group's scripted run solves it) and the group's version is one."),
+      grp(3, "Pattern: New skills is a gap on the set (null factor law on a product that isn't 0), but the group's rework holds (the demo group's scripted run solves it) and the group's version is one."),
     ],
     aiden: [
       own(7, "One-off: scaled two of three terms, on Q7 alone. Found on the second submission."),
     ],
     mia: [
-      kept(2, "Habit: Algebra is a gap on the set (guessed a factor pair, never expanded back). The group's last try is their own first submission."),
-      kept(7, "Habit: Algebra is a gap on the set (scaled two of three terms). The group's last try is their own first submission."),
-      kept(9, "Habit: Algebra is a gap on the set (took −x out and left the sign behind). The group's last try is their own first submission."),
+      kept(2, "Pattern: Algebra is a gap on the set (guessed a factor pair, never expanded back). The group's last try is their own first submission."),
+      kept(7, "Pattern: Algebra is a gap on the set (scaled two of three terms). The group's last try is their own first submission."),
+      kept(9, "Pattern: Algebra is a gap on the set (took −x out and left the sign behind). The group's last try is their own first submission."),
     ],
     noah: [
       own(3, "One-off: null factor law on a product that isn't 0, on Q3 alone. Found on the second submission."),
@@ -921,16 +921,16 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     isla: [
       own(4, "One-off: −b written as −5, on Q4 alone. Found on the second submission."),
       own(7, "One-off: scaled two of three terms, on Q7 alone. Found on the second submission."),
-      kept(10, "Habit: Reasoning is a gap on the set (said the graph crosses twice). The group's last try is their own first submission."),
+      kept(10, "Pattern: Reasoning is a gap on the set (said the graph crosses twice). The group's last try is their own first submission."),
     ],
     lucas: [
       own(7, "One-off: a pair that multiplies to 8 but adds to 9, on Q7 alone. Found on the second submission."),
-      kept(10, "Habit: Reasoning is a gap on the set (negative discriminant, two solutions). The group's last try is Isla's first submission."),
+      kept(10, "Pattern: Reasoning is a gap on the set (negative discriminant, two solutions). The group's last try is Isla's first submission."),
     ],
     harper: [
-      kept(3, "Habit: Algebra is a gap on the set (a sign lost in the expansion). The group's last try is their own first submission."),
-      kept(5, "Habit: Graphing is a gap on the set (turning point's height from the wrong line). The group's last try is their own first submission."),
-      kept(9, "Habit: Graphing is a gap on the set (axis given as the height, jumped straight to it). The group's last try is their own first submission."),
+      kept(3, "Pattern: Algebra is a gap on the set (a sign lost in the expansion). The group's last try is their own first submission."),
+      kept(5, "Pattern: Graphing is a gap on the set (turning point's height from the wrong line). The group's last try is their own first submission."),
+      kept(9, "Pattern: Graphing is a gap on the set (axis given as the height, jumped straight to it). The group's last try is their own first submission."),
     ],
     oliver: [
       grp(1, "Repeated: guesses factor pairs without expanding back (Q1, Q2). Ruby, Finn and Sofia handed Q1 in without it, and the group's rework holds."),
@@ -944,15 +944,15 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       own(9, "One-off: axis given as the height, on Q9 alone. Found on the second submission."),
     ],
     finn: [
-      grp(2, "Habit: Algebra is a gap on the set (sign lost solving 2x − 1 = 0), but the group's rework holds (Oliver's repeated slip here was the group's to fix) and the group's version is one."),
-      kept(4, "Habit: Algebra is a gap on the set (divided by a, not 2a). The group's last try is their own first submission."),
+      grp(2, "Pattern: Algebra is a gap on the set (sign lost solving 2x − 1 = 0), but the group's rework holds (Oliver's repeated slip here was the group's to fix) and the group's version is one."),
+      kept(4, "Pattern: Algebra is a gap on the set (divided by a, not 2a). The group's last try is their own first submission."),
       own(5, "One-off: turning point's height from the wrong line, on Q5 alone. Found on the second submission."),
-      kept(7, "Habit: Algebra is a gap on the set (tripled, third never restored). The group's last try is their own first submission."),
+      kept(7, "Pattern: Algebra is a gap on the set (tripled, third never restored). The group's last try is their own first submission."),
     ],
     sofia: [
-      grp(2, "Habit: Algebra is a gap on the set (guessed pair, not expanded back), but the group's rework holds (Oliver's repeated slip here was the group's to fix) and the group's version is one."),
-      kept(4, "Habit: Algebra is a gap on the set (denominator a, not 2a). The group's last try is Finn's first submission."),
-      kept(7, "Habit: Algebra is a gap on the set (scaled two of three terms). The group's last try is Finn's first submission."),
+      grp(2, "Pattern: Algebra is a gap on the set (guessed pair, not expanded back), but the group's rework holds (Oliver's repeated slip here was the group's to fix) and the group's version is one."),
+      kept(4, "Pattern: Algebra is a gap on the set (denominator a, not 2a). The group's last try is Finn's first submission."),
+      kept(7, "Pattern: Algebra is a gap on the set (scaled two of three terms). The group's last try is Finn's first submission."),
     ],
   },
 ];

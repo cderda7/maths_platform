@@ -10,7 +10,7 @@ import { PS3_REVIEW } from "./review";
  * how far they got, what they got wrong, the working for each wrong problem, the platform's notes, what they
  * wrote back, and a line from group review.
  *
- * The habits, as the class story sheet's Set 3 column has them (`data/story.ts`):
+ * The patterns, as the class story sheet's Set 3 column has them (`data/story.ts`):
  * - The binomial identity, the set's top gap (nine students): (2x − 3)² squared term by term (Noah, Oliver;
  *   Noah again on Q10 until the show-that would not come out), taken as a² − b² (Amelia), its middle term's
  *   sign lost (Tomas, Harper); x² − 49 written as (x − 7)² (Zara, Mia, Amelia); x² − 10x + 25 taken for a

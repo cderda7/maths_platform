@@ -39,7 +39,7 @@ describe("Problem Set 5's data (ticket 187)", () => {
     expect(PS5_SAM.wrong).toEqual(["ps5-q4", "ps5-q6", "ps5-q9"]);
   });
 
-  it("the habits Problem Set 6 catches start here: Mia and Jordan guess non-monic pairs, Tomas flips signs and fractions", () => {
+  it("the patterns Problem Set 6 catches start here: Mia and Jordan guess non-monic pairs, Tomas flips signs and fractions", () => {
     const names = (id: string) => byId[id].wrong.flatMap((pid) => byId[id].attempts[pid].map((tex) => evaluateLine(pid, tex)).flatMap((v) => (v.verdict === "wrong" ? [v.name] : [])));
     expect(names("mia")).toContain("guessed pair, not expanded back");
     expect(names("jordan")).toEqual(["guessed pair, not expanded back", "guessed pair, not expanded back"]);
