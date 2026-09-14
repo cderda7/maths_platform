@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ASSIGNMENT } from "@/data/assignment";
-import { classmateProgress, isSubmitted, progressTag, sessionProgress } from "./progress";
+import { classmateProgress, isSubmitted, liveStudentTag, progressTag, sessionProgress } from "./progress";
 import { INITIAL_SESSION, sessionAt, type StudentSession } from "./session";
 
 const P = ASSIGNMENT.problems;
@@ -12,6 +12,14 @@ describe("a student's progress on the set", () => {
     expect(progressTag({ kind: "working", label: "Q4" })).toBe("Q4 in progress");
     expect(progressTag({ kind: "submitted" })).toBeNull();
     expect(progressTag({ kind: "not-started" })).toBeNull();
+  });
+
+  it("the live student's roster pill: his progress on the set, not started before it, nothing once handed in (ticket 275)", () => {
+    expect(liveStudentTag({ kind: "not-started" })).toBe("not started");
+    expect(liveStudentTag({ kind: "warming-up" })).toBe("warming up");
+    expect(liveStudentTag({ kind: "working", label: "Q1" })).toBe("Q1 in progress");
+    expect(liveStudentTag({ kind: "submitted" })).toBeNull();
+    for (const stage of ["feedback", "class-wait", "group", "report", "homework"] as const) expect(liveStudentTag(sessionProgress({ ...INITIAL_SESSION, stage }, P))).toBeNull();
   });
 
   it("the live student: not started on the overview, warming up from the check-in to the warm-up, handed in after", () => {

@@ -16,7 +16,7 @@ import { useOptionalAssignment } from "./AssignmentContext";
  * assignment's pages (under an `AssignmentProvider`, ticket 185) the tabs are that assignment's Class ·
  * Mistakes · Groups (Groups only when its pathway has group review); on a Classroom page there are no
  * assignment tabs, only a Groups link to the class's default groups. The individual view
- * (`/teacher/report`) has no tab: it opens from a name on the class view. The tabs sit directly
+ * (`/teacher/a/<id>/report`) has no tab: it opens from a row's "student report" button on the class view. The tabs sit directly
  * right of the wordmark at the student header's gap (ticket 165); the teacher's name and avatar
  * form one row at the right. The tabs are indigo pills (the current page filled deep, the others
  * soft, ticket 163). "New assignment" left the bar (ticket 176) and then the class view (185): it

@@ -44,6 +44,14 @@ export function classmateProgress(c: Pick<Classmate, "done">, problems: readonly
 
 export const isSubmitted = (p: StudentProgress): boolean => p.kind === "submitted";
 
+/**
+ * The live student's pill on the live set's roster: his progress while he is on the set, "not started" before his first screen,
+ * and nothing once he has handed in, so his row then reads like every classmate's (ticket 275; it read "in progress" before).
+ */
+export function liveStudentTag(p: StudentProgress): string | null {
+  return progressTag(p) ?? (p.kind === "not-started" ? "not started" : null);
+}
+
 /** The words in the pill beside the name of a student still on the set: "Q4 in progress", "warming up"; nothing once handed in or before starting. */
 export function progressTag(p: StudentProgress): string | null {
   switch (p.kind) {

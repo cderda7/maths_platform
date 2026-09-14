@@ -4,7 +4,7 @@
 
 **Blocked by:** none.
 
-**Status:** open
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -22,5 +22,15 @@ The user (2026-09-14), on the note: "change wording to 'Did you know? Clicking o
 
 ## Acceptance
 
-- [ ] Click-through at 1280×800 and 1440×900 on PS6 live and a past set: the note reads exactly the new copy; no "Report →" on Sam's row in any state (in progress, handed in, hovered); Sam's "student report" button opens his report; no roster element moves compared with before the change except Sam's name block
-- [ ] vitest, eslint, tsc, next build, check:laptop
+- [x] Click-through at 1280×800 and 1440×900 on PS6 live and a past set: the note reads exactly the new copy; no "Report →" on Sam's row in any state (in progress, handed in, hovered); Sam's "student report" button opens his report; no roster element moves compared with before the change except Sam's name block
+- [x] vitest, eslint, tsc, next build, check:laptop
+
+## Added 2026-09-14
+
+- **The note fits its words.** Review of the first pass: the shorter copy left the note's first line ending in a wide blank run before Dismiss. One line does not fit between STUDENT and the first category chip (about 496 layout px needed, 338 there) at 1280×800 or 1440×900, so the text takes two balanced lines (`text-wrap: balance`) and its box narrows to the wider line; the note stays an overlay, so no chip or roster element moves.
+- **Sam's pill only while he works.** The user: the live student's "in progress" pill after he has handed in was a mistake. On the live set's roster Sam's pill shows only while he is on the set (warming up, "Qn in progress"; "not started" before his first screen as before); once he has handed in PS6 there is no pill, so his row looks like every classmate's.
+
+### Acceptance (added)
+
+- [x] At 1280×800 and 1440×900 the note is two balanced lines with its text box as wide as its wider line (no blank run before Dismiss), still inside the Student head and clear of the first chip; every roster rect equals main's except Sam's name block
+- [x] PS6 with Sam working: his row shows "Qn in progress"; handed in and report sent: no pill on his row; a past set: no pill; nothing else on the roster moves except Sam's name block

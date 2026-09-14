@@ -22,7 +22,7 @@ import { assignmentReportHref, assignmentStages, holisticHref, rosterEvidence, r
 import { currentSlide, lessonOver } from "@/lib/classroom";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { absenceLocked, canMarkAbsent } from "@/lib/absence";
-import { progressTag } from "@/lib/progress";
+import { liveStudentTag, progressTag } from "@/lib/progress";
 import { classmatesAt } from "@/lib/stream";
 import { categoriesTouched, columnOf, hierarchyFor, problemsStarted, restrictTo, type Evidence } from "@/lib/hierarchy";
 import { pillLabel, type HistoryPoint } from "@/lib/history";
@@ -357,7 +357,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
   const evidence = rosterEvidence(assignment, live, now);
   /**
    * A row still on the set carries its progress beside the name, in the pill that read "in progress" (ticket 185):
-   * "Q4 in progress" or "warming up"; the live student before his first screen keeps "not started", and once handed in "in progress" as before.
+   * "Q4 in progress" or "warming up"; the live student before his first screen keeps "not started", and once handed in has no pill, like every classmate (ticket 275).
    */
   type Row = { id: string; name: string; initials: string; live: boolean; missing: boolean; evidence: Evidence; sub: string; confidence: { text: string; tone: string }; set: string; setSub: string; tag: string | null; /** Marked absent on the set (ticket 250): greyed, out of every count. */ absent: boolean; /** Handed in and present, so mark absent is disabled (ticket 270). */ locked: boolean };
   /** A student with a fixed record on the set: a classmate, or Sam on a finished set (ticket 187). */
@@ -388,7 +388,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
       confidence: confidenceWord(live?.confidence ?? null),
       set: `${live ? problemsStarted(live) : 0}/${problems.length}`,
       setSub: live && !HANDED_IN.includes(live.stage) ? "handed in" : "",
-      tag: progressTag(progress[DEMO_STUDENT.id]) ?? (progress[DEMO_STUDENT.id].kind === "not-started" ? "not started" : "in progress"),
+      tag: liveStudentTag(progress[DEMO_STUDENT.id]),
       absent: false,
       locked: false,
     },
@@ -561,18 +561,14 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
                                 {r.absent ? "mark present" : "mark absent"}
                               </button>
                             )}
-                            <div className={`flex items-start gap-2 text-[12.5px] leading-snug text-ink-muted ${!column && (r.sub || (r.live && (caution.length > 0 || live?.reportSent))) ? "" : "hidden"}`} data-commentary>
+                            {/* No "Report →" here for the live student (ticket 275): his report is the row's "student report" button, as everyone's is. */}
+                            <div className={`flex items-start gap-2 text-[12.5px] leading-snug text-ink-muted ${!column && (r.sub || (r.live && caution.length > 0)) ? "" : "hidden"}`} data-commentary>
                               {r.live && caution.length > 0 && (
                                 <span className="inline-flex items-center gap-1 rounded-full border border-gap-line bg-gap-soft px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gap" data-caution>
                                   <span className="h-1.5 w-1.5 rounded-full bg-gap" aria-hidden /> caution
                                 </span>
                               )}
                               {r.sub && <span className="-indent-3 pl-3">{r.sub}</span>}
-                              {r.live && live?.reportSent && (
-                                <Link href="/teacher/report" className="text-accent-deep hover:underline" data-report-link>
-                                  Report →
-                                </Link>
-                              )}
                             </div>
                           </div>
                           {/* Shown while the pointer is in the student's block, except over a marker (a category pill, ticket 128, or a drill dot, ticket 133: each is its own way in) and for PILL_GRACE_MS after it last left one (ticket 131), unless the pointer has gone left of the row's first pill, which ends the grace at once (ticket 180). The CSS :has rules hide at once; the state carries the grace. */}
@@ -853,17 +849,48 @@ function ConfidenceWords({ form }: { form: ConfidenceForm }) {
 }
 
 /**
- * "Did you know?" (ticket 253): a student's name opens them across every set, and that page is also Holistic Assessment in
- * Edexia Classroom. Laid over the Student head's blank space to the right of its label, inside the sticky head so it rides
+ * "Did you know?" (ticket 253, worded by ticket 275): a student's name opens them across every set, their Holistic Assessment. Laid over the Student head's blank space to the right of its label, inside the sticky head so it rides
  * along with the names, and absolutely placed, so the head, the rows and the columns measure the same with it and without it.
  * Dismiss hides it for good (`lib/holisticNote.ts`). See DECISION_LOG.md, "The Class View's "did you know?" lies over the Student head".
  */
 function HolisticNote() {
+  const text = useRef<HTMLSpanElement>(null);
+  // Ticket 275: the copy does not fit one line beside Dismiss (496 layout px against 338), so its two lines are balanced, and the
+  // text is narrowed to its wider line: a balanced block keeps the width it was offered, which left a blank run before Dismiss.
+  // Measured before paint, again once the web font is in and whenever the room changes; the note is an overlay, so nothing moves.
+  useLayoutEffect(() => {
+    const el = text.current;
+    const room = el?.closest("[data-holistic-note]");
+    if (!el || !room) return;
+    const fit = () => {
+      el.style.width = "";
+      const scale = el.getBoundingClientRect().width / (el.offsetWidth || 1);
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const lines = new Map<number, { left: number; right: number }>();
+      for (const r of range.getClientRects()) {
+        const top = Math.round(r.top);
+        const line = lines.get(top);
+        lines.set(top, line ? { left: Math.min(line.left, r.left), right: Math.max(line.right, r.right) } : { left: r.left, right: r.right });
+      }
+      const widest = Math.max(0, ...[...lines.values()].map((l) => l.right - l.left));
+      if (widest > 0 && scale > 0) el.style.width = `${Math.ceil(widest / scale)}px`;
+    };
+    fit();
+    let live = true;
+    document.fonts?.ready.then(() => live && fit());
+    const watch = new ResizeObserver(fit);
+    watch.observe(room);
+    return () => {
+      live = false;
+      watch.disconnect();
+    };
+  }, []);
   return (
     <span className="pointer-events-none absolute inset-y-0 left-[88px] right-2 flex items-center normal-case tracking-normal" data-holistic-note>
       <span className="pointer-events-auto flex items-center gap-2 rounded-lg border border-accent-line bg-accent-soft py-1 pl-2.5 pr-1 text-[11.5px] font-normal leading-[14px] text-ink-soft" role="note">
-        <span data-holistic-note-text>
-          <span className="font-semibold text-accent-deep">Did you know?</span> A name opens that student&rsquo;s Holistic Assessment, also in Edexia Classroom.
+        <span ref={text} className="[text-wrap:balance]" data-holistic-note-text>
+          <span className="font-semibold text-accent-deep">Did you know?</span> Clicking on a name opens that student&rsquo;s Holistic Assessment.
         </span>
         <button type="button" onClick={dismissHolisticNote} className="shrink-0 rounded-md px-1.5 py-1 text-[11.5px] font-medium leading-none text-accent-deep transition-colors hover:bg-standout-line" data-holistic-note-dismiss>
           Dismiss
