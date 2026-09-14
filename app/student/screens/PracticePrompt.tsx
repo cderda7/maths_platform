@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
 import PracticePad from "@/components/PracticePad";
+import { useEscape } from "@/components/useEscape";
 import { Button, Eyebrow } from "@/components/ui";
 import { groupOf, groupWord, studentLeafName, type LeafId } from "@/data/taxonomy";
 import type { Problem } from "@/data/types";
@@ -9,14 +9,9 @@ import { problemLeaves } from "@/lib/hierarchy";
 import { runFirst, type PracticePrompt as Prompt, type SessionAction, type StudentSession } from "@/lib/session";
 import { practiceFor } from "@/lib/warmup";
 
-/** Dim the iPad screen and centre a card. Positioned against `.ipad-screen`. `onDismiss`: a tap on the dim or Escape closes it. */
+/** Dim the iPad screen and centre a card. Positioned against `.ipad-screen`. `onDismiss`: a tap on the dim or Escape (the latest layer, ticket 247) closes it. */
 export function Scrim({ children, onDismiss }: { children: React.ReactNode; onDismiss?: () => void }) {
-  useEffect(() => {
-    if (!onDismiss) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onDismiss();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onDismiss]);
+  useEscape(!!onDismiss, onDismiss ?? null);
   return (
     <div
       className="absolute inset-0 z-20 grid place-items-center bg-ink/35 p-10 backdrop-blur-[2px]"
@@ -33,6 +28,8 @@ export function Scrim({ children, onDismiss }: { children: React.ReactNode; onDi
 export function PromptModal({ prompt, onAccept, onDecline }: { prompt: Prompt; problem: Problem; onAccept: () => void; onDecline: () => void }) {
   const s = studentLeafName(prompt.leaf);
   const word = groupWord(groupOf(prompt.leaf));
+  // No tap on the dim closes it, but Escape is "Not now" (ticket 247).
+  useEscape(true, onDecline);
   return (
     <Scrim>
       <div className="w-[560px] rounded-3xl bg-paper p-8 shadow-lift" data-prompt={prompt.reason}>
@@ -58,8 +55,10 @@ export function PromptModal({ prompt, onAccept, onDecline }: { prompt: Prompt; p
 /** The isolated practice itself, over the working screen: the same pad as the warm-up, the skill as its header, "Back to Qn" to return. */
 export function PracticeOverlay({ session, problem, dispatch }: { session: StudentSession; problem: Problem; dispatch: (a: SessionAction) => void }) {
   const first = runFirst(session, "overlay");
-  if (!first) return null;
   const back = () => dispatch({ type: "overlay/done" });
+  // Escape is "Back to Qn" (ticket 247); a help card open over the pad closes first.
+  useEscape(!!first, back);
+  if (!first) return null;
   return (
     <div className="absolute inset-0 z-20 bg-cream" data-overlay>
       <PracticePad

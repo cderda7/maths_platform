@@ -20,6 +20,7 @@ import { columnsOf, labelSentence, OUTCOME_LABEL, outcomeOf, recordReviews, repo
 import { pressWork, type ReportWork } from "@/lib/reportWork";
 import { classmateEvidence, hierarchyFor, leavesBehind, restrictTo, sessionEvidence, type Evidence } from "@/lib/hierarchy";
 import { useBatchedSession } from "@/lib/store";
+import { useEscape } from "@/components/useEscape";
 import { useAssignmentBundle } from "../AssignmentContext";
 
 /**
@@ -85,14 +86,12 @@ export function ReportBody({ student, back }: { student: string | null; back?: {
     const onPress = (e: MouseEvent) => {
       if (!(e.target instanceof Element) || !e.target.closest(KEEPS_WORK)) setWork(null);
     };
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setWork(null);
     document.addEventListener("click", onPress, true);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("click", onPress, true);
-      document.removeEventListener("keydown", onKey);
-    };
+    return () => document.removeEventListener("click", onPress, true);
   }, [work]);
+  // Escape closes the one opened last (ticket 247): the working, or the commentary idea's filter.
+  useEscape(idea !== null, () => setIdea(null));
+  useEscape(work !== null, () => setWork(null));
 
   return (
     <>

@@ -4391,3 +4391,24 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** A pathway that can change mid-lesson makes student routing depend on the moment of change (a stage is only switchable before anyone present enters it). Prompts add something on the live view that must never cover the grid. Denominators vary by assignment (x/19 on PS6). The homework bank promises practice the product does not yet deliver.
 
 **Defense.** Plan at Create plus change when due gives the teacher both the lesson shape up front and the evidence at the moment, and it cuts what the teacher must remember without cutting what they control. Absence is a fact about the room, so counts that leave absent students out are the honest ones. One page on two routes keeps a single source of truth with correct history.
+
+
+## 2026-09-14 · Escape is one stack of open layers, not a listener per popup (ticket 247)
+
+**Decision.** Everything closable registers a layer on one per-window stack while it is open (`lib/escape.ts`, bound by `components/useEscape.ts`). One bubble-phase keydown listener closes the top layer with that thing's own close action and returns focus to its opener. A layer with no close is a wall: while one is open (the student's quick check), Escape closes nothing. An Escape a control has already used (`defaultPrevented`) is left alone, so the reorder drag's cancel and the Fix box's clear keep working.
+
+**Context.** The user wanted Escape on every popup and collapsible view, one layer per press. Three things had their own window listeners that knew nothing of each other; under the quick check, Escape closed a help card hidden behind the modal.
+
+**Alternatives considered.**
+- *A listener per component, stopping propagation*: order depends on listener registration, not on what opened last, and a window listener cannot stop a sibling window listener reliably.
+- *A dialog library (Radix, react-aria)*: brings focus traps and portals the iPad frame's absolute layers do not want, and still would not cover expanded views (drills, open problems, filters).
+- *Native `<dialog>`*: its Escape closes only modal dialogs, not flyouts or expanded rows.
+- *Ordering by DOM depth*: siblings opened in sequence (three open problems) have no depth order.
+
+**Tradeoffs.**
+- Order is open (registration) order. Two layers that mount in the same commit register child first, so a Class View drill opened straight onto a skill closes whole in one press.
+- Focus returns to the element focused when the layer opened. Where that element is re-created (the diagnostic chip, a hint card's button, the chat opened from the menu) the component names its successor.
+- A wall blocks layers opened after it too, which is right only because walls are whole-screen modals.
+
+**Defense.** One small, pure, unit-tested rule decides what Escape does on every screen, and adding a closable thing is one hook call with its existing close. The click-through drives every layer with real key presses at two laptop sizes.
+

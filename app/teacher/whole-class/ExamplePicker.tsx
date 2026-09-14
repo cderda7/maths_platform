@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useEscape } from "@/components/useEscape";
 import M from "@/components/Math";
 import { LeafChip } from "@/components/Tag";
 import { CORRECT, exampleOf, optionOf, type Candidate, type ExampleOption, type ExampleRef } from "@/lib/examples";
@@ -18,6 +19,7 @@ const BADGE = "rounded-full px-1.5 py-px text-[10px] font-semibold uppercase tra
  */
 export default function ExamplePicker({ letter, candidate, options, taken, onPick }: { letter: string; candidate: Candidate; options: ExampleOption[]; /** Option keys already in a slot of this problem (this one included): the menu offers only the rest (ticket 157). */ taken: string[]; onPick: (ref: ExampleRef) => void }) {
   const [open, setOpen] = useState(false);
+  useEscape(open, () => setOpen(false));
   const current = optionOf(options, candidate.studentId);
   const unseen = options.filter((o) => !taken.includes(o.key));
   const canOpen = unseen.length > 0;

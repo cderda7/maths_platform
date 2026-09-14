@@ -1,8 +1,10 @@
 "use client";
 
+import { useRef } from "react";
 import { Card, Eyebrow } from "@/components/ui";
 import type { Hint, HintTerm } from "@/data/types";
 import { hintSegments } from "@/lib/hint";
+import { useEscape } from "@/components/useEscape";
 
 /**
  * One of a practice problem's hints with its linked words: light blue at rest, dark blue while
@@ -38,6 +40,10 @@ export default function HintCard({
   onTalk?: () => void;
   className?: string;
 }) {
+  // An earlier hint opened back up closes again on Escape (ticket 247), the latest reopened first; the latest hint (no `onToggle`) never.
+  // The collapsed card is another button, so focus goes to whichever of the two is on the page.
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  useEscape(!collapsed && !!onToggle, onToggle ?? null, () => toggleRef.current);
   const focus = "rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-standout-line";
   const heading = (
     <span className="flex items-baseline gap-2">
@@ -48,7 +54,7 @@ export default function HintCard({
   if (collapsed) {
     return (
       <Card tone="soft" className={`p-0 ${className}`} data-hint data-collapsed>
-        <button type="button" onClick={onToggle} className={`block w-full px-4 py-3 text-left ${focus}`} aria-expanded={false}>
+        <button ref={toggleRef} type="button" onClick={onToggle} className={`block w-full px-4 py-3 text-left ${focus}`} aria-expanded={false}>
           <span className="flex items-baseline gap-2">
             {heading}
             <span className="min-w-0 flex-1 truncate text-[13px] text-ink-muted">{hint.text}</span>
@@ -60,7 +66,7 @@ export default function HintCard({
   return (
     <Card tone="soft" className={`p-4 ${className}`} data-hint>
       {onToggle ? (
-        <button type="button" onClick={onToggle} className={`block w-full text-left ${focus}`} aria-expanded>
+        <button ref={toggleRef} type="button" onClick={onToggle} className={`block w-full text-left ${focus}`} aria-expanded>
           {heading}
         </button>
       ) : (

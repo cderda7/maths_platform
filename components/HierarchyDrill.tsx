@@ -4,6 +4,7 @@ import { forwardRef, useLayoutEffect, useMemo, useRef, useState } from "react";
 import FitText from "@/components/FitText";
 import M from "@/components/Math";
 import { Eyebrow } from "@/components/ui";
+import { useEscape } from "@/components/useEscape";
 import { DifficultyTag, StatusDot, STATUS_TEXT, STATUS_WORD } from "@/components/Tag";
 import { categoryOf, groupName, groupOf, groupsOf, isFlat, leafName, studentLeafName, type CategoryId, type GroupId, type LeafId } from "@/data/taxonomy";
 import type { Problem, Status } from "@/data/types";
@@ -346,6 +347,8 @@ export function RowDrill({
   const [ownLeaf, setLeaf] = useState<LeafId | null>(initialLeaf);
   const outside = onPickLeaf !== undefined;
   const leaf = outside ? (pickedLeaf ?? null) : ownLeaf;
+  // A skill's work opened in the drill closes on Escape before the drill does (ticket 247); a caller holding the pick handles its own.
+  useEscape(!outside && ownLeaf !== null, () => setLeaf(null));
   const rootRef = useRef<HTMLDivElement>(null);
   const treeRef = useRef<HTMLUListElement>(null);
   const [below, setBelow] = useState(mode !== "category");

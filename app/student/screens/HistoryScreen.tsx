@@ -6,18 +6,22 @@ import InkView from "@/components/InkView";
 import { Button, Eyebrow } from "@/components/ui";
 import { useAssignment } from "@/lib/classroom-store";
 import type { StudentSession } from "@/lib/session";
+import { useEscape } from "@/components/useEscape";
 import { alignVersions, versionsOf, type AlignedProblem, type Version } from "@/lib/versions";
 
 const time = (ms: number) => (ms > 0 ? new Date(ms).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "");
 
 /**
  * A reviewed assignment. By default only the final working shows. Picking an earlier version from
- * the dropdown opens it in a side panel that scrolls line for line with the final version.
+ * the dropdown opens it in a side panel that scrolls line for line with the final version. Escape closes the side
+ * panel back to "Final only", then goes "← Report" (ticket 247).
  */
 export default function HistoryScreen({ session, onBack }: { session: StudentSession; onBack: () => void }) {
   const versions = versionsOf(session);
   const final = versions.find((v) => v.id === "final")!;
   const [compare, setCompare] = useState<Version["id"] | "none">("none");
+  useEscape(true, onBack);
+  useEscape(compare !== "none", () => setCompare("none"));
   const other = compare === "none" ? null : versions.find((v) => v.id === compare)!;
   const aligned = alignVersions(other ?? final, final);
   const leftRef = useRef<HTMLDivElement>(null);

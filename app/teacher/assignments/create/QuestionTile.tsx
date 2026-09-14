@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type KeyboardEvent, type MouseEvent } from "react";
+import { useEscape } from "@/components/useEscape";
 import QuestionView from "@/components/QuestionView";
 import { draftText, parseQuestion, splitPaste } from "@/lib/mathInput";
 import type { QuestionItem } from "@/lib/upload";
@@ -90,6 +91,23 @@ export default function QuestionTile({ index, slot = index, item, ghost, focused
     }
   };
 
+  const tile = useRef<HTMLDivElement>(null);
+  /**
+   * Focus leaving the text or the Fix box (ticket 247): moving between those two keeps the editor open (a press into the
+   * Fix box used to close it, so a fix could only be typed by keyboard); anywhere else leaves the tile.
+   */
+  const leave = (next: EventTarget | null) => {
+    if (next instanceof Element && tile.current?.contains(next) && next.matches("[data-editor], [data-fix]")) return;
+    leaving();
+    h.onBlur();
+  };
+  // Escape leaves the tile as a click away would (ticket 247): the text goes to the model if it changed, and the editor closes.
+  useEscape(focused, () => {
+    const el = document.activeElement;
+    if (el instanceof HTMLElement && tile.current?.contains(el)) el.blur();
+    else leave(null);
+  });
+
   const keyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -139,6 +157,7 @@ export default function QuestionTile({ index, slot = index, item, ghost, focused
 
   return (
     <div
+      ref={tile}
       onMouseDown={mouseDown}
       onClick={click}
       className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border p-5 transition-[border-color,box-shadow] ${surface}`}
@@ -192,14 +211,11 @@ export default function QuestionTile({ index, slot = index, item, ghost, focused
             onChange={(e) => h.onChange(e.target.value)}
             onKeyDown={keyDown}
             onPaste={paste}
-            onBlur={() => {
-              leaving();
-              h.onBlur();
-            }}
+            onBlur={(e) => leave(e.relatedTarget)}
             className="w-full bg-cream-deep/70 text-ink outline-none placeholder:text-ink-muted/60"
             data-editor
           />
-          {!ghost && <FixLine label={label} disabled={!!item.fixing} onFix={h.onFix} />}
+          {!ghost && <FixLine label={label} disabled={!!item.fixing} onFix={h.onFix} onBlur={leave} />}
         </div>
       )}
       <div className={`relative ${focused ? "mt-3" : "mt-2.5"}`}>
@@ -221,11 +237,11 @@ export default function QuestionTile({ index, slot = index, item, ghost, focused
 
 /**
  * The Fix line under a focused tile's text (ticket 173): a plain-language correction or a line
- * of TeX, Enter to send, Escape to clear. Its text lives with the focused block and goes when
+ * of TeX, Enter to send, Escape to clear (and, once empty, to close the editor). Its text lives with the focused block and goes when
  * the focus does. A press inside it stays inside it (the tile's own press handling would move
  * the caret).
  */
-function FixLine({ label, disabled, onFix }: { label: string; disabled: boolean; onFix: (instruction: string) => void }) {
+function FixLine({ label, disabled, onFix, onBlur }: { label: string; disabled: boolean; onFix: (instruction: string) => void; onBlur: (next: EventTarget | null) => void }) {
   const [fix, setFix] = useState("");
   const keyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -234,7 +250,8 @@ function FixLine({ label, disabled, onFix }: { label: string; disabled: boolean;
       if (!instruction || disabled) return;
       onFix(instruction);
       setFix("");
-    } else if (e.key === "Escape") {
+    } else if (e.key === "Escape" && fix !== "") {
+      // Escape clears what is typed; with nothing typed it goes on to close the tile's editor (ticket 247).
       e.preventDefault();
       setFix("");
     }
@@ -245,6 +262,7 @@ function FixLine({ label, disabled, onFix }: { label: string; disabled: boolean;
       onChange={(e) => setFix(e.target.value)}
       onKeyDown={keyDown}
       onMouseDown={(e) => e.stopPropagation()}
+      onBlur={(e) => onBlur(e.relatedTarget)}
       placeholder={FIX_PLACEHOLDER}
       aria-label={`Fix ${label}`}
       disabled={disabled}

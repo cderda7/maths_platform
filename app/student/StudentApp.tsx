@@ -35,6 +35,7 @@ import PeerScreen from "./screens/PeerScreen";
 import HistoryScreen from "./screens/HistoryScreen";
 import DiagnosticModal from "./screens/DiagnosticModal";
 import SkipTo from "@/components/SkipTo";
+import { EscapeLayer } from "@/components/useEscape";
 
 const mmss = (ms: number) => {
   const s = Math.max(0, Math.ceil(ms / 1000));
@@ -182,6 +183,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
             </div>
           </div>
         )}
+        {session.notice && !frozen && !reading && <EscapeLayer active onEscape={() => dispatch({ type: "notice/dismiss" })} />}
         {session.notice && !frozen && !reading && (
           <div className="absolute inset-x-0 bottom-6 z-20 flex justify-center px-8" data-notice>
             <div className="flex items-center gap-4 rounded-full border border-accent-line bg-paper px-5 py-2.5 text-[14px] text-ink shadow-lift">

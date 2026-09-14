@@ -6,6 +6,7 @@ import DiagnosticStem from "@/components/DiagnosticStem";
 import FitText from "@/components/FitText";
 import M from "@/components/Math";
 import { Button, Card } from "@/components/ui";
+import { useEscape } from "@/components/useEscape";
 import type { DiagnosticStep } from "@/data/diagnostic";
 import DiagnosticControl from "@/components/DiagnosticControl";
 import { liveDiagnostic, pickersAt, problemLabelOf, repeatedSlip, runFor, slippedAt, stepsFor, studentFor, tally } from "@/lib/diagnostic";
@@ -79,6 +80,8 @@ export default function DiagnosticPush({ problemId, rows, className = "" }: { pr
   const now = useNow();
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
+  // Escape collapses the flyout (ticket 247), a way out for the keyboard and touch that the pointer's leave never gave; the chip is re-created on close, so focus goes to the new one.
+  useEscape(open, () => setOpen(false), () => document.querySelector<HTMLElement>(`[data-diag-toggle="${CSS.escape(problemId)}"]`));
   const steps = stepsFor(problemId);
   const live = liveDiagnostic(classroom);
   /** This panel's chain is out: the chip carries a badge while it is. */

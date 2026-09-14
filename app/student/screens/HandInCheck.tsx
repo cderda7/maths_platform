@@ -2,12 +2,13 @@
 
 import { Button } from "@/components/ui";
 import type { Problem } from "@/data/types";
+import { useEscape } from "@/components/useEscape";
 
 /**
  * The hand-in check (ticket 115): Hand in was pressed with problems still blank. A card in the
  * bottom right, over the Hand in button: a way back to each blank problem, or "Confirm submit".
  * One blank problem is a "Return to Qn" button; several read "Return to Q1, Q2, Q3", each label
- * a button that sits in a blue box under the pointer.
+ * a button that sits in a blue box under the pointer. Escape returns to the first blank problem (ticket 247).
  */
 export default function HandInCheck({
   blank,
@@ -19,6 +20,8 @@ export default function HandInCheck({
   onConfirm: () => void;
 }) {
   const one = blank.length === 1 ? blank[0] : null;
+  const first = blank.reduce<number | null>((min, b) => (min === null || b.index < min ? b.index : min), null);
+  useEscape(first !== null, () => first !== null && onReturn(first));
   return (
     <div role="dialog" aria-label="Hand in with blank problems" data-hand-in-check className="absolute right-4 bottom-4 z-20 w-[340px] rounded-2xl border border-line bg-paper p-5 shadow-lift">
       <h2 className="font-display text-[20px] leading-tight text-ink">{one ? `Hand in with ${one.problem.label} blank?` : "Hand in with blanks?"}</h2>

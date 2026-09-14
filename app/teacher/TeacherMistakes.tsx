@@ -7,6 +7,7 @@ import { BackToClassroom, useAssignmentBundle } from "./AssignmentContext";
 import ForceSubmit from "./ForceSubmit";
 import M from "@/components/Math";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
+import { EscapeLayer } from "@/components/useEscape";
 import { DifficultyTag, SlipChip } from "@/components/Tag";
 import { arriving, EMPTY_HOLD, holdAbovePointer, holdKey } from "@/lib/arrivals";
 import { assignmentStages, currentStageOf } from "@/lib/assignments";
@@ -308,6 +309,8 @@ export default function TeacherMistakes() {
           };
           return (
             <div key={problem.id} className="flex items-start gap-4" data-problem-row={problem.id}>
+            {/* Escape closes the problem opened last first (ticket 247), without arming "close all" the way a press of close does. */}
+            <EscapeLayer active={isOpen} onEscape={() => setOpen((o) => o.filter((x) => x !== problem.id))} />
             {/* The correct count level with the header row (the card's 1 px border, then the header), the skipped count 6 px under it; the two the same width. */}
             <div className="flex shrink-0 flex-col items-stretch gap-1.5" style={{ width: COUNT_COLUMN, paddingTop: (PROBLEM_HEADER + 2 - COUNT_H) / 2 }}>
               <span className={COUNT} title={`${right} of ${CLASS_SIZE} got it correct · ${wrong} wrong · ${skipped} skipped${pending ? ` · ${pending} still working` : ""}`} data-right={`${problem.id}:${right}`}>

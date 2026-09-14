@@ -6,6 +6,7 @@ import M from "@/components/Math";
 import { Eyebrow } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
 import { questionFor } from "@/lib/diagnostic";
+import { useEscape } from "@/components/useEscape";
 import { chainPosition, currentIndex, isRevealed, type DiagnosticRun } from "@/lib/diagnosticChain";
 
 /**
@@ -19,6 +20,8 @@ import { chainPosition, currentIndex, isRevealed, type DiagnosticRun } from "@/l
 export default function DiagnosticModal({ run, now, onAnswer }: { run: DiagnosticRun; now: number; onAnswer: (option: string) => void }) {
   const index = currentIndex(run);
   const d = questionFor(run.steps[index]);
+  // Escape does nothing here, and closes nothing under it (ticket 247).
+  useEscape(!!d, null);
   if (!d) return null;
   const mine = run.answers[d.id]?.option ?? null;
   const revealed = isRevealed(run, index, now);

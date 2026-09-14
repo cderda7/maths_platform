@@ -3232,6 +3232,18 @@ uploaded problems) settled the following as later, each on purpose.
 - **Assignment-shaped (do it any time) instead of period-shaped.** Rejected 2026-09-14: the scope is in-class work, a unified group assignment; individualised practice belongs to homework.
 - **The holistic page for a student reachable from more places (the Mistakes view, group review, the board setup).** Deferred 2026-09-14: agreed entries are Edexia Classroom's Holistic Assessment and a name in Class View (tickets 252, 253).
 
+## Escape everywhere (ticket 247, 2026-09-14)
+
+- **Group toggles inside a Class View drill.** Opening a group inside a drill is not a layer; Escape closes the skill's work, then the whole drill. Deferred: each group as a layer would take many presses to leave a drill.
+- **The confidence screen's sub-options** stay open on Escape, since closing them unticks the student's answer. Deferred: the user kept answers out of Escape.
+- **Split view panes, the review wizard's Back, and the board routes** do not respond to Escape. Deferred: they are layout and navigation, not popups.
+- **Hover-only text** (pathway stage descriptions, native tooltips, the Class View row buttons) is not a layer. Deferred: it goes when the pointer moves.
+- **Focus trap inside modals.** Tab can still move focus behind a Scrim or the quick check. Deferred: not asked for; a trap would pair with the stack's walls.
+- **Focus return for a layer the student did not open** (a notice, the "2 minutes on X?" prompt) goes back to whatever had focus when it appeared. Deferred: harmless, and there is no better target.
+- **Create's other transient lines** ("Qn removed. Undo", the drop note, an upload message's Dismiss) do not close on Escape. Deferred: they clear on the next edit; not raised in the grilling.
+- **Escape in a Class View drill opened straight onto a skill** closes the whole drill in one press (child and parent layers mount together). Deferred: ordering by open time cannot split them, and closing all of it reads as expected.
+- **A visible hint that Escape works** (an "esc" keycap beside close buttons). Deferred: not asked for.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

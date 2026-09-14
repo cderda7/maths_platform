@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import HelpChat from "@/components/HelpChat";
 import HintCard from "@/components/HintCard";
 import M from "@/components/Math";
@@ -16,6 +16,7 @@ import { nextLine } from "@/lib/recognition";
 import type { PracticeRun, RunKey, SessionAction } from "@/lib/session";
 import { warmupScript } from "@/lib/warmup";
 import { Scrim } from "@/app/student/screens/PracticePrompt";
+import { useEscape } from "@/components/useEscape";
 
 /**
  * Practice on the pad, for the warm-up and the mid-set isolated practice alike: the working
@@ -57,6 +58,9 @@ export default function PracticePad({
   const [chatOpen, setChatOpen] = useState(false);
   /** Every ask for the chat counts, so the chat puts the cursor in its box each time, open already or not (ticket 204). */
   const [chatAsks, setChatAsks] = useState(0);
+  // Escape closes the chat like its "close" (ticket 247); focus goes back to "I need help", the chat's opener having gone with the menu.
+  const helpRow = useRef<HTMLDivElement>(null);
+  useEscape(chatOpen && !run.example, () => setChatOpen(false), () => helpRow.current?.querySelector("button") ?? null);
   const openChat = () => {
     setChatOpen(true);
     setChatAsks((n) => n + 1);
@@ -150,7 +154,7 @@ export default function PracticePad({
         ))}
         {/* While the worked example plays the help is on screen already, so the button goes, not greys. */}
         {!run.example && (
-          <div className="mt-5">
+          <div ref={helpRow} className="mt-5">
             <Button variant="deep" className="w-full" onClick={() => setHelpOpen(true)}>
               I need help
             </Button>

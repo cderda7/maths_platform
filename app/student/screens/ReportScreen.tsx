@@ -13,12 +13,16 @@ import { isMastery } from "@/lib/peers";
 import { useAssignment, useClassroom } from "@/lib/classroom-store";
 import { sessionEvidence, sessionHierarchy } from "@/lib/hierarchy";
 import { pressWork, type ReportWork } from "@/lib/reportWork";
+import { useEscape } from "@/components/useEscape";
 import type { SessionAction, StudentSession } from "@/lib/session";
 
 const sentences = (t: string) => t.split(/[.!?]+/).map((x) => x.trim()).filter(Boolean).length;
 
-/** What keeps the side column's working open when pressed: the working itself (not the blank column under it), a Q tile, a skill row (they switch it), and Send (it closes it its own way). */
-const KEEPS_WORK = "[data-work-content], [data-work-tile], [data-hierarchy] button[data-node], [data-send]";
+/**
+ * What keeps the side column's working open when pressed: the working itself (not the blank column under it), a Q tile, a skill row (they switch it),
+ * and Send (it closes it its own way); and what is not the report at all (ticket 247): the teacher's quick check over it and the demo's controls.
+ */
+const KEEPS_WORK = "[data-work-content], [data-work-tile], [data-hierarchy] button[data-node], [data-send], [data-diagnostic], [data-skip-to], [data-reset]";
 
 /**
  * The final report, on one screen with nothing to scroll (ticket 233): the skills laid out as the teacher's
@@ -54,14 +58,10 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
     const onPress = (e: MouseEvent) => {
       if (!(e.target instanceof Element) || !e.target.closest(KEEPS_WORK)) setWork(null);
     };
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setWork(null);
     document.addEventListener("click", onPress, true);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("click", onPress, true);
-      document.removeEventListener("keydown", onKey);
-    };
+    return () => document.removeEventListener("click", onPress, true);
   }, [work]);
+  useEscape(work !== null, () => setWork(null));
 
   // The box is back in the column once the working closes; a nudge puts the cursor in it.
   useEffect(() => {

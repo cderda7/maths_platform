@@ -4,10 +4,12 @@ import M from "@/components/Math";
 import { Button, Card, Eyebrow } from "@/components/ui";
 import { studentLeafName } from "@/data/taxonomy";
 import { peerStruggles } from "@/lib/peers";
+import { useEscape } from "@/components/useEscape";
 
-/** For a student whose every step held: where the class is finding it hard, in counts only. */
+/** For a student whose every step held: where the class is finding it hard, in counts only. Escape is "← Report" (ticket 247). */
 export default function PeerScreen({ onBack }: { onBack: () => void }) {
   const p = peerStruggles();
+  useEscape(true, onBack);
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col px-9 py-8">
       <Eyebrow>Class</Eyebrow>

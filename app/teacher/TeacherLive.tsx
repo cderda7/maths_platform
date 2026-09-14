@@ -11,6 +11,7 @@ import WholeClassCard from "./WholeClassCard";
 import { RowDrill, type ColumnBox, type RowMode } from "@/components/HierarchyDrill";
 import StatusKey from "@/components/StatusKey";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
+import { useEscape } from "@/components/useEscape";
 import { StatusDot, STATUS_WORD } from "@/components/Tag";
 import { DEMO_STUDENT, unitLabel } from "@/data/assignment";
 import type { Classmate } from "@/data/classmates";
@@ -192,6 +193,13 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
     document.querySelector(`tr[data-row="${CSS.escape(student)}"]`)?.scrollIntoView({ block: "center" });
     window.history.replaceState(null, "", window.location.pathname);
   }, []);
+  // Escape closes what was opened last (ticket 247), one press each: the history stacks, history mode, the row's drill or the column view.
+  useEscape(open !== null || column !== null, () => {
+    setOpen(null);
+    setColumn(null);
+  });
+  useEscape(history !== null, () => setHistory(null));
+  useEscape((history?.open.length ?? 0) > 0, () => setHistory((h) => (h ? { ...h, open: [] } : h)));
   const tableRef = useRef<HTMLTableElement>(null);
   const rosterRef = useRef<HTMLDivElement>(null);
   const sideTopRef = useRef<HTMLDivElement>(null);
