@@ -41,29 +41,66 @@ const COUNT_COLUMN = 103;
 /** A count tag's height: 12 px text on its own line, 4 px padding and 1 px border each side. The column's top padding centres the first tag on the header row. */
 const COUNT_H = 22;
 const LINE = "rounded-xl border px-4 py-2.5 text-[clamp(13px,calc(17px*var(--fit,1)),17px)] whitespace-nowrap text-ink @max-[260px]:px-2 @max-[260px]:py-1.5";
+/** A mistake group's label (ticket 245): its wrong line(s) in the working's red, set at 17 px or smaller by the problem's `--label-fit`, never under 13 px. */
+const LABEL = "rounded-xl border border-wrong-line bg-wrong-soft px-4 py-2.5 text-[clamp(13px,calc(17px*var(--label-fit,1)),17px)] whitespace-nowrap text-ink @max-[260px]:px-2 @max-[260px]:py-1.5";
+/** The working's and the labels' smallest size over their largest: `--fit` and `--label-fit` stop here. */
+const FIT_FLOOR = 13 / 17;
+
+/** A box's width for its content, layout px (the teacher chrome is zoomed, so client rects would be in other units). */
+const contentWidth = (box: HTMLElement) => {
+  const cs = getComputedStyle(box);
+  return box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+};
+/** The widest typeset line inside an element, layout px (offsetWidth rounds down). */
+const widestMaths = (el: HTMLElement) => Math.max(0, ...[...el.querySelectorAll<HTMLElement>(".katex")].map((k) => k.offsetWidth + 1));
+const template = (mins: number[]) => mins.map((m) => `minmax(${m}px, 1fr)`).join(" ");
 
 /**
- * The students' grid of one problem, which measures its own lines: before paint, with `--fit`
- * at 1, the widest line's overshoot of its box sets the factor every line in the grid is
- * scaled by (KaTeX scales with the font size, so one measurement is enough); measured again
- * whenever the grid's size changes (the window, a panel opening beside the card) and once the
- * maths fonts have loaded. Writes the factor straight to the element: no state, no re-render.
+ * The students' grid of one problem, which measures its own maths before paint, whenever the grid's size changes (the
+ * window, a panel opening beside the card) and once the maths fonts have loaded, writing straight to the element: no
+ * state, no re-render.
+ * First the labels (ticket 245): with `--label-fit` at 1 and every column at the floor, the tightest label's overshoot
+ * of its box sets the factor all the problem's labels are scaled by, down to 13 px; a label still wider than its box
+ * at that size widens its group's columns, equally, until it fits (the card scrolls sideways when they no longer fit
+ * the card). Then the working, on the columns the labels settled: the widest line's overshoot sets `--fit` the same way
+ * (KaTeX scales with the font size, so one measurement is enough). Opening a problem only adds the working, so the
+ * labels, and with them the columns, come out the same: nothing moves.
  */
-function FitGrid({ children, ...rest }: React.HTMLAttributes<HTMLDivElement>) {
+function FitGrid({ columns, children, ...rest }: { columns: number } & React.HTMLAttributes<HTMLDivElement>) {
   const ref = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
     const fit = () => {
+      const mins = Array<number>(columns).fill(COLUMN_FLOOR);
+      el.style.gridTemplateColumns = template(mins);
+      el.style.setProperty("--label-fit", "1");
+      const labels = [...el.querySelectorAll<HTMLElement>("[data-label-box]")];
+      let labelScale = 1;
+      for (const box of labels) labelScale = Math.min(labelScale, contentWidth(box) / widestMaths(box));
+      labelScale = Math.max(FIT_FLOOR, labelScale);
+      el.style.setProperty("--label-fit", labelScale.toFixed(4));
+      // Widening one group's columns can take width from its neighbours' flexible share, so check again until every label fits (a few passes at most).
+      for (let pass = 0; pass < 6; pass++) {
+        let widened = false;
+        for (const box of labels) {
+          const over = widestMaths(box) - contentWidth(box);
+          if (over <= 0) continue;
+          const start = Number(box.dataset.start);
+          const span = Number(box.dataset.span);
+          const cell = box.parentElement!;
+          const each = cell.offsetWidth / span + over / span + 1;
+          for (let c = start; c < start + span; c++) mins[c] = Math.max(mins[c], Math.ceil(each));
+          widened = true;
+        }
+        if (!widened) break;
+        el.style.gridTemplateColumns = template(mins);
+      }
       el.style.setProperty("--fit", "1");
       let scale = 1;
       for (const li of el.querySelectorAll<HTMLElement>("li[data-line]")) {
-        const k = li.querySelector<HTMLElement>(".katex");
-        if (!k) continue;
-        // Layout px throughout (offsetWidth, clientWidth, computed padding): the teacher chrome is zoomed, so client rects would be in other units.
-        const cs = getComputedStyle(li);
-        const avail = li.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-        const w = k.offsetWidth + 1; // offsetWidth rounds down
+        const w = widestMaths(li);
+        const avail = contentWidth(li);
         if (w > avail) scale = Math.min(scale, avail / w);
       }
       el.style.setProperty("--fit", scale.toFixed(4));
@@ -75,7 +112,7 @@ function FitGrid({ children, ...rest }: React.HTMLAttributes<HTMLDivElement>) {
     return () => ro.disconnect();
   });
   return (
-    <div ref={ref} {...rest}>
+    <div ref={ref} {...rest} style={{ ...rest.style, gridTemplateColumns: template(Array<number>(columns).fill(COLUMN_FLOOR)) }}>
       {children}
     </div>
   );
@@ -167,7 +204,9 @@ function ArrivingName({ arrivedAt, now, children, ...rest }: { arrivedAt: number
  * pill those who made the exact same mistake (the same wrong line, whatever the lines around
  * it) next to each other. Students whose working is identical line for line share one column
  * (ticket 138): their names sit together over the one copy of the work, so a problem twelve
- * students got wrong in three ways takes three columns. Any number of problems can be open at
+ * students got wrong in three ways takes three columns. Over the names of each group on the same exact mistake sits its
+ * label (ticket 245): the wrong line they all wrote, in the working's red, across the group's columns, collapsed or open,
+ * so the clusters say what they are before anything is expanded. Any number of problems can be open at
  * once: clicking the problem's header, any student, or the "expand" button that shows on hover
  * opens the working for that problem, one column each, the wrong line in red, and one box in
  * the pill's red around the working of every group of students on the same exact mistake (a
@@ -314,7 +353,27 @@ export default function TeacherMistakes() {
                 </div>
               </div>
               <div className="overflow-x-auto">
-                <FitGrid className="grid" style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(${COLUMN_FLOOR}px, 1fr))` }} data-students>
+                <FitGrid className="grid" columns={columns.length} data-students>
+                  {boxes.map((m) => (
+                    // Over its names, what every student in the group wrote wrong (ticket 245): one label across the group's columns, both lines stacked when they got two wrong. A press opens the problem, like a name.
+                    <button
+                      key={m.key}
+                      type="button"
+                      onClick={() => toggle(problem.id)}
+                      aria-expanded={isOpen}
+                      className={`@container row-start-1 flex min-w-0 flex-col justify-start px-5 pt-4 text-left transition-colors hover:bg-cream-deep/40 ${column(m.start)} ${isOpen ? "bg-accent-soft/30" : ""}`}
+                      style={{ gridColumn: `${m.start + 1} / span ${m.columns.length}` }}
+                      data-label={`${problem.id}:${m.rows.map((r) => r.id).join(",")}`}
+                    >
+                      <div className={`${LABEL} flex flex-col gap-1.5`} data-label-box data-start={m.start} data-span={m.columns.length}>
+                        {m.wrongLines.map((tex) => (
+                          <div key={tex} data-label-line>
+                            <M tex={tex} />
+                          </div>
+                        ))}
+                      </div>
+                    </button>
+                  ))}
                   {columns.map((c, i) => (
                     // Every student who wrote this column's working, their names flowing across the column and wrapping as it narrows; the first name in every column on one line.
                     // Keyed on the column's first student, who stays first as others join it (ticket 189), so a name mid-glow is never re-created.
@@ -323,7 +382,7 @@ export default function TeacherMistakes() {
                       type="button"
                       onClick={() => toggle(problem.id)}
                       aria-expanded={isOpen}
-                      className={`row-start-1 flex min-w-0 flex-wrap content-start items-center gap-x-5 gap-y-2 px-5 pt-4 pb-3.5 text-left transition-colors hover:bg-cream-deep/40 ${column(i)} ${isOpen ? "bg-accent-soft/30" : ""}`}
+                      className={`row-start-2 flex min-w-0 flex-wrap content-start items-center gap-x-5 gap-y-2 px-5 pt-3 pb-3.5 text-left transition-colors hover:bg-cream-deep/40 ${column(i)} ${isOpen ? "bg-accent-soft/30" : ""}`}
                       style={{ gridColumn: i + 1 }}
                       data-column={`${problem.id}:${ids(c)}`}
                     >
@@ -338,7 +397,7 @@ export default function TeacherMistakes() {
                   {groups.map((g) => (
                     <div
                       key={g.slips.join("|")}
-                      className={`row-start-2 flex min-w-0 flex-wrap items-start gap-1.5 pr-5 pb-4 pl-5 ${column(g.start)} ${isOpen ? "bg-accent-soft/30" : ""}`}
+                      className={`row-start-3 flex min-w-0 flex-wrap items-start gap-1.5 pr-5 pb-4 pl-5 ${column(g.start)} ${isOpen ? "bg-accent-soft/30" : ""}`}
                       style={{ gridColumn: `${g.start + 1} / span ${g.columns.length}` }}
                       data-slip-group={g.rows.map((r) => r.id).join(",")}
                     >
@@ -349,7 +408,7 @@ export default function TeacherMistakes() {
                     </div>
                   ))}
                   {/* The working row's ground: the divider under the pills and the cream behind the boxes, across every column. */}
-                  {isOpen && <div className="row-start-3 border-t border-line bg-cream/60" style={{ gridColumn: "1 / -1" }} aria-hidden />}
+                  {isOpen && <div className="row-start-4 border-t border-line bg-cream/60" style={{ gridColumn: "1 / -1" }} aria-hidden />}
                   {isOpen &&
                     columns.map((c, i) => {
                       // One box per exact mistake: every cell in it carries the top and bottom edge; the first the left edge and corners, the last the right; between cells a plain divider.
@@ -361,7 +420,7 @@ export default function TeacherMistakes() {
                       return (
                         <div
                           key={c.rows[0].id}
-                          className="@container row-start-3 min-w-0 py-4"
+                          className="@container row-start-4 min-w-0 py-4"
                           style={{ gridColumn: i + 1 }}
                           data-expanded={`${problem.id}:${ids(c)}`}
                           data-mistake-group={box.rows.map((x) => x.id).join(",")}

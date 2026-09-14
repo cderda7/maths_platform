@@ -3,6 +3,7 @@ import { CLASSMATES } from "@/data/classmates";
 import { ASSIGNMENT } from "@/data/assignment";
 import { CLASS_SIZE, groupByMistake, groupBySlip, groupByWork, mistakeKey, mistakesByProblem, rightCount, type MistakeRow } from "./mistakes";
 import { sessionAt } from "./session";
+import { assignmentBundle, assignmentIds } from "./assignments";
 
 describe("teacher mistake view", () => {
   it("lists problems first, then who slipped on each, live student first", () => {
@@ -79,6 +80,8 @@ describe("teacher mistake view", () => {
       { key: "m2", start: 2, ids: ["b", "d"] },
       { key: "m1 | m3", start: 4, ids: ["e"] },
     ]);
+    // Each group's label is its wrong lines one by one (ticket 245), both of e's.
+    expect(groupByMistake([a, b, c, d, e]).map((g) => g.wrongLines)).toEqual([["m1"], ["m2"], ["m1", "m3"]]);
     // One slip group: its rows are reordered to the exact groups' order and its starts are absolute (five different workings, so five columns).
     const [g] = groupBySlip([a, b, c, d, e]);
     expect(g.rows.map((r) => r.id)).toEqual(["a", "c", "b", "d", "e"]);
@@ -183,5 +186,24 @@ describe("teacher mistake view", () => {
     const m = mistakesByProblem(null);
     expect(m.map((p) => p.problem.id)).toEqual(["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q9", "q10"]); // ethan and oliver slip on Q1 now
     expect(m.flatMap((p) => p.rows.map((r) => r.id))).not.toContain("sam");
+  });
+
+  it("every mistake group on every set is labelled with exactly the wrong lines each of its students wrote (ticket 245)", () => {
+    // The five finished sets, and the live set before Create (its classmates, with Sam handed in).
+    const sets = assignmentIds(null).map((id) => assignmentBundle(id, null)!);
+    expect(sets.length).toBe(5);
+    let groups = 0;
+    let twoLines = 0;
+    for (const problems of [...sets.map((set) => mistakesByProblem(null, set)), mistakesByProblem(sessionAt("feedback"))])
+      for (const p of problems)
+        for (const g of groupBySlip(p.rows).flatMap((s) => s.mistakes)) {
+          groups++;
+          expect(g.wrongLines.length).toBeGreaterThan(0);
+          expect(g.wrongLines.join(" | ")).toBe(g.key);
+          for (const r of g.rows) expect(r.lines.filter((l) => l.verdict.verdict === "wrong").map((l) => l.tex)).toEqual(g.wrongLines);
+          if (g.wrongLines.length > 1) twoLines++;
+        }
+    expect(groups).toBeGreaterThan(122);
+    expect(twoLines).toBeGreaterThanOrEqual(8);
   });
 });

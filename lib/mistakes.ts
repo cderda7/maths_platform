@@ -62,6 +62,8 @@ export interface SlipGroup {
 export interface MistakeGroup {
   /** The wrong lines' TeX, in order, joined; a student with two wrong lines is keyed on both. */
   key: string;
+  /** The same wrong lines one by one, as the students wrote them: the group's label on the mistake view (ticket 245). */
+  wrongLines: string[];
   /** Index of the group's first column among the problem's columns. */
   start: number;
   /** The group's students in view order: its columns' rows concatenated. */
@@ -84,12 +86,11 @@ export interface WorkColumn {
   live: boolean;
 }
 
+/** The TeX of a student's wrong lines, in the order written. */
+export const wrongLinesOf = (r: MistakeRow): string[] => r.lines.filter((l) => l.verdict.verdict === "wrong").map((l) => l.tex);
+
 /** A mistake's identity is its wrong line's entry in the evaluation table (DECISION_LOG, 2026-09-12). */
-export const mistakeKey = (r: MistakeRow): string =>
-  r.lines
-    .filter((l) => l.verdict.verdict === "wrong")
-    .map((l) => l.tex)
-    .join(" | ");
+export const mistakeKey = (r: MistakeRow): string => wrongLinesOf(r).join(" | ");
 
 /** A student's working, line for line; two students with the same key share a column. */
 export const workKey = (r: MistakeRow): string => r.lines.map((l) => l.tex).join("\n");
@@ -119,7 +120,7 @@ export function groupByMistake(rows: MistakeRow[], start = 0): MistakeGroup[] {
     const key = mistakeKey(r);
     const g = groups.find((x) => x.key === key);
     if (g) g.rows.push(r);
-    else groups.push({ key, start: 0, rows: [r], columns: [] });
+    else groups.push({ key, wrongLines: wrongLinesOf(r), start: 0, rows: [r], columns: [] });
   }
   for (const g of groups) {
     g.columns = groupByWork(g.rows);

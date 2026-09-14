@@ -3176,6 +3176,15 @@ uploaded problems) settled the following as later, each on purpose.
 - **The line on the Class View card.** The Class View's pathway card still reads as a vertical chip; the same line, read-only, could show there. Deferred: out of this ticket's screen.
 - **Touch sizes.** The stops are 42 px tall; an iPad teacher may want larger targets. Deferred: Create is used on a laptop.
 
+## Mistake group labels (ticket 245, 2026-09-14)
+
+- **The same labels on other clustered-name screens.** Class review's examples on the board and the live diagnostic's "who picked each option" (ticket 242) also group students by one mistake. Deferred: the user scoped the labels to the Mistakes view, where the review named the gap; those screens show the work beside the names already.
+- **The final answer beside the wrong line** ("(3x − 2)(x + 4) = 0 → x = ⅔ or −4"). Deferred: the user chose the wrong line alone; in 68 of 122 groups the final answer is a knock-on of the slip, and two routes to one answer would read as one mistake.
+- **Labels only on shared mistakes.** A student alone on a mistake could go unlabelled so shared ones stand out. Deferred: the user chose every group, so a label never appears or vanishes as a second student arrives.
+- **A glow when a new mistake group arrives on the live set.** Deferred: the user chose the name's glow alone, the label being structure rather than news.
+- **A count on the label** ("×5"). Not asked for; the names under it already show how many.
+- **A short hover explaining the label** (the line these students wrote wrong). Not asked for; add if teachers read the red box as a correct step.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

@@ -4330,3 +4330,15 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Every reader of `review.pathway` must handle `null` (two did: Confirm groups and `create`). The line is fixed at five 156 px columns, so a fourth review stage would need a new layout. The waiting Create is a gate, which the no-confirm-gates rule allows only because the pathway is not inferred.
 
 **Defense.** Undecided and No review are different facts and now have different values, so the gate and the looks follow from the data; the fixed order is built into the layout, so the line can never show an invalid pathway.
+
+## 2026-09-14 · A mistake group's label is its wrong line, and a too-wide label widens its columns (ticket 245)
+
+**Decision.** On the Mistakes view every mistake group (students on the same wrong line) carries a label over its names: the wrong line(s) as written, in the open working's red, spanning the group's columns, collapsed and open. `FitGrid` sets the labels first, one factor per problem from 17 px down to 13 px, and where a label still does not fit, raises its group's per-column minimums (re-checking, since a widened column takes flexible width from its neighbours) before it fits the working on the settled columns.
+
+**Context.** An outside review said the view's name clusters are distinct wrong answers but collapsed they look arbitrary. The user chose the wrong line over the final answer, over the names, on every group, kept when open, both lines when two, widening over truncation, on this view only.
+
+**Alternatives considered.** *The final answer*: in 68 of 122 groups on Sets 1–5 it is a knock-on of the slip, and different mistakes can share it. *Truncate with an ellipsis and a hover*: a cut maths expression reads as a different expression. *One label font per label*: labels in one card would differ in size for no reason the teacher sees. *Fitting labels with the working in one pass*: opening a problem would change the factor and move the labels.
+
+**Tradeoffs.** Each collapsed card is one label row taller. Widening is measured in a layout effect, so it runs on every render and resize (six problems at 800 px, none at 1280 or 1440). A group whose students share a wrong line but not their working spans columns whose names wrap unevenly under one label.
+
+**Defense.** The label is the grouping's own key, so it can never disagree with the clusters it names; the fit is deterministic from the DOM, writes no React state, and the click-through proves nothing moves on open at four widths.
