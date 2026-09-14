@@ -3,16 +3,20 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { ASSIGNMENT, DEMO_STUDENT } from "./assignment";
 import { CLASSMATES } from "./classmates";
-import { STORY, STORY_CATEGORIES, STORY_RANK, STORY_SETS, storyAbsent, storyResults } from "./story";
+import { GROUP_SCRIPTS } from "./group-scripts";
+import { FROZEN_GROUPS } from "./groups";
+import { STORY, STORY_CATEGORIES, STORY_RANK, STORY_REVIEW, STORY_SETS, storyAbsent, storyResults } from "./story";
 import { DEMO_ABSENCES } from "./absences";
 import { CATEGORY_ORDER, isLeafId } from "./taxonomy";
 import { assignmentBundle } from "@/lib/assignments";
-import { missedProblems, recordStatus, renderClassStory } from "@/lib/classStory";
+import { missedProblems, recordStatus, renderClassStory, reviewMismatches } from "@/lib/classStory";
 import { topGap } from "@/lib/classroomCards";
 import { dueOrder } from "@/lib/dueDate";
 import { columnOf } from "@/lib/hierarchy";
 import { mistakesByProblem } from "@/lib/mistakes";
 import { skipFixture } from "@/lib/demo";
+import { checkBoard } from "@/lib/groupReview";
+import { sessionReviews } from "@/lib/report";
 
 /**
  * The class story sheet (ticket 210): complete, one step at a time, and Problem Set 6's rows equal to the
@@ -154,6 +158,47 @@ describe("the class story sheet (ticket 210)", () => {
   it("Problem Set 6's top gap is the classmates' (Sam's live row aside)", () => {
     const b = assignmentBundle(ASSIGNMENT.id, skipFixture("working", 0).classroom)!;
     expect(topGap(mistakesByProblem(null, { ...b, startedAt: null }))!.name).toBe(STORY_SETS[5].topGap);
+  });
+
+  it("has a review part for every set: each student's cases in problem order, a known outcome and reasoning, none for Sam on the live set (ticket 244)", () => {
+    expect(STORY_REVIEW).toHaveLength(STORY_SETS.length);
+    STORY_REVIEW.forEach((review, i) => {
+      for (const [id, rows] of Object.entries(review)) {
+        expect(students, `PS${i + 1} ${id}`).toContain(id);
+        expect(rows.length, `PS${i + 1} ${id}`).toBeGreaterThan(0);
+        expect(rows.map((c) => c.q), `PS${i + 1} ${id}`).toEqual([...rows.map((c) => c.q)].sort((a, b) => a - b));
+        for (const c of rows) {
+          expect(["individual", "group", "wrong"], `PS${i + 1} ${id} Q${c.q}`).toContain(c.outcome);
+          expect(c.why.length, `PS${i + 1} ${id} Q${c.q}`).toBeGreaterThan(30);
+        }
+      }
+    });
+    expect(STORY_REVIEW[5][DEMO_STUDENT.id]).toBeUndefined();
+  });
+
+  it("Problem Set 6's review part is the classmates' records, by the agreed rules, with the demo group's versions its scripted run (ticket 244)", () => {
+    // Sky's group review is scripted: solved where the script's last attempt checks.
+    const sky = Object.fromEntries(Object.entries(GROUP_SCRIPTS).map(([pid, s]) => [pid, checkBoard(pid, s.attempts.at(-1)!).correct]));
+    expect(sky).toEqual({ q1: true, q2: true, q3: true, q7: false, q9: true, q10: true });
+    expect(reviewMismatches(CLASSMATES, ASSIGNMENT, 6, FROZEN_GROUPS[ASSIGNMENT.id], { sky })).toEqual([]);
+    // The check bites: a second submission taken away, a group version changed for one member, a last try that holds.
+    const tamper = (id: string, pid: string, review: NonNullable<(typeof CLASSMATES)[number]["review"]>[string]) => CLASSMATES.map((c) => (c.id === id ? { ...c, review: { ...c.review, [pid]: review } } : c));
+    const ethan = CLASSMATES.find((c) => c.id === "ethan")!;
+    expect(reviewMismatches(tamper("ethan", "q1", { group: ethan.review!.q1.group }), ASSIGNMENT, 6, FROZEN_GROUPS[ASSIGNMENT.id], { sky })).toEqual(["ethan Q1: the record reads group, the sheet says individual", "ethan Q1: no second submission for individual"]);
+    const mia = CLASSMATES.find((c) => c.id === "mia")!;
+    const solved = { lines: ASSIGNMENT.problems[1].solution.map((s) => s.tex), solved: true };
+    expect(reviewMismatches(tamper("mia", "q2", { group: solved }), ASSIGNMENT, 6, FROZEN_GROUPS[ASSIGNMENT.id], { sky })).toEqual(["mia Q2: the record reads group, the sheet says wrong", "mia Q2: still wrong, the group's version solved", "mia Q2: the rules say the amber group did not solve it", "mia Q2: the last try is not mia's first submission"]);
+    expect(mia.review!.q2.group).toEqual({ lines: mia.attempts.q2, solved: false });
+    // Jordan, Zara and Liam carry the versions Sam's own finished run shows.
+    const { session, classroom } = skipFixture("report", 1_000_000);
+    const sams = sessionReviews(session, classroom.group);
+    for (const id of FROZEN_GROUPS[ASSIGNMENT.id].sky.filter((m) => m !== DEMO_STUDENT.id)) {
+      const record = CLASSMATES.find((c) => c.id === id)!;
+      for (const pid of record.wrong) {
+        expect(record.review?.[pid]?.group, `${id} ${pid}`).toEqual(sams[pid].group);
+        expect(record.review?.[pid]?.group?.lines, `${id} ${pid}`).toEqual(GROUP_SCRIPTS[pid].attempts.at(-1));
+      }
+    }
   });
 
   it("specs/class-story.md is the sheet as generated (npm run story:sheet rewrites it)", () => {

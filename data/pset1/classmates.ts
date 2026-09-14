@@ -1,6 +1,8 @@
 import { DEMO_STUDENT } from "../assignment";
 import type { Classmate } from "../classmates";
+import { withReview } from "../recordReview";
 import { PS1_PROBLEMS } from "./assignment";
+import { PS1_REVIEW } from "./review";
 
 /**
  * Every student's Problem Set 1 (ticket 211): Sam's record and the nineteen classmates', in the shape Problem
@@ -70,7 +72,7 @@ const q = (n: number) => `ps1-q${n}`;
  * Sam's Problem Set 1: confident and quick, and on the first set of the unit nothing slips. Every line written
  * out, all ten right.
  */
-export const PS1_SAM: Classmate = {
+const SAM: Classmate = {
   id: DEMO_STUDENT.id,
   name: DEMO_STUDENT.name,
   initials: DEMO_STUDENT.initials,
@@ -82,7 +84,7 @@ export const PS1_SAM: Classmate = {
   groupStatus: "Group review done · explained Q3's like surds",
 };
 
-export const PS1_CLASSMATES: Classmate[] = [
+const CLASSMATES: Classmate[] = [
   {
     id: "priya",
     name: "Priya Raman",
@@ -317,3 +319,6 @@ export const PS1_CLASSMATES: Classmate[] = [
     groupStatus: "Group review done · Q7, which way the division goes",
   },
 ];
+
+/** Sam's record and the nineteen classmates', each carrying what review made of their mistakes (ticket 244, `./review.ts`). */
+export const [PS1_SAM, ...PS1_CLASSMATES] = withReview([SAM, ...CLASSMATES], PS1_REVIEW);

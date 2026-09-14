@@ -1,6 +1,8 @@
 import { DEMO_STUDENT } from "../assignment";
 import type { Classmate } from "../classmates";
+import { withReview } from "../recordReview";
 import { PS3_PROBLEMS } from "./assignment";
+import { PS3_REVIEW } from "./review";
 
 /**
  * Every student's Problem Set 3 (ticket 213): Sam's record and the nineteen classmates', in the shape every
@@ -105,7 +107,7 @@ const q = (n: number) => `ps3-q${n}`;
  * Sam's Problem Set 3: confident and quick, everything right but Q8, where he took 3 and 8 for a pair that has
  * to add to −11 and did not do the expansion back the question asked for.
  */
-export const PS3_SAM: Classmate = {
+const SAM: Classmate = {
   id: DEMO_STUDENT.id,
   name: DEMO_STUDENT.name,
   initials: DEMO_STUDENT.initials,
@@ -118,7 +120,7 @@ export const PS3_SAM: Classmate = {
   groupStatus: "Group review done · expanded Q8 back",
 };
 
-export const PS3_CLASSMATES: Classmate[] = [
+const CLASSMATES: Classmate[] = [
   {
     id: "priya",
     name: "Priya Raman",
@@ -386,3 +388,6 @@ export const PS3_CLASSMATES: Classmate[] = [
     groupStatus: "Group review done · the split on Q9",
   },
 ];
+
+/** Sam's record and the nineteen classmates', each carrying what review made of their mistakes (ticket 244, `./review.ts`). */
+export const [PS3_SAM, ...PS3_CLASSMATES] = withReview([SAM, ...CLASSMATES], PS3_REVIEW);

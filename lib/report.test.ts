@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { Confidence } from "@/data/types";
 import { skipFixture } from "./demo";
-import { PROBLEM_MAP } from "@/data/assignment";
+import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
+import { assignmentBundle, assignmentStages } from "./assignments";
 import { CLASSMATE_MAP } from "@/data/classmates";
-import { columnsOf, labelSentence, outcomeColumns, outcomeOf, problemOutcome, recordReviews, reportFacts, sessionReviews, shownVersions, unsolvedInGroup, unsolvedOf, type Reviews } from "./report";
+import { columnsOf, labelSentence, outcomeColumns, outcomeOf, problemOutcome, recordReviews, reportFacts, reviewStagesOver, sessionReviews, shownVersions, unsolvedInGroup, unsolvedOf, type Reviews } from "./report";
 import { INITIAL_SESSION, sessionAt, sessionReducer } from "./session";
 
 const labels = (cols: ReturnType<typeof outcomeColumns>) => Object.fromEntries(cols.map((c) => [c.id, c.problems.map((p) => p.label)]));
@@ -114,7 +115,8 @@ describe("versions on the teacher's report (ticket 243)", () => {
   });
 
   it("reads a set record: the Class View's lines, and review only where the record has it", () => {
-    const mia = CLASSMATE_MAP.mia;
+    // Mia without the review ticket 244 gave her record.
+    const mia = { ...CLASSMATE_MAP.mia, review: undefined };
     const plain = recordReviews(mia);
     const wrong = mia.wrong[0];
     expect(plain[wrong].first).toEqual(mia.attempts[wrong]);
@@ -124,6 +126,54 @@ describe("versions on the teacher's report (ticket 243)", () => {
     const fixed = recordReviews({ ...mia, review: { [wrong]: { second: PROBLEM_MAP[wrong].solution.map((s) => s.tex) } } });
     expect(outcomeOf(wrong, fixed[wrong], PATH)).toBe("individual");
     expect(kinds(wrong, PATH, fixed)).toEqual(["first", "second"]);
+  });
+
+  it("shows a live record's review only once the class has finished that stage (ticket 244): Incorrect until then, the columns never moving", () => {
+    // Ethan fixes Q1 on his own rework; Mia's group closes Q2 unsolved; Oliver's group puts his Q1 right.
+    const ethan = CLASSMATE_MAP.ethan;
+    const oliver = CLASSMATE_MAP.oliver;
+    const mia = CLASSMATE_MAP.mia;
+    const cols = (r: typeof ethan, over: readonly ("individual" | "group" | "whole-class")[]) => labels(columnsOf(recordReviews(r, undefined, over), PATH));
+    // While individual review runs: nothing past the first submission, every unfixed problem in Incorrect.
+    expect(recordReviews(ethan, undefined, []).q1).toEqual({ first: ethan.attempts.q1, second: [] });
+    expect(cols(ethan, []).individual).toEqual([]);
+    expect(cols(ethan, []).wrong).toContain("Q1");
+    expect(cols(oliver, []).group).toEqual([]);
+    // Individual review over: the second submission shows, the group's version not yet.
+    expect(cols(ethan, ["individual"]).individual).toContain("Q1");
+    expect(recordReviews(oliver, undefined, ["individual"]).q1.group).toBeUndefined();
+    expect(cols(oliver, ["individual"]).wrong).toContain("Q1");
+    // Group review over: the group's rework and last try.
+    expect(cols(oliver, ["individual", "group"]).group).toEqual(["Q1", "Q2"]);
+    expect(recordReviews(mia, undefined, ["individual", "group"]).q2.group?.solved).toBe(false);
+    expect(unsolvedOf(recordReviews(mia, undefined, ["individual", "group"]), PATH).map((p) => p.label)).toEqual(["Q2", "Q7", "Q9"]);
+    // The same four columns at every stage, and the same ten tiles.
+    for (const over of [[], ["individual"], ["individual", "group"]] as const) {
+      const c = columnsOf(recordReviews(oliver, undefined, over), PATH);
+      expect(c.map((x) => x.id)).toEqual(["first", "individual", "group", "wrong"]);
+      expect(c.flatMap((x) => x.problems)).toHaveLength(10);
+    }
+    // A finished set (the default) shows everything.
+    expect(recordReviews(oliver)).toEqual(recordReviews(oliver, undefined, ["individual", "group", "whole-class"]));
+  });
+
+  it("reads the review stages the live class has finished, skip by skip (ticket 244)", () => {
+    const now = 5_000_000_000;
+    const over = (t: Parameters<typeof skipFixture>[0], at = now) => {
+      const { session, classroom } = skipFixture(t, now);
+      return reviewStagesOver(assignmentStages(assignmentBundle(ASSIGNMENT.id, classroom)!, classroom, session, at));
+    };
+    expect(over("working")).toEqual([]);
+    expect(over("indiv review")).toEqual([]);
+    // Group review under way: individual review is behind the class, the groups are still working.
+    expect(over("group review")).toEqual(["individual"]);
+    expect(over("group review", now + 600_000)).toEqual(["individual"]);
+    // Every group done (group review still the current stage until class review starts), then class review.
+    expect(over("report")).toEqual(["individual", "group"]);
+    expect(over("class review")).toEqual(["individual", "group"]);
+    // A finished set: every stage over.
+    expect(reviewStagesOver([{ id: "working", state: "over", done: null, total: 20 }, { id: "individual", state: "over", done: null, total: 20 }, { id: "group", state: "over", done: null, total: 20 }])).toEqual(["individual", "group"]);
+    expect(reviewStagesOver([{ id: "working", state: "over", done: null, total: 20 }, { id: "individual", state: "over", done: null, total: 20 }, { id: "group", state: "current", done: 19, total: 20 }])).toEqual(["individual"]);
   });
 
   it("words a record's confidence label as the live report does", () => {

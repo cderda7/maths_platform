@@ -1,6 +1,8 @@
 import { DEMO_STUDENT } from "../assignment";
 import type { Classmate } from "../classmates";
+import { withReview } from "../recordReview";
 import { PS5_PROBLEMS } from "./assignment";
+import { PS5_REVIEW } from "./review";
 
 /**
  * Every student's Problem Set 5 (ticket 187): Sam's record and the nineteen classmates', in the
@@ -91,7 +93,7 @@ const q = (n: number) => `ps5-q${n}`;
  * split put into the wrong brackets, a turning point's sign, a negative a read as opening upwards).
  * On Problem Set 6 he names factorising as the skill he is unsure of.
  */
-export const PS5_SAM: Classmate = {
+const SAM: Classmate = {
   id: DEMO_STUDENT.id,
   name: DEMO_STUDENT.name,
   initials: DEMO_STUDENT.initials,
@@ -108,7 +110,7 @@ export const PS5_SAM: Classmate = {
   groupStatus: "Group review done · checked Q4 by expanding",
 };
 
-export const PS5_CLASSMATES: Classmate[] = [
+const CLASSMATES: Classmate[] = [
   {
     id: "priya",
     name: "Priya Raman",
@@ -384,3 +386,6 @@ export const PS5_CLASSMATES: Classmate[] = [
     groupStatus: "Group review done · the split on Q4 and Q8",
   },
 ];
+
+/** Sam's record and the nineteen classmates', each carrying what review made of their mistakes (ticket 244, `./review.ts`). */
+export const [PS5_SAM, ...PS5_CLASSMATES] = withReview([SAM, ...CLASSMATES], PS5_REVIEW);

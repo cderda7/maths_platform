@@ -20,7 +20,8 @@ const NOTE_FLOOR = 120;
  * What happened's tiles (ticket 233, shared with the teacher's report in ticket 243): a column per review stage the
  * pathway has, every problem a tile in the column it ended in, the not-solved note under Incorrect. A press on a tile
  * is the caller's (`onPress`); `open` rings the one showing. On the teacher's report a starred problem carries a ★ and,
- * while a commentary idea is chosen, the tiles outside it (`lit`) fade.
+ * while a commentary idea is chosen, the tiles outside it (`lit`) fade; there the not-solved note is Incorrect's second
+ * label line (`noteInLabel`, ticket 244), on one line, so a record with problems its group closed unsolved is no taller.
  */
 export default function OutcomeTiles({
   columns,
@@ -31,6 +32,7 @@ export default function OutcomeTiles({
   starred = [],
   lit = null,
   noteFloor = NOTE_FLOOR,
+  noteInLabel = false,
 }: {
   columns: OutcomeColumn[];
   unsolved: Problem[];
@@ -42,7 +44,10 @@ export default function OutcomeTiles({
   lit?: string[] | null;
   /** Incorrect's narrowest when it carries the not-solved note. */
   noteFloor?: number;
+  /** The not-solved note as Incorrect's second label line, kept on one line, instead of under the tiles. */
+  noteInLabel?: boolean;
 }) {
+  const note = unsolved.length > 0 ? `${unsolved.map((p) => p.label).join(", ")} not solved in group review` : null;
   const template = outcomeTemplate(
     columns.map((c) => c.problems.length),
     columns.map((c) => (c.id === "wrong" && unsolved.length > 0 ? noteFloor : FLOOR[c.id])),
@@ -52,7 +57,14 @@ export default function OutcomeTiles({
       {columns.map((c) => (
         <div key={c.id} className="min-w-0" data-outcome={c.id}>
           {/* Two lines tall whether the label wraps or not, so every column's tiles start on the same row. */}
-          <div className="min-h-[33px] text-[12px] font-medium leading-snug text-ink-soft">{c.label}</div>
+          <div className="min-h-[33px] text-[12px] font-medium leading-snug text-ink-soft">
+            {c.label}
+            {noteInLabel && c.id === "wrong" && note && (
+              <span className="block whitespace-nowrap font-normal text-ink-muted" data-unsolved-note>
+                {note}
+              </span>
+            )}
+          </div>
           {c.problems.length === 0 ? (
             <div className="mt-2 text-[13px] text-ink-muted">None</div>
           ) : (
@@ -85,9 +97,9 @@ export default function OutcomeTiles({
               })}
             </ul>
           )}
-          {c.id === "wrong" && unsolved.length > 0 && (
+          {!noteInLabel && c.id === "wrong" && note && (
             <p className="mt-1.5 text-[12px] leading-snug text-ink-muted" data-unsolved-note>
-              {unsolved.map((p) => p.label).join(", ")} not solved in group review
+              {note}
             </p>
           )}
         </div>

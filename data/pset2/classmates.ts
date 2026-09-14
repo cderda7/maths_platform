@@ -1,6 +1,8 @@
 import { DEMO_STUDENT } from "../assignment";
 import type { Classmate } from "../classmates";
+import { withReview } from "../recordReview";
 import { PS2_PROBLEMS } from "./assignment";
+import { PS2_REVIEW } from "./review";
 
 /**
  * Every student's Problem Set 2 (ticket 212): Sam's record and the nineteen classmates', in the shape
@@ -92,7 +94,7 @@ const q = (n: number) => `ps2-q${n}`;
  * positive in Q2, and in Q7 he copied the denominator's minus into the conjugate, then took (√5 − 1)² as
  * 5 − 1 because that was the answer he expected.
  */
-export const PS2_SAM: Classmate = {
+const SAM: Classmate = {
   id: DEMO_STUDENT.id,
   name: DEMO_STUDENT.name,
   initials: DEMO_STUDENT.initials,
@@ -108,7 +110,7 @@ export const PS2_SAM: Classmate = {
   groupStatus: "Group review done · why Q7 needs the plus",
 };
 
-export const PS2_CLASSMATES: Classmate[] = [
+const CLASSMATES: Classmate[] = [
   {
     id: "priya",
     name: "Priya Raman",
@@ -368,3 +370,6 @@ export const PS2_CLASSMATES: Classmate[] = [
     groupStatus: "Group review done · clearing the bottom on Q5",
   },
 ];
+
+/** Sam's record and the nineteen classmates', each carrying what review made of their mistakes (ticket 244, `./review.ts`). */
+export const [PS2_SAM, ...PS2_CLASSMATES] = withReview([SAM, ...CLASSMATES], PS2_REVIEW);

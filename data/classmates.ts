@@ -1,3 +1,6 @@
+import { SET6_REVIEW } from "./classmates-review";
+import { withReview } from "./recordReview";
+
 /**
  * Static classmates so the demo student's live row sits in a believable class of twenty. Their
  * skill statuses are derived from the same evidence path as the demo student's: the scripted
@@ -81,7 +84,7 @@ function light(id: string, name: string, initials: string, confidence: Classmate
   return { id, name, initials, confidence, done, wrong, notes, attempts: { ...Object.fromEntries(wrong.map((pid) => [pid, SLIPS[pid]])), ...attempts }, clarification, groupStatus };
 }
 
-export const CLASSMATES: Classmate[] = [
+const RECORDS: Classmate[] = [
   { id: "priya", name: "Priya Raman", initials: "PR", confidence: "confident", done: 10, wrong: [], notes: [], attempts: {}, groupStatus: "Quick pass done · nothing to discuss" },
   // Ticket 189: low on non-monic factorising, answers Q1–Q7 in the live stream and stalls on Q8 (never hands in on his own); Q4–Q6 right (the model solution), Q7 the same unchecked pair as Q2.
   { id: "jordan", name: "Jordan Whitlock", initials: "JW", confidence: "low: non-monic factorising", done: 7, wrong: ["q2", "q7"], notes: [{ text: "non-monic factors not checked by expanding", problems: ["q2"] }, { text: "a pair that multiplies to 8 but adds to 9, not checked either", problems: ["q7"] }], attempts: { q2: Q2_GUESSED, q7: Q7_PAIR }, clarification: "I had the factor pair from the constant and didn't check the middle term. In Q7 I did the same thing: 1 and 8 multiply to 8 so I wrote them down. I'll expand back next time before I write the roots.", groupStatus: "Discussing Q2 · expanding back" },
@@ -105,6 +108,9 @@ export const CLASSMATES: Classmate[] = [
   light("finn", "Finn Dlamini", "FD", "confident", 10, ["q2", "q4", "q5", "q7"], [{ text: "sign lost solving 2x − 1 = 0", problems: ["q2"] }, { text: "divided by a, not 2a", problems: ["q4"] }, { text: "turning point's height from the wrong line", problems: ["q5"] }, { text: "multiplied through by 3 and never took it back out", problems: ["q7"] }], { q2: Q2_SIGN, q5: Q5_HEIGHT, q7: Q7_LOST_THIRD }, "For the formula I divided by a. For the turning point I substituted into the wrong equation. In Q2 my brackets were right and I still wrote the root with the wrong sign, and in Q7 I tripled everything and forgot to divide back."),
   light("sofia", "Sofia Petrov", "SP", "confident", 10, ["q2", "q4", "q7"], [{ text: "guessed a factor pair", problems: ["q2"] }, { text: "denominator a, not 2a", problems: ["q4"] }, { text: "scaled two of three terms", problems: ["q7"] }], {}, "The fractions in Q4 threw me and I lost the 2, and in Q7 I only cleared the ones in front of x. In Q2 I guessed the pair and moved on."),
 ];
+
+/** The class, each record carrying what review made of its mistakes (ticket 244, `data/classmates-review.ts`). */
+export const CLASSMATES: Classmate[] = withReview(RECORDS, SET6_REVIEW);
 
 export const CLASSMATE_MAP = Object.fromEntries(CLASSMATES.map((c) => [c.id, c])) as Record<string, Classmate>;
 

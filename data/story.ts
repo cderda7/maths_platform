@@ -472,6 +472,491 @@ export const STORY: Readonly<Record<string, StoryRow>> = {
   },
 };
 
+/* ---------- the review part (ticket 244) ---------- */
+
+/**
+ * Where review left a problem a student got wrong: fixed on their own rework (`individual`), fixed by their
+ * seating group's rework (`group`), or still wrong (`wrong`, their group's last try on it unsolved). Every set's
+ * pathway is individual → group, and a group takes on every problem one of its members got wrong.
+ */
+export type ReviewOutcome = "individual" | "group" | "wrong";
+
+/** One wrong problem (by number, Q1 = 1): its outcome and the reasoning, checked against the student's real slip. */
+export interface ReviewCase {
+  q: number;
+  outcome: ReviewOutcome;
+  why: string;
+}
+
+/** One set's review: each student's wrong problems in order; a student with nothing wrong (or Sam on the live set) has no entry. */
+export type StoryReview = Readonly<Record<string, readonly ReviewCase[]>>;
+
+const own = (q: number, why: string): ReviewCase => ({ q, outcome: "individual", why });
+const grp = (q: number, why: string): ReviewCase => ({ q, outcome: "group", why });
+const kept = (q: number, why: string): ReviewCase => ({ q, outcome: "wrong", why });
+
+/**
+ * The review part (ticket 244): for Problem Sets 1–6 (index 0–5), every student's wrong problems and where review
+ * left each, with the reasoning checked against the student's real slip. The rules, agreed 2026-09-14
+ * (`lib/reviewRule.ts` applies them literally and `data/story.test.ts` holds this sheet to them):
+ * - a **one-off** (the mistake on that one problem of the set, the sheet's habit naming only it) is fixed on the
+ *   student's own rework;
+ * - a **repeated** slip is fixed in group review when a groupmate handed that problem in without making it;
+ * - a **habit** (a gap in the slip's category on the set) stays wrong, and the group closes the problem unsolved
+ *   on the first habit-holder's working;
+ * - a group's version of a problem is one, so when its rework checks every member still wrong there reads fixed
+ *   in group review, a habit included (each such case says so), and the demo group's Set 6 run is its script.
+ * The records (`data/psetN/review.ts`, `data/classmates-review.ts`) equal it: `data/finishedSets.test.ts`.
+ */
+export const STORY_REVIEW: readonly StoryReview[] = [
+  // Problem Set 1
+  {
+    amelia: [
+      own(3, "One-off: √12 + √27 collected before simplifying, on Q3 alone. Found on the second submission."),
+      own(7, "One-off: cancelled the numbers but not the surds when dividing, on Q7 alone. Found on the second submission."),
+    ],
+    tomas: [
+      own(4, "One-off: a sign lost collecting 2√18 − √8, on Q4 alone. Found on the second submission."),
+      own(7, "One-off: the fraction turned over dividing surds, on Q7 alone. Found on the second submission."),
+    ],
+    liam: [
+      own(2, "One-off: √50 written as 25√2, on Q2 alone. Found on the second submission."),
+    ],
+    aiden: [
+      own(8, "One-off: √2 multiplied into the first term only, on Q8 alone. Found on the second submission."),
+    ],
+    chloe: [
+      own(1, "One-off: √48 simplified to 2√12 and left there, on Q1 alone. Found on the second submission."),
+      own(5, "One-off: √60 taken as 4√15, the 4 not rooted, on Q5 alone. Found on the second submission."),
+    ],
+    isla: [
+      own(4, "One-off: a sign copied subtracting like surds, on Q4 alone. Found on the second submission."),
+    ],
+    oliver: [
+      own(4, "One-off: √8 simplified as 4√2, on Q4 alone. Found on the second submission."),
+      own(10, "One-off: √(72 + 72) split into √72 + √72, on Q10 alone. Found on the second submission."),
+    ],
+    ruby: [
+      grp(1, "Repeated: a square factor left under the root (Q1, Q6). Oliver, Finn and Sofia handed Q1 in without it, and the group's rework holds."),
+      grp(6, "Repeated: a square factor left under the root (Q1, Q6). Oliver, Finn and Sofia handed Q6 in without it, and the group's rework holds."),
+    ],
+    finn: [
+      own(9, "One-off: divided the wrong way round solving for x, on Q9 alone. Found on the second submission."),
+    ],
+    sofia: [
+      own(7, "One-off: the fraction left upside down dividing surds, on Q7 alone. Found on the second submission."),
+    ],
+  },
+  // Problem Set 2
+  {
+    sam: [
+      own(2, "One-off: √5 × (−√5) as +5, on Q2 alone. Found on the second submission."),
+      own(7, "One-off: the conjugate's sign copied from the denominator, on Q7 alone. Found on the second submission."),
+    ],
+    jordan: [
+      own(2, "One-off: a bracket expanded without checking the middle terms, on Q2 alone. Found on the second submission."),
+    ],
+    amelia: [
+      grp(7, "Repeated: multiplied only the denominator by the conjugate (Q7, Q8). Priya, Tomas and Aiden handed Q7 in without it, and the group's rework holds."),
+      grp(8, "Repeated: multiplied only the denominator by the conjugate (Q7, Q8). Priya, Tomas and Aiden handed Q8 in without it, and the group's rework holds."),
+      own(9, "One-off: a denominator dropped adding the two fractions, on Q9 alone. Found on the second submission."),
+      own(10, "One-off: the area found, the sentence about the diagonal left out, on Q10 alone. Found on the second submission."),
+    ],
+    tomas: [
+      grp(5, "Repeated: the fraction turned over rationalising (Q5, Q6). Priya, Amelia and Aiden handed Q5 in without it, and the group's rework holds."),
+      grp(6, "Repeated: the fraction turned over rationalising (Q5, Q6). Priya, Amelia and Aiden handed Q6 in without it, and the group's rework holds."),
+      own(7, "One-off: multiplied by the same bracket, not its conjugate, on Q7 alone. Found on the second submission."),
+    ],
+    zara: [
+      own(3, "One-off: (√7 + 2)² with 2√7 for the middle term, on Q3 alone. Found on the second submission."),
+      own(9, "One-off: a common denominator found, one numerator not scaled, on Q9 alone. Found on the second submission."),
+    ],
+    liam: [
+      own(2, "One-off: only two of the four terms expanded, on Q2 alone. Found on the second submission."),
+      kept(3, "Habit: New skills is a gap on the set ((√7 + 2)² squared term by term). The group's last try is their own first submission."),
+    ],
+    aiden: [
+      own(1, "One-off: √3 multiplied into the first term only, on Q1 alone. Found on the second submission."),
+    ],
+    mia: [
+      own(9, "One-off: a denominator dropped adding fractions, on Q9 alone. Found on the second submission."),
+    ],
+    noah: [
+      own(3, "One-off: (√7 + 2)² squared term by term, on Q3 alone. Found on the second submission."),
+    ],
+    chloe: [
+      own(8, "One-off: the conjugate multiplied on the bottom only, on Q8 alone. Found on the second submission."),
+      own(9, "One-off: a denominator dropped adding fractions, on Q9 alone. Found on the second submission."),
+    ],
+    ethan: [
+      own(8, "One-off: a term dropped expanding in a rush, on Q8 alone. Found on the second submission."),
+    ],
+    isla: [
+      own(2, "One-off: the product's sign copied from the bracket, on Q2 alone. Found on the second submission."),
+      own(10, "One-off: the sentence gives the area where the diagonal was asked, on Q10 alone. Found on the second submission."),
+    ],
+    lucas: [
+      own(2, "One-off: a sign lost expanding (2 + √5)(3 − √5), on Q2 alone. Found on the second submission."),
+      own(10, "One-off: the diagonal stated without saying which length it is, on Q10 alone. Found on the second submission."),
+    ],
+    harper: [
+      own(1, "One-off: the minus not multiplied through the bracket, on Q1 alone. Found on the second submission."),
+      own(3, "One-off: (√7 + 2)² with the middle term's 2 lost, on Q3 alone. Found on the second submission."),
+    ],
+    oliver: [
+      own(2, "One-off: brackets expanded by guessing the middle term, on Q2 alone. Found on the second submission."),
+      own(4, "One-off: (3 − √2)(3 + √2) taken as 9 + 2, on Q4 alone. Found on the second submission."),
+    ],
+    ruby: [
+      own(9, "One-off: a common denominator's numerator not scaled, on Q9 alone. Found on the second submission."),
+    ],
+    finn: [
+      own(6, "One-off: the fraction turned over rationalising, on Q6 alone. Found on the second submission."),
+    ],
+    sofia: [
+      grp(5, "Repeated: rationalised the top, not bottom (Q5, Q6). Oliver, Ruby and Finn handed Q5 in without it, and the group's rework holds."),
+      grp(6, "Repeated: rationalised the top, not bottom (Q5, Q6). Oliver, Ruby and Finn handed Q6 in without it, and the group's rework holds."),
+      own(7, "One-off: the conjugate's fraction left unsimplified, on Q7 alone. Found on the second submission."),
+    ],
+  },
+  // Problem Set 3
+  {
+    sam: [
+      own(8, "One-off: the signs of a factor pair swapped, not expanded back, on Q8 alone. Found on the second submission."),
+    ],
+    jordan: [
+      own(6, "One-off: a perfect square factorised as a difference of squares, not checked, on Q6 alone. Found on the second submission."),
+      grp(8, "Repeated: a factor pair that multiplies to the constant, not checked by expanding (Q8, Q9). Sam and Zara handed Q8 in without it, and the group's rework holds."),
+      grp(9, "Repeated: a factor pair that multiplies to the constant, not checked by expanding (Q8, Q9). Sam and Zara handed Q9 in without it, and the group's rework holds."),
+    ],
+    amelia: [
+      own(2, "One-off: (2x − 3)² expanded without the middle term, on Q2 alone. Found on the second submission."),
+      own(4, "One-off: difference of squares as square, on Q4 alone. Found on the second submission."),
+      own(7, "One-off: a common factor taken out and not put back in the answer, on Q7 alone. Found on the second submission."),
+      own(10, "One-off: the last line doesn't say what was shown, on Q10 alone. Found on the second submission."),
+    ],
+    tomas: [
+      kept(1, "Habit: Algebra is a gap on the set (signs in the second bracket copied, not multiplied). The group's last try is their own first submission."),
+      own(2, "One-off: the middle term's sign copied from the bracket, on Q2 alone. Found on the second submission."),
+      own(6, "One-off: the square's sign flipped, on Q6 alone. Found on the second submission."),
+      kept(7, "Habit: Algebra is a gap on the set (a negative common factor's sign lost). The group's last try is their own first submission."),
+      own(10, "One-off: both squares expanded, the subtraction's signs not shown, on Q10 alone. Found on the second submission."),
+    ],
+    zara: [
+      own(4, "One-off: x² − 49 factorised as (x − 7)², on Q4 alone. Found on the second submission."),
+    ],
+    aiden: [
+      own(1, "One-off: the 4 on x only, on Q1 alone. Found on the second submission."),
+      own(3, "One-off: (3x)² as 3x², on Q3 alone. Found on the second submission."),
+      own(7, "One-off: the common factor divided out of the first two terms only, on Q7 alone. Found on the second submission."),
+    ],
+    mia: [
+      own(4, "One-off: x² − 49 written as (x − 7)², on Q4 alone. Found on the second submission."),
+      own(9, "One-off: tried brackets until one looked close, on Q9 alone. Found on the second submission."),
+    ],
+    noah: [
+      grp(2, "Repeated: (2x − 3)² squared term by term (Q2, Q10). Mia, Chloe and Ethan handed Q2 in without it, and the group's rework holds."),
+      grp(10, "Repeated: squared each term separately (Q2, Q10). Mia, Chloe and Ethan handed Q10 in without it, and the group's rework holds."),
+    ],
+    chloe: [
+      own(8, "One-off: a factor pair guessed without checking, on Q8 alone. Found on the second submission."),
+    ],
+    ethan: [
+      own(6, "One-off: a perfect square's middle term rushed, on Q6 alone. Found on the second submission."),
+      own(8, "One-off: a factor pair written without checking the middle, on Q8 alone. Found on the second submission."),
+    ],
+    isla: [
+      own(1, "One-off: signs in the second bracket copied, not multiplied, on Q1 alone. Found on the second submission."),
+      own(7, "One-off: the common factor's sign left behind, on Q7 alone. Found on the second submission."),
+      own(10, "One-off: the working shown, the last line doesn't say what it shows, on Q10 alone. Found on the second submission."),
+    ],
+    lucas: [
+      own(8, "One-off: a pair that multiplies to 24 but adds to 10, on Q8 alone. Found on the second submission."),
+      own(10, "One-off: the identity shown, one line's sign not justified, on Q10 alone. Found on the second submission."),
+    ],
+    harper: [
+      own(1, "One-off: a sign lost in the expansion, on Q1 alone. Found on the second submission."),
+      own(2, "One-off: (2x − 3)²'s middle term sign lost, on Q2 alone. Found on the second submission."),
+      own(7, "One-off: the common factor's sign lost, on Q7 alone. Found on the second submission."),
+    ],
+    oliver: [
+      own(2, "One-off: (2x − 3)² squared term by term, on Q2 alone. Found on the second submission."),
+      grp(5, "Repeated: factor pairs guessed without expanding back (Q5, Q8). Ruby, Finn and Sofia handed Q5 in without it, and the group's rework holds."),
+      own(6, "One-off: perfect square as difference, on Q6 alone. Found on the second submission."),
+      grp(8, "Repeated: factor pairs guessed without expanding back (Q5, Q8). Ruby, Finn and Sofia handed Q8 in without it, and the group's rework holds."),
+    ],
+    ruby: [
+      grp(5, "Repeated: a pair that multiplies to −15 but doesn't add to 2 (Q5, Q8). Oliver, Finn and Sofia handed Q5 in without it, and the group's rework holds."),
+      grp(8, "Repeated: a pair that multiplies to −15 but doesn't add to 2 (Q5, Q8). Oliver, Finn and Sofia handed Q8 in without it, and the group's rework holds."),
+    ],
+    finn: [
+      grp(5, "Repeated: sign flipped writing the pair (Q5, Q8). Oliver, Ruby and Sofia handed Q5 in without it, and the group's rework holds."),
+      grp(8, "Repeated: a factor's sign flipped writing the pair (Q5, Q8). Oliver, Ruby and Sofia handed Q8 in without it, and the group's rework holds."),
+    ],
+    sofia: [
+      own(9, "One-off: a non-monic pair guessed, on Q9 alone. Found on the second submission."),
+    ],
+  },
+  // Problem Set 4
+  {
+    sam: [
+      grp(1, "Repeated: right split, the signs put into the wrong brackets (Q1, Q2). Jordan, Zara and Liam handed Q1 in without it, and the group's rework holds."),
+      grp(2, "Repeated: right split, the signs put into the wrong brackets (Q1, Q2). Jordan, Zara and Liam handed Q2 in without it, and the group's rework holds."),
+      own(7, "One-off: half of b taken with the wrong sign completing the square, on Q7 alone. Found on the second submission."),
+      own(8, "One-off: turning point read with the sign flipped, on Q8 alone. Found on the second submission."),
+    ],
+    jordan: [
+      grp(1, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back), but the group's rework holds (Sam's repeated slip here was the group's to fix) and the group's version is one."),
+      grp(2, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back), but the group's rework holds (Sam's repeated slip here was the group's to fix) and the group's version is one."),
+      kept(4, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+    ],
+    amelia: [
+      own(6, "One-off: added 9 to complete the square, never took it away, on Q6 alone. Found on the second submission."),
+      own(7, "One-off: half of b squared as a whole number over 2, on Q7 alone. Found on the second submission."),
+      own(10, "One-off: the negative width kept in the answer sentence, on Q10 alone. Found on the second submission."),
+    ],
+    tomas: [
+      kept(3, "Habit: New skills is a gap on the set (factors set to zero with their signs flipped). The group's last try is their own first submission."),
+      own(5, "One-off: a root's sign copied from its bracket, on Q5 alone. Found on the second submission."),
+      kept(6, "Habit: New skills is a gap on the set (half of b taken with the wrong sign). The group's last try is their own first submission."),
+      kept(7, "Habit: Algebra is a gap on the set (fractions lost in half of b). The group's last try is their own first submission."),
+      own(9, "One-off: the minimum's x read with the sign flipped, on Q9 alone. Found on the second submission."),
+    ],
+    zara: [
+      grp(6, "Repeated: added the square to complete it, never took it away (Q6, Q8, Q9). Sam and Jordan handed Q6 in without it, and the group's rework holds."),
+      own(7, "One-off: half of −5 squared as 25/2, on Q7 alone. Found on the second submission."),
+      grp(8, "Repeated: added the square to complete it, never took it away (Q6, Q8, Q9). Sam and Jordan handed Q8 in without it, and the group's rework holds."),
+      grp(9, "Repeated: added the square to complete it, never took it away (Q6, Q8, Q9). Sam handed Q9 in without it, and the group's rework holds."),
+    ],
+    liam: [
+      grp(1, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back), but the group's rework holds (Sam's repeated slip here was the group's to fix) and the group's version is one."),
+      grp(2, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back), but the group's rework holds (Sam's repeated slip here was the group's to fix) and the group's version is one."),
+    ],
+    aiden: [
+      own(8, "One-off: the 2 taken out of 2x² only, on Q8 alone. Found on the second submission."),
+    ],
+    mia: [
+      kept(1, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+      kept(4, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+      own(6, "One-off: half of b squared without its sign, on Q6 alone. Found on the second submission."),
+    ],
+    noah: [
+      own(6, "One-off: the square completed, its constant not taken away, on Q6 alone. Found on the second submission."),
+    ],
+    chloe: [
+      own(2, "One-off: a non-monic pair guessed, never expanded back, on Q2 alone. Found on the second submission."),
+      own(5, "One-off: a root's sign lost rearranging, on Q5 alone. Found on the second submission."),
+      own(7, "One-off: halves lost completing the square, on Q7 alone. Found on the second submission."),
+    ],
+    ethan: [
+      own(2, "One-off: a non-monic pair guessed, never expanded back, on Q2 alone. Found on the second submission."),
+      own(4, "One-off: a root's sign lost in the rush, on Q4 alone. Found on the second submission."),
+      own(5, "One-off: factorised before making the equation equal zero, on Q5 alone. Found on the second submission."),
+      own(7, "One-off: half of −5 rushed as −5/4, on Q7 alone. Found on the second submission."),
+      own(9, "One-off: the minimum value given as the x, jumped straight to it, on Q9 alone. Found on the second submission."),
+    ],
+    isla: [
+      own(5, "One-off: x² − 3x = 10 rearranged with the 10's sign copied, on Q5 alone. Found on the second submission."),
+      own(8, "One-off: the turning point's sign copied from the bracket, on Q8 alone. Found on the second submission."),
+      kept(10, "Habit: Reasoning is a gap on the set (the negative width given in the sentence). The group's last try is their own first submission."),
+    ],
+    lucas: [
+      own(5, "One-off: x² − 3x = 10 rearranged with a sign lost, on Q5 alone. Found on the second submission."),
+      grp(8, "Repeated: the turning point read with the sign flipped (Q8, Q9). Harper handed Q8 in without it, and the group's rework holds."),
+      grp(9, "Repeated: the turning point read with the sign flipped (Q8, Q9). Isla and Harper handed Q9 in without it, and the group's rework holds."),
+      own(10, "One-off: width and length swapped in the sentence, on Q10 alone. Found on the second submission."),
+    ],
+    harper: [
+      own(5, "One-off: a sign lost rearranging x² − 3x = 10, on Q5 alone. Found on the second submission."),
+      own(9, "One-off: the minimum value read off the wrong line, on Q9 alone. Found on the second submission."),
+    ],
+    oliver: [
+      kept(1, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+      kept(2, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+      own(5, "One-off: null factor law on x(x − 3) = 10, a product that isn't 0, on Q5 alone. Found on the second submission."),
+    ],
+    ruby: [
+      grp(4, "Repeated: a pair that multiplies but doesn't add, never expanded back (Q4, Q5). Oliver, Finn and Sofia handed Q4 in without it, and the group's rework holds."),
+      grp(5, "Repeated: a pair that multiplies but doesn't add, never expanded back (Q4, Q5). Oliver, Finn and Sofia handed Q5 in without it, and the group's rework holds."),
+      own(9, "One-off: the minimum value given as the x of the turning point, on Q9 alone. Found on the second submission."),
+    ],
+    finn: [
+      grp(3, "Repeated: solved 2x + 1 = 0 as x = −2 (Q3, Q4). Oliver, Ruby and Sofia handed Q3 in without it, and the group's rework holds."),
+      grp(4, "Repeated: solved 2x + 1 = 0 as x = −2 (Q3, Q4). Oliver, Ruby and Sofia handed Q4 in without it, and the group's rework holds."),
+      own(8, "One-off: turning point read with the sign flipped, on Q8 alone. Found on the second submission."),
+    ],
+    sofia: [
+      kept(2, "Habit: Algebra is a gap on the set (a non-monic pair guessed). The group's last try is Oliver's first submission."),
+      kept(7, "Habit: Algebra is a gap on the set (halves lost completing the square). The group's last try is their own first submission."),
+    ],
+  },
+  // Problem Set 5
+  {
+    sam: [
+      own(4, "One-off: right split, signs in the wrong brackets, on Q4 alone. Found on the second submission."),
+      own(6, "One-off: turning point read with the sign flipped, on Q6 alone. Found on the second submission."),
+      own(9, "One-off: negative a read as concave up, on Q9 alone. Found on the second submission."),
+    ],
+    jordan: [
+      kept(4, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+      kept(8, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+    ],
+    amelia: [
+      own(6, "One-off: added 16 to complete the square, never took it away, on Q6 alone. Found on the second submission."),
+      own(8, "One-off: sum of the intercepts never halved, on Q8 alone. Found on the second submission."),
+      kept(10, "Habit: Reasoning is a gap on the set (the landing given as the nozzle's zero). The group's last try is their own first submission."),
+    ],
+    tomas: [
+      kept(1, "Habit: New skills is a gap on the set (intercepts read off the factors with the signs flipped). The group's last try is their own first submission."),
+      own(2, "One-off: h read as +3 from (x + 3), on Q2 alone. Found on the second submission."),
+      kept(4, "Habit: Algebra is a gap on the set (solved 3x + 2 = 0 as −3/2). The group's last try is their own first submission."),
+      own(5, "One-off: axis of symmetry without the minus, on Q5 alone. Found on the second submission."),
+    ],
+    zara: [
+      own(4, "One-off: solved 3x + 2 = 0 as −3/2, on Q4 alone. Found on the second submission."),
+      own(6, "One-off: added 16 to complete the square, never took it away, on Q6 alone. Found on the second submission."),
+      own(10, "One-off: axis given as the height, on Q10 alone. Found on the second submission."),
+    ],
+    aiden: [
+      own(7, "One-off: the 2 multiplied x² and nothing else, on Q7 alone. Found on the second submission."),
+    ],
+    mia: [
+      kept(4, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+      kept(8, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+      kept(9, "Habit: Algebra is a gap on the set (sign left behind in bracket). The group's last try is their own first submission."),
+    ],
+    noah: [
+      own(7, "One-off: (x − 3)² squared term by term, on Q7 alone. Found on the second submission."),
+    ],
+    chloe: [
+      own(4, "One-off: non-monic pair guessed, never expanded back, on Q4 alone. Found on the second submission."),
+      own(5, "One-off: (−3)² taken as −9, on Q5 alone. Found on the second submission."),
+      own(8, "One-off: sum of the intercepts never halved, on Q8 alone. Found on the second submission."),
+    ],
+    ethan: [
+      own(5, "One-off: (−3)² taken as −9, the axis not shown, on Q5 alone. Found on the second submission."),
+      own(8, "One-off: non-monic pair guessed, never expanded back, on Q8 alone. Found on the second submission."),
+      own(10, "One-off: axis given as the height, jumped straight to it, on Q10 alone. Found on the second submission."),
+    ],
+    isla: [
+      own(5, "One-off: axis of symmetry without the minus, on Q5 alone. Found on the second submission."),
+      own(9, "One-off: took −1 out and left the signs inside behind, on Q9 alone. Found on the second submission."),
+      kept(10, "Habit: Reasoning is a gap on the set (the landing given as the nozzle's zero). The group's last try is their own first submission."),
+    ],
+    lucas: [
+      grp(2, "Repeated: turning point read with the sign flipped (Q2, Q3). Isla, Grace and Harper handed Q2 in without it, and the group's rework holds."),
+      grp(3, "Repeated: turning point read with the sign flipped (Q2, Q3). Isla, Grace and Harper handed Q3 in without it, and the group's rework holds."),
+      own(9, "One-off: took −1 out and left the signs inside behind, on Q9 alone. Found on the second submission."),
+      kept(10, "Habit: Reasoning is a gap on the set (the landing given as the nozzle's zero). The group's last try is Isla's first submission."),
+    ],
+    harper: [
+      own(7, "One-off: the 2 multiplied x² and nothing else, on Q7 alone. Found on the second submission."),
+      own(9, "One-off: negative a read as concave up, on Q9 alone. Found on the second submission."),
+      own(10, "One-off: axis given as the height, jumped straight to it, on Q10 alone. Found on the second submission."),
+    ],
+    oliver: [
+      kept(4, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+      own(7, "One-off: (x − 3)² squared term by term, on Q7 alone. Found on the second submission."),
+      kept(8, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is their own first submission."),
+    ],
+    ruby: [
+      own(5, "One-off: (−3)² taken as −9, on Q5 alone. Found on the second submission."),
+      kept(9, "Habit: Algebra is a gap on the set (a pair that multiplies to −8 but doesn't add to −2). The group's last try is their own first submission."),
+      own(10, "One-off: axis given as the height, on Q10 alone. Found on the second submission."),
+    ],
+    finn: [
+      own(4, "One-off: solved 3x + 2 = 0 as −3/2, on Q4 alone. Found on the second submission."),
+      own(6, "One-off: turning point read with the sign flipped, on Q6 alone. Found on the second submission."),
+      own(8, "One-off: sum of the intercepts never halved, on Q8 alone. Found on the second submission."),
+    ],
+    sofia: [
+      kept(4, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is Oliver's first submission."),
+      kept(8, "Habit: Algebra is a gap on the set (non-monic pairs guessed, never expanded back). The group's last try is Oliver's first submission."),
+    ],
+  },
+  // Problem Set 6
+  {
+    jordan: [
+      own(2, "One-off: non-monic factors not checked by expanding, on Q2 alone. Found on the second submission."),
+      own(7, "One-off: a pair that multiplies to 8 but adds to 9, on Q7 alone. Found on the second submission."),
+    ],
+    amelia: [
+      own(6, "One-off: read “touches once” as discriminant > 0, on Q6 alone. Found on the second submission."),
+      own(7, "One-off: multiplied through by 3 and never took it back out, on Q7 alone. Found on the second submission."),
+      kept(10, "Habit: Reasoning is a gap on the set (said the graph crosses twice). The group's last try is their own first submission."),
+    ],
+    tomas: [
+      own(3, "One-off: null factor law on a product that isn't 0, on Q3 alone. Found on the second submission."),
+      kept(4, "Habit: Algebra is a gap on the set (divided by a, not 2a). The group's last try is their own first submission."),
+      kept(5, "Habit: Algebra is a gap on the set (roots with the signs flipped). The group's last try is their own first submission."),
+      kept(7, "Habit: Algebra is a gap on the set (scaled two of three terms). The group's last try is their own first submission."),
+    ],
+    zara: [
+      own(3, "One-off: null factor law on a product that isn't 0, on Q3 alone. Found on the second submission."),
+      own(7, "One-off: multiplied through by 3 and never took it back out, on Q7 alone. Found on the second submission."),
+      own(9, "One-off: axis given as the height, on Q9 alone. Found on the second submission."),
+    ],
+    liam: [
+      grp(1, "Habit: Algebra is a gap on the set (guessed a factor pair without expanding back), but the group's rework holds (the demo group's scripted run solves it) and the group's version is one."),
+      grp(2, "Habit: Algebra is a gap on the set (guessed a factor pair without expanding back), but the group's rework holds (the demo group's scripted run solves it) and the group's version is one."),
+      grp(3, "Habit: New skills is a gap on the set (null factor law on a product that isn't 0), but the group's rework holds (the demo group's scripted run solves it) and the group's version is one."),
+    ],
+    aiden: [
+      own(7, "One-off: scaled two of three terms, on Q7 alone. Found on the second submission."),
+    ],
+    mia: [
+      kept(2, "Habit: Algebra is a gap on the set (guessed a factor pair, never expanded back). The group's last try is their own first submission."),
+      kept(7, "Habit: Algebra is a gap on the set (scaled two of three terms). The group's last try is their own first submission."),
+      kept(9, "Habit: Algebra is a gap on the set (took −x out and left the sign behind). The group's last try is their own first submission."),
+    ],
+    noah: [
+      own(3, "One-off: null factor law on a product that isn't 0, on Q3 alone. Found on the second submission."),
+    ],
+    ethan: [
+      own(1, "One-off: signs flipped in the pair, on Q1 alone. Found on the second submission."),
+      own(4, "One-off: divided by a, not 2a, on Q4 alone. Found on the second submission."),
+      own(7, "One-off: multiplied through by 3 and never took it back out, on Q7 alone. Found on the second submission."),
+      own(9, "One-off: axis given as the height, a step skipped, on Q9 alone. Found on the second submission."),
+    ],
+    isla: [
+      own(4, "One-off: −b written as −5, on Q4 alone. Found on the second submission."),
+      own(7, "One-off: scaled two of three terms, on Q7 alone. Found on the second submission."),
+      kept(10, "Habit: Reasoning is a gap on the set (said the graph crosses twice). The group's last try is their own first submission."),
+    ],
+    lucas: [
+      own(7, "One-off: a pair that multiplies to 8 but adds to 9, on Q7 alone. Found on the second submission."),
+      kept(10, "Habit: Reasoning is a gap on the set (negative discriminant, two solutions). The group's last try is Isla's first submission."),
+    ],
+    harper: [
+      kept(3, "Habit: Algebra is a gap on the set (a sign lost in the expansion). The group's last try is their own first submission."),
+      kept(5, "Habit: Graphing is a gap on the set (turning point's height from the wrong line). The group's last try is their own first submission."),
+      kept(9, "Habit: Graphing is a gap on the set (axis given as the height, jumped straight to it). The group's last try is their own first submission."),
+    ],
+    oliver: [
+      grp(1, "Repeated: guesses factor pairs without expanding back (Q1, Q2). Ruby, Finn and Sofia handed Q1 in without it, and the group's rework holds."),
+      grp(2, "Repeated: guesses factor pairs without expanding back (Q1, Q2). Ruby and Finn handed Q2 in without it, and the group's rework holds."),
+      own(3, "One-off: null factor law on a product that isn't 0, on Q3 alone. Found on the second submission."),
+      own(7, "One-off: scaled two of three terms, on Q7 alone. Found on the second submission."),
+    ],
+    ruby: [
+      own(5, "One-off: turning point's height from the wrong line, on Q5 alone. Found on the second submission."),
+      own(7, "One-off: a pair that multiplies to 8 but adds to 9, on Q7 alone. Found on the second submission."),
+      own(9, "One-off: axis given as the height, on Q9 alone. Found on the second submission."),
+    ],
+    finn: [
+      grp(2, "Habit: Algebra is a gap on the set (sign lost solving 2x − 1 = 0), but the group's rework holds (Oliver's repeated slip here was the group's to fix) and the group's version is one."),
+      kept(4, "Habit: Algebra is a gap on the set (divided by a, not 2a). The group's last try is their own first submission."),
+      own(5, "One-off: turning point's height from the wrong line, on Q5 alone. Found on the second submission."),
+      kept(7, "Habit: Algebra is a gap on the set (tripled, third never restored). The group's last try is their own first submission."),
+    ],
+    sofia: [
+      grp(2, "Habit: Algebra is a gap on the set (guessed pair, not expanded back), but the group's rework holds (Oliver's repeated slip here was the group's to fix) and the group's version is one."),
+      kept(4, "Habit: Algebra is a gap on the set (denominator a, not 2a). The group's last try is Finn's first submission."),
+      kept(7, "Habit: Algebra is a gap on the set (scaled two of three terms). The group's last try is Finn's first submission."),
+    ],
+  },
+];
+
 /** The one-step rule's ladder. */
 export const STORY_RANK: Record<StoryStatus, number> = { gap: 0, developing: 1, solid: 2, secure: 3 };
 

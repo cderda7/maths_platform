@@ -1,6 +1,8 @@
 import { DEMO_STUDENT } from "../assignment";
 import type { Classmate } from "../classmates";
+import { withReview } from "../recordReview";
 import { PS4_PROBLEMS } from "./assignment";
+import { PS4_REVIEW } from "./review";
 
 /**
  * Every student's Problem Set 4 (ticket 214): Sam's record and the nineteen classmates', in the shape the
@@ -134,7 +136,7 @@ const q = (n: number) => `ps4-q${n}`;
  * in the wrong brackets twice, half of b with the wrong sign, a turning point's sign. On Problem Set 5 he
  * swaps the brackets' signs again.
  */
-export const PS4_SAM: Classmate = {
+const SAM: Classmate = {
   id: DEMO_STUDENT.id,
   name: DEMO_STUDENT.name,
   initials: DEMO_STUDENT.initials,
@@ -151,7 +153,7 @@ export const PS4_SAM: Classmate = {
   groupStatus: "Group review done · expanding Q1 back",
 };
 
-export const PS4_CLASSMATES: Classmate[] = [
+const CLASSMATES: Classmate[] = [
   {
     id: "priya",
     name: "Priya Raman",
@@ -435,3 +437,6 @@ export const PS4_CLASSMATES: Classmate[] = [
     groupStatus: "Group review done · Q7's halves",
   },
 ];
+
+/** Sam's record and the nineteen classmates', each carrying what review made of their mistakes (ticket 244, `./review.ts`). */
+export const [PS4_SAM, ...PS4_CLASSMATES] = withReview([SAM, ...CLASSMATES], PS4_REVIEW);

@@ -148,15 +148,33 @@ function sessionReview(session: StudentSession, run: GroupRun | null | undefined
 export const sessionReviews = (session: StudentSession, run: GroupRun | null | undefined, problems: Problem[] = ASSIGNMENT.problems): Reviews =>
   Object.fromEntries(problems.map((p) => [p.id, sessionReview(session, run, p.id)]));
 
-/** A set record's versions: its first submission as the Class View reads it, and what review made of its mistakes (`review`, ticket 244). */
-export function recordReviews(record: Classmate, problems: Problem[] = ASSIGNMENT.problems): Reviews {
+/** Every review stage: a finished set's records show all they hold. */
+export const ALL_REVIEW_STAGES: readonly ReviewStage[] = ["individual", "group", "whole-class"];
+
+/**
+ * A set record's versions: its first submission as the Class View reads it, and what review made of its mistakes
+ * (`review`, ticket 244). `over` is the review stages the class has finished: a second submission shows once
+ * individual review is over and a group's version once group review is, so on the live set a problem a classmate
+ * fixes later sits in Incorrect until then, the columns never moving (rule 9a). A finished set passes every stage.
+ */
+export function recordReviews(record: Classmate, problems: Problem[] = ASSIGNMENT.problems, over: readonly ReviewStage[] = ALL_REVIEW_STAGES): Reviews {
   const reviews: Reviews = {};
   problems.forEach((p, i) => {
     const later = record.review?.[p.id];
-    reviews[p.id] = { first: classmateLines(record, p, i) ?? [], second: later?.second ?? [], ...(later?.group ? { group: later.group } : {}) };
+    const second = over.includes("individual") ? later?.second : undefined;
+    const group = over.includes("group") ? later?.group : undefined;
+    reviews[p.id] = { first: classmateLines(record, p, i) ?? [], second: second ?? [], ...(group ? { group } : {}) };
   });
   return reviews;
 }
+
+/**
+ * The review stages the class has finished, from a set's stages (`assignmentStages`): what `recordReviews` may show.
+ * A stage is finished once it is over, or while it is still current once everyone is done with it (group review
+ * stays current until class review starts, and on a pathway without class review it never ends otherwise).
+ */
+export const reviewStagesOver = (stages: readonly { id: string; state: string; done: number | null; total: number }[]): ReviewStage[] =>
+  stages.flatMap((s) => (s.id !== "working" && (s.state === "over" || (s.state === "current" && s.done !== null && s.done >= s.total)) ? [s.id as ReviewStage] : []));
 
 const NO_REVIEW: ProblemReview = { first: [], second: [] };
 

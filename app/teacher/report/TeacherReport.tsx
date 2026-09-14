@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
-import { assignmentHref, studentRecord } from "@/lib/assignments";
+import { assignmentHref, assignmentStages, studentRecord } from "@/lib/assignments";
 import TeacherChrome, { TEACHER_ZOOM } from "../TeacherChrome";
 import FitText from "@/components/FitText";
 import { WorkLines, WorkPanel } from "@/components/HierarchyDrill";
@@ -16,10 +16,10 @@ import { DEMO_STUDENT } from "@/data/assignment";
 import { groupName, type LeafId } from "@/data/taxonomy";
 import { useClassroom } from "@/lib/classroom-store";
 import { commentaryFor } from "@/lib/commentary";
-import { columnsOf, labelSentence, OUTCOME_LABEL, outcomeOf, recordReviews, reportFacts, sessionReviews, shownVersions, unsolvedOf, type Reviews, type ShownVersion } from "@/lib/report";
+import { columnsOf, labelSentence, OUTCOME_LABEL, outcomeOf, recordReviews, reportFacts, reviewStagesOver, sessionReviews, shownVersions, unsolvedOf, type Reviews, type ShownVersion } from "@/lib/report";
 import { pressWork, type ReportWork } from "@/lib/reportWork";
 import { classmateEvidence, hierarchyFor, leavesBehind, restrictTo, sessionEvidence, type Evidence } from "@/lib/hierarchy";
-import { useBatchedSession } from "@/lib/store";
+import { useBatchedSession, useNow } from "@/lib/store";
 import { useEscape } from "@/components/useEscape";
 import { BackButton, useAssignmentBundle } from "../AssignmentContext";
 
@@ -60,6 +60,7 @@ export function ReportBody({ student, back, work: initialWork = null, from = nul
   const { session } = useBatchedSession(2000);
   const assignment = useAssignmentBundle();
   const classroom = useClassroom();
+  const now = useNow();
   const { problems, pathway } = assignment;
   // The set's record of the student: a classmate's, or Sam's on a finished set; none for Sam on the live set, who is his session.
   const classmate = studentRecord(assignment, student ?? DEMO_STUDENT.id) ?? assignment.sam ?? undefined;
@@ -75,13 +76,40 @@ export function ReportBody({ student, back, work: initialWork = null, from = nul
   const result = chosen ? restrictTo(full, leavesBehind(chosen.problems, evidence.lines, problems)) : full;
   const facts = live && session ? reportFacts(session) : null;
   const nothing = live && !session;
-  const reviews: Reviews = classmate ? recordReviews(classmate, problems) : session ? sessionReviews(session, classroom.group, problems) : {};
+  // A record shows a review stage's versions once the class has finished that stage (ticket 244): all of them on a finished set.
+  const over = reviewStagesOver(assignmentStages(assignment, classroom, session, now));
+  const reviews: Reviews = classmate ? recordReviews(classmate, problems, over) : session ? sessionReviews(session, classroom.group, problems) : {};
   const columns = columnsOf(reviews, pathway, problems);
   const unsolved = unsolvedOf(reviews, pathway, problems);
   const openProblem = work?.kind === "problem" ? problems.find((p) => p.id === work.id) : undefined;
   // The line under the tiles: how sure they were before starting, and on the live set what practice and caution the run brought.
   const notes = nothing ? [] : [classmate ? labelSentence(classmate.confidence) : facts!.confidence, ...(facts?.practices ?? [])];
   const caution = facts?.caution ?? [];
+
+  // The page fills the laptop's height (ticket 244): the skills card takes whatever height the page leaves, so the
+  // working that opens in its place has room for a problem's versions without scrolling. A style write, not state.
+  const gridRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const grid = gridRef.current;
+    const card = grid?.querySelector<HTMLElement>("[data-hierarchy]");
+    const scroll = grid?.closest<HTMLElement>("[data-teacher-scroll]");
+    if (!grid || !card || !scroll) return;
+    const fill = () => {
+      card.style.minHeight = "";
+      // The frame's content, not its scrollHeight, which never reads less than the frame itself.
+      const slack = scroll.clientHeight - ((scroll.firstElementChild as HTMLElement | null)?.offsetHeight ?? scroll.scrollHeight);
+      // A pixel short of the frame: offsetHeight rounds, and a fractional pixel over would scroll.
+      if (slack > 1) card.style.minHeight = `${card.offsetHeight + slack - 1}px`;
+    };
+    fill();
+    const observer = new ResizeObserver(fill);
+    // Whatever sizes the page apart from the card itself: the frame, the heading above the grid (its display font loads
+    // late), the skills, What happened, the right column's boxes.
+    const above = [...(grid.parentElement?.children ?? [])].filter((el) => el !== grid);
+    for (const el of [scroll, ...above, ...grid.querySelectorAll("[data-skills], [data-outcomes], [data-commentary], [data-clarification], [data-report-key]")]) observer.observe(el);
+    void document.fonts?.ready.then(fill);
+    return () => observer.disconnect();
+  }, [student, assignment.id, nothing]);
 
   useEffect(() => {
     if (!work) return;
@@ -133,11 +161,11 @@ export function ReportBody({ student, back, work: initialWork = null, from = nul
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-[1fr_440px] gap-6">
-        <div className="space-y-4">
-          <Card data-hierarchy>
+      <div ref={gridRef} className="mt-5 grid grid-cols-[1fr_440px] gap-6">
+        <div className="flex flex-col gap-4">
+          <Card className="flex flex-1 flex-col" data-hierarchy>
             {/* The working takes the skills' place (ticket 243): the skills stay laid out underneath, hidden, so the card keeps its size and nothing below moves. */}
-            <div className="relative">
+            <div className="relative flex-1">
               <div className={work ? "invisible" : ""} aria-hidden={work ? true : undefined} data-skills>
                 <Eyebrow className="px-5 pt-5">Skills</Eyebrow>
                 {nothing ? (
@@ -161,7 +189,15 @@ export function ReportBody({ student, back, work: initialWork = null, from = nul
                     <div className="flex items-start justify-between gap-4">
                       {openProblem ? (
                         <div className="min-w-0">
-                          <Eyebrow>{OUTCOME_LABEL[outcomeOf(openProblem.id, reviews[openProblem.id], pathway)]}</Eyebrow>
+                          {/* Not solved in group review sits beside the outcome, not under the versions, so a long problem's working still fits (ticket 244). */}
+                          <div className="flex items-baseline gap-2">
+                            <Eyebrow>{OUTCOME_LABEL[outcomeOf(openProblem.id, reviews[openProblem.id], pathway)]}</Eyebrow>
+                            {unsolved.some((p) => p.id === openProblem.id) && (
+                              <span className="text-[12px] text-ink-muted" data-work-unsolved>
+                                · Not solved in group review
+                              </span>
+                            )}
+                          </div>
                           <div className="mt-2 flex min-w-0 items-center gap-2.5">
                             <span className="font-display text-[18px] text-ink">{openProblem.label}</span>
                             <DifficultyTag d={openProblem.difficulty} />
@@ -186,7 +222,6 @@ export function ReportBody({ student, back, work: initialWork = null, from = nul
                         <WorkPanel leaf={work.leaf} lines={evidence.lines} problems={problems} status={full.leaves[work.leaf] ?? "unseen"} wide onGoTo={(leaf) => setWork({ kind: "skill", leaf })} />
                       </div>
                     ) : null}
-                    {openProblem && unsolved.some((p) => p.id === openProblem.id) && <p className="mt-2 text-[12px] leading-snug text-ink-muted">Not solved in group review</p>}
                   </div>
                 </div>
               )}
@@ -221,7 +256,8 @@ export function ReportBody({ student, back, work: initialWork = null, from = nul
                 describe={() => "see their working"}
                 starred={live && session ? session.stars : []}
                 lit={chosen ? chosen.problems : null}
-                noteFloor={TEACHER_NOTE_FLOOR}
+                noteFloor={teacherNoteFloor(unsolved.length)}
+                noteInLabel
               />
             )}
           </Card>
@@ -243,7 +279,7 @@ export function ReportBody({ student, back, work: initialWork = null, from = nul
                         onClick={() => setIdea(active ? null : n)}
                         aria-pressed={active}
                         title="Show only the skills behind this"
-                        className={`w-full rounded-xl px-3 py-1 text-left text-[15px] leading-snug transition-colors ${active ? "bg-paper text-ink shadow-card" : "text-ink hover:bg-paper/70"}`}
+                        className={`w-full rounded-xl px-3 py-[3px] text-left text-[15px] leading-snug transition-colors ${active ? "bg-paper text-ink shadow-card" : "text-ink hover:bg-paper/70"}`}
                         data-idea={n}
                       >
                         <span className="lowercase">{it.text}</span>
@@ -276,16 +312,46 @@ export function ReportBody({ student, back, work: initialWork = null, from = nul
   );
 }
 
-/** Incorrect's narrowest with the not-solved note: wide enough for "Q7 not solved in group review" on one line, keeping the card one row shorter. */
-const TEACHER_NOTE_FLOOR = 190;
+/**
+ * Incorrect's narrowest with the not-solved note, which sits on its second label line so the card is no taller (ticket 244):
+ * wide enough for "Q7 not solved in group review" on one line, and one "Q7, " wider for each further problem.
+ */
+const teacherNoteFloor = (unsolved: number): number => 190 + 28 * Math.max(0, unsolved - 1);
 
 /** What keeps the working open when pressed: the working itself, a Q tile, a skill row. */
 const KEEPS_WORK = "[data-work-content], [data-work-tile], [data-hierarchy] button[data-node]";
 
 /** A problem's versions side by side, first submission on the left (ticket 243), each fitted to its column. */
 function Versions({ problem, versions, onGoTo }: { problem: string; versions: ShownVersion[]; onGoTo: (leaf: LeafId) => void }) {
+  // A problem too long for the card (Set 4's nine-line worded problem at 1280) is scaled down as a whole until it fits,
+  // never scrolled and never wrapped (ticket 244): the maths keeps its lines, only smaller. A style write, not state.
+  const ref = useRef<HTMLDivElement>(null);
+  const fitKey = JSON.stringify(versions);
+  useLayoutEffect(() => {
+    const grid = ref.current;
+    const panel = grid?.closest<HTMLElement>("[data-report-work]");
+    if (!grid || !panel) return;
+    const fit = () => {
+      grid.style.zoom = "";
+      const full = panel.scrollHeight;
+      if (full <= panel.clientHeight) return;
+      // The panel's height is the fixed header plus the versions times their zoom: two readings give both, in the panel's own units.
+      grid.style.zoom = "0.9";
+      const scaled = full - panel.scrollHeight;
+      if (scaled <= 0) return;
+      const versionsHeight = scaled / 0.1;
+      let zoom = Math.max(0.6, (panel.clientHeight - (full - versionsHeight) - 1) / versionsHeight);
+      grid.style.zoom = String(zoom);
+      // Rows round to whole pixels: step down until nothing is left over.
+      while (panel.scrollHeight > panel.clientHeight && zoom > 0.6) grid.style.zoom = String((zoom -= 0.01));
+    };
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(panel);
+    return () => observer.disconnect();
+  }, [problem, fitKey]);
   return (
-    <div className="mt-4 grid gap-3" style={{ gridTemplateColumns: `repeat(${versions.length}, minmax(0, 1fr))` }} data-versions={versions.length}>
+    <div ref={ref} className="mt-4 grid gap-3" style={{ gridTemplateColumns: `repeat(${versions.length}, minmax(0, 1fr))` }} data-versions={versions.length}>
       {versions.map((v) => (
         <section key={v.kind} className="min-w-0 rounded-xl border border-line bg-paper p-3" data-version={v.kind}>
           <Eyebrow>{v.label}</Eyebrow>

@@ -3316,6 +3316,19 @@ uploaded problems) settled the following as later, each on purpose.
 - **A notice on the Classroom** (the post-rework sentence, a forced hand-in) waits until the set is opened. Deferred: it belongs to the set's next screen.
 - **The student's Classroom when several sets are live**, and assignments other than Problem Set 6 being sent. Deferred: one live set in the demo.
 
+## Record review follow-ups (ticket 244, 2026-09-14)
+
+- **Habits carried by the group's rework.** The rules read literally leave nine cases where a habit reads "Correct after group review" because the group's single rework checked for a groupmate: Jordan and Liam on Set 4 Q1 and Q2 (Sam's repeated signs-in-the-wrong-brackets slip), Finn and Sofia on Set 6 Q2 (Oliver's repeated guessed pairs), and Liam on Set 6 Q1, Q2 and Q3 (the demo group's scripted run solves them). Deferred: the user asked for the literal reading and a list; a per-member "did it stick" mark beside a solved group version would let a habit stay wrong on a board the group got right.
+- **Habits left unsolved although groupmates had it right.** Every habit is closed unsolved by its group, even where the rest of the group handed the problem in right (45 cases, e.g. Mia on Set 5 Q4 with Noah and Ethan right and Chloe fixing it alone). Deferred: it is the agreed rule; a group run whose outcome depends on who holds the pen is the natural refinement.
+- **Reworks in the student's own route and voice.** Every second submission and group rework is the model solution's working line by line; a student who went the long way (Chloe's √(4 × 12)) would keep their route. Deferred: new route lines need evaluation-table entries per set.
+- **A group's last try that is the group's own.** An unsolved group's last try is its first habit-holder's first submission, so that student's two columns match. Deferred: a distinct wrong try needs new table lines with clues and names.
+- **"One-off" across sets.** A slip repeated set after set (Aiden scaling part of an expression) is a one-off on each set by the per-set reading. Deferred: fuzzy matching of habit texts across sets.
+- **Per-group gating on the live set.** A classmate's group version shows once the whole class has finished group review (or class review starts); a group that finished early waits, and a teacher who ends group review early shows none until class review. Deferred: gate by that group's standing (`standingsAt`) and the run's `endedAt`.
+- **Review that follows the Groups tab.** Records' group versions use the frozen seating; a student moved on a set's Groups tab keeps their old group's version. Deferred: finished sets' seating is not edited in the demo.
+- **Sam's live second submission as a record.** Sam's Set 6 report reads his session; his finished records now carry review, his live one does not need to. Deferred: nothing to show.
+- **A two-column layout for very long workings** instead of scaling them down (Set 4 Q10 reads at about 88% at 1280×800). Deferred: scaling keeps the working reading top to bottom.
+- **The not-solved note with four or more problems** would push Incorrect's floor past 270 px and squeeze Correct first try. Deferred: three is the most any record has.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
