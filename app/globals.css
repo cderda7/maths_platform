@@ -125,6 +125,59 @@ body {
   clip-path: inset(0 0 0 1px);
 }
 
+/*
+ * The homework screen's question changing into its similar one (ticket 256, components/HomeworkFlight.tsx). The two
+ * expressions are the same shape (lib/homework.ts texShape), stacked; every changed number is an `\htmlClass{hw-diff}`
+ * group in both. An inline-block with no padding or margin of its own sets exactly as the bare number (the hint boxes'
+ * `.hint-term` rests on the same), and `position: relative` moves it without moving anything else. `--m` runs 0 → 1.
+ */
+.katex .hw-diff {
+  display: inline-block;
+  position: relative;
+}
+.hw-aligned .hw-from .hw-diff {
+  opacity: calc(1 - var(--m));
+  top: calc(var(--m) * -0.4em);
+}
+.hw-aligned .hw-to .katex-html {
+  visibility: hidden;
+}
+.hw-aligned .hw-to .hw-diff {
+  visibility: visible;
+  opacity: var(--m);
+  top: calc((1 - var(--m)) * 0.4em);
+  color: var(--color-accent-deep);
+}
+.hw-morph:not(.hw-aligned) .hw-from {
+  opacity: calc(1 - var(--m));
+}
+.hw-morph:not(.hw-aligned) .hw-to {
+  opacity: var(--m);
+}
+.hw-new .hw-diff {
+  color: var(--color-accent-deep);
+}
+/* The folder's count as a tile lands in it: one small bump. Reduced motion changes the number alone. */
+@keyframes hw-bump {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.hw-bump {
+  animation: hw-bump 320ms ease-out 1 both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hw-bump {
+    animation: none;
+  }
+}
+
 .hero-glow {
   background:
     radial-gradient(60% 60% at 20% 0%, rgba(91, 74, 232, 0.1), transparent 70%),

@@ -3276,6 +3276,17 @@ uploaded problems) settled the following as later, each on purpose.
 - **On a narrow window (under ~1180 px) Class View's column starts 4 px left of the back button** rather than the button overhanging it (Class View's eyebrow at 17.3 px, the report's at 21.6 px). Deferred: the user asked for every button at the report's spot and accepted it not lining up with its own page's column.
 - **A shared constant for the report's zoom in `BACK_LEFT`.** The calc spells the report's column as `1476px` and `21.6px` (1640 and 24 at 0.9) because `REPORT_ZOOM` lives in `TeacherReport.tsx`, which imports `AssignmentContext`. Deferred: moving `REPORT_ZOOM` into `TeacherChrome` touches files peers are editing; a change to the report's zoom must update the calc (and the report's -28 px raise).
 
+## Homework bank (ticket 256, 2026-09-14)
+
+- **Homework screens.** The bank is only the homework screen's data; nothing opens a homework, assigns it, or marks it. Deferred: the user scoped homework to the motivation only for now.
+- **A way back from the homework screen to the report.** The screen has no back button; SKIP TO report reaches it. Deferred: ticket 264's Classroom becomes where a finished set is reopened.
+- **Replaying the animation.** Once over, a reload shows the end state. Deferred: not asked for; a presenter can use SKIP TO homework.
+- **More than one similar problem per type, or generated ones.** One hand-authored problem per PS6 problem, none for Sets 1–5. Deferred: only PS6 runs live; novel homework problems are already listed under tickets 250–259.
+- **Similar problems that change sign or digit count.** The live change needs the same shape, so every similar keeps its original's signs and digit counts. Deferred: a glyph-level FLIP would allow it at much more complexity.
+- **The teacher seeing what went into each student's homework.** Nothing on the teacher side shows the bank. Deferred: not in the ticket.
+- **Plain-text maths inside other stems** (Q10's "y = x² + 4x + 5." on the working screen and report) can still wrap at a space; only the homework screen glues it. Deferred: outside this ticket's screens.
+- **Skill dots reacting to the homework** (a skill lighting as its type goes in). Deferred: not asked for.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

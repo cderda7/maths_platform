@@ -4,7 +4,7 @@
 
 **Blocked by:** none.
 
-**Status:** open
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -28,6 +28,6 @@ Which problems go: any problem wrong at any point, including ones fixed in revie
 
 ## Acceptance
 
-- [ ] Unit: which problems go (wrong at first submit and fixed, still wrong, never wrong, not attempted); every PS6 similar problem parses and differs from its original
-- [ ] Click-through on the iPad at 1280×800 and 1440×900: reflection submit leads here; each of Sam's ever-wrong tiles expands without moving its neighbours, shows its original then the similar question, then lands in the folder and the count equals the ever-wrong problems; right tiles never move; reduced motion; no maths split or clipped inside the iPad frame
-- [ ] vitest, eslint, tsc, next build, sweep:hint-boxes
+- [x] Unit: which problems go (wrong at first submit and fixed, still wrong, never wrong, not attempted); every PS6 similar problem parses and differs from its original
+- [x] Click-through on the iPad at 1280×800 and 1440×900: reflection submit leads here; each of Sam's ever-wrong tiles expands without moving its neighbours, shows its original then the similar question, then lands in the folder and the count equals the ever-wrong problems; right tiles never move; reduced motion; no maths split or clipped inside the iPad frame
+- [x] vitest, eslint, tsc, next build, sweep:hint-boxes

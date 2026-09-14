@@ -111,6 +111,8 @@ export interface StudentSession {
   reflection: string;
   /** True once the reflection has been sent to the teacher. */
   reportSent: boolean;
+  /** When the report was sent (ms since epoch; 0 = unknown, read as long ago): the homework screen's sequence runs from it (ticket 256). */
+  homeworkAt: number;
   /** When the set was handed in and when the rework finished (ms since epoch; 0 = unknown). */
   handedInAt: number;
   reworkedAt: number;
@@ -208,7 +210,8 @@ export type SessionAction =
   | { type: "debrief/done"; problem: string }
   | { type: "group/done" }
   | { type: "reflection/set"; text: string }
-  | { type: "report/send" }
+  /** Send on the report: with a reflection written, the report goes and the homework screen opens (ticket 256). */
+  | { type: "report/send"; at?: number }
   | { type: "peers/open" }
   | { type: "peers/close" }
   | { type: "goto"; stage: Stage; at?: number }
@@ -243,6 +246,7 @@ export const INITIAL_SESSION: StudentSession = {
   reworkIndex: 0,
   reflection: "",
   reportSent: false,
+  homeworkAt: 0,
   handedInAt: 0,
   reworkedAt: 0,
   notice: null,
@@ -485,8 +489,9 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     case "reflection/set":
       return { ...s, reflection: a.text };
     case "report/send":
-      // A report goes with a reflection or not at all: the button stays disabled until something is written.
-      return s.reflection.trim() === "" ? s : { ...s, reportSent: true };
+      // A report goes with a reflection or not at all: the button stays disabled until something is written. Once it has gone,
+      // the problems the student ever got wrong go into their homework (ticket 256).
+      return s.reflection.trim() === "" ? s : { ...s, reportSent: true, stage: "homework", homeworkAt: a.at ?? s.homeworkAt };
     case "peers/open":
       return { ...s, stage: "peers" };
     case "peers/close":
@@ -628,7 +633,10 @@ function roundStroke(s: Stroke): Stroke {
   return s.map((p) => ({ x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10 }));
 }
 
-const ORDER: Stage[] = ["overview", "goal", "confidence", "warmup-chat", "practice", "working", "feedback", "waiting", "frozen", "class-wait", "group", "report", "peers", "history"];
+const ORDER: Stage[] = ["overview", "goal", "confidence", "warmup-chat", "practice", "working", "feedback", "waiting", "frozen", "class-wait", "group", "report", "peers", "history", "homework"];
+
+/** The reflection behind a run that has already sent its report: the homework screen's deep link and skip (ticket 256). */
+export const DEMO_REFLECTION = "I guessed factor pairs without checking the signs. Expanding back would have caught Q1 and Q2.";
 
 /** Fixed times for deep-linked runs: handed in at 3:48 pm, rework done at 4:07 pm, today. */
 const todayAt = (h: number, m: number) => {
@@ -703,6 +711,8 @@ export function reworkedSession(): StudentSession {
 
 /** Builds a session already at `stage`, for deep links, with plausible earlier answers filled in. */
 export function sessionAt(stage: Stage, run: RunKindParam = "weak"): StudentSession {
+  // The report already sent with a reflection, the homework sequence starting now.
+  if (stage === "homework") return { ...sessionAt("report", run), stage, reflection: DEMO_REFLECTION, reportSent: true, homeworkAt: Date.now() };
   const i = ORDER.indexOf(stage);
   if (i < 0) return INITIAL_SESSION;
   if (run === "strong" && i >= ORDER.indexOf("feedback")) return { ...strongSession(), stage, stars: [], handedInAt: todayAt(15, 48) };

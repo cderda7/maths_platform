@@ -32,7 +32,8 @@ export interface SolutionStep {
 }
 
 /** Figures a problem can show beside its statement. */
-export type FigureId = "q8-parabola";
+/** `q8-similar-parabola` is Q8's similar problem's graph, shown as the homework screen changes Q8 into it (ticket 256). */
+export type FigureId = "q8-parabola" | "q8-similar-parabola";
 
 export interface Problem {
   id: string;
@@ -108,7 +109,9 @@ export type Stage =
   | "group"
   | "report"
   | "peers"
-  | "history";
+  | "history"
+  /** After the report is sent (ticket 256): the problems the student ever got wrong turn into similar ones and go into their homework. */
+  | "homework";
 
 /** The stages before the set is handed in, in order: the one meaning of "still working" (the class stage, force submit, the live row, the hierarchy's evidence, the examples). */
 export const BEFORE_HAND_IN_STAGES: readonly Stage[] = ["overview", "goal", "confidence", "warmup-chat", "practice", "working"];

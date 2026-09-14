@@ -71,7 +71,7 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
   const send = () => {
     if (work) setWork(null);
     if (!written) setNudge((k) => k + 1);
-    else if (!work) dispatch({ type: "report/send" });
+    else if (!work) dispatch({ type: "report/send", at: Date.now() });
   };
   const nudged = nudge > 0 && !written;
 

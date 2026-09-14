@@ -35,6 +35,7 @@ function liveStatus(session: StudentSession): string {
     case "report":
     case "peers":
     case "history":
+    case "homework":
     case "waiting":
     case "frozen":
       return "Finished";

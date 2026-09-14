@@ -120,7 +120,7 @@ export const OUTCOME_LABEL: Record<Outcome, string> = {
 };
 
 /** A version is right when it has at least one line and none of them is wrong: the same rule as "every step held". */
-const holds = (problem: string, lines: string[]): boolean => lines.length > 0 && lines.every((tex) => evaluateLine(problem, tex).verdict !== "wrong");
+export const holds = (problem: string, lines: string[]): boolean => lines.length > 0 && lines.every((tex) => evaluateLine(problem, tex).verdict !== "wrong");
 
 /**
  * Everything one student wrote on one problem, stage by stage (ticket 243): the first submission, their own

@@ -35,6 +35,7 @@ import PeerScreen from "./screens/PeerScreen";
 import HistoryScreen from "./screens/HistoryScreen";
 import DiagnosticModal from "./screens/DiagnosticModal";
 import { liveAbsent } from "@/lib/absence";
+import HomeworkScreen from "./screens/HomeworkScreen";
 import SkipTo from "@/components/SkipTo";
 import { EscapeLayer } from "@/components/useEscape";
 
@@ -148,7 +149,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
   // The header's pathway strip (ticket 151): the same stages the teacher's Pathway card lights, from the same function.
   // Not on the report or the screens it opens (ticket 178): the pathway is behind the student there, so the
   // header's right end is the name and avatar alone and the space the strip took stays blank.
-  const afterPathway = session.stage === "report" || session.stage === "peers" || session.stage === "history";
+  const afterPathway = session.stage === "report" || session.stage === "peers" || session.stage === "history" || session.stage === "homework";
   const stages = afterPathway ? [] : pathwayStages(classroom, session, now);
   return (
     <IpadStage>
@@ -176,6 +177,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
         {session.stage === "report" && <ReportScreen session={session} dispatch={dispatch} />}
         {session.stage === "peers" && <PeerScreen onBack={() => dispatch({ type: "peers/close" })} />}
         {session.stage === "history" && <HistoryScreen session={session} onBack={() => dispatch({ type: "history/close" })} />}
+        {session.stage === "homework" && <HomeworkScreen session={session} />}
         {counting && advance && (
           <div className="pointer-events-none absolute inset-x-0 top-[33px] z-20 flex justify-center px-8" data-countdown>
             <div className="flex items-center gap-3 rounded-full border border-accent-line bg-accent-soft px-4 py-1.5 text-[13.5px] text-ink shadow-card">

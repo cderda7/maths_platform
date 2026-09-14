@@ -4457,3 +4457,32 @@ rule for pens is untouched and the exception is visible and named.
 
 **Defense.** Absence is a fact about the room, so counts that leave absent students out are the honest ones; reading the list live keeps the laptop, the board and the iPad in step the moment the teacher corrects it, and keeping seats intact makes an absence a one-day change that undoes cleanly.
 
+## 2026-09-14 · The homework screen changes a question into its similar one by stacking two same-shape KaTeX renders (ticket 256)
+
+**Decision.** Every similar problem's question is written in its original's exact shape: only the numbers differ, digit for digit (`texShape` in `lib/homework.ts`, enforced by tests). The screen typesets both, each changed number wrapped in `\htmlClass{hw-diff}`, stacks them, shows the original whole and the similar one's changed numbers only, and a CSS variable rolls the old numbers out and the new ones in (`.hw-aligned` in app/globals.css). Stems may differ in any words; their changed runs cross-fade with the room easing between the two widths. The whole sequence is derived from the moment the report was sent (`homeworkAt`) and the clock, not from component state, and one absolutely positioned element does all the moving.
+
+**Context.** The user wanted a student to see the question "change live, like can see it's similar type, but diff numbers / diff set up", with the tile expanding in place (nothing beside it moving) and then flying into a folder; maths must never split or gain spacing.
+
+**Alternatives considered.**
+- *Cross-fade the whole expression*: simple and any shape works, but the shared structure blurs too, which is exactly what should visibly stay.
+- *Typeset each segment separately*: KaTeX's operator spacing depends on neighbours, so the segments would set differently from the problem as written (extra spacing in maths).
+- *Measure glyph positions and FLIP each glyph*: handles different digit counts, but is fragile against KaTeX's nested markup and sub-pixel layout.
+- *CSS keyframe animations per phase*: smooth without React renders, but a reload or a skip mid-way cannot resume at the right frame, and a click-through cannot assert a moment.
+- *Reuse ticket 240's diagnostic similar problems*: already written, but students have seen them in class, several change the digit count, and they have steps, not whole solutions.
+
+**Tradeoffs.** Authoring is constrained (the same digit counts and the same signs, so Q1's new roots had to be 1 and 7); a data slip that breaks the shape falls back to a whole-expression cross-fade, and the test fails first. A frame-driven overlay re-renders the flight every frame for about half a minute; the skill dots are memoised out of it.
+
+**Defense.** Same-shape stacking makes "same type" literally visible: every shared glyph sits on its twin (the click-through checks their positions match to 0.15 px and that Q1 sets at the width of the bare TeX), with KaTeX untouched. Deriving from `homeworkAt` makes reloads, SKIP TO and reduced motion one code path.
+
+## 2026-09-14 · A problem goes into homework if it was ever wrong, and not attempted counts (ticket 256)
+
+**Decision.** `everWrong`: the first submission does not hold (a wrong line, or nothing written), or the student's own second submission has a wrong line. Fixed in review still goes. The group's version never decides it. The tiles are marked by the same rule.
+
+**Context.** The user agreed "wrong at any point (first submission, even if fixed later)". The ticket's unit list names "not attempted" without saying which way.
+
+**Alternatives considered.** *First submission only* (a later wrong rework stays out): the same for every current run, but a student who broke a right answer would see nothing go. *Not attempted stays out*: the student never showed the type, so there is nothing to practise from; but the report already files it under Incorrect, and a blank is no evidence of the skill.
+
+**Tradeoffs.** A skipped problem reaches homework though the student may know it; a right tile could in principle turn red only because of a later wrong rework.
+
+**Defense.** It matches the report's Incorrect column for blanks and the user's "at any point" for reworks, and every scripted run gives the same five problems for Sam and none for the strong run.
+

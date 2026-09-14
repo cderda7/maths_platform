@@ -16,9 +16,9 @@ import { boardOpensAt } from "./groupIntro";
  * session for that moment, so what Sam submitted is always the same. Pure: the strip applies the
  * result through the stores.
  */
-export type SkipTarget = "start" | "warm-up" | "working" | "indiv review" | "class wait" | "group review" | "class review" | "report";
+export type SkipTarget = "start" | "warm-up" | "working" | "indiv review" | "class wait" | "group review" | "class review" | "report" | "homework";
 
-export const SKIP_TARGETS: SkipTarget[] = ["start", "warm-up", "working", "indiv review", "class wait", "group review", "class review", "report"];
+export const SKIP_TARGETS: SkipTarget[] = ["start", "warm-up", "working", "indiv review", "class wait", "group review", "class review", "report", "homework"];
 
 /** Every review stage, so any of the three jumps has somewhere to land. */
 export const DEMO_PATHWAY: Pathway = ["individual", "group", "whole-class"];
@@ -99,6 +99,11 @@ export function skipFixture(target: SkipTarget, now: number): { session: Student
     case "report": {
       // Group review is behind the class: the standings hold on the board with the demo group's run finished.
       const session = sessionAt("report");
+      return { session, classroom: { ...everyoneIn(classroom, now), group: finishedRun(session, now, liveAbsent(classroom)) } };
+    }
+    case "homework": {
+      // The report's moment with the reflection just sent: the homework sequence plays from the jump (ticket 256).
+      const session = { ...sessionAt("homework"), homeworkAt: now };
       return { session, classroom: { ...everyoneIn(classroom, now), group: finishedRun(session, now, liveAbsent(classroom)) } };
     }
     case "class review": {

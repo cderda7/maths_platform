@@ -71,7 +71,7 @@ export type BoardContent =
     } & Lesson);
 
 /** Stages a student can only be in once their group review is behind them (or the whole lesson is). */
-const AFTER_REVIEW: Stage[] = ["report", "peers", "history"];
+const AFTER_REVIEW: Stage[] = ["report", "peers", "history", "homework"];
 
 /** True when this student's group review is over: they sit where the pathway sends them after it, or beyond. */
 function groupReviewOver(c: ClassroomState | null | undefined, session: StudentSession | null): boolean {
