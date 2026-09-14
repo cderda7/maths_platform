@@ -19,8 +19,8 @@ describe("board examples", () => {
     expect(none.map((c) => c.studentId).slice(0, 6)).toEqual(["priya", "jordan", "amelia", "tomas", "zara", "liam"]);
     expect(none).toHaveLength(CLASSMATES.filter((c) => c.done >= 2).length);
     const q4 = candidatesFor("q4", null).map((c) => c.studentId);
-    expect(q4.slice(0, 4)).toEqual(["priya", "jordan", "amelia", "tomas"]); // jordan reaches Q7 since ticket 189; liam never reached Q4
-    expect(q4).not.toContain("liam");
+    expect(q4.slice(0, 6)).toEqual(["priya", "jordan", "amelia", "tomas", "zara", "liam"]); // jordan reaches Q7 since ticket 189; liam Q4 since ticket 281
+    expect(candidatesFor("q5", null).map((c) => c.studentId)).toContain("liam"); // his started Q5 went in with the set, wrong, as his Q3 did before
     expect(candidatesFor("q2", sessionAt("working")).some((c) => c.studentId === "sam")).toBe(false);
     const reworked = candidatesFor("q2", sessionAt("group"));
     const sam = reworked.find((c) => c.studentId === "sam")!;

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { STORY } from "@/data/story";
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATES, type Classmate } from "@/data/classmates";
 import { PS5_ASSIGNMENT, PS5_PROBLEMS } from "@/data/pset5/assignment";
@@ -129,10 +130,11 @@ describe("history over the Classroom's registry (tickets 215, 237)", () => {
     expect(earlierReportSet("pset-6", "pset-4", null)).toBeNull();
   });
 
-  it("reads real statuses: Priya dark green, Liam nothing seen on Problem Set 5, a student with no record skipped", () => {
+  it("reads real statuses: Priya dark green, Liam's Problem Set 5 as the sheet has it (five handed in since ticket 281), a student with no record skipped", () => {
     for (const cat of categoriesTouched(ASSIGNMENT)) {
       expect(earlierResults("pset-6", "priya", cat).every((r) => r.status === "secure")).toBe(true);
-      expect(earlierResults("pset-6", "liam", cat).at(-1)).toMatchObject({ status: "unseen" });
+      expect(earlierResults("pset-6", "liam", cat).at(-1)).toMatchObject({ status: STORY.liam.cells[cat as keyof typeof STORY.liam.cells][4].status });
+      expect(earlierResults("pset-6", "liam", "reasoning").at(-1)).toMatchObject({ status: "unseen" });
       expect(earlierResults("pset-6", "nobody", cat)).toEqual([]);
       expect(earlierResults(first.id, "mia", cat)).toEqual([]);
       expect(categoryHistory("pset-6", "mia", cat).at(-1)?.set).toMatchObject({ id: "pset-5", due: "Mon 7 Sep" });

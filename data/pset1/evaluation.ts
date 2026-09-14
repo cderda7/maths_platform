@@ -193,5 +193,22 @@ export const PS1_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "root of a sum split",
     ),
     "\\text{Side } 6\\sqrt{2}\\text{ cm, diagonal } 12\\sqrt{2}\\text{ cm}": A(ok(T(CONCL), "In context", true)),
+    // Ticket 281: violet's table on Q10, the set's hardest problem nobody at that table got right.
+    "s = \\sqrt{72} = \\sqrt{4 \\times 18} = 2\\sqrt{18}": wrong(
+      T(SURDS),
+      "Side length",
+      "A surd is simplified when no square factor is left under the root. 4 was a square factor of 72, but not the largest one.",
+      "Is there a square number that divides 18? What does that make √18?",
+      SQUARE_LEFT,
+    ),
+    "\\text{Side } 2\\sqrt{18}\\text{ cm, diagonal } 12\\text{ cm}": A(ok(T(CONCL), "In context", true)),
+    "d = \\dfrac{6\\sqrt{2}}{\\sqrt{2}} = 6": wrong(
+      T(FRAC),
+      "Diagonal",
+      "A square's diagonal is longer than its side: it is the side multiplied by √2. Dividing by √2 went the other way round.",
+      "Which is longer, the side or the diagonal? What does that say about × √2 or ÷ √2?",
+      "divided the wrong way round",
+    ),
+    "\\text{Side } 6\\sqrt{2}\\text{ cm, diagonal } 6\\text{ cm}": A(ok(T(CONCL), "In context", true)),
   },
 };

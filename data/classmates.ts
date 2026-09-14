@@ -1,5 +1,8 @@
-import { SET6_REVIEW } from "./classmates-review";
-import { withReview } from "./recordReview";
+import { DEMO_ABSENCES } from "./absences";
+import { ASSIGNMENT } from "./assignment";
+import { DEFAULT_GROUPS } from "./groups";
+import { SET6_CLASS_REVIEW_PICKS, SET6_REVIEW } from "./classmates-review";
+import { classReviewFrom, withReview, type ClassReview } from "./recordReview";
 
 /**
  * Static classmates so the demo student's live row sits in a believable class of twenty. Their
@@ -12,7 +15,7 @@ import { withReview } from "./recordReview";
  * student's group, with wrong sets chosen so the all-correct intersection and the union of
  * wrongs are both non-empty and different.
  *
- * The shape of the wrongs (ticket 130; Jordan's Q7 since ticket 189): 46 wrong student-problem entries. Q7 has thirteen
+ * The shape of the wrongs (ticket 130; Jordan's Q7 since ticket 189, Liam's started Q5 since ticket 281): 47 wrong student-problem entries. Q7 has thirteen
  * classmates wrong across three strategies (six cleared the fraction from two terms, four
  * multiplied through and lost the third, three took the third out and then the wrong pair);
  * Q6 has Amelia alone; nobody slips on Q8. Q1 and Q4 each hold two different slips under one
@@ -36,8 +39,9 @@ export interface Classmate {
   /** Their recognised working on the problems they got wrong, for the teacher's mistake view. */
   attempts: Record<string, string[]>;
   /**
-   * What review made of a problem they got wrong (ticket 243 reads it, 244 writes it): their own second
-   * submission, and their group's version once it closed the problem (the rework that checked, or the last try).
+   * What review made of a problem they brought to their group (ticket 243 reads it, 244 writes it; since ticket 281 a
+   * problem left incomplete or not attempted too): their own second submission, and their group's version once it
+   * closed the problem (the rework that checked, or its own last try).
    */
   review?: Record<string, { second?: string[]; group?: { lines: string[]; solved: boolean } }>;
   /** One line for the teacher's "during review groups" view. Static; the demo student's is live. */
@@ -56,6 +60,8 @@ const Q10_TWICE = ["b^2 - 4ac = 16 - 20 = -4", "\\Delta < 0 \\Rightarrow \\text{
 /** Q5 with the turning point's height read off the wrong line, and Q9 rushed: the axis given as the height, a step skipped on the way. */
 const Q5_HEIGHT = ["(x - 5)(x + 1) = 0", "x = 5 \\;\\text{or}\\; x = -1", "x = \\tfrac{5 + (-1)}{2} = 2", "(2, -5)"];
 const Q9_RUSHED = ["-x(x - 6) = 0", "\\text{turning point at } x = 3", "h = 6"];
+/** Q5 started and left (ticket 281, Liam): the factors right, the roots read off them with their signs flipped, no turning point. */
+export const Q5_ROOTS_FLIPPED = ["(x - 5)(x + 1) = 0", "x = -5 \\;\\text{or}\\; x = 1"];
 /** Right, but in one jump each: what a student who skips steps hands in. */
 const Q1_JUMP = ["x^2 - 5x + 6 = 0", "x = 2, 3"];
 const Q2_JUMP = ["2x^2 + 7x - 4 = (2x - 1)(x + 4)", "x = \\tfrac{1}{2} \\;\\text{or}\\; x = -4"];
@@ -91,7 +97,8 @@ const RECORDS: Classmate[] = [
   { id: "amelia", name: "Amelia Chen", initials: "AC", confidence: "low", done: 10, wrong: ["q6", "q7", "q10"], notes: [{ text: "read “touches once” as discriminant > 0", problems: ["q6"] }, { text: "multiplied through by 3 and never took it back out", problems: ["q7"] }, { text: "said the graph crosses twice", problems: ["q10"] }], attempts: { q6: Q6_TWICE, q7: Q7_LOST_THIRD, q10: Q10_TWICE }, clarification: "I mixed up which sign of the discriminant means one solution. I think I was picturing the graph the wrong way round. In Q7 I cleared the fractions and forgot the third had to come back at the end.", groupStatus: "Quick pass done · comparing Q4 methods" },
   { id: "tomas", name: "Tomas Reyes", initials: "TR", confidence: "low: fractions", done: 7, wrong: ["q3", "q4", "q5", "q7"], notes: [{ text: "null factor law on a product that isn’t 0", problems: ["q3"] }, { text: "divided by a, not 2a", problems: ["q4"] }, { text: "roots read off the factors with the signs flipped", problems: ["q5"] }, { text: "scaled two of three terms", problems: ["q7"] }], attempts: { q3: Q3_NFL, q4: Q4_OVER_A, q5: Q5_SIGNS, q7: Q7_TWO_TERMS }, clarification: "The formula I remembered had a on the bottom, not 2a. In Q7 I thought I only had to scale the terms with x.", groupStatus: "Discussing Q4 · the 2a" },
   { id: "zara", name: "Zara Haddad", initials: "ZH", confidence: "confident", done: 10, wrong: ["q3", "q7", "q9"], notes: [{ text: "null factor law on a product that isn’t 0", problems: ["q3"] }, { text: "multiplied through by 3 and never took it back out", problems: ["q7"] }, { text: "axis given as the height", problems: ["q9"] }], attempts: { q3: Q3_NFL, q7: Q7_LOST_THIRD, q9: Q9_HEIGHT }, clarification: "I set each bracket equal to 6 because that's what was on the other side. In Q7 I multiplied by 3 to get rid of the fractions and then factorised that. And in Q9 I wrote the axis down and thought that was the height.", groupStatus: "Discussing Q3 · when the null factor law applies" },
-  { id: "liam", name: "Liam O'Connell", initials: "LO", confidence: "confident", done: 2, wrong: ["q1", "q2", "q3"], notes: [{ text: "guessed a factor pair without expanding back", problems: ["q1", "q2", "q3"] }], attempts: { q1: Q1_PAIR, q2: Q2_GUESSED, q3: Q3_NFL }, clarification: "I ran out of time so I guessed the brackets. I know expanding back would have shown me.", groupStatus: "Discussing Q2 · listening" },
+  // Ticket 281: Q1–Q4 answered (Q4's formula right) and Q5 started, the roots read off the brackets with their signs flipped.
+  { id: "liam", name: "Liam O'Connell", initials: "LO", confidence: "confident", done: 4, wrong: ["q1", "q2", "q3", "q5"], notes: [{ text: "guessed a factor pair without expanding back", problems: ["q1", "q2", "q3"] }, { text: "roots read off the factors with the signs flipped", problems: ["q5"] }], attempts: { q1: Q1_PAIR, q2: Q2_GUESSED, q3: Q3_NFL, q5: Q5_ROOTS_FLIPPED }, clarification: "I ran out of time so I guessed the brackets. I know expanding back would have shown me. The formula one was fine. I started Q5 and wrote the roots with the brackets' signs.", groupStatus: "Discussing Q2 · listening" },
   // The lightweight thirteen (ticket 36). A full version of each is a candidate for a later run; see FUTURE_FEATURES.
   light("aiden", "Aiden Park", "AP", "confident", 10, ["q7"], [{ text: "scaled two of three terms", problems: ["q7"] }], {}, "I divided the x terms by 3 and forgot the constant was part of it too."),
   light("mia", "Mia Nguyen", "MN", "low: fractions, non-monic factorising", 10, ["q2", "q7", "q9"], [{ text: "guessed a factor pair, never expanded back", problems: ["q2"] }, { text: "the third off by a third", problems: ["q7"] }, { text: "took −x out and left the sign behind", problems: ["q9"] }], { q9: Q9_SIGN }, "I keep guessing the brackets instead of checking. With the fractions I lost track of which terms I had scaled. In Q9 I took the x out and didn't notice the sign inside the bracket had to change."),
@@ -110,7 +117,10 @@ const RECORDS: Classmate[] = [
 ];
 
 /** The class, each record carrying what review made of its mistakes (ticket 244, `data/classmates-review.ts`). */
-export const CLASSMATES: Classmate[] = withReview(RECORDS, SET6_REVIEW);
+export const CLASSMATES: Classmate[] = withReview(RECORDS, SET6_REVIEW, ASSIGNMENT.problems, DEFAULT_GROUPS, DEMO_ABSENCES[ASSIGNMENT.id]);
+
+/** What class review covered among the classmates on Problem Set 6, with the working it showed (ticket 281, `data/classmates-review.ts`). */
+export const SET6_CLASS_REVIEW: ClassReview = classReviewFrom(SET6_CLASS_REVIEW_PICKS, CLASSMATES, ASSIGNMENT.problems);
 
 export const CLASSMATE_MAP = Object.fromEntries(CLASSMATES.map((c) => [c.id, c])) as Record<string, Classmate>;
 

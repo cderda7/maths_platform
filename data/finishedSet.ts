@@ -1,6 +1,7 @@
 import type { Classmate } from "./classmates";
 import type { LineVerdict } from "./evaluation";
 import type { SeatingGroups } from "./groups";
+import type { ClassReview } from "./recordReview";
 import type { Assignment, Pathway } from "./types";
 
 /**
@@ -36,4 +37,6 @@ export interface FinishedSet {
   evaluation: Record<string, Record<string, LineVerdict>>;
   /** The seating frozen when the set was created, which its Groups tab opens on; the class default when absent. */
   groups?: SeatingGroups;
+  /** What class review covered, with its examples (ticket 281): present exactly when `pathway` has class review. */
+  classReview?: ClassReview;
 }

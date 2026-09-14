@@ -43,32 +43,34 @@ describe("Holistic Assessment's tiles (ticket 252)", () => {
     expect(holisticTile("priya", over)!.strengths.map((s) => s.name)).toEqual(["Algebra", "Functions", "Graphing", "Communication", "Reasoning", "New skills"]);
   });
 
-  it("Liam, who hands in little: his recent patterns, one-set ones too, and no strength where a set saw nothing of his", () => {
-    // Guessed factor pairs on PS4 and PS6, worded two ways, first; his PS1 slip (√50 written as 25√2) never came back, so it is gone (ticket 276).
+  it("Liam, who hands in about half: his recent patterns, one-set ones too, and communication a strength now every set saw his working (ticket 281)", () => {
+    // Guessed factor pairs on PS3–PS6, worded two ways, first; his PS1 slip (√50 written as 25√2) never came back, so it is gone (ticket 276).
     expect(tags("liam")).toEqual({
       algebra: [
-        ["factor pairs guessed, never expanded back", "PS4 PS6"],
+        ["factor pairs guessed, never expanded back", "PS3 PS4 PS5 PS6"],
         ["only two of the four terms expanded", "PS2"],
       ],
       new: [
-        ["(√7 + 2)² squared term by term", "PS2"],
+        ["a bracket squared term by term", "PS2 PS3"],
+        ["intercepts read off the factors with the signs flipped", "PS5"],
         ["null factor law on a product that isn't 0", "PS6"],
       ],
     });
-    // Communication secure whenever he handed in, but not seen on PS3 and PS5: not a strength.
-    expect(strengths("liam")).toEqual([]);
-    // Before Problem Set 6 the window is PS1–PS5, so PS1's slip is still recent; the pairs are on one set.
+    // Communication secure on every set, now he hands working in on all six: his one strength.
+    expect(strengths("liam")).toEqual(["communication"]);
+    // Before Problem Set 6 the window is PS1–PS5, so PS1's slip is still recent.
     expect(tags("liam", fresh)).toEqual({
       algebra: [
+        ["factor pairs guessed, never expanded back", "PS3 PS4 PS5"],
         ["only two of the four terms expanded", "PS2"],
-        ["factor pairs guessed, never expanded back", "PS4"],
       ],
       new: [
+        ["a bracket squared term by term", "PS2 PS3"],
         ["√50 written as 25√2", "PS1"],
-        ["(√7 + 2)² squared term by term", "PS2"],
+        ["intercepts read off the factors with the signs flipped", "PS5"],
       ],
     });
-    expect(strengths("liam", fresh)).toEqual([]);
+    expect(strengths("liam", fresh)).toEqual(["communication"]);
   });
 
   it("a repeated pattern collapses to one tag with its set count, however the sheet words it on each set", () => {

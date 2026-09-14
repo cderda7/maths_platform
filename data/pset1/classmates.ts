@@ -21,7 +21,9 @@ import { PS1_REVIEW } from "./review";
  * - Divided the wrong way round solving for x (Q9): Finn, whose sign and fraction slips solving start here.
  * - Steps jumped (Q1, Q2, Q9): Grace simplifies in one jump a line; Ethan solves Q9 in one line.
  * Sam, Priya, Jordan, Zara, Mia, Noah, Lucas and Harper get everything right. Tomas stops after Q9, Grace
- * after Q8 (she started late), and Liam hands in Q1 and Q2 only; nobody is missing.
+ * after Q8 (she started late), and Liam after Q5 (ticket 281: Q3 and Q4 wrong collecting like surds; he handed in Q1 and Q2
+ * only before); nobody is missing. Ticket 281 also gives violet's table a Q10 nobody there can do: Ruby, Finn and Sofia,
+ * who had it right, each slip on it (below).
  *
  * Every student's category results equal the class story sheet's Set 1 row (`data/story.ts`), one step
  * from Set 2 at most; `data/finishedSets.test.ts` checks it.
@@ -59,6 +61,17 @@ const Q8_FIRST_TERM = ["\\sqrt{2}(3 + \\sqrt{8}) = \\sqrt{2} \\times 3 + \\sqrt{
 const Q9_WRONG_WAY = [...solution(9).slice(0, 3), "x = \\dfrac{\\sqrt{3}}{3\\sqrt{3}}", "x = \\dfrac{1}{3}"];
 /** Q10: the side right, the diagonal's root split over the sum. */
 const Q10_SUM_SPLIT = [...solution(10).slice(0, 2), "d = \\sqrt{s^2 + s^2} = \\sqrt{72 + 72}", "\\sqrt{72 + 72} = \\sqrt{72} + \\sqrt{72} = 12\\sqrt{2}", "\\text{Side } 6\\sqrt{2}\\text{ cm, diagonal } 12\\sqrt{2}\\text{ cm}"];
+
+/**
+ * Q10, as three of violet's table wrote it (ticket 281: the set's hardest problem, one nobody at that table can do):
+ * Ruby leaves a square factor under the side's root (her slip on Q1 and Q6); Finn divides the side by √2 for the
+ * diagonal, the division the wrong way round as on his Q9, and Sofia writes the same division beside him.
+ */
+const Q10_SQUARE_LEFT = [solution(10)[0], "s = \\sqrt{72} = \\sqrt{4 \\times 18} = 2\\sqrt{18}", solution(10)[2], solution(10)[3], "\\text{Side } 2\\sqrt{18}\\text{ cm, diagonal } 12\\text{ cm}"];
+const Q10_DIVIDED = [...solution(10).slice(0, 2), "d = \\dfrac{6\\sqrt{2}}{\\sqrt{2}} = 6", "\\text{Side } 6\\sqrt{2}\\text{ cm, diagonal } 6\\text{ cm}"];
+
+/** Q5 right, √60 written straight down (ticket 281: Liam's fifth problem, only surd lines, so Algebra stays not seen). */
+const Q5_FROM_60 = solution(5).slice(1);
 
 /* ---------- right, but in one jump each: Grace on Q1 and Q2, Ethan on Q9 ---------- */
 const Q1_JUMP = ["\\sqrt{48} = 4\\sqrt{3}"];
@@ -153,11 +166,15 @@ const CLASSMATES: Classmate[] = [
     name: "Liam O'Connell",
     initials: "LO",
     confidence: "confident",
-    done: 2,
-    wrong: [q(2)],
-    notes: [{ text: "√50 written as 25√2", problems: [q(2)] }],
-    attempts: { [q(2)]: Q2_SQUARE_OUT },
-    clarification: "I took the 25 out because it's the square one. I only did two because I didn't get started.",
+    done: 5,
+    wrong: [q(2), q(3), q(4)],
+    notes: [
+      { text: "√50 written as 25√2", problems: [q(2)] },
+      { text: "√12 and √27 added under one root", problems: [q(3)] },
+      { text: "the subtraction collected as an addition", problems: [q(4)] },
+    ],
+    attempts: { [q(2)]: Q2_SQUARE_OUT, [q(3)]: Q3_UNDER_ONE, [q(4)]: Q4_SIGN_COLLECTING, [q(5)]: Q5_FROM_60 },
+    clarification: "I took the 25 out because it's the square one. In Q3 I just added the numbers under the roots, and in Q4 I added when it said take away. I stopped after Q5 because I didn't get started.",
     groupStatus: "Group review done · listening on Q2",
   },
   {
@@ -288,10 +305,10 @@ const CLASSMATES: Classmate[] = [
     initials: "RC",
     confidence: "confident",
     done: 10,
-    wrong: [q(1), q(6)],
-    notes: [{ text: "a square factor left under the root", problems: [q(1), q(6)] }],
-    attempts: { [q(1)]: Q1_OTHER_ROUTE, [q(6)]: Q6_LEFT },
-    clarification: "I stopped as soon as the answer had a root in it. I didn't check if 12 or 18 had a square number in them.",
+    wrong: [q(1), q(6), q(10)],
+    notes: [{ text: "a square factor left under the root", problems: [q(1), q(6), q(10)] }],
+    attempts: { [q(1)]: Q1_OTHER_ROUTE, [q(6)]: Q6_LEFT, [q(10)]: Q10_SQUARE_LEFT },
+    clarification: "I stopped as soon as the answer had a root in it. I didn't check if 12 or 18 had a square number in them, and in Q10 I did the same with √72.",
     groupStatus: "Group review done · checking for a square factor",
   },
   {
@@ -300,10 +317,13 @@ const CLASSMATES: Classmate[] = [
     initials: "FD",
     confidence: "confident",
     done: 10,
-    wrong: [q(9)],
-    notes: [{ text: "divided the wrong way round solving for x", problems: [q(9)] }],
-    attempts: { [q(9)]: Q9_WRONG_WAY },
-    clarification: "I had x√3 = 3√3 and put the √3 on top. I should have checked x = 1/3 in the equation.",
+    wrong: [q(9), q(10)],
+    notes: [
+      { text: "divided the wrong way round solving for x", problems: [q(9)] },
+      { text: "the diagonal found by dividing the side by √2", problems: [q(10)] },
+    ],
+    attempts: { [q(9)]: Q9_WRONG_WAY, [q(10)]: Q10_DIVIDED },
+    clarification: "I had x√3 = 3√3 and put the √3 on top. I should have checked x = 1/3 in the equation. In Q10 I divided by √2 for the diagonal, so it came out shorter than the side.",
     groupStatus: "Group review done · Q9 by substituting back",
   },
   {
@@ -312,13 +332,16 @@ const CLASSMATES: Classmate[] = [
     initials: "SP",
     confidence: "low: fractions",
     done: 10,
-    wrong: [q(7)],
-    notes: [{ text: "the fraction left upside down dividing surds", problems: [q(7)] }],
-    attempts: { [q(7)]: Q7_UPSIDE_DOWN },
-    clarification: "I wrote 2√5 on top because it came second and then did all the simplifying on the wrong fraction.",
+    wrong: [q(7), q(10)],
+    notes: [
+      { text: "the fraction left upside down dividing surds", problems: [q(7)] },
+      { text: "the diagonal found by dividing the side by √2", problems: [q(10)] },
+    ],
+    attempts: { [q(7)]: Q7_UPSIDE_DOWN, [q(10)]: Q10_DIVIDED },
+    clarification: "I wrote 2√5 on top because it came second and then did all the simplifying on the wrong fraction. In Q10 I thought the diagonal was the side over √2.",
     groupStatus: "Group review done · Q7, which way the division goes",
   },
 ];
 
 /** Sam's record and the nineteen classmates', each carrying what review made of their mistakes (ticket 244, `./review.ts`). */
-export const [PS1_SAM, ...PS1_CLASSMATES] = withReview([SAM, ...CLASSMATES], PS1_REVIEW);
+export const [PS1_SAM, ...PS1_CLASSMATES] = withReview([SAM, ...CLASSMATES], PS1_REVIEW, PS1_PROBLEMS);

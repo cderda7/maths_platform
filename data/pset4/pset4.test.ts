@@ -30,8 +30,8 @@ describe("Problem Set 4's data (ticket 214)", () => {
     expect(names("sam")).toEqual(["signs swapped in the pair", "signs swapped in the pair", "half of b, wrong sign", "turning point sign flipped"]);
   });
 
-  it("nobody is missing: Liam hands in two, Grace six, Jordan and Oliver eight, Tomas nine; Priya is all right", () => {
-    expect(everyone.filter((c) => c.done < 10).map((c) => [c.id, c.done])).toEqual([["jordan", 8], ["tomas", 9], ["liam", 2], ["grace", 6], ["oliver", 8]]);
+  it("nobody is missing: Liam hands in five (two before ticket 281), Grace six, Jordan and Oliver eight, Tomas nine; Priya is all right", () => {
+    expect(everyone.filter((c) => c.done < 10).map((c) => [c.id, c.done])).toEqual([["jordan", 8], ["tomas", 9], ["liam", 5], ["grace", 6], ["oliver", 8]]);
     expect(byId.priya).toMatchObject({ done: 10, wrong: [], attempts: {} });
   });
 
@@ -51,14 +51,14 @@ describe("Problem Set 4 in the registry (ticket 214)", () => {
 
   it("has a clear top gap: non-monic factorising on nine students, graph features next on eight", () => {
     const card = assignmentCard(b, INITIAL_CLASSROOM, null, now);
-    expect(card).toMatchObject({ id: "pset-4", due: "Fri 4 Sep", section: "past", status: "done", submitted: 20, total: 20, mistakes: 54 });
+    expect(card).toMatchObject({ id: "pset-4", due: "Fri 4 Sep", section: "past", status: "done", submitted: 20, total: 20, mistakes: 58 });
     expect(card.topGap).toEqual({ slips: ["algebra.expand-factor.nonmonic"], name: "non-monic factorising", students: 9 });
     const rest = ms.map((m) => ({ ...m, rows: m.rows.filter((r) => !(r.slips.length === 1 && r.slips[0] === "algebra.expand-factor.nonmonic")) }));
     expect(topGap(rest)).toEqual({ slips: ["graphing.quadratics.features"], name: "graph features", students: 8 });
   });
 
-  it("keeps every problem's wrong workings to four columns or fewer, but for Q5's six short lines", () => {
+  it("keeps every problem's wrong workings to four columns or fewer, but for Q5's six short lines and five on Q4 and Q7 (Liam's Q4 since ticket 281)", () => {
     const columns = Object.fromEntries(ms.map((m) => [m.problem.label, groupBySlip(m.rows).reduce((n, g) => n + g.columns.length, 0)]));
-    expect(columns).toEqual({ Q1: 2, Q2: 3, Q3: 2, Q4: 4, Q5: 6, Q6: 4, Q7: 5, Q8: 3, Q9: 4, Q10: 3 });
+    expect(columns).toEqual({ Q1: 2, Q2: 3, Q3: 3, Q4: 5, Q5: 6, Q6: 4, Q7: 5, Q8: 3, Q9: 4, Q10: 4 });
   });
 });

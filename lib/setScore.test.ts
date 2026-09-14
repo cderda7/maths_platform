@@ -22,7 +22,7 @@ describe("a student's score on a set (ticket 285)", () => {
     expect(scoreOf("grace")).toBe(7);
     expect(scoreOf("oliver")).toBe(6);
     expect(scoreOf("aiden")).toBe(9);
-    expect(scoreOf("liam")).toBe(0);
+    expect(scoreOf("liam")).toBe(3); // five handed in since ticket 281: Q2, Q3 and Q5 right, Q1 and Q4 wrong
   });
 
   it("every finished record: the report's Correct first try, whatever review fixed after", () => {

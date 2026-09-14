@@ -39,9 +39,9 @@ describe("the schedule (ticket 189)", () => {
     for (let i = 1; i < events.length; i++) expect(events[i].at).toBeGreaterThanOrEqual(events[i - 1].at);
   });
 
-  it("the answered count is each record's done: Liam 2, Grace 4, Harper 6, Tomas and Oliver 7, Ethan 8, Noah 9, Jordan 7", () => {
+  it("the answered count is each record's done: Liam 4 (2 before ticket 281), Grace 4, Harper 6, Tomas and Oliver 7, Ethan 8, Noah 9, Jordan 7", () => {
     const answered = (id: string) => events.filter((e) => e.student === id && e.kind === "answered").map((e) => e.kind === "answered" && e.problem);
-    expect(answered("liam")).toEqual(["q1", "q2"]);
+    expect(answered("liam")).toEqual(["q1", "q2", "q3", "q4"]);
     expect(answered("grace")).toHaveLength(4);
     expect(answered("harper")).toHaveLength(6);
     expect(answered("tomas")).toHaveLength(7);
@@ -105,7 +105,8 @@ describe("the class at a moment", () => {
   it("names the next unanswered problem, and the dots wait for the hand-in", () => {
     const liam = scheduleFor(CLASSMATE_MAP.liam, P);
     expect(tags(T0 + liam.answeredAt[1])).toMatchObject({ liam: "Q3 in progress" });
-    expect(tags(T0 + liam.submitAt! - 1)).toMatchObject({ liam: "Q3 in progress" });
+    expect(tags(T0 + liam.answeredAt[3])).toMatchObject({ liam: "Q5 in progress" });
+    expect(tags(T0 + liam.submitAt! - 1)).toMatchObject({ liam: "Q5 in progress" });
     expect(tags(T0 + liam.submitAt!)).toMatchObject({ liam: "submitted" });
     const mid = classmatesAt(LIVE, null, T0 + liam.answeredAt[1]).find((m) => m.record.id === "liam")!;
     expect(mid.record).toMatchObject({ done: 2, wrong: ["q1", "q2"], clarification: undefined });
@@ -157,13 +158,13 @@ describe("the class at a moment", () => {
     }
   });
 
-  it("unfinished work handed in with the set arrives with the hand-in, at the end of its problem's rows (Liam's Q3)", () => {
+  it("unfinished work handed in with the set arrives with the hand-in, at the end of its problem's rows (Liam's Q5, ticket 281)", () => {
     const liam = scheduleFor(CLASSMATE_MAP.liam, P);
-    expect(CLASSMATE_MAP.liam.wrong).toContain("q3");
-    const q3 = (now: number) => mistakesByProblem(null, LIVE, now).find((p) => p.problem.id === "q3")?.rows ?? [];
-    expect(q3(T0 + liam.submitAt! - 1).map((r) => r.id)).not.toContain("liam");
-    expect(q3(T0 + liam.submitAt!).at(-1)).toMatchObject({ id: "liam", arrivedAt: T0 + liam.submitAt! });
-    const rows = q3(T0 + END);
+    expect(CLASSMATE_MAP.liam.wrong).toContain("q5");
+    const q5 = (now: number) => mistakesByProblem(null, LIVE, now).find((p) => p.problem.id === "q5")?.rows ?? [];
+    expect(q5(T0 + liam.submitAt! - 1).map((r) => r.id)).not.toContain("liam");
+    expect(q5(T0 + liam.submitAt!).at(-1)).toMatchObject({ id: "liam", arrivedAt: T0 + liam.submitAt! });
+    const rows = q5(T0 + END);
     expect(rows.map((r) => r.arrivedAt!)).toEqual([...rows.map((r) => r.arrivedAt!)].sort((a, b) => a - b));
   });
 

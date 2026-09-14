@@ -65,6 +65,7 @@ export const PATTERN_TAGS: Readonly<Record<string, Partial<Record<StoryCategory,
   },
   liam: {
     algebra: [tag("factor pairs guessed, never expanded back", "non-monic pairs guessed, never expanded back", "guessed a factor pair without expanding back")],
+    new: [tag("a bracket squared term by term", "(√7 + 2)² squared term by term", "(2x − 3)² squared term by term")],
   },
   aiden: {
     algebra: [

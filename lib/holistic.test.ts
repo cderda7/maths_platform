@@ -81,13 +81,14 @@ describe("the holistic view (ticket 251)", () => {
     for (const r of early.categories) expect(r.cells[5]).toBe("unseen");
   });
 
-  it("Liam: the sets he missed read not seen, and his patterns come only from the sets he handed in", () => {
+  it("Liam: every set reads his five handed in (ticket 281; he missed Sets 3 and 5 before), and his patterns come from the sets he handed in", () => {
     const v = holisticView("liam", over)!;
-    for (const i of [2, 4]) for (const r of v.categories) expect(r.cells[i], `${r.category} PS${i + 1}`).toBe(STORY_SETS[i].categories.includes(r.category) ? "unseen" : "none");
+    for (const i of [2, 4]) for (const r of v.categories) expect(r.cells[i], `${r.category} PS${i + 1}`).toBe(STORY_SETS[i].categories.includes(r.category) ? STORY.liam.cells[r.category][i].status : "none");
+    expect(v.categories.find((r) => r.category === "reasoning")!.cells.slice(0, 5)).toEqual(["unseen", "unseen", "unseen", "unseen", "unseen"]);
     const sets = new Set(v.patterns.flatMap((g) => g.patterns.flatMap((h) => h.refs.map((ref) => ref.label))));
     // His PS1 pattern (√50 written as 25√2) never came back, so with PS6 live it no longer surfaces (ticket 276).
-    expect([...sets].sort()).toEqual(["PS2", "PS4", "PS6"]);
-    expect(new Set(holisticView("liam", fresh)!.patterns.flatMap((g) => g.patterns.flatMap((h) => h.refs.map((ref) => ref.label))))).toEqual(new Set(["PS1", "PS2", "PS4"]));
+    expect([...sets].sort()).toEqual(["PS2", "PS3", "PS4", "PS5", "PS6"]);
+    expect(new Set(holisticView("liam", fresh)!.patterns.flatMap((g) => g.patterns.flatMap((h) => h.refs.map((ref) => ref.label))))).toEqual(new Set(["PS1", "PS2", "PS3", "PS4", "PS5"]));
   });
 
   it("Chloe: absent on Problem Set 6 once it is live (ticket 250): every assessed category reads absent, no PS6 patterns; PS1–PS5 untouched", () => {

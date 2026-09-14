@@ -92,9 +92,11 @@ describe("versions on the teacher's report (ticket 243)", () => {
     expect(reviews.q1.second).toEqual(session.rework.q1.map((l) => l.tex));
     // The group fixed Q1 too (a groupmate's mistake), but Sam had it right on his own rework: the group's version is not his story.
     expect(reviews.q1.group?.solved).toBe(true);
-    // Q4 is on the board only because Liam never reached it (ticket 278): the group's version is there, Sam's story is his first submission.
-    expect(reviews.q4.group?.solved).toBe(true);
-    expect(kinds("q4")).toEqual(["first"]);
+    // Q6 is on the board only because Liam never reached it (tickets 278, 281): the group's version is there, Sam's story is his first submission.
+    expect(reviews.q6.group?.solved).toBe(true);
+    expect(kinds("q6")).toEqual(["first"]);
+    // Q4 left the board once Liam handed it in right (ticket 281): no group version.
+    expect(reviews.q4.group).toBeUndefined();
     expect(reviews.q7.group?.solved).toBe(false);
     expect(reviews.q7.group?.lines.length).toBeGreaterThan(0);
     // The same columns the student's own report shows.
@@ -131,10 +133,10 @@ describe("versions on the teacher's report (ticket 243)", () => {
   });
 
   it("shows a live record's review only once the class has finished that stage (ticket 244): Incorrect until then, the columns never moving", () => {
-    // Ethan fixes Q1 on his own rework; Mia's group closes Q2 unsolved; Oliver's group puts his Q1 right.
+    // Ethan fixes Q1 on his own rework; Isla's group closes Q10 unsolved; Oliver's group puts his Q1 right.
     const ethan = CLASSMATE_MAP.ethan;
     const oliver = CLASSMATE_MAP.oliver;
-    const mia = CLASSMATE_MAP.mia;
+    const isla = CLASSMATE_MAP.isla;
     const cols = (r: typeof ethan, over: readonly ("individual" | "group" | "whole-class")[]) => labels(columnsOf(recordReviews(r, undefined, over), PATH));
     // While individual review runs: nothing past the first submission, every unfixed problem in Incorrect.
     expect(recordReviews(ethan, undefined, []).q1).toEqual({ first: ethan.attempts.q1, second: [] });
@@ -145,10 +147,10 @@ describe("versions on the teacher's report (ticket 243)", () => {
     expect(cols(ethan, ["individual"]).individual).toContain("Q1");
     expect(recordReviews(oliver, undefined, ["individual"]).q1.group).toBeUndefined();
     expect(cols(oliver, ["individual"]).wrong).toContain("Q1");
-    // Group review over: the group's rework and last try.
-    expect(cols(oliver, ["individual", "group"]).group).toEqual(["Q1", "Q2"]);
-    expect(recordReviews(mia, undefined, ["individual", "group"]).q2.group?.solved).toBe(false);
-    expect(unsolvedOf(recordReviews(mia, undefined, ["individual", "group"]), PATH).map((p) => p.label)).toEqual(["Q2", "Q7", "Q9"]);
+    // Group review over: the group's rework and last try, on the problems Oliver never reached too (ticket 281).
+    expect(cols(oliver, ["individual", "group"]).group).toEqual(["Q1", "Q2", "Q8", "Q9", "Q10"]);
+    expect(recordReviews(isla, undefined, ["individual", "group"]).q10.group?.solved).toBe(false);
+    expect(unsolvedOf(recordReviews(isla, undefined, ["individual", "group"]), PATH).map((p) => p.label)).toEqual(["Q10"]);
     // The same four columns at every stage, and the same ten tiles.
     for (const over of [[], ["individual"], ["individual", "group"]] as const) {
       const c = columnsOf(recordReviews(oliver, undefined, over), PATH);

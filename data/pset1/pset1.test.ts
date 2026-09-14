@@ -22,29 +22,29 @@ describe("Problem Set 1 — Surds (ticket 211)", () => {
     expect(PS1_SAM).toMatchObject({ done: 10, wrong: [], attempts: {} });
   });
 
-  it("nobody is missing; Tomas stops after Q9, Grace after Q8, Liam hands in Q1 and Q2", () => {
+  it("nobody is missing; Tomas stops after Q9, Grace after Q8, Liam after Q5 (Q1 and Q2 before ticket 281)", () => {
     expect(everyone.filter((c) => c.done === 0)).toEqual([]);
-    expect(everyone.filter((c) => c.done < 10).map((c) => [c.id, c.done])).toEqual([["tomas", 9], ["liam", 2], ["grace", 8]]);
+    expect(everyone.filter((c) => c.done < 10).map((c) => [c.id, c.done])).toEqual([["tomas", 9], ["liam", 5], ["grace", 8]]);
   });
 
   it("the patterns later sets catch start here, each under one name across problems", () => {
-    expect(names("liam")).toEqual(["square out, root not taken"]);
+    expect(names("liam")).toEqual(["square out, root not taken", "added under one root", "sign lost collecting surds"]);
     expect(names("oliver")).toEqual(["square out, root not taken", "root of a sum split"]);
     expect(names("chloe")).toEqual(["square factor left under root", "square out, root not taken"]);
-    expect(names("ruby")).toEqual(["square factor left under root", "square factor left under root"]);
+    expect(names("ruby")).toEqual(["square factor left under root", "square factor left under root", "square factor left under root"]);
     expect(names("tomas")).toEqual(["sign lost collecting surds", "fraction turned upside down"]);
-    expect(names("sofia")).toEqual(["fraction turned upside down"]);
+    expect(names("sofia")).toEqual(["fraction turned upside down", "divided the wrong way round"]);
     expect(names("aiden")).toEqual(["√2 on first term only"]);
-    expect(names("finn")).toEqual(["divided the wrong way round"]);
+    expect(names("finn")).toEqual(["divided the wrong way round", "divided the wrong way round"]);
   });
 
-  it("the Classroom's card: 20/20, 15 mistakes, top gap surds on seven students, fractions next on three", () => {
+  it("the Classroom's card: 20/20, 20 mistakes (15 before ticket 281), top gap surds on seven students, fractions next on four (three before ticket 281)", () => {
     const card = assignmentCard(b, INITIAL_CLASSROOM, null, now);
-    expect(card).toMatchObject({ submitted: 20, total: 20, mistakes: 15 });
+    expect(card).toMatchObject({ submitted: 20, total: 20, mistakes: 20 });
     expect(card.topGap).toEqual({ slips: [SURDS], name: "surds", students: 7 });
     const ms = mistakesByProblem(null, b);
     const rest = ms.map((m) => ({ ...m, rows: m.rows.filter((r) => !r.slips.includes(SURDS)) }));
-    expect(topGap(rest)).toEqual({ slips: ["algebra.number.fractions"], name: "fractions", students: 3 });
+    expect(topGap(rest)).toEqual({ slips: ["algebra.number.fractions"], name: "fractions", students: 4 });
   });
 
   it("every problem's Mistakes row keeps to three columns of working or fewer (a sentence answer overflows five at 1280)", () => {
@@ -52,14 +52,14 @@ describe("Problem Set 1 — Surds (ticket 211)", () => {
     expect(ms.map((m) => [m.problem.label, m.rows.map((r) => r.id)])).toEqual([
       ["Q1", ["chloe", "ruby"]],
       ["Q2", ["liam"]],
-      ["Q3", ["amelia"]],
-      ["Q4", ["tomas", "isla", "oliver"]],
+      ["Q3", ["amelia", "liam"]],
+      ["Q4", ["tomas", "liam", "isla", "oliver"]],
       ["Q5", ["chloe"]],
       ["Q6", ["ruby"]],
       ["Q7", ["amelia", "tomas", "sofia"]],
       ["Q8", ["aiden"]],
       ["Q9", ["finn"]],
-      ["Q10", ["oliver"]],
+      ["Q10", ["oliver", "ruby", "finn", "sofia"]],
     ]);
     for (const m of ms) expect(groupBySlip(m.rows).flatMap((g) => g.columns).length, m.problem.label).toBeLessThanOrEqual(3);
   });

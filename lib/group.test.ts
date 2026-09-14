@@ -20,12 +20,12 @@ describe("group-phase computation", () => {
   it("the demo group: the all-correct problems are the quick pass, every problem a member did not get right the discussion (ticket 278)", () => {
     const g = groupPlan(sessionAt("group"));
     expect(g.members.map((m) => m.id)).toEqual(["sam", "jordan", "zara", "liam"]);
-    // Liam finished Q1–Q2 and never reached Q4–Q10, so nothing is right for all four.
-    expect(g.quickPass.map((p) => p.id)).toEqual([]);
-    expect(g.discussion.problems.map((p) => p.id)).toEqual(["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"]);
+    // Ticket 281: Liam answers Q1–Q4 (the formula right) and starts Q5, so Q4 is right for all four.
+    expect(g.quickPass.map((p) => p.id)).toEqual(["q4"]);
+    expect(g.discussion.problems.map((p) => p.id)).toEqual(["q1", "q2", "q3", "q5", "q6", "q7", "q8", "q9", "q10"]);
     expect(g.discussion.memberCount).toBe(4);
-    // Sam 6 (five slips, Q9 unfinished), Jordan 5 (Q2, Q7 wrong; Q8–Q10 not reached), Zara 3, Liam 10.
-    expect(g.discussion.totalWrong).toBe(6 + 5 + 3 + 10);
+    // Sam 6 (five slips, Q9 unfinished), Jordan 5 (Q2, Q7 wrong; Q8–Q10 not reached), Zara 3, Liam 9 (Q1–Q3 and his started Q5 wrong, Q6–Q10 not reached).
+    expect(g.discussion.totalWrong).toBe(6 + 5 + 3 + 9);
     expect(g.discussion.perMember).toBe(6);
   });
 
@@ -63,7 +63,7 @@ describe("group-phase computation", () => {
       // The demo group's classmates as the fixture has them.
       expect(recordReviewProblems(CLASSMATE_MAP.jordan)).toEqual(["q2", "q7", "q8", "q9", "q10"]);
       expect(recordReviewProblems(CLASSMATE_MAP.zara)).toEqual(["q3", "q7", "q9"]);
-      expect(recordReviewProblems(CLASSMATE_MAP.liam)).toEqual(["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"]);
+      expect(recordReviewProblems(CLASSMATE_MAP.liam)).toEqual(["q1", "q2", "q3", "q5", "q6", "q7", "q8", "q9", "q10"]);
     });
 
     it("the union takes a problem only a not-attempting member brings, and an absent member brings nothing", () => {
@@ -74,7 +74,7 @@ describe("group-phase computation", () => {
       expect(union([{ done: 10, wrong: ["q3"] }])).toEqual(["q1", "q2", "q3", "q7", "q9", "q10"]);
       expect(union([{ done: 10, wrong: ["q3"] }, { done: 8, wrong: [] }])).toEqual(["q1", "q2", "q3", "q7", "q9", "q10"]);
       expect(union([{ done: 6, wrong: [] }])).toEqual(["q1", "q2", "q3", "q7", "q8", "q9", "q10"]);
-      // Liam away: nobody brings Q4, Q5 or Q6, and Q8 only through Jordan, who never reached it.
+      // Liam away: nobody brings Q5 or Q6, and Q8 only through Jordan, who never reached it.
       expect(groupPlan(s, ["liam"]).discussion.problems.map((p) => p.id)).toEqual(["q1", "q2", "q3", "q7", "q8", "q9", "q10"]);
       expect(groupPlan(s, ["liam", "jordan"]).discussion.problems.map((p) => p.id)).toEqual(["q1", "q2", "q3", "q7", "q9", "q10"]);
     });

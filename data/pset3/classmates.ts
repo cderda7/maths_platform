@@ -25,7 +25,9 @@ import { PS3_REVIEW } from "./review";
  * - The show-that (Q10): Tomas and Lucas claim 12x from a line that doesn't give it; Amelia and Isla do the
  *   working and end by solving for x, so the last line doesn't say what was shown.
  * - Steps jumped: Grace factorises in one line (Q5, Q7–Q9); Harper and Ethan write the perfect square in one.
- * Priya gets everything right. Liam O'Connell handed nothing in. Jordan, Grace and Oliver stop at nine.
+ * Priya gets everything right. Liam O'Connell hands in five (ticket 281; nothing before): Q2 squared term by term, Q5's
+ * pair guessed. Jordan, Grace and Oliver stop at nine. Ticket 281 gives mint's table a Q10 nobody there can do: Harper,
+ * who had it, collects x² − x² as 2x².
  */
 
 const solution = (n: number): string[] => PS3_PROBLEMS[n - 1].solution.map((s) => s.tex);
@@ -90,6 +92,12 @@ const Q10_ONE_SIGN = ["(x + 3)^2 = x^2 + 6x + 9", "(x - 3)^2 = x^2 - 6x + 9", "(
 const Q10_SOLVED = ["(x + 3)^2 = x^2 + 6x + 9", "(x - 3)^2 = x^2 - 6x + 9", "= x^2 + 6x + 9 - x^2 + 6x - 9", "= 12x", "\\text{so } x = 12"];
 /** Q10: the first square term by term, caught when it would not come out, then the working right. */
 const Q10_CAUGHT = ["(x + 3)^2 = x^2 + 9", ...solution(10)];
+
+/**
+ * Q10, the set's hardest problem, where mint's table has nobody with it right (ticket 281): Harper, the one who had it,
+ * takes every term away right and then collects x² − x² as 2x², the sign lost collecting as on her Q1.
+ */
+const Q10_COLLECTED = [...solution(10).slice(0, 4), "= 2x^2 + 12x", "\\text{so } (x + 3)^2 - (x - 3)^2 = 2x^2 + 12x"];
 
 /* ---------- right, but in one line ---------- */
 const Q5_JUMP = ["x^2 + 2x - 15 = (x + 5)(x - 3)"];
@@ -199,11 +207,15 @@ const CLASSMATES: Classmate[] = [
     name: "Liam O'Connell",
     initials: "LO",
     confidence: "confident",
-    done: 0,
-    wrong: [],
-    notes: [],
-    attempts: {},
-    groupStatus: "Nothing submitted",
+    done: 5,
+    wrong: [q(2), q(5)],
+    notes: [
+      { text: "(2x − 3)² squared term by term", problems: [q(2)] },
+      { text: "a factor pair guessed without expanding back", problems: [q(5)] },
+    ],
+    attempts: { [q(2)]: Q2_TERM_BY_TERM, [q(5)]: Q5_GUESSED },
+    clarification: "I squared the 2x and the 3 and forgot the middle. In Q5 I wrote down two numbers that make 15 and didn't check them. I got to Q5 and stopped.",
+    groupStatus: "Group review done · listening on Q5",
   },
   {
     id: "aiden",
@@ -324,15 +336,16 @@ const CLASSMATES: Classmate[] = [
     initials: "HS",
     confidence: "confident",
     done: 10,
-    wrong: [q(1), q(2), q(7)],
+    wrong: [q(1), q(2), q(7), q(10)],
     notes: [
       { text: "a sign lost in the expansion", problems: [q(1)] },
       { text: "(2x − 3)²'s middle term sign lost", problems: [q(2)] },
       { text: "the common factor's sign lost", problems: [q(7)] },
+      { text: "x² − x² collected as 2x²", problems: [q(10)] },
       { text: "the perfect square written in one line", problems: [q(6)] },
     ],
-    attempts: { [q(1)]: Q1_COLLECTED, [q(2)]: Q2_PLUS_IDENTITY, [q(6)]: Q6_JUMP, [q(7)]: Q7_SIGN_LOST },
-    clarification: "Every one was a sign. I did −7x + 4x as 3x, used the plus square in Q2, and divided −12x by 3 and got 4x. Q6 I just wrote down.",
+    attempts: { [q(1)]: Q1_COLLECTED, [q(2)]: Q2_PLUS_IDENTITY, [q(6)]: Q6_JUMP, [q(7)]: Q7_SIGN_LOST, [q(10)]: Q10_COLLECTED },
+    clarification: "Every one was a sign. I did −7x + 4x as 3x, used the plus square in Q2, and divided −12x by 3 and got 4x. Q6 I just wrote down. In Q10 I took everything away right and then got 2x² from x² − x².",
     groupStatus: "Group review done · signs in Q1 and Q7",
   },
   {
@@ -390,4 +403,4 @@ const CLASSMATES: Classmate[] = [
 ];
 
 /** Sam's record and the nineteen classmates', each carrying what review made of their mistakes (ticket 244, `./review.ts`). */
-export const [PS3_SAM, ...PS3_CLASSMATES] = withReview([SAM, ...CLASSMATES], PS3_REVIEW);
+export const [PS3_SAM, ...PS3_CLASSMATES] = withReview([SAM, ...CLASSMATES], PS3_REVIEW, PS3_PROBLEMS);

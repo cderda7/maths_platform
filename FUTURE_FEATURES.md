@@ -1299,6 +1299,21 @@ uploaded problems) settled the following as later, each on purpose.
 - **Force submit on the last stage beside end lesson.** Both stay on the last stage: force submit ends the stage (students to their report) but leaves the set Live; end lesson does that and ends the lesson. Whether the last stage needs force submit at all, or end lesson should take its place, was not asked; the two pills stack above the count.
 - **Presenter SKIP TO over the iPad's bottom notice.** At 1280x800 Sam's SKIP TO strip (fixed to the window) overlaps the bottom of any notice on the iPad (seen with "Your teacher ended the lesson." on the report) by about 10 px; a presenter-only overlay, not moved.
 
+## The class data follows the group rules (ticket 281, 2026-09-14)
+
+- **A student who hands in only 2 of 10** (the user: an extreme edge case). The demo data now keeps everyone at five or more; how a group and the report treat a member who barely started is open.
+- **Students who fixed a problem on their own rework beside a group that left it unsolved.** The literal rule counts only first submissions as "had it right", so these read *own rework* while their table's last try stays wrong: PS1 violet Q10 (Oliver, Sofia); PS2 mint Q10 (Isla, Lucas); PS3 mint Q10 (Isla, Lucas); PS4 mint Q10 (Lucas); PS5 mint Q9 (Isla, Lucas, Harper), mint Q10 (Harper), sky Q4 (Sam, Zara); PS6 mint Q7 (Isla, Lucas), sky Q7 (Jordan, Zara; scripted), violet Q7 (Oliver, Ruby). A rule where a member's fixed rework can show the group (and the exception's place beside it) is the user's call.
+- **Liam's Sets 3 and 5 could not stay *not seen*.** He had handed nothing in there, so five problems give every category he wrote in a result (chosen to sit one step from his neighbours). If the intent was to keep those sets missing, the data would need "attempted" to mean something other than handed in.
+- **Liam's five on Sets 1, 2, 4 and 6 are shaped by the status rule.** Only lines in categories the sheet already saw: Set 1's Q3 and Q4 end on surd slips rather than his square-root habit (the collecting line is algebra); Set 4's Q3 is one line and Q4 has the right brackets then the fraction flipped (every factor-zero line is New skills or functions); Set 6's Q5 stops after the roots (every turning-point line is graphing). A less contrived story would need a status to move.
+- **Group tries on the records.** Finished sets store only the group's rework or last try; the rule "a real member's slip before the try that holds, within two or three" is checked only on the live script. Storing tries would let the report show the group's path.
+- **The sky Q7 return's last try** (the brackets' signs flipped, ticket 221's script) shows no slip a member made; re-scripting the presenter's own return was left alone.
+- **Q1, Q2 and Q10 on Sam's board hold first time** though Sam slipped on them (278's scripts); showing his slip first would lengthen the presenter's board.
+- **Pens on Sam's board**: Liam now writes his own Q5; Jordan holds the pen twice, Sam and Zara three times. A fairer spread was not asked for.
+- **Harper as mint's only helper on Q10, three sets running.** Sets 2–4 each needed a status-safe repeated slip at a table with one helper; a class with more variety in who cannot do the last problem would need more authored work.
+- **Class review picks** take the class's most common slip first, from a table that left the problem unsolved; the teacher's own choice on the live set (ticket 282) may differ, and a rule for picking a contrasting second example is open.
+- **Report fit at 1280×800 on main.** Every teacher report scrolls 35–39 px on main before this ticket (measured on main's server while re-running ticket 244's click-through); ticket 268 had them fitting. Not caused by the data; left for a layout ticket.
+- **Regenerating review data** runs through a one-off generator (the rule plus hand-written last tries); a checked-in `npm run review:data` would make the next data change cheaper.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

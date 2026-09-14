@@ -175,7 +175,7 @@ export interface ClassmateNow {
   state: StreamState;
   /**
    * When each problem's work reached the teacher, absolute ms by problem id; empty on a fixed set. An answered
-   * problem at its submission; unfinished work handed in with the set (Liam's Q3, Ethan's and Harper's Q9: wrong,
+   * problem at its submission; unfinished work handed in with the set (Liam's Q5, Ethan's and Harper's Q9: wrong,
    * past their answered count) at the hand-in.
    */
   answeredAt: Record<string, number>;

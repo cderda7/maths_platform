@@ -25,7 +25,9 @@ import { PS2_REVIEW } from "./review";
  * - The rectangle's sentence (Q10): Amelia leaves the diagonal out, Isla swaps area and diagonal, Lucas
  *   does not say which length √22 cm is.
  * - Rationalised in one line (Q5, Q6, Q7): Grace, right every time.
- * Priya gets everything right. Tomas reaches eight problems, Liam three, Grace seven; nobody is missing.
+ * Priya gets everything right. Tomas reaches eight problems, Liam five (three before ticket 281; his Q4 the difference of
+ * squares added), Grace seven; nobody is missing. Ticket 281 gives mint's table a Q10 nobody there can do: Harper, who
+ * had it, squares one bracket without doubling its middle term.
  *
  * Every student's category results equal the sheet's Set 2 row, one step from Sets 1 and 3 at most.
  */
@@ -80,6 +82,13 @@ const Q10_NO_DIAGONAL = [...solution(10).slice(0, 4), "\\text{Area } 7 \\text{ c
 const Q10_SWAPPED = [...solution(10).slice(0, 4), "\\text{Area } \\sqrt{22} \\text{ cm}^2 \\text{, diagonal } 7 \\text{ cm}"];
 /** Q10: the working right, √22 cm not named. */
 const Q10_UNNAMED = [...solution(10).slice(0, 4), "\\text{Area } 7 \\text{ cm}^2 \\text{ and } \\sqrt{22} \\text{ cm}"];
+
+/**
+ * Q10, the set's hardest problem, where mint's table has nobody with it right (ticket 281): Harper, the one who had it,
+ * squares the two brackets one at a time and doubles the middle term of the first but not the second (her Q3 slip),
+ * and carries the leftover 3√2 to the diagonal.
+ */
+const Q10_NOT_DOUBLED = [solution(10)[0], "(3 + \\sqrt{2})^2 = 9 + 6\\sqrt{2} + 2", "(3 - \\sqrt{2})^2 = 9 - 3\\sqrt{2} + 2", "d^2 = (11 + 6\\sqrt{2}) + (11 - 3\\sqrt{2}) = 22 + 3\\sqrt{2}", "d = \\sqrt{22 + 3\\sqrt{2}}", "\\text{Area } 7 \\text{ cm}^2 \\text{, diagonal } \\sqrt{22 + 3\\sqrt{2}} \\text{ cm}"];
 
 /* ---------- right, but in one line each: Grace ---------- */
 const Q5_JUMP = ["\\dfrac{6}{\\sqrt{3}} = 2\\sqrt{3}"];
@@ -185,14 +194,15 @@ const CLASSMATES: Classmate[] = [
     name: "Liam O'Connell",
     initials: "LO",
     confidence: "confident",
-    done: 3,
-    wrong: [q(2), q(3)],
+    done: 5,
+    wrong: [q(2), q(3), q(4)],
     notes: [
       { text: "only two of the four products expanded", problems: [q(2)] },
       { text: "(√7 + 2)² squared term by term", problems: [q(3)] },
+      { text: "(3 − √2)(3 + √2) taken as 9 + 2", problems: [q(4)] },
     ],
-    attempts: { [q(2)]: Q2_TWO_TERMS, [q(3)]: Q3_TERM_BY_TERM },
-    clarification: "I did the first ones fast. I squared both bits in Q3. I stopped after that.",
+    attempts: { [q(2)]: Q2_TWO_TERMS, [q(3)]: Q3_TERM_BY_TERM, [q(4)]: Q4_ADDED },
+    clarification: "I did the first ones fast. I squared both bits in Q3, and in Q4 I squared both and added them. I stopped after Q5.",
     groupStatus: "Group review done · Q3 written out twice",
   },
   {
@@ -306,13 +316,14 @@ const CLASSMATES: Classmate[] = [
     initials: "HS",
     confidence: "confident",
     done: 10,
-    wrong: [q(1), q(3)],
+    wrong: [q(1), q(3), q(10)],
     notes: [
       { text: "the minus not multiplied through the bracket", problems: [q(1)] },
       { text: "(√7 + 2)² with the middle term's 2 lost", problems: [q(3)] },
+      { text: "(3 − √2)²'s middle term not doubled", problems: [q(10)] },
     ],
-    attempts: { [q(1)]: Q1_MINUS, [q(3)]: Q3_NOT_DOUBLED },
-    clarification: "Both too fast. In Q1 the minus turned into a plus, and in Q3 I didn't double the middle.",
+    attempts: { [q(1)]: Q1_MINUS, [q(3)]: Q3_NOT_DOUBLED, [q(10)]: Q10_NOT_DOUBLED },
+    clarification: "All too fast. In Q1 the minus turned into a plus, and in Q3 I didn't double the middle. In Q10 I doubled the middle of the first square and not the second.",
     groupStatus: "Group review done · signs on Q1",
   },
   {
@@ -372,4 +383,4 @@ const CLASSMATES: Classmate[] = [
 ];
 
 /** Sam's record and the nineteen classmates', each carrying what review made of their mistakes (ticket 244, `./review.ts`). */
-export const [PS2_SAM, ...PS2_CLASSMATES] = withReview([SAM, ...CLASSMATES], PS2_REVIEW);
+export const [PS2_SAM, ...PS2_CLASSMATES] = withReview([SAM, ...CLASSMATES], PS2_REVIEW, PS2_PROBLEMS);

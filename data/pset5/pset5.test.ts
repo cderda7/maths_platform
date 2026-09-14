@@ -25,10 +25,10 @@ describe("Problem Set 5's data (ticket 187)", () => {
     expect(categoriesTouched(PS5_ASSIGNMENT)).toEqual(categoriesTouched(ASSIGNMENT));
   });
 
-  it("Liam O'Connell handed nothing in; Priya got everything right; Chloe, missing on Problem Set 6, handed this one in", () => {
-    expect(byId.liam).toMatchObject({ done: 0, wrong: [], attempts: {} });
-    expect(byId.liam.clarification).toBeUndefined();
-    expect(everyone.filter((c) => c.done === 0).map((c) => c.id)).toEqual(["liam"]);
+  it("Liam hands in five (ticket 281; nothing before); nobody is missing; Priya got everything right; Chloe, missing on Problem Set 6, handed this one in", () => {
+    expect(byId.liam).toMatchObject({ done: 5, wrong: ["ps5-q1", "ps5-q4"] });
+    expect(byId.liam.clarification).toBeDefined();
+    expect(everyone.filter((c) => c.done === 0).map((c) => c.id)).toEqual([]);
     expect(byId.priya).toMatchObject({ done: 10, wrong: [] });
     expect(byId.chloe.done).toBe(10);
     expect(CLASSMATES.find((c) => c.id === "chloe")!.done).toBe(0);
@@ -58,11 +58,11 @@ describe("Problem Set 5 in the registry (ticket 187)", () => {
     expect(assignmentBundle("pset-6", skipFixture("working", now).classroom)!.sam).toBeNull();
   });
 
-  it("nineteen handed in, Liam missing, every stage over, and it lands on Class", () => {
+  it("all twenty handed in (Liam since ticket 281), every stage over, and it lands on Class", () => {
     const p = rosterProgress(b, sessionAt("working"), now);
-    expect(p.liam).toEqual({ kind: "not-started" });
+    expect(p.liam).toEqual({ kind: "submitted" });
     expect(p[DEMO_STUDENT.id]).toEqual({ kind: "submitted" });
-    expect(submittedCount(b, null, now)).toEqual({ submitted: 19, total: 20 });
+    expect(submittedCount(b, null, now)).toEqual({ submitted: 20, total: 20 });
     const stages = assignmentStages(b, INITIAL_CLASSROOM, null, now);
     expect(stages.map((s) => [s.id, s.state])).toEqual([["working", "over"], ["individual", "over"], ["group", "over"]]);
     expect(landingTab(b, INITIAL_CLASSROOM, sessionAt("working"), now)).toBe("class");
@@ -79,10 +79,10 @@ describe("Problem Set 5 in the registry (ticket 187)", () => {
     for (const m of ms) {
       const reached = everyone.filter((c) => PS5_PROBLEMS.indexOf(m.problem) < c.done).length;
       expect(m.right + m.rows.length, m.problem.id).toBe(reached);
-      expect(CLASS_SIZE - m.right - m.rows.length, m.problem.id).toBeGreaterThanOrEqual(1); // Liam at least
+      expect(CLASS_SIZE - m.right - m.rows.length, m.problem.id).toBe(everyone.filter((c) => PS5_PROBLEMS.indexOf(m.problem) >= c.done).length);
       for (const r of m.rows) expect(r.slips.length, `${m.problem.id} ${r.id}`).toBeGreaterThan(0);
     }
-    expect(ms[3].rows.map((r) => r.id)).toEqual(["sam", "jordan", "tomas", "zara", "mia", "chloe", "oliver", "finn", "sofia"]);
+    expect(ms[3].rows.map((r) => r.id)).toEqual(["sam", "jordan", "tomas", "zara", "liam", "mia", "chloe", "oliver", "finn", "sofia"]);
     expect(ms[0].right).toBe(18);
   });
 
@@ -94,20 +94,20 @@ describe("Problem Set 5 in the registry (ticket 187)", () => {
       for (const r of m.rows) for (const l of r.lines) if (l.verdict.verdict === "wrong") byName.set(l.verdict.name!, (byName.get(l.verdict.name!) ?? new Set()).add(r.id));
     }
     const names = [...byName.entries()].map(([n, s]) => [n, s.size] as const).sort((x, y) => y[1] - x[1]);
-    expect(names[0]).toEqual(["guessed pair, not expanded back", 6]);
-    expect(names[1][1]).toBeLessThan(6);
+    expect(names[0]).toEqual(["guessed pair, not expanded back", 7]);
+    expect(names[1][1]).toBeLessThan(7);
     const clusters = byCluster.sort((x, y) => y.students - x.students);
-    expect(clusters[0]).toEqual({ key: "Q4 (3x - 4)(x + 2) = 0", students: 5 });
-    expect(clusters[1].students).toBeLessThan(5);
+    expect(clusters[0]).toEqual({ key: "Q4 (3x - 4)(x + 2) = 0", students: 6 });
+    expect(clusters[1].students).toBeLessThan(6);
   });
 
-  it("the Classroom's PAST card: done, 19/20 submitted, top gap graph features on nine students, non-monic factorising next on seven", () => {
+  it("the Classroom's PAST card: done, 20/20 submitted, top gap graph features on nine students, non-monic factorising next on eight", () => {
     const card = assignmentCard(b, INITIAL_CLASSROOM, null, now);
-    expect(card).toMatchObject({ id: "pset-5", name: "Problem Set 5 — Features of a parabola", due: "Mon 7 Sep", section: "past", status: "done", submitted: 19, total: 20, mistakes: 47 });
+    expect(card).toMatchObject({ id: "pset-5", name: "Problem Set 5 — Features of a parabola", due: "Mon 7 Sep", section: "past", status: "done", submitted: 20, total: 20, mistakes: 49 });
     // Ticket 210: the axis given as the height is a graph feature, as on Problem Set 6's Q9, so the sign readers and the height readers make one cluster.
     expect(card.topGap).toEqual({ slips: ["graphing.quadratics.features"], name: "graph features", students: 9 });
     const rest = mistakesByProblem(null, b).map((m) => ({ ...m, rows: m.rows.filter((r) => !r.slips.includes("graphing.quadratics.features")) }));
-    expect(topGap(rest)).toEqual({ slips: ["algebra.expand-factor.nonmonic"], name: "non-monic factorising", students: 7 });
+    expect(topGap(rest)).toEqual({ slips: ["algebra.expand-factor.nonmonic"], name: "non-monic factorising", students: 8 });
   });
 
   it("a name opens that student's own record: report link, commentary and words", () => {

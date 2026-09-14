@@ -1,7 +1,9 @@
 import type { FinishedSet } from "../finishedSet";
+import { classReviewFrom } from "../recordReview";
 import { PS1_ASSIGNMENT, PS1_PATHWAY } from "./assignment";
 import { PS1_CLASSMATES, PS1_SAM } from "./classmates";
 import { PS1_EVALUATION } from "./evaluation";
+import { PS1_CLASS_REVIEW_PICKS } from "./review";
 
 /** Problem Set 1 — Surds (ticket 211), a finished set on the class's default seating. */
 export const PS1: FinishedSet = {
@@ -11,4 +13,5 @@ export const PS1: FinishedSet = {
   sam: PS1_SAM,
   classmates: PS1_CLASSMATES,
   evaluation: PS1_EVALUATION,
+  classReview: classReviewFrom(PS1_CLASS_REVIEW_PICKS, [PS1_SAM, ...PS1_CLASSMATES], PS1_ASSIGNMENT.problems),
 };

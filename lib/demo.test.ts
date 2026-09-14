@@ -40,11 +40,11 @@ describe("skip-to fixtures", () => {
 
   it("the group-review jump begins the whiteboard run on the union with the agreed pen order", () => {
     const { classroom } = skipFixture("group review", now);
-    // Ticket 278: every problem a member did not get right, Liam's never-reached Q4–Q10 included, so all ten.
-    expect(classroom.group?.problems).toEqual(["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"]);
-    // The simulation's fixed pens (tickets 228, 278): Sam writes Q1 and Q7, both of Q7's visits.
-    expect(classroom.group?.pen).toEqual({ q1: "sam", q2: "zara", q3: "jordan", q4: "liam", q5: "jordan", q6: "zara", q7: "sam", q8: "jordan", q9: "liam", q10: "zara" });
-    expect(visitsOf({ ...classroom.group!, left: ["q7"] }).map((v) => v.pen)).toEqual(["sam", "zara", "jordan", "liam", "jordan", "zara", "sam", "jordan", "liam", "zara", "sam"]);
+    // Ticket 278: every problem a member did not get right, Liam's unfinished Q5 and never-reached Q6–Q10 included; Q4 all four had right (ticket 281).
+    expect(classroom.group?.problems).toEqual(["q1", "q2", "q3", "q5", "q6", "q7", "q8", "q9", "q10"]);
+    // The simulation's fixed pens (tickets 228, 278, 281): Sam writes Q1 and Q7, both of Q7's visits; Liam his own Q5.
+    expect(classroom.group?.pen).toEqual({ q1: "sam", q2: "zara", q3: "jordan", q5: "liam", q6: "zara", q7: "sam", q8: "jordan", q9: "liam", q10: "zara" });
+    expect(visitsOf({ ...classroom.group!, left: ["q7"] }).map((v) => v.pen)).toEqual(["sam", "zara", "jordan", "liam", "zara", "sam", "jordan", "liam", "zara", "sam"]);
     expect(classroom.group?.index).toBe(0);
     // The jump lands on the intro: the class has just gone in and the board opens once it is read (ticket 220).
     expect(introShowing(classroom.group!, now)).toBe(true);

@@ -22,10 +22,11 @@ describe("Problem Set 3's data (ticket 213)", () => {
     expect(PS3.groups).toBeUndefined();
   });
 
-  it("Sam slips once, on Q8's pair; Liam handed nothing in; Jordan, Grace and Oliver stop at nine", () => {
+  it("Sam slips once, on Q8's pair; Liam hands in five (nothing before ticket 281); Jordan, Grace and Oliver stop at nine", () => {
     expect(PS3_SAM).toMatchObject({ done: 10, wrong: ["ps3-q8"] });
     expect(names("sam")).toEqual(["pair's signs swapped"]);
-    expect(everyone.filter((c) => c.done === 0).map((c) => c.id)).toEqual(["liam"]);
+    expect(everyone.filter((c) => c.done === 0).map((c) => c.id)).toEqual([]);
+    expect(byId.liam).toMatchObject({ done: 5, wrong: ["ps3-q2", "ps3-q5"] });
     expect(everyone.filter((c) => c.done === 9).map((c) => c.id)).toEqual(["jordan", "grace", "oliver"]);
   });
 
@@ -39,15 +40,15 @@ describe("Problem Set 3's data (ticket 213)", () => {
 describe("Problem Set 3's Mistakes tab and card (ticket 213)", () => {
   const ms = mistakesByProblem(null, b);
 
-  it("keeps every problem to four columns of working or fewer, so no line overflows its box at 1280", () => {
-    for (const m of ms) expect(groupBySlip(m.rows).flatMap((g) => g.columns).length, m.problem.id).toBeLessThanOrEqual(4);
+  it("keeps every problem to four columns of working or fewer, so no line overflows its box at 1280, but Q10's five (ticket 281: Harper's slip, measured at 1280 and 1440 with nothing wider than its box)", () => {
+    for (const m of ms) expect(groupBySlip(m.rows).flatMap((g) => g.columns).length, m.problem.id).toBeLessThanOrEqual(m.problem.id === "ps3-q10" ? 5 : 4);
   });
 
-  it("has a clear top gap: the binomial identity on nine students, monic factorising next on seven", () => {
+  it("has a clear top gap: the binomial identity on ten students (nine before ticket 281), monic factorising next on eight", () => {
     const card = assignmentCard(b, INITIAL_CLASSROOM, null, now);
-    expect(card).toMatchObject({ submitted: 19, total: 20 });
-    expect(card.topGap).toEqual({ slips: ["algebra.expand-factor.binomial"], name: "binomial identity", students: 9 });
+    expect(card).toMatchObject({ submitted: 20, total: 20 });
+    expect(card.topGap).toEqual({ slips: ["algebra.expand-factor.binomial"], name: "binomial identity", students: 10 });
     const rest = ms.map((m) => ({ ...m, rows: m.rows.filter((r) => !(r.slips.length === 1 && r.slips[0] === "algebra.expand-factor.binomial")) }));
-    expect(topGap(rest)).toEqual({ slips: ["algebra.expand-factor.monic"], name: "monic factorising", students: 7 });
+    expect(topGap(rest)).toEqual({ slips: ["algebra.expand-factor.monic"], name: "monic factorising", students: 8 });
   });
 });

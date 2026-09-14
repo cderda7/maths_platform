@@ -266,5 +266,17 @@ export const PS2_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "What is the √22 cm the length of?",
       "the diagonal not named",
     )),
+    // Ticket 281: Harper's Q10, mint's table on the set's hardest problem.
+    "(3 + \\sqrt{2})^2 = 9 + 6\\sqrt{2} + 2": ok(T(BINOM), "Perfect square"),
+    "(3 - \\sqrt{2})^2 = 9 - 3\\sqrt{2} + 2": wrong(
+      T(BINOM),
+      "Perfect square",
+      "The middle term of (a − b)² is −2ab: the product of the two terms, then doubled. The first square doubled it; this one didn't.",
+      "Here a = 3 and b = √2. What is 2ab?",
+      "middle term not doubled",
+    ),
+    "d^2 = (11 + 6\\sqrt{2}) + (11 - 3\\sqrt{2}) = 22 + 3\\sqrt{2}": ok(T(BINOM, SURDS), "Squared both sides", true),
+    "d = \\sqrt{22 + 3\\sqrt{2}}": ok(T(SURDS), "Diagonal", true),
+    "\\text{Area } 7 \\text{ cm}^2 \\text{, diagonal } \\sqrt{22 + 3\\sqrt{2}} \\text{ cm}": A(ok(T(CONCL, WORDED), "In context", true)),
   },
 };

@@ -64,8 +64,9 @@ describe("check and the first-mistake cut", () => {
     expect(q3.filter((e) => e.kind === "check")).toHaveLength(2);
     expect(q3.filter((e) => e.kind === "clear")).toHaveLength(1);
     expect(q3.filter((e) => e.kind === "line")).toHaveLength(RECOGNITION.q3.length + RECOGNITION_REWORK.q3.length);
-    // Q4 (ticket 278) holds first time; a problem with no script plays nothing.
-    expect(turnScript("q4").filter((e) => e.kind === "check")).toHaveLength(1);
+    // Q6 (ticket 278) holds first time; a problem with no script (Q4 left the board, ticket 281) plays nothing.
+    expect(turnScript("q6").filter((e) => e.kind === "check")).toHaveLength(1);
+    expect(turnScript("q4")).toEqual([]);
     expect(turnScript("q11")).toEqual([]);
   });
   it("the group never solves Q7: Liam's visit checks wrong three times (two terms, the lost third, the wrong pair), and the return one more (the brackets' signs)", () => {

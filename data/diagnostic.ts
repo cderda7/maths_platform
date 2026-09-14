@@ -264,7 +264,7 @@ export const PROBLEM_DIAGNOSTICS: ProblemDiagnostic[] = [
         { id: "d", tex: "a = 2,\\; b = -7,\\; c = 3", misconception: "sign of c dropped" },
       ],
       correct: "b",
-      picks: { d: ["liam"] },
+      // Ticket 281: Liam, who picked the common slip here while he never reached Q4, now hands Q4 in right and picks b.
     },
     {
       key: "discriminant",

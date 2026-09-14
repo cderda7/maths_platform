@@ -4,7 +4,7 @@
 
 **Blocked by:** 278.
 
-**Status:** ready
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -39,9 +39,19 @@ Settled in the same conversation:
 - **Story sheet:** `data/story.ts` and `specs/class-story.md` gain the new review and class-review parts.
 - **Future features:** a student who hands in only 2 of 10 (an extreme edge case, user).
 
+## Built (2026-09-14)
+
+- **The rule** (`lib/reviewRule.ts`, literal): a member brings every problem not right first time; a one-off slip is fixed on their own rework; everything else is the group's, solved when a present member had it right *first time*, otherwise closed on the group's own last try; the set's declared exception (`SetReview.exception`) only where nobody had it right and the member's first submission went wrong on one line. Bases: one-off, repeated, pattern, incomplete, not attempted.
+- **Liam** hands in five on every set: PS1 Q1–Q5 (Q3, Q4 surd slips, Q5 right from √60), PS2 Q1–Q5 (Q4 the difference of squares added), PS3 Q1–Q5 (Q2 term by term, Q5 a guessed pair), PS4 Q1–Q5 (every line algebra: Q3 and Q4 the fraction flipped, Q5 one root by trying), PS5 Q1–Q5 (Q1 the intercepts' signs, Q4 a guessed pair), PS6 Q1–Q4 answered (Q4 right) and Q5 started (the roots' signs flipped). Every status on Sets 1, 2, 4 and 6 is unchanged, not seen included; Sets 3 and 5, where he had handed nothing in, now read results one step from his neighbours.
+- **Hardest problems nobody at the table can do:** PS1 violet Q10 (Ruby, Finn and Sofia given slips: a square factor left under the root, the diagonal divided by √2); PS2, PS3, PS4 mint Q10 (Harper, mint's only helper, given a repeated slip each: a square's middle term not doubled, x² − x² collected as 2x², the 3w's sign lost rearranging); PS5 mint Q9 and Q10 and PS6 mint Q10 already had nobody. Every status unchanged; the new lines are in each set's table.
+- **Group versions** regenerated (`data/psetN/review.ts`, `data/classmates-review.ts`): 23 / 1, 29 / 1, 31 / 1, 37 / 1, 33 / 3 and 37 / 4 group problems solved / unsolved on PS1–PS6, the only exception PS6 sky Q9 (Zara). Each unsolved problem's last try is the group's own working: violet Q10 (PS1), mint Q10 (PS2, PS3, PS4), mint Q9, mint Q10, sky Q4 (PS5), mint Q7, mint Q10, violet Q7 (PS6).
+- **Class review** on PS1, PS3 and PS6 (pathways individual → group → class review): PS1 Q10 (Finn, Oliver), PS3 Q10 (Isla, Lucas), PS6 Q7 (Isla, Zara) and Q10 (Isla, Lucas), each a real wrong first submission (`ClassReview` on `FinishedSet.classReview`, `SET6_CLASS_REVIEW`).
+- **Sam's group:** union Q1–Q3 and Q5–Q10 (Q4 left: all four had it right); Q5 plays Liam's slip, his pen, then holds; Q9 keeps the exception; pens as before but Liam writes Q5 (Q4's pen gone); the race's sky row nine long; timing tests unchanged (two groups home before the demo group, two after).
+- **The sheet** (`STORY_REVIEW` regenerated with the reasons, `STORY_CLASS_REVIEW` new, `specs/class-story.md`).
+
 ## Acceptance
 
-- [ ] Unit: Liam attempts at least five problems on every set; every status and history pill unchanged; every group version by the rules (solved iff a present member had it right, save the single-line exception at most once per set); every unsolved last try is not any member's first submission; one or two groups per set fail Q9/Q10; class review only on PS1, PS3, PS6, covering exactly the problems some group left unsolved, with one or two real wrong examples each; the checker bites
-- [ ] Sam's group union, scripts and pens re-derived; `data/group-scripts.test.ts` passes on the new union
-- [ ] Click-through: every report on every set shows the sheet's outcomes; Sam's live group review plays the re-derived board
-- [ ] vitest, eslint, tsc, next build, check:laptop
+- [x] Unit: Liam attempts at least five problems on every set; every status and history pill unchanged where the sheet saw his work (Sets 3 and 5 read his new work); every group version by the rules (solved iff a present member had it right, save the single-line exception at most once per set); every unsolved last try is not any member's first submission; one or two groups per set fail Q9/Q10; class review only on PS1, PS3, PS6, covering exactly the problems some group left unsolved, with one or two real wrong examples each; the checker bites
+- [x] Sam's group union, scripts and pens re-derived; `data/group-scripts.test.ts` passes on the new union
+- [x] Click-through: every report on every set shows the sheet's outcomes; Sam's live group review plays the re-derived board
+- [x] vitest, eslint, tsc, next build, check:laptop

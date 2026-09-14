@@ -8,7 +8,7 @@ import { isLeafId } from "./taxonomy";
 import { assignmentBundle, assignmentIds, assignmentStages, earlierAssignmentIds, isAssignmentId, rosterProgress, studentRecord, submittedCount } from "@/lib/assignments";
 import { INITIAL_CLASSROOM } from "@/lib/classroom";
 import { assignmentCard } from "@/lib/classroomCards";
-import { missedProblems, recordStatus, reviewMismatches, storySetOf } from "@/lib/classStory";
+import { classReviewMismatches, missedProblems, recordStatus, reviewMismatches, storySetOf } from "@/lib/classStory";
 import { dueOrder } from "@/lib/dueDate";
 import { evaluateLine } from "@/lib/evaluate";
 import { FINISHED_SETS } from "@/lib/finishedSets";
@@ -156,6 +156,7 @@ describe.each(FINISHED_SETS.map((s) => [s.fixture.id, s] as const))("finished se
 
   it("every record's review equals the sheet's review part and the agreed rules: second submissions, group versions shared by the group, each holding or wrong as its outcome says (ticket 244)", () => {
     expect(reviewMismatches(everyone, f, n, bundle.groups)).toEqual([]);
+    expect(classReviewMismatches(set.classReview, set.pathway, everyone, f, n, bundle.groups)).toEqual([]);
   });
 
   it("is in the Classroom whatever it holds, finished: its problems, classmates, Sam's record and its frozen groups; every stage over", () => {

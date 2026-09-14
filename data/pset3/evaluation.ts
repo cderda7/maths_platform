@@ -310,5 +310,14 @@ export const PS3_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Write (x + 3)² as (x + 3)(x + 3) and expand.",
       "squared each term separately",
     ),
+    // Ticket 281: Harper's Q10, mint's table on the set's hardest problem.
+    "= 2x^2 + 12x": wrong(
+      T(EXPAND),
+      "Collected like terms",
+      "The four terms were taken away right. Collecting x² and −x² gives nothing: the sign of the second one came across as a plus.",
+      "What is x² − x²?",
+      "sign lost collecting like terms",
+    ),
+    "\\text{so } (x + 3)^2 - (x - 3)^2 = 2x^2 + 12x": A(ok(T(FORMAL), "Said what was shown", true)),
   },
 };

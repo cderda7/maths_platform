@@ -33,7 +33,7 @@ describe("teacher mistake view", () => {
       expect(p.right, p.problem.id).toBe(classmatesRight(p.problem.id, index) + (samRight.includes(p.problem.id) ? 1 : 0));
       expect(p.right + p.rows.length, p.problem.id).toBeLessThanOrEqual(CLASS_SIZE);
     }
-    expect(live.find((p) => p.problem.id === "q4")!.right).toBe(13); // Jordan reaches Q7 since ticket 189
+    expect(live.find((p) => p.problem.id === "q4")!.right).toBe(14); // Jordan reaches Q7 since ticket 189; Liam hands Q4 in right since ticket 281
     // Q8, absent from the view because nobody slipped, is still countable: everyone who reached it.
     expect(rightCount(ASSIGNMENT.problems[7], 7, sessionAt("feedback"))).toBe(1 + CLASSMATES.filter((c) => c.done > 7).length);
   });
@@ -60,9 +60,9 @@ describe("teacher mistake view", () => {
       { slips: ["y"], start: 1, ids: ["b"], columns: 1 },
       { slips: ["y", "x"], start: 2, ids: ["d"], columns: 1 },
     ]);
-    // Q5 in the fixtures: Tomas alone on quadratic equations, then Harper, Ruby and Finn under one graph-features pill.
+    // Q5 in the fixtures: Tomas and Liam (ticket 281) on quadratic equations, then Harper, Ruby and Finn under one graph-features pill.
     const q5 = mistakesByProblem(sessionAt("feedback")).find((p) => p.problem.id === "q5")!;
-    expect(groupBySlip(q5.rows).map((g) => g.rows.map((r) => r.id))).toEqual([["tomas"], ["harper", "ruby", "finn"]]);
+    expect(groupBySlip(q5.rows).map((g) => g.rows.map((r) => r.id))).toEqual([["tomas", "liam"], ["harper", "ruby", "finn"]]);
   });
 
   it("inside a slip group, students on the exact same wrong line sit together, groups by first appearance (ticket 135)", () => {
@@ -110,10 +110,10 @@ describe("teacher mistake view", () => {
     expect(q9.map((s) => s.mistakes.map((m) => m.rows.length))).toEqual([[4], [1]]);
   });
 
-  it("the shape of the class's slips (ticket 130): Q7 has thirteen classmates across three strategies, Q6 one, Q8 none, 46 wrongs in all (Jordan's Q7 since ticket 189)", () => {
+  it("the shape of the class's slips (ticket 130): Q7 has thirteen classmates across three strategies, Q6 one, Q8 none, 47 wrongs in all (Jordan's Q7 since ticket 189, Liam's Q5 since ticket 281)", () => {
     const m = mistakesByProblem(null);
     const rows = (pid: string) => m.find((p) => p.problem.id === pid)?.rows ?? [];
-    expect(CLASSMATES.reduce((n, c) => n + c.wrong.length, 0)).toBe(46);
+    expect(CLASSMATES.reduce((n, c) => n + c.wrong.length, 0)).toBe(47);
     expect(rows("q7")).toHaveLength(13);
     expect(rows("q7").map((r) => r.id)).not.toContain("noah");
     // The wrong line is the mistake's identity: three different ones on Q7, six / four / three.
@@ -167,7 +167,7 @@ describe("teacher mistake view", () => {
     expect(columnsOf(null, "q9")).toEqual([["zara", "ruby"], ["ethan", "harper"], ["mia"]]);
     // Thirteen classmates wrong on Q7 take three columns (Jordan's pair first since ticket 189, then Amelia's lost third, then the two terms): three / four / six.
     expect(columnsOf(null, "q7").map((c) => c.length)).toEqual([3, 4, 6]);
-    expect(columnsOf(null, "q5")).toEqual([["tomas"], ["harper", "ruby", "finn"]]);
+    expect(columnsOf(null, "q5")).toEqual([["tomas"], ["liam"], ["harper", "ruby", "finn"]]);
     // With the live session Sam leads Q7, and his working is the six classmates' two-terms slip line for line: one live column of seven, first.
     const q7 = columnsOf(sessionAt("feedback"), "q7");
     expect(q7[0][0]).toBe("sam");

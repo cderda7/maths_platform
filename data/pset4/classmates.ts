@@ -30,7 +30,8 @@ import { PS4_REVIEW } from "./review";
  * - The sentence (Q10): Amelia keeps the negative width, Isla gives it, Lucas swaps width and length.
  * - Steps jumped: Grace (right every time, one line a problem), Ethan (Q1, Q6, Q8, Q10), Harper (Q8).
  * Priya gets everything right; Aiden takes the 2 out of 2x² only (Q8), his one slip. Nobody is missing:
- * Liam hands in two problems, Grace six, Jordan and Oliver eight, Tomas nine.
+ * Liam hands in five (two before ticket 281), Grace six, Jordan and Oliver eight, Tomas nine. Ticket 281 gives mint's
+ * table a Q10 nobody there can do: Harper, who had it, loses the 3w's sign rearranging.
  *
  * A right problem with an attempt is a student's own shorter, still right working (Sam's and Oliver's Q4,
  * Mia's Q2 and Q10, Grace's and Ethan's one-line problems): the class view reads their lines, not the model's.
@@ -127,6 +128,19 @@ const Q4_SPLIT_ONLY = ["ac = 6,\\quad -6 + (-1) = -7", "(2x - 1)(x - 3) = 0", "x
 const Q4_BRACKETS = ["(2x - 1)(x - 3) = 0", "2x - 1 = 0 \\;\\text{or}\\; x - 3 = 0", "x = \\tfrac{1}{2} \\;\\text{or}\\; x = 3"];
 const Q2_BRACKETS = ["(3x - 5)(x + 2)"];
 const Q10_NO_SPLIT = solution(10).filter((tex) => !tex.startsWith("ac ="));
+
+/**
+ * Ticket 281. Liam's Q3 to Q5, only Algebra lines, so every category the sheet has not seen on him stays not seen:
+ * Q3's roots straight from the brackets, 2x = −1 upside down; Q4's brackets written down and x = 2 from 2x − 1 = 0;
+ * Q5 tried until one root worked.
+ */
+const Q3_ROOTS_ONLY = ["x = 4 \\;\\text{or}\\; x = -2"];
+const Q4_BRACKETS_FLIPPED = ["(2x - 1)(x - 3) = 0", "x = 2 \\;\\text{or}\\; x = 3"];
+/**
+ * Q10, the set's hardest problem, where mint's table has nobody with it right (ticket 281): Harper, the one who had it,
+ * expands, then moves the 35 across with the 3w's sign lost (her Q5 slip), and solves the wrong equation faithfully.
+ */
+const Q10_SIGN_LOST = [solution(10)[0], solution(10)[1], "2w^2 + 3w = 35", "2w^2 - 3w - 35 = 0", "2w^2 - 3w - 35 = (2w + 7)(w - 5)", "w = -\\tfrac{7}{2} \\;\\text{or}\\; w = 5", "w > 0 \\Rightarrow w = 5", "\\text{The width is 5 cm}"];
 
 /** The problem ids, by number, so the records read like the set. */
 const q = (n: number) => `ps4-q${n}`;
@@ -233,11 +247,15 @@ const CLASSMATES: Classmate[] = [
     name: "Liam O'Connell",
     initials: "LO",
     confidence: "confident",
-    done: 2,
-    wrong: [q(1), q(2)],
-    notes: [{ text: "non-monic pairs guessed, never expanded back", problems: [q(1), q(2)] }],
-    attempts: { [q(1)]: Q1_GUESSED, [q(2)]: Q2_GUESSED },
-    clarification: "I only had time for two. I guessed the brackets from the numbers at the end.",
+    done: 5,
+    wrong: [q(1), q(2), q(3), q(4), q(5)],
+    notes: [
+      { text: "non-monic pairs guessed, never expanded back", problems: [q(1), q(2)] },
+      { text: "2x = −1 and 2x = 1 solved with the fraction turned over", problems: [q(3), q(4)] },
+      { text: "one root found by trying, the equation never made zero", problems: [q(5)] },
+    ],
+    attempts: { [q(1)]: Q1_GUESSED, [q(2)]: Q2_GUESSED, [q(3)]: Q3_ROOTS_ONLY, [q(4)]: Q4_BRACKETS_FLIPPED, [q(5)]: Q5_BEFORE_ZERO },
+    clarification: "I guessed the brackets from the numbers at the end. In Q3 and Q4 I wrote the answers straight from the brackets and put the 2 on top. In Q5 I tried numbers until 5 worked. I did five.",
     groupStatus: "Group review done · listening on Q2",
   },
   {
@@ -365,14 +383,15 @@ const CLASSMATES: Classmate[] = [
     initials: "HS",
     confidence: "confident",
     done: 10,
-    wrong: [q(5), q(9)],
+    wrong: [q(5), q(9), q(10)],
     notes: [
       { text: "a sign lost rearranging x² − 3x = 10", problems: [q(5)] },
       { text: "the minimum value read off the wrong line", problems: [q(9)] },
       { text: "the square completed in one line", problems: [q(8)] },
+      { text: "a sign lost rearranging w(2w + 3) = 35", problems: [q(10)] },
     ],
-    attempts: { [q(5)]: Q5_SIGN_LOST, [q(8)]: Q8_JUMP_HK, [q(9)]: Q9_WRONG_LINE },
-    clarification: "Too fast again. In Q5 the 3x changed sign when I moved the 10, and in Q9 I took the 7 from the question instead of my own line.",
+    attempts: { [q(5)]: Q5_SIGN_LOST, [q(8)]: Q8_JUMP_HK, [q(9)]: Q9_WRONG_LINE, [q(10)]: Q10_SIGN_LOST },
+    clarification: "Too fast again. In Q5 the 3x changed sign when I moved the 10, and in Q9 I took the 7 from the question instead of my own line. Q10 was the same as Q5: the 3w came out as −3w.",
     groupStatus: "Group review done · Q9, where the value comes from",
   },
   {
@@ -439,4 +458,4 @@ const CLASSMATES: Classmate[] = [
 ];
 
 /** Sam's record and the nineteen classmates', each carrying what review made of their mistakes (ticket 244, `./review.ts`). */
-export const [PS4_SAM, ...PS4_CLASSMATES] = withReview([SAM, ...CLASSMATES], PS4_REVIEW);
+export const [PS4_SAM, ...PS4_CLASSMATES] = withReview([SAM, ...CLASSMATES], PS4_REVIEW, PS4_PROBLEMS);

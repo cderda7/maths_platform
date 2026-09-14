@@ -406,5 +406,18 @@ export const PS4_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Which of 3.5 and 10 is w?",
       "width and length swapped",
     )),
+    // Ticket 281: Harper's Q10, mint's table on the set's hardest problem.
+    "2w^2 + 3w = 35": ok(T(QUAD), "Expanded"),
+    "2w^2 - 3w - 35 = 0": wrong(
+      T(QUAD),
+      "Made one side zero",
+      "Only the 35 moves. The 3w stayed where it was, so its sign stays: this is a different equation.",
+      "Expand w(2w + 3). What sign does the w term have?",
+      "sign lost rearranging",
+    ),
+    "2w^2 - 3w - 35 = (2w + 7)(w - 5)": ok(T(QUAD, NONMONIC), "Factorised", true),
+    "w = -\\tfrac{7}{2} \\;\\text{or}\\; w = 5": ok(T(NFL, ZERO), "Null factor law", true),
+    "w > 0 \\Rightarrow w = 5": ok(T(CONCL), "Kept the positive width", true),
+    "\\text{The width is 5 cm}": A(ok(T(CONCL), "In context", true)),
   },
 };

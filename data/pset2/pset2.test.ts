@@ -38,7 +38,7 @@ describe("Problem Set 2's data (ticket 212)", () => {
     expect(names("finn")).toEqual(["fraction turned over"]);
     expect(names("sofia").filter((n) => n === "rationalised the top, not bottom")).toHaveLength(2);
     expect(byId.grace).toMatchObject({ done: 7, wrong: [] });
-    expect(everyone.filter((c) => c.done < 10).map((c) => [c.id, c.done])).toEqual([["tomas", 8], ["liam", 3], ["grace", 7]]);
+    expect(everyone.filter((c) => c.done < 10).map((c) => [c.id, c.done])).toEqual([["tomas", 8], ["liam", 5], ["grace", 7]]);
   });
 
   it("has a clear top gap: the binomial identity on nine students, expansion next on eight, fractions on seven", () => {
@@ -54,6 +54,6 @@ describe("Problem Set 2's data (ticket 212)", () => {
   it("keeps every problem to four columns of working or fewer, so no line overflows its box at 1280", () => {
     const ms = mistakesByProblem(null, b);
     for (const m of ms) expect(groupBySlip(m.rows).flatMap((g) => g.columns).length, m.problem.id).toBeLessThanOrEqual(4);
-    expect(ms.find((m) => m.problem.id === "ps2-q10")!.rows.map((r) => r.id)).toEqual(["amelia", "isla", "lucas"]);
+    expect(ms.find((m) => m.problem.id === "ps2-q10")!.rows.map((r) => r.id)).toEqual(["amelia", "isla", "lucas", "harper"]);
   });
 });

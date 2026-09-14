@@ -373,7 +373,7 @@ describe("wrong options mirror the class's real slips (ticket 240)", () => {
       q2: [0, 0, 0, 6, 1], // six unchecked pairs; Finn's sign solving a factor
       q3: [7, 0, 0, 0], // six on the null factor law without zero and Harper's expansion, both before any expanding
       q4: [0, 0, 5], // four over a, Isla's −b
-      q5: [0, 1, 0, 3], // Tomas's intercepts; Harper, Ruby and Finn's height
+      q5: [0, 2, 0, 3], // Tomas's intercepts and Liam's (ticket 281); Harper, Ruby and Finn's height
       q6: [0, 1, 0], // Amelia
       q7: [11, 3, 0], // seven constants not scaled and four thirds lost; three wrong pairs
       q8: [0, 0], // nobody slipped on Q8

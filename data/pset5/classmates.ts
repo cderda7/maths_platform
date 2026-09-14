@@ -24,7 +24,7 @@ import { PS5_REVIEW } from "./review";
  * - Scaling part of an expression (Q7): Aiden, the same slip as his Problem Set 6 Q7, and Harper.
  * - A pair that multiplies but does not add (Q9): Ruby, as on Problem Set 6's Q7.
  * Priya gets everything right; Grace gets everything she reached right in one jump a line;
- * Liam O'Connell handed nothing in (on Problem Set 6 he hands in two problems); Chloe, missing on
+ * Liam O'Connell hands in five (ticket 281; nothing before): the intercepts' signs off the brackets, Q4's pair guessed; Chloe, missing on
  * Problem Set 6, handed this one in.
  *
  * Every student's category results equal the class story sheet's Set 5 row (`data/story.ts`), one step
@@ -184,16 +184,21 @@ const CLASSMATES: Classmate[] = [
     groupStatus: "Group review done · Q10, which number is the height",
   },
   {
-    // Handed nothing in (ticket 187): the class view shows his row as missing.
+    // Ticket 281: five problems (was nothing handed in, ticket 187): the intercepts' signs read off the brackets on Q1, a
+    // non-monic pair guessed on Q4, his habit; the turning points right.
     id: "liam",
     name: "Liam O'Connell",
     initials: "LO",
     confidence: "confident",
-    done: 0,
-    wrong: [],
-    notes: [],
-    attempts: {},
-    groupStatus: "Nothing submitted",
+    done: 5,
+    wrong: [q(1), q(4)],
+    notes: [
+      { text: "intercepts read off the factors with the signs flipped", problems: [q(1)] },
+      { text: "a non-monic pair guessed, never expanded back", problems: [q(4)] },
+    ],
+    attempts: { [q(1)]: Q1_SIGNS, [q(4)]: Q4_GUESSED },
+    clarification: "I took the numbers straight out of the brackets in Q1. In Q4 I guessed the brackets again. I got through five this time.",
+    groupStatus: "Group review done · listening on Q4",
   },
   {
     id: "aiden",
@@ -388,4 +393,4 @@ const CLASSMATES: Classmate[] = [
 ];
 
 /** Sam's record and the nineteen classmates', each carrying what review made of their mistakes (ticket 244, `./review.ts`). */
-export const [PS5_SAM, ...PS5_CLASSMATES] = withReview([SAM, ...CLASSMATES], PS5_REVIEW);
+export const [PS5_SAM, ...PS5_CLASSMATES] = withReview([SAM, ...CLASSMATES], PS5_REVIEW, PS5_PROBLEMS);

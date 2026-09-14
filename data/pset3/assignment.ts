@@ -145,5 +145,5 @@ export const PS3_ASSIGNMENT: Assignment = {
   newSkills: ["algebra.expand-factor.binomial"],
 };
 
-/** Problem Set 3 ran individual working, then individual review, then group review; every stage is over. */
-export const PS3_PATHWAY: Pathway = ["individual", "group"];
+/** Problem Set 3 ran individual working, then individual review, group review and class review (ticket 281: class review on Problem Sets 1, 3 and 6); every stage is over. */
+export const PS3_PATHWAY: Pathway = ["individual", "group", "whole-class"];
