@@ -4,7 +4,7 @@
 
 **Blocked by:** 251.
 
-**Status:** open
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -22,5 +22,5 @@ The user (2026-09-14): clicking a student's name or avatar should go "to a 'betw
 
 ## Acceptance
 
-- [ ] Click-through at 1280×800 and 1440×900: every name and avatar opens the right student under the set; Back returns to Class View; the note shows beside the names and moves nothing; Dismiss hides it; a reload and a demo reset keep it hidden; clearing the key shows it again
-- [ ] vitest, eslint, tsc, next build, check:laptop
+- [x] Click-through at 1280×800 and 1440×900: every name and avatar opens the right student under the set; Back returns to Class View; the note shows beside the names and moves nothing; Dismiss hides it; a reload and a demo reset keep it hidden; clearing the key shows it again
+- [x] vitest, eslint, tsc, next build, check:laptop

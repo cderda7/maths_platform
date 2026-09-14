@@ -3329,6 +3329,14 @@ uploaded problems) settled the following as later, each on purpose.
 - **A two-column layout for very long workings** instead of scaling them down (Set 4 Q10 reads at about 88% at 1280×800). Deferred: scaling keeps the working reading top to bottom.
 - **The not-solved note with four or more problems** would push Incorrect's floor past 270 px and squeeze Correct first try. Deferred: three is the most any record has.
 
+## A name opens the holistic page (ticket 253, 2026-09-14)
+
+- **Dismissals per teacher account, across devices.** The "did you know?" dismissal lives in this browser's localStorage; a second laptop or a cleared browser shows it again. Deferred: the demo has no accounts or server.
+- **A general tips system** (a queue of one-time "did you know?" notes, one at a time, a "show tips again" setting). Deferred: one note was asked for; its key and hook are shaped so a second could follow.
+- **Keeping the roster's scroll on return from a holistic page.** Back and browser back land at the top of Class View, so a teacher who opened a student lower down scrolls back to them. Deferred: not asked; the same gap as ticket 251's page.
+- **The note reachable from the student's own row** (a hint the first time a teacher hovers a name). Deferred: the ticket placed it beside the names, once.
+- **Links from the other rosters** (Mistakes rows, Groups seats, the smartboard) to the holistic page. Deferred: the ticket names Class View only.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

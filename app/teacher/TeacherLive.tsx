@@ -18,7 +18,7 @@ import type { Classmate } from "@/data/classmates";
 import { CATEGORY_ORDER, categoryName, isFlat, type CategoryId, type LeafId } from "@/data/taxonomy";
 import { confidenceForms, confidenceLabel, type ConfidenceForm } from "@/lib/report";
 import { BEFORE_HAND_IN_STAGES, type Confidence } from "@/data/types";
-import { assignmentReportHref, assignmentStages, rosterEvidence, rosterProgress } from "@/lib/assignments";
+import { assignmentReportHref, assignmentStages, holisticHref, rosterEvidence, rosterProgress } from "@/lib/assignments";
 import { currentSlide } from "@/lib/classroom";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { canMarkAbsent } from "@/lib/absence";
@@ -27,6 +27,7 @@ import { classmatesAt } from "@/lib/stream";
 import { columnOf, hierarchyFor, problemsStarted, restrictTo, type Evidence } from "@/lib/hierarchy";
 import { pillLabel, type HistoryPoint } from "@/lib/history";
 import { categoryHistory, hasEarlierSets, historyReportHref } from "@/lib/setHistory";
+import { dismissHolisticNote, useHolisticNote } from "@/lib/holisticNote";
 import { useBatchedSession, useNow } from "@/lib/store";
 
 /** How long a second click may follow the first and still count as a double-click. */
@@ -78,6 +79,14 @@ const ROW_ACTIVE = `${ROW_BUTTON} bg-accent text-white hover:bg-accent-deep`;
  * the toggle stay at full strength, so the teacher can still read and undo it.
  */
 const ABSENT_FADE = "opacity-40 grayscale";
+
+/**
+ * A student's name as the link to their holistic page (ticket 253): the name's own box, turning the accent's ink on hover
+ * (nothing moves; an underline would crowd "mark absent" 3 px under it) and a ring on keyboard focus.
+ */
+const NAME_LINK = "rounded-sm outline-none transition-colors hover:text-accent-deep focus-visible:ring-2 focus-visible:ring-accent";
+/** Each avatar as the same link: its own box (a flex item, so no line box grows the row) and the accent ring on hover. */
+const NAME_LINK_AVATAR = "flex shrink-0 rounded-full outline-none transition-shadow hover:ring-2 hover:ring-accent-line";
 
 /** A history pill's height, layout px, and the least space above each (2 px, the last above today's pill). */
 const HISTORY_PILL_PX = 13;
@@ -322,6 +331,10 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
     setHistory(null);
     return true;
   };
+  /** A name or avatar in another student's history mode leaves it, as a click anywhere on their row does, rather than opening their page. */
+  const holisticClick = (student: string, e: React.MouseEvent) => {
+    if (leaveHistory(student)) e.preventDefault();
+  };
   /** "see history": this student's pills widen and name themselves; a column view closes, another student's drill closes, this student's own drill stays. */
   const openHistory = (student: string) => {
     setColumn(null);
@@ -385,6 +398,8 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
   /** The history student's pills over each shown category: only earlier sets that assessed it, so a category may have none (ticket 237). */
   const stacks = history ? columns.map((c) => ({ category: c, points: categoryHistory(assignment.id, history.student, c) })) : [];
   const openStacks = stacks.filter((s) => history?.open.includes(s.category) && s.points.length > 0);
+  /** The "did you know?" beside the Student head (ticket 253): until the teacher dismisses it, once, for good. */
+  const showNote = useHolisticNote() === true;
 
   return (
     <TeacherChrome>
@@ -435,7 +450,10 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
             <thead>
               {/* In history mode the heads' contents fade with the other rows (the th keeps its paper, which the rows scroll under) and their buttons go inert. */}
               <tr className={`text-[10px] uppercase tracking-[0.06em] text-ink-muted ${history ? "pointer-events-none [&>th>*]:opacity-30" : ""}`} data-faded={history ? "" : undefined}>
-                <th className={`${HEAD} px-5 py-4 font-semibold`}>Student</th>
+                <th className={`${HEAD} px-5 py-4 font-semibold`}>
+                  Student
+                  {showNote && <HolisticNote />}
+                </th>
                 {columns.map((c) => {
                   const openHere = column?.category === c;
                   const all: { level: "groups" | "expanded"; word: string }[] = isFlat(c) ? [{ level: "groups", word: "see skills" }] : [{ level: "groups", word: "see skills" }, { level: "expanded", word: "full breakdown" }];
@@ -500,13 +518,16 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
                     >
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <Avatar initials={r.initials} className={fade} />
+                          {/* The avatar and the name open the student's holistic page under this set (ticket 253); the name is the link a keyboard reaches. */}
+                          <Link href={holisticHref(r.id, assignment.id)} onClick={(e) => holisticClick(r.id, e)} tabIndex={-1} aria-hidden className={NAME_LINK_AVATAR} data-holistic-avatar={r.id}>
+                            <Avatar initials={r.initials} className={fade} />
+                          </Link>
                           <div className="relative min-w-0">
                             <div className="flex items-center">
                               {/* The name sits in a fixed slot (the widest name on the roster, Ruby Castellanos at 16 px (132.2), plus 8 px), so the progress pill of every student still on the set starts at the same x instead of staggering with the name's length (ticket 136). A longer name pushes its own pill right; the slot's padding keeps the 8 px. Slot and pill were trimmed a few px in ticket 185 so the longest pill, "Q10 in progress", keeps clear of the row's buttons at 1280 and 1400. */}
-                              <span className={`box-border min-w-[141px] whitespace-nowrap pr-2 text-[16px] font-medium leading-6 text-ink ${fade}`} data-student-name={r.id}>
+                              <Link href={holisticHref(r.id, assignment.id)} onClick={(e) => holisticClick(r.id, e)} className={`box-border min-w-[141px] whitespace-nowrap pr-2 text-[16px] font-medium leading-6 text-ink ${NAME_LINK} ${fade}`} aria-label={`${r.name}: across every set`} data-student-name={r.id}>
                                 {r.name}
-                              </span>
+                              </Link>
                               {/* An absent student's pill says so, in the progress pill's place (ticket 250): grey, no pulse. */}
                               {r.absent ? (
                                 <span className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-line-strong bg-paper px-[7px] py-0.5 text-[11px] font-medium text-ink-muted" data-absent-pill>
@@ -620,7 +641,9 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
                       {/* The avatar again, closing the row so the eye can find its student after crossing the skill columns (tickets 136, 141). */}
                       <td className="px-2 py-3.5">
                         <div className="flex justify-center" data-row-avatar={r.id}>
-                          <Avatar initials={r.initials} className={fade} />
+                          <Link href={holisticHref(r.id, assignment.id)} onClick={(e) => holisticClick(r.id, e)} tabIndex={-1} aria-hidden className={NAME_LINK_AVATAR} data-holistic-avatar={r.id}>
+                            <Avatar initials={r.initials} className={fade} />
+                          </Link>
                         </div>
                       </td>
                     </tr>
@@ -818,6 +841,27 @@ function ConfidenceWords({ form }: { form: ConfidenceForm }) {
         </>
       )}
     </>
+  );
+}
+
+/**
+ * "Did you know?" (ticket 253): a student's name opens them across every set, and that page is also Holistic Assessment in
+ * Edexia Classroom. Laid over the Student head's blank space to the right of its label, inside the sticky head so it rides
+ * along with the names, and absolutely placed, so the head, the rows and the columns measure the same with it and without it.
+ * Dismiss hides it for good (`lib/holisticNote.ts`). See DECISION_LOG.md, "The Class View's "did you know?" lies over the Student head".
+ */
+function HolisticNote() {
+  return (
+    <span className="pointer-events-none absolute inset-y-0 left-[88px] right-2 flex items-center normal-case tracking-normal" data-holistic-note>
+      <span className="pointer-events-auto flex items-center gap-2 rounded-lg border border-accent-line bg-accent-soft py-1 pl-2.5 pr-1 text-[11.5px] font-normal leading-[14px] text-ink-soft" role="note">
+        <span data-holistic-note-text>
+          <span className="font-semibold text-accent-deep">Did you know?</span> A name opens that student&rsquo;s Holistic Assessment, also in Edexia Classroom.
+        </span>
+        <button type="button" onClick={dismissHolisticNote} className="shrink-0 rounded-md px-1.5 py-1 text-[11.5px] font-medium leading-none text-accent-deep transition-colors hover:bg-standout-line" data-holistic-note-dismiss>
+          Dismiss
+        </button>
+      </span>
+    </span>
   );
 }
 
