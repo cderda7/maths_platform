@@ -4,7 +4,7 @@
 
 **Blocked by:** none.
 
-**Status:** open
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -22,5 +22,5 @@ Outside review (2026-09-14): the student link "is the first card on the landing 
 
 ## Acceptance
 
-- [ ] Click-through at 1280×800: `/` lands on Edexia Classroom with the live and past cards; `/demo` shows the chooser and its three cards and split link open their surfaces; the teacher chrome's brand link does not loop back to the chooser
-- [ ] vitest, eslint, tsc, next build, check:laptop
+- [x] Click-through at 1280×800: `/` lands on Edexia Classroom with the live and past cards; `/demo` shows the chooser and its three cards and split link open their surfaces; the teacher chrome's brand link does not loop back to the chooser
+- [x] vitest, eslint, tsc, next build, check:laptop

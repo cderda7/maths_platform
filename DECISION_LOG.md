@@ -4423,3 +4423,15 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Every screen, deep link and click-through that assumed a live PS6 must send it first; the teacher side is empty of a live set until someone does. A presenter who wants Sam to lag behind the class must use the student skip afterwards.
 
 **Defense.** Sending is the product's real first event, so the demo now starts where a lesson starts, and one shared state for every surface keeps the tabs consistent, as the rest of the demo already guarantees.
+
+## 2026-09-14 · `/` redirects to `/teacher`; the chooser moves to `/demo` (ticket 265)
+
+**Decision.** `app/page.tsx` is a server `redirect("/teacher")`, prerendered by Next as a 307; the presenter's chooser moves unchanged to `app/demo/page.tsx`.
+
+**Context.** Outside review: a cold visitor's first click from the landing was the Student card, so their first impression was the student's final report. The user: "/ goes to teacher's edexia classroom".
+
+**Alternatives considered.** *Render `Classroom` at `/` too*: two URLs for one page, the address bar reads `/` while every link and "← Edexia Classroom" say `/teacher`, and the Classroom tab's active state would need both. *A `redirects()` entry in `next.config.ts`*: equivalent at runtime, but the route would vanish from `app/` and a reader of the tree would not find what `/` does; the repo already redirects old URLs from `page.tsx` (`/teacher/mistakes`, `/teacher/report`). *A client redirect*: a flash of an empty page and a history entry for `/` that Back would bounce off.
+
+**Tradeoffs.** A 307 (temporary), not 308: browsers do not cache it, so `/` can become something else later without stale redirects; the cost is one extra round trip on every visit to `/`. The chooser is one hop further for the presenter (`/demo`).
+
+**Defense.** One URL per page, Back behaves (it skips `/`), and the route stays discoverable in `app/` beside the other redirects.

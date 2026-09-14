@@ -41,13 +41,14 @@ says the chat isn't connected on this device, and the create screen says the upl
 matched by the file's hash; typed text through the shorthand parser) so it runs without a key.
 Everything else in the demo still runs offline.
 
-Open **/** and pick a side. Use tabs of the same browser: the student iPad in one, the teacher in
-another, the board in a third when projecting. Or open **/split** to see any one, two or all
+**/** opens the teacher's Edexia Classroom (it redirects to `/teacher`, ticket 265). The presenter's
+chooser is **/demo**: pick a side there. Use tabs of the same browser: the student iPad (`/student`) in one,
+the teacher in another, the board (`/board`) in a third when projecting. Or open **/split** to see any one, two or all
 three of them in one tab, fitted to the window (toggles in the dashed toolbar; stacked, the
 student over the teacher with the board down the right, or side by side; drag the handle on any
 boundary to resize, double-click it to reset); the panes are the real routes and stay in step
 with each other and with any other tab. The dashed "Reset demo"
-pinned bottom-right on the entry page and every teacher page (and in the split view's toolbar)
+pinned bottom-right on the chooser at `/demo` and every teacher page (and in the split view's toolbar)
 restarts everything in every tab; it is a presenter control, not part of the product.
 
 ## The demo, in order
@@ -313,6 +314,7 @@ Useful starts: `/student?stage=working&pathway=wc` (hand in, wait for the board)
 
 ## Where things are
 
+- `app/page.tsx` redirects `/` to `/teacher`; `app/demo/` the presenter's chooser.
 - `app/student/` the iPad app (one client component, one screen per stage);
   `app/teacher/` the teacher pages, the creation screen with `PathwayMap`, whole-class setup and
   the board; `app/split/` the presenter's split view, the three routes in scaled iframes.
