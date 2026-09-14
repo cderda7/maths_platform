@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
 import { DEFAULT_GROUPS } from "@/data/groups";
-import { absentOf, canMarkAbsent, liveAbsent, presentCount, presentGroups, withAbsence } from "./absence";
+import { absenceLocked, absentOf, canMarkAbsent, liveAbsent, presentCount, presentGroups, withAbsence } from "./absence";
 import { assignmentBundle, classSize, submittedCount } from "./assignments";
 import { classroomCards } from "./classroomCards";
 import { classroomReducer, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
@@ -58,6 +58,14 @@ describe("absences in the classroom", () => {
     expect(canMarkAbsent("live", "priya")).toBe(true);
     expect(canMarkAbsent("finished", DEMO_STUDENT.id)).toBe(true);
     expect(absentOf(mark(INITIAL_CLASSROOM, DEMO_STUDENT.id, true, "pset-5"), "pset-5")).toEqual([DEMO_STUDENT.id]);
+  });
+
+  it("disables mark absent once the student has handed the set in; mark present always acts (ticket 270)", () => {
+    expect(absenceLocked({ kind: "submitted" }, false)).toBe(true);
+    expect(absenceLocked({ kind: "submitted" }, true)).toBe(false);
+    expect(absenceLocked({ kind: "not-started" }, false)).toBe(false);
+    expect(absenceLocked({ kind: "warming-up" }, false)).toBe(false);
+    expect(absenceLocked({ kind: "working", label: "Q4" }, false)).toBe(false);
   });
 
   it("reset returns to the demo's absences", () => {

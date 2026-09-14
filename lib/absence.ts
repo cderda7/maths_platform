@@ -2,6 +2,7 @@ import { DEMO_ABSENCES } from "@/data/absences";
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { GROUP_COLOURS, type SeatingGroups } from "@/data/groups";
 import type { ClassroomState } from "./classroom";
+import { isSubmitted, type StudentProgress } from "./progress";
 
 /**
  * Absent students (ticket 250): per assignment, the students the teacher has marked as not in the room. An
@@ -33,6 +34,12 @@ export function withAbsence(list: readonly string[], student: string, absent: bo
 
 /** Whether the roster offers the toggle: every row but the live student's on the live set. */
 export const canMarkAbsent = (assignmentKind: "live" | "finished", student: string): boolean => assignmentKind !== "live" || student !== DEMO_STUDENT.id;
+
+/**
+ * Whether the offered toggle is disabled (ticket 270): a student who has handed the set in was there to do it, and one stray
+ * press would grey their work out of every count. An absent student's "mark present" always acts, so a mark can be undone.
+ */
+export const absenceLocked = (progress: StudentProgress, absent: boolean): boolean => !absent && isSubmitted(progress);
 
 /** The ids of those present, in the order given. */
 export const presentOf = <T extends string>(ids: readonly T[], absent: readonly string[]): T[] => ids.filter((id) => !absent.includes(id));

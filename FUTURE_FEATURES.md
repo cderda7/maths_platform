@@ -3350,6 +3350,13 @@ uploaded problems) settled the following as later, each on purpose.
 - **Sam's own habits on the live set feeding his tile.** Deferred: the sheet has none for his live row (see ticket 251).
 - **Keeping the tiles' scroll when the URL is typed or the tab reloads mid-visit** (today the Classroom's entry resets it, a typed URL keeps the last). Deferred: minor.
 
+## Mark absent once handed in (ticket 270, 2026-09-14)
+
+- **The reducer refusing `absence/set` for a handed-in student**, not only the roster's disabled button. Deferred: the reducer has no view of the live stream's progress at `now` or the finished records; only the roster dispatches it today.
+- **Locking mark absent for a student mid-set on the live lesson** (warming up, a Q in progress), who also has work on screen. Deferred: the ask was sets already submitted; a student can leave the room mid-lesson.
+- **A student marked absent who then hands in** (live set) being brought back automatically, or a prompt to. Deferred: the teacher's mark stands until they press mark present (no system-decides).
+- **An "absent" override for a handed-in student** (a teacher who wants a submission left out of the counts, e.g. work done at home while away). Deferred: not asked for; the disabled button is the guard.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

@@ -4603,3 +4603,15 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Arriving at `/teacher/students` by typing the URL after opening a student returns to the old scroll. One more storage key.
 
 **Defense.** Exact return by both ways back, with no change to the student page and one line on the Classroom's entry.
+
+## 2026-09-14 · Mark absent is disabled, not hidden, once the student has handed in; the guard is in the roster, not the reducer (ticket 270)
+
+**Decision.** A present student whose set is handed in (`isSubmitted`) keeps the "mark absent" button in its place, disabled and grey with a "has handed this set in" tooltip. An absent student's "mark present" always acts. The `absence/set` reducer is unchanged.
+
+**Context.** The user: "disable mark absent for an assignment already submitted -- otherwise, teacher might accidentally click on it & erase student work." On a finished set nineteen of twenty rows handed in.
+
+**Alternatives considered.** *Hide the button for those rows*: nothing to press, but the teacher can no longer tell the control exists or why it is missing on most rows. *A confirm step on mark absent*: a gate on every mark, including the legitimate ones. *Refuse in the reducer too*: the reducer knows the classroom state but not the live stream's progress at `now` or the finished records, so it would need the assignment bundle passed in.
+
+**Tradeoffs.** A disabled control on most rows of a finished set shows on hover. A student marked absent before handing in (then handing in on the live set) stays absent until the teacher presses mark present. A dispatch from outside the roster could still mark a handed-in student absent.
+
+**Defense.** The ask is to disable; the grey button with its reason explains itself, the one way in is guarded with the same progress the row already shows, and undo is never blocked.

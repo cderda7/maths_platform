@@ -21,7 +21,7 @@ import { BEFORE_HAND_IN_STAGES, type Confidence } from "@/data/types";
 import { assignmentReportHref, assignmentStages, holisticHref, rosterEvidence, rosterProgress } from "@/lib/assignments";
 import { currentSlide } from "@/lib/classroom";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
-import { canMarkAbsent } from "@/lib/absence";
+import { absenceLocked, canMarkAbsent } from "@/lib/absence";
 import { progressTag } from "@/lib/progress";
 import { classmatesAt } from "@/lib/stream";
 import { columnOf, hierarchyFor, problemsStarted, restrictTo, type Evidence } from "@/lib/hierarchy";
@@ -73,6 +73,8 @@ const STACK_TALL = `${STACK_ACTIVE} grid h-[calc(2*(1.375*11px_+_6px)_+_4px)] pl
 const ROW_BUTTON = "w-[96px] whitespace-nowrap rounded-md px-1 py-[2px] text-[11.5px] font-medium leading-none transition-colors";
 const ROW_IDLE = `${ROW_BUTTON} bg-standout-soft text-accent-deep hover:bg-standout-line`;
 const ROW_ACTIVE = `${ROW_BUTTON} bg-accent text-white hover:bg-accent-deep`;
+/** A row button that cannot act (ticket 270's mark absent once handed in): grey on the cream, no hover (the arrow, as everywhere on the teacher side). */
+const ROW_DISABLED = `${ROW_BUTTON} bg-cream-deep text-ink-muted`;
 
 /**
  * An absent student's row (ticket 250): every cell's contents greyed, nothing moved. The row's buttons, the "absent" pill and
@@ -357,7 +359,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
    * A row still on the set carries its progress beside the name, in the pill that read "in progress" (ticket 185):
    * "Q4 in progress" or "warming up"; the live student before his first screen keeps "not started", and once handed in "in progress" as before.
    */
-  type Row = { id: string; name: string; initials: string; live: boolean; missing: boolean; evidence: Evidence; sub: string; confidence: { text: string; tone: string }; set: string; setSub: string; tag: string | null; /** Marked absent on the set (ticket 250): greyed, out of every count. */ absent: boolean };
+  type Row = { id: string; name: string; initials: string; live: boolean; missing: boolean; evidence: Evidence; sub: string; confidence: { text: string; tone: string }; set: string; setSub: string; tag: string | null; /** Marked absent on the set (ticket 250): greyed, out of every count. */ absent: boolean; /** Handed in and present, so mark absent is disabled (ticket 270). */ locked: boolean };
   /** A student with a fixed record on the set: a classmate, or Sam on a finished set (ticket 187). */
   const recordRow = (c: Classmate): Row => ({
     id: c.id,
@@ -372,6 +374,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
     setSub: "",
     tag: progressTag(progress[c.id]),
     absent: assignment.absent.includes(c.id),
+    locked: absenceLocked(progress[c.id], assignment.absent.includes(c.id)),
   });
   const rows: Row[] = [
     assignment.sam ? recordRow(assignment.sam) : {
@@ -387,6 +390,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
       setSub: live && !HANDED_IN.includes(live.stage) ? "handed in" : "",
       tag: progressTag(progress[DEMO_STUDENT.id]) ?? (progress[DEMO_STUDENT.id].kind === "not-started" ? "not started" : "in progress"),
       absent: false,
+      locked: false,
     },
     ...assignment.classmates.map((c) => recordRow(records.get(c.id) ?? c)),
   ];
@@ -541,14 +545,18 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
                               )}
                             </div>
                             {/* Mark absent / mark present (ticket 250): one of the row's buttons (same width, so the word changing moves nothing), under the name, laid over the row's padding so the row never grows; shown with the stack. The live student on the live set is on his iPad, so has none. */}
+                            {/* Once the student has handed the set in it is disabled (ticket 270): one stray press would grey their work out of every count. */}
                             {canMarkAbsent(assignment.kind, r.id) && (
                               <button
                                 type="button"
+                                disabled={r.locked}
                                 onClick={() => dispatchClassroom({ type: "absence/set", assignment: assignment.id, student: r.id, absent: !r.absent })}
-                                className={`absolute left-0 top-full mt-[3px] ${ROW_IDLE} ${inHistory ? "visible" : "invisible"} ${actionsShown}`}
+                                className={`absolute left-0 top-full mt-[3px] ${r.locked ? ROW_DISABLED : ROW_IDLE} ${inHistory ? "visible" : "invisible"} ${actionsShown}`}
+                                title={r.locked ? `${r.name} has handed this set in` : undefined}
                                 aria-pressed={r.absent}
-                                aria-label={r.absent ? `Mark ${r.name} present` : `Mark ${r.name} absent`}
+                                aria-label={r.locked ? `Mark ${r.name} absent: unavailable, ${r.name} has handed this set in` : r.absent ? `Mark ${r.name} present` : `Mark ${r.name} absent`}
                                 data-absent-toggle={r.id}
+                                data-absent-locked={r.locked || undefined}
                               >
                                 {r.absent ? "mark present" : "mark absent"}
                               </button>
