@@ -4780,3 +4780,19 @@ rule for pens is untouched and the exception is visible and named.
 **Added the same day.** The presenter now always lands on this step, so two things it showed became their own fixes. (1) An accepted addition takes the slot of a removed question (first addition, first freed slot), else comes last: the scripted assessment removes a repeat and adds the worded problem, which the seed's own comment calls a replacement, so the set reads Q1 to Q10 in the students' order; the alternative, reordering the draft seed, cannot work (the ball problem is not in the draft), and sorting the finalised set by bank order would ignore a teacher's own reorder (ticket 150). The addition's card names where it went ("added as Q9"). (2) The Create steps' floating bar and the clearance under their content are one pair of constants (`createBar.ts`): the clearance is the bar's whole reach above the window's bottom edge (`bottom-16` plus a size-lg button, `pb-28`, was `pb-24`), so the last row clears it at the end of the scroll whatever the presenter strip's height. Moving the bar into its own row would clear it at rest too but takes about 70 px from every step; logged in FUTURE_FEATURES.
 
 **Defense.** The user's own words set the landing; Create is the real product path, so the presenter demos exactly what a teacher does. Lifting Create into a pure function made the skip's draft provable (the ten problem ids, goal and New skills equal PS6's) and kept one definition of sending. Reading "a set is out" on the iPad keeps the lesson message a pure state transfer.
+
+## 2026-09-14 · A student's skill tree is a sheet over the rows below, not a row in the table (ticket 284)
+
+**Decision.** The Class View's single-student skill tree renders in `DrillSheet`, an absolute sheet in the roster box laid over the rows under the student's row, instead of a `<tr>` inserted after it. The table never changes height for it. The sheet ends on a row line, grows the roster box's bottom padding when it runs past the card, and closes on a click on its blank paper.
+
+**Context.** Ticket 280 kept the pressed row under the pointer by scrolling the frame when a tree above it opened or closed; the user found the page jumping around "not great" and asked for the tree to pop up over the next students' rows, as history's results stand over the rows above.
+
+**Alternatives considered.**
+- *Keep the row and anchor harder (animate the scroll)*: the page still moves; the user rejected moving.
+- *A floating panel beside the roster*: breaks the trees' alignment under their category pills, which the drill's columns are built on.
+- *A sheet sized to the tree alone*: its bottom edge cut a covered row through its middle, a strip of that row peeking out.
+- *Fading every other row, as history does*: history is a mode about one student; a tree is a quick look, and the rows above and below stay in use (their pills and buttons act at once).
+
+**Tradeoffs.** Rows under the sheet cannot be clicked until it closes (a click there closes it, the next acts). A tree near the bottom adds scroll room under the card while open. The column view still inserts rows under every student, so it still reflows (logged). The sheet is outside the student's `tbody`, so the row buttons' hover needs `sheetHover` state.
+
+**Defense.** The same overlay idea as history, mirrored downward, means one mental model for both, and nothing on the roster moves under the pointer, which removes the problem ticket 280's anchoring only patched.

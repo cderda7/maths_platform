@@ -1282,6 +1282,12 @@ uploaded problems) settled the following as later, each on purpose.
 - **A Create bar that never covers content at rest.** Since ticket 272 every Create step leaves the floating bar's whole height under its content (`CREATE_BAR_CLEARANCE`), so the last row scrolls clear of Back and Create; before scrolling, at 1280x800, the pair still floats over the Confirm groups card's violet column (Ruby's row). A bar in its own row under the scroll region, like the presenter strip, would never cover anything but costs every Create step about 70 px of height; not asked for.
 - **Where an addition goes with no removal accepted.** It still comes last; choosing a slot for it (by difficulty, or by the teacher dragging it) was left out.
 
+## Skill tree as a sheet (ticket 284, 2026-09-14)
+
+- **The column view as an overlay.** A header's "see skills" / "full breakdown" still opens a row under every student and reflows the roster; a per-row overlay cannot hold twenty trees. Left as is (not asked for); ticket 280's anchoring still keeps the pressed row still.
+- **Opening upward near the bottom.** A tree under the last students runs past the card and adds scroll room; opening it over the rows above when there is more room there was left out.
+- **A close control on the sheet.** The sheet closes on its blank paper, another row, Escape or the row's "close"; no × of its own.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

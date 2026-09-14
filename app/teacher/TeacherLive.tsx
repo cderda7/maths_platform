@@ -225,6 +225,8 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
   const nonce = useRef(0);
   /** True once the pointer has been off every marker (pill or drill dot) for PILL_GRACE_MS; the row buttons need it. One timer for the grid: markers in any row count. */
   const [pillQuiet, setPillQuiet] = useState(true);
+  /** The pointer is over the open student's sheet (ticket 284): outside their tbody, so their row buttons are kept in view by hand. */
+  const [sheetHover, setSheetHover] = useState(false);
   const pillTimer = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(pillTimer.current), []);
   /**
@@ -442,6 +444,9 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
   /** The history student's pills over each shown category: only earlier sets that assessed it, so a category may have none (ticket 237). */
   const stacks = history ? columns.map((c) => ({ category: c, points: categoryHistory(assignment.id, history.student, c) })) : [];
   const openStacks = stacks.filter((s) => history?.open.includes(s.category) && s.points.length > 0);
+  /** The open student's tree, drawn by DrillSheet over the rows below theirs (ticket 284). */
+  const openIndex = open ? rows.findIndex((r) => r.id === open.student) : -1;
+  const openResult = open && openIndex >= 0 ? (open.keep ? restrictTo(results[openIndex], open.keep) : results[openIndex]) : null;
   /** The "did you know?" beside the Student head (ticket 253): until the teacher dismisses it, once, for good. */
   const showNote = useHolisticNote() === true;
 
@@ -478,6 +483,11 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
             dueRef={dueRef}
             onClick={() => setHistory(null)}
           />
+        )}
+        {open && openIndex >= 0 && (
+          <DrillSheet key={open.student} student={open.student} tableRef={tableRef} rosterRef={rosterRef} onClose={() => setOpen(null)} onHover={setSheetHover} onPointerOver={markerOver} onPointerOut={markerOut}>
+            <RowDrill key={`${open.student}-${open.mode}-${open.category ?? ""}-${open.leaf ?? ""}-${open.nonce}`} mode={open.mode} result={openResult!} lines={rows[openIndex].evidence.lines} problems={problems} columns={open.columns} category={open.category} initialLeaf={open.leaf ?? null} expandAll={open.expandAll} onNavigate={(leaf) => jump(open.student, leaf)} />
+          </DrillSheet>
         )}
         <Card className="overflow-clip">
           {/* Columns 420 · one per category sized to its chip (80–132, `columnWidth`) · 84 · 64 · 48 (ticket 141; 380 · 96/132 · 92 · 64 · 56 in ticket 136), the minimum their sum. The student column holds the avatar, the name slot, the live pill and, on hover, the two stacked action buttons side by side; the avatar again closes the row in the last column. */}
@@ -541,13 +551,13 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
             {rows.map((r, i) => {
                 const isOpen = open?.student === r.id;
                 const h = isOpen && open.keep ? restrictTo(results[i], open.keep) : results[i];
-                const showDrill = isOpen || !!column;
+                const showDrill = !!column;
                 const inHistory = history?.student === r.id;
                 const faded = !!history && !inHistory;
                 /** The fade on an absent row's contents (ticket 250). */
                 const fade = r.absent ? ABSENT_FADE : "";
                 /** The row buttons' visibility (tickets 128–180), which the absence toggle under the name shares. */
-                const actionsShown = pillQuiet && !faded ? "group-hover/row:visible group-focus-within/row:visible group-has-[[data-dot]:hover]/row:invisible group-has-[[data-node]:hover]/row:invisible" : "";
+                const actionsShown = pillQuiet && !faded ? `group-hover/row:visible group-focus-within/row:visible group-has-[[data-dot]:hover]/row:invisible group-has-[[data-node]:hover]/row:invisible ${isOpen && sheetHover ? "visible!" : ""}` : "";
                 return (
                   <RowGroup key={r.id} onPointerOver={markerOver} onPointerOut={markerOut} onPointerMove={markerMove} faded={faded}>
                     <tr
@@ -689,14 +699,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
                         </div>
                       </td>
                     </tr>
-                    {isOpen && open && (
-                      <tr className="border-b border-line bg-cream/60" data-drill-row={r.id}>
-                        <td colSpan={columns.length + 4} className="px-5 py-4">
-                          <RowDrill key={`${r.id}-${open.mode}-${open.category ?? ""}-${open.leaf ?? ""}-${open.nonce}`} mode={open.mode} result={h} lines={r.evidence.lines} problems={problems} columns={open.columns} category={open.category} initialLeaf={open.leaf ?? null} expandAll={open.expandAll} onNavigate={(leaf) => jump(r.id, leaf)} />
-                        </td>
-                      </tr>
-                    )}
-                    {!isOpen && column && (
+                    {column && (
                       <tr className="border-b border-line bg-cream/60" data-drill-row={r.id} data-column-drill={column.category}>
                         <td colSpan={columns.length + 4} className="px-5 py-3">
                           <RowDrill key={`${r.id}-col-${column.category}-${column.level}-${column.nonce}`} mode="category" result={h} lines={r.evidence.lines} problems={problems} columns={column.boxes[r.id] ?? []} category={column.category} expandAll={column.level === "expanded"} onNavigate={(leaf) => jump(r.id, leaf)} />
@@ -963,6 +966,86 @@ function RowGroup({ children, onPointerOver, onPointerOut, onPointerMove, faded 
     <tbody className={`group/row ${faded ? "opacity-30" : ""}`} onPointerOver={onPointerOver} onPointerOut={onPointerOut} onPointerMove={onPointerMove} data-faded={faded ? "" : undefined}>
       {children}
     </tbody>
+  );
+}
+
+/** Space left under the sheet when it runs past the roster card, layout px, so its bottom can scroll clear of the frame's edge. */
+const SHEET_TAIL_PX = 24;
+/** The sheet's `border-y`, layout px. */
+const SHEET_BORDERS_PX = 2;
+
+/**
+ * A student's open skill tree as a sheet over the rows below theirs (ticket 284), as history's results stand over the
+ * rows above: the table never grows, so no row moves as a tree opens, closes or changes. Its left and width are the
+ * table's, its top the student's row's bottom edge (so the tree's columns sit under the pills as the drill row's did),
+ * measured relative to the roster box in layout px (the teacher frame is zoomed) whenever the table or the sheet
+ * changes size. Where it runs past the card, the roster box takes bottom padding so the frame can scroll to its end.
+ * A click on its blank paper closes it, like a click on any other student's row; the trees, the work and every control
+ * inside keep their clicks.
+ */
+function DrillSheet({ student, tableRef, rosterRef, onClose, onHover, onPointerOver, onPointerOut, children }: { student: string; tableRef: React.RefObject<HTMLTableElement | null>; rosterRef: React.RefObject<HTMLDivElement | null>; onClose: () => void; onHover: (on: boolean) => void; onPointerOver: React.PointerEventHandler<HTMLDivElement>; onPointerOut: React.PointerEventHandler<HTMLDivElement>; children: React.ReactNode }) {
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [box, setBox] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
+  useLayoutEffect(() => {
+    const table = tableRef.current;
+    const roster = rosterRef.current;
+    const content = contentRef.current;
+    if (!table || !roster || !content) return;
+    const measure = () => {
+      const row = table.querySelector(`tr[data-row="${CSS.escape(student)}"]`)?.getBoundingClientRect();
+      if (!row) return;
+      const R = roster.getBoundingClientRect();
+      const scale = R.width / (roster.offsetWidth || R.width);
+      const T = table.getBoundingClientRect();
+      const top = (row.bottom - R.top) / scale;
+      // The tree's own height, stretched to the bottom edge of the row it ends over, so the cut is a row's line, never a sliver of a row.
+      // With the sheet's own top and bottom border (border-box).
+      const natural = content.offsetHeight + SHEET_BORDERS_PX;
+      const edges = [...table.querySelectorAll<HTMLElement>("tbody tr[data-row]")].map((r) => (r.getBoundingClientRect().bottom - R.top) / scale);
+      const edge = edges.find((e) => e >= top + natural);
+      // Past the last row (a tree under the bottom students) there is no line to meet: the tree's own height.
+      const height = edge !== undefined ? edge - top : natural;
+      setBox((b) => {
+        const next = { left: (T.left - R.left) / scale, top, width: T.width / scale, height };
+        return b && b.left === next.left && b.top === next.top && b.width === next.width && b.height === next.height ? b : next;
+      });
+      const card = table.parentElement?.getBoundingClientRect();
+      const cardBottom = card ? (card.bottom - R.top) / scale : top;
+      roster.style.paddingBottom = `${Math.max(0, top + height + SHEET_TAIL_PX - cardBottom)}px`;
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(table);
+    ro.observe(content);
+    window.addEventListener("resize", measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+      roster.style.paddingBottom = "";
+      onHover(false);
+    };
+  }, [student, tableRef, rosterRef, onHover]);
+  return (
+    <div
+      ref={sheetRef}
+      className={`absolute z-[15] border-y border-line bg-paper shadow-[0_10px_18px_-10px_rgba(20,24,60,0.18)] ${box ? "" : "invisible"}`}
+      style={{ left: box?.left ?? 0, top: box?.top ?? 0, width: box?.width, height: box?.height }}
+      onClick={(e) => {
+        if (!(e.target as HTMLElement).closest("[data-col], button, a")) onClose();
+      }}
+      onPointerEnter={() => onHover(true)}
+      onPointerLeave={() => onHover(false)}
+      onPointerOver={onPointerOver}
+      onPointerOut={onPointerOut}
+      data-drill-sheet={student}
+    >
+      <div className="h-full bg-cream/60">
+        <div ref={contentRef} className="px-5 py-4" data-drill-row={student}>
+          {children}
+        </div>
+      </div>
+    </div>
   );
 }
 
