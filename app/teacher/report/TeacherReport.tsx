@@ -105,9 +105,10 @@ export function ReportBody({ student, back }: { student: string | null; back?: {
         </Link>
       )}
       {/* "← Class view" above the eyebrow (ticket 266), the Class View's own "← Edexia Classroom" button: unzoomed back to the Class View's
-          scale and raised by the difference in the page's top padding, so the two match to the pixel, size and distance under the bar. */}
+          scale, and raised by what the report's larger bar and top padding add (ticket 268: 20.2 screen px, 28 of the button's px), so the
+          two sit in the same spot on screen, measured from the top of the window. */}
       {!back && (
-        <div style={{ zoom: TEACHER_ZOOM / REPORT_ZOOM, marginTop: -12, "--back-zoom": TEACHER_ZOOM } as CSSProperties}>
+        <div style={{ zoom: TEACHER_ZOOM / REPORT_ZOOM, marginTop: -28, "--back-zoom": TEACHER_ZOOM } as CSSProperties}>
           <BackButton href={assignmentHref(assignment.id, "class")} data-back-to-class>
             Class view
           </BackButton>

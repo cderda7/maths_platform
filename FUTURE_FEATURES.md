@@ -3250,15 +3250,15 @@ uploaded problems) settled the following as later, each on purpose.
 
 ## Report back button (ticket 266, 2026-09-14)
 
-- **Ethan's PS4 report scrolls 10 px at 1280×800.** The "← Class view" button's row adds ~15 px to the report; every other report on PS1–PS5 still fits, but Ethan's six commentary lines leave his page 10 px into its empty bottom padding (no content hidden). Deferred: ticket 244 (in flight) makes the skills card fill the page height, which reworks this page's vertical fit; trimming spacing the user did not ask about now would clash with it.
+- **Ethan's PS4 report scrolls 10 px at 1280×800.** *Resolved by ticket 268: the report's button rose 11.5 px to Class View's spot on screen, and every report on PS1–PS5 fits again.* The "← Class view" button's row adds ~15 px to the report; every other report on PS1–PS5 still fits, but Ethan's six commentary lines leave his page 10 px into its empty bottom padding (no content hidden). Deferred: ticket 244 (in flight) makes the skills card fill the page height, which reworks this page's vertical fit; trimming spacing the user did not ask about now would clash with it.
 - **The Reset demo pill covers the report's key** ("no evidence yet" under it at 1280×800). Pre-existing, seen during this ticket's screenshots. Deferred: the pill is demo-only chrome; not part of this ask.
 - **One back-button component for the history Return button.** The pulsing "← Return to …" on a report opened from history (ticket 237) is still its own larger, bolder link. Deferred: it is deliberately louder; merging styles is a design call.
 
 ## Back buttons at the window's edge (ticket 267, 2026-09-14)
 
-- **The rest of the page's left edge.** Only the back button moved to the report's spot; the logo, eyebrow, title and table on Class View, Mistakes, Groups and Create stay in their centred column, so on a wide window the button sits well left of them (21.6 px vs 387 px at 1920). Deferred: the user chose "just the button" over widening every page to the report's frame.
+- **The rest of the page's left edge.** Only the back button moved to the report's spot; the logo, eyebrow, title and table on Class View, Mistakes, Groups and Create stay in their centred column, so on a wide window the button sits well left of them (since ticket 268 at the report's column: 244 px vs 387 px at 1920). Deferred: the user chose "just the button" over widening every page to the report's frame.
 - **Classic scrollbars.** `BACK_LEFT` measures the window with `100vw`, which counts a classic (always-shown) scrollbar that the centred column does not, so with one on a wide window the button lands half a scrollbar (~7 px) off. Deferred: macOS overlay scrollbars (the demo laptop) take no width; a container-query unit on the scroll region would fix it but also makes it the containing block for fixed flyouts.
-- **The history report's pulsing Return button** still sits at the report column's padding, which is the same 21.6 px until the window passes 1476 px. Deferred: it is not a BackButton (ticket 266 note).
+- **The history report's pulsing Return button** sits at the report column's padding, which since ticket 268 is where every BackButton is too; it is 11.5 px lower on screen, since the history chrome is not raised. Deferred: it is not a BackButton (ticket 266 note).
 
 ## Absent students (ticket 250, 2026-09-14)
 
@@ -3270,6 +3270,11 @@ uploaded problems) settled the following as later, each on purpose.
 - **Marking absence from other screens** (the Groups tab's chips, the Mistakes view, a quick "who's here" roll call at the start). Deferred: the ticket put the toggle on the Class View roster; ticket 255 raises the decision at the start of the lesson.
 - **Absences affecting homework and the reflection** (an absent student gets the set as homework, or catch-up work). Deferred: the homework model comes after in-class work.
 - **A keyboard path to the row toggle.** Like the row's stacked buttons it shows on hover or when focus is inside the row. Deferred: the same as the existing row buttons.
+
+## Back buttons level with the report's eyebrow (ticket 268, 2026-09-14)
+
+- **On a narrow window (under ~1180 px) Class View's column starts 4 px left of the back button** rather than the button overhanging it (Class View's eyebrow at 17.3 px, the report's at 21.6 px). Deferred: the user asked for every button at the report's spot and accepted it not lining up with its own page's column.
+- **A shared constant for the report's zoom in `BACK_LEFT`.** The calc spells the report's column as `1476px` and `21.6px` (1640 and 24 at 0.9) because `REPORT_ZOOM` lives in `TeacherReport.tsx`, which imports `AssignmentContext`. Deferred: moving `REPORT_ZOOM` into `TeacherChrome` touches files peers are editing; a change to the report's zoom must update the calc (and the report's -28 px raise).
 
 ## Carson's notes
 
