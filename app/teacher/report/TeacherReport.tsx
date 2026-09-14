@@ -4,9 +4,8 @@ import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from
 import Link from "next/link";
 import { assignmentHref, assignmentStages, studentRecord } from "@/lib/assignments";
 import TeacherChrome, { TEACHER_ZOOM } from "../TeacherChrome";
-import FitText from "@/components/FitText";
 import { WorkLines, WorkPanel } from "@/components/HierarchyDrill";
-import M from "@/components/Math";
+import ProblemQuestion from "@/components/ProblemQuestion";
 import OutcomeTiles from "@/components/OutcomeTiles";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import SkillColumns from "@/components/SkillColumns";
@@ -198,14 +197,15 @@ export function ReportBody({ student, back, work: initialWork = null, from = nul
                               </span>
                             )}
                           </div>
-                          <div className="mt-2 flex min-w-0 items-center gap-2.5">
-                            <span className="font-display text-[18px] text-ink">{openProblem.label}</span>
-                            <DifficultyTag d={openProblem.difficulty} />
-                            <span className="block min-w-0 flex-1 text-ink-soft">
-                              <FitText max={13} fitKey={openProblem.tex}>
-                                <M tex={openProblem.tex} />
-                              </FitText>
+                          <div className="mt-2 flex min-w-0 items-baseline gap-2.5">
+                            <span className="shrink-0 font-display text-[18px] text-ink">{openProblem.label}</span>
+                            <span className="shrink-0 self-center">
+                              <DifficultyTag d={openProblem.difficulty} />
                             </span>
+                            {/* The whole question (ticket 271): the stem's words wrap, the expression never splits. */}
+                            <p className="min-w-0 flex-1 text-[13px] leading-snug text-ink" data-work-question={openProblem.id}>
+                              <ProblemQuestion problem={openProblem} />
+                            </p>
                           </div>
                         </div>
                       ) : (

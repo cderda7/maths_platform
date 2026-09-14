@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import TeacherChrome from "../TeacherChrome";
-import M from "@/components/Math";
+import ProblemQuestion from "@/components/ProblemQuestion";
 import { Button, Card, Eyebrow, H1 } from "@/components/ui";
 import { DifficultyTag } from "@/components/Tag";
 import { useReorder } from "@/components/useReorder";
@@ -101,8 +101,8 @@ export default function WholeClassSetup() {
                   >
                     <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] ${on ? "bg-ink text-white" : "border border-line-strong text-ink-muted"}`}>{on ? "✓" : "+"}</span>
                     <span className="w-7 text-[13px] font-medium text-ink">{p.label}</span>
-                    <span className="min-w-0 flex-1 overflow-hidden whitespace-nowrap text-[13.5px] text-ink">
-                      <M tex={p.tex} />
+                    <span className="min-w-0 flex-1 text-[12.5px] leading-snug text-ink" data-wc-question={p.id}>
+                      <ProblemQuestion problem={p} mathClass="text-[13.5px]" />
                     </span>
                     <span className="shrink-0 text-[12.5px] text-ink-muted" data-struggled>
                       {struggled}/{handedIn} struggled
@@ -170,12 +170,14 @@ export default function WholeClassSetup() {
               <div key={pid} {...reorder.item(i)}>
               <Card className="overflow-hidden" data-wc-examples={pid} data-wc-slot={reorder.slot(i) + 1}>
                 <div className="flex items-center gap-4 border-b border-line px-6 py-3">
-                  <span className="font-display text-[22px] text-ink">{p.label}</span>
-                  <DifficultyTag d={p.difficulty} />
-                  <span className="math-lg text-ink">
-                    <M tex={p.tex} />
+                  <span className="shrink-0 font-display text-[22px] text-ink">{p.label}</span>
+                  <span className="shrink-0">
+                    <DifficultyTag d={p.difficulty} />
                   </span>
-                  <span className="ml-auto text-[12.5px] text-ink-muted">
+                  <p className="min-w-0 text-[15px] leading-snug text-ink" data-wc-examples-question={pid}>
+                    <ProblemQuestion problem={p} mathClass="math-lg" />
+                  </p>
+                  <span className="ml-auto shrink-0 text-[12.5px] text-ink-muted">
                     {refs.length} of {MAX_EXAMPLES} examples
                   </span>
                 </div>

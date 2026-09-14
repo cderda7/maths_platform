@@ -2,7 +2,7 @@
 
 import DiagnosticControl from "@/components/DiagnosticControl";
 import DiagnosticResults from "@/components/DiagnosticResults";
-import M from "@/components/Math";
+import ProblemQuestion from "@/components/ProblemQuestion";
 import type { Problem } from "@/data/types";
 import { pickersAt, questionFor, slippedAt, stepsFor, tally, type SlipRow } from "@/lib/diagnostic";
 import { chainPosition, currentIndex, forceDeadline, type DiagnosticRun } from "@/lib/diagnosticChain";
@@ -22,7 +22,7 @@ export const FOCUS_GAP = 20;
  * qs … after all diagnostics answered & teacher selects 'done', return to mistakes page view. best to organize side by
  * side — so Q2 to the right of Q1, Q3 right of Q2, & the question / chain of questions is center aligned in the page".
  *
- * A header names the problem ("Q1 x² − 5x + 6 = 0 · Live diagnostic"). Under it every step of the chain sits in one row,
+ * A header names the problem ("Q1 · Live diagnostic") over the whole question, stem then expression (ticket 271). Under it every step of the chain sits in one row,
  * in solution order, the row centred on the page: a step already asked keeps its result (counts, misconceptions, who
  * picked what, the students repeating their own slip marked); the step being asked carries the accent border and fills in
  * as answers land; a step still to come shows its question and options only, dimmed. Under the row, centred: where the
@@ -50,9 +50,6 @@ export default function DiagnosticFocus({ run, problem, rows, className = "" }: 
         {problem && (
           <>
             <span data-focus-problem>{problem.label}</span>
-            <span className="whitespace-nowrap text-[36px]" data-focus-tex>
-              <M tex={problem.tex} />
-            </span>
             <span className="text-ink-muted" aria-hidden>
               ·
             </span>
@@ -60,6 +57,12 @@ export default function DiagnosticFocus({ run, problem, rows, className = "" }: 
         )}
         <span>Live diagnostic</span>
       </h1>
+      {/* The whole question under the header (ticket 271): the stem's words, then the expression, never the expression alone. */}
+      {problem && (
+        <p className="mt-2 max-w-[1100px] text-[22px] leading-snug text-ink" data-focus-question>
+          <ProblemQuestion problem={problem} mathClass="text-[26px]" />
+        </p>
+      )}
 
       <div className="mt-8 flex items-stretch justify-center" style={{ gap: FOCUS_GAP }} data-focus-row>
         {run.steps.map((id, i) => {

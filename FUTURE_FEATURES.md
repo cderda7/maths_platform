@@ -3362,6 +3362,12 @@ uploaded problems) settled the following as later, each on purpose.
 - **A category chip on the holistic grid that opens that category across the sets** (its skills per set, as Class View's "see skills"): the user asked only for the look; deferred until a teacher needs a drill on this page.
 - **Sort or filter the set rows** (newest first, or only sets that assess a category): six sets fit on one screen today; with a term of sets the grid will want newest first or a scroll with a sticky head.
 
+## Whole question on teacher screens (ticket 271, 2026-09-14)
+
+- **The figure beside a question.** PS6 Q8 ("The graph of the following is shown. Read off its x-intercepts…") shows its words and expression on teacher screens but not its graph. Deferred: a 300×190 figure does not fit a header row, and the words already say what the student had to do; a thumbnail that opens the figure on hover or press would carry it.
+- **Counts and the Live diagnostic chip on a two-line header.** They centre on the first 69 px of a Mistakes header, so on PS5 Q10's two-line header they sit level with the first line, not the middle. Deferred: only one problem wraps at 1280, and centring them on a variable height means measuring every header.
+- **Stems that repeat the expression.** PS6 Q10's stem ends "…for the graph of y = x² + 4x + 5." and its expression is x² + 4x + 5 = 0, so the question reads the quadratic twice. A data edit for whoever next touches Problem Set 6's wording.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

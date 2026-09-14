@@ -6,6 +6,7 @@ import TeacherChrome from "./TeacherChrome";
 import { BackToClassroom, useAssignmentBundle } from "./AssignmentContext";
 import ForceSubmit from "./ForceSubmit";
 import M from "@/components/Math";
+import ProblemQuestion from "@/components/ProblemQuestion";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { EscapeLayer } from "@/components/useEscape";
 import { DifficultyTag, SlipChip } from "@/components/Tag";
@@ -391,11 +392,11 @@ export default function TeacherMistakes() {
               onMouseLeave={() => armed === problem.id && setArmed(null)}
             >
               <div className="flex items-center gap-4 border-b border-line px-6 py-4" onClick={() => toggle(problem.id)} data-problem-header={problem.id}>
-                <div className="flex items-center gap-4">
-                  <span className="font-display text-[24px] text-ink">{problem.label}</span>
-                  <span className="math-lg text-ink">
-                    <M tex={problem.tex} />
-                  </span>
+                <div className="flex min-w-0 items-center gap-4">
+                  <span className="shrink-0 font-display text-[24px] text-ink">{problem.label}</span>
+                  <p className="min-w-0 text-[17px] leading-snug text-ink" data-problem-question={problem.id}>
+                    <ProblemQuestion problem={problem} mathClass="math-lg" />
+                  </p>
                   <DifficultyTag d={problem.difficulty} />
                   <button
                     type="button"

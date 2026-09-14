@@ -3,6 +3,7 @@
 import { forwardRef, useLayoutEffect, useMemo, useRef, useState } from "react";
 import FitText from "@/components/FitText";
 import M from "@/components/Math";
+import ProblemQuestion from "@/components/ProblemQuestion";
 import { Eyebrow } from "@/components/ui";
 import { useEscape } from "@/components/useEscape";
 import { DifficultyTag, StatusDot, STATUS_TEXT, STATUS_WORD } from "@/components/Tag";
@@ -192,21 +193,14 @@ export const SkillTree = forwardRef<HTMLUListElement, TreeProps>(function SkillT
 export function ProblemWork({ problem: p, texs, leaf = null, onGoTo, student = false, narrow = false }: { problem: Problem; texs: string[]; leaf?: LeafId | null; onGoTo: (l: LeafId) => void; student?: boolean; narrow?: boolean }) {
   return (
     <section className="rounded-xl border border-line bg-paper p-3" data-work-problem={p.id}>
-      <div className={narrow ? "min-w-0" : "flex flex-wrap items-center gap-x-2.5 gap-y-1"}>
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
         <span className="font-display text-[16px] text-ink">{p.label}</span>
         {!student && <DifficultyTag d={p.difficulty} />}
-        {narrow ? (
-          <div className="mt-1 min-w-0 text-ink-soft">
-            <FitText max={13} fitKey={p.tex}>
-              <M tex={p.tex} />
-            </FitText>
-          </div>
-        ) : (
-          <span className="ml-auto text-[13px] text-ink-soft">
-            <M tex={p.tex} />
-          </span>
-        )}
       </div>
+      {/* The whole question under its label (ticket 271): the stem's words wrap, the expression never splits. */}
+      <p className="mt-1 min-w-0 text-[12.5px] leading-snug text-ink" data-work-problem-question={p.id}>
+        <ProblemQuestion problem={p} mathClass="text-[13px]" />
+      </p>
       <WorkLines problem={p.id} texs={texs} leaf={leaf} onGoTo={onGoTo} student={student} narrow={narrow} />
     </section>
   );

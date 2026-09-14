@@ -4,6 +4,7 @@ import Link from "next/link";
 import { assignmentHref, LIVE_ASSIGNMENT_ID } from "@/lib/assignments";
 import TeacherChrome from "../TeacherChrome";
 import M from "@/components/Math";
+import ProblemQuestion from "@/components/ProblemQuestion";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { DifficultyTag, LeafChip } from "@/components/Tag";
 import { DEMO_STUDENT } from "@/data/assignment";
@@ -55,15 +56,17 @@ export default function TeacherCompare() {
           <div className="mt-2 space-y-4" data-compare>
             {aligned.map((a) => (
               <Card key={a.problem.id} className="overflow-hidden" data-problem={a.problem.id}>
-                <div className="flex items-center justify-between border-b border-line px-6 py-3">
-                  <div className="flex items-center gap-3">
-                    <span className="font-display text-[20px] text-ink">{a.problem.label}</span>
-                    <DifficultyTag d={a.problem.difficulty} />
-                    <span className="ml-1 text-[17px] text-ink">
-                      <M tex={a.problem.tex} />
+                <div className="flex items-center justify-between gap-4 border-b border-line px-6 py-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="shrink-0 font-display text-[20px] text-ink">{a.problem.label}</span>
+                    <span className="shrink-0">
+                      <DifficultyTag d={a.problem.difficulty} />
                     </span>
+                    <p className="ml-1 min-w-0 text-[14px] leading-snug text-ink" data-compare-question={a.problem.id}>
+                      <ProblemQuestion problem={a.problem} mathClass="text-[17px]" />
+                    </p>
                   </div>
-                  <span className={`text-[12.5px] ${a.changed ? "text-accent-deep" : "text-ink-muted"}`}>
+                  <span className={`shrink-0 text-[12.5px] ${a.changed ? "text-accent-deep" : "text-ink-muted"}`}>
                     {a.changed ? `${a.rows.filter(rowChanged).length} lines changed` : "unchanged"}
                   </span>
                 </div>

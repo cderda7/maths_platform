@@ -34,3 +34,6 @@ export function stemParts(stem: string, tex = ""): StemPart[] {
   else parts.push({ kind: "text", text: "?" });
   return parts;
 }
+
+/** A hyphen inside a word becomes a non-breaking one (U+2011), so a narrow column never leaves "x-" at a line's end (ticket 271). */
+export const unbrokenHyphens = (s: string) => s.replace(/(\w)-(\w)/g, "$1\u2011$2");

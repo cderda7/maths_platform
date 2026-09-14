@@ -4,7 +4,7 @@ import Link from "next/link";
 import { assignmentHref, LIVE_ASSIGNMENT_ID } from "@/lib/assignments";
 import { useRouter } from "next/navigation";
 import TeacherChrome from "../TeacherChrome";
-import M from "@/components/Math";
+import ProblemQuestion from "@/components/ProblemQuestion";
 import PadSection from "@/components/PadSection";
 import { Card, Eyebrow, H1 } from "@/components/ui";
 import { PROBLEM_MAP } from "@/data/assignment";
@@ -65,11 +65,11 @@ export default function BoardControls() {
       {heading}
       <div className="mt-8 space-y-5" data-board-controls="active" data-slide={slide.index} data-view={slide.view}>
         <Card className="flex items-center gap-5 px-6 py-4" data-controls-problem>
-          <span className="font-display text-[26px] text-ink">{p.label}</span>
-          <span className="math-lg text-[20px] text-ink">
-            <M tex={p.tex} />
-          </span>
-          <span className="min-w-0 flex-1 truncate text-[14px] text-ink-soft">{p.stem}</span>
+          <span className="shrink-0 font-display text-[26px] text-ink">{p.label}</span>
+          {/* The whole question, stem then expression, as it reads on the board (ticket 271); it wraps rather than truncating. */}
+          <p className="min-w-0 flex-1 text-[15px] leading-snug text-ink" data-controls-question>
+            <ProblemQuestion problem={p} mathClass="math-lg text-[20px]" />
+          </p>
         </Card>
 
         <Card className="flex h-[560px] min-h-0 flex-col" data-teacher-pad>

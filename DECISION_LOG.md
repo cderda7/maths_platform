@@ -4627,3 +4627,18 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** A rename across five files for a presentational change; the chip now sets its own type, so on Class View it no longer inherits from the head row (tracking written as 0.6 px, the head's computed 0.06 em at 10 px, so nothing moved).
 
 **Defense.** Names that say what they hold survive the next re-layout, and one chip means "looks like Class View's" stays true.
+
+## 2026-09-14 · A problem on a teacher screen reads as its whole question, in one wrapping line (ticket 271)
+
+**Decision.** Wherever a teacher screen names a problem, it shows the stem's words followed by the expression as one line of prose (`ProblemQuestion`), wrapping between words; the expression never splits and a hyphenated word never breaks. The live diagnostic view's display header drops the expression ("Q2 · Live diagnostic") and carries the question on a line under it. PS6 Q8's graph is not drawn beside its question.
+
+**Context.** The user could not tell from "y = 2x² + 5x − 3" what the student had been asked to do. Every problem already has a stem; the teacher screens dropped it. Stems either lead into the expression ("…of the graph of") or are whole sentences ("Solve for x."), and most fit one line of a Mistakes header at 1280; PS5 Q10's is 201 characters.
+
+**Alternatives considered.**
+- *Stem on its own line above the expression*: every Mistakes header grows by a line (the 69 px row the counts and the Live diagnostic chip centre on), and a short stem like "Solve for x." sits alone on a line.
+- *Truncate the stem with a tooltip*: what Board controls did; hides exactly what the user asked to see.
+- *Draw the figure too*: a 300×190 graph in a header row; the one problem with a figure says "The graph of the following is shown", so the words still tell the teacher the task.
+
+**Tradeoffs.** A long stem makes a two-line header (PS5 Q10: 87 px), where the counts and the chip stay centred on the first 69 px. A sentence-ending stem reads "…state the y-intercept. y = 2(x − 3)² − 5", the expression after the full stop, as on the student's card.
+
+**Defense.** One component and one reading order everywhere, the same order the student saw; short questions keep every row its old height.
