@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState } from "react";
 import PathwayMap from "../../PathwayMap";
 import NewSkills from "../../NewSkills";
 import SeatingBoard from "../../../groups/SeatingBoard";
@@ -14,8 +15,9 @@ import { reviewNewSkills, type ReviewedQuestion, type ReviewState } from "@/lib/
 /**
  * The pathway step, the last before Create: the set's New skills (inferred from the class's last two
  * sets, standing unless the teacher switches one; nothing to confirm, tickets 123 and 209) above the
- * review-pathway map (the same map the old create screen has, on a screen of its own). Create is
- * on throughout.
+ * review-pathway line. The pathway starts undecided (ticket 246): Create looks off and says "Choose a review pathway
+ * first" until the teacher switches a stop on or picks No review, and a press on it then scrolls to the pathway card
+ * and sends one ring out from it instead of creating (the pattern of the whole-class setup's Project).
  *
  * Ticket 188: while the pathway has group review, "Confirm groups" follows the map: the groups this
  * assignment will seat, pre-filled from the class defaults, a student moved by drag or the chip's
@@ -41,18 +43,32 @@ export default function PathwayStep({
   onCreate: () => void;
 }) {
   const skills = reviewNewSkills(final, review, recentSets(LIVE_ASSIGNMENT_ID, RECENT_SETS));
+  const waiting = review.pathway === null;
+  const card = useRef<HTMLDivElement>(null);
+  /** Presses on the waiting Create; each one remounts the ring so it plays again. */
+  const [nudge, setNudge] = useState(0);
+  const create = () => {
+    if (!waiting) return onCreate();
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    card.current?.scrollIntoView({ block: "nearest", behavior: still ? "auto" : "smooth" });
+    setNudge((n) => n + 1);
+  };
   return (
     <div className="pb-24" data-pathway-step>
       <div className="mt-8 max-w-[980px] space-y-4">
         <NewSkills candidates={skills.candidates} chosen={skills.chosen} changed={skills.changed} onChange={(next) => onChange({ newSkills: next ?? undefined })} />
-        <Card className="p-6">
-          <Eyebrow className={DIAGNOSTIC_CHIP}>Review pathway</Eyebrow>
-          <div className="mt-4">
-            <PathwayMap value={review.pathway} onChange={(p: Pathway) => onChange({ pathway: p })} />
-          </div>
-        </Card>
+        <div ref={card} className="scroll-mb-40">
+          <Card className="relative p-6" data-pathway-card>
+            {nudge > 0 && <span key={nudge} className="ring-once pointer-events-none absolute inset-0 rounded-[inherit]" aria-hidden data-ring={nudge} />}
+            <Eyebrow className={DIAGNOSTIC_CHIP}>Review pathway</Eyebrow>
+            <p className="mt-3 max-w-[720px] text-[13px] leading-snug text-ink-soft">Switch on the reviews students go through after working. They always run in this order.</p>
+            <div className="mt-5">
+              <PathwayMap value={review.pathway} onChange={(p: Pathway | null) => onChange({ pathway: p })} />
+            </div>
+          </Card>
+        </div>
       </div>
-      {review.pathway.includes("group") && (
+      {review.pathway?.includes("group") && (
         <Card className="mt-4 p-6" data-confirm-groups>
           <div className="flex items-baseline justify-between gap-6">
             <Eyebrow className={`${DIAGNOSTIC_CHIP} shrink-0`}>Confirm groups</Eyebrow>
@@ -64,10 +80,15 @@ export default function PathwayStep({
         </Card>
       )}
       <div className="fixed bottom-16 right-6 z-30 flex items-center gap-3">
+        {waiting && (
+          <span className="mr-1 text-[13px] text-ink-muted" data-create-waiting>
+            Choose a review pathway first
+          </span>
+        )}
         <Button variant="secondary" size="lg" onClick={onBack} className="shadow-lift" data-back>
           Back
         </Button>
-        <Button size="lg" onClick={onCreate} className="shadow-lift" data-create>
+        <Button size="lg" onClick={create} aria-disabled={waiting || undefined} className={`shadow-lift ${waiting ? "opacity-40" : ""}`} data-create>
           Create
         </Button>
       </div>

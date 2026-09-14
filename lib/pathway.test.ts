@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { allPathways, DEFAULT_PATHWAY, isValidPathway, mapColumns, nextStage, NEW_SET_PATHWAY, parsePathway, pathwayChip, pathwaySentence, STAGE_DESCRIPTION, successors } from "./pathway";
+import { allPathways, DEFAULT_PATHWAY, isValidPathway, nextStage, parsePathway, pathwayChip, STAGE_DESCRIPTION, togglePathway } from "./pathway";
 
 describe("pathway rules", () => {
   it("eight pathways exist, including submit-only, and every one is valid", () => {
@@ -18,26 +18,17 @@ describe("pathway rules", () => {
     expect(isValidPathway(["group", "group", "whole-class"])).toBe(false);
   });
 
-  it("offers only later stages as successors", () => {
-    expect(successors([])).toEqual(["individual", "group", "whole-class"]);
-    expect(successors(["individual"])).toEqual(["group", "whole-class"]);
-    expect(successors(["group"])).toEqual(["whole-class"]);
-    expect(successors(["whole-class"])).toEqual([]);
-    expect(successors(["individual", "group"])).toEqual(["whole-class"]);
-  });
-
-  it("maps each column's arrows from the row of the stage picked before it", () => {
-    const all = ["individual", "group", "whole-class"];
-    expect(mapColumns([])).toEqual([{ options: all, from: 0 }]);
-    expect(mapColumns(["group"])).toEqual([{ options: all, from: 0 }, { options: ["whole-class"], from: 1 }]);
-    expect(mapColumns(["individual"])).toEqual([{ options: all, from: 0 }, { options: ["group", "whole-class"], from: 0 }]);
-    expect(mapColumns(["individual", "whole-class"])).toEqual([{ options: all, from: 0 }, { options: ["group", "whole-class"], from: 0 }]);
-    expect(mapColumns(["individual", "group"])).toEqual([
-      { options: all, from: 0 },
-      { options: ["group", "whole-class"], from: 0 },
-      { options: ["whole-class"], from: 0 },
-    ]);
-    expect(mapColumns(["whole-class"])).toEqual([{ options: all, from: 0 }]);
+  it("switches one stop on the line on or off, the order kept, and the last stop off leaves the choice undecided (ticket 246)", () => {
+    expect(togglePathway(null, "group")).toEqual(["group"]);
+    expect(togglePathway([], "whole-class")).toEqual(["whole-class"]);
+    expect(togglePathway(["whole-class"], "individual")).toEqual(["individual", "whole-class"]);
+    expect(togglePathway(["individual", "whole-class"], "group")).toEqual(["individual", "group", "whole-class"]);
+    expect(togglePathway(["individual", "group", "whole-class"], "group")).toEqual(["individual", "whole-class"]);
+    expect(togglePathway(["group"], "group")).toBeNull();
+    for (const p of allPathways()) for (const s of ["individual", "group", "whole-class"] as const) {
+      const next = togglePathway(p, s);
+      if (next) expect(isValidPathway(next)).toBe(true);
+    }
   });
 });
 
@@ -63,18 +54,15 @@ describe("next stage under a pathway", () => {
 
 describe("pathway words and deep links", () => {
   it("reads the pathway in words", () => {
-    expect(pathwaySentence([])).toBe("individual working → done");
-    expect(pathwaySentence(["individual", "group"])).toBe("individual working → individual review → group review → done");
     expect(pathwayChip(["group", "whole-class"])).toBe("indiv working → group review → class review");
   });
 
-  it("describes every review stage in a short line for the map's hover (ticket 239)", () => {
+  it("describes every review stage in a short line under its stop (tickets 239, 246)", () => {
     expect(STAGE_DESCRIPTION).toEqual({
       individual: "students find and fix their own mistakes",
       group: "groups compare answers and fix mistakes together",
       "whole-class": "you lead the class through anonymous examples on the board",
     });
-    expect(NEW_SET_PATHWAY).toEqual([]);
   });
 
   it("parses deep-link forms and rejects invalid ones", () => {

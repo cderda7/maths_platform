@@ -64,9 +64,9 @@ describe("labels", () => {
 });
 
 describe("the review state and the draft it is about", () => {
-  it("starts a new set's pathway on individual working alone, whatever the demo's own pathway is (ticket 239)", () => {
-    expect(initialReview(pasted()).pathway).toEqual([]);
-    expect(reviewFor(pasted(), null).pathway).toEqual([]);
+  it("starts a new set's pathway undecided, whatever the demo's own pathway is (tickets 239, 246)", () => {
+    expect(initialReview(pasted()).pathway).toBeNull();
+    expect(reviewFor(pasted(), null).pathway).toBeNull();
     expect(DEFAULT_PATHWAY).toEqual(["individual", "group"]);
   });
 
@@ -82,6 +82,14 @@ describe("the review state and the draft it is about", () => {
     expect(fresh.labels).toEqual({ q2: "complex familiar" });
     expect(fresh.pathway).toEqual(["whole-class"]);
     expect(fresh.groups).toBeUndefined();
+  });
+
+  it("keeps a chosen No review for a different draft, never reading it as undecided (ticket 246)", () => {
+    const qs = pasted();
+    const stored: ReviewState = { ...initialReview(qs), step: "pathway", pathway: [] };
+    const edited = [...qs.slice(0, 9), { ...qs[9], text: qs[9].text + " Explain." }];
+    expect(reviewFor(edited, stored).pathway).toEqual([]);
+    expect(reviewFor(edited, { ...stored, pathway: null }).pathway).toBeNull();
   });
 
   it("keeps the groups confirmed on the pathway step for a different draft too, and Create freezes them without touching the class defaults (ticket 188)", () => {

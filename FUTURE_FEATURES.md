@@ -3167,6 +3167,15 @@ uploaded problems) settled the following as later, each on purpose.
 - **Slip counts per step from a mapping, not the wrong line.** A step counts a student when their wrong line is one a distractor mirrors, so one slip (Q1's pair) counts on both "Find the pair" and "Factorise". Deferred: fine for the demo; a per-step attribution of where a slip began would separate them.
 - **Chain sends, who picked what, the problem label on the class card.** Tickets 241 and 242.
 
+## Pathway line (ticket 246, 2026-09-14)
+
+- **Continue tomorrow.** The branching map showed a disabled "continue tomorrow (soon)" under individual working; the line has no place for it, since it is about when working happens, not a review stage. Deferred: the user took it off this screen until it is built.
+- **A description for individual working.** Only the three review stops describe themselves. Deferred: not asked for.
+- **Reorder stages.** The order is fixed (individual → group → class); a teacher who wants class review before group review cannot. Deferred: the user kept the order fixed.
+- **Remember a teacher's usual pathway.** Every new set starts undecided; the last set's pathway could be offered as a one-press choice (never preselected). Deferred: the user wanted the teacher to choose each time.
+- **The line on the Class View card.** The Class View's pathway card still reads as a vertical chip; the same line, read-only, could show there. Deferred: out of this ticket's screen.
+- **Touch sizes.** The stops are 42 px tall; an iPad teacher may want larger targets. Deferred: Create is used on a laptop.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

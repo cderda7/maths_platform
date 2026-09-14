@@ -49,7 +49,8 @@ export default function ReviewAssignment({ assessMs }: { assessMs: number }) {
   }, []);
 
   const create = () => {
-    if (!draft) return;
+    // An undecided pathway never creates (ticket 246): the pathway step's Create answers by pointing at the card instead.
+    if (!draft || review.pathway === null) return;
     const final = applyReview(questions, review);
     dispatchClassroom({
       type: "assignment/create",

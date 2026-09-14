@@ -3,7 +3,6 @@ import { DRAFT_LABELS, RECOMMENDATIONS, type ProposedQuestion, type Recommendati
 import type { Difficulty, Pathway, Problem } from "@/data/types";
 import type { SeatingGroups } from "@/data/groups";
 import type { DraftQuestion } from "./classroom";
-import { NEW_SET_PATHWAY } from "./pathway";
 import type { LeafId } from "@/data/taxonomy";
 import type { SetScope } from "./hierarchy";
 import { inferNewSkills, newSkillCandidates } from "./newSkills";
@@ -83,7 +82,8 @@ export interface ReviewState {
   answers: Record<string, Answer>;
   /** Which alternative the addition shows. */
   addition: number;
-  pathway: Pathway;
+  /** The review stages after working; `null` until the teacher chooses (ticket 246), `[]` once they pick No review. */
+  pathway: Pathway | null;
   /**
    * The New skills as the teacher changed them on the pathway step (ticket 209), once they switched one
    * on or off; absent, the inferred list stands, nothing to confirm (tickets 123, 209). Replaced the unit
@@ -114,14 +114,14 @@ export function draftKey(questions: DraftQuestion[]): string {
 }
 
 export function initialReview(questions: DraftQuestion[]): ReviewState {
-  return { step: "difficulty", forDraft: draftKey(questions), labels: {}, answers: {}, addition: 0, pathway: NEW_SET_PATHWAY };
+  return { step: "difficulty", forDraft: draftKey(questions), labels: {}, answers: {}, addition: 0, pathway: null };
 }
 
 /** The stored review if it was made about these questions, else a fresh one (the relabels kept: they are by id). */
 export function reviewFor(questions: DraftQuestion[], stored: ReviewState | null | undefined): ReviewState {
   const key = draftKey(questions);
   if (stored && stored.forDraft === key) return stored;
-  return { ...initialReview(questions), labels: stored?.labels ?? {}, pathway: stored?.pathway ?? NEW_SET_PATHWAY, ...(stored?.groups ? { groups: stored.groups } : {}) };
+  return { ...initialReview(questions), labels: stored?.labels ?? {}, pathway: stored?.pathway ?? null, ...(stored?.groups ? { groups: stored.groups } : {}) };
 }
 
 /** A recommendation matched against the draft: its target's id when it has one. */

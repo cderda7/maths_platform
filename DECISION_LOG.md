@@ -4318,3 +4318,15 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** A slip whose wrong line was written at the factorised line (Q1's pair) is tied to both "Find the pair" and "Factorise", so those two steps both read 4 slipped; the line does not say which thought failed. The derived picks use each student's end-of-set work, not their work at the moment of the push in the live stream. Common-slip picks remain a short hand list. A push stored before this ticket names an id that no longer exists and renders nothing.
 
 **Defense.** The wrong line is the one fact the data really records about a slip, so tying to it makes a false attribution impossible by construction, and tests pin it against `mistakesByProblem`. Ticket 242's "repeated their own slip" is then one comparison (the student's wrong line equals the option's `slip`), and 241's chain needs only ordered step ids. Checking the maths mechanically is the only honest guard for 132 options that go on a projector.
+
+## 2026-09-14 · The review pathway is a line of toggles with an explicit undecided state (ticket 246)
+
+**Decision.** Create's review pathway is one fixed-order line of three switchable stops between individual working and done, and `ReviewState.pathway` is `Pathway | null`: `null` until the teacher chooses, `[]` only when they press "No review, working only". Create looks off and takes the press while `null`, answering by scrolling to the card and ringing it. Switching the last stop off returns to `null`.
+
+**Context.** The user found the branching map (ticket 197–239) unclear: it read as "pick one branch", not a sequence, and nothing said the teacher had to choose. Grilled the same day, they took a fixed order, a line of toggles, an explicit No review choice, three distinct looks and a waiting Create.
+
+**Alternatives considered.** *A chain built with "+ add review step"*: hides the options until pressed. *Named presets*: eight combinations to name, and a custom mode that is the line anyway. *Keep `[]` as the start with Create on*: a teacher who never sees the card creates a set with no review by accident. *A boolean `decided` beside the array*: two fields that can disagree (`decided: false` with stages). *Last stop off → No review*: turns an undo into a choice nobody made.
+
+**Tradeoffs.** Every reader of `review.pathway` must handle `null` (two did: Confirm groups and `create`). The line is fixed at five 156 px columns, so a fourth review stage would need a new layout. The waiting Create is a gate, which the no-confirm-gates rule allows only because the pathway is not inferred.
+
+**Defense.** Undecided and No review are different facts and now have different values, so the gate and the looks follow from the data; the fixed order is built into the layout, so the line can never show an invalid pathway.

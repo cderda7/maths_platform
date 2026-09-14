@@ -227,6 +227,20 @@ body {
   }
 }
 
+/* The pathway card when a press lands on the waiting Create (ticket 246): the hint ring's one purple ring, at once. Reduced motion shows a still accent edge that fades. */
+@keyframes ring-edge {
+  0% { box-shadow: 0 0 0 2px rgb(91 74 232 / 0.7); }
+  100% { box-shadow: 0 0 0 2px rgb(91 74 232 / 0); }
+}
+.ring-once {
+  animation: hint-ring 900ms ease-out 1 both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ring-once {
+    animation: ring-edge 1200ms ease-out 1 both;
+  }
+}
+
 /* The overview's CONTINUE (ticket 154): the same accent ring, slow and without end, until the button is pressed; the tiles are not buttons and this is. Reduced motion holds a soft halo instead. The element must be positioned. */
 @keyframes pulse-loop {
   0% { box-shadow: 0 0 0 0 rgb(91 74 232 / 0.45); }

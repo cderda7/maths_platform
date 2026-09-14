@@ -3,15 +3,12 @@ import type { Pathway, ReviewStage, Stage } from "@/data/types";
 /**
  * The review pathway: which review stages follow 1st submit, in a fixed order, each optional,
  * each at most once. Eight pathways fall out of the rule (including submit-only), so nothing is
- * enumerated by hand: the creation map asks `successors`, the student flow asks `nextStage`.
+ * enumerated by hand: the creation line asks `togglePathway`, the student flow asks `nextStage`.
  */
 export const REVIEW_ORDER: ReviewStage[] = ["individual", "group", "whole-class"];
 
 /** The build's original pipeline, used whenever no assignment has been created. */
 export const DEFAULT_PATHWAY: Pathway = ["individual", "group"];
-
-/** A new set's map starts on individual working alone (ticket 239); the teacher adds review stages. */
-export const NEW_SET_PATHWAY: Pathway = [];
 
 export function isValidPathway(p: readonly ReviewStage[]): boolean {
   let last = -1;
@@ -23,27 +20,14 @@ export function isValidPathway(p: readonly ReviewStage[]): boolean {
   return true;
 }
 
-/** Stages that may legally follow `prefix`: everything later in the order than its last stage. */
-export function successors(prefix: readonly ReviewStage[]): ReviewStage[] {
-  const last = prefix.length ? REVIEW_ORDER.indexOf(prefix[prefix.length - 1]) : -1;
-  return REVIEW_ORDER.slice(last + 1);
-}
-
 /**
- * The creation map's columns after "individual working": each offers the successors of what is
- * picked before it, and `from` is the row of that pick in the column to its left (ticket 197), so
- * the arrows leave the node actually picked. Stops at the first unpicked column.
+ * One stop on the creation line switched on or off (ticket 246), the result kept in `REVIEW_ORDER`. `null` is
+ * undecided: switching the last stop off goes back to it, since No review is only ever picked by its own button.
  */
-export function mapColumns(p: readonly ReviewStage[]): { options: ReviewStage[]; from: number }[] {
-  const columns: { options: ReviewStage[]; from: number }[] = [];
-  for (let i = 0; ; i++) {
-    if (i > 0 && p[i - 1] === undefined) break;
-    const options = successors(p.slice(0, i));
-    if (options.length === 0) break;
-    const from = i === 0 ? 0 : columns[i - 1].options.indexOf(p[i - 1]);
-    columns.push({ options, from });
-  }
-  return columns;
+export function togglePathway(p: readonly ReviewStage[] | null, stage: ReviewStage): Pathway | null {
+  const on = p ?? [];
+  const next = REVIEW_ORDER.filter((s) => (s === stage ? !on.includes(s) : on.includes(s)));
+  return next.length ? next : null;
 }
 
 /** Every valid pathway, shortest first. */
@@ -69,18 +53,13 @@ export function nextStage(pathway: readonly ReviewStage[], from: Transition): St
 }
 
 export const STAGE_WORD: Record<ReviewStage, string> = { individual: "individual review", group: "group review", "whole-class": "class review" };
-/** The grey line beside a stage on the creation map while the teacher hovers it (ticket 239). */
+/** The grey line under a stop on the creation line (tickets 239, 246). */
 export const STAGE_DESCRIPTION: Record<ReviewStage, string> = {
   individual: "students find and fix their own mistakes",
   group: "groups compare answers and fix mistakes together",
   "whole-class": "you lead the class through anonymous examples on the board",
 };
 export const STAGE_SHORT:Record<ReviewStage, string> = { individual: "indiv review", group: "group review", "whole-class": "class review" };
-
-/** "individual working → individual review → group review → done" */
-export function pathwaySentence(p: readonly ReviewStage[]): string {
-  return ["individual working", ...p.map((s) => STAGE_WORD[s]), "done"].join(" → ");
-}
 
 /** "indiv working → indiv review → group review" for the chip (the class view's card, ticket 129). */
 export function pathwayChip(p: readonly ReviewStage[]): string {
