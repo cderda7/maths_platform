@@ -4486,3 +4486,19 @@ rule for pens is untouched and the exception is visible and named.
 
 **Defense.** It matches the report's Incorrect column for blanks and the user's "at any point" for reworks, and every scripted run gives the same five problems for Sam and none for the strong run.
 
+## 2026-09-14 · The holistic page reads finished sets from the story sheet and the live set as its Class View does (ticket 251)
+
+**Decision.** `lib/holistic.ts` builds one student's page from `data/story.ts` for every finished set, and from `rosterEvidence` (the Class View's own reading, moved out of `TeacherLive` into `lib/assignments.ts`) for the live set: Sam from his session, each classmate as far as the stream has reached, with the sheet's habits kept only on problems the teacher has seen. Absence comes from the set's own `absent` list (ticket 250), on any set, not from the sheet's absent cells, so the teacher's toggle on the Class View moves this page too. Columns are the sets the Classroom holds, so Problem Set 6 appears once it is created. A habit worded the same on several sets in one category is one row with a ref per set. The per-assignment report opens on a problem's working from `?work=` and goes back through `?from=`, accepted only when it is a holistic path.
+
+**Context.** The ticket asks for a pure view model over the story sheet with Sam's Set 6 live, and for grid cells equal to the sheet. Set 6's sheet rows are the classmates' end state, which the Class View only reaches once the stream is over; mid-lesson the sheet would show results the class has not produced. Problem Set 6 does not exist for the teacher on a fresh demo (tickets 188, 263).
+
+**Alternatives considered.**
+- *Every cell from the sheet, Set 6 included*: simplest and always equal to the sheet, but mid-lesson the page would show Jordan's Q7 habit before he reaches Q7, and a teacher arriving from the Class View (ticket 253) would see two different Set 6 rows.
+- *Every cell computed from the records (`classmateHierarchy`) on every set*: one code path, but habits exist only in the sheet, so the page would still need it, and the finished sets already equal it by test.
+- *A Set 6 column before Create reading "not set"*: shows the full grid shape, but offers a column header that leads to "Not in the Classroom".
+- *Each habit per set, never merged*: literal, but the same slip on PS4 and PS5 reads as two unrelated habits, the opposite of the page's purpose; ticket 252 collapses them on the tiles too.
+- *Opening the working through report state in localStorage*: no URL change, but the link would not survive a reload or a new tab.
+
+**Tradeoffs.** Two sources: finished sets from the sheet, the live set from evidence; they agree only because `data/finishedSets.test.ts` and `data/story.test.ts` hold the records to the sheet. Merging habits depends on identical wording; near-identical words ("signs in the wrong brackets" vs "the signs put into the wrong brackets") stay two rows. The report gains two query parameters.
+
+**Defense.** The page never contradicts the Class View a teacher just left, never shows a result from the future, and still equals the story sheet whenever the lesson is over, which the click-through checks for all twenty students on both routes. Sharing `rosterEvidence` means the two screens cannot drift. A URL for the working keeps Back and browser back honest.

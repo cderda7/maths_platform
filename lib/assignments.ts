@@ -6,7 +6,8 @@ import type { Assignment, Pathway, Problem, UnitRef } from "@/data/types";
 import { activeAssignment } from "./assignment";
 import { pathwayOf, type ClassroomState } from "./classroom";
 import { CLASS_STAGE_WORD, classStages, type ClassStage, type ClassStageId } from "./classStage";
-import { isSubmitted, sessionProgress, type StudentProgress } from "./progress";
+import { classmateEvidence, sessionEvidence, type Evidence } from "./hierarchy";
+import { isSubmitted, progressTag, sessionProgress, type StudentProgress } from "./progress";
 import { FINISHED_SETS } from "./finishedSets";
 import { assignmentGroupsOf } from "./seating";
 import type { StudentSession } from "./session";
@@ -171,6 +172,25 @@ export function rosterProgress(b: AssignmentBundle, session: StudentSession | nu
   return { [DEMO_STUDENT.id]: sam, ...Object.fromEntries(classmatesAt(b, b.kind === "live" ? session : null, now).map((m) => [m.record.id, m.progress])) };
 }
 
+/** Nothing handed in yet: a row's pills stay not seen until the student submits (ticket 185). */
+export const NO_EVIDENCE: Evidence = { lines: {}, submitted: false, caution: [] };
+
+/**
+ * Every student's evidence on the set as its Class View reads it at `now` (tickets 185, 189; shared since ticket 251):
+ * a student still on the set (a progress tag: not started, warming up, a Q in progress) has none yet; on the live set
+ * Sam's is his session and each classmate's the part of the record the stream has reached; on a finished set every
+ * record whole. Sam first, then the classmates in fixture order.
+ */
+export function rosterEvidence(b: AssignmentBundle, session: StudentSession | null, now: number): Record<string, Evidence> {
+  const live = b.kind === "live" ? session : null;
+  const progress = rosterProgress(b, live, now);
+  const sam = b.sam ? (progressTag(progress[DEMO_STUDENT.id]) ? NO_EVIDENCE : classmateEvidence(b.sam, b.problems)) : live && !progressTag(progress[DEMO_STUDENT.id]) ? sessionEvidence(live) : NO_EVIDENCE;
+  return {
+    [DEMO_STUDENT.id]: sam,
+    ...Object.fromEntries(classmatesAt(b, live, now).map((m) => [m.record.id, progressTag(progress[m.record.id]) ? NO_EVIDENCE : classmateEvidence(m.record, b.problems)])),
+  };
+}
+
 /** The class a set counts (ticket 250): Sam and the classmates, less the students marked absent on it. Every "x/20" on the set's screens is over this. */
 export const classSize = (b: Pick<AssignmentBundle, "classmates" | "absent">): number => presentCount(b.classmates, b.absent);
 
@@ -216,10 +236,29 @@ export function assignmentHref(id: string, tab?: AssignmentTab): string {
   return tab ? `/teacher/a/${id}/${tab}` : `/teacher/a/${id}`;
 }
 
-/** A student's individual view on a set (ticket 187): no student is Sam. `/teacher/report` redirects to Problem Set 6's. */
-export function assignmentReportHref(id: string, student?: string): string {
-  return `/teacher/a/${id}/report${student ? `?student=${encodeURIComponent(student)}` : ""}`;
+/**
+ * A student's individual view on a set (ticket 187): no student is Sam. `/teacher/report` redirects to Problem Set 6's.
+ * From a student's holistic page (ticket 251) it also names the problem whose working opens (`work`) and the page to go back to (`from`).
+ */
+export function assignmentReportHref(id: string, student?: string, opts: { work?: string; from?: string } = {}): string {
+  const q = [student && `student=${encodeURIComponent(student)}`, opts.work && `work=${encodeURIComponent(opts.work)}`, opts.from && `from=${encodeURIComponent(opts.from)}`].filter(Boolean);
+  return `/teacher/a/${id}/report${q.length ? `?${q.join("&")}` : ""}`;
 }
+
+/** Holistic Assessment in Edexia Classroom: every student as a tile (ticket 252). */
+export const HOLISTIC_HREF = "/teacher/students";
+
+/**
+ * A student's holistic page (ticket 251): one student across every set. From Holistic Assessment it is
+ * `/teacher/students/<id>` (Back to the tiles); from a set's Class View it sits under the set,
+ * `/teacher/a/<set>/students/<id>` (Back to that Class View). The same page either way.
+ */
+export function holisticHref(student: string, set?: string): string {
+  return `${set ? `/teacher/a/${set}` : "/teacher"}/students/${encodeURIComponent(student)}`;
+}
+
+/** Whether a path is a holistic page (the report's `from`): anything else is ignored, so a crafted link cannot send Back elsewhere. */
+export const isHolisticHref = (path: string | null | undefined): path is string => !!path && /^\/teacher\/(a\/[a-z0-9-]+\/)?students\/[a-z0-9-]+$/.test(path);
 
 /** The tabs a set's header offers: Groups only when its pathway has group review. */
 export function assignmentTabs(b: Pick<AssignmentBundle, "id" | "pathway">): { tab: AssignmentTab; label: string; href: string }[] {

@@ -56,6 +56,12 @@ const ROUTES = [
   "/teacher/a/pset-6/groups",
   ...FINISHED_SETS.flatMap((id) => [`/teacher/a/${id}/class`, `/teacher/a/${id}/mistakes`, `/teacher/a/${id}/groups`, `/teacher/a/${id}/report?student=mia`]),
   "/teacher/groups",
+  // A student across every set (ticket 251), on both routes: the most habits (Tomas) and the live set (Sam), and a habit's working.
+  "/teacher/students/tomas",
+  "/teacher/students/sam",
+  "/teacher/a/pset-6/students/tomas",
+  "/teacher/a/pset-4/students/sam",
+  "/teacher/a/pset-4/report?student=jordan&work=ps4-q1&from=%2Fteacher%2Fstudents%2Fjordan",
   "/teacher/report",
   "/teacher/compare",
   "/teacher/whole-class",

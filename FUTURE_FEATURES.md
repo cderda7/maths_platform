@@ -3287,6 +3287,15 @@ uploaded problems) settled the following as later, each on purpose.
 - **Plain-text maths inside other stems** (Q10's "y = x² + 4x + 5." on the working screen and report) can still wrap at a space; only the homework screen glues it. Deferred: outside this ticket's screens.
 - **Skill dots reacting to the homework** (a skill lighting as its type goes in). Deferred: not asked for.
 
+## A student across every set (ticket 251, 2026-09-14)
+
+- **Habits matched by meaning, not only identical words.** The holistic page merges a habit only when its words are the same on two sets; "right split, the signs put into the wrong brackets" (PS4) and "right split, signs in the wrong brackets" (PS5) stay two rows. Deferred: a short label per habit is ticket 252's call ("a short label field in the data if needed").
+- **Sam's own habits on the live set.** His Set 6 column is live from his session, but the page lists no habits for it (the sheet has none for a live row). Deferred: his session's commentary ideas could feed it; not asked for.
+- **A trend line or arrow per category** (improving, slipping) beside the grid row. Deferred: the grid already reads left to right, and ticket 175 kept results an average, not a trend.
+- **Printing or exporting the holistic page** for a parent meeting or report card. Deferred: not asked for.
+- **A Set 6 column before Create** ("not set yet"). Deferred: the page shows only sets the Classroom holds, so every column header opens something.
+- **Keeping the page's scroll when coming back from a working.** Browser back and "← Holistic Assessment" land at the top of the page. Deferred: ticket 252 asks for scroll kept on the tiles; the same could apply here.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

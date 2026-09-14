@@ -37,7 +37,7 @@ const BACK_LEFT =
  * The way back above a teacher page's eyebrow: white on a dark purple box (ticket 200), so it reads as a button. It
  * sits where the report's does (`BACK_LEFT`), not at its own page's column, so every page's way back is in one place.
  */
-export function BackButton({ href, children, ...data }: { href: string; children: string } & Record<`data-${string}`, true>) {
+export function BackButton({ href, children, ...data }: { href: string; children: string } & Record<`data-${string}`, string | true>) {
   return (
     <Link
       href={href}

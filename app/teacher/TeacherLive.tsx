@@ -18,13 +18,13 @@ import type { Classmate } from "@/data/classmates";
 import { CATEGORY_ORDER, categoryName, isFlat, type CategoryId, type LeafId } from "@/data/taxonomy";
 import { confidenceForms, confidenceLabel, type ConfidenceForm } from "@/lib/report";
 import { BEFORE_HAND_IN_STAGES, type Confidence } from "@/data/types";
-import { assignmentReportHref, assignmentStages, rosterProgress } from "@/lib/assignments";
+import { assignmentReportHref, assignmentStages, rosterEvidence, rosterProgress } from "@/lib/assignments";
 import { currentSlide } from "@/lib/classroom";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { canMarkAbsent } from "@/lib/absence";
 import { progressTag } from "@/lib/progress";
 import { classmatesAt } from "@/lib/stream";
-import { classmateEvidence, columnOf, hierarchyFor, problemsStarted, restrictTo, sessionEvidence, type Evidence } from "@/lib/hierarchy";
+import { columnOf, hierarchyFor, problemsStarted, restrictTo, type Evidence } from "@/lib/hierarchy";
 import { pillLabel, type HistoryPoint } from "@/lib/history";
 import { categoryHistory, hasEarlierSets, historyReportHref } from "@/lib/setHistory";
 import { useBatchedSession, useNow } from "@/lib/store";
@@ -338,8 +338,8 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
   const progress = rosterProgress(assignment, live, now);
   /** Each classmate's record as far as the live stream has reached (ticket 189): what they have answered so far; the whole record once handed in, and on a finished set. */
   const records = new Map(classmatesAt(assignment, live, now).map((m) => [m.record.id, m.record]));
-  /** Nothing handed in yet: the row's pills stay not-seen until the student submits (ticket 185). */
-  const NO_EVIDENCE: Evidence = { lines: {}, submitted: false, caution: [] };
+  /** What each row's pills read (`rosterEvidence`, shared with the holistic page since ticket 251). */
+  const evidence = rosterEvidence(assignment, live, now);
   /**
    * A row still on the set carries its progress beside the name, in the pill that read "in progress" (ticket 185):
    * "Q4 in progress" or "warming up"; the live student before his first screen keeps "not started", and once handed in "in progress" as before.
@@ -352,7 +352,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
     initials: c.initials,
     live: false,
     missing: progress[c.id].kind === "not-started",
-    evidence: progressTag(progress[c.id]) ? NO_EVIDENCE : classmateEvidence(c, problems),
+    evidence: evidence[c.id],
     sub: "",
     confidence: progress[c.id].kind === "not-started" ? confidenceWord(null) : { text: c.confidence, tone: c.confidence === "confident" ? "text-secure" : "text-accent-deep" },
     set: `${Math.min(c.done, problems.length)}/${problems.length}`,
@@ -367,7 +367,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
       initials: DEMO_STUDENT.initials,
       live: true,
       missing: false,
-      evidence: live && !progressTag(progress[DEMO_STUDENT.id]) ? sessionEvidence(live) : NO_EVIDENCE,
+      evidence: evidence[DEMO_STUDENT.id],
       sub: "",
       confidence: confidenceWord(live?.confidence ?? null),
       set: `${live ? problemsStarted(live) : 0}/${problems.length}`,

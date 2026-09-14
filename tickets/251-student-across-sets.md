@@ -4,7 +4,7 @@
 
 **Blocked by:** none.
 
-**Status:** open
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -26,6 +26,6 @@ Agreed answers: the per-assignment report is reached from this page by its set's
 
 ## Acceptance
 
-- [ ] Unit: the view model for Priya (all secure, no habits), Sam (PS6 live), Liam (missing sets), Chloe (absent on PS6 once 250 lands); habits grouped by category in canonical order
-- [ ] Click-through at 1280×800 and 1440×900: all twenty students render on both routes with nothing to scroll sideways; grid cells equal the story sheet; every habit link opens the right working; column header opens the per-assignment report; Back from each route lands on its origin; browser back agrees
-- [ ] vitest, eslint, tsc, next build, check:laptop
+- [x] Unit: the view model for Priya (all secure, no habits), Sam (PS6 live), Liam (missing sets), Chloe (absent on PS6 once 250 lands); habits grouped by category in canonical order
+- [x] Click-through at 1280×800 and 1440×900: all twenty students render on both routes with nothing to scroll sideways; grid cells equal the story sheet; every habit link opens the right working; column header opens the per-assignment report; Back from each route lands on its origin; browser back agrees
+- [x] vitest, eslint, tsc, next build, check:laptop

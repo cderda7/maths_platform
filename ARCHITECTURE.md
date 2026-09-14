@@ -140,7 +140,7 @@ two routes, the help chat's (`/api/help-chat`, ticket 69) and problem extraction
  Dependency rule: app ──▶ components ──▶ data ──▶ types. Nothing points the other way.
 ```
 
-## The six-set Classroom (tickets 208–217, 234, 237)
+## The six-set Classroom (tickets 208–217, 234, 237, 251)
 
 ```
  data/story.ts  class story sheet: STORY_SETS (PS1–PS6) + STORY (20 students × 6 categories × 6 sets)
@@ -169,6 +169,11 @@ two routes, the help chat's (`/api/help-chat`, ticket 69) and problem extraction
       │        └─► TeacherLive history pill: Link ─► /teacher/a/<id>/class?report=<earlier>&student=&open=
       │                 ClassView ─► EarlierReport: this set's chrome, the earlier set's ReportBody,
       │                 pulsing "← Return to PSet N" ─► ?history=<student>&open=<category>
+      ├─► lib/holistic.ts holisticView(student, { classroom, session, now })   (ticket 251)
+      │        finished sets ─► the sheet's cells and habits; the live set ─► rosterEvidence (as its Class View reads it)
+      │        └─► app/teacher/students/HolisticPage.tsx   /teacher/students/<id> (Back → Holistic Assessment)
+      │                                                    /teacher/a/<set>/students/<id> (Back → that Class View)
+      │                 set header ─► /report?student=&from=     habit "PS4 · Q1" ─► /report?student=&work=&from=
       └─► lib/newSkills.ts inferNewSkills(problems, recentSets("pset-6", 2) = PS5, PS4) ─► Create's review
 ```
 
@@ -428,6 +433,7 @@ two routes, the help chat's (`/api/help-chat`, ticket 69) and problem extraction
 | 250 | A student marked absent on a set (Class View roster: "mark absent" / "mark present" under the name, shown with the row buttons) greys in place, an "absent" pill beside the name, and leaves every count on the set: the Pathway and Mistakes stage counts, n/19 correct and skipped, the Classroom card's submitted, class review's n/m struggled and examples, the diagnostic's n/19 answered and its close, the gate into group review; they leave their seating group for that set's group review only (amber races as three) and show greyed in their seat on its Groups tab. Chloe is absent on Problem Set 6 (`DEMO_ABSENCES`, the story sheet's new absent cell), present on 1–5. The group union takes wrong and started-but-incomplete problems, never unattempted ones | `/teacher/a/<set>/class`, `/mistakes`, `/groups`, `/teacher`, `/teacher/whole-class`, `/board`, `/student` | 185, 189, 241 | [architecture/250-absent-students.md](architecture/250-absent-students.md) |
 | 268 | Every back button sits exactly where the report's "← Class view" is on screen: that button lines up with the report's "11 METHODS" eyebrow at every width (at 1512 wide both at 39.6 px) and rises 28 of its px so its top is Class View's from the window (81.6 px, the report's larger bar no longer pushes it down); `BACK_LEFT` now targets the report's column (`max(0, (100vw − 1476px) / 2) + 21.6px`), so "← Edexia Classroom" takes that spot and overhangs its own page's column | every `/teacher` page with a back button | 266, 267 | [architecture/268-back-button-top.md](architecture/268-back-button-top.md) |
 | 256 | After the reflection is sent, the student lands on "Your next homework": the Q tiles in set order marked right or wrong beside a Homework folder, over the report's skill dots; one at a time in set order, each problem ever wrong (first submission not holding, a wrong second submission, or not attempted) leaves a dashed slot, grows into its question below the row, its numbers (and any changed words) roll into a hand-authored similar problem's (`data/homework.ts`, same shape so only the numbers move), a line names the type, then it shrinks and arcs into the folder, whose count ticks; derived from `homeworkAt`, so a reload resumes; reduced motion shows the two side by side and no flight; nothing wrong says nothing was added; SKIP TO gains "homework" (`lib/homework.ts`, `HomeworkScreen`, `HomeworkFlight`) | `/student` homework | 233 | [architecture/256-homework-bank.md](architecture/256-homework-bank.md) |
+| 251 | A student across every set: `/teacher/students/<id>` and `/teacher/a/<set>/students/<id>` show one page (`HolisticPage`), only Back differs (← Holistic Assessment, ← Class View); the story sheet's line, the category × set grid (a word on each result's colour, not seen hollow, absent grey on cream for a student marked absent on the set (Chloe on PS6, ticket 250), — where a set does not assess the category, `live` on Sam's PS6) over the sets the Classroom holds (PS6 only once created), and the habits behind every result short of secure under their category, a habit worded alike on several sets one row with a "PSn · Q…" ref per set; `lib/holistic.ts` reads finished sets from `data/story.ts` and the live set as its Class View does (`rosterEvidence`, now shared with `TeacherLive`); a column header opens the student's report on that set, a habit's Q opens that working (`?work=`), and the report's back button reads ← Holistic Assessment back to the holistic page (`?from=`, holistic paths only) | `/teacher/students/<id>`, `/teacher/a/<set>/students/<id>`, `/teacher/a/<set>/report` | 210, 237, 243, 250 | [architecture/251-student-across-sets.md](architecture/251-student-across-sets.md) |
 
 ## Conventions
 

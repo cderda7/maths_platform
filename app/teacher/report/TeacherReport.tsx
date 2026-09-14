@@ -42,10 +42,10 @@ import { BackButton, useAssignmentBundle } from "../AssignmentContext";
  */
 export const REPORT_ZOOM = TEACHER_ZOOM * 1.25;
 
-export default function TeacherReport({ student }: { student: string | null }) {
+export default function TeacherReport({ student, work = null, from = null }: { student: string | null; work?: string | null; from?: string | null }) {
   return (
     <TeacherChrome zoom={REPORT_ZOOM}>
-      <ReportBody student={student} />
+      <ReportBody student={student} work={work} from={from} />
     </TeacherChrome>
   );
 }
@@ -53,8 +53,10 @@ export default function TeacherReport({ student }: { student: string | null }) {
 /**
  * The report under whatever chrome holds it, for the set in the nearest `AssignmentContext`. `back` (ticket 237): shown
  * from a later set's history, the way back is a pulsing button above the eyebrow and there is no "← Class view" to this set.
+ * From the student's holistic page (ticket 251) `work` opens on that problem's working and `from` is the holistic page,
+ * which the back button returns to in place of "← Class view".
  */
-export function ReportBody({ student, back }: { student: string | null; back?: { href: string; label: string } }) {
+export function ReportBody({ student, back, work: initialWork = null, from = null }: { student: string | null; back?: { href: string; label: string }; work?: string | null; from?: string | null }) {
   const { session } = useBatchedSession(2000);
   const assignment = useAssignmentBundle();
   const classroom = useClassroom();
@@ -64,7 +66,7 @@ export function ReportBody({ student, back }: { student: string | null; back?: {
   const who = classmate ?? DEMO_STUDENT;
   const live = !classmate;
   const [idea, setIdea] = useState<number | null>(null);
-  const [work, setWork] = useState<ReportWork>(null);
+  const [work, setWork] = useState<ReportWork>(() => (initialWork && problems.some((p) => p.id === initialWork) ? { kind: "problem", id: initialWork } : null));
 
   const evidence: Evidence = classmate ? classmateEvidence(classmate, problems) : session ? sessionEvidence(session) : { lines: {}, submitted: false, caution: [] };
   const full = hierarchyFor(evidence, assignment);
@@ -109,9 +111,15 @@ export function ReportBody({ student, back }: { student: string | null; back?: {
           two sit in the same spot on screen, measured from the top of the window. */}
       {!back && (
         <div style={{ zoom: TEACHER_ZOOM / REPORT_ZOOM, marginTop: -28, "--back-zoom": TEACHER_ZOOM } as CSSProperties}>
-          <BackButton href={assignmentHref(assignment.id, "class")} data-back-to-class>
-            Class view
-          </BackButton>
+          {from ? (
+            <BackButton href={from} data-report-back="holistic">
+              Holistic Assessment
+            </BackButton>
+          ) : (
+            <BackButton href={assignmentHref(assignment.id, "class")} data-back-to-class data-report-back="class">
+              Class view
+            </BackButton>
+          )}
         </div>
       )}
       <Eyebrow className={back ? undefined : "mt-[9.6px]"}>
