@@ -4743,3 +4743,20 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Sending PS6 hides ten patterns at once, before anyone has handed PS6 in. A student who missed recent sets can lose an old pattern they never had the chance to repeat. Tiles now carry every recent pattern (Tomas twelve tags once PS6 is in, three before ticket 276), so rows grow taller. The review rule's basis is renamed with the rest (`"pattern"`), so the generated story sheet and the review reasoning read "Pattern:" too.
 
 **Defense.** One pure function, one window for the whole class, the user's words as the rule: "5 assignments" is a count of the class's sets by due date, a surfacing pattern keeps its history, and the page and the tiles cannot disagree because the tiles read the page's model.
+
+## 2026-09-14 · Group review takes every problem a member did not get right; the demo group's board keeps today's records (ticket 278)
+
+**Decision.** A member brings to their group every problem they did not get right first time: a wrong line, started and left incomplete, or not attempted. One rule serves the live student (`reviewProblemsOf`) and every record (`recordReviewProblems`), and every reader of a group's problems (board, intro, standings, the teacher's card, the leaderboard, the class stage's count, the skip fixtures) reads it through `lib/group.ts`, so none changed on its own. With today's records Sam's group works all ten problems. The scripts follow the rule: the group solves a problem when a present member had it right, and a problem nobody had right is left for now and closed unsolved on its return. Q9, which nobody had right, is scripted by the exception the user agreed for ticket 281 (one member wrong on a single line, the hint after the second wrong check naming it, the third try holds). Q4, Q5, Q6 and Q8, on the board only because Liam and Jordan never reached them, hold on the first try. The race is re-timed and the demo pathway becomes individual → group → class review.
+
+**Context.** The user: "have all non-attempted, incomplete, or mistake problems surfaced in group review" and "surely a group member would be able to convince him of their functional strategy & get the group to get the right answer within 2 or 3 rounds of tries". Ticket 281 will change Liam's records (at least five attempts per set), which shrinks this union, and this ticket was told not to touch records. Under the rule read literally, Q9 would close unsolved. That would change Zara's Set 6 record, the story sheet's review part and Sam's report.
+
+**Alternatives considered.**
+- *Q9 closed unsolved now*: the rule without its exception. It moves Zara's and Sam's Q9 to Incorrect and edits a record and the sheet ahead of 281, which re-derives them anyway.
+- *Q9 left as it was (two tries)*: no visible change, but the script would break the rule the tests now hold every outcome to.
+- *A class slip as the first try on Q4–Q8*: nobody at the table made one, so the board would show a mistake no member made.
+- *Sam holding the pen on an added problem*: more for the presenter to write on a longer board; Liam and Jordan, who never reached those problems, write them instead.
+- *Keep the race schedule and let the longer unions carry on at each row's last gap*: coral and violet would finish near 13 minutes, and the report jump's holding board would show groups not home.
+
+**Tradeoffs.** Sam's board is longer: about 5:40 at the quickest against about 4:30 before. Four more debriefs follow problems Sam had right (his first submission beside the group's rework, both green). Q9 now leans on a rule 281 owns, and the intro's first sentence changed by four words. Scripts written against today's records will be pruned when 281 lands.
+
+**Defense.** One rule in one place is what the user asked for, and every screen agreeing follows from it. The exception keeps records and reports steady until 281 re-derives the data in one pass, and the tests hold every scripted outcome to the rule so 281 cannot drift from it. The pens stay named simulation data beside the shuffle, as ticket 228 set.

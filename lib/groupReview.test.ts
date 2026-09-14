@@ -42,8 +42,8 @@ describe("check and the first-mistake cut", () => {
     expect(clean.map((l) => l.tex)).toEqual(RECOGNITION_REWORK.q1);
     expect(clean.every((l) => l.mark === null)).toBe(true);
   });
-  it("every attempt of every union problem is readable line by line, wrong attempts before right ones; Q7 is never right", () => {
-    for (const pid of UNION) {
+  it("every attempt of every scripted problem is readable line by line, wrong attempts before right ones; Q7 is never right", () => {
+    for (const pid of Object.keys(GROUP_SCRIPTS)) {
       const s = GROUP_SCRIPTS[pid];
       expect(s, pid).toBeDefined();
       for (const [i, lines] of s.attempts.entries()) {
@@ -52,7 +52,8 @@ describe("check and the first-mistake cut", () => {
       }
     }
     expect(ownAttemptScript("q9", 0)).toEqual(GROUP_SCRIPTS.q9.attempts[0]);
-    expect(ownAttemptScript("q9", 5)).toEqual(GROUP_SCRIPTS.q9.attempts[1]);
+    expect(ownAttemptScript("q9", 1)).toEqual(GROUP_SCRIPTS.q9.attempts[1]);
+    expect(ownAttemptScript("q9", 5)).toEqual(GROUP_SCRIPTS.q9.attempts[2]);
   });
   it("a peer's turn scribbles each line, reads it, checks, and on Q3 checks twice", () => {
     const q2 = turnScript("q2");
@@ -63,7 +64,9 @@ describe("check and the first-mistake cut", () => {
     expect(q3.filter((e) => e.kind === "check")).toHaveLength(2);
     expect(q3.filter((e) => e.kind === "clear")).toHaveLength(1);
     expect(q3.filter((e) => e.kind === "line")).toHaveLength(RECOGNITION.q3.length + RECOGNITION_REWORK.q3.length);
-    expect(turnScript("q4")).toEqual([]);
+    // Q4 (ticket 278) holds first time; a problem with no script plays nothing.
+    expect(turnScript("q4").filter((e) => e.kind === "check")).toHaveLength(1);
+    expect(turnScript("q11")).toEqual([]);
   });
   it("the group never solves Q7: Liam's visit checks wrong three times (two terms, the lost third, the wrong pair), and the return one more (the brackets' signs)", () => {
     const [twoTerms, lostThird, wrongPair, flipped] = GROUP_SCRIPTS.q7.attempts;
@@ -324,7 +327,8 @@ describe("a problem the group cannot get (ticket 222)", () => {
 
 describe("the simulation's fixed pens (ticket 228)", () => {
   it("pin a problem to a member on its first visit and its return; the rest keep the deal; a real run has none", () => {
-    const run = beginRun(MEMBERS, UNION, 0, DEMO_SEED, DEMO_PENS);
+    const all = Object.keys(DEMO_PENS);
+    const run = beginRun(MEMBERS, all, 0, DEMO_SEED, DEMO_PENS);
     expect(run.pen).toEqual(DEMO_PENS);
     expect(visitsOf({ ...run, left: ["q7"] }).at(-1)).toEqual({ problem: "q7", pen: "sam", returning: true });
     // Sam writes Q1 and Q7, nothing else.

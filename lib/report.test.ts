@@ -92,7 +92,9 @@ describe("versions on the teacher's report (ticket 243)", () => {
     expect(reviews.q1.second).toEqual(session.rework.q1.map((l) => l.tex));
     // The group fixed Q1 too (a groupmate's mistake), but Sam had it right on his own rework: the group's version is not his story.
     expect(reviews.q1.group?.solved).toBe(true);
-    expect(reviews.q4.group).toBeUndefined();
+    // Q4 is on the board only because Liam never reached it (ticket 278): the group's version is there, Sam's story is his first submission.
+    expect(reviews.q4.group?.solved).toBe(true);
+    expect(kinds("q4")).toEqual(["first"]);
     expect(reviews.q7.group?.solved).toBe(false);
     expect(reviews.q7.group?.lines.length).toBeGreaterThan(0);
     // The same columns the student's own report shows.

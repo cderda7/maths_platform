@@ -8,8 +8,9 @@ import type { StudentSession } from "./session";
  * The two-phase group review, computed from wrong-problem sets:
  *   quick pass  = problems every member got right   (intersection of the correct sets)
  *   discussion  = problems any member got wrong      (union of the wrong sets)
- * A member's set (ticket 250, settled with the user 2026-09-14): a problem with a wrong line in it, and a problem they
- * started and left incomplete; never a problem they did not attempt. An absent member is not in the group at all.
+ * A member's set (ticket 278, settled with the user 2026-09-14, replacing ticket 250's rule): every problem they did not
+ * get right first time: one with a wrong line in it, one they started and left incomplete, and one they did not attempt.
+ * An absent member is not in the group at all (ticket 250).
  * The discussion view model carries one shared count and nothing per member or per problem,
  * so no correctness leaks into that phase. Pure, with tests.
  */
@@ -44,24 +45,22 @@ export function computePhases(problemIds: string[], wrongSets: string[][]): { qu
 }
 
 /**
- * The demo student's problems for the union, in set order: every problem with a wrong line, and every problem he started
- * and has not finished (some working, no answer: `progressOf`). A problem with nothing written is not attempted and brings
- * nothing to the group.
+ * The demo student's problems for the union, in set order (ticket 278): every problem with a wrong line, every problem he
+ * started and has not finished (some working, no answer: `progressOf`), and every problem with nothing written on it.
+ * Only a problem finished with no wrong line stays out.
  */
 export function reviewProblemsOf(session: StudentSession): string[] {
   const fb = feedbackFor(session);
-  return fb.filter((p) => p.slips.length > 0 || progressOf(session, p.problem.id) === "unfinished").map((p) => p.problem.id);
+  return fb.filter((p) => p.slips.length > 0 || progressOf(session, p.problem.id) !== "finished").map((p) => p.problem.id);
 }
 
 /**
- * A classmate's problems for the union, in set order: the ones they got wrong, and the ones they started past where they
- * finished (working on a problem at or beyond `done`); a problem with no working is not attempted and brings nothing.
+ * A classmate's problems for the union, in set order (ticket 278): every problem not finished right. A problem they got
+ * wrong, one they started past where they finished (working at or beyond `done`), and one they never reached all count;
+ * only a problem inside `done` and off the wrong list (right first time) stays out.
  */
-export function recordReviewProblems(m: Pick<Classmate, "done" | "wrong" | "attempts">): string[] {
-  return ASSIGNMENT.problems.flatMap((p, i) => {
-    const worked = (m.attempts[p.id]?.length ?? 0) > 0;
-    return worked && (m.wrong.includes(p.id) || i >= m.done) ? [p.id] : [];
-  });
+export function recordReviewProblems(m: Pick<Classmate, "done" | "wrong">): string[] {
+  return ASSIGNMENT.problems.flatMap((p, i) => (i < m.done && !m.wrong.includes(p.id) ? [] : [p.id]));
 }
 
 /** The demo student's review group: him and his groupmates, less any marked absent on the live set (`liveAbsent`, ticket 250). */

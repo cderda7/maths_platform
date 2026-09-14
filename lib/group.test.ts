@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { computePhases, groupPlan, recordReviewProblems, reviewProblemsOf } from "./group";
+import { CLASSMATE_MAP } from "@/data/classmates";
 import { progressOf } from "./feedback";
 import { INITIAL_SESSION, sessionAt, type StudentSession } from "./session";
 
@@ -16,14 +17,16 @@ describe("group-phase computation", () => {
     expect(computePhases(["q1", "q2"], [["q1", "q2"], ["q1", "q2"]])).toEqual({ quickPass: [], discussion: ["q1", "q2"], totalWrong: 4 });
   });
 
-  it("the demo group: the all-correct problems are the quick pass, the union of wrongs the discussion", () => {
+  it("the demo group: the all-correct problems are the quick pass, every problem a member did not get right the discussion (ticket 278)", () => {
     const g = groupPlan(sessionAt("group"));
     expect(g.members.map((m) => m.id)).toEqual(["sam", "jordan", "zara", "liam"]);
-    expect(g.quickPass.map((p) => p.id)).toEqual(["q4", "q5", "q6", "q8"]);
-    expect(g.discussion.problems.map((p) => p.id)).toEqual(["q1", "q2", "q3", "q7", "q9", "q10"]);
+    // Liam finished Q1–Q2 and never reached Q4–Q10, so nothing is right for all four.
+    expect(g.quickPass.map((p) => p.id)).toEqual([]);
+    expect(g.discussion.problems.map((p) => p.id)).toEqual(["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"]);
     expect(g.discussion.memberCount).toBe(4);
-    expect(g.discussion.totalWrong).toBe(6 + 2 + 3 + 3); // Jordan wrong on Q2 and (ticket 189) Q7; Sam's unfinished Q9 counts (ticket 250)
-    expect(g.discussion.perMember).toBe(4);
+    // Sam 6 (five slips, Q9 unfinished), Jordan 5 (Q2, Q7 wrong; Q8–Q10 not reached), Zara 3, Liam 10.
+    expect(g.discussion.totalWrong).toBe(6 + 5 + 3 + 10);
+    expect(g.discussion.perMember).toBe(6);
   });
 
   it("the discussion view carries no correctness data: nothing per member, nothing per problem", () => {
@@ -34,34 +37,46 @@ describe("group-phase computation", () => {
     for (const name of ["sam", "jordan", "zara", "liam", "slip", "wrong\":", "verdict"]) expect(json).not.toContain(name);
   });
 
-  describe("a member's problems for the union (ticket 250): not attempted skipped, incomplete included", () => {
-    it("the demo student: a wrong line counts; Q9, started and left incomplete, counts; a problem with nothing on it does not", () => {
+  describe("a member's problems for the union (ticket 278): wrong, incomplete and not attempted all count; absent members bring nothing", () => {
+    it("the demo student: a wrong line counts, Q9 started and left incomplete counts, a problem with nothing on it counts, a finished right one does not", () => {
       const s = sessionAt("group");
       expect(progressOf(s, "q9")).toBe("unfinished");
       expect(reviewProblemsOf(s)).toEqual(["q1", "q2", "q3", "q7", "q9", "q10"]);
-      // Q9's working taken away: not attempted, so it brings nothing.
+      // Q9's working taken away: not attempted, and it still counts.
       const blank: StudentSession = { ...s, lines: { ...s.lines, q9: [] }, rework: { ...s.rework, q9: [] } };
       expect(progressOf(blank, "q9")).toBe("not-attempted");
-      expect(reviewProblemsOf(blank)).toEqual(["q1", "q2", "q3", "q7", "q10"]);
-      expect(reviewProblemsOf(INITIAL_SESSION)).toEqual([]);
+      expect(reviewProblemsOf(blank)).toEqual(["q1", "q2", "q3", "q7", "q9", "q10"]);
+      // Q4 right: out. With its working taken away it is not attempted, and in.
+      const noQ4: StudentSession = { ...s, lines: { ...s.lines, q4: [] }, rework: { ...s.rework, q4: [] } };
+      expect(reviewProblemsOf(noQ4)).toEqual(["q1", "q2", "q3", "q4", "q7", "q9", "q10"]);
+      // Nothing written anywhere: every problem.
+      expect(reviewProblemsOf(INITIAL_SESSION)).toHaveLength(10);
     });
 
-    it("a classmate: wrong with working counts, working left past where they finished counts, a problem never reached does not", () => {
+    it("a classmate: wrong counts, working left past where they finished counts, a problem never reached counts; right inside what they finished does not", () => {
       // Finished Q1–Q2 (Q2 wrong), started Q3 and stopped, never reached Q4 on.
-      const m = { done: 2, wrong: ["q2"], attempts: { q2: ["x"], q3: ["y"] } };
-      expect(recordReviewProblems(m)).toEqual(["q2", "q3"]);
-      // A wrong entry with no working is not attempted.
-      expect(recordReviewProblems({ done: 0, wrong: ["q5"], attempts: {} })).toEqual([]);
-      // Right on a finished problem with working: nothing to bring.
-      expect(recordReviewProblems({ done: 3, wrong: [], attempts: { q1: ["z"] } })).toEqual([]);
+      const m = { done: 2, wrong: ["q2"] };
+      expect(recordReviewProblems(m)).toEqual(["q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"]);
+      expect(recordReviewProblems({ done: 0, wrong: [] })).toHaveLength(10);
+      expect(recordReviewProblems({ done: 10, wrong: [] })).toEqual([]);
+      expect(recordReviewProblems({ done: 10, wrong: ["q3", "q7"] })).toEqual(["q3", "q7"]);
+      // The demo group's classmates as the fixture has them.
+      expect(recordReviewProblems(CLASSMATE_MAP.jordan)).toEqual(["q2", "q7", "q8", "q9", "q10"]);
+      expect(recordReviewProblems(CLASSMATE_MAP.zara)).toEqual(["q3", "q7", "q9"]);
+      expect(recordReviewProblems(CLASSMATE_MAP.liam)).toEqual(["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"]);
     });
 
-    it("the union skips a problem only a not-attempting member would bring, and includes one only an incomplete member brings", () => {
+    it("the union takes a problem only a not-attempting member brings, and an absent member brings nothing", () => {
+      const ids = ["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"];
       const s = sessionAt("group");
-      const zaraWithoutQ9 = { done: 10, wrong: ["q3", "q7"], attempts: { q3: ["a"], q7: ["b"] } };
-      const union = (session: StudentSession) => computePhases(["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"], [reviewProblemsOf(session), recordReviewProblems(zaraWithoutQ9)]).discussion;
-      expect(union(s)).toContain("q9");
-      expect(union({ ...s, lines: { ...s.lines, q9: [] }, rework: { ...s.rework, q9: [] } })).not.toContain("q9");
+      // A partner who finished everything right but Q3 and Q7, and one who stopped after Q8.
+      const union = (mates: { done: number; wrong: string[] }[]) => computePhases(ids, [reviewProblemsOf(s), ...mates.map(recordReviewProblems)]).discussion;
+      expect(union([{ done: 10, wrong: ["q3"] }])).toEqual(["q1", "q2", "q3", "q7", "q9", "q10"]);
+      expect(union([{ done: 10, wrong: ["q3"] }, { done: 8, wrong: [] }])).toEqual(["q1", "q2", "q3", "q7", "q9", "q10"]);
+      expect(union([{ done: 6, wrong: [] }])).toEqual(["q1", "q2", "q3", "q7", "q8", "q9", "q10"]);
+      // Liam away: nobody brings Q4, Q5 or Q6, and Q8 only through Jordan, who never reached it.
+      expect(groupPlan(s, ["liam"]).discussion.problems.map((p) => p.id)).toEqual(["q1", "q2", "q3", "q7", "q8", "q9", "q10"]);
+      expect(groupPlan(s, ["liam", "jordan"]).discussion.problems.map((p) => p.id)).toEqual(["q1", "q2", "q3", "q7", "q9", "q10"]);
     });
   });
 });

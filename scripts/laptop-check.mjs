@@ -30,7 +30,7 @@ import { join } from "node:path";
  * deep link, which creates the set as the teacher's Create would; not measured), then its pages.
  */
 const BEFORE_CREATE = ["/teacher", "/teacher/assignments/create"];
-const CREATE_SET = "/student/a/pset-6?pathway=indiv,group";
+const CREATE_SET = "/student/a/pset-6?pathway=indiv,group,class";
 const CREATED = `!!JSON.parse(localStorage.getItem("edexia-maths-demo/classroom/v1") ?? "null")?.assignment`;
 /**
  * The finished sets, newest first; each is measured on Class, Mistakes, Groups and Mia's report. Tickets

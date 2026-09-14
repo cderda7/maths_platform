@@ -475,8 +475,9 @@ describe("independent rework", () => {
 
 describe("group review stage", () => {
   it("the whiteboard stage hands off to what follows group review; the run itself lives on the classroom", () => {
+    // The demo's pathway goes on to class review (ticket 278): the student waits for the teacher's board.
     const s = sessionReducer(sessionAt("group"), { type: "group/done" });
-    expect(s.stage).toBe("report");
+    expect(s.stage).toBe("waiting");
     expect("talked" in sessionAt("group")).toBe(false);
   });
 });
@@ -520,7 +521,7 @@ describe("routing by pathway", () => {
     s = sessionReducer({ ...s, stage: "feedback" }, { type: "rework/done" });
     expect(s.stage).toBe("class-wait");
     s = sessionReducer({ ...s, stage: "group" }, { type: "group/done" });
-    expect(s.stage).toBe("report");
+    expect(s.stage).toBe("waiting");
   });
 
   it("every one of the eight pathways walks its stages in order and ends on the report", () => {

@@ -16,7 +16,8 @@ describe("the group intro's read", () => {
   it("says 'and', never '&', and names no student and no mark", () => {
     const text = GROUP_INTRO_PARAGRAPHS.join(" ");
     expect(text).not.toContain("&");
-    expect(text).toContain("at least one of you made a mistake");
+    // Ticket 278: a problem a member left incomplete or never reached is on the board too.
+    expect(text).toContain("at least one of you made a mistake on or didn't finish");
   });
 
   it("counts from when the class went in, so a late tab or a forced student reads only what is left", () => {

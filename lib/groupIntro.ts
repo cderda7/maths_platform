@@ -7,7 +7,7 @@ import { runStartedAt, type GroupRun } from "./groupReview";
  * starts when the read is over. Pure.
  */
 export const GROUP_INTRO_PARAGRAPHS = [
-  "You're about to work as a team to fix your mistakes. Each problem you're about to go through, at least one of you made a mistake on. Discuss your approaches and come up with a final answer.",
+  "You're about to work as a team to fix your mistakes. Each problem you're about to go through, at least one of you made a mistake on or didn't finish. Discuss your approaches and come up with a final answer.",
   "If you think you know the approach, be gracious in explaining to your peers. If the group's approach doesn't make sense to you, advocate for yourself and make sure you're on the same page before your group submits.",
 ];
 

@@ -7,7 +7,8 @@ describe("teacher's review groups view", () => {
   it("the demo group carries one shared note about why it formed", () => {
     const [g1] = reviewGroups(sessionAt("group"));
     expect(g1.members.map((m) => m.id)).toEqual(["sam", "jordan", "zara", "liam"]);
-    expect(g1.discussing).toEqual(["q1", "q2", "q3", "q7", "q9", "q10"]);
+    // The live group's union (ticket 278): every problem a member did not get right, Liam's never-reached ones included.
+    expect(g1.discussing).toEqual(["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"]);
     expect(g1.note).toMatch(/Q1, Q2, Q3/);
     expect(g1.note).toMatch(/monic factorising/);
     expect(g1.members[0].live).toBe(true);

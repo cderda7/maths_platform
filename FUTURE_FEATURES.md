@@ -3416,6 +3416,17 @@ uploaded problems) settled the following as later, each on purpose.
 - **Long tiles.** With one-set patterns on tiles, Tomas's tile carries twelve tags and sets its row's height. Deferred: a cap with "+ n more" or most-sets-first truncation would hide what the user asked to see; revisit if a real class makes rows unreadably tall.
 - **PS1-only patterns vanish the moment PS6 is sent.** Sending counts as an assignment before anyone hands it in, so the tiles change with the send. Kept to the rule as worded; a window that waits for the live set's first results would soften the jump.
 
+## Group review takes every problem not right (ticket 278, 2026-09-14)
+
+- **A student who hands in only 2 of 10.** Under the new rule such a student brings eight problems to their group, most of which the group then works for them. The user called it an extreme edge case; the demo data will keep every student at five or more (ticket 281). How a group should treat a member who barely started (a cap, the teacher told, a different debrief) is open.
+- **A debrief on a problem the student had right first time.** Sam now debriefs Q4, Q5, Q6 and Q8, which only a groupmate never reached; his first submission sits green beside the group's rework. A lighter moment (no hold, or "you showed them") was not asked for.
+- **Sam holding the pen on a problem he had right.** The added problems go to the members who never reached them; letting the presenter show one (explaining to Liam) would show the "be gracious in explaining" part of the intro. Deferred to keep the presenter's load where ticket 228 set it.
+- **The intro's wording for a group whose problems include ones nobody attempted.** The first paragraph now says "made a mistake on or didn't finish"; a line that names not attempted separately, or a tile mark for it (without saying who), was not asked for.
+- **The retired "suggested by mistakes" groups** (hidden behind `SHOW_SUGGESTED`) still group other students by mistakes only; only the live group follows the new rule.
+- **Real-run pacing of a ten-problem board.** A real class with a long union may run past the lesson; a teacher control to cap a group's union (hardest first, or the teacher's pick) is not built.
+- **An incomplete first submission reads as correct first try on the report.** `holds` counts a first submission with no wrong line as right, so Sam's Q9 (stopped before the height) sits under Correct first try though his group had to finish it. Seen in 278's click-through; left to ticket 282, which decides not attempted and incomplete tiles together.
+- **Re-deriving Sam's group scripts from the records automatically** rather than by hand per ticket (281 prunes them). A generator would need the group's slips and a fresh last try per unsolved problem.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

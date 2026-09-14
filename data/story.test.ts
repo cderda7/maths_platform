@@ -179,7 +179,7 @@ describe("the class story sheet (ticket 210)", () => {
   it("Problem Set 6's review part is the classmates' records, by the agreed rules, with the demo group's versions its scripted run (ticket 244)", () => {
     // Sky's group review is scripted: solved where the script's last attempt checks.
     const sky = Object.fromEntries(Object.entries(GROUP_SCRIPTS).map(([pid, s]) => [pid, checkBoard(pid, s.attempts.at(-1)!).correct]));
-    expect(sky).toEqual({ q1: true, q2: true, q3: true, q7: false, q9: true, q10: true });
+    expect(sky).toEqual({ q1: true, q2: true, q3: true, q4: true, q5: true, q6: true, q7: false, q8: true, q9: true, q10: true });
     expect(reviewMismatches(CLASSMATES, ASSIGNMENT, 6, FROZEN_GROUPS[ASSIGNMENT.id], { sky })).toEqual([]);
     // The check bites: a second submission taken away, a group version changed for one member, a last try that holds.
     const tamper = (id: string, pid: string, review: NonNullable<(typeof CLASSMATES)[number]["review"]>[string]) => CLASSMATES.map((c) => (c.id === id ? { ...c, review: { ...c.review, [pid]: review } } : c));

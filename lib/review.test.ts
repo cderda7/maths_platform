@@ -67,7 +67,7 @@ describe("the review state and the draft it is about", () => {
   it("starts a new set's pathway undecided, whatever the demo's own pathway is (tickets 239, 246)", () => {
     expect(initialReview(pasted()).pathway).toBeNull();
     expect(reviewFor(pasted(), null).pathway).toBeNull();
-    expect(DEFAULT_PATHWAY).toEqual(["individual", "group"]);
+    expect(DEFAULT_PATHWAY).toEqual(["individual", "group", "whole-class"]);
   });
 
   it("is fresh for a different draft but keeps the relabels and the pathway", () => {

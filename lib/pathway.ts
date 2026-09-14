@@ -7,8 +7,8 @@ import type { Pathway, ReviewStage, Stage } from "@/data/types";
  */
 export const REVIEW_ORDER: ReviewStage[] = ["individual", "group", "whole-class"];
 
-/** The build's original pipeline, used whenever no assignment has been created. */
-export const DEFAULT_PATHWAY: Pathway = ["individual", "group"];
+/** The demo's pipeline, used whenever no assignment has been created: individual, then group, then class review (ticket 278, the user's 14a). A new set on Create starts undecided (`initialReview`, ticket 246). */
+export const DEFAULT_PATHWAY: Pathway = ["individual", "group", "whole-class"];
 
 export function isValidPathway(p: readonly ReviewStage[]): boolean {
   let last = -1;

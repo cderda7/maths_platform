@@ -42,12 +42,12 @@ function suggestedSetup(session: StudentSession, absent: readonly string[]): Cla
 }
 
 /**
- * The report jump's group review, already run: begun ten minutes ago, the problems closing a minute
- * apart, finished six minutes in. Each problem's attempts are its script; a problem whose script never
+ * The report jump's group review, already run: begun twelve minutes ago, the problems closing evenly,
+ * finished seven minutes in (ticket 278: a ten-problem board, and every scripted group home by eleven minutes). Each problem's attempts are its script; a problem whose script never
  * checks correct (Q7, ticket 222) was left for now and closed unsolved on its return, last.
  */
-export const REPORT_RUN_STARTED_AGO_MS = 10 * 60_000;
-export const REPORT_RUN_FINISHED_AGO_MS = 4 * 60_000;
+export const REPORT_RUN_STARTED_AGO_MS = 12 * 60_000;
+export const REPORT_RUN_FINISHED_AGO_MS = 5 * 60_000;
 function finishedRun(session: StudentSession, now: number, absent: readonly string[]): GroupRun {
   const plan = groupPlan(session, absent);
   const problems = plan.discussion.problems.map((p) => p.id);

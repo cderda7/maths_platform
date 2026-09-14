@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { GROUP_COLOURS, type GroupColour } from "@/data/groups";
+import { DEMO_STUDENT } from "@/data/assignment";
+import { GROUP_SCRIPTS } from "@/data/group-scripts";
 import { RACE_SCHEDULE } from "@/data/race";
+import { HOLD_MS, UNMARKED_MS } from "./debrief";
 import { classroomReducer } from "./classroom";
 import { REPORT_RUN_FINISHED_AGO_MS, REPORT_RUN_STARTED_AGO_MS, skipFixture } from "./demo";
 import { boardOpensAt } from "./groupIntro";
-import { beginRun, closedMoment, groupProgress, ownAttemptScript, resolvedMoment, runStartedAt, type GroupRun } from "./groupReview";
+import { beginRun, checkBoard, closedMoment, groupProgress, LEAVE_PAUSE_MS, ownAttemptScript, resolvedMoment, runStartedAt, turnScript, visitsOf, type GroupRun } from "./groupReview";
 import { sessionAt } from "./session";
 import { leaderboardAt, ownStanding, raceFinish, raceMoments, raceProgress, rankStandings, standingsAt, unionOf, wrongSetsOf, type GroupStanding } from "./standings";
 
@@ -22,36 +25,75 @@ describe("the progress rule", () => {
     expect(at(["p1", "p2", "p3"])).toBe(100);
   });
 
-  it("the demo group jumps 2, 3, 3, 3, 2, 1 fourteenths across its six problems (Jordan wrong on Q7 since ticket 189; Sam's unfinished Q9 counts since ticket 250)", () => {
+  it("the demo group jumps 2, 3, 3, 1, 1, 1, 4, 2, 4, 3 twenty-fourths across its ten problems (ticket 278: a problem a member did not attempt counts, so Liam brings all ten and Jordan Q8–Q10)", () => {
     const { classroom, session } = skipFixture("group review", now);
     const run = classroom.group!;
     const percents = run.problems.map((_, i) => standingsAt({ ...classroom, group: { ...run, resolved: run.problems.slice(0, i + 1) } }, session, now).find((s) => s.live)!.percent);
-    expect(percents).toEqual([14, 36, 57, 79, 93, 100]);
-    expect(wrongSetsOf(run.members, session)).toEqual({ sam: ["q1", "q2", "q3", "q7", "q9", "q10"], jordan: ["q2", "q7"], zara: ["q3", "q7", "q9"], liam: ["q1", "q2", "q3"] });
+    expect(percents).toEqual([8, 21, 33, 38, 42, 46, 63, 71, 88, 100]);
+    expect(wrongSetsOf(run.members, session)).toEqual({ sam: ["q1", "q2", "q3", "q7", "q9", "q10"], jordan: ["q2", "q7", "q8", "q9", "q10"], zara: ["q3", "q7", "q9"], liam: ["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"] });
   });
 });
 
 describe("the scripted race", () => {
   const fixture = (colour: GroupColour) => standingsAt(skipFixture("group review", now).classroom, sessionAt("group"), now).find((s) => s.colour === colour)!;
 
-  it("each other group's union and mistake total come from the seating and the classmates' wrong lists", () => {
-    expect(fixture("coral").union).toEqual(["q3", "q4", "q5", "q6", "q7", "q10"]);
-    expect(fixture("coral").total).toBe(8);
-    expect(fixture("amber").union).toEqual(["q1", "q2", "q3", "q4", "q7", "q9"]);
-    expect(fixture("amber").total).toBe(8);
-    expect(fixture("mint").union).toEqual(["q3", "q4", "q5", "q7", "q9", "q10"]);
-    expect(fixture("mint").total).toBe(8);
-    expect(fixture("violet").union).toEqual(["q1", "q2", "q3", "q4", "q5", "q7", "q9"]);
-    expect(fixture("violet").total).toBe(14);
+  it("each other group's union and total come from Problem Set 6's seating and every problem a member did not get right (ticket 278)", () => {
+    expect(fixture("coral").union).toEqual(["q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"]);
+    expect(fixture("coral").total).toBe(11);
+    expect(fixture("amber").union).toEqual(["q1", "q2", "q3", "q4", "q7", "q9", "q10"]);
+    expect(fixture("amber").total).toBe(10);
+    expect(fixture("mint").union).toEqual(["q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"]);
+    expect(fixture("mint").total).toBe(17);
+    expect(fixture("violet").union).toEqual(["q1", "q2", "q3", "q4", "q5", "q7", "q8", "q9", "q10"]);
+    expect(fixture("violet").total).toBe(17);
+    expect(fixture("sky").union).toEqual(["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"]);
     expect(unionOf({ a: ["q9", "q1"], b: ["q3"] })).toEqual(["q1", "q3", "q9"]);
   });
 
-  it("two groups finish before the demo group plausibly would (under five minutes) and two after (nine minutes or more), all inside ten", () => {
+  /**
+   * The quickest the demo group's live board can go (ticket 278): every peer turn as scripted, every close held for the
+   * debrief (two seconds unmarked, ten on the marks), a problem left for now held for the pause, and Sam's own turns at
+   * four seconds a line plus two to check.
+   */
+  const skyQuickestSeconds = () => {
+    const { classroom } = skipFixture("group review", now);
+    const run = { ...classroom.group!, left: ["q7"] };
+    let ms = 0;
+    const tries: Record<string, number> = {};
+    for (const v of visitsOf(run)) {
+      const from = tries[v.problem] ?? 0;
+      const script = GROUP_SCRIPTS[v.problem].attempts;
+      const played = turnScript(v.problem, from, v.returning);
+      const checks = v.pen === DEMO_STUDENT.id ? Math.min(script.length - from, v.returning ? 1 : script.length) : played.filter((e) => e.kind === "check").length;
+      const lines = script.slice(from, from + checks).reduce((n, a) => n + a.length, 0);
+      ms += v.pen === DEMO_STUDENT.id ? lines * 4000 + checks * 2000 : played.at(-1)!.at;
+      tries[v.problem] = from + checks;
+      const closes = v.returning || checkBoard(v.problem, script[from + checks - 1]).correct;
+      ms += closes ? UNMARKED_MS + HOLD_MS : LEAVE_PAUSE_MS;
+    }
+    return ms / 1000;
+  };
+
+  it("two groups finish before the demo group's quickest board and two after it has had four minutes' slack (ten minutes or more), all inside twelve", () => {
     const finishes = GROUP_COLOURS.filter((c) => c !== "sky").map((c) => raceFinish(RACE_SCHEDULE[c], fixture(c).union.length));
-    expect(finishes.filter((s) => s < 5 * 60)).toHaveLength(2);
-    expect(finishes.filter((s) => s >= 9 * 60)).toHaveLength(2);
-    for (const s of finishes) expect(s).toBeLessThanOrEqual(10 * 60);
-    expect(GROUP_COLOURS.filter((c) => c !== "sky").map((c) => RACE_SCHEDULE[c].length)).toEqual(GROUP_COLOURS.filter((c) => c !== "sky").map((c) => fixture(c).union.length));
+    const sky = skyQuickestSeconds();
+    expect(sky).toBeGreaterThan(5 * 60);
+    expect(sky + 4 * 60).toBeLessThan(10 * 60);
+    expect(finishes.filter((s) => s < sky)).toHaveLength(2);
+    expect(finishes.filter((s) => s >= 10 * 60)).toHaveLength(2);
+    for (const s of finishes) expect(s).toBeLessThanOrEqual(12 * 60);
+    expect(GROUP_COLOURS.map((c) => RACE_SCHEDULE[c].length)).toEqual(GROUP_COLOURS.map((c) => fixture(c).union.length));
+  });
+
+  it("no scripted bar jumps or finishes at once: the first problem closes after half a minute, and each gap is 30 to 100 seconds", () => {
+    for (const c of GROUP_COLOURS) {
+      const row = RACE_SCHEDULE[c];
+      expect(row[0], c).toBeGreaterThanOrEqual(30);
+      for (let i = 1; i < row.length; i++) {
+        expect(row[i] - row[i - 1], `${c} ${i}`).toBeGreaterThanOrEqual(30);
+        expect(row[i] - row[i - 1], `${c} ${i}`).toBeLessThanOrEqual(100);
+      }
+    }
   });
 
   it("a union longer than its row carries on at the last gap; a shorter one finishes at its own last moment", () => {
@@ -69,13 +111,13 @@ describe("the scripted race", () => {
     expect(raceProgress([70, 150, 220], 3, 10 * MIN)).toEqual({ resolvedCount: 3, reachedAfterMs: 220_000 });
     let last = -1;
     for (let t = 0; t <= 10 * MIN; t += 5000) {
-      const { resolvedCount } = raceProgress(RACE_SCHEDULE.coral, 6, t);
+      const { resolvedCount } = raceProgress(RACE_SCHEDULE.coral, 8, t);
       expect(resolvedCount).toBeGreaterThanOrEqual(last);
       last = resolvedCount;
     }
   });
 
-  it("at the start every bar is at zero and the demo group holds the pen on Q1; five minutes in, mint and amber are home and coral is ahead of violet", () => {
+  it("at the start every bar is at zero and the demo group holds the pen on Q1; six minutes in, mint and amber are home and coral is ahead of violet", () => {
     const { classroom, session } = skipFixture("group review", now);
     // The board opens once the intro is read (ticket 220): until then, and at the opening, every bar is at zero.
     const opens = boardOpensAt(now);
@@ -94,11 +136,18 @@ describe("the scripted race", () => {
     expect(start.filter((s) => s.live)).toHaveLength(1);
     for (const s of start) if (!s.live) expect(s.pen).toBeNull();
 
-    const later = standingsAt(classroom, session, opens + 5 * MIN);
+    // Four and a half minutes in, mint and amber are home (ticket 278's re-timing); the rest still climbing.
+    const early = Object.fromEntries(standingsAt(classroom, session, opens + 4.5 * MIN).map((s) => [s.colour, s])) as Record<GroupColour, GroupStanding>;
+    expect(early.mint.percent).toBe(100);
+    expect(early.amber.percent).toBe(100);
+    expect(early.coral.percent).toBeLessThan(100);
+    // Just before: amber on its last problem.
+    expect(standingsAt(classroom, session, opens + 264_000).find((s) => s.colour === "amber")!.percent).toBeLessThan(100);
+    const later = standingsAt(classroom, session, opens + 6 * MIN);
     const by = Object.fromEntries(later.map((s) => [s.colour, s])) as Record<GroupColour, GroupStanding>;
     expect(by.mint.percent).toBe(100);
     expect(by.amber.percent).toBe(100);
-    expect(by.coral.percent).toBe(38);
+    expect(by.coral.percent).toBe(36);
     expect(by.violet.percent).toBe(29);
     expect(by.sky.percent).toBe(0);
     expect(by.violet.reachedAt).toBeLessThan(by.coral.reachedAt);
@@ -177,10 +226,10 @@ describe("the demo group's moments", () => {
     expect(classroom.group!.resolved).toEqual(["q1"]);
     expect(classroom.group!.resolvedAt).toEqual({ q1: now + 42_000 });
     const sky = standingsAt(classroom, session, now + 60_000).find((s) => s.live)!;
-    expect(sky.percent).toBe(14);
+    expect(sky.percent).toBe(8);
     expect(sky.reachedAt).toBe(now + 42_000);
     expect(sky.problem).toBe("q1");
-    expect(ownStanding(classroom, session)?.percent).toBe(14);
+    expect(ownStanding(classroom, session)?.percent).toBe(8);
   });
 
   it("a scripted check carries its moment through; a run stored before the moments existed counts from its start", () => {

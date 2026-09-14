@@ -11,7 +11,7 @@ import { skipFixture } from "./demo";
 import { tally } from "./diagnostic";
 import { arrivesAt, closedAt, currentIndex } from "./diagnosticChain";
 import { problemsByStruggle } from "./examples";
-import { groupPlan } from "./group";
+import { groupPlan, recordReviewProblems } from "./group";
 import { mistakesByProblem } from "./mistakes";
 import { sessionAt } from "./session";
 import { standingsAt } from "./standings";
@@ -153,10 +153,10 @@ describe("a group with an absent member", () => {
     const amber = (c: ClassroomState) => standingsAt(c, session, now).find((s) => s.colour === "amber")!;
     expect(amber(classroom).members).toEqual(["mia", "noah", "ethan"]);
     expect(amber(mark(classroom, "chloe", false)).members).toEqual(["mia", "noah", "chloe", "ethan"]);
-    // A member with mistakes away takes them out of the union and the total.
+    // A member away takes every problem they bring (ticket 278: wrong, incomplete or not attempted) out of the union and the total.
     const withoutNoah = amber(mark(classroom, "noah", true));
     expect(withoutNoah.members).toEqual(["mia", "ethan"]);
-    expect(withoutNoah.total).toBe(amber(classroom).total - CLASSMATES.find((m) => m.id === "noah")!.wrong.length);
+    expect(withoutNoah.total).toBe(amber(classroom).total - recordReviewProblems(CLASSMATES.find((m) => m.id === "noah")!).length);
   });
 
   it("the demo student's group begins without an absent groupmate", () => {

@@ -17,7 +17,7 @@ describe("the class's stage on the pathway", () => {
   it("names every stage of the pathway, the working first", () => {
     const { classroom } = skipFixture("start", now);
     expect(classStages(classroom, null, now).map((s) => s.word)).toEqual(["indiv working", "indiv review", "group review", "class review"]);
-    expect(classStages(INITIAL_CLASSROOM, null, now).map((s) => s.id)).toEqual(["working", "individual", "group"]);
+    expect(classStages(INITIAL_CLASSROOM, null, now).map((s) => s.id)).toEqual(["working", "individual", "group", "whole-class"]);
   });
 
   it("starts on the working, counting the classmates who have handed the set in, whole or in part", () => {
