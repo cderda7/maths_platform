@@ -3296,6 +3296,16 @@ uploaded problems) settled the following as later, each on purpose.
 - **A Set 6 column before Create** ("not set yet"). Deferred: the page shows only sets the Classroom holds, so every column header opens something.
 - **Keeping the page's scroll when coming back from a working.** Browser back and "← Holistic Assessment" land at the top of the page. Deferred: ticket 252 asks for scroll kept on the tiles; the same could apply here.
 
+## Diagnostic focus view (ticket 260, 2026-09-14)
+
+- **The focused view on the Class tab.** The class card still shows only the current step. A "focus" link from the card to the Mistakes view's side-by-side chain was not asked for; deferred until the teacher paces from the Class tab in practice.
+- **Compact option cells for long chains.** On a five-step chain at 1280×800 the current card runs taller than the window, so the control's band sticks to the window's foot over the cards' lower edge. Cells without the held empty avatar row (242) until the first answer lands, or a two-line cell (count and misconception on one line), would let the row fit. Deferred: the held row is what keeps the cells from moving when answers land.
+- **One stem size across the row.** `FitStem` shrinks only the stem that would overflow (Q2's Factorise), so one card's question reads a size smaller than its neighbours'. Fitting every stem in the row to the smallest was left out, because it would shrink four readable stems for one.
+- **Demo from a production build.** The user's demo runs on `next dev` from the main checkout, which other sessions merge into. Any merge that touches a module outside a React boundary remounts pages through Fast Refresh. The flyout now survives that, but other page-local state does not: expanded problems, the held arrivals, the Class View's open drill. Running the demo from `next build && next start` on a separate checkout (or the Netlify deploy) avoids all of it. Deferred as a workflow suggestion for the user, not code.
+- **Escape on the focused view.** Escape does nothing there (done and Withdraw are explicit, and a collapse would hide a chain still out with the class). Revisit if teachers expect Escape to leave the view.
+- **A chain across problems.** A chain is sent from one problem's flyout, so the header names one problem. A chain mixing steps from several problems would need a header per card. Not possible today.
+- **Uniform scaling as an option.** A presenter setting that zooms the whole row instead of narrowing (for a projector mirroring the laptop) was considered and left out.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

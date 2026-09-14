@@ -462,7 +462,7 @@ describe("a chain on the classroom (ticket 241)", () => {
     expect(latestDiagnostic(null)).toBeNull();
   });
 
-  it("walks a three-step chain: push, answer, reveal, next, answer, reveal, next, answer, reveal, back to work", () => {
+  it("walks a three-step chain: push, answer, reveal, next question, answer, reveal, next question, answer, reveal, done", () => {
     let c = push(INITIAL_CLASSROOM, Q1);
     let at = T0;
     for (let i = 0; i < 3; i++) {
@@ -470,7 +470,7 @@ describe("a chain on the classroom (ticket 241)", () => {
       expect(currentIndex(r)).toBe(i);
       expect(chainPosition(r)).toBe(`${ordinal(i + 1)} of 3`);
       expect(isRevealed(r, i, allIn(at) - 1)).toBe(false);
-      // Next and back to work are refused while the step is still being answered.
+      // Next question and done are refused while the step is still being answered.
       expect(act(c, { type: "diagnostic/next", at: allIn(at) })).toBe(c);
       expect(act(c, { type: "diagnostic/end", at: allIn(at) })).toBe(c);
       c = act(c, { type: "diagnostic/answer", option: step(Q1[i]).correct, at: at + 1000 });
@@ -493,7 +493,7 @@ describe("a chain on the classroom (ticket 241)", () => {
         expect(tally(run(c), at).answered).toBe(0);
       }
     }
-    // The last step: no next step, back to work closes the chain.
+    // The last step: no next question, done closes the chain.
     expect(act(c, { type: "diagnostic/next", at })).toBe(c);
     c = act(c, { type: "diagnostic/end", at });
     expect(liveDiagnostic(c)).toBeNull();
@@ -570,17 +570,17 @@ describe("a chain on the classroom (ticket 241)", () => {
 });
 
 describe("force submit on a step (ticket 241)", () => {
-  it("counts down ten seconds, then closes the step over the responders: the totals leave out anyone who had not answered", () => {
+  it("counts down five seconds (ticket 260), then closes the step over the responders: the totals leave out anyone who had not answered", () => {
     let c = push(INITIAL_CLASSROOM, [Q3]);
     const pressed = allIn(T0) + 2000;
     c = act(c, { type: "diagnostic/force", at: pressed });
     // A second press while counting changes nothing.
     expect(act(c, { type: "diagnostic/force", at: pressed + 1000 })).toBe(c);
-    expect(DIAGNOSTIC_FORCE_MS).toBe(10_000);
-    expect(forceDeadline(run(c), pressed)).toBe(pressed + 10_000);
-    expect(isRevealed(run(c), 0, pressed + 9999)).toBe(false);
-    expect(tally(run(c), pressed + 9999)).toMatchObject({ answered: 19, total: 20, revealed: false });
-    const zero = pressed + 10_000;
+    expect(DIAGNOSTIC_FORCE_MS).toBe(5_000);
+    expect(forceDeadline(run(c), pressed)).toBe(pressed + 5_000);
+    expect(isRevealed(run(c), 0, pressed + 4999)).toBe(false);
+    expect(tally(run(c), pressed + 4999)).toMatchObject({ answered: 19, total: 20, revealed: false });
+    const zero = pressed + 5_000;
     expect(isRevealed(run(c), 0, zero)).toBe(true);
     expect(forceDeadline(run(c), zero)).toBeNull();
     // Sam never answered: 19 of 19, his count in no option.
@@ -597,12 +597,18 @@ describe("force submit on a step (ticket 241)", () => {
   it("classmates still to come when force submit closes the step are left out too", () => {
     let c = push(INITIAL_CLASSROOM, [Q3]);
     c = act(c, { type: "diagnostic/answer", option: "d", at: T0 + 100 });
-    // Pressed at once: the countdown ends at 10 s, after the last classmate at 8 s, so everyone is in first and the reveal is at 8 s.
+    // Pressed at once: the five-second countdown ends at 5.2 s, before the last classmates (up to 8 s), who are left out; the demo student's answer counts.
     const early = act(c, { type: "diagnostic/force", at: T0 + 200 });
-    expect(closedAt(run(early), 0)).toBe(allIn(T0));
-    // Without the demo student, pressed at once: closes at 10 s with the nineteen classmates.
+    expect(closedAt(run(early), 0)).toBe(T0 + 5200);
+    const e = tally(run(early), T0 + 60_000);
+    expect(e).toMatchObject({ revealed: true, answered: 1 + CLASSMATES.filter((_, i) => arrivesAt(i) <= 5200).length });
+    expect(e.total).toBe(e.answered);
+    expect(e.answered).toBeLessThan(20);
+    // Pressed late enough that the countdown would end after 8 s: everyone is in first, so the reveal is at 8 s.
+    expect(closedAt(run(act(c, { type: "diagnostic/force", at: T0 + 4000 })), 0)).toBe(allIn(T0));
+    // Without the demo student, pressed at once: closes at 5 s with the classmates in by then.
     let d = push(INITIAL_CLASSROOM, [Q3]);
-    d = act(d, { type: "diagnostic/force", at: T0 - 5000 });
+    d = act(d, { type: "diagnostic/force", at: T0 });
     expect(closedAt(run(d), 0)).toBe(T0 + 5000);
     const t = tally(run(d), T0 + 60_000);
     expect(t.revealed).toBe(true);
@@ -636,7 +642,7 @@ describe("force submit on a step (ticket 241)", () => {
 });
 
 describe("the chain on the board (ticket 241)", () => {
-  it("takes the board from the push, one step at a time, and gives it back after back to work", () => {
+  it("takes the board from the push, one step at a time, and gives it back after done", () => {
     let c = push(INITIAL_CLASSROOM, ["d-q1-zeros", "d-q1-pair"]);
     let b = boardContent(c, null, T0);
     expect(b.kind).toBe("diagnostic");
@@ -729,7 +735,7 @@ describe("who picked each option (ticket 242)", () => {
     c = act(c, { type: "diagnostic/answer", option: "c", at: T0 + 10 });
     c = act(c, { type: "diagnostic/next", at: allIn(T0) });
     const second = allIn(T0);
-    // Force submit pressed at once on the second step: it closes ten seconds later over the nineteen classmates.
+    // Force submit pressed at once on the second step: it closes five seconds later over the classmates in by then.
     c = act(c, { type: "diagnostic/force", at: second + 500 });
     expectPickersMatchTally(run(c), 0, T0, second + 20_000);
     expectPickersMatchTally(run(c), 1, second - 1000, second + 20_000);

@@ -14,6 +14,8 @@ import { assignmentStages, classSize, currentStageOf } from "@/lib/assignments";
 import { groupBySlip, mistakesByProblem, type WorkColumn } from "@/lib/mistakes";
 import { useBatchedSession, useNow } from "@/lib/store";
 import { useClassroom } from "@/lib/classroom-store";
+import { liveDiagnostic, questionFor } from "@/lib/diagnostic";
+import DiagnosticFocus from "./DiagnosticFocus";
 import DiagnosticPush, { DiagnosticFootprint, PROBLEM_HEADER } from "./DiagnosticPush";
 
 // The same button as the class view's row actions ("see dot skills" / "close").
@@ -184,6 +186,44 @@ function usePointerGuard(listRef: RefObject<HTMLElement | null>): number {
   return useSyncExternalStore(store.subscribe, store.get, () => 0);
 }
 
+/** The Mistakes page's scroll when a chain was sent from it, so done brings the teacher back to the same place (ticket 260). Module state: it outlives a switch to Class and back mid-chain. */
+let scrollBeforeFocus: number | null = null;
+
+/**
+ * While a diagnostic chain is out the focused view takes the page from the top (ticket 260); when it ends the page's own
+ * content comes back scrolled where the teacher left it. The problems stay mounted underneath (hidden), so what was
+ * expanded is still expanded. Runs before paint, so neither jump is seen.
+ */
+function useScrollAroundFocus(focused: boolean, ready: boolean) {
+  const was = useRef<boolean | null>(null);
+  // The page's scroll as the teacher left it: by the time the send's render commits, the problems are hidden and the browser has already clamped the scroll.
+  const last = useRef(0);
+  useLayoutEffect(() => {
+    const main = document.querySelector<HTMLElement>("[data-teacher-scroll]");
+    if (!main) return;
+    const onScroll = () => {
+      if (!document.querySelector("[data-diagnostic-focus]")) last.current = main.scrollTop;
+    };
+    last.current = main.scrollTop;
+    main.addEventListener("scroll", onScroll, { passive: true });
+    return () => main.removeEventListener("scroll", onScroll);
+  }, []);
+  useLayoutEffect(() => {
+    const main = document.querySelector<HTMLElement>("[data-teacher-scroll]");
+    const before = was.current;
+    was.current = focused;
+    if (!main) return;
+    if (focused && before === false) {
+      scrollBeforeFocus = last.current;
+      main.scrollTop = 0;
+    } else if (!focused && ready && scrollBeforeFocus !== null) {
+      // Back on the page (done here, or on Mistakes again after done elsewhere) once its problems are on it: the first tick of a fresh mount has none yet.
+      main.scrollTop = scrollBeforeFocus;
+      scrollBeforeFocus = null;
+    }
+  });
+}
+
 /**
  * A student's name in a mistake column (ticket 189): one that has just arrived glows faintly and fades (`.arrive`,
  * background and ring only, so nothing moves). The fade is placed on the arrival time when the name first renders, so a
@@ -221,6 +261,8 @@ function ArrivingName({ arrivedAt, now, children, ...rest }: { arrivedAt: number
  * rest into the wrong (the rows) and the skipped, and under it a second box with the skipped
  * count, "3/20 skipped" (143): stopped before the problem, or handed in without an answer. The difficulty tag sits after
  * the maths, not at the header's far end (142); no live pill on a name here (142).
+ * While a diagnostic chain is out (ticket 260) the page is the chain's focused view (`DiagnosticFocus`) under the same
+ * chrome, tabs and eyebrow; the problems stay mounted, hidden, and come back where they were once the teacher's done.
  */
 export default function TeacherMistakes() {
   const assignment = useAssignmentBundle();
@@ -257,6 +299,11 @@ export default function TeacherMistakes() {
     setArmed(id);
   };
   const toggle = (id: string) => (open.includes(id) ? hide(id) : show(id));
+  /** The chain out with the class, if one is (ticket 260): the focused view takes the page's place until done or a withdraw. */
+  const chain = assignment.kind === "live" ? liveDiagnostic(classroom) : null;
+  const focused = !!chain;
+  useScrollAroundFocus(focused, assignment.kind !== "live" || now > 0);
+  const chainProblemId = chain ? questionFor(chain.steps[0])?.problemId : undefined;
 
   return (
     <TeacherChrome>
@@ -264,6 +311,15 @@ export default function TeacherMistakes() {
       <Eyebrow className="mt-3">
         {assignment.className} · {assignment.title}
       </Eyebrow>
+      {chain && (
+        <DiagnosticFocus
+          run={chain}
+          problem={assignment.problems.find((p) => p.id === chainProblemId)}
+          rows={latest.find((p) => p.problem.id === chainProblemId)?.rows ?? []}
+          className="mt-3"
+        />
+      )}
+      <div hidden={focused} data-mistakes-page>
       {/* Force submit for the stage the class is on (ticket 185), the same control as beside the Class view's current pathway pill. The stage group ends on the problem cards' right edge (ticket 195): the row mirrors a problem row, its diagnostic column held by the chip's unseen footprint. The countdown that replaces the button grows leftward, pushing the pill and count for its minute, rather than a reserved gap before the button the rest of the time. */}
       <div className="mt-3 flex items-center gap-4">
         <div className="flex min-w-0 flex-1 items-center justify-between gap-10">
@@ -312,7 +368,7 @@ export default function TeacherMistakes() {
           return (
             <div key={problem.id} className="flex items-start gap-4" data-problem-row={problem.id}>
             {/* Escape closes the problem opened last first (ticket 247), without arming "close all" the way a press of close does. */}
-            <EscapeLayer active={isOpen} onEscape={() => setOpen((o) => o.filter((x) => x !== problem.id))} />
+            <EscapeLayer active={isOpen && !focused} onEscape={() => setOpen((o) => o.filter((x) => x !== problem.id))} />
             {/* The correct count level with the header row (the card's 1 px border, then the header), the skipped count 6 px under it; the two the same width. */}
             <div className="flex shrink-0 flex-col items-stretch gap-1.5" style={{ width: COUNT_COLUMN, paddingTop: (PROBLEM_HEADER + 2 - COUNT_H) / 2 }}>
               <span className={COUNT} title={`${right} of ${size} got it correct · ${wrong} wrong · ${skipped} skipped${pending ? ` · ${pending} still working` : ""}`} data-right={`${problem.id}:${right}`}>
@@ -469,6 +525,7 @@ export default function TeacherMistakes() {
           );
         })}
         {problems.length === 0 && (assignment.kind !== "live" || now > 0) && <Card className="p-6 text-[14px] text-ink-muted">No slips yet</Card>}
+      </div>
       </div>
     </TeacherChrome>
   );

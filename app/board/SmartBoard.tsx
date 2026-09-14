@@ -22,7 +22,7 @@ import Leaderboard from "./Leaderboard";
  * takes the pen there (mirrored to frozen students and to the laptop) and a toggle switches the
  * students' screens between frozen and write with me. What it shows per stage is `boardContent`;
  * this file only draws it. Nothing here names a student or shows a difficulty. A live diagnostic
- * chain (ticket 241) takes the whole board from the push until back to work, with the teacher's one control.
+ * chain (ticket 241) takes the whole board from the push until done, with the teacher's one control.
  */
 export default function SmartBoard() {
   const classroom = useClassroom();
@@ -59,7 +59,7 @@ function Blank({ content }: { content: BoardContent }) {
 /**
  * A live diagnostic chain's current step (ticket 241): the question and its options, "1st of 3" on a longer chain and
  * "14/20 answered" in the header (a pulse while answers are still coming in), the right option green once the step is
- * revealed, and the teacher's one control at the bottom right (force submit, next step, back to work). Never a count per
+ * revealed, and the teacher's one control at the bottom right (force submit, next question, done). Never a count per
  * option, a name or a misconception.
  */
 function DiagnosticSlide({ content }: { content: Extract<BoardContent, { kind: "diagnostic" }> }) {

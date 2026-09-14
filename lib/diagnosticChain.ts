@@ -18,8 +18,8 @@ export const CLASS_SIZE = CLASSMATES.length + 1;
 export const TRICKLE_FROM_MS = 1500;
 export const TRICKLE_TO_MS = 8000;
 
-/** Force submit on a step: its countdown, after which the step closes over whoever has answered. */
-export const DIAGNOSTIC_FORCE_MS = 10_000;
+/** Force submit on a step: its countdown, after which the step closes over whoever has answered. Five seconds since ticket 260 (ten in 241). */
+export const DIAGNOSTIC_FORCE_MS = 5_000;
 
 /** When the classmate at `index` answers, ms after the step opened: a fixed shuffle so the counts climb unevenly across the options, not in roster order. */
 export function arrivesAt(index: number): number {
@@ -67,9 +67,9 @@ export type ChainAction =
   | { type: "diagnostic/force"; at?: number }
   /** Cancel the countdown: back to answering. Refused once the countdown has closed the step. */
   | { type: "diagnostic/force-cancel"; at?: number }
-  /** The next step opens: only once the current step has closed, never past the last. */
+  /** Next question: the next step opens, only once the current step has closed, never past the last. */
   | { type: "diagnostic/next"; at?: number }
-  /** Back to work: closes the chain, only once the last step has closed. */
+  /** Done: closes the chain, only once the last step has closed. */
   | { type: "diagnostic/end"; at?: number }
   /** Discards the whole chain, at any point while it is out. */
   | { type: "diagnostic/withdraw"; at?: number };

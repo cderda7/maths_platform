@@ -17,8 +17,8 @@ export const DIAGNOSTIC_CHIP = "inline-flex items-center gap-1.5 rounded-md bg-a
  * The class view's diagnostic card (ticket 137). No chain out: a white box with the chip, a link to the mistake view where
  * steps are chosen and sent. While a chain is out (ticket 241) it shows the current step only, never an earlier or a later
  * one: "1st of 3" on a longer chain, how many have answered, the question and its live result grid (each option's count and
- * misconception, the right one green from the push), Withdraw, and the teacher's one control (force submit, next step,
- * back to work). Back to work or a withdraw returns it to the empty box. The step's problem ("Q1") leads the eyebrow line
+ * misconception, the right one green from the push), Withdraw, and the teacher's one control (force submit, next question,
+ * done). Done or a withdraw returns it to the empty box. The step's problem ("Q1") leads the eyebrow line
  * above the question (ticket 242); who picked each option is the mistake view's flyout's alone, never shown here.
  */
 export default function DiagnosticCard({ className = "" }: { className?: string }) {

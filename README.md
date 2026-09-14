@@ -184,8 +184,8 @@ past working and every classmate who started has handed in.
   (in class review · complete), the **Live diagnostic** card: a white box linking to Mistakes
   until a chain is out, then the current step only (`1st of 3` above the question, `n/20 answered`,
   each option with `n/20 students` and the misconception it reveals, the right one green, live),
-  **Withdraw**, and the teacher's one control: **force submit** (a ten-second countdown with Cancel),
-  then **next step**, or **back to work** on the last step. Back to work returns it to the white box.
+  **Withdraw**, and the teacher's one control: **force submit** (a five-second countdown with Cancel),
+  then **next question**, or **done** on the last step. Done returns it to the white box.
 - **Whole-class setup** (`/teacher/whole-class`): problems ranked by how many struggled, top
   three pre-checked; the example cards on the right stand in the order the class will see (the
   assignment's), and a press held on a card drags it to another place in that order (ticket 150); 2–3 suggested examples per problem chosen by mistake: the correct working,
@@ -228,10 +228,16 @@ no marks until the teacher shows them, and the teacher's working pad.
   there on the original, every wrong option the analogue of a slip a student really made. A click on a step's card
   selects it (accent border, a tick), a second click clears it, and **send N to class** under the stack sends the
   selection as a chain in solution order; the flyout grows down with the page and collapses as soon as the pointer
-  leaves it. While a chain is out nothing can be selected or sent anywhere; its steps show their live results as they
-  open, the current one with `1st of 2 · n/20 answered`, the one control and Withdraw (discards the chain); a badge on
-  the collapsed chip while its chain is out. The class's work stream stands still until back to work, so Mistakes
-  rows do not pile up during the discussion.
+  leaves it (new mistakes arriving never close it, and what is selected survives the page being drawn again). Sending
+  turns the Mistakes page into the chain's focused view under the same bar and tabs: `Q1 x² − 5x + 6 = 0 · Live
+  diagnostic`, then every step of the chain side by side in solution order, the row centred (a step already asked keeps
+  its counts, misconceptions and who picked what; the step being asked has the accent border; a step still to come shows
+  only its question and options, dimmed), and centred under the row `1st of 3 · n/20 answered`, the one control
+  (**force submit** with a five-second countdown, **next question**, **done**) and Withdraw; the control stays at the
+  window's foot when the row runs taller. A long chain (Q2's five steps) narrows its cards to fit one row, stacking the
+  options in one column. A switch to Class and back mid-chain shows the view again; **done** (or Withdraw) brings the
+  problems back where the page was scrolled. The class's work stream stands still until done, so Mistakes rows do not
+  pile up during the discussion.
   The nineteen classmates answer over eight seconds after the push; Sam answers on the iPad.
   **Groups** (`/teacher/a/<id>/groups`, only when the pathway has group review): that assignment's own seating groups, frozen from the class defaults when it was created; the class defaults are edited at `/teacher/groups` (the Classroom's Groups link), and a move on one never changes the other. **/teacher/compare**.
   On the class view's roster the name is 16 px with a pill beside it for a student still on the set, **Q4 in progress**
@@ -243,7 +249,7 @@ no marks until the teacher shows them, and the teacher's working pad.
   colour, all six one width, every group's skills out beneath) fixed on the
   page, nothing to open or close, a skill still showing its work beneath; the platform's
   commentary as a few ideas in a light-blue bubble (an idea lights only the skills behind it),
-  and what the student wrote back in a purple-bordered box. A live diagnostic chain takes the whole board from the push until back to work, one step at a time: the question and its options, `1st of 3`, `14/20 answered`, the right option green only once every student has answered or force submit has closed the step (then the totals read over the responders), and the teacher's one control at the bottom right; never a count per option, a name or misconception wording. Each iPad shows the same step over whatever the student was doing: the first tap locks the pick in a neutral highlight with `Waiting for the class…`, and at the reveal the right option turns green and the student's own highlight goes, nothing marked wrong.
+  and what the student wrote back in a purple-bordered box. A live diagnostic chain takes the whole board from the push until done, one step at a time: the question and its options, `1st of 3`, `14/20 answered`, the right option green only once every student has answered or force submit has closed the step (then the totals read over the responders), and the teacher's one control at the bottom right; never a count per option, a name or misconception wording. Each iPad shows the same step over whatever the student was doing: the first tap locks the pick in a neutral highlight with `Waiting for the class…`, and at the reveal the right option turns green and the student's own highlight goes, nothing marked wrong.
 
 ## The Classroom's six sets
 

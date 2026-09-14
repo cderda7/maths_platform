@@ -14,7 +14,7 @@ import { chainPosition, currentIndex, isRevealed, type DiagnosticRun } from "@/l
  * on a longer chain. The first tap is the answer and cannot be changed: that option holds a neutral highlight with
  * "Waiting for the class…". Once the step is revealed (everyone in, or force submit) the right option turns green and the
  * student's own highlight goes; nothing marks a pick wrong. There is no way back to the work: the modal stays until the
- * teacher's back to work ends the chain, and the next step replaces this one. Everything comes from the stored run, so a
+ * teacher's done ends the chain, and the next question replaces this one. Everything comes from the stored run, so a
  * reload lands on the same state.
  */
 export default function DiagnosticModal({ run, now, absent, onAnswer }: { run: DiagnosticRun; now: number; /** The live set's absent students (ticket 250): the step closes once everyone else has answered. */ absent: readonly string[]; onAnswer: (option: string) => void }) {

@@ -1,21 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import DiagnosticResults, { type Picker } from "@/components/DiagnosticResults";
-import DiagnosticStem from "@/components/DiagnosticStem";
-import FitText from "@/components/FitText";
-import M from "@/components/Math";
+import DiagnosticResults from "@/components/DiagnosticResults";
 import { Button, Card } from "@/components/ui";
 import { useEscape } from "@/components/useEscape";
 import type { DiagnosticStep } from "@/data/diagnostic";
-import DiagnosticControl from "@/components/DiagnosticControl";
-import { liveDiagnostic, pickersAt, problemLabelOf, repeatedSlip, runFor, slippedAt, stepsFor, studentFor, tally } from "@/lib/diagnostic";
-import { chainPosition, currentIndex, forceDeadline, inSolutionOrder } from "@/lib/diagnosticChain";
+import { liveDiagnostic, pickersAt, runFor, slippedAt, stepsFor, tally } from "@/lib/diagnostic";
+import { currentIndex, inSolutionOrder } from "@/lib/diagnosticChain";
 import type { MistakeRow } from "@/lib/mistakes";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { useNow } from "@/lib/store";
 import { liveAbsent } from "@/lib/absence";
 import { DIAGNOSTIC_CHIP as CHIP } from "./DiagnosticCard";
+import { pickersFor, StepHeading, StepQuestion } from "./DiagnosticStep";
+import { sentFrom, setFlyoutOpen, toggleStep, useFlyout } from "./diagnosticFlyout";
 
 /** The flyout's frame: the card's border (1) plus padding (24) so the chip in flow sits exactly where the card's own chip would. */
 const FRAME = 25;
@@ -70,69 +67,49 @@ function clampToViewport(el: HTMLDivElement | null) {
  *
  * Sending is a chain (ticket 241): a click on a step's card selects it (accent border, a tick), a
  * second click clears it, nothing starts selected, and **send N to class** under the stack sends the
- * selection in solution order, whatever order it was clicked in. While a chain is out nothing can be
- * selected or sent, from here or from another problem's flyout. The chain's steps show their live
- * result grids as they open (counts, the right option green, from the push); the current one carries
- * "1st of 3", how many have answered, Withdraw (discards the whole chain) and the teacher's one
- * control. A step sent before keeps its latest result grid, and can be selected again.
+ * selection in solution order, whatever order it was clicked in. Sending closes the flyout: the chain
+ * runs in the Mistakes view's focused view (`DiagnosticFocus`, ticket 260), which takes the page until
+ * the teacher's done. A step sent before keeps its latest result grid here, and can be selected again.
+ *
+ * Whether the flyout is open and what is selected live in `diagnosticFlyout.ts`, not in this component's
+ * state (ticket 260), so the flyout stays as it was when the Mistakes tree is mounted again.
  */
 export default function DiagnosticPush({ problemId, rows, className = "" }: { problemId: string; rows: readonly MistakeRow[]; className?: string }) {
   const classroom = useClassroom();
   const now = useNow();
-  const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<string[]>([]);
+  const { open, selected } = useFlyout(problemId);
+  const setOpen = (o: boolean) => setFlyoutOpen(problemId, o);
   // Escape collapses the flyout (ticket 247), a way out for the keyboard and touch that the pointer's leave never gave; the chip is re-created on close, so focus goes to the new one.
   useEscape(open, () => setOpen(false), () => document.querySelector<HTMLElement>(`[data-diag-toggle="${CSS.escape(problemId)}"]`));
   const steps = stepsFor(problemId);
   const live = liveDiagnostic(classroom);
   /** The live set's absent students (ticket 250): out of the answers and the count. */
   const absent = liveAbsent(classroom);
-  /** This panel's chain is out: the chip carries a badge while it is. */
-  const mine = !!live && steps.some((s) => live.steps.includes(s.id));
-  const label = problemLabelOf(steps[0]) ?? undefined;
-  const pickersOf = (q: DiagnosticStep, ids: Record<string, string[]>): Record<string, Picker[]> =>
-    Object.fromEntries(
-      Object.entries(ids).map(([option, who]) => [
-        option,
-        who.flatMap((id) => {
-          const s = studentFor(id);
-          return s ? [{ ...s, repeatedOn: repeatedSlip(q, id, option, rows) ? label : undefined }] : [];
-        }),
-      ]),
-    );
-  const toggle = (id: string) => setSelected((sel) => (sel.includes(id) ? sel.filter((x) => x !== id) : [...sel, id]));
   const send = () => {
     dispatchClassroom({ type: "diagnostic/push", steps: inSolutionOrder(selected) });
-    setSelected([]);
+    sentFrom(problemId);
   };
 
   const chip = (
-    <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className={`${CHIP} relative transition-colors hover:bg-accent-deep`} data-diag-toggle={problemId}>
+    <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className={`${CHIP} relative transition-colors hover:bg-accent-deep`} data-diag-toggle={problemId}>
       <ChipLabel open={open} />
-      {/* A badge on the corner, not in the row: the chip keeps its width, so the cards' right edges stay in line. */}
-      {mine && !open && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 animate-pulse rounded-full bg-white ring-2 ring-accent" aria-hidden data-diag-waiting />}
     </button>
   );
 
   const step = (q: DiagnosticStep, index: number) => {
     const inLive = live ? live.steps.indexOf(q.id) : -1;
-    const liveIndex = live ? currentIndex(live) : -1;
-    /** The step's result to show: its place in the chain that is out once it has opened, else its latest earlier send. */
-    const shown = live && inLive >= 0 ? (inLive <= liveIndex ? { run: live, index: inLive } : null) : runFor(classroom, q.id);
-    const current = !!live && inLive >= 0 && inLive === liveIndex;
+    /** The step's latest result: an earlier send, or its place in the chain that is out once it has opened (the focused view covers this page while one is). */
+    const shown = live && inLive >= 0 ? (inLive <= currentIndex(live) ? { run: live, index: inLive } : null) : runFor(classroom, q.id);
     const t = shown && tally(shown.run, now, shown.index, absent);
-    /** Who picked each option (ticket 242), the students repeating their own slip on this problem marked. */
-    const pickers = shown && pickersOf(q, pickersAt(shown.run, now, shown.index, absent));
     const selectable = !live;
-    const isSelected = selectable ? selected.includes(q.id) : inLive >= 0;
-    const slipped = slippedAt(q, rows);
+    const isSelected = selectable && selected.includes(q.id);
     const border = isSelected ? "border-accent ring-1 ring-accent" : selectable ? "border-line hover:border-ink-muted" : "border-line";
     return (
       <section
         key={q.id}
         className={`relative -mx-3 rounded-xl border px-3 pt-2.5 pb-3 transition-colors ${index === 0 ? "mt-4" : "mt-3"} ${border} ${selectable ? "cursor-pointer" : ""}`}
-        onClick={selectable ? () => toggle(q.id) : undefined}
-        onKeyDown={selectable ? (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), toggle(q.id)) : undefined}
+        onClick={selectable ? () => toggleStep(problemId, q.id) : undefined}
+        onKeyDown={selectable ? (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), toggleStep(problemId, q.id)) : undefined}
         role={selectable ? "button" : undefined}
         tabIndex={selectable ? 0 : undefined}
         aria-pressed={selectable ? isSelected : undefined}
@@ -148,65 +125,8 @@ export default function DiagnosticPush({ problemId, rows, className = "" }: { pr
             </svg>
           </span>
         )}
-        <div className="flex items-baseline justify-between gap-4">
-          <span className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-muted" data-step-name>
-            {index + 1} · {q.name}
-          </span>
-          <span className={`shrink-0 text-[14px] ${slipped > 0 ? "font-medium text-wrong" : "text-ink-muted"}`} data-slipped={slipped}>
-            {slipped} slipped here
-          </span>
-        </div>
-        {shown && t ? (
-          <DiagnosticResults question={q} tally={t} size="panel" pickers={pickers ?? undefined} className="mt-3" />
-        ) : (
-          <>
-            <p className="mt-3 text-[17px] leading-snug text-ink" data-diag-stem>
-              <DiagnosticStem question={q} />
-            </p>
-            {/* Two equal columns, as the result grid after a send: A and C share a width, B and D start on one line (ticket 207). */}
-            <ul className="mt-4 grid grid-cols-2 gap-2 text-ink" data-diag-options>
-              {q.options.map((o) => (
-                <li key={o.id} className={`flex min-w-0 items-baseline gap-2 rounded-xl border px-3 py-1.5 ${o.id === q.correct ? "border-secure-line bg-secure-soft" : "border-line bg-paper"}`} data-option={o.id}>
-                  <span className="shrink-0 text-[12px] font-semibold uppercase text-ink-muted">{o.id}</span>
-                  <div className="min-w-0 flex-1 text-[16px]">
-                    <FitText max={16} fitKey={`${q.id}:${o.id}`}>
-                      <M tex={o.tex} />
-                    </FitText>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-        {/* The current step of the chain that is out: where it is in the chain, how many have answered, Withdraw and the one control. */}
-        {current && live && t && (
-          <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-accent-line bg-accent-soft/50 px-3 py-2.5 text-[14px] text-ink" data-pending>
-            <span className="flex items-center gap-2 whitespace-nowrap">
-              {/* The pulse while answers come in; the countdown carries its own. */}
-              {!t.revealed && forceDeadline(live, now, absent) === null && <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />}
-              {chainPosition(live) && (
-                <>
-                  <span data-chain-position>{chainPosition(live)}</span>
-                  <span aria-hidden>·</span>
-                </>
-              )}
-              <span data-diag-answered>
-                <span className="tabular-nums">
-                  {t.answered}/{t.total}
-                </span>{" "}
-                answered
-              </span>
-            </span>
-            <DiagnosticControl size="panel" />
-          </div>
-        )}
-        {current && (
-          <div className="mt-2 flex text-[14px]">
-            <button type="button" className="text-accent-deep hover:underline" onClick={() => dispatchClassroom({ type: "diagnostic/withdraw" })} data-diag-withdraw>
-              Withdraw
-            </button>
-          </div>
-        )}
+        <StepHeading index={index} step={q} slipped={slippedAt(q, rows)} />
+        {shown && t ? <DiagnosticResults question={q} tally={t} size="panel" pickers={pickersFor(q, pickersAt(shown.run, now, shown.index, absent), rows)} className="mt-3" /> : <StepQuestion step={q} />}
       </section>
     );
   };
@@ -232,11 +152,7 @@ export default function DiagnosticPush({ problemId, rows, className = "" }: { pr
     <div className={`relative ${open ? "z-40" : ""} ${className}`} onMouseLeave={() => open && setOpen(false)} data-diagnostic-push={problemId} data-collapsed={open ? undefined : true}>
       {/* A flex box, not a line box: an inline chip would sit a fraction lower on the text baseline than the card's flex row puts it. */}
       <div className="flex" style={{ paddingTop: CHIP_TOP }}>
-        {open ? (
-          <DiagnosticFootprint data-diag-footprint />
-        ) : (
-          chip
-        )}
+        {open ? <DiagnosticFootprint data-diag-footprint /> : chip}
       </div>
       {open && (
         <div ref={clampToViewport} className="absolute" style={{ top: CHIP_TOP - FRAME, left: -FRAME }} data-diag-flyout>

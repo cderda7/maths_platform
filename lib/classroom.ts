@@ -208,7 +208,7 @@ export type ClassroomAction =
   | { type: "wc/end" }
   /** The Class View roster's toggle (ticket 250): a student marked absent on an assignment, or back in the room. Idempotent. */
   | { type: "absence/set"; assignment: string; student: string; absent: boolean }
-  /** The live diagnostic chain (ticket 241): push, answer, force submit and cancel, next step, back to work, withdraw. */
+  /** The live diagnostic chain (ticket 241): push, answer, force submit and cancel, next question, done, withdraw. */
   | ChainAction
   | { type: "reset" };
 
@@ -376,7 +376,7 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
 /** The latest diagnostic chain, out or ended; null before the first push. */
 export const latestDiagnostic = (c: ClassroomState | null | undefined): DiagnosticRun | null => latestRun(c?.diagnostics);
 
-/** The diagnostic chain that is out (ticket 241), if one is: sent and neither back to work nor withdrawn. */
+/** The diagnostic chain that is out (ticket 241), if one is: sent and neither done nor withdrawn. */
 export const liveDiagnostic = (c: ClassroomState | null | undefined): DiagnosticRun | null => liveRun(c?.diagnostics);
 
 type GroupAction = Extract<ClassroomAction, { type: `group/${string}` }>;

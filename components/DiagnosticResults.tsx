@@ -1,6 +1,7 @@
 "use client";
 
 import DiagnosticStem from "@/components/DiagnosticStem";
+import FitStem from "@/components/FitStem";
 import FitText from "@/components/FitText";
 import M from "@/components/Math";
 import type { Diagnostic } from "@/data/diagnostic";
@@ -22,7 +23,8 @@ import type { Tally } from "@/lib/diagnostic";
  * In the mistake view's flyout only (`size="panel"` with `pickers`, ticket 242) each cell also shows who picked it: a row of
  * small initials avatars at the foot of the cell, under the count and its misconception, one per answer in the order they landed, wrapping inside the cell. A student whose
  * pick repeats the slip they made on the original problem wears the slip pill's red. The class card and the board are
- * never given pickers, and the board stays anonymous.
+ * never given pickers, and the board stays anonymous. The focused view a sent chain runs in (ticket 260) shows the same panel
+ * results, pickers included, one card per step.
  */
 export default function DiagnosticResults({
   question: q,
@@ -48,10 +50,18 @@ export default function DiagnosticResults({
   const optionPx = board ? 26 : panel ? 16 : 12.5;
   return (
     <div className={className} data-diagnostic-results={q.id}>
-      <p className={board ? "font-display text-balance text-[34px] leading-tight text-ink" : panel ? "text-[17px] leading-snug text-ink" : "text-[14px] text-ink"} data-diag-stem>
-        <DiagnosticStem question={q} />
-      </p>
-      <ul className={`grid grid-cols-2 ${board ? "mt-8 gap-6" : panel ? "mt-4 gap-2" : "mt-3 gap-1.5"}`} data-diag-cells>
+      {panel ? (
+        // At the problem cards' size, or smaller where its widest maths would run past a narrow card (ticket 260).
+        <FitStem max={17} fitKey={q.id} className="leading-snug text-ink" data-diag-stem>
+          <DiagnosticStem question={q} />
+        </FitStem>
+      ) : (
+        <p className={board ? "font-display text-balance text-[34px] leading-tight text-ink" : "text-[14px] text-ink"} data-diag-stem>
+          <DiagnosticStem question={q} />
+        </p>
+      )}
+      {/* In a card too narrow for two columns (the Mistakes view's focused view on a long chain, ticket 260: a `@container` card) the cells stack in one. */}
+      <ul className={`grid grid-cols-2 ${board ? "mt-8 gap-6" : panel ? "mt-4 gap-2 @max-[300px]:grid-cols-1" : "mt-3 gap-1.5"}`} data-diag-cells>
         {q.options.map((o) => {
           const correct = green && o.id === q.correct;
           const n = tally.counts[o.id] ?? 0;
