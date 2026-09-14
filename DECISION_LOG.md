@@ -4412,3 +4412,14 @@ rule for pens is untouched and the exception is visible and named.
 
 **Defense.** One small, pure, unit-tested rule decides what Escape does on every screen, and adding a closable thing is one hook call with its existing close. The click-through drives every layer with real key presses at two laptop sizes.
 
+## 2026-09-14 · A fresh demo starts with Problem Set 6 not yet sent; Sam's Classroom is the student landing (tickets 260, 261)
+
+**Decision.** On a fresh demo PS6 has not been sent: Sam's Classroom (/student) shows PS1–PS5 under Completed and an empty To do, and the teacher's Edexia Classroom has no live PS6 card. Create or the teacher's new skip to "send assignment" sends it. Teacher skips (send assignment, students done with current stage, activity completed) move every surface together, Sam included.
+
+**Context.** /student opened on whatever stage the stored session held, often the final report, so a cold visitor's first screen had no context. The user asked for a student Classroom as Sam's landing with PS6 in To do "after teacher has pushed assignment", and chose not-sent as the default and Sam moving with the teacher's skips.
+
+**Alternatives considered.** *PS6 already sent on a fresh demo*: no setup step and no test churn, but the student landing never shows the moment an assignment arrives, and Create has nothing to change. *Teacher skips move classmates only*: the presenter can drive Sam live, but the iPad, board and teacher views disagree about the lesson's stage.
+
+**Tradeoffs.** Every screen, deep link and click-through that assumed a live PS6 must send it first; the teacher side is empty of a live set until someone does. A presenter who wants Sam to lag behind the class must use the student skip afterwards.
+
+**Defense.** Sending is the product's real first event, so the demo now starts where a lesson starts, and one shared state for every surface keeps the tabs consistent, as the rest of the demo already guarantees.

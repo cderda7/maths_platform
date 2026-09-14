@@ -4,9 +4,9 @@
 
 **Blocked by:** none.
 
-**Status:** open
+**Status:** skipped (the user, 2026-09-14: not a concern for now; see FUTURE_FEATURES.md)
 
-**Triage:** `ready-for-agent`
+**Triage:** `wontfix` (for now)
 
 ---
 

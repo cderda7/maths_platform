@@ -3231,6 +3231,10 @@ uploaded problems) settled the following as later, each on purpose.
 - **One opinionated default pathway with the others hidden.** The critique's alternative reading of "too many permutations". Not pursued 2026-09-14: the teacher still chooses at Create and can change it during the lesson (ticket 254).
 - **Assignment-shaped (do it any time) instead of period-shaped.** Rejected 2026-09-14: the scope is in-class work, a unified group assignment; individualised practice belongs to homework.
 - **The holistic page for a student reachable from more places (the Mistakes view, group review, the board setup).** Deferred 2026-09-14: agreed entries are Edexia Classroom's Holistic Assessment and a name in Class View (tickets 252, 253).
+- **Homework that adds novel problems, not only similar ones.** Ticket 256 turns each wrong problem into a similar problem (same type, different numbers or set-up). Later the bank could also add new problems: combinations of skills the student has met separately, and extensions one step past what the set asked. Deferred 2026-09-14 by the user ("add to F_F thought of how to add new questions that also add novel problems, like combos of skills & extensions"): the homework model comes after in-class work.
+- **The student SKIP TO bar covering Q6–Q10 at small windows.** Ticket 257, skipped 2026-09-14: "i'm not concerned about the skip_to bar"; it is demo chrome.
+- **Create's primary button under the deployed site's Netlify badge.** Ticket 258, skipped 2026-09-14: "not concerned about that for rn"; never reproduced.
+- **A Classroom for every student.** Ticket 261 builds Sam's only. Deferred 2026-09-14 by the user ("we'll only do this for Sam"): Sam is the only student with a live iPad.
 
 ## Escape everywhere (ticket 247, 2026-09-14)
 
