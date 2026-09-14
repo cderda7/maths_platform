@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { Confidence } from "@/data/types";
 import { skipFixture } from "./demo";
-import { outcomeColumns, problemOutcome, reportFacts, unsolvedInGroup } from "./report";
+import { PROBLEM_MAP } from "@/data/assignment";
+import { CLASSMATE_MAP } from "@/data/classmates";
+import { columnsOf, labelSentence, outcomeColumns, outcomeOf, problemOutcome, recordReviews, reportFacts, sessionReviews, shownVersions, unsolvedInGroup, unsolvedOf, type Reviews } from "./report";
 import { INITIAL_SESSION, sessionAt, sessionReducer } from "./session";
 
 const labels = (cols: ReturnType<typeof outcomeColumns>) => Object.fromEntries(cols.map((c) => [c.id, c.problems.map((p) => p.label)]));
@@ -75,6 +77,59 @@ describe("problem outcomes", () => {
     const by = labels(outcomeColumns(sessionAt("report", "strong"), ["individual", "group"], null));
     expect(by.first.length).toBe(10);
     expect(by.wrong).toEqual([]);
+  });
+});
+
+describe("versions on the teacher's report (ticket 243)", () => {
+  const PATH = ["individual", "group"] as const;
+  const { session, classroom } = skipFixture("report", 1_000_000);
+  const reviews = sessionReviews(session, classroom.group);
+  const kinds = (id: string, pathway: readonly ("individual" | "group")[] = PATH, r = reviews) => shownVersions(id, r[id], pathway).map((v) => v.kind);
+
+  it("reads a live session: its lines, its rework, and the group's version once the run closed the problem", () => {
+    expect(reviews.q1.first).toEqual(session.lines.q1.map((l) => l.tex));
+    expect(reviews.q1.second).toEqual(session.rework.q1.map((l) => l.tex));
+    // The group fixed Q1 too (a groupmate's mistake), but Sam had it right on his own rework: the group's version is not his story.
+    expect(reviews.q1.group?.solved).toBe(true);
+    expect(reviews.q4.group).toBeUndefined();
+    expect(reviews.q7.group?.solved).toBe(false);
+    expect(reviews.q7.group?.lines.length).toBeGreaterThan(0);
+    // The same columns the student's own report shows.
+    expect(labels(columnsOf(reviews, PATH))).toEqual(labels(outcomeColumns(session, PATH, classroom.group)));
+    expect(unsolvedOf(reviews, PATH).map((p) => p.label)).toEqual(["Q7"]);
+  });
+
+  it("shows only what tells the problem's story", () => {
+    expect(kinds("q4")).toEqual(["first"]);
+    expect(kinds("q1")).toEqual(["first", "second"]);
+    expect(kinds("q7")).toEqual(["first", "second", "group-last"]);
+    expect(shownVersions("q7", reviews.q7, PATH).map((v) => v.label)).toEqual(["First submission", "Second submission", "Group's last try"]);
+    // Right after the group's rework: all three; with no individual review on the pathway, first and the group's.
+    const solved: Reviews = { ...reviews, q7: { ...reviews.q7, group: { lines: reviews.q7.group!.lines, solved: true } } };
+    expect(outcomeOf("q7", solved.q7, PATH)).toBe("group");
+    expect(kinds("q7", PATH, solved)).toEqual(["first", "second", "group"]);
+    expect(kinds("q7", ["group"], solved)).toEqual(["first", "group"]);
+    // Still wrong with no review stage at all: the first submission alone.
+    expect(kinds("q7", [])).toEqual(["first"]);
+  });
+
+  it("reads a set record: the Class View's lines, and review only where the record has it", () => {
+    const mia = CLASSMATE_MAP.mia;
+    const plain = recordReviews(mia);
+    const wrong = mia.wrong[0];
+    expect(plain[wrong].first).toEqual(mia.attempts[wrong]);
+    expect(plain[wrong].second).toEqual([]);
+    expect(columnsOf(plain, PATH).find((c) => c.id === "individual")!.problems).toEqual([]);
+    expect(kinds(wrong, PATH, plain)).toEqual(["first"]);
+    const fixed = recordReviews({ ...mia, review: { [wrong]: { second: PROBLEM_MAP[wrong].solution.map((s) => s.tex) } } });
+    expect(outcomeOf(wrong, fixed[wrong], PATH)).toBe("individual");
+    expect(kinds(wrong, PATH, fixed)).toEqual(["first", "second"]);
+  });
+
+  it("words a record's confidence label as the live report does", () => {
+    expect(labelSentence("confident")).toBe("Confident before starting");
+    expect(labelSentence("low")).toBe("Confidence low before starting");
+    expect(labelSentence("low: fractions, discriminant")).toBe("Confidence low when fractions, discriminant comes up");
   });
 });
 

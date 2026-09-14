@@ -1,9 +1,12 @@
 import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
+import type { Classmate } from "@/data/classmates";
 import { leafName, type GroupId } from "@/data/taxonomy";
 import type { Confidence, Problem, ReviewStage } from "@/data/types";
+import { groupVersion } from "./debrief";
 import { evaluateLine } from "./evaluate";
 import { feedbackFor } from "./feedback";
 import type { GroupRun } from "./groupReview";
+import { classmateLines } from "./hierarchy";
 import type { StudentSession } from "./session";
 
 /**
@@ -72,6 +75,13 @@ export function confidenceSentence(c: Confidence | null): string {
   return named ? `Confidence low when ${named.join(", ")} comes up` : "Confidence low before starting";
 }
 
+/** A record's confidence label ("confident", "low", "low: fractions, discriminant") as the report's sentence, word for word the live one. */
+export function labelSentence(label: string): string {
+  if (label === "confident") return confidenceSentence({ level: "confident" });
+  const i = label.indexOf(":");
+  return i < 0 ? confidenceSentence({ level: "low" }) : `Confidence low when ${label.slice(i + 1).trim()} comes up`;
+}
+
 export function reportFacts(session: StudentSession): ReportFacts {
   const fb = feedbackFor(session);
   return {
@@ -110,25 +120,105 @@ export const OUTCOME_LABEL: Record<Outcome, string> = {
 };
 
 /** A version is right when it has at least one line and none of them is wrong: the same rule as "every step held". */
-const holds = (problem: string, lines: { tex: string }[]): boolean => lines.length > 0 && lines.every((l) => evaluateLine(problem, l.tex).verdict !== "wrong");
+const holds = (problem: string, lines: string[]): boolean => lines.length > 0 && lines.every((tex) => evaluateLine(problem, tex).verdict !== "wrong");
 
-export function problemOutcome(session: StudentSession, problem: string, pathway: readonly ReviewStage[], run: GroupRun | null | undefined): Outcome {
-  if (holds(problem, session.lines[problem] ?? [])) return "first";
-  if (pathway.includes("individual") && holds(problem, session.rework[problem] ?? [])) return "individual";
-  if (pathway.includes("group") && run?.resolved.includes(problem)) return "group";
+/**
+ * Everything one student wrote on one problem, stage by stage (ticket 243): the first submission, their own
+ * second submission, and what their group wrote once it closed the problem (its rework that checked correct, or
+ * its last try on a problem closed unsolved). The same shape for a live session and a set's record, so both
+ * reports sort tiles and show working from it.
+ */
+export interface ProblemReview {
+  first: string[];
+  second: string[];
+  group?: { lines: string[]; solved: boolean };
+}
+export type Reviews = Record<string, ProblemReview>;
+
+/** A live session's versions of one problem: its lines, its rework, and the group run's version once the run closed it. */
+function sessionReview(session: StudentSession, run: GroupRun | null | undefined, problem: string): ProblemReview {
+  const closed = run?.resolved.includes(problem) ? true : run?.unsolved?.includes(problem) ? false : null;
+  return {
+    first: (session.lines[problem] ?? []).map((l) => l.tex),
+    second: (session.rework[problem] ?? []).map((l) => l.tex),
+    ...(run && closed !== null ? { group: { lines: groupVersion(run, problem), solved: closed } } : {}),
+  };
+}
+
+export const sessionReviews = (session: StudentSession, run: GroupRun | null | undefined, problems: Problem[] = ASSIGNMENT.problems): Reviews =>
+  Object.fromEntries(problems.map((p) => [p.id, sessionReview(session, run, p.id)]));
+
+/** A set record's versions: its first submission as the Class View reads it, and what review made of its mistakes (`review`, ticket 244). */
+export function recordReviews(record: Classmate, problems: Problem[] = ASSIGNMENT.problems): Reviews {
+  const reviews: Reviews = {};
+  problems.forEach((p, i) => {
+    const later = record.review?.[p.id];
+    reviews[p.id] = { first: classmateLines(record, p, i) ?? [], second: later?.second ?? [], ...(later?.group ? { group: later.group } : {}) };
+  });
+  return reviews;
+}
+
+const NO_REVIEW: ProblemReview = { first: [], second: [] };
+
+export function outcomeOf(problem: string, review: ProblemReview = NO_REVIEW, pathway: readonly ReviewStage[]): Outcome {
+  if (holds(problem, review.first)) return "first";
+  if (pathway.includes("individual") && holds(problem, review.second)) return "individual";
+  if (pathway.includes("group") && review.group?.solved) return "group";
   return "wrong";
 }
 
+export const problemOutcome = (session: StudentSession, problem: string, pathway: readonly ReviewStage[], run: GroupRun | null | undefined): Outcome =>
+  outcomeOf(problem, sessionReview(session, run, problem), pathway);
+
 /** Of the problems still incorrect, those the student's group worked on and closed unsolved (ticket 223): the report names them. */
-export function unsolvedInGroup(session: StudentSession, pathway: readonly ReviewStage[], run: GroupRun | null | undefined, problems: Problem[] = ASSIGNMENT.problems): Problem[] {
+export function unsolvedOf(reviews: Reviews, pathway: readonly ReviewStage[], problems: Problem[] = ASSIGNMENT.problems): Problem[] {
   if (!pathway.includes("group")) return [];
-  return problems.filter((p) => run?.unsolved?.includes(p.id) && problemOutcome(session, p.id, pathway, run) === "wrong");
+  return problems.filter((p) => reviews[p.id]?.group?.solved === false && outcomeOf(p.id, reviews[p.id], pathway) === "wrong");
 }
 
+export const unsolvedInGroup = (session: StudentSession, pathway: readonly ReviewStage[], run: GroupRun | null | undefined, problems: Problem[] = ASSIGNMENT.problems): Problem[] =>
+  unsolvedOf(sessionReviews(session, run, problems), pathway, problems);
+
 /** The columns the pathway allows, in order, each with its problems in set order. An empty column stays, so the layout never shifts. */
-export function outcomeColumns(session: StudentSession, pathway: readonly ReviewStage[], run: GroupRun | null | undefined, problems: Problem[] = ASSIGNMENT.problems): OutcomeColumn[] {
+export function columnsOf(reviews: Reviews, pathway: readonly ReviewStage[], problems: Problem[] = ASSIGNMENT.problems): OutcomeColumn[] {
   const ids: Outcome[] = ["first", ...(pathway.includes("individual") ? (["individual"] as const) : []), ...(pathway.includes("group") ? (["group"] as const) : []), "wrong"];
   const columns = ids.map((id) => ({ id, label: OUTCOME_LABEL[id], problems: [] as Problem[] }));
-  for (const p of problems) columns.find((c) => c.id === problemOutcome(session, p.id, pathway, run))!.problems.push(p);
+  for (const p of problems) columns.find((c) => c.id === outcomeOf(p.id, reviews[p.id], pathway))!.problems.push(p);
   return columns;
+}
+
+export const outcomeColumns = (session: StudentSession, pathway: readonly ReviewStage[], run: GroupRun | null | undefined, problems: Problem[] = ASSIGNMENT.problems): OutcomeColumn[] =>
+  columnsOf(sessionReviews(session, run, problems), pathway, problems);
+
+export type VersionKind = "first" | "second" | "group" | "group-last";
+
+export interface ShownVersion {
+  kind: VersionKind;
+  label: string;
+  lines: string[];
+}
+
+export const VERSION_LABEL: Record<VersionKind, string> = {
+  first: "First submission",
+  second: "Second submission",
+  group: "Group's rework",
+  "group-last": "Group's last try",
+};
+
+/**
+ * The versions a problem's working shows side by side on the teacher's report (ticket 243), only those that
+ * tell its story: right first time, the first submission alone; right on the student's own rework, the first
+ * and second; right in group review, the first, the second when there is one, and the group's rework; still
+ * wrong, every version there is, the group's last try included when their group took it on.
+ */
+export function shownVersions(problem: string, review: ProblemReview = NO_REVIEW, pathway: readonly ReviewStage[]): ShownVersion[] {
+  const outcome = outcomeOf(problem, review, pathway);
+  const v = (kind: VersionKind, lines: string[]): ShownVersion => ({ kind, label: VERSION_LABEL[kind], lines });
+  const out = [v("first", review.first)];
+  if (outcome === "first") return out;
+  const second = pathway.includes("individual") && review.second.length > 0;
+  if (outcome === "individual") return [...out, v("second", review.second)];
+  if (second) out.push(v("second", review.second));
+  if (pathway.includes("group") && review.group) out.push(v(review.group.solved ? "group" : "group-last", review.group.lines));
+  return out;
 }

@@ -32,6 +32,11 @@ export interface Classmate {
   clarification?: string;
   /** Their recognised working on the problems they got wrong, for the teacher's mistake view. */
   attempts: Record<string, string[]>;
+  /**
+   * What review made of a problem they got wrong (ticket 243 reads it, 244 writes it): their own second
+   * submission, and their group's version once it closed the problem (the rework that checked, or the last try).
+   */
+  review?: Record<string, { second?: string[]; group?: { lines: string[]; solved: boolean } }>;
   /** One line for the teacher's "during review groups" view. Static; the demo student's is live. */
   groupStatus: string;
 }

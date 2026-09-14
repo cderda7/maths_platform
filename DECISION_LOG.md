@@ -4342,3 +4342,16 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Each collapsed card is one label row taller. Widening is measured in a layout effect, so it runs on every render and resize (six problems at 800 px, none at 1280 or 1440). A group whose students share a wrong line but not their working spans columns whose names wrap unevenly under one label.
 
 **Defense.** The label is the grouping's own key, so it can never disagree with the clusters it names; the fit is deterministic from the DOM, writes no React state, and the click-through proves nothing moves on open at four widths.
+
+
+## 2026-09-14 · A problem's review is one shape for both kinds of student, and its working takes the skills card's place (ticket 243)
+
+**Decision.** `lib/report.ts` reads a student's work on a problem as `ProblemReview` (first submission, second submission, the group's version once the group closed it), built from the live session and group run (`sessionReviews`) or from a set record (`recordReviews`, with `Classmate.review` optional until ticket 244 writes it). Tiles, outcomes, the not-solved note and the versions shown all read that one shape; the session-based functions the student report uses sit on top. On the teacher's report a tile's or skill's working is drawn in an absolutely placed panel over the skills, which stay laid out but `invisible`, so the card cannot resize. Versions shown follow the outcome: first try alone, individual first and second, group all that exist up to the group's rework, incorrect every version there is.
+
+**Context.** The user wanted the student report's tiles on the teacher's report for every student on every set, with working inline on the left (not the right column), versions side by side like the group debrief, only the relevant ones, and nothing to scroll on the laptop. Measured at 1280×800 the space under What happened was about 50 px against the ~250 a problem needs; the user chose the skills card's place.
+
+**Alternatives considered.** *A second outcome function for records*: two rules for which column a problem is in, free to drift. *Working under What happened with the page scrolling*: breaks the no-scroll rule the user set. *Unmounting the skills while working is open*: the card would take the working's height and What happened would jump. *Showing every version always*: the user said a group's rework on a problem the student already had right is no use.
+
+**Tradeoffs.** The skills are rendered (hidden) while working is open. Records fill only two columns until 244. Fitting the longest commentary meant tightening the right column (idea rows, box padding, the quote at 19 px) and splitting the key into two lists; a live run with many practices could wrap the notes line and need a few more pixels.
+
+**Defense.** One shape means the teacher's and the student's report can never disagree on a column, and 244 only adds data. The hidden skills fix the card's size by construction, so nothing moves when working opens, which the click-through asserts to the pixel.

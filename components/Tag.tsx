@@ -12,7 +12,7 @@ const DIFF_STYLES: Record<Difficulty, string> = {
 export function DifficultyTag({ d, className = "" }: { d: Difficulty; className?: string }) {
   return (
     // data-difficulty: click-throughs assert no student screen shows one (ticket 233).
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium tracking-wide ${DIFF_STYLES[d]} ${className}`} data-difficulty={d}>
+    <span className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[11px] font-medium tracking-wide ${DIFF_STYLES[d]} ${className}`} data-difficulty={d}>
       {d}
     </span>
   );

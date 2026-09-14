@@ -9,11 +9,25 @@ const ROWS: { status: Status; means: string }[] = [
   { status: "unseen", means: "no evidence yet" },
 ];
 
-/** The dot key, one row per status: dot, word, what the colour means, in aligned columns. The half dot is grey: incomplete, not a grade. */
-export default function StatusKey({ className = "" }: { className?: string }) {
+/**
+ * The dot key, one row per status: dot, word, what the colour means, in aligned columns. The half dot is grey: incomplete, not a grade.
+ * `split` sets it as two lists of three side by side, grades on the left and gap, half and not seen on the right (the teacher's report, ticket 243).
+ */
+export default function StatusKey({ className = "", split = false }: { className?: string; split?: boolean }) {
+  if (split)
+    return (
+      <div className={`flex gap-x-10 ${className}`} data-status-key>
+        <KeyRows rows={ROWS.slice(0, 3)} />
+        <KeyRows rows={ROWS.slice(3)} />
+      </div>
+    );
+  return <KeyRows rows={ROWS} className={className} data-status-key />;
+}
+
+function KeyRows({ rows, className = "", ...rest }: { rows: typeof ROWS; className?: string; "data-status-key"?: boolean }) {
   return (
-    <ul className={`grid grid-cols-[15px_auto_1fr] items-center gap-x-3 gap-y-2 text-[12.5px] ${className}`} data-status-key>
-      {ROWS.map((r) => (
+    <ul className={`grid grid-cols-[15px_auto_1fr] items-center gap-x-3 gap-y-2 text-[12.5px] ${className}`} {...rest}>
+      {rows.map((r) => (
         <li key={r.status} className="contents">
           {r.status === "unseen" && (
             <>
@@ -23,8 +37,8 @@ export default function StatusKey({ className = "" }: { className?: string }) {
             </>
           )}
           <StatusDot status={r.status} size="h-[15px] w-[15px]" />
-          <span className="text-ink">{STATUS_WORD[r.status]}</span>
-          <span className="text-ink-muted">{r.means}</span>
+          <span className="whitespace-nowrap text-ink">{STATUS_WORD[r.status]}</span>
+          <span className="whitespace-nowrap text-ink-muted">{r.means}</span>
         </li>
       ))}
     </ul>

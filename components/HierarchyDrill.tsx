@@ -189,10 +189,9 @@ export const SkillTree = forwardRef<HTMLUListElement, TreeProps>(function SkillT
  * ticket 233) puts the problem under its label and fits each line to the column, since maths never splits.
  */
 export function ProblemWork({ problem: p, texs, leaf = null, onGoTo, student = false, narrow = false }: { problem: Problem; texs: string[]; leaf?: LeafId | null; onGoTo: (l: LeafId) => void; student?: boolean; narrow?: boolean }) {
-  const marks = lineMarks(p.id, texs);
   return (
     <section className="rounded-xl border border-line bg-paper p-3" data-work-problem={p.id}>
-      <div className={narrow ? "min-w-0" : "flex items-center gap-2.5"}>
+      <div className={narrow ? "min-w-0" : "flex flex-wrap items-center gap-x-2.5 gap-y-1"}>
         <span className="font-display text-[16px] text-ink">{p.label}</span>
         {!student && <DifficultyTag d={p.difficulty} />}
         {narrow ? (
@@ -207,56 +206,69 @@ export function ProblemWork({ problem: p, texs, leaf = null, onGoTo, student = f
           </span>
         )}
       </div>
-      {texs.length === 0 ? (
-        <p className="mt-2 text-[12.5px] text-ink-muted" data-not-attempted>
-          not attempted
-        </p>
-      ) : (
-        <ol className="mt-2 space-y-1.5">
-          {texs.map((tex, i) => {
-            const v = evaluateLine(p.id, tex);
-            const tagged = leaf !== null && v.verdict !== "unclear" && v.tags.some((t) => t.leaf === leaf);
-            const mark = marks[i];
-            const blamed = v.verdict === "wrong" && v.tags[0].leaf !== leaf ? v.tags[0].leaf : null;
-            return (
-              <li
-                key={i}
-                data-mark={mark ?? undefined}
-                data-tagged={tagged || undefined}
-                className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-lg border px-3 py-1.5 text-[14.5px] text-ink ${tagged ? "border-l-[3px] border-l-ink" : ""} ${
-                  mark === "wrong" ? "border-wrong-line bg-wrong-soft" : mark === "standout" ? "border-standout-line bg-standout-soft" : "border-line bg-cream/40"
-                }`}
-              >
-                {narrow ? (
-                  <span className="block w-full min-w-0">
-                    <FitText max={14.5} fitKey={tex}>
-                      <M tex={tex} />
-                    </FitText>
-                  </span>
-                ) : (
-                  <M tex={tex} />
-                )}
-                {blamed && (
-                  <button
-                    type="button"
-                    onClick={() => onGoTo(blamed)}
-                    className="flex shrink-0 items-center gap-1.5 rounded-full border border-wrong-line bg-paper px-2 py-0.5 text-[11.5px] text-wrong hover:bg-wrong-soft"
-                    title={`Identified as ${leafName(blamed).short}. Open that skill.`}
-                    data-blame={blamed}
-                  >
-                    <svg viewBox="0 0 16 16" className="h-3 w-3" aria-hidden>
-                      <path d="M8 1.5 15 14H1z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-                      <path d="M8 6v4M8 11.6v.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                    </svg>
-                    {(student ? studentLeafName(blamed) : leafName(blamed)).short}
-                  </button>
-                )}
-              </li>
-            );
-          })}
-        </ol>
-      )}
+      <WorkLines problem={p.id} texs={texs} leaf={leaf} onGoTo={onGoTo} student={student} narrow={narrow} />
     </section>
+  );
+}
+
+/**
+ * One version's lines, marked: red on a step that didn't hold, blue on a curated standout, a left rule on lines
+ * tagged to `leaf`, and a ⚠ chip on a red line whose mistake belongs to another skill. `narrow` fits each line to
+ * its column (maths never splits) and puts the chip under the line. Shared by `ProblemWork` and the teacher's
+ * version columns (ticket 243).
+ */
+export function WorkLines({ problem, texs, leaf = null, onGoTo, student = false, narrow = false }: { problem: string; texs: string[]; leaf?: LeafId | null; onGoTo: (l: LeafId) => void; student?: boolean; narrow?: boolean }) {
+  const marks = lineMarks(problem, texs);
+  if (texs.length === 0)
+    return (
+      <p className="mt-2 text-[12.5px] text-ink-muted" data-not-attempted>
+        not attempted
+      </p>
+    );
+  return (
+    <ol className="mt-2 space-y-1.5">
+      {texs.map((tex, i) => {
+        const v = evaluateLine(problem, tex);
+        const tagged = leaf !== null && v.verdict !== "unclear" && v.tags.some((t) => t.leaf === leaf);
+        const mark = marks[i];
+        const blamed = v.verdict === "wrong" && v.tags[0].leaf !== leaf ? v.tags[0].leaf : null;
+        return (
+          <li
+            key={i}
+            data-mark={mark ?? undefined}
+            data-tagged={tagged || undefined}
+            className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-lg border px-3 py-1.5 text-[14.5px] text-ink ${tagged ? "border-l-[3px] border-l-ink" : ""} ${
+              mark === "wrong" ? "border-wrong-line bg-wrong-soft" : mark === "standout" ? "border-standout-line bg-standout-soft" : "border-line bg-cream/40"
+            }`}
+          >
+            {narrow ? (
+              <span className="block w-full min-w-0">
+                <FitText max={14.5} fitKey={tex}>
+                  <M tex={tex} />
+                </FitText>
+              </span>
+            ) : (
+              <M tex={tex} />
+            )}
+            {blamed && (
+              <button
+                type="button"
+                onClick={() => onGoTo(blamed)}
+                className="flex shrink-0 items-center gap-1.5 rounded-full border border-wrong-line bg-paper px-2 py-0.5 text-[11.5px] text-wrong hover:bg-wrong-soft"
+                title={`Identified as ${leafName(blamed).short}. Open that skill.`}
+                data-blame={blamed}
+              >
+                <svg viewBox="0 0 16 16" className="h-3 w-3" aria-hidden>
+                  <path d="M8 1.5 15 14H1z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+                  <path d="M8 6v4M8 11.6v.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                </svg>
+                {(student ? studentLeafName(blamed) : leafName(blamed)).short}
+              </button>
+            )}
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 

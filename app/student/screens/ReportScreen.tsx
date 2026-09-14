@@ -7,26 +7,15 @@ import SkillColumns from "@/components/SkillColumns";
 import StatusKey from "@/components/StatusKey";
 import { ASSIGNMENT } from "@/data/assignment";
 import { pathwayOf } from "@/lib/classroom";
-import { OUTCOME_LABEL, outcomeColumns, unsolvedInGroup, type Outcome } from "@/lib/report";
+import OutcomeTiles from "@/components/OutcomeTiles";
+import { OUTCOME_LABEL, outcomeColumns, unsolvedInGroup } from "@/lib/report";
 import { isMastery } from "@/lib/peers";
 import { useAssignment, useClassroom } from "@/lib/classroom-store";
 import { sessionEvidence, sessionHierarchy } from "@/lib/hierarchy";
-import { outcomeTemplate, pressWork, type ReportWork } from "@/lib/reportWork";
+import { pressWork, type ReportWork } from "@/lib/reportWork";
 import type { SessionAction, StudentSession } from "@/lib/session";
 
 const sentences = (t: string) => t.split(/[.!?]+/).map((x) => x.trim()).filter(Boolean).length;
-
-/** The tile tint per column: green right away, blue after the student's own rework, amber after the group's, red still wrong. */
-const TILE: Record<Outcome, string> = {
-  first: "border-secure-line bg-secure-soft",
-  individual: "border-standout-line bg-standout-soft",
-  group: "border-developing-line bg-developing-soft",
-  wrong: "border-wrong-line bg-wrong-soft",
-};
-
-/** The narrowest each column may be: its label on two lines at most (Incorrect wider when it carries the not-solved note). */
-const FLOOR: Record<Outcome, number> = { first: 100, individual: 110, group: 90, wrong: 64 };
-const NOTE_FLOOR = 120;
 
 /** What keeps the side column's working open when pressed: the working itself (not the blank column under it), a Q tile, a skill row (they switch it), and Send (it closes it its own way). */
 const KEEPS_WORK = "[data-work-content], [data-work-tile], [data-hierarchy] button[data-node], [data-send]";
@@ -55,10 +44,6 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
   const written = session.reflection.trim() !== "";
   const sent = session.reportSent;
   const mastery = isMastery(session);
-  const template = outcomeTemplate(
-    columns.map((c) => c.problems.length),
-    columns.map((c) => (c.id === "wrong" && unsolved.length > 0 ? NOTE_FLOOR : FLOOR[c.id])),
-  );
 
   const [work, setWork] = useState<ReportWork>(null);
   const [nudge, setNudge] = useState(0);
@@ -134,42 +119,13 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
 
         <Card className="mt-3 shrink-0 p-4" data-outcomes>
           <Eyebrow>What happened</Eyebrow>
-          <div className="mt-3 grid gap-4" style={{ gridTemplateColumns: template }}>
-            {columns.map((c) => (
-              <div key={c.id} className="min-w-0" data-outcome={c.id}>
-                {/* Two lines tall whether the label wraps or not, so every column's tiles start on the same row. */}
-                <div className="min-h-[33px] text-[12px] font-medium leading-snug text-ink-soft">{c.label}</div>
-                {c.problems.length === 0 ? (
-                  <div className="mt-2 text-[13px] text-ink-muted">None</div>
-                ) : (
-                  <ul className="mt-2 flex flex-wrap gap-1.5">
-                    {c.problems.map((p) => {
-                      const open = work?.kind === "problem" && work.id === p.id;
-                      return (
-                        <li key={p.id}>
-                          <button
-                            type="button"
-                            onClick={() => setWork((w) => pressWork(w, { kind: "problem", id: p.id }))}
-                            aria-pressed={open}
-                            aria-label={`${p.label}: see your marked working`}
-                            className={`inline-flex h-9 min-w-9 items-center justify-center rounded-lg border px-2 text-[13px] font-medium text-ink transition-shadow hover:shadow-card ${TILE[c.id]} ${open ? "ring-2 ring-ink ring-offset-1 ring-offset-paper" : ""}`}
-                            data-work-tile={p.id}
-                          >
-                            {p.label}
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-                {c.id === "wrong" && unsolved.length > 0 && (
-                  <p className="mt-1.5 text-[12px] leading-snug text-ink-muted" data-unsolved-note>
-                    {unsolved.map((p) => p.label).join(", ")} not solved in group review
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
+          <OutcomeTiles
+            columns={columns}
+            unsolved={unsolved}
+            open={work?.kind === "problem" ? work.id : null}
+            onPress={(id) => setWork((w) => pressWork(w, { kind: "problem", id }))}
+            describe={() => "see your marked working"}
+          />
         </Card>
       </section>
 

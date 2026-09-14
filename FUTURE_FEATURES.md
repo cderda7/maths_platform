@@ -3185,6 +3185,16 @@ uploaded problems) settled the following as later, each on purpose.
 - **A count on the label** ("×5"). Not asked for; the names under it already show how many.
 - **A short hover explaining the label** (the line these students wrote wrong). Not asked for; add if teachers read the red box as a correct step.
 
+## Teacher report tiles follow-ups (ticket 243, 2026-09-14)
+
+- **Review outcomes and working for every record.** Records fill only Correct first try and Incorrect; ticket 244 writes each record's second submission and group version from the agreed rules. Deferred: a data ticket of its own so the page could be checked first.
+- **The second submission and the group's rework on the student's own report.** The student's tile still shows only their first attempt in the side column; the teacher now sees every version. Deferred: the user asked for the teacher's side.
+- **A green pane for the version that got it right**, as the group debrief greens the group's rework. Deferred: the marks already show the red lines, and the tile's colour says which stage fixed it.
+- **The skills lit behind a problem while its working is open**, so the teacher sees which skills the problem touched. Deferred: the working covers the skills by the user's choice.
+- **Stars on a record.** Only the live session keeps stars; a set record has none to show. Deferred: no data.
+- **A notes line that cannot grow.** A live run with several practices wraps the confidence and practice line beside What happened, adding a line to the card. Deferred: the demo's runs fit; truncating with the full text on hover is the fallback.
+- **The key's two lists on a narrower column** would wrap "no evidence yet"; the right column is fixed at 440 px today. Deferred: nothing narrower exists.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
