@@ -4,7 +4,7 @@
 
 **Blocked by:** none.
 
-**Status:** open
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -22,6 +22,6 @@ The user (2026-09-14): "post student report HW creation doesn't need to be quite
 
 ## Acceptance
 
-- [ ] Unit: the new per-tile timings; no count exposed
-- [ ] Click-through on the iPad at 1280×800 and 1440×900: Sam's sequence finishes within the new budget; each problem still shows original then similar with the numbers changing in place; no number on the folder at any frame, with nothing wrong (strong run) too; reduced motion; reload mid-sequence; nothing moves or clips
-- [ ] vitest, eslint, tsc, next build, sweep:hint-boxes
+- [x] Unit: the new per-tile timings; no count exposed
+- [x] Click-through on the iPad at 1280×800 and 1440×900: Sam's sequence finishes within the new budget; each problem still shows original then similar with the numbers changing in place; no number on the folder at any frame, with nothing wrong (strong run) too; reduced motion; reload mid-sequence; nothing moves or clips
+- [x] vitest, eslint, tsc, next build, sweep:hint-boxes

@@ -8,7 +8,7 @@ import { ASSIGNMENT } from "@/data/assignment";
 import type { Problem } from "@/data/types";
 import { useAssignment } from "@/lib/classroom-store";
 import { sessionEvidence, sessionHierarchy } from "@/lib/hierarchy";
-import { bankedCount, homeworkDone, homeworkProblems, tileMoment } from "@/lib/homework";
+import { homeworkDone, homeworkProblems, lastLanded, tileMoment } from "@/lib/homework";
 import { useFrameNow, useNow } from "@/lib/store";
 import type { StudentSession } from "@/lib/session";
 
@@ -65,14 +65,14 @@ export default function HomeworkScreen({ session }: { session: StudentSession })
     return () => ro.disconnect();
   }, []);
 
-  const count = elapsed < 0 ? 0 : bankedCount(banked.length, elapsed, reduced);
+  const landed = elapsed < 0 ? null : lastLanded(banked, elapsed, reduced);
   const moments = banked.map((p, i) => ({ problem: p, ...(elapsed < 0 ? { phase: "waiting" as const, p: 0 } : tileMoment(i, elapsed, reduced)) }));
   const active = moments.find((m) => m.phase !== "waiting" && m.phase !== "banked");
   const left = new Set(moments.filter((m) => m.phase !== "waiting").map((m) => m.problem.id));
   const everWrong = new Set(banked.map((p) => p.id));
 
   return (
-    <div ref={stage} className="relative h-full" data-homework data-hw-count={count} data-hw-active={active?.problem.id ?? ""} data-hw-phase={active?.phase ?? ""}>
+    <div ref={stage} className="relative h-full" data-homework data-hw-landed={landed?.id ?? ""} data-hw-active={active?.problem.id ?? ""} data-hw-phase={active?.phase ?? ""}>
       <div className="flex h-full min-h-0 flex-col px-9 py-7">
         <div className="flex items-center justify-between gap-4">
           <h1 className="font-display whitespace-nowrap text-[30px] leading-tight text-ink">Your next homework</h1>
@@ -88,7 +88,7 @@ export default function HomeworkScreen({ session }: { session: StudentSession })
                 <Tile key={p.id} problem={p} wrong={everWrong.has(p.id)} gone={left.has(p.id)} />
               ))}
             </ul>
-            <Folder count={count} />
+            <Folder landed={landed?.id ?? null} />
           </div>
           {banked.length === 0 && (
             <p className="mt-3 text-[13.5px] text-ink-muted" data-hw-none>
@@ -127,18 +127,18 @@ function Tile({ problem, wrong, gone }: { problem: Problem; wrong: boolean; gone
   );
 }
 
-/** The Homework folder and how many problem types are in it; the count bumps each time one lands. */
-function Folder({ count }: { count: number }) {
+/**
+ * The Homework folder; it bumps each time a tile lands in it. No count (ticket 274): the problems landing here are not
+ * all of the homework, other problems join them, so a number would read as a total it is not.
+ */
+function Folder({ landed }: { landed: string | null }) {
   return (
-    <div className="flex shrink-0 items-center gap-3" data-hw-folder aria-live="polite" aria-label={`Homework: ${count} problem ${count === 1 ? "type" : "types"}`}>
+    <div className="flex shrink-0 items-center gap-3" data-hw-folder>
       <div className="relative" data-hw-folder-icon>
-        <svg viewBox="0 0 64 50" className="h-[50px] w-16" aria-hidden>
+        <svg key={landed ?? "empty"} viewBox="0 0 64 50" className={`h-[50px] w-16 ${landed ? "hw-bump" : ""}`} aria-hidden>
           <path d="M4 10a4 4 0 0 1 4-4h15l5 5h28a4 4 0 0 1 4 4v29a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z" fill="#d6d0f7" />
           <path d="M4 17a4 4 0 0 1 4-4h48a4 4 0 0 1 4 4v27a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z" fill="#eeebfc" stroke="#5b4ae8" strokeWidth="1.5" />
         </svg>
-        <span key={count} className={`absolute -right-2 -top-2 grid h-6 min-w-6 place-items-center rounded-full bg-accent px-1.5 text-[12px] font-semibold text-white ${count > 0 ? "hw-bump" : ""}`} data-hw-folder-count>
-          {count}
-        </span>
       </div>
       <span className="text-[14px] font-medium text-ink">Homework</span>
     </div>

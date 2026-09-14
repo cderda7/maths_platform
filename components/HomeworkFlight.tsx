@@ -5,7 +5,7 @@ import M from "@/components/Math";
 import Figure from "@/components/Figure";
 import { Eyebrow } from "@/components/ui";
 import type { Problem } from "@/data/types";
-import { glueRuns, glueStem, sameTypeLine, similarFor, texDiff, wordDiff, type TilePhase, type WordRun } from "@/lib/homework";
+import { glueRuns, glueStem, REDUCED_MOTION, sameTypeLine, similarFor, texDiff, wordDiff, type TilePhase, type WordRun } from "@/lib/homework";
 
 /** A rectangle in the homework screen's own layout px. */
 export interface Box {
@@ -69,7 +69,7 @@ export default function HomeworkFlight({ problem, phase, p, slot, folder, bounds
   let opacity = 1;
   let lift = 0;
   if (reduced) {
-    const fade = 150 / 3800;
+    const fade = 150 / REDUCED_MOTION.show;
     opacity = clamp(p / fade) * clamp((1 - p) / fade);
     m = 1;
     line = 1;
@@ -80,9 +80,11 @@ export default function HomeworkFlight({ problem, phase, p, slot, folder, bounds
     body = clamp((p - 0.6) / 0.4);
   } else if (phase === "morphing") {
     m = ease(p);
+    // The line comes in as the new numbers settle (ticket 274): the hold after the change is short, and the line is what says why.
+    line = clamp((p - 0.55) / 0.35);
   } else if (phase === "similar") {
     m = 1;
-    line = clamp(p * 4);
+    line = 1;
   } else if (phase === "flying") {
     // First the question shrinks back to a tile where it opened, then the tile flies up and over into the folder.
     const tile: Box = { left: panel.left, top: panel.top, width: slot.width, height: slot.height };

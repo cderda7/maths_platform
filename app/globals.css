@@ -157,20 +157,21 @@ body {
 .hw-new .hw-diff {
   color: var(--color-accent-deep);
 }
-/* The folder's count as a tile lands in it: one small bump. Reduced motion changes the number alone. */
+/* The folder as a tile lands in it: one small bump (it shows no count, ticket 274). Reduced motion: the tile just goes. */
 @keyframes hw-bump {
   0% {
     transform: scale(1);
   }
   40% {
-    transform: scale(1.25);
+    transform: scale(1.1);
   }
   100% {
     transform: scale(1);
   }
 }
 .hw-bump {
-  animation: hw-bump 320ms ease-out 1 both;
+  animation: hw-bump 280ms ease-out 1 both;
+  transform-origin: 50% 60%;
 }
 @media (prefers-reduced-motion: reduce) {
   .hw-bump {

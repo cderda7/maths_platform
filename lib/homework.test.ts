@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import { PROBLEMS } from "@/data/assignment";
 import { PROBLEM_DIAGNOSTICS } from "@/data/diagnostic";
 import { SIMILAR_PROBLEMS, SIMILAR_MAP } from "@/data/homework";
-import { bankedCount, everWrong, glueRuns, glueStem, HOMEWORK_LEAD_MS, homeworkDone, homeworkProblems, MOTION, REDUCED_MOTION, sameTypeLine, texDiff, texShape, tileLands, tileMoment, tileStart, wordDiff } from "./homework";
+import * as homework from "./homework";
+import { everWrong, glueRuns, glueStem, HOMEWORK_LEAD_MS, homeworkDone, homeworkProblems, lastLanded, MOTION, perTile, REDUCED_MOTION, sameTypeLine, texDiff, texShape, tileLands, tileMoment, tileStart, wordDiff } from "./homework";
 import { INITIAL_SESSION, sessionAt, sessionReducer, type StudentSession } from "./session";
 import { skipFixture } from "./demo";
 import { evalTex, namedValues, sameFunction, sameValues, sides } from "./texEval";
@@ -222,12 +223,30 @@ describe("the sequence", () => {
     expect(tileMoment(1, tileLands(0, false), false).phase).toBe("waiting");
   });
 
-  it("the folder counts a tile once it lands, and the count ends at the number of problems", () => {
-    expect(bankedCount(5, tileLands(0, false) - 1, false)).toBe(0);
-    expect(bankedCount(5, tileLands(0, false), false)).toBe(1);
-    expect(bankedCount(5, homeworkDone(5, false), false)).toBe(5);
-    expect(bankedCount(5, Number.MAX_SAFE_INTEGER, true)).toBe(5);
+  it("about two seconds a problem, the change the longest phase, the holds either side short (ticket 274)", () => {
+    expect(MOTION).toEqual({ expand: 250, read: 250, morph: 650, hold: 350, fly: 450, gap: 50 });
+    expect(REDUCED_MOTION).toEqual({ show: 1950, gap: 50 });
+    expect(perTile(false)).toBe(2000);
+    expect(perTile(true)).toBe(2000);
+    const { gap, ...phases } = MOTION;
+    expect(Math.max(...Object.values(phases))).toBe(MOTION.morph);
+    expect(gap).toBeLessThan(MOTION.read);
+    // Sam's five, from sending the report to the last tile in the folder: the lead plus about ten seconds, on either clock.
+    expect(homeworkDone(5, false)).toBe(HOMEWORK_LEAD_MS + 5 * 2000 - MOTION.gap);
+    expect(homeworkDone(5, true)).toBe(HOMEWORK_LEAD_MS + 5 * 2000 - REDUCED_MOTION.gap);
+    expect(homeworkDone(5, false)).toBeLessThanOrEqual(11200);
+  });
+
+  it("the folder learns which tile last landed, never how many (ticket 274: no count)", () => {
+    const five = ["q1", "q2", "q3", "q7", "q10"];
+    expect(lastLanded(five, tileLands(0, false) - 1, false)).toBeNull();
+    expect(lastLanded(five, tileLands(0, false), false)).toBe("q1");
+    expect(lastLanded(five, tileLands(2, false), false)).toBe("q3");
+    expect(lastLanded(five, homeworkDone(5, false), false)).toBe("q10");
+    expect(lastLanded(five, Number.MAX_SAFE_INTEGER, true)).toBe("q10");
+    expect(lastLanded([], Number.MAX_SAFE_INTEGER, false)).toBeNull();
     expect(homeworkDone(0, false)).toBe(0);
+    expect(Object.keys(homework).filter((k) => /count/i.test(k))).toEqual([]);
   });
 
   it("with reduced motion each tile shows its two questions, then is in the folder", () => {

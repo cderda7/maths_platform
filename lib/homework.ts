@@ -148,19 +148,24 @@ export function sameTypeLine(problem: Pick<Problem, "stem">, similar: SimilarPro
 
 /**
  * The sequence, one problem at a time in set order after a moment to take the screen in: the tile expands in place to its
- * question, reads, the numbers change, the similar question holds with its line, then it shrinks and flies into the
- * folder. With reduced motion the tile's question and its similar one show side by side, then the tile is in the folder.
+ * question, the numbers change, the similar question holds with its line, then it shrinks and flies into the folder.
+ * With reduced motion the tile's question and its similar one show side by side, then the tile is in the folder.
+ *
+ * Ticket 274: about two seconds a problem. The student is not meant to read the question and think how to solve it, only
+ * to see it turn into the same type with different numbers, so the holds either side are just long enough to see what
+ * was there and what came, and the change itself is the longest phase.
  */
 export const HOMEWORK_LEAD_MS = 1200;
-export const MOTION = { expand: 450, read: 1300, morph: 900, hold: 1600, fly: 1000, gap: 350 } as const;
-export const REDUCED_MOTION = { show: 3800, gap: 350 } as const;
+export const MOTION = { expand: 250, read: 250, morph: 650, hold: 350, fly: 450, gap: 50 } as const;
+export const REDUCED_MOTION = { show: 1950, gap: 50 } as const;
+/** One problem's whole turn, from leaving its slot to the next one leaving: about two seconds either way. */
+export const perTile = (reduced: boolean): number => (reduced ? REDUCED_MOTION.show + REDUCED_MOTION.gap : MOTION.expand + MOTION.read + MOTION.morph + MOTION.hold + MOTION.fly + MOTION.gap);
 
 export type TilePhase = "waiting" | "expanding" | "original" | "morphing" | "similar" | "flying" | "showing" | "banked";
 
-const perTile = (reduced: boolean) => (reduced ? REDUCED_MOTION.show + REDUCED_MOTION.gap : MOTION.expand + MOTION.read + MOTION.morph + MOTION.hold + MOTION.fly + MOTION.gap);
 /** When the i-th tile going into homework starts, from the moment the report was sent. */
 export const tileStart = (index: number, reduced: boolean): number => HOMEWORK_LEAD_MS + index * perTile(reduced);
-/** When that tile is in the folder: the count ticks then. */
+/** When that tile is in the folder: the folder bumps then. */
 export const tileLands = (index: number, reduced: boolean): number => tileStart(index, reduced) + perTile(reduced) - (reduced ? REDUCED_MOTION.gap : MOTION.gap);
 /** When the last tile has landed: nothing moves after this. */
 export const homeworkDone = (count: number, reduced: boolean): number => (count === 0 ? 0 : tileLands(count - 1, reduced));
@@ -185,5 +190,14 @@ export function tileMoment(index: number, elapsed: number, reduced: boolean): { 
   return { phase: "banked", p: 1 };
 }
 
-/** How many tiles are in the folder at `elapsed`. */
-export const bankedCount = (count: number, elapsed: number, reduced: boolean): number => Array.from({ length: count }, (_, i) => i).filter((i) => elapsed >= tileLands(i, reduced)).length;
+/**
+ * The problem whose tile landed in the folder last at `elapsed` (null before the first lands), so the folder can bump as
+ * each arrives. The folder shows no count (ticket 274): these are not all the homework, other problems join them.
+ */
+export function lastLanded<T>(problems: T[], elapsed: number, reduced: boolean): T | null {
+  let last: T | null = null;
+  problems.forEach((p, i) => {
+    if (elapsed >= tileLands(i, reduced)) last = p;
+  });
+  return last;
+}

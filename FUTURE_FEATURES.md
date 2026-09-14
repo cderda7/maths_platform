@@ -3384,6 +3384,13 @@ uploaded problems) settled the following as later, each on purpose.
 - **Remembering hidden stacks across a report.** A teacher who hides a stack, opens a history pill's report and returns sees every stack again; carrying the open list through the URL was left out as a rare case.
 - **An "open all / close all" control for history.** The category pills still toggle one stack each; a single control to hide every stack while staying in history mode was not asked for.
 
+## Homework bank faster (ticket 274, 2026-09-14)
+
+- **Pausing or replaying one problem.** At 2 s a problem a student cannot stop on a question to read it; a press on the moving question (or a replay of the whole sequence) was left out. Deferred: the user wants it to move fast, and the question is not for solving here.
+- **Showing what is in the folder.** With no count, nothing says how many types went in beyond the dashed slots; opening the folder to list them (with the other problems homework will have) waits for the homework screens.
+- **A longer reduced-motion hold.** Reduced motion follows the same 2 s clock as the ticket asks; a student who relies on it gets under 2 s a pair. A per-student reading-time setting was not asked for.
+- **Skipping the rest of the sequence.** No "skip" on the screen; SKIP TO homework restarts it. Deferred: 11 s is short enough not to need one.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

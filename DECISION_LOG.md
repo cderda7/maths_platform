@@ -4675,3 +4675,20 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** A teacher who hid some stacks and opened a report comes back to all of them standing. On a top row the sheet covering the rows above is as wide as every column with history rather than one.
 
 **Defense.** "see history" now shows the history in one press; one rule (`historyCategories`) decides what stands on both ways in, and there is no query state left that only mattered for the old one-at-a-time flow.
+
+## 2026-09-14 · The homework sequence spends its time on the change, and the folder counts nothing (ticket 274)
+
+**Decision.** Each problem takes 2 s: expand 250 ms, original 250, change 650, similar 350, fly 450, gap 50 (`MOTION` in `lib/homework.ts`); reduced motion shows each pair for 1950 ms with a 50 ms gap, the same 2 s clock. The line naming the type fades in over the end of the change rather than waiting for the hold. The folder shows no number at all: no badge, no count in its accessible label, no count attribute; `bankedCount` is replaced by `lastLanded`, which names the problem that landed last so the folder icon can bump.
+
+**Context.** The user found ticket 256's 5.6 s a problem (about 30 s for Sam's five) slow: the student is not meant to read the question and think how to solve it, only to see it is the same type with different numbers; and "0" on the folder read wrongly, since other problems will join these. Frames captured every ~60 ms through Q1 and Q10 at 1280×800 showed the original readable for about 350 ms (the body is in by the last 100 ms of the expansion and the eased change starts slowly), both old and new numbers mid-roll for about 300 ms, and the new question settled with its line for about 500 ms before the fly.
+
+**Alternatives considered.**
+- *Scale every phase down evenly (×0.36)*: keeps 256's proportions, but the change drops to 320 ms, too quick to see numbers moving, while the expansion and fly keep time the ticket wants spent on the change.
+- *Keep the line appearing only in the hold*: with a 350 ms hold the line would be up for well under half a second before the fly takes it away.
+- *A total on the folder, or the count of types from this set*: either reads as "your homework is these five", which the user said it is not.
+- *Keep `bankedCount` internally and just not render it*: works, but leaves a number one prop away from the screen; naming the last landed problem gives the bump what it needs and nothing more.
+- *Drop the lead too*: the ticket budgets "plus the lead", and the 1.2 s lets the student take in the tiles before the first one leaves.
+
+**Tradeoffs.** A student who wants to read a question cannot: it is on screen for about 1.3 s. The folder no longer says how much went in; the dashed slots in the tile row are the only record of which problems went. Reduced motion's pair is up for under 2 s, which may be short for a student relying on it.
+
+**Defense.** The change is the only thing the screen teaches, so it gets the longest phase and the holds are cut to what it takes to see before and after; the frame captures show both states and the roll clearly. With no number the folder cannot misstate the homework, and the tiles landing in it still show where the problems went.
