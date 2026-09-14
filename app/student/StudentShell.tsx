@@ -10,7 +10,7 @@ import { debriefEndsAt, PEER_DEBRIEF_MS, pendingDebrief } from "@/lib/debrief";
 import { DEMO_PENS } from "@/data/group-scripts";
 import { dispatch, useLiveSession, useNow } from "@/lib/store";
 import { dispatchClassroom, getClassroom, useClassroom } from "@/lib/classroom-store";
-import { GRACE_MS, isDue, isPending, isProjecting, liveDiagnostic, pathwayOf } from "@/lib/classroom";
+import { endLessonAwaited, GRACE_MS, isDue, isPending, isProjecting, liveDiagnostic, pathwayOf } from "@/lib/classroom";
 import { classReadiness } from "@/lib/readiness";
 import { boardOpensFor } from "@/lib/groupIntro";
 import { DEMO_STUDENT } from "@/data/assignment";
@@ -37,10 +37,12 @@ export default function StudentShell({ children }: { children: ReactNode }) {
   const due = isDue(classroom, now) && advance && !!session && !session.appliedAdvances.includes(advance.id);
   useEffect(() => {
     // The grace ran out: apply the teacher's advance once (the reducer ignores repeats by id). Ending group review also ends the
-    // classroom's shared run where it stands (idempotent), so the board and the race hold.
+    // classroom's shared run where it stands (idempotent), so the board and the race hold. Ending the lesson (ticket 273) stamps
+    // its end at the deadline, as the teacher's tab does (`LessonEnds`), whichever gets there first.
     if (due && advance) {
       dispatch({ type: "advance/apply", id: advance.id, kind: advance.kind, at: now });
       if (advance.kind === "force-group") dispatchClassroom({ type: "group/end", at: now });
+      if (advance.kind === "end-lesson") dispatchClassroom({ type: "lesson/end", at: advance.deadline });
     }
   }, [due, advance, now]);
   const atGate = session?.stage === "class-wait";
@@ -75,7 +77,8 @@ export default function StudentShell({ children }: { children: ReactNode }) {
       return;
     }
     if (board.done) {
-      if (!debriefing) dispatch({ type: "group/done" });
+      // A run ended by the teacher's end lesson: the advance moves the student on, with its notice (ticket 273).
+      if (!debriefing && !endLessonAwaited(classroom, session.appliedAdvances, now)) dispatch({ type: "group/done" });
       return;
     }
     const problem = currentProblem(board);
@@ -112,6 +115,7 @@ export default function StudentShell({ children }: { children: ReactNode }) {
   const diagnostic = liveDiagnostic(classroom);
   // Individual review forced with group review next: what the student is waiting for is the group.
   const groupStartPill = counting && advance?.kind === "force-review" && pathwayOf(classroom).includes("group");
+  const countdownWords = groupStartPill ? "Group review starts in" : advance?.kind === "end-lesson" ? "Your teacher is ending the lesson in" : "Your teacher is moving the class on in";
   return (
     <IpadStage>
       {children}
@@ -119,7 +123,7 @@ export default function StudentShell({ children }: { children: ReactNode }) {
         <div className="pointer-events-none absolute inset-x-0 top-[33px] z-20 flex justify-center px-8" data-countdown>
           <div className="flex items-center gap-3 rounded-full border border-accent-line bg-accent-soft px-4 py-1.5 text-[13.5px] text-ink shadow-card">
             <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
-            {groupStartPill ? "Group review starts in" : "Your teacher is moving the class on in"} {mmss(Math.min(GRACE_MS, advance.deadline - now))}
+            {countdownWords} {mmss(Math.min(GRACE_MS, advance.deadline - now))}
           </div>
         </div>
       )}

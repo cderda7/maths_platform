@@ -1198,10 +1198,6 @@ uploaded problems) settled the following as later, each on purpose.
 
 - **A figure thumbnail that opens full size.** PS6 Q8's graph shows as a small thumbnail beside its question (64 px, 120 on the live diagnostic view, 96 on board controls), too small to read its tick labels. Deferred: the user asked for a small thumbnail; a hover or press that opens it at 300×190 would let the teacher read the axes.
 
-## Teacher SKIP TO (ticket 263, 2026-09-14)
-
-- **Ending a lesson without class review in the product.** A pathway of individual and/or group review has no End: the Live card stays "in review" forever unless the presenter presses activity completed (`lessonEndedAt`). A teacher's "end lesson" (on the Pathway card, or when group review's race is over) was left out: the ticket asks for presenter jumps, and where the product's End belongs is a screen decision.
-
 ## Homework bank faster (ticket 274, 2026-09-14)
 
 - **Showing what is in the folder.** With no count, nothing says how many types went in beyond the dashed slots; opening the folder to list them (with the other problems homework will have) waits for the homework screens.
@@ -1294,6 +1290,14 @@ uploaded problems) settled the following as later, each on purpose.
 - **The score anywhere else.** The holistic page, the Classroom's set cards and the student's history show no per-set score; carrying it there was not asked for.
 - **A class average or spread per set.** Not asked for.
 - **Telling "ran out of time" from "wrong" in the number.** Unattempted problems score as not right (Grace 7/10 on Problem Set 5 with nothing wrong); a split such as "7/7 of 10" was left out, the missing and progress marks carry it.
+
+## Teacher end lesson (ticket 273, 2026-09-14)
+
+- **End lesson on the Mistakes tab.** Force submit sits in the Mistakes tab's title row too (ticket 185); end lesson is only on the Class View's Pathway card, as the ticket asked. The Mistakes tab's force submit waits while end lesson's minute runs.
+- **Ending a lesson that has class review without projecting it.** A pathway with class review still ends only through class review's End; skipping class review on the day (the teacher decides there is no time) has no control.
+- **Students whose tab was closed at the deadline.** As for every advance, a student tab opened more than a minute after the deadline (`STALE_MS`) does not apply it, so that student is not moved to the report; the lesson itself still ends from the teacher's tab.
+- **Force submit on the last stage beside end lesson.** Both stay on the last stage: force submit ends the stage (students to their report) but leaves the set Live; end lesson does that and ends the lesson. Whether the last stage needs force submit at all, or end lesson should take its place, was not asked; the two pills stack above the count.
+- **Presenter SKIP TO over the iPad's bottom notice.** At 1280x800 Sam's SKIP TO strip (fixed to the window) overlaps the bottom of any notice on the iPad (seen with "Your teacher ended the lesson." on the report) by about 10 px; a presenter-only overlay, not moved.
 
 ## Carson's notes
 

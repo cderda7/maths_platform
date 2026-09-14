@@ -52,8 +52,10 @@ export interface CreatedAssignment {
  * The three `force-*` kinds are the Pathway card's "force submit" for the stage the class is on
  * (ticket 145): the set handed in as it stands, the corrections handed in as they stand (which
  * opens the gate into group review when one is ahead), group review ended where it stands.
+ * `end-lesson` is the card's "end lesson" on a last stage that is not class review (ticket 273): every student still in
+ * the lesson lands on their report with their work as it stands, and the lesson ends (`lesson/end`).
  */
-export type AdvanceKind = "force-submit" | "force-review" | "force-group" | "whole-class-start";
+export type AdvanceKind = "force-submit" | "force-review" | "force-group" | "whole-class-start" | "end-lesson";
 export interface PendingAdvance {
   id: string;
   kind: AdvanceKind;
@@ -156,9 +158,9 @@ export interface ClassroomState {
   absences?: Record<string, readonly string[]>;
   /**
    * When the lesson was brought to its end whatever its pathway (ticket 263): every stage over, none current (`lessonOver`).
-   * Simulation only for now: the presenter's "activity completed" stamps it, since nothing in the product ends a lesson whose
-   * pathway has no class review (FUTURE_FEATURES, "Ending a lesson without class review"). Class review's own End still ends
-   * a lesson through `wholeClass.status`. Absent until then; a new set sent (`assignment/create`) clears it.
+   * The teacher's "end lesson" stamps it when its grace runs out (`lesson/end`, ticket 273), on a pathway whose last stage is
+   * not class review; the presenter's "activity completed" stamps it too. Class review's own End still ends a lesson through
+   * `wholeClass.status`. Absent until then; a new set sent (`assignment/create`) clears it.
    */
   lessonEndedAt?: number;
 }
@@ -218,6 +220,11 @@ export type ClassroomAction =
   | { type: "group/end"; at: number }
   | { type: "advance/start"; kind: AdvanceKind; at?: number }
   | { type: "advance/clear" }
+  /**
+   * The teacher's "end lesson" took effect (ticket 273): `lessonEndedAt` stamped at `at` (the grace's deadline, so every tab
+   * that applies it stamps the same moment) and a group run still going ended where it stands. Idempotent: an ended lesson keeps its moment.
+   */
+  | { type: "lesson/end"; at: number }
   | { type: "wc/setup"; problems: string[]; examples: Record<string, ExampleRef[]>; mode?: FollowMode }
   /** Switch one projected problem's mode from the board. */
   | { type: "wc/mode"; problem: string; mode: FollowMode }
@@ -296,6 +303,11 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
     }
     case "advance/clear":
       return { ...c, advance: null };
+    case "lesson/end": {
+      if (lessonOver(c)) return c;
+      const group = c.group && !c.group.done ? { ...c.group, done: true, endedAt: a.at } : c.group;
+      return { ...c, lessonEndedAt: a.at, ...(group !== c.group ? { group } : {}) };
+    }
     case "groups/move":
       if (a.assignment === undefined) return { ...c, groups: moveStudent(seatingOf(c.groups), a.student, a.to) };
       return { ...c, assignmentGroups: { ...(c.assignmentGroups ?? {}), [a.assignment]: moveStudent(assignmentGroupsOf(c, a.assignment), a.student, a.to) } };
@@ -468,6 +480,17 @@ export function currentSlide(c: ClassroomState | null | undefined): { problemId:
 export function isPending(c: ClassroomState | null | undefined, now: number): boolean {
   return !!c?.advance && now < c.advance.deadline;
 }
+
+/** True while the teacher's "end lesson" counts down (ticket 273). */
+export const isEnding = (c: ClassroomState | null | undefined, now: number): boolean => isPending(c, now) && c?.advance?.kind === "end-lesson";
+
+/**
+ * True while an "end lesson" is still to be applied to a student's session (`applied`, its applied advance ids): counting down, or
+ * due and fresh. The student tab holds back its own group done meanwhile, since the teacher's tab may end the run (`lesson/end`)
+ * a tick before this tab's clock reaches the deadline, and the advance, not group done, lands the student on the report (ticket 273).
+ */
+export const endLessonAwaited = (c: ClassroomState | null | undefined, applied: readonly string[], now: number): boolean =>
+  c?.advance?.kind === "end-lesson" && !applied.includes(c.advance.id) && now - c.advance.deadline < STALE_MS;
 
 /** True once an advance's deadline has passed and it is still fresh enough to apply. */
 export function isDue(c: ClassroomState | null | undefined, now: number): boolean {

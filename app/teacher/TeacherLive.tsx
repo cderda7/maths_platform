@@ -5,6 +5,7 @@ import Link from "next/link";
 import TeacherChrome from "./TeacherChrome";
 import { BackToClassroom, useAssignmentBundle } from "./AssignmentContext";
 import DiagnosticCard from "./DiagnosticCard";
+import EndLesson from "./EndLesson";
 import ForceSubmit from "./ForceSubmit";
 import GroupProgressCard from "./GroupProgressCard";
 import WholeClassCard from "./WholeClassCard";
@@ -19,7 +20,7 @@ import { categoryName, isFlat, type CategoryId, type LeafId } from "@/data/taxon
 import { confidenceForms, confidenceLabel, type ConfidenceForm } from "@/lib/report";
 import type { Confidence } from "@/data/types";
 import { assignmentReportHref, assignmentStages, holisticHref, rosterEvidence, rosterProgress, type AssignmentBundle } from "@/lib/assignments";
-import { currentSlide, lessonOver } from "@/lib/classroom";
+import { currentSlide, isEnding, lessonOver } from "@/lib/classroom";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { absenceLocked, canMarkAbsent } from "@/lib/absence";
 import { liveStudentTag, progressTag } from "@/lib/progress";
@@ -738,15 +739,19 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
                   <span className="relative inline-block">
                     {/* Over: the blue of a lit skill button on the student's warm-up (ticket 134). Current: a purple ring (a shadow, so nothing moves). */}
                     <span className={`inline-block rounded-xl px-5 py-1.5 ${stage.state === "over" ? "bg-standout text-white" : "bg-standout-soft"} ${stage.state === "current" ? "ring-2 ring-accent" : ""}`}>{stage.word}</span>
-                    {/* Beside the current pill (ticket 145): force submit for the stage, the count right under it. */}
+                    {/* Beside the current pill (ticket 145): force submit for the stage, the count right under it; on a last stage that is not class review, end lesson over the blank room above them (ticket 273). */}
                     {stage.state === "current" && stage.done !== null && (
                       <span className="absolute left-full top-1/2 ml-3 flex -translate-y-1/2 flex-col items-start whitespace-nowrap text-left text-[12.5px] leading-snug text-ink-muted" style={{ fontFamily: "var(--font-sans)" }} data-stage-note>
+                        <EndLesson stage={stage.id} session={live} notDone={Math.max(0, stage.total - stage.done)} />
+                        {/* While end lesson's minute runs its countdown lies over these two, which keep their room (ticket 273). */}
+                        <span className={`flex flex-col items-start ${isEnding(classroom, now) ? "invisible" : ""}`} data-stage-note-rows>
                         <ForceSubmit stage={stage.id} session={live} />
                         <span data-stage-count>
                           <span className="tabular-nums">
                             {stage.done}/{stage.total}
                           </span>{" "}
                           done
+                        </span>
                         </span>
                       </span>
                     )}

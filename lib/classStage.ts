@@ -1,7 +1,7 @@
 import { ASSIGNMENT } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
 import { BEFORE_HAND_IN_STAGES, type ReviewStage } from "@/data/types";
-import { lessonOver, pathwayOf, type AdvanceKind, type ClassroomState } from "./classroom";
+import { isPending, lessonOver, pathwayOf, type AdvanceKind, type ClassroomState } from "./classroom";
 import { STAGE_SHORT } from "./pathway";
 import { classReadiness } from "./readiness";
 import { liveAbsent, presentCount } from "./absence";
@@ -27,6 +27,9 @@ import { classmatesAt, type StreamSet } from "./stream";
  * "Force submit" (ticket 145) sits beside the current pill for the three stages the students work
  * through: `FORCE_KIND` names the advance each starts, `canForce` says whether there is still
  * anything to force (the live student is still on the stage, and the teacher is not projecting).
+ *
+ * "End lesson" (ticket 273) sits above it on the pathway's last stage when that stage is not class review (class review ends
+ * from its own card): `endsLesson` names that stage, `canEndLesson` says whether the press can start its grace now.
  */
 export type ClassStageId = "working" | ReviewStage;
 export type StageState = "over" | "current" | "ahead";
@@ -70,6 +73,23 @@ export function canForce(id: ClassStageId, c: ClassroomState | null | undefined,
       return false;
   }
 }
+
+/** Whether a stage is where "end lesson" goes: the pathway's last stage (the working itself on a set with no review), unless it is class review. */
+export function endsLesson(id: ClassStageId, c: ClassroomState | null | undefined): boolean {
+  const ids: ClassStageId[] = ["working", ...pathwayOf(c)];
+  return id !== "whole-class" && ids[ids.length - 1] === id;
+}
+
+/**
+ * Whether "end lesson" can start its grace: the class is on that last stage (so a set is out and the lesson is not over) and no
+ * teacher advance is counting down (a force submit's minute, or its own). Everyone may already be done: ending is what moves the set to Past.
+ */
+export function canEndLesson(id: ClassStageId, c: ClassroomState | null | undefined, session: StudentSession | null, now: number): boolean {
+  return endsLesson(id, c) && currentClassStage(c, session, now) === id && !isPending(c, now);
+}
+
+/** Whether another teacher advance than `kind` is counting down: a force submit waits while "end lesson"'s minute runs (ticket 273). */
+export const otherAdvancePending = (c: ClassroomState | null | undefined, now: number, kind: AdvanceKind): boolean => isPending(c, now) && c?.advance?.kind !== kind;
 
 /** The stage the class is on, or null once the lesson is over: the whole-class session ended, or the lesson ended outright (ticket 263). */
 export function currentClassStage(c: ClassroomState | null | undefined, session: StudentSession | null, now: number): ClassStageId | null {

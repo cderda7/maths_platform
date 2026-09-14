@@ -7,6 +7,7 @@ import Brand from "@/components/Brand";
 import { Avatar } from "@/components/ui";
 import ResetDemo from "@/components/ResetDemo";
 import TeacherSkipTo from "./TeacherSkipTo";
+import { LessonEnds } from "./EndLesson";
 import { ASSIGNMENT } from "@/data/assignment";
 import { assignmentTabs, CLASS_GROUPS_HREF } from "@/lib/assignments";
 import { useOptionalAssignment } from "./AssignmentContext";
@@ -32,6 +33,7 @@ import { useOptionalAssignment } from "./AssignmentContext";
  * The presenter's controls, zoomed with the frame, sit in a strip of their own under the scroll region (ticket 263): SKIP TO
  * bottom-left, Reset demo bottom-right. A fixed overlay covered whatever control scrolled beneath it (a roster row at
  * rest on the Class View); the strip costs about 40 px of height at 1280 x 800 and covers nothing.
+ * Every teacher screen stamps the lesson's end when "end lesson"'s minute runs out (`LessonEnds`, ticket 273).
  */
 export const TEACHER_ZOOM = 0.72;
 
@@ -41,6 +43,7 @@ export default function TeacherChrome({ children, zoom = TEACHER_ZOOM }: { child
   const tabs = assignment ? assignmentTabs(assignment) : [{ label: "Groups", href: CLASS_GROUPS_HREF }];
   return (
     <div className="h-screen">
+    <LessonEnds />
     <div className="flex h-full flex-col" style={{ zoom, "--frame-zoom": zoom, "--back-zoom": zoom } as CSSProperties} data-teacher-root>
       <header className="z-30 shrink-0 border-b border-line bg-paper/70 backdrop-blur">
         <div className="mx-auto flex max-w-[1640px] items-center justify-between px-6 py-4">

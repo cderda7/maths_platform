@@ -336,6 +336,14 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
         // The teacher ended group review (ticket 145): a student on the board moves on; the classroom's run is ended by the same tab.
         return applied.stage === "group" ? { ...applied, stage: nextStage(env.pathway, "group-done") } : applied;
       }
+      if (a.kind === "end-lesson") {
+        // The teacher ended the lesson (ticket 273): a student still in it lands on their report with the work as it stands (a set
+        // not handed in is handed in, blanks not attempted; corrections under way are handed in); one past it stays where they are.
+        if (!IN_LESSON.includes(s.stage)) return applied;
+        const handIn = BEFORE_HAND_IN.includes(s.stage) ? { handedInAt: a.at ?? s.handedInAt, notAttempted: blankProblems(s) } : {};
+        const rework = s.stage === "feedback" ? { reworkedAt: a.at ?? s.reworkedAt } : {};
+        return { ...applied, ...handIn, ...rework, stage: "report", handInCheck: null, prompt: null, overlay: null, notice: ENDED_LESSON_TEXT };
+      }
       if (a.kind === "force-submit") {
         if (!BEFORE_HAND_IN.includes(s.stage)) return applied;
         return {
@@ -512,6 +520,8 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
 }
 
 const BEFORE_HAND_IN = BEFORE_HAND_IN_STAGES;
+/** The stages of the lesson itself, before the report: the set, the review stages and their waits. */
+const IN_LESSON: readonly Stage[] = [...BEFORE_HAND_IN_STAGES, "feedback", "waiting", "class-wait", "group"];
 
 /** The leaf to practise for a mistake: its own practice, else another leaf in the same group that has one; never a whole-task leaf. */
 export function practiceLeaf(leaf: LeafId): LeafId | null {
@@ -531,6 +541,8 @@ export function fundamentalLeaf(slipped: LeafId[]): LeafId | null {
 }
 
 export const FORCED_HAND_IN_TEXT = "Your teacher handed in the class's work.";
+/** The notice over the report when the teacher's "end lesson" lands a student there (ticket 273). */
+export const ENDED_LESSON_TEXT = "Your teacher ended the lesson.";
 
 /**
  * The notice shown over the next screen after the rework is handed in (ticket 159): the final version's

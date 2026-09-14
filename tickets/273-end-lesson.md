@@ -4,7 +4,7 @@
 
 **Blocked by:** 272, 275 (both touch the files this does).
 
-**Status:** open
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -22,6 +22,6 @@ Ticket 263 made `lessonEndedAt` end a lesson without class review but gave the t
 
 ## Acceptance
 
-- [ ] Unit: end allowed only on a non-class-review last stage; state after ending; grace
-- [ ] Click-through, teacher + Sam's iPad at 1280×800 and 1440×900 on individual → group and individual only: the pill appears only on the last stage, confirm shows the count, the grace counts down on the iPad, the set lands in Past and Sam on his report; nothing on the pathway card moves when the pill appears
-- [ ] vitest, eslint, tsc, next build, check:laptop
+- [x] Unit: end allowed only on a non-class-review last stage; state after ending; grace
+- [x] Click-through, teacher + Sam's iPad at 1280×800 and 1440×900 on individual → group and individual only: the pill appears only on the last stage, confirm shows the count, the grace counts down on the iPad, the set lands in Past and Sam on his report; nothing on the pathway card moves when the pill appears
+- [x] vitest, eslint, tsc, next build, check:laptop
