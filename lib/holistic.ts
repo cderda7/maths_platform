@@ -2,10 +2,10 @@ import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATE_MAP } from "@/data/classmates";
 import { STORY, STORY_CATEGORIES, STORY_SETS, type StoryCategory } from "@/data/story";
 import { categoryName } from "@/data/taxonomy";
-import type { Status } from "@/data/types";
+import type { Problem, Status } from "@/data/types";
 import { assignmentBundle, rosterEvidence, type AssignmentBundle } from "./assignments";
 import type { ClassroomState } from "./classroom";
-import { categoriesTouched, hierarchyFor } from "./hierarchy";
+import { categoriesTouched, hierarchyFor, type HierarchyResult } from "./hierarchy";
 import type { StudentSession } from "./session";
 
 /**
@@ -139,6 +139,27 @@ export function holisticView(student: string, { classroom, session, now }: Holis
   });
 
   return { student: { id: student, name: who.name, initials: who.initials }, summary: row.arc, sets, categories, habits };
+}
+
+/** The work behind a student's row of results on one set (ticket 277): the set's skill hierarchy for them, their lines, the set's problems. */
+export interface HolisticWork {
+  result: HierarchyResult;
+  lines: Record<string, string[]>;
+  problems: Problem[];
+}
+
+/**
+ * What a grid cell opens (ticket 277): the student's hierarchy on the set as its Class View reads it (`rosterEvidence`,
+ * the same evidence the live row's cells come from), so the tree under a result always rolls up to that result
+ * (`holistic.test.ts` holds every coloured cell to it). Null for an unknown student or set, or a set they were away for.
+ */
+export function holisticWork(student: string, set: string, { classroom, session, now }: HolisticNow): HolisticWork | null {
+  if (!isHolisticStudent(student)) return null;
+  const bundle = assignmentBundle(set, classroom);
+  if (!bundle || bundle.absent.includes(student)) return null;
+  const evidence = rosterEvidence(bundle, session, now)[student];
+  if (!evidence) return null;
+  return { result: hierarchyFor(evidence, bundle), lines: evidence.lines, problems: bundle.problems };
 }
 
 /** Problem `n` (Q1 = 1) of a set as the set holds it: its id and label; none when the set does not hold it (a created set without that problem). */

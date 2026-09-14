@@ -4692,3 +4692,21 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** A student who wants to read a question cannot: it is on screen for about 1.3 s. The folder no longer says how much went in; the dashed slots in the tile row are the only record of which problems went. Reduced motion's pair is up for under 2 s, which may be short for a student relying on it.
 
 **Defense.** The change is the only thing the screen teaches, so it gets the longest phase and the holds are cut to what it takes to see before and after; the frame captures show both states and the roll clearly. With no number the folder cannot misstate the homework, and the tiles landing in it still show where the problems went.
+
+## 2026-09-14 · A holistic result opens its tree as a flyout; the patterns move beside the grid and zoom to fit (ticket 277)
+
+**Decision.** On a student's holistic page a coloured result opens, as a flyout under its row and over the rows below, the category's whole skill tree on that set, read from the Class View's evidence (`holisticWork`); a skill picked there shows its problems in the side column in the patterns' place. The patterns move from under the grid to a 540 px column beside the header and grid that runs to the bottom of the scroll region, and anything taller than that column is zoomed down to fit (`FitHeight`), never scrolled. Sets are newest first. Communication's working, which no model solution tags, is read from every problem the student wrote on (`problemsBehindLeaf`), here and in Class View's drill.
+
+**Context.** The user wanted to see the problems behind a result "similar to functionality elsewhere" (Class View's drill), the dots directly below the pill, the problems top right, the summary narrower, and every pattern line visible at 1280×800 with the table only marginally smaller. Measured: 75 layout px were free under the table; Tomas's 18 lines needed ~680 in two columns, ~450 in three. The user chose patterns beside the table.
+
+**Alternatives considered.**
+- *A drill row inserted under the set's row, as Class View does*: pushes the later sets and the patterns down, against the no-scroll goal and the "expand as overlay" rule.
+- *Patterns under a much shorter table (one-line set heads, 3 columns)*: the user asked for the table only marginally smaller.
+- *Problems stacked above the patterns in the side column*: both compete for one column's height; the patterns would zoom to unreadable while problems are open. The side column swaps instead, as the student report's working replaces its side column.
+- *Scroll inside the side column*: the user asked for no scroll and to shrink text to fit.
+- *A fixed font scale per student*: every student's count differs and the live set adds lines as the stream arrives; a measured fit handles any count and any window.
+- *Showing no problems for Communication's working*: its panel was empty in Class View too; the result is read from every line written, so every problem written on is its evidence.
+
+**Tradeoffs.** Zoom to fit makes the heaviest lists small (a 10-problem skill at ~0.7, Tomas's patterns at ~0.85 at 1280×800) and the user may ask for a different trade. The flyout covers the rows below it while open, and at the grid's right edge its tree starts left of the pill rather than under it. The grid's columns are narrower (272 px set column, results ~107 px) to make room. Arrows are drawn from measured layout, not by React.
+
+**Defense.** One tree, the Class View's, for one result means the flyout can never disagree with the pill (tested for all twenty, three lesson states). Nothing on the page moves when a result opens, and the patterns stay whole on a laptop for every student however many lines they have.

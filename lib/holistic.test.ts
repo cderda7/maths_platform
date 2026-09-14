@@ -6,7 +6,7 @@ import { assignmentBundle, assignmentReportHref, holisticHref, isHolisticHref, r
 import { classroomReducer, INITIAL_CLASSROOM } from "./classroom";
 import { skipFixture } from "./demo";
 import { hierarchyFor } from "./hierarchy";
-import { holisticView, isHolisticStudent, type HolisticNow } from "./holistic";
+import { holisticView, holisticWork, isHolisticStudent, type HolisticNow } from "./holistic";
 
 /** A student across every set (ticket 251): the holistic page's view model. */
 
@@ -147,6 +147,29 @@ describe("the holistic view (ticket 251)", () => {
     const v = holisticView("jordan", { classroom: justLive, session: working.session, now })!;
     for (const r of v.categories) expect(r.cells[5], r.category).toBe("unseen");
     expect(v.habits.flatMap((g) => g.habits.flatMap((h) => h.refs)).some((ref) => ref.label === "PS6")).toBe(false);
+  });
+
+  it("a coloured cell opens a tree that rolls up to it (ticket 277): every student, every set, mid-stream and after", () => {
+    const working = skipFixture("working", now);
+    const midStream = { classroom: working.classroom, session: working.session, now: now + 20 * 60_000 };
+    for (const at of [fresh, over, midStream]) {
+      for (const id of everyone) {
+        const v = holisticView(id, at)!;
+        v.sets.forEach((set, j) => {
+          const work = holisticWork(id, set.id, at);
+          const coloured = v.categories.filter((r) => ["secure", "solid", "developing", "gap"].includes(r.cells[j]));
+          if (coloured.length === 0) return;
+          expect(work, `${id} ${set.label}`).not.toBeNull();
+          for (const r of coloured) expect(work!.result.categories[r.category], `${id} ${set.label} ${r.category}`).toBe(r.cells[j]);
+        });
+      }
+    }
+    expect(holisticWork("chloe", "pset-6", over)).toBeNull();
+    expect(holisticWork("nobody", "pset-4", over)).toBeNull();
+    expect(holisticWork("sam", "pset-6", fresh)).toBeNull();
+    const zara = holisticWork("zara", "pset-4", over)!;
+    expect(zara.problems.map((p) => p.id)).toEqual(assignmentBundle("pset-4", over.classroom)!.problems.map((p) => p.id));
+    expect(Object.values(zara.lines).some((ls) => ls.length > 0)).toBe(true);
   });
 
   it("links: the two routes, the report opened on a problem with the way back, and only a holistic page as a way back", () => {

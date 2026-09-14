@@ -11,7 +11,7 @@ import { categoryOf, groupName, groupOf, groupsOf, isFlat, leafName, studentLeaf
 import type { Problem, Status } from "@/data/types";
 import { evaluateLine } from "@/lib/evaluate";
 import { lineMarks } from "@/lib/examples";
-import { columnOf, homeLeaves, problemsForLeaf, STATUS_RANK, type HierarchyResult } from "@/lib/hierarchy";
+import { columnOf, homeLeaves, problemsBehindLeaf, STATUS_RANK, type HierarchyResult } from "@/lib/hierarchy";
 
 /*
  * The skill drill as an outline. Rules, in order: a group's dot sits on the same vertical line as
@@ -269,7 +269,7 @@ export function WorkLines({ problem, texs, leaf = null, onGoTo, student = false,
 
 /** The student's work on the problems that invoke a leaf, one `ProblemWork` each. `wide` lays them in three columns, `narrow` in one. */
 export function WorkPanel({ leaf, lines, problems, status, wide, onGoTo, student = false, narrow = false }: { leaf: LeafId; lines: Record<string, string[]>; problems: Problem[]; status: Status; wide: boolean; onGoTo: (l: LeafId) => void; /** The student's own report: no difficulty tags. */ student?: boolean; narrow?: boolean }) {
-  const invoking = problemsForLeaf(leaf, problems);
+  const invoking = problemsBehindLeaf(leaf, problems, lines);
   return (
     <div className={wide ? "w-full" : "min-w-0 flex-1"} data-col="work" data-leaf={leaf}>
       <div className="flex items-center gap-3">

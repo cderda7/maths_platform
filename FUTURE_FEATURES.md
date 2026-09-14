@@ -3391,6 +3391,16 @@ uploaded problems) settled the following as later, each on purpose.
 - **A longer reduced-motion hold.** Reduced motion follows the same 2 s clock as the ticket asks; a student who relies on it gets under 2 s a pair. A per-student reading-time setting was not asked for.
 - **Skipping the rest of the sequence.** No "skip" on the screen; SKIP TO homework restarts it. Deferred: 11 s is short enough not to need one.
 
+## Holistic results open their skills (ticket 277, 2026-09-14)
+
+- **Hover preview of a result's tree.** Only a press opens the flyout; a hover preview was not asked for.
+- **Opening a not-seen result.** Not seen, absent and "—" stay plain: a not-seen result on a finished set has no lines to show. A teacher may want the set's problems listed as not attempted.
+- **The flyout reaching over the side column.** At the grid's right edge (New skills, Reasoning) the flyout shifts left so it never covers the problems in the side column; the tree then starts left of the pill instead of directly under it.
+- **A readable floor for the fit.** `FitHeight` zooms down to 0.5 before clipping; the heaviest skill today fits at ~0.7 and Tomas's patterns at ~0.85 at 1280×800. If the user finds that too small, the options are a third column of patterns, a shorter grid, or paging problems.
+- **Problems and patterns at once.** A picked skill's problems replace the patterns in the side column; showing both would squeeze each.
+- **Group rows as toggles.** The flyout opens every group, fixed, as asked; closing a group to shorten a tall tree was left out.
+- **A link from the problems to the set's report.** The problems panel has no "open in report"; the set's row head and the patterns' Q links still open the report.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

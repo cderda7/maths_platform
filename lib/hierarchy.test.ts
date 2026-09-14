@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { leafStatus, rollUp } from "./hierarchy";
+import { ASSIGNMENT } from "@/data/assignment";
+import { problemsBehindLeaf, problemsForLeaf, leafStatus, rollUp } from "./hierarchy";
 
 describe("leaf status and roll-up", () => {
   it("is proportional over attempted lines, on five levels", () => {
@@ -245,5 +246,18 @@ describe("New skills per set (ticket 209)", () => {
     expect(r.categories.new).toBe(full.leaves["functions.zeros.nfl"]);
     expect(r.groups["functions.zeros"]).toBe("unseen");
     expect(r.categories.functions).toBe("unseen");
+  });
+});
+
+describe("the problems behind a leaf (ticket 277)", () => {
+  const problems = ASSIGNMENT.problems;
+  it("a tagged leaf's are the problems that invoke it, whatever was written", () => {
+    const leaf = problems[0].solution[0].tags[0].leaf;
+    expect(problemsBehindLeaf(leaf, problems, {})).toEqual(problemsForLeaf(leaf, problems));
+  });
+  it("working, tagged on no model solution, reads every problem the student wrote on", () => {
+    expect(problemsForLeaf("communication.process.working", problems)).toEqual([]);
+    const lines = { [problems[1].id]: ["x"], [problems[3].id]: ["y", "z"], [problems[4].id]: [] };
+    expect(problemsBehindLeaf("communication.process.working", problems, lines).map((p) => p.id)).toEqual([problems[1].id, problems[3].id]);
   });
 });

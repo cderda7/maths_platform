@@ -94,6 +94,15 @@ export function problemsForLeaf(leaf: LeafId, problems: Problem[] = ASSIGNMENT.p
   return problems.filter((p) => problemLeaves(p).includes(leaf));
 }
 
+/**
+ * The problems a leaf's result is read from, for showing the work behind it (ticket 277): the problems that invoke it,
+ * except `communication.process.working`, which no model solution tags and which is scored over every line the student
+ * wrote (`hierarchyFor`), so its evidence is every problem with lines.
+ */
+export function problemsBehindLeaf(leaf: LeafId, problems: Problem[], lines: Record<string, string[]>): Problem[] {
+  return leaf === WORKING ? problems.filter((p) => (lines[p.id]?.length ?? 0) > 0) : problemsForLeaf(leaf, problems);
+}
+
 export function hierarchyFor(ev: Evidence, set: SetScope = ASSIGNMENT): HierarchyResult {
   const { problems } = set;
   const held: Partial<Record<LeafId, number>> = {};
