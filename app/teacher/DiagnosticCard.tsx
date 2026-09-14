@@ -9,6 +9,7 @@ import { liveDiagnostic, problemLabelOf, questionFor, tally } from "@/lib/diagno
 import { chainPosition, currentIndex } from "@/lib/diagnosticChain";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { useNow } from "@/lib/store";
+import { liveAbsent } from "@/lib/absence";
 
 export const DIAGNOSTIC_CHIP = "inline-flex items-center gap-1.5 rounded-md bg-accent px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-white";
 
@@ -34,7 +35,7 @@ export default function DiagnosticCard({ className = "" }: { className?: string 
         </Card>
       </Link>
     );
-  const t = tally(run, now);
+  const t = tally(run, now, currentIndex(run), liveAbsent(classroom));
   const position = chainPosition(run);
   const label = problemLabelOf(question);
   return (

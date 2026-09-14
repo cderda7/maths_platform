@@ -110,9 +110,9 @@ describe("what the board shows per stage", () => {
     expect(live.standings).toHaveLength(5);
     expect(live.standings.map((s) => s.percent)).toEqual([0, 0, 0, 0, 0]);
     expect(live.standings.find((s) => s.live)?.pen).toBe("sam");
-    // Every row names four first names and no surname.
+    // Every row names its members' first names and no surname: four, and amber three with Chloe absent (ticket 250).
     for (const s of live.standings) {
-      expect(s.names).toHaveLength(4);
+      expect(s.names).toHaveLength(s.colour === "amber" ? 3 : 4);
       for (const n of s.names) expect(n).not.toContain(" ");
     }
     const done = boardContent({ ...classroom, group: { ...classroom.group!, done: true } }, session, now);

@@ -28,8 +28,8 @@ export function arrivesAt(index: number): number {
   return TRICKLE_FROM_MS + Math.round(((TRICKLE_TO_MS - TRICKLE_FROM_MS) * slot) / (n - 1));
 }
 
-/** The last classmate's answer, ms after a step opens. */
-const LAST_ARRIVAL_MS = Math.max(...CLASSMATES.map((_, i) => arrivesAt(i)));
+/** The last present classmate's answer, ms after a step opens (ticket 250: an absent student answers nothing); 0 with nobody present. */
+const lastArrivalMs = (absent: readonly string[]): number => Math.max(0, ...CLASSMATES.flatMap((m, i) => (absent.includes(m.id) ? [] : [arrivesAt(i)])));
 
 /** The demo student's answer to one step: the option, and when it was given. */
 export interface ChainAnswer {
@@ -98,32 +98,34 @@ export const currentIndex = (run: DiagnosticRun): number => run.openedAt.length 
 export const isLastStep = (run: DiagnosticRun, index = currentIndex(run)): boolean => index >= run.steps.length - 1;
 
 /**
- * When the step at `index` closed or will close, given what is stored: the moment the twentieth answer lands (the last
+ * When the step at `index` closed or will close, given what is stored: the moment the last answer lands (the last present
  * classmate's, or the demo student's if later), or the force-submit countdown's zero, whichever is first. Null while
  * neither is known (the demo student has not answered and nobody has pressed force submit) and for a step not yet opened.
+ * `absent` is the live set's absent students (ticket 250), read live from the classroom, so marking one closes the step
+ * as soon as everyone left in the room has answered.
  */
-export function closedAt(run: DiagnosticRun, index: number): number | null {
+export function closedAt(run: DiagnosticRun, index: number, absent: readonly string[] = []): number | null {
   const id = run.steps[index];
   const opened = run.openedAt[index];
   if (id === undefined || opened === undefined) return null;
   const answer = run.answers[id];
-  const allIn = answer ? Math.max(opened + LAST_ARRIVAL_MS, answer.at) : Infinity;
+  const allIn = answer ? Math.max(opened + lastArrivalMs(absent), answer.at) : Infinity;
   const forced = run.forcedAt[id] !== undefined ? run.forcedAt[id] + DIAGNOSTIC_FORCE_MS : Infinity;
   const close = Math.min(allIn, forced);
   return close === Infinity ? null : close;
 }
 
 /** The step's answer is revealed at `now`: every student has answered, or force submit has closed it. */
-export function isRevealed(run: DiagnosticRun, index: number, now: number): boolean {
-  const close = closedAt(run, index);
+export function isRevealed(run: DiagnosticRun, index: number, now: number, absent: readonly string[] = []): boolean {
+  const close = closedAt(run, index, absent);
   return close !== null && now >= close;
 }
 
 /** The current step's force-submit countdown, while it runs: when it reaches zero. */
-export function forceDeadline(run: DiagnosticRun, now: number): number | null {
+export function forceDeadline(run: DiagnosticRun, now: number, absent: readonly string[] = []): number | null {
   const i = currentIndex(run);
   const at = run.forcedAt[run.steps[i]];
-  return at !== undefined && !isRevealed(run, i, now) ? at + DIAGNOSTIC_FORCE_MS : null;
+  return at !== undefined && !isRevealed(run, i, now, absent) ? at + DIAGNOSTIC_FORCE_MS : null;
 }
 
 /** "1st", "2nd", "3rd", "4th" … for the "1st of 3" count. */
@@ -138,8 +140,8 @@ export function chainPosition(run: DiagnosticRun, index = currentIndex(run)): st
   return run.steps.length > 1 ? `${ordinal(index + 1)} of ${run.steps.length}` : null;
 }
 
-/** The chain reducer over the classroom's runs; the same array when an action is refused. */
-export function chainReducer(runs: DiagnosticRun[], a: ChainAction): DiagnosticRun[] {
+/** The chain reducer over the classroom's runs; the same array when an action is refused. `absent`: the live set's absent students, who answer nothing. */
+export function chainReducer(runs: DiagnosticRun[], a: ChainAction, absent: readonly string[] = []): DiagnosticRun[] {
   const at = a.at ?? 0;
   const live = liveRun(runs);
   const replace = (run: DiagnosticRun) => [...runs.slice(0, -1), run];
@@ -151,7 +153,7 @@ export function chainReducer(runs: DiagnosticRun[], a: ChainAction): DiagnosticR
   if (!live) return runs;
   const i = currentIndex(live);
   const id = live.steps[i];
-  const revealed = isRevealed(live, i, at);
+  const revealed = isRevealed(live, i, at, absent);
   switch (a.type) {
     case "diagnostic/answer": {
       const known = DIAGNOSTIC_MAP[id]?.options.some((o) => o.id === a.option);
@@ -169,7 +171,7 @@ export function chainReducer(runs: DiagnosticRun[], a: ChainAction): DiagnosticR
     }
     case "diagnostic/next":
       if (!revealed || isLastStep(live, i)) return runs;
-      return replace({ ...live, openedAt: [...live.openedAt, Math.max(at, closedAt(live, i)!)] });
+      return replace({ ...live, openedAt: [...live.openedAt, Math.max(at, closedAt(live, i, absent)!)] });
     case "diagnostic/end":
       if (!revealed || !isLastStep(live, i)) return runs;
       return replace({ ...live, endedAt: at });

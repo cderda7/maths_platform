@@ -1,6 +1,6 @@
 import type { Pathway, Stroke } from "@/data/types";
 import type { LeafId } from "@/data/taxonomy";
-import { ASSIGNMENT } from "@/data/assignment";
+import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { DEFAULT_GROUPS, type GroupColour, type SeatingGroups } from "@/data/groups";
 import { assignmentGroupsOf, moveStudent, seatingOf } from "./seating";
 import { attemptsOn, beginRun, checkBoard, currentVisit, isClosed, leaving, visitsOf, type GroupRun, type TurnEvent } from "./groupReview";
@@ -9,6 +9,7 @@ import { DEFAULT_PATHWAY } from "./pathway";
 import type { ReviewedQuestion, ReviewState } from "./review";
 import { currentSetId, currentSetTitle } from "./renamedSets";
 import { chainReducer, latestRun, liveRun, migrateRun, type ChainAction, type DiagnosticRun } from "./diagnosticChain";
+import { absentOf, liveAbsent, withAbsence } from "./absence";
 
 export type { DiagnosticRun } from "./diagnosticChain";
 
@@ -148,6 +149,11 @@ export interface ClassroomState {
   group?: GroupRun | null;
   /** Every diagnostic chain sent this lesson (ticket 241), oldest first; the last is the one out, if any is (`lib/diagnosticChain`). */
   diagnostics?: DiagnosticRun[];
+  /**
+   * The students marked absent, by assignment id (ticket 250), in the order marked. An assignment with no entry reads the
+   * demo's list (`absentOf`, `data/absences.ts`: Chloe on Problem Set 6), so unmarking her stores an empty list.
+   */
+  absences?: Record<string, readonly string[]>;
 }
 
 export type ClassroomAction =
@@ -200,6 +206,8 @@ export type ClassroomAction =
   | { type: "wc/prev" }
   | { type: "wc/marks"; on: boolean }
   | { type: "wc/end" }
+  /** The Class View roster's toggle (ticket 250): a student marked absent on an assignment, or back in the room. Idempotent. */
+  | { type: "absence/set"; assignment: string; student: string; absent: boolean }
   /** The live diagnostic chain (ticket 241): push, answer, force submit and cancel, next step, back to work, withdraw. */
   | ChainAction
   | { type: "reset" };
@@ -342,6 +350,13 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
       return c.wholeClass ? { ...c, wholeClass: { ...c.wholeClass, view: a.on ? "marked" : "unmarked" } } : c;
     case "wc/end":
       return c.wholeClass ? { ...c, wholeClass: { ...c.wholeClass, status: "ended" }, advance: null } : c;
+    case "absence/set": {
+      // The demo student on the live set is on his iPad, so in the room (`canMarkAbsent`).
+      if (a.absent && a.assignment === ASSIGNMENT.id && a.student === DEMO_STUDENT.id) return c;
+      const list = absentOf(c, a.assignment);
+      const next = withAbsence(list, a.student, a.absent);
+      return next === list ? c : { ...c, absences: { ...(c.absences ?? {}), [a.assignment]: next } };
+    }
     case "diagnostic/push":
     case "diagnostic/answer":
     case "diagnostic/force":
@@ -350,7 +365,7 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
     case "diagnostic/end":
     case "diagnostic/withdraw": {
       const runs = c.diagnostics ?? [];
-      const next = chainReducer(runs, a);
+      const next = chainReducer(runs, a, liveAbsent(c));
       return next === runs ? c : { ...c, diagnostics: next };
     }
     case "reset":

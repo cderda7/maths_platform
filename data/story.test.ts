@@ -3,7 +3,8 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { ASSIGNMENT, DEMO_STUDENT } from "./assignment";
 import { CLASSMATES } from "./classmates";
-import { STORY, STORY_CATEGORIES, STORY_RANK, STORY_SETS, storyResults } from "./story";
+import { STORY, STORY_CATEGORIES, STORY_RANK, STORY_SETS, storyAbsent, storyResults } from "./story";
+import { DEMO_ABSENCES } from "./absences";
 import { CATEGORY_ORDER, isLeafId } from "./taxonomy";
 import { assignmentBundle } from "@/lib/assignments";
 import { missedProblems, recordStatus, renderClassStory } from "@/lib/classStory";
@@ -78,10 +79,17 @@ describe("the class story sheet (ticket 210)", () => {
         if (d === null) return expect(id === DEMO_STUDENT.id && i === 5, id).toBe(true);
         expect(d, `${id} set ${i + 1}`).toBeGreaterThanOrEqual(0);
         expect(d, `${id} set ${i + 1}`).toBeLessThanOrEqual(10);
-        // Missing: nothing seen anywhere on that set.
-        if (d === 0) for (const c of STORY_SETS[i].categories) expect(row.cells[c][i].status, `${id} ${c} set ${i + 1}`).toBe("unseen");
+        // Missing: nothing seen anywhere on that set. Absent (ticket 250): every assessed category reads absent.
+        const away = storyAbsent(row, i);
+        if (d === 0) for (const c of STORY_SETS[i].categories) expect(row.cells[c][i].status, `${id} ${c} set ${i + 1}`).toBe(away ? "absent" : "unseen");
+        if (away) expect(d, `${id} set ${i + 1} absent`).toBe(0);
       });
     }
+  });
+
+  it("marks absent exactly the students the demo has away on each set (ticket 250): Chloe on Problem Set 6, nobody else", () => {
+    for (const s of STORY_SETS) expect(students.filter((id) => storyAbsent(STORY[id], s.n - 1)), s.id).toEqual([...(DEMO_ABSENCES[s.id] ?? [])]);
+    expect(DEMO_ABSENCES).toEqual({ "pset-6": ["chloe"] });
   });
 
   it("gives every result short of secure one or two habits on real problems of the set, and nothing else a habit", () => {
@@ -135,7 +143,8 @@ describe("the class story sheet (ticket 210)", () => {
       expect(row.done[5], m.id).toBe(m.done);
       for (const c of STORY_CATEGORIES) {
         const cell = row.cells[c][5];
-        expect(cell.status, `${m.id} ${c}`).toBe(six.categories.includes(c) ? recordStatus(m, ASSIGNMENT, c) : "none");
+        const away = (DEMO_ABSENCES[six.id] ?? []).includes(m.id);
+        expect(cell.status, `${m.id} ${c}`).toBe(!six.categories.includes(c) ? "none" : away ? "absent" : recordStatus(m, ASSIGNMENT, c));
         const missed = missedProblems(m, ASSIGNMENT, c);
         for (const hb of cell.habits) for (const n of hb.problems) expect(missed, `${m.id} ${c} "${hb.text}"`).toContain(n);
       }

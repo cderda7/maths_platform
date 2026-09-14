@@ -12,6 +12,7 @@ import { assignmentGroupsOf } from "./seating";
 import type { StudentSession } from "./session";
 import { chainPauses } from "./diagnosticChain";
 import { classmatesAt, type StreamPause } from "./stream";
+import { absentOf, presentCount } from "./absence";
 
 /**
  * The assignments (ticket 185): every set the teacher's Classroom holds, by id, and everything a
@@ -136,6 +137,8 @@ export interface AssignmentBundle {
   startedAt: number | null;
   /** When the live set's stream stood still (ticket 241): each diagnostic chain while it was out. Empty on a finished set. */
   pauses: StreamPause[];
+  /** The students marked absent on this set (ticket 250, `absentOf`): greyed on its screens, out of every count (`classSize`). */
+  absent: readonly string[];
 }
 
 /** One set's bundle, or null when the Classroom does not hold it. */
@@ -143,7 +146,7 @@ export function assignmentBundle(id: string, c: ClassroomState | null | undefine
   const def = defOf(id);
   if (!def || !def.exists(c)) return null;
   const f = def.fixture;
-  const base = { id, kind: def.kind, className: f.className, classCode: f.classCode, teacher: f.teacher, due: f.due, unit: f.unit, classmates: def.classmates, groups: assignmentGroupsOf(c, id) };
+  const base = { id, kind: def.kind, className: f.className, classCode: f.classCode, teacher: f.teacher, due: f.due, unit: f.unit, classmates: def.classmates, groups: assignmentGroupsOf(c, id), absent: absentOf(c, id) };
   if (def.kind === "finished") return { ...base, title: f.title, name: def.name ?? f.title, newSkills: f.newSkills, goal: f.goal, problems: f.problems, pathway: def.pathway, sam: def.sam, startedAt: null, pauses: [] };
   const active = activeAssignment(c);
   return { ...base, title: active.title, name: active.title === f.title ? (def.name ?? f.title) : active.title, newSkills: active.newSkills, goal: active.goal, problems: active.problems, pathway: pathwayOf(c), sam: null, startedAt: liveStartedAt(c), pauses: chainPauses(c?.diagnostics) };
@@ -168,9 +171,12 @@ export function rosterProgress(b: AssignmentBundle, session: StudentSession | nu
   return { [DEMO_STUDENT.id]: sam, ...Object.fromEntries(classmatesAt(b, b.kind === "live" ? session : null, now).map((m) => [m.record.id, m.progress])) };
 }
 
-/** How many of the class have handed the set in, and whether that is all of them. */
+/** The class a set counts (ticket 250): Sam and the classmates, less the students marked absent on it. Every "x/20" on the set's screens is over this. */
+export const classSize = (b: Pick<AssignmentBundle, "classmates" | "absent">): number => presentCount(b.classmates, b.absent);
+
+/** How many of the class in the room have handed the set in, and whether that is all of them: an absent student is in neither (ticket 250). */
 export function submittedCount(b: AssignmentBundle, session: StudentSession | null, now: number): { submitted: number; total: number } {
-  const all = Object.values(rosterProgress(b, session, now));
+  const all = Object.entries(rosterProgress(b, session, now)).flatMap(([id, p]) => (b.absent.includes(id) ? [] : [p]));
   return { submitted: all.filter(isSubmitted).length, total: all.length };
 }
 
@@ -178,7 +184,7 @@ export function submittedCount(b: AssignmentBundle, session: StudentSession | nu
 export function assignmentStages(b: AssignmentBundle, c: ClassroomState | null | undefined, session: StudentSession | null, now: number): ClassStage[] {
   if (b.kind === "finished") {
     const ids: ClassStageId[] = ["working", ...b.pathway];
-    return ids.map((id) => ({ id, word: CLASS_STAGE_WORD[id], state: "over", done: null, total: 1 + b.classmates.length }));
+    return ids.map((id) => ({ id, word: CLASS_STAGE_WORD[id], state: "over", done: null, total: classSize(b) }));
   }
   return classStages(c, session, now, b);
 }

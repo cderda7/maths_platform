@@ -4,7 +4,7 @@
 
 **Blocked by:** none.
 
-**Status:** open
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -26,6 +26,6 @@ Settled in the same conversation: in group review, a problem a member **did not 
 
 ## Acceptance
 
-- [ ] Unit: absences in the classroom reducer (mark, unmark, per assignment, reset); counts with and without an absent student; a group with an absent member; union skips not-attempted, includes incomplete
-- [ ] Click-through at 1280×800 and 1440×900: mark and unmark a student on PS6 Class View; the row greys without moving anything; every count on the set's tabs reads /19 and back to /20; Chloe starts absent on PS6 and present on PS1–PS5; her group review group is three; no sideways scroll
-- [ ] vitest, eslint, tsc, next build, check:laptop
+- [x] Unit: absences in the classroom reducer (mark, unmark, per assignment, reset); counts with and without an absent student; a group with an absent member; union skips not-attempted, includes incomplete
+- [x] Click-through at 1280×800 and 1440×900: mark and unmark a student on PS6 Class View; the row greys without moving anything; every count on the set's tabs reads /19 and back to /20; Chloe starts absent on PS6 and present on PS1–PS5; her group review group is three; no sideways scroll
+- [x] vitest, eslint, tsc, next build, check:laptop

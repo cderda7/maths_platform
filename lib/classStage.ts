@@ -3,7 +3,8 @@ import { CLASSMATES } from "@/data/classmates";
 import { BEFORE_HAND_IN_STAGES, type ReviewStage } from "@/data/types";
 import { pathwayOf, type AdvanceKind, type ClassroomState } from "./classroom";
 import { STAGE_SHORT } from "./pathway";
-import { classReadiness, CLASS_SIZE } from "./readiness";
+import { classReadiness } from "./readiness";
+import { liveAbsent, presentCount } from "./absence";
 import type { StudentSession } from "./session";
 import { standingsAt } from "./standings";
 import { classmatesAt, type StreamSet } from "./stream";
@@ -20,7 +21,8 @@ import { classmatesAt, type StreamSet } from "./stream";
  * scripted from that moment). Working is over from then on even with a student marked missing on
  * the grid; the count while it is current says how many have handed the set in, whole or in part
  * (the one meaning of submitted, `lib/progress`, ticket 185). Once the
- * whole-class session ends every stage is over and none is current.
+ * whole-class session ends every stage is over and none is current. Every count is over the class in the
+ * room: an absent student (ticket 250) is in neither the done nor the total.
  *
  * "Force submit" (ticket 145) sits beside the current pill for the three stages the students work
  * through: `FORCE_KIND` names the advance each starts, `canForce` says whether there is still
@@ -89,13 +91,13 @@ const FIXTURE_SET: StreamSet = { problems: ASSIGNMENT.problems, classmates: CLAS
 export function stageDone(id: ClassStageId, c: ClassroomState | null | undefined, session: StudentSession | null, now: number, set: StreamSet = FIXTURE_SET): number | null {
   switch (id) {
     case "working":
-      // The set handed in: the live student past working, a classmate who submitted.
-      return (liveHandedIn(session) ? 1 : 0) + classmatesAt(set, session, now).filter((m) => m.state.submitted).length;
+      // The set handed in: the live student past working, a classmate in the room who submitted.
+      return (liveHandedIn(session) ? 1 : 0) + classmatesAt(set, session, now).filter((m) => m.state.submitted && !liveAbsent(c).includes(m.record.id)).length;
     case "individual":
       return classReadiness(c, now).handedIn;
     case "group":
       return Math.min(
-        CLASS_SIZE,
+        presentCount(set.classmates, liveAbsent(c)),
         standingsAt(c, session, now)
           .filter((s) => s.percent >= 100)
           .reduce((n, s) => n + s.members.length, 0),
@@ -122,5 +124,6 @@ export function pathwayStages(c: ClassroomState | null | undefined, session: Stu
 }
 
 export function classStages(c: ClassroomState | null | undefined, session: StudentSession | null, now: number, set: StreamSet = FIXTURE_SET): ClassStage[] {
-  return pathwayStages(c, session, now).map((s) => ({ ...s, done: s.state === "current" ? stageDone(s.id, c, session, now, set) : null, total: CLASS_SIZE }));
+  const total = presentCount(set.classmates, liveAbsent(c));
+  return pathwayStages(c, session, now).map((s) => ({ ...s, done: s.state === "current" ? stageDone(s.id, c, session, now, set) : null, total }));
 }

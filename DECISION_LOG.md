@@ -4435,3 +4435,25 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** A 307 (temporary), not 308: browsers do not cache it, so `/` can become something else later without stale redirects; the cost is one extra round trip on every visit to `/`. The chooser is one hop further for the presenter (`/demo`).
 
 **Defense.** One URL per page, Back behaves (it skips `/`), and the route stays discoverable in `app/` beside the other redirects.
+
+## 2026-09-14 · Absent students leave the counts, per set, read live from the classroom (ticket 250)
+
+**Decision.** The classroom keeps each set's absent students (`ClassroomState.absences`, read through `absentOf` in `lib/absence.ts`); a set the teacher has never touched reads the demo's list (`data/absences.ts`: Chloe on Problem Set 6). Every count on that set is over the class in the room: the absent student is out of numerator and denominator (x/19), their work is not a Mistakes row, they answer no diagnostic, the gate into group review does not wait for them, and their seat stays but they are out of their seating group for that set's group review. The Class View roster keeps their row in place, greyed, with the toggle under the name. The group union takes a member's wrong problems and the problems they started and left incomplete, never ones they did not attempt.
+
+**Context.** The user, on real lessons: an absent student needs a "grey out"; seating groups are fixed fours, and today a student not in the room counts against the class as not handed in. Asked about the counts, the user chose to leave the denominator, which makes Chloe (nothing handed in on PS6) the demo's absent student. The union rule was settled in the same conversation.
+
+**Alternatives considered.**
+- *Absent counted as not handed in (x/20)*: stable denominators, but punishes the class's numbers for an absence (rejected in the ICW plan).
+- *Snapshot the absent list onto each diagnostic run at push*: no threading of the list through the chain's functions, but a student marked absent mid-step would hold the step open until force submit.
+- *Remove the absent student from the set's stored groups*: one list fewer, but the seating chart would change, and marking them present again would have to remember where they sat.
+- *Grey an absent student's rows on Mistakes instead of dropping them*: shows everything, but the counts beside each card would no longer add up to the class present, and their work would be suggested as class review examples.
+- *The toggle as a fourth row button*: one place for row actions, but three stacked buttons already set the row height (ticket 177); a fourth would grow every row.
+
+**Tradeoffs.**
+- The absent list threads through the live set's pure functions as an argument (readiness, stage counts, diagnostics, standings, examples), a few more parameters in exchange for every tab agreeing from the one stored list.
+- A group run already begun keeps its members: marking a groupmate absent mid-run changes the other groups' race, not the live board's pens.
+- On Problem Set 6 two diagnostic distractors whose only picker was Chloe (the one student who had reached no problem) are picked by nobody while she is away.
+- Sam's unfinished Q9 now counts towards his group's progress (14ths, not 13ths); it was already in the union through Zara.
+
+**Defense.** Absence is a fact about the room, so counts that leave absent students out are the honest ones; reading the list live keeps the laptop, the board and the iPad in step the moment the teacher corrects it, and keeping seats intact makes an absence a one-day change that undoes cleanly.
+

@@ -1,6 +1,6 @@
 import { DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATE_MAP, type Classmate } from "@/data/classmates";
-import { STORY, STORY_CATEGORIES, storySet, type StoryCategory, type StorySet } from "@/data/story";
+import { STORY, STORY_CATEGORIES, storyAbsent, storySet, type StoryCategory, type StoryRow, type StorySet } from "@/data/story";
 import { categoryName, leafName } from "@/data/taxonomy";
 import type { Status } from "@/data/types";
 import { evaluateLine } from "./evaluate";
@@ -33,7 +33,12 @@ export function missedProblems(record: Classmate, set: SetScope, category: Story
 
 /* ---------- the markdown sheet ---------- */
 
-const WORD: Record<string, string> = { gap: "gap", developing: "developing", solid: "solid", secure: "secure", unseen: "not seen", none: "—", live: "live" };
+const WORD: Record<string, string> = { gap: "gap", developing: "developing", solid: "solid", secure: "secure", unseen: "not seen", absent: "absent", none: "—", live: "live" };
+/** A row's "handed in" on the set at `i`: live, absent (ticket 250), missing, or the count. */
+const handedIn = (row: StoryRow, i: number): string => {
+  const d = row.done[i];
+  return d === null ? "live" : storyAbsent(row, i) ? "absent" : d === 0 ? "missing" : `${d}/10`;
+};
 const setLabel = (s: StorySet) => `PS${s.n}`;
 const qs = (problems: readonly number[]) => problems.map((n) => `Q${n}`).join(", ");
 
@@ -48,20 +53,21 @@ export function renderClassStory(sets: readonly StorySet[]): string {
   out.push("");
   out.push("## Rules");
   out.push("");
-  out.push("- **Statuses**: gap (red), developing (orange), solid (light green), secure (dark green). *not seen*: the set assesses the category but the student has nothing on it (missing, or never reached those problems). *—*: the set does not assess the category. *live*: Sam on Set 6.");
-  out.push("- **One step**: in each category, a student's neighbouring results (skipping *—* and *not seen*) differ by at most one step, gap ↔ developing ↔ solid ↔ secure. Variation, never a jump.");
+  out.push("- **Statuses**: gap (red), developing (orange), solid (light green), secure (dark green). *not seen*: the set assesses the category but the student has nothing on it (missing, or never reached those problems). *absent*: the student was away for the set (ticket 250), out of its counts. *—*: the set does not assess the category. *live*: Sam on Set 6.");
+  out.push("- **One step**: in each category, a student's neighbouring results (skipping *—*, *not seen* and *absent*) differ by at most one step, gap ↔ developing ↔ solid ↔ secure. Variation, never a jump.");
   out.push("- **How a status comes out** (`lib/hierarchy.ts`): a leaf is held lines ÷ attempted lines tagged with it (1 secure, ≥ 0.8 solid, ≥ 0.6 developing, else gap); a group and a category take their worst leaf. So one slip on a leaf the student wrote on five or more times reads solid, on three or four times developing, on one or two a gap. Communication is the share of lines that skip no step. A set's New skills count under New skills on that set, not under their home.");
   out.push("- **Priya** is secure in every category on every set. **Sam** is the demo student.");
   out.push("");
   out.push("## The sets");
   out.push("");
-  out.push("| Set | Due | New skills | Pathway | Assesses | Missing | Did not finish | Top gap | Data |");
-  out.push("| --- | --- | --- | --- | --- | --- | --- | --- | --- |");
+  out.push("| Set | Due | New skills | Pathway | Assesses | Absent | Missing | Did not finish | Top gap | Data |");
+  out.push("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |");
   for (const s of sets) {
     const i = s.n - 1;
-    const missing = Object.entries(STORY).filter(([, r]) => r.done[i] === 0).map(([id]) => id);
+    const absent = Object.entries(STORY).filter(([, r]) => storyAbsent(r, i)).map(([id]) => id);
+    const missing = Object.entries(STORY).filter(([, r]) => r.done[i] === 0 && !storyAbsent(r, i)).map(([id]) => id);
     const partial = Object.entries(STORY).filter(([, r]) => r.done[i] !== null && r.done[i]! > 0 && r.done[i]! < 10).map(([id, r]) => `${id} ${r.done[i]}`);
-    out.push(`| ${s.name} | ${s.due} | ${s.newSkills.map((l) => leafName(l).short).join(", ")} | ${s.pathway.join(" → ")} | ${s.categories.map((c) => categoryName(c).short).join(", ")} | ${missing.join(", ") || "nobody"} | ${partial.join(", ") || "nobody"} | ${s.topGap} | ${s.source} |`);
+    out.push(`| ${s.name} | ${s.due} | ${s.newSkills.map((l) => leafName(l).short).join(", ")} | ${s.pathway.join(" → ")} | ${s.categories.map((c) => categoryName(c).short).join(", ")} | ${absent.join(", ") || "nobody"} | ${missing.join(", ") || "nobody"} | ${partial.join(", ") || "nobody"} | ${s.topGap} | ${s.source} |`);
   }
   out.push("");
   for (const s of sets) {
@@ -83,8 +89,7 @@ export function renderClassStory(sets: readonly StorySet[]): string {
     out.push(`| Student | Handed in | ${s.categories.map((c) => categoryName(c).short).join(" | ")} |`);
     out.push(`| --- | --- | ${s.categories.map(() => "---").join(" | ")} |`);
     for (const [id, row] of Object.entries(STORY)) {
-      const d = row.done[i];
-      out.push(`| ${id} | ${d === null ? "live" : d === 0 ? "missing" : `${d}/10`} | ${s.categories.map((c) => WORD[row.cells[c][i].status]).join(" | ")} |`);
+      out.push(`| ${id} | ${handedIn(row, i)} | ${s.categories.map((c) => WORD[row.cells[c][i].status]).join(" | ")} |`);
     }
     out.push("");
   }
@@ -97,7 +102,7 @@ export function renderClassStory(sets: readonly StorySet[]): string {
     out.push("");
     out.push(`| Category | ${sets.map(setLabel).join(" | ")} |`);
     out.push(`| --- | ${sets.map(() => "---").join(" | ")} |`);
-    out.push(`| handed in | ${row.done.map((d) => (d === null ? "live" : d === 0 ? "missing" : `${d}/10`)).join(" | ")} |`);
+    out.push(`| handed in | ${row.done.map((_, i) => handedIn(row, i)).join(" | ")} |`);
     for (const c of STORY_CATEGORIES) out.push(`| ${categoryName(c).name} | ${row.cells[c].map((cell) => WORD[cell.status]).join(" | ")} |`);
     out.push("");
     const habits = STORY_CATEGORIES.flatMap((c) => row.cells[c].flatMap((cell, i) => cell.habits.map((hb) => `- ${setLabel(sets[i])} · ${categoryName(c).name} · ${cell.status}: ${hb.text} (${qs(hb.problems)})`)));

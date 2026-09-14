@@ -15,9 +15,11 @@ const person = (id: string) => (id === DEMO_STUDENT.id ? DEMO_STUDENT : CLASSMAT
  * small colour menu on the chip, a group of any size other than four flagged, never refused. Pure
  * view: the caller owns the groups and what a move does (the class defaults, an assignment's frozen
  * copy, or a new assignment's groups on the create flow's pathway step). `scope` names the board for
- * the page's checks (`data-seating`); `minHeight` is each column's floor in px.
+ * the page's checks (`data-seating`); `minHeight` is each column's floor in px. `absent` (an assignment's, ticket 250): those
+ * students keep their seat, greyed and marked, and the count reads the group as it meets for group review ("3 · 1 absent");
+ * the uneven flag is about the seating, so an absence never raises it.
  */
-export default function SeatingBoard({ groups, onMove, scope, minHeight = 280 }: { groups: SeatingGroups; onMove: (student: string, to: GroupColour) => void; scope: string; minHeight?: number }) {
+export default function SeatingBoard({ groups, onMove, scope, minHeight = 280, absent = [] }: { groups: SeatingGroups; onMove: (student: string, to: GroupColour) => void; scope: string; minHeight?: number; absent?: readonly string[] }) {
   const uneven = unevenGroups(groups);
   const [dragging, setDragging] = useState<string | null>(null);
   const [over, setOver] = useState<GroupColour | null>(null);
@@ -40,11 +42,13 @@ export default function SeatingBoard({ groups, onMove, scope, minHeight = 280 }:
       {GROUP_COLOURS.map((colour) => {
         const members = groups[colour];
         const flagged = uneven.includes(colour);
+        const away = members.filter((id) => absent.includes(id)).length;
         return (
           <section
             key={colour}
             data-colour={colour}
-            data-count={members.length}
+            data-count={members.length - away}
+            data-absent-count={away || undefined}
             data-uneven={flagged || undefined}
             onDragOver={(e) => {
               e.preventDefault();
@@ -58,13 +62,15 @@ export default function SeatingBoard({ groups, onMove, scope, minHeight = 280 }:
             <div className="flex items-center justify-between px-4 pt-3">
               <span className="sr-only">{colour}</span>
               <span className={`ml-auto text-[12px] ${flagged ? "text-developing" : "text-ink-muted"}`} data-size>
-                {members.length}
+                {members.length - away}
+                {away ? ` · ${away} absent` : ""}
                 {flagged ? " · uneven" : ""}
               </span>
             </div>
             <ul className="mt-3 flex flex-1 flex-col gap-1.5 px-3 pb-3">
               {members.map((id) => {
                 const who = person(id);
+                const isAbsent = absent.includes(id);
                 return (
                   <li
                     key={id}
@@ -72,11 +78,17 @@ export default function SeatingBoard({ groups, onMove, scope, minHeight = 280 }:
                     onDragStart={(e) => onDragStart(e, id)}
                     onDragEnd={() => setDragging(null)}
                     data-student={id}
+                    data-absent={isAbsent || undefined}
                     className={`flex items-center gap-2.5 rounded-xl border border-line px-2.5 py-2 ${dragging === id ? "opacity-40" : ""}`}
                     style={{ backgroundColor: GROUP_HEX[colour].soft }}
                   >
-                    <Avatar initials={who.initials} size="h-7 w-7 text-[10px]" />
-                    <span className="min-w-0 flex-1 truncate text-[13.5px] text-ink">{who.name}</span>
+                    <Avatar initials={who.initials} size="h-7 w-7 text-[10px]" className={isAbsent ? "opacity-40 grayscale" : ""} />
+                    <span className={`min-w-0 flex-1 truncate text-[13.5px] ${isAbsent ? "text-ink-muted" : "text-ink"}`}>{who.name}</span>
+                    {isAbsent && (
+                      <span className="shrink-0 text-[11px] text-ink-muted" data-absent-mark>
+                        absent
+                      </span>
+                    )}
                     <select
                       aria-label={`Move ${who.name} to`}
                       value={colour}

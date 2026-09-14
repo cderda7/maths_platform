@@ -10,8 +10,8 @@ import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { EscapeLayer } from "@/components/useEscape";
 import { DifficultyTag, SlipChip } from "@/components/Tag";
 import { arriving, EMPTY_HOLD, holdAbovePointer, holdKey } from "@/lib/arrivals";
-import { assignmentStages, currentStageOf } from "@/lib/assignments";
-import { CLASS_SIZE, groupBySlip, mistakesByProblem, type WorkColumn } from "@/lib/mistakes";
+import { assignmentStages, classSize, currentStageOf } from "@/lib/assignments";
+import { groupBySlip, mistakesByProblem, type WorkColumn } from "@/lib/mistakes";
 import { useBatchedSession, useNow } from "@/lib/store";
 import { useClassroom } from "@/lib/classroom-store";
 import DiagnosticPush, { DiagnosticFootprint, PROBLEM_HEADER } from "./DiagnosticPush";
@@ -244,6 +244,8 @@ export default function TeacherMistakes() {
   // Remember what is on screen, so the cards above the pointer can keep it while new work arrives.
   if (holdKey(shown) !== holdKey(hold)) setHold(shown);
   const problems = shown.problems;
+  /** The class the counts are over: twenty, less anyone marked absent on the set (ticket 250). */
+  const size = classSize(assignment);
   const stage = currentStageOf(assignmentStages(assignment, classroom, session, now));
   const [open, setOpen] = useState<string[]>([]);
   /** The problem just closed by hand: its button offers "close all" until the pointer leaves it. */
@@ -287,7 +289,7 @@ export default function TeacherMistakes() {
           const isOpen = open.includes(problem.id);
           const othersOpen = open.some((id) => id !== problem.id);
           /** Neither correct, wrong nor still working on the set: stopped before the problem, or handed it in without an answer (tickets 143, 189). */
-          const skipped = CLASS_SIZE - right - wrong - pending;
+          const skipped = size - right - wrong - pending;
           const groups = groupBySlip(rows);
           // One grid column per identical working (ticket 138); boxes and pills span columns.
           const columns = groups.flatMap((g) => g.columns);
@@ -313,15 +315,15 @@ export default function TeacherMistakes() {
             <EscapeLayer active={isOpen} onEscape={() => setOpen((o) => o.filter((x) => x !== problem.id))} />
             {/* The correct count level with the header row (the card's 1 px border, then the header), the skipped count 6 px under it; the two the same width. */}
             <div className="flex shrink-0 flex-col items-stretch gap-1.5" style={{ width: COUNT_COLUMN, paddingTop: (PROBLEM_HEADER + 2 - COUNT_H) / 2 }}>
-              <span className={COUNT} title={`${right} of ${CLASS_SIZE} got it correct · ${wrong} wrong · ${skipped} skipped${pending ? ` · ${pending} still working` : ""}`} data-right={`${problem.id}:${right}`}>
+              <span className={COUNT} title={`${right} of ${size} got it correct · ${wrong} wrong · ${skipped} skipped${pending ? ` · ${pending} still working` : ""}`} data-right={`${problem.id}:${right}`}>
                 <span className="font-semibold text-ink">
-                  {right}/{CLASS_SIZE}
+                  {right}/{size}
                 </span>
                 <span className="text-ink-muted">correct</span>
               </span>
               <span className={COUNT} title="Stopped before this problem, or handed it in without an answer; a student still working on the set is not counted" data-skipped={`${problem.id}:${skipped}`}>
                 <span className="font-semibold text-ink">
-                  {skipped}/{CLASS_SIZE}
+                  {skipped}/{size}
                 </span>
                 <span className="text-ink-muted">skipped</span>
               </span>

@@ -6,21 +6,21 @@ The contract for the six sets in the Classroom (ticket 210). For every student a
 
 ## Rules
 
-- **Statuses**: gap (red), developing (orange), solid (light green), secure (dark green). *not seen*: the set assesses the category but the student has nothing on it (missing, or never reached those problems). *—*: the set does not assess the category. *live*: Sam on Set 6.
-- **One step**: in each category, a student's neighbouring results (skipping *—* and *not seen*) differ by at most one step, gap ↔ developing ↔ solid ↔ secure. Variation, never a jump.
+- **Statuses**: gap (red), developing (orange), solid (light green), secure (dark green). *not seen*: the set assesses the category but the student has nothing on it (missing, or never reached those problems). *absent*: the student was away for the set (ticket 250), out of its counts. *—*: the set does not assess the category. *live*: Sam on Set 6.
+- **One step**: in each category, a student's neighbouring results (skipping *—*, *not seen* and *absent*) differ by at most one step, gap ↔ developing ↔ solid ↔ secure. Variation, never a jump.
 - **How a status comes out** (`lib/hierarchy.ts`): a leaf is held lines ÷ attempted lines tagged with it (1 secure, ≥ 0.8 solid, ≥ 0.6 developing, else gap); a group and a category take their worst leaf. So one slip on a leaf the student wrote on five or more times reads solid, on three or four times developing, on one or two a gap. Communication is the share of lines that skip no step. A set's New skills count under New skills on that set, not under their home.
 - **Priya** is secure in every category on every set. **Sam** is the demo student.
 
 ## The sets
 
-| Set | Due | New skills | Pathway | Assesses | Missing | Did not finish | Top gap | Data |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Problem Set 1 — Surds | Tue 25 Aug | surds | individual → group | Algebra, Communication, Reasoning, New skills | nobody | tomas 9, liam 2, grace 8 | surds | ticket 211, data/pset1/ |
-| Problem Set 2 — Rationalising and expanding with surds | Fri 28 Aug | surds, binomial identity | individual → group | Algebra, Communication, Reasoning, New skills | nobody | tomas 8, liam 3, grace 7 | binomial identity | ticket 212, data/pset2/ |
-| Problem Set 3 — Expanding and factorising | Tue 1 Sep | binomial identity | individual → group | Algebra, Communication, Reasoning, New skills | liam | jordan 9, grace 9, oliver 9 | binomial identity | ticket 213, data/pset3/ |
-| Problem Set 4 — Non-monic factorising and completing the square | Fri 4 Sep | binomial identity, null factor law | individual → group | Algebra, Functions, Graphing, Communication, Reasoning, New skills | nobody | jordan 8, tomas 9, liam 2, grace 6, oliver 8 | non-monic factorising | ticket 214, data/pset4/ |
-| Problem Set 5 — Features of a parabola | Mon 7 Sep | null factor law, binomial identity | individual → group | Algebra, Functions, Graphing, Communication, Reasoning, New skills | liam | jordan 8, tomas 7, grace 7, oliver 9 | graph features | data/pset5/ (ticket 187) |
-| Problem Set 6 — Roots of a quadratic | Thu 10 Sep | discriminant, null factor law | individual → group | Algebra, Functions, Graphing, Communication, Reasoning, New skills | chloe | jordan 7, tomas 7, liam 2, noah 9, ethan 8, grace 4, harper 6, oliver 7 | fractions | data/assignment.ts, data/classmates.ts (the live set; rows are the classmates' end state) |
+| Set | Due | New skills | Pathway | Assesses | Absent | Missing | Did not finish | Top gap | Data |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Problem Set 1 — Surds | Tue 25 Aug | surds | individual → group | Algebra, Communication, Reasoning, New skills | nobody | nobody | tomas 9, liam 2, grace 8 | surds | ticket 211, data/pset1/ |
+| Problem Set 2 — Rationalising and expanding with surds | Fri 28 Aug | surds, binomial identity | individual → group | Algebra, Communication, Reasoning, New skills | nobody | nobody | tomas 8, liam 3, grace 7 | binomial identity | ticket 212, data/pset2/ |
+| Problem Set 3 — Expanding and factorising | Tue 1 Sep | binomial identity | individual → group | Algebra, Communication, Reasoning, New skills | nobody | liam | jordan 9, grace 9, oliver 9 | binomial identity | ticket 213, data/pset3/ |
+| Problem Set 4 — Non-monic factorising and completing the square | Fri 4 Sep | binomial identity, null factor law | individual → group | Algebra, Functions, Graphing, Communication, Reasoning, New skills | nobody | nobody | jordan 8, tomas 9, liam 2, grace 6, oliver 8 | non-monic factorising | ticket 214, data/pset4/ |
+| Problem Set 5 — Features of a parabola | Mon 7 Sep | null factor law, binomial identity | individual → group | Algebra, Functions, Graphing, Communication, Reasoning, New skills | nobody | liam | jordan 8, tomas 7, grace 7, oliver 9 | graph features | data/pset5/ (ticket 187) |
+| Problem Set 6 — Roots of a quadratic | Thu 10 Sep | discriminant, null factor law | individual → group | Algebra, Functions, Graphing, Communication, Reasoning, New skills | chloe | nobody | jordan 7, tomas 7, liam 2, noah 9, ethan 8, grace 4, harper 6, oliver 7 | fractions | data/assignment.ts, data/classmates.ts (the live set; rows are the classmates' end state) |
 
 ### Problem Set 1 — Surds
 
@@ -241,7 +241,7 @@ The set's rows (each student's habits are under their name below):
 | aiden | 10/10 | developing | secure | secure | secure | secure | secure |
 | mia | 10/10 | gap | secure | secure | secure | secure | secure |
 | noah | 9/10 | secure | secure | secure | secure | secure | solid |
-| chloe | missing | not seen | not seen | not seen | not seen | not seen | not seen |
+| chloe | absent | absent | absent | absent | absent | absent | absent |
 | ethan | 8/10 | developing | secure | solid | solid | secure | secure |
 | isla | 10/10 | developing | secure | secure | secure | gap | secure |
 | lucas | 10/10 | developing | secure | secure | secure | gap | secure |
@@ -497,17 +497,17 @@ Confident and secure outside New skills, where he squares a bracket term by term
 
 ### Chloe Abara (`chloe`)
 
-Confident; guesses a pair and does negatives in her head. Hands in every set until Set 6, where she is missing.
+Confident; guesses a pair and does negatives in her head. Hands in every set she sits; away for Set 6, where she is the class's absent student.
 
 | Category | PS1 | PS2 | PS3 | PS4 | PS5 | PS6 |
 | --- | --- | --- | --- | --- | --- | --- |
-| handed in | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | missing |
-| Algebra | secure | solid | solid | developing | developing | not seen |
-| Functions | — | — | — | solid | solid | not seen |
-| Graphing | — | — | — | secure | secure | not seen |
-| Communication | secure | secure | secure | secure | secure | not seen |
-| Reasoning | secure | secure | secure | secure | secure | not seen |
-| New skills | solid | solid | secure | secure | secure | not seen |
+| handed in | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | absent |
+| Algebra | secure | solid | solid | developing | developing | absent |
+| Functions | — | — | — | solid | solid | absent |
+| Graphing | — | — | — | secure | secure | absent |
+| Communication | secure | secure | secure | secure | secure | absent |
+| Reasoning | secure | secure | secure | secure | secure | absent |
+| New skills | solid | solid | secure | secure | secure | absent |
 
 - PS2 · Algebra · solid: a denominator dropped adding fractions (Q9)
 - PS3 · Algebra · solid: a factor pair guessed without checking (Q8)

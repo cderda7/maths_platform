@@ -4,6 +4,7 @@ import { liveDiagnostic } from "@/lib/classroom";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { currentIndex, DIAGNOSTIC_FORCE_MS, forceDeadline, isLastStep, isRevealed } from "@/lib/diagnosticChain";
 import { useNow } from "@/lib/store";
+import { liveAbsent } from "@/lib/absence";
 
 const mmss = (ms: number) => {
   const s = Math.max(0, Math.ceil(ms / 1000));
@@ -33,7 +34,8 @@ export default function DiagnosticControl({ size, className = "" }: { size: keyo
   if (!run) return null;
   const index = currentIndex(run);
   const pill = `${PILL[size]} whitespace-nowrap rounded-full border border-standout-line bg-standout-soft font-medium leading-tight text-accent-deep transition-colors hover:bg-standout-line/60`;
-  const deadline = forceDeadline(run, now);
+  const absent = liveAbsent(classroom);
+  const deadline = forceDeadline(run, now, absent);
   if (deadline !== null)
     return (
       <span className={`flex items-center whitespace-nowrap text-ink ${TEXT[size]} ${className}`} data-chain-control="counting">
@@ -49,7 +51,7 @@ export default function DiagnosticControl({ size, className = "" }: { size: keyo
         </button>
       </span>
     );
-  if (!isRevealed(run, index, now))
+  if (!isRevealed(run, index, now, absent))
     return (
       <button type="button" className={`${pill} ${className}`} onClick={() => dispatchClassroom({ type: "diagnostic/force" })} data-chain-control="force">
         force submit

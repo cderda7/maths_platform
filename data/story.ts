@@ -27,10 +27,11 @@ export interface Habit {
  * One student × category × set:
  * - a result with its habits (one or two for anything short of secure, none for secure);
  * - `unseen`: the set assesses the category but the student has nothing on it (missing, or never reached those problems);
+ * - `absent`: the student was away for the set (ticket 250; `DEMO_ABSENCES`), every category it assesses alike;
  * - `none`: the set does not assess the category (the "—" in the sheet);
  * - `live`: Sam on Problem Set 6, whose row is his live session.
  */
-export type StoryCell = { status: StoryStatus; habits: readonly Habit[] } | { status: "unseen" | "none" | "live"; habits: readonly [] };
+export type StoryCell = { status: StoryStatus; habits: readonly Habit[] } | { status: "unseen" | "absent" | "none" | "live"; habits: readonly [] };
 
 /** The categories the six sets assess, in the Class View's order. */
 export const STORY_CATEGORIES = ["algebra", "functions", "graphing", "communication", "reasoning", "new"] as const satisfies readonly CategoryId[];
@@ -216,13 +217,14 @@ const sol = (...habits: Habit[]): StoryCell => ({ status: "solid", habits });
 const dev = (...habits: Habit[]): StoryCell => ({ status: "developing", habits });
 const gap = (...habits: Habit[]): StoryCell => ({ status: "gap", habits });
 const un: StoryCell = { status: "unseen", habits: [] };
+const ab: StoryCell = { status: "absent", habits: [] };
 const na: StoryCell = { status: "none", habits: [] };
 const live: StoryCell = { status: "live", habits: [] };
 
 type Six = readonly [StoryCell, StoryCell, StoryCell, StoryCell, StoryCell, StoryCell];
 
 export interface StoryRow {
-  /** Problems handed in on Sets 1–6, in order (0: missing); null for Sam on Set 6, which is live. */
+  /** Problems handed in on Sets 1–6, in order (0: missing, or absent when the set's cells say so); null for Sam on Set 6, which is live. */
   done: readonly [number, number, number, number, number, number | null];
   /** The student's arc in a sentence. */
   arc: string;
@@ -350,14 +352,14 @@ export const STORY: Readonly<Record<string, StoryRow>> = {
   },
   chloe: {
     done: [10, 10, 10, 10, 10, 0],
-    arc: "Confident; guesses a pair and does negatives in her head. Hands in every set until Set 6, where she is missing.",
+    arc: "Confident; guesses a pair and does negatives in her head. Hands in every set she sits; away for Set 6, where she is the class's absent student.",
     cells: {
-      algebra: [sec, sol(h("a denominator dropped adding fractions", 9)), sol(h("a factor pair guessed without checking", 8)), dev(h("a non-monic pair guessed, never expanded back", 2), h("halves lost completing the square", 7)), dev(h("non-monic pair guessed, never expanded back", 4), h("sum of the intercepts never halved", 8)), un],
-      functions: [na, na, na, sol(h("a root's sign lost rearranging", 5)), sol(h("(−3)² taken as −9", 5)), un],
-      graphing: [na, na, na, sec, sec, un],
-      communication: [sec, sec, sec, sec, sec, un],
-      reasoning: [sec, sec, sec, sec, sec, un],
-      new: [sol(h("√48 simplified to 2√12 and left there", 1), h("√60 taken as 4√15, the 4 not rooted", 5)), sol(h("the conjugate multiplied on the bottom only", 8)), sec, sec, sec, un],
+      algebra: [sec, sol(h("a denominator dropped adding fractions", 9)), sol(h("a factor pair guessed without checking", 8)), dev(h("a non-monic pair guessed, never expanded back", 2), h("halves lost completing the square", 7)), dev(h("non-monic pair guessed, never expanded back", 4), h("sum of the intercepts never halved", 8)), ab],
+      functions: [na, na, na, sol(h("a root's sign lost rearranging", 5)), sol(h("(−3)² taken as −9", 5)), ab],
+      graphing: [na, na, na, sec, sec, ab],
+      communication: [sec, sec, sec, sec, sec, ab],
+      reasoning: [sec, sec, sec, sec, sec, ab],
+      new: [sol(h("√48 simplified to 2√12 and left there", 1), h("√60 taken as 4√15, the 4 not rooted", 5)), sol(h("the conjugate multiplied on the bottom only", 8)), sec, sec, sec, ab],
     },
   },
   ethan: {
@@ -476,7 +478,10 @@ export const STORY_RANK: Record<StoryStatus, number> = { gap: 0, developing: 1, 
 /** A set's story (1 … 6). */
 export const storySet = (id: string): StorySet | undefined => STORY_SETS.find((s) => s.id === id);
 
-/** The results that count for the one-step rule, oldest first: every assessed cell with a result (not unseen, not live). */
+/** The results that count for the one-step rule, oldest first: every assessed cell with a result (not unseen, absent or live). */
 export function storyResults(student: string, category: StoryCategory): { n: number; status: StoryStatus }[] {
-  return STORY[student].cells[category].flatMap((c, i) => (c.status === "unseen" || c.status === "none" || c.status === "live" ? [] : [{ n: i + 1, status: c.status }]));
+  return STORY[student].cells[category].flatMap((c, i) => (c.status === "unseen" || c.status === "absent" || c.status === "none" || c.status === "live" ? [] : [{ n: i + 1, status: c.status }]));
 }
+
+/** Whether a student was away for the set at `i` (0 … 5): its cells read absent (ticket 250). */
+export const storyAbsent = (row: StoryRow, i: number): boolean => STORY_CATEGORIES.some((c) => row.cells[c][i].status === "absent");

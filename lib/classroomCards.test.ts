@@ -73,12 +73,12 @@ describe("the top gap", () => {
 describe("the Classroom's cards", () => {
   const live = assignmentBundle("pset-6", CREATED)!;
   /** A finished set standing in for Problem Set 5 (ticket 187) until it is registered: the same work, every stage over. */
-  const finished: AssignmentBundle = { ...live, id: "pset-5", kind: "finished", title: "PROBLEM SET 5 — FEATURES OF A PARABOLA", name: "Problem Set 5 — Features of a parabola", due: "Mon 7 Sep", startedAt: null };
+  const finished: AssignmentBundle = { ...live, id: "pset-5", kind: "finished", title: "PROBLEM SET 5 — FEATURES OF A PARABOLA", name: "Problem Set 5 — Features of a parabola", due: "Mon 7 Sep", startedAt: null, absent: [] };
 
-  it("Problem Set 6 while the class works is live: submitted of twenty and its mistakes so far", () => {
+  it("Problem Set 6 while the class works is live: submitted of the nineteen in the room (Chloe absent, ticket 250) and its mistakes so far", () => {
     const { classroom, session } = skipFixture("working", now);
     const card = assignmentCard(assignmentBundle("pset-6", classroom)!, classroom, session, now);
-    expect(card).toMatchObject({ id: "pset-6", name: "Problem Set 6 — Roots of a quadratic", href: "/teacher/a/pset-6", section: "live", status: "live", total: CLASS_SIZE, due: "Thu 10 Sep" });
+    expect(card).toMatchObject({ id: "pset-6", name: "Problem Set 6 — Roots of a quadratic", href: "/teacher/a/pset-6", section: "live", status: "live", total: CLASS_SIZE - 1, due: "Thu 10 Sep" });
     // The stream long over (the skip went live an hour back, ticket 189): everyone but Sam, Chloe and Jordan, stalled on Q8.
     expect(card.submitted).toBe(CLASS_SIZE - 3);
     expect(card.mistakes).toBe(mistakeCount(mistakesByProblem(session, live)));

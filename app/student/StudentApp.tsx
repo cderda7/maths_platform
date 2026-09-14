@@ -34,6 +34,7 @@ import { DEMO_STUDENT } from "@/data/assignment";
 import PeerScreen from "./screens/PeerScreen";
 import HistoryScreen from "./screens/HistoryScreen";
 import DiagnosticModal from "./screens/DiagnosticModal";
+import { liveAbsent } from "@/lib/absence";
 import SkipTo from "@/components/SkipTo";
 import { EscapeLayer } from "@/components/useEscape";
 
@@ -88,7 +89,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
     // render older than the store (a restart on mount has already dropped this run) (ticket 226).
     if (!onBoard || now === 0 || (getClassroom().group ?? null) !== board) return;
     if (!board) {
-      const plan = groupPlan(session);
+      const plan = groupPlan(session, liveAbsent(classroom));
       // The board opens once the intro has been read, counted from when the class went in, not from this tab (ticket 220).
       dispatchClassroom({ type: "group/begin", members: plan.members.map((m) => m.id), problems: plan.discussion.problems.map((p) => p.id), at: boardOpensFor(readiness.startedAt, now), pens: DEMO_PENS });
       return;
@@ -194,7 +195,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
             </div>
           </div>
         )}
-        {diagnostic && <DiagnosticModal run={diagnostic} now={now} onAnswer={(option) => dispatchClassroom({ type: "diagnostic/answer", option })} />}
+        {diagnostic && <DiagnosticModal run={diagnostic} now={now} absent={liveAbsent(classroom)} onAnswer={(option) => dispatchClassroom({ type: "diagnostic/answer", option })} />}
       </StudentChrome>
       <SkipTo />
     </IpadStage>

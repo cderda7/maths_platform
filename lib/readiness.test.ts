@@ -8,16 +8,32 @@ describe("the gate into group review", () => {
 
   it("counts nobody until the demo student arrives, then the scripted classmates as their offsets pass", () => {
     expect(CLASS_SIZE).toBe(20);
-    expect(classReadiness(INITIAL_CLASSROOM, t0)).toEqual({ handedIn: 0, total: 20, started: false, reason: null, startedAt: null });
+    // Chloe is absent on Problem Set 6 (ticket 250): the class in the room is nineteen, and her offset brings nobody.
+    expect(classReadiness(INITIAL_CLASSROOM, t0)).toEqual({ handedIn: 0, total: 19, started: false, reason: null, startedAt: null });
     expect(classReadiness(arrived, t0).handedIn).toBe(1);
     const offsets = Object.values(ARRIVAL_OFFSETS_MS).sort((a, b) => a - b);
+    expect(offsets[9]).toBe(ARRIVAL_OFFSETS_MS.chloe);
     expect(classReadiness(arrived, t0 + offsets[0]).handedIn).toBe(2);
-    expect(classReadiness(arrived, t0 + offsets[9]).handedIn).toBe(11);
+    expect(classReadiness(arrived, t0 + offsets[9]).handedIn).toBe(10);
     expect(classReadiness(arrived, t0 + LAST_ARRIVAL_MS - 1).started).toBe(false);
-    expect(classReadiness(arrived, t0 + LAST_ARRIVAL_MS)).toEqual({ handedIn: 20, total: 20, started: true, reason: "everyone", startedAt: t0 + LAST_ARRIVAL_MS });
+    expect(classReadiness(arrived, t0 + LAST_ARRIVAL_MS)).toEqual({ handedIn: 19, total: 19, started: true, reason: "everyone", startedAt: t0 + LAST_ARRIVAL_MS });
     // Read later, it still started at the last hand-in, not when it was read (the group intro counts from here, ticket 220).
     expect(classReadiness(arrived, t0 + LAST_ARRIVAL_MS + 60_000).startedAt).toBe(t0 + LAST_ARRIVAL_MS);
     expect(LAST_ARRIVAL_MS).toBeLessThan(30_000);
+  });
+
+  it("with Chloe marked present the class is twenty again, and her arrival counts (ticket 250)", () => {
+    const present = classroomReducer(arrived, { type: "absence/set", assignment: "pset-6", student: "chloe", absent: false });
+    const offsets = Object.values(ARRIVAL_OFFSETS_MS).sort((a, b) => a - b);
+    expect(classReadiness(present, t0 + offsets[9]).handedIn).toBe(11);
+    expect(classReadiness(present, t0 + LAST_ARRIVAL_MS)).toEqual({ handedIn: 20, total: 20, started: true, reason: "everyone", startedAt: t0 + LAST_ARRIVAL_MS });
+  });
+
+  it("an absent classmate who would have been last is not waited for: the gate opens at the last one in the room", () => {
+    const last = Object.entries(ARRIVAL_OFFSETS_MS).sort((a, b) => b[1] - a[1]);
+    const away = classroomReducer(arrived, { type: "absence/set", assignment: "pset-6", student: last[0][0], absent: true });
+    expect(classReadiness(away, t0 + last[1][1])).toMatchObject({ handedIn: 18, total: 18, started: true, startedAt: t0 + last[1][1] });
+    expect(classReadiness(away, t0 + last[1][1] - 1).started).toBe(false);
   });
 
   it("an arrival is recorded once", () => {

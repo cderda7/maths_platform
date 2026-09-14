@@ -45,7 +45,7 @@ export default function TeacherGroups() {
         <span className="text-[12.5px] text-ink-muted">Drag a student to a colour. Groups of {GROUP_SIZE}; any other size is flagged.</span>
       </div>
       <div className="mt-3">
-        <SeatingBoard groups={groups} onMove={move} scope={assignment ? assignment.id : "class"} />
+        <SeatingBoard groups={groups} onMove={move} scope={assignment ? assignment.id : "class"} absent={assignment?.absent} />
       </div>
 
       {SHOW_SUGGESTED && (

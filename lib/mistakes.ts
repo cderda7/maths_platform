@@ -189,17 +189,25 @@ export function rightCount(problem: Problem, index: number, session: StudentSess
 export interface MistakeSet extends StreamSet {
   /** Sam's handed-in record on a finished set (ticket 187): his row comes from it instead of a session, first like his live row. */
   sam?: Classmate | null;
+  /** The students marked absent on the set (ticket 250): no rows, and out of `right` and `pending`. */
+  absent?: readonly string[];
 }
 
 export { CLASS_SIZE };
 
 /**
  * `now` places a live set's stream (ticket 189; the end of it when omitted). A classmate's rows on a problem come in
- * the order they submitted it, so the list only ever grows at the end of a cluster.
+ * the order they submitted it, so the list only ever grows at the end of a cluster. An absent student (ticket 250) is not
+ * in the room: none of their work is a row and none of it counts, so the counts beside a card add up to the class present.
  */
 export function mistakesByProblem(session: StudentSession | null, set: MistakeSet = { problems: ASSIGNMENT.problems, classmates: CLASSMATES }, now: number = Number.POSITIVE_INFINITY): ProblemMistakes[] {
-  const mine = session ? feedbackFor(session) : [];
-  const roster = classmatesAt(set, session, now);
+  const absent = set.absent ?? [];
+  // The live student's own work, unless he is marked absent (only possible on a set he is not live on).
+  const samAbsent = absent.includes(DEMO_STUDENT.id);
+  const own = samAbsent ? null : session;
+  const mine = own ? feedbackFor(own) : [];
+  const roster = classmatesAt(set, session, now).filter((m) => !absent.includes(m.record.id));
+  const sam = set.sam && !absent.includes(set.sam.id) ? set.sam : null;
   const live = set.startedAt !== null && set.startedAt !== undefined;
   const over = !live || streamOver(session);
   const byArrival = (problemId: string) => [...roster].filter((m) => m.record.wrong.includes(problemId)).sort((a, b) => (a.answeredAt[problemId] ?? 0) - (b.answeredAt[problemId] ?? 0));
@@ -212,11 +220,11 @@ export function mistakesByProblem(session: StudentSession | null, set: MistakeSe
         rows.push({ id: DEMO_STUDENT.id, name: DEMO_STUDENT.name, initials: DEMO_STUDENT.initials, live: true, lines, slips: slipsOf(lines) });
       }
       // On a finished set Sam is one more record, read like the classmates' and listed first.
-      if (set.sam?.wrong.includes(problem.id)) rows.push(recordRow(set.sam, problem.id));
+      if (sam?.wrong.includes(problem.id)) rows.push(recordRow(sam, problem.id));
       for (const m of byArrival(problem.id)) rows.push({ ...recordRow(m.record, problem.id), ...(live ? { arrivedAt: m.answeredAt[problem.id] } : {}) });
       const records = roster.map((m) => m.record);
-      const right = rightCount(problem, index, session, me, set.sam ? [set.sam, ...records] : records);
-      const samPending = !over && !rows.some((r) => r.live) && !(session && liveRight(session, me)) ? 1 : 0;
+      const right = rightCount(problem, index, own, me, sam ? [sam, ...records] : records);
+      const samPending = !over && !samAbsent && !rows.some((r) => r.live) && !(own && liveRight(own, me)) ? 1 : 0;
       const pending = over ? 0 : samPending + roster.filter((m) => !m.state.submitted && m.record.done <= index).length;
       return { problem, rows, right, pending };
     })

@@ -5,6 +5,7 @@ import { activeAssignment } from "./assignment";
 import { currentSlide, pathwayOf, type BoardView, type ClassroomState, type FollowMode } from "./classroom";
 import { liveDiagnostic, questionFor, tally, type Tally } from "./diagnostic";
 import { chainPosition, currentIndex, isLastStep, type DiagnosticRun } from "./diagnosticChain";
+import { liveAbsent } from "./absence";
 import { boardExamples, type BoardExample } from "./examples";
 import { nextStage } from "./pathway";
 import type { StudentSession } from "./session";
@@ -85,7 +86,7 @@ export function boardContent(c: ClassroomState | null | undefined, session: Stud
   const lesson: Lesson = { className: ASSIGNMENT.className, title: activeAssignment(c).title };
   const run = liveDiagnostic(c);
   const question = run && questionFor(run.steps[currentIndex(run)]);
-  if (run && question) return { kind: "diagnostic", ...lesson, run, question, tally: tally(run, now), position: chainPosition(run), last: isLastStep(run) };
+  if (run && question) return { kind: "diagnostic", ...lesson, run, question, tally: tally(run, now, currentIndex(run), liveAbsent(c)), position: chainPosition(run), last: isLastStep(run) };
   const slide = currentSlide(c);
   if (slide) {
     const problem = PROBLEM_MAP[slide.problemId];

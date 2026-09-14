@@ -122,13 +122,13 @@ describe("the class at a moment", () => {
     expect(tags(T0 + END).chloe).toBe("not-started");
   });
 
-  it("the end state: 17 of 20 handed in (Sam not), still individual working, so the set lands on Mistakes", () => {
-    expect(submittedCount(LIVE, null, T0 + END)).toEqual({ submitted: 17, total: CLASS_SIZE });
+  it("the end state: 17 of the 19 in the room handed in (Sam not; Chloe absent, ticket 250), still individual working, so the set lands on Mistakes", () => {
+    expect(submittedCount(LIVE, null, T0 + END)).toEqual({ submitted: 17, total: CLASS_SIZE - 1 });
     const lastSubmit = events.filter((e) => e.kind === "submitted").at(-1)!;
     expect(submittedCount(LIVE, null, T0 + lastSubmit.at - 1).submitted).toBe(16);
     expect(landingTab(LIVE, CREATED, null, T0 + END)).toBe("mistakes");
     const card = assignmentCard(LIVE, CREATED, sessionAt("working"), T0 + END);
-    expect(card).toMatchObject({ section: "live", status: "live", submitted: 17, total: 20 });
+    expect(card).toMatchObject({ section: "live", status: "live", submitted: 17, total: 19 });
     // At the end the Mistakes view is the fixture's (every wrong answer in), Jordan included.
     expect(card.mistakes).toBe(CLASSMATES.reduce((n, c) => n + c.wrong.length, 0) + mistakesByProblem(sessionAt("working")).filter((p) => p.rows.some((r) => r.live)).length);
   });
@@ -175,20 +175,20 @@ describe("the class at a moment", () => {
     }
   });
 
-  it("still working is neither correct nor skipped: at the start everyone is pending; at the end only Sam, Jordan past Q7 and Chloe", () => {
+  it("still working is neither correct nor skipped: at the start everyone in the room is pending; at the end only Sam and Jordan past Q7 (Chloe is absent, ticket 250)", () => {
     const started = mistakesByProblem(null, LIVE, T0 + 9 * S).find((p) => p.problem.id === "q1")!;
-    expect(started).toMatchObject({ right: 0, pending: CLASS_SIZE - 1 });
+    expect(started).toMatchObject({ right: 0, pending: CLASS_SIZE - 2 });
     const end = mistakesByProblem(null, LIVE, T0 + END);
     const q7 = end.find((p) => p.problem.id === "q7")!;
     const q9 = end.find((p) => p.problem.id === "q9")!;
-    expect(q7.pending).toBe(2); // Sam and Chloe; Jordan answered Q7
-    expect(q9.pending).toBe(3); // Sam, Chloe, Jordan
+    expect(q7.pending).toBe(1); // Sam; Jordan answered Q7
+    expect(q9.pending).toBe(2); // Sam, Jordan
   });
 
   it("once Sam hands in, the class is past working: every classmate who started has handed in, Jordan's Q1–Q7 too, nothing pending", () => {
     const session = sessionAt("feedback");
     for (const at of [T0, T0 + 90 * S, T0 + END]) {
-      expect(submittedCount(LIVE, session, at)).toEqual({ submitted: 19, total: CLASS_SIZE });
+      expect(submittedCount(LIVE, session, at)).toEqual({ submitted: 19, total: CLASS_SIZE - 1 });
       const all = classmatesAt(LIVE, session, at);
       expect(all.find((m) => m.record.id === "jordan")!.record).toBe(CLASSMATE_MAP.jordan);
       expect(mistakesByProblem(session, LIVE, at).every((p) => p.pending === 0)).toBe(true);

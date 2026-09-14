@@ -14,6 +14,7 @@ import { chainPosition, currentIndex, forceDeadline, inSolutionOrder } from "@/l
 import type { MistakeRow } from "@/lib/mistakes";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { useNow } from "@/lib/store";
+import { liveAbsent } from "@/lib/absence";
 import { DIAGNOSTIC_CHIP as CHIP } from "./DiagnosticCard";
 
 /** The flyout's frame: the card's border (1) plus padding (24) so the chip in flow sits exactly where the card's own chip would. */
@@ -84,6 +85,8 @@ export default function DiagnosticPush({ problemId, rows, className = "" }: { pr
   useEscape(open, () => setOpen(false), () => document.querySelector<HTMLElement>(`[data-diag-toggle="${CSS.escape(problemId)}"]`));
   const steps = stepsFor(problemId);
   const live = liveDiagnostic(classroom);
+  /** The live set's absent students (ticket 250): out of the answers and the count. */
+  const absent = liveAbsent(classroom);
   /** This panel's chain is out: the chip carries a badge while it is. */
   const mine = !!live && steps.some((s) => live.steps.includes(s.id));
   const label = problemLabelOf(steps[0]) ?? undefined;
@@ -117,9 +120,9 @@ export default function DiagnosticPush({ problemId, rows, className = "" }: { pr
     /** The step's result to show: its place in the chain that is out once it has opened, else its latest earlier send. */
     const shown = live && inLive >= 0 ? (inLive <= liveIndex ? { run: live, index: inLive } : null) : runFor(classroom, q.id);
     const current = !!live && inLive >= 0 && inLive === liveIndex;
-    const t = shown && tally(shown.run, now, shown.index);
+    const t = shown && tally(shown.run, now, shown.index, absent);
     /** Who picked each option (ticket 242), the students repeating their own slip on this problem marked. */
-    const pickers = shown && pickersOf(q, pickersAt(shown.run, now, shown.index));
+    const pickers = shown && pickersOf(q, pickersAt(shown.run, now, shown.index, absent));
     const selectable = !live;
     const isSelected = selectable ? selected.includes(q.id) : inLive >= 0;
     const slipped = slippedAt(q, rows);
@@ -180,7 +183,7 @@ export default function DiagnosticPush({ problemId, rows, className = "" }: { pr
           <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-accent-line bg-accent-soft/50 px-3 py-2.5 text-[14px] text-ink" data-pending>
             <span className="flex items-center gap-2 whitespace-nowrap">
               {/* The pulse while answers come in; the countdown carries its own. */}
-              {!t.revealed && forceDeadline(live, now) === null && <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />}
+              {!t.revealed && forceDeadline(live, now, absent) === null && <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />}
               {chainPosition(live) && (
                 <>
                   <span data-chain-position>{chainPosition(live)}</span>

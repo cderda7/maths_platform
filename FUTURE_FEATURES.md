@@ -3260,6 +3260,17 @@ uploaded problems) settled the following as later, each on purpose.
 - **Classic scrollbars.** `BACK_LEFT` measures the window with `100vw`, which counts a classic (always-shown) scrollbar that the centred column does not, so with one on a wide window the button lands half a scrollbar (~7 px) off. Deferred: macOS overlay scrollbars (the demo laptop) take no width; a container-query unit on the scroll region would fix it but also makes it the containing block for fixed flyouts.
 - **The history report's pulsing Return button** still sits at the report column's padding, which is the same 21.6 px until the window passes 1476 px. Deferred: it is not a BackButton (ticket 266 note).
 
+## Absent students (ticket 250, 2026-09-14)
+
+- **The student's own report and holistic page saying they were absent.** The teacher's student report for an absent student (`/teacher/a/<set>/report?student=chloe`) shows nothing about the absence; ticket 251's across-sets grid is where "absent" lands per set. Deferred: not in the ticket's list of screens.
+- **Marking a groupmate absent after group review has begun.** The live board's run keeps the members it began with (pens, progress); only the scripted groups regroup. Deferred: absences are marked at the start of the lesson (ticket 255's first decision), and changing a run's members mid-turn needs its own rules.
+- **The student side's peer statistics** ("missed by n of 19", `lib/peers.ts`) still count every classmate. Deferred: a student screen, and the ticket scoped the counts to the set's teacher screens.
+- **An absence on a set's history pills and the Class View's history stack.** A pill for a set the student was absent from still reads the story's status (nothing, on PS1–PS5). Deferred: no earlier set has an absent student in the demo data.
+- **Diagnostic common slips re-assigned while their only picker is absent.** On PS6 two distractors are picked only by Chloe, so with her away they read 0. Deferred: the rule (only a student who has not reached the problem picks a common slip) leaves nobody else to pick them.
+- **Marking absence from other screens** (the Groups tab's chips, the Mistakes view, a quick "who's here" roll call at the start). Deferred: the ticket put the toggle on the Class View roster; ticket 255 raises the decision at the start of the lesson.
+- **Absences affecting homework and the reflection** (an absent student gets the set as homework, or catch-up work). Deferred: the homework model comes after in-class work.
+- **A keyboard path to the row toggle.** Like the row's stacked buttons it shows on hover or when focus is inside the row. Deferred: the same as the existing row buttons.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

@@ -5,6 +5,9 @@ import { classroomReducer, INITIAL_CLASSROOM, type ClassroomState } from "./clas
 import { canForce, classStages, currentClassStage, FORCE_KIND, pathwayStages } from "./classStage";
 import { DEMO_PATHWAY, skipFixture } from "./demo";
 import { ARRIVAL_OFFSETS_MS, CLASS_SIZE, LAST_ARRIVAL_MS } from "./readiness";
+
+/** The class the counts are over: twenty, less Chloe, absent on Problem Set 6 (ticket 250). */
+const PRESENT = CLASS_SIZE - 1;
 import { sessionAt } from "./session";
 
 const now = 1_700_000_000_000;
@@ -21,18 +24,18 @@ describe("the class's stage on the pathway", () => {
     const { classroom, session } = skipFixture("working", now);
     const finished = CLASSMATES.filter((m) => m.done > 0).length;
     expect(finished).toBe(CLASSMATES.length - 1);
-    expect(words(classroom, session)).toEqual([`indiv working:current ${finished}/${CLASS_SIZE}`, "indiv review:ahead", "group review:ahead", "class review:ahead"]);
+    expect(words(classroom, session)).toEqual([`indiv working:current ${finished}/${PRESENT}`, "indiv review:ahead", "group review:ahead", "class review:ahead"]);
   });
 
   it("moves to individual review when the live student hands in; the working is over", () => {
     const { classroom, session } = skipFixture("indiv review", now);
     expect(currentClassStage(classroom, session, now)).toBe("individual");
-    expect(words(classroom, session)).toEqual([`indiv working:over`, `indiv review:current 0/${CLASS_SIZE}`, "group review:ahead", "class review:ahead"]);
+    expect(words(classroom, session)).toEqual([`indiv working:over`, `indiv review:current 0/${PRESENT}`, "group review:ahead", "class review:ahead"]);
   });
 
   it("counts the class in at the gate while individual review is current", () => {
     const { classroom, session } = skipFixture("class wait", now);
-    expect(words(classroom, session)[1]).toBe(`indiv review:current 1/${CLASS_SIZE}`);
+    expect(words(classroom, session)[1]).toBe(`indiv review:current 1/${PRESENT}`);
     const first = Math.min(...Object.values(ARRIVAL_OFFSETS_MS));
     expect(classStages(classroom, session, now + first)[1].done).toBe(2);
     // Everyone in: the gate opens and group review is the stage, nothing done yet.
@@ -47,7 +50,7 @@ describe("the class's stage on the pathway", () => {
     const atStart = stages[2].done!;
     const tenMinutes = classStages(classroom, session, now + 10 * 60_000)[2].done!;
     expect(tenMinutes).toBeGreaterThan(atStart);
-    expect(tenMinutes).toBeLessThanOrEqual(CLASS_SIZE);
+    expect(tenMinutes).toBeLessThanOrEqual(PRESENT);
   });
 
   it("is class review while the teacher projects, with no per-student count, and nothing once the session ends", () => {

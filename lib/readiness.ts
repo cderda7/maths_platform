@@ -1,6 +1,7 @@
 import { DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
 import type { ClassroomState } from "./classroom";
+import { liveAbsent, presentCount } from "./absence";
 
 /**
  * The gate into group review: the whole class enters together. Each student's arrival (their
@@ -8,8 +9,10 @@ import type { ClassroomState } from "./classroom";
  * the classroom. For the demo the classmates arrive on a scripted timeline anchored to the demo
  * student's own arrival, so the count climbs while they watch. Group review starts on its own the
  * moment everyone is in, or when the grace of the teacher's force submit on individual review
- * (ticket 145; "start group review now" before it) runs out. Pure.
+ * (ticket 145; "start group review now" before it) runs out. An absent student (ticket 250) never arrives and is not
+ * waited for: the class in the room is everyone. Pure.
  */
+/** The class on the roster: the demo student and the classmates. What a set counts is this less its absent students (`presentCount`). */
 export const CLASS_SIZE = 1 + CLASSMATES.length;
 
 /** Milliseconds after the demo student's arrival at which each classmate hands in, in fixture order: a spread of about twenty seconds. */
@@ -19,6 +22,7 @@ export const LAST_ARRIVAL_MS = Math.max(...Object.values(ARRIVAL_OFFSETS_MS));
 export interface Readiness {
   /** How many of the class have handed in, the demo student included. */
   handedIn: number;
+  /** The class in the room: twenty less the absent. */
   total: number;
   /** True once everyone is in, or once a force submit on individual review has passed its grace. */
   started: boolean;
@@ -30,10 +34,14 @@ export interface Readiness {
 
 export function classReadiness(c: ClassroomState | null | undefined, now: number): Readiness {
   const samAt = c?.arrivals?.[DEMO_STUDENT.id];
-  const classmatesIn = samAt === undefined ? 0 : CLASSMATES.filter((m) => now >= samAt + ARRIVAL_OFFSETS_MS[m.id]).length;
+  const absent = liveAbsent(c);
+  const present = CLASSMATES.filter((m) => !absent.includes(m.id));
+  const total = presentCount(CLASSMATES, absent);
+  const classmatesIn = samAt === undefined ? 0 : present.filter((m) => now >= samAt + ARRIVAL_OFFSETS_MS[m.id]).length;
   const handedIn = (samAt === undefined ? 0 : 1) + classmatesIn;
-  const everyone = handedIn >= CLASS_SIZE;
+  const everyone = handedIn >= total;
   const forced = !!c?.advance && c.advance.kind === "force-review" && now >= c.advance.deadline;
-  const moments = [...(everyone && samAt !== undefined ? [samAt + LAST_ARRIVAL_MS] : []), ...(forced ? [c!.advance!.deadline] : [])];
-  return { handedIn, total: CLASS_SIZE, started: everyone || forced, reason: everyone ? "everyone" : forced ? "teacher" : null, startedAt: moments.length ? Math.min(...moments) : null };
+  const lastIn = Math.max(0, ...present.map((m) => ARRIVAL_OFFSETS_MS[m.id]));
+  const moments = [...(everyone && samAt !== undefined ? [samAt + lastIn] : []), ...(forced ? [c!.advance!.deadline] : [])];
+  return { handedIn, total, started: everyone || forced, reason: everyone ? "everyone" : forced ? "teacher" : null, startedAt: moments.length ? Math.min(...moments) : null };
 }

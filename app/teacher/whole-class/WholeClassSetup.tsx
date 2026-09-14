@@ -35,7 +35,9 @@ export default function WholeClassSetup() {
   const assignment = useAssignmentBundle();
   const { problems, newSkills } = assignment;
   const ctx: PickerContext = { newSkills, group: useClassroom().group ?? null };
-  const ranked = problemsByStruggle(session).filter((r) => problems.some((p) => p.id === r.problem.id));
+  /** The set's absent students (ticket 250): out of the struggled counts and the examples on offer. */
+  const absent = assignment.absent;
+  const ranked = problemsByStruggle(session, absent).filter((r) => problems.some((p) => p.id === r.problem.id));
   const [chosen, setChosen] = useState<string[] | null>(null);
   const [overrides, setOverrides] = useState<Record<string, ExampleRef[]>>({});
   /** What the students' screens do: no default (ticket 146), the teacher picks one before Project comes on. */
@@ -44,7 +46,7 @@ export default function WholeClassSetup() {
   const [nudge, setNudge] = useState(0);
   const chosenIds = chosen ?? ranked.slice(0, PRECHECK).map((r) => r.problem.id);
   const toggle = (id: string) => setChosen(chosenIds.includes(id) ? chosenIds.filter((x) => x !== id) : [...chosenIds, id]);
-  const examplesFor = (pid: string) => overrides[pid] ?? suggestExamples(candidatesFor(pid, session), MAX_EXAMPLES, ctx);
+  const examplesFor = (pid: string) => overrides[pid] ?? suggestExamples(candidatesFor(pid, session, absent), MAX_EXAMPLES, ctx);
   /** Every problem in the order the class will see them: the assignment's until the teacher drags a card. An unticked problem keeps its place for when it is ticked again. */
   const [order, setOrder] = useState<string[]>(() => ASSIGNMENT.problems.map((p) => p.id));
   const ordered = order.filter((id) => chosenIds.includes(id));
@@ -159,7 +161,7 @@ export default function WholeClassSetup() {
         <div className="space-y-4" data-wc-order={ordered.join(" ")} data-dragging={reorder.drag ? reorder.drag.from + 1 : undefined}>
           {ordered.map((pid, i) => {
             const p = PROBLEM_MAP[pid];
-            const cands = candidatesFor(pid, session);
+            const cands = candidatesFor(pid, session, absent);
             const options = optionsFor(cands, ctx);
             const refs = examplesFor(pid);
             /** The options already in a slot: no menu offers them again (ticket 157). */

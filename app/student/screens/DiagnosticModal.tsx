@@ -17,14 +17,14 @@ import { chainPosition, currentIndex, isRevealed, type DiagnosticRun } from "@/l
  * teacher's back to work ends the chain, and the next step replaces this one. Everything comes from the stored run, so a
  * reload lands on the same state.
  */
-export default function DiagnosticModal({ run, now, onAnswer }: { run: DiagnosticRun; now: number; onAnswer: (option: string) => void }) {
+export default function DiagnosticModal({ run, now, absent, onAnswer }: { run: DiagnosticRun; now: number; /** The live set's absent students (ticket 250): the step closes once everyone else has answered. */ absent: readonly string[]; onAnswer: (option: string) => void }) {
   const index = currentIndex(run);
   const d = questionFor(run.steps[index]);
   // Escape does nothing here, and closes nothing under it (ticket 247).
   useEscape(!!d, null);
   if (!d) return null;
   const mine = run.answers[d.id]?.option ?? null;
-  const revealed = isRevealed(run, index, now);
+  const revealed = isRevealed(run, index, now, absent);
   const position = chainPosition(run, index);
   const open = mine === null && !revealed;
   return (

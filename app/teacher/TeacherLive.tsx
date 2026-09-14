@@ -20,7 +20,8 @@ import { confidenceForms, confidenceLabel, type ConfidenceForm } from "@/lib/rep
 import { BEFORE_HAND_IN_STAGES, type Confidence } from "@/data/types";
 import { assignmentReportHref, assignmentStages, rosterProgress } from "@/lib/assignments";
 import { currentSlide } from "@/lib/classroom";
-import { useClassroom } from "@/lib/classroom-store";
+import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
+import { canMarkAbsent } from "@/lib/absence";
 import { progressTag } from "@/lib/progress";
 import { classmatesAt } from "@/lib/stream";
 import { classmateEvidence, columnOf, hierarchyFor, problemsStarted, restrictTo, sessionEvidence, type Evidence } from "@/lib/hierarchy";
@@ -71,6 +72,12 @@ const STACK_TALL = `${STACK_ACTIVE} grid h-[calc(2*(1.375*11px_+_6px)_+_4px)] pl
 const ROW_BUTTON = "w-[96px] whitespace-nowrap rounded-md px-1 py-[2px] text-[11.5px] font-medium leading-none transition-colors";
 const ROW_IDLE = `${ROW_BUTTON} bg-standout-soft text-accent-deep hover:bg-standout-line`;
 const ROW_ACTIVE = `${ROW_BUTTON} bg-accent text-white hover:bg-accent-deep`;
+
+/**
+ * An absent student's row (ticket 250): every cell's contents greyed, nothing moved. The row's buttons, the "absent" pill and
+ * the toggle stay at full strength, so the teacher can still read and undo it.
+ */
+const ABSENT_FADE = "opacity-40 grayscale";
 
 /** A history pill's height, layout px, and the least space above each (2 px, the last above today's pill). */
 const HISTORY_PILL_PX = 13;
@@ -337,7 +344,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
    * A row still on the set carries its progress beside the name, in the pill that read "in progress" (ticket 185):
    * "Q4 in progress" or "warming up"; the live student before his first screen keeps "not started", and once handed in "in progress" as before.
    */
-  type Row = { id: string; name: string; initials: string; live: boolean; missing: boolean; evidence: Evidence; sub: string; confidence: { text: string; tone: string }; set: string; setSub: string; tag: string | null };
+  type Row = { id: string; name: string; initials: string; live: boolean; missing: boolean; evidence: Evidence; sub: string; confidence: { text: string; tone: string }; set: string; setSub: string; tag: string | null; /** Marked absent on the set (ticket 250): greyed, out of every count. */ absent: boolean };
   /** A student with a fixed record on the set: a classmate, or Sam on a finished set (ticket 187). */
   const recordRow = (c: Classmate): Row => ({
     id: c.id,
@@ -351,6 +358,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
     set: `${Math.min(c.done, problems.length)}/${problems.length}`,
     setSub: "",
     tag: progressTag(progress[c.id]),
+    absent: assignment.absent.includes(c.id),
   });
   const rows: Row[] = [
     assignment.sam ? recordRow(assignment.sam) : {
@@ -365,6 +373,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
       set: `${live ? problemsStarted(live) : 0}/${problems.length}`,
       setSub: live && !HANDED_IN.includes(live.stage) ? "handed in" : "",
       tag: progressTag(progress[DEMO_STUDENT.id]) ?? (progress[DEMO_STUDENT.id].kind === "not-started" ? "not started" : "in progress"),
+      absent: false,
     },
     ...assignment.classmates.map((c) => recordRow(records.get(c.id) ?? c)),
   ];
@@ -473,11 +482,16 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
                 const showDrill = isOpen || !!column;
                 const inHistory = history?.student === r.id;
                 const faded = !!history && !inHistory;
+                /** The fade on an absent row's contents (ticket 250). */
+                const fade = r.absent ? ABSENT_FADE : "";
+                /** The row buttons' visibility (tickets 128–180), which the absence toggle under the name shares. */
+                const actionsShown = pillQuiet && !faded ? "group-hover/row:visible group-focus-within/row:visible group-has-[[data-dot]:hover]/row:invisible group-has-[[data-node]:hover]/row:invisible" : "";
                 return (
                   <RowGroup key={r.id} onPointerOver={markerOver} onPointerOut={markerOut} onPointerMove={markerMove} faded={faded}>
                     <tr
                       className={`border-b border-line ${r.live ? "bg-accent-soft/30" : ""} ${showDrill ? "border-b-0" : ""}`}
                       data-missing={r.missing || undefined}
+                      data-absent={r.absent || undefined}
                       data-live={r.live || undefined}
                       data-row={r.id}
                       data-open={isOpen ? open.mode : undefined}
@@ -486,20 +500,38 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
                     >
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <Avatar initials={r.initials} />
-                          <div className="min-w-0">
+                          <Avatar initials={r.initials} className={fade} />
+                          <div className="relative min-w-0">
                             <div className="flex items-center">
                               {/* The name sits in a fixed slot (the widest name on the roster, Ruby Castellanos at 16 px (132.2), plus 8 px), so the progress pill of every student still on the set starts at the same x instead of staggering with the name's length (ticket 136). A longer name pushes its own pill right; the slot's padding keeps the 8 px. Slot and pill were trimmed a few px in ticket 185 so the longest pill, "Q10 in progress", keeps clear of the row's buttons at 1280 and 1400. */}
-                              <span className="box-border min-w-[141px] whitespace-nowrap pr-2 text-[16px] font-medium leading-6 text-ink" data-student-name={r.id}>
+                              <span className={`box-border min-w-[141px] whitespace-nowrap pr-2 text-[16px] font-medium leading-6 text-ink ${fade}`} data-student-name={r.id}>
                                 {r.name}
                               </span>
-                              {r.tag && (
+                              {/* An absent student's pill says so, in the progress pill's place (ticket 250): grey, no pulse. */}
+                              {r.absent ? (
+                                <span className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-line-strong bg-paper px-[7px] py-0.5 text-[11px] font-medium text-ink-muted" data-absent-pill>
+                                  absent
+                                </span>
+                              ) : r.tag && (
                                 <span className="inline-flex shrink-0 items-center gap-[3px] whitespace-nowrap rounded-full border border-accent-line bg-paper px-[5px] py-0.5 text-[11px] font-medium text-accent-deep" data-live-pill={r.live || undefined} data-progress-tag={r.tag}>
                                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" aria-hidden />
                                   {r.tag}
                                 </span>
                               )}
                             </div>
+                            {/* Mark absent / mark present (ticket 250): one of the row's buttons (same width, so the word changing moves nothing), under the name, laid over the row's padding so the row never grows; shown with the stack. The live student on the live set is on his iPad, so has none. */}
+                            {canMarkAbsent(assignment.kind, r.id) && (
+                              <button
+                                type="button"
+                                onClick={() => dispatchClassroom({ type: "absence/set", assignment: assignment.id, student: r.id, absent: !r.absent })}
+                                className={`absolute left-0 top-full mt-[3px] ${ROW_IDLE} ${inHistory ? "visible" : "invisible"} ${actionsShown}`}
+                                aria-pressed={r.absent}
+                                aria-label={r.absent ? `Mark ${r.name} present` : `Mark ${r.name} absent`}
+                                data-absent-toggle={r.id}
+                              >
+                                {r.absent ? "mark present" : "mark absent"}
+                              </button>
+                            )}
                             <div className={`flex items-start gap-2 text-[12.5px] leading-snug text-ink-muted ${!column && (r.sub || (r.live && (caution.length > 0 || live?.reportSent))) ? "" : "hidden"}`} data-commentary>
                               {r.live && caution.length > 0 && (
                                 <span className="inline-flex items-center gap-1 rounded-full border border-gap-line bg-gap-soft px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gap" data-caution>
@@ -516,7 +548,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
                           </div>
                           {/* Shown while the pointer is in the student's block, except over a marker (a category pill, ticket 128, or a drill dot, ticket 133: each is its own way in) and for PILL_GRACE_MS after it last left one (ticket 131), unless the pointer has gone left of the row's first pill, which ends the grace at once (ticket 180). The CSS :has rules hide at once; the state carries the grace. */}
                           {/* Three buttons (ticket 175): the third opens history mode and reads "close history" while it is on; the stack stays in view for the student in history mode, and never shows on a faded row. */}
-                          <div className={`ml-auto flex shrink-0 flex-col gap-[3px] ${inHistory ? "visible" : "invisible"} ${pillQuiet && !faded ? "group-hover/row:visible group-focus-within/row:visible group-has-[[data-dot]:hover]/row:invisible group-has-[[data-node]:hover]/row:invisible" : ""}`} data-row-actions={r.id}>
+                          <div className={`ml-auto flex shrink-0 flex-col gap-[3px] ${inHistory ? "visible" : "invisible"} ${actionsShown}`} data-row-actions={r.id}>
                             <button type="button" onClick={() => (isOpen ? setOpen(null) : openRow(r.id, "expanded"))} className={`${isOpen ? ROW_ACTIVE : ROW_IDLE}`} data-see-skills={r.id} aria-pressed={isOpen}>
                               {isOpen ? "close" : "see dot skills"}
                             </button>
@@ -544,7 +576,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
                               type="button"
                               onClick={() => (leaveHistory(r.id) ? undefined : inHistory ? (earlierCount > 0 ? toggleHistory(c) : undefined) : on && !column ? setOpen(null) : openRow(r.id, "category", c))}
                               onDoubleClick={() => (history ? undefined : openRow(r.id, "category", c, undefined, true))}
-                              aria-label={inHistory ? `${categoryName(c).name}: ${STATUS_WORD[st]}; ${earlierCount === 0 ? "no earlier set assessed it" : `${historyOpen ? "hide" : "show"} the earlier results`}` : `${categoryName(c).name}: ${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}
+                              aria-label={inHistory ? `${categoryName(c).name}: ${STATUS_WORD[st]}; ${earlierCount === 0 ? "no earlier set assessed it" : `${historyOpen ? "hide" : "show"} the earlier results`}` : `${categoryName(c).name}: ${r.absent ? "absent, " : ""}${STATUS_WORD[st]}${half ? ", some problems not attempted" : ""}`}
                               aria-expanded={inHistory ? (earlierCount > 0 ? historyOpen : undefined) : on}
                               className={`inline-grid h-7 place-items-center rounded-md transition-colors hover:bg-cream-deep ${inHistory ? "w-full px-0" : "w-10"} ${on ? "bg-cream-deep ring-1 ring-ink" : ""} ${blanked ? "invisible" : ""}`}
                               data-dot={c}
@@ -553,7 +585,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
                               data-history-count={inHistory ? earlierCount : undefined}
                             >
                               {/* One element either way (ticket 181): in history mode the same StatusDot carries the category's name and grows to its column less 1 px a side (ticket 215); its earlier results (up to five) are drawn by HistoryBlocker over it. The half fill gives way to the name. */}
-                              <StatusDot status={st} half={half && !inHistory} shape="pill" label={inHistory ? categoryName(c).short : undefined} className={inHistory ? "w-full!" : ""} />
+                              <StatusDot status={st} half={half && !inHistory} shape="pill" label={inHistory ? categoryName(c).short : undefined} className={`${inHistory ? "w-full!" : ""} ${fade}`} />
                             </button>
                             {column?.category === c && (
                               <span className={`${LABEL} right-[calc(50%+20px)]`} data-column-label>
@@ -564,10 +596,18 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
                         );
                       })}
                       <td className={`px-1 py-3.5 text-center text-[13px] leading-snug ${r.confidence.tone}`} data-confidence>
-                        <ConfidenceCell label={r.confidence.text} />
+                        <div className={fade}>
+                          <ConfidenceCell label={r.confidence.text} />
+                        </div>
                       </td>
                       <td className="px-2 py-3.5 text-center leading-snug text-ink-soft">
-                        {r.missing ? (
+                        <div className={fade}>
+                        {/* Nothing handed in because away (ticket 250) is not missing work: a dash, not the caution. */}
+                        {r.missing && r.absent ? (
+                          <span className="text-ink-muted" data-absent-set>
+                            —
+                          </span>
+                        ) : r.missing ? (
                           <Missing />
                         ) : (
                           <>
@@ -575,11 +615,12 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
                             {r.setSub && <div className="-mx-2 whitespace-nowrap text-[12px] text-ink-muted" data-set-sub>{r.setSub}</div>}
                           </>
                         )}
+                        </div>
                       </td>
                       {/* The avatar again, closing the row so the eye can find its student after crossing the skill columns (tickets 136, 141). */}
                       <td className="px-2 py-3.5">
                         <div className="flex justify-center" data-row-avatar={r.id}>
-                          <Avatar initials={r.initials} />
+                          <Avatar initials={r.initials} className={fade} />
                         </div>
                       </td>
                     </tr>

@@ -94,7 +94,7 @@ const HANDED_IN = BEFORE_HAND_IN_STAGES;
 
 const candidate = (studentId: string, name: string, problemId: string, lines: string[]): Candidate => ({ studentId, name, problemId, lines, bucket: bucketOf(problemId, lines), mistake: mistakeOf(problemId, lines) });
 
-export function candidatesFor(problemId: string, session: StudentSession | null): Candidate[] {
+export function candidatesFor(problemId: string, session: StudentSession | null, absent: readonly string[] = []): Candidate[] {
   const index = ASSIGNMENT.problems.findIndex((p) => p.id === problemId);
   const problem = ASSIGNMENT.problems[index];
   if (!problem) return [];
@@ -103,7 +103,9 @@ export function candidatesFor(problemId: string, session: StudentSession | null)
     const lines = liveLines(session, problemId);
     if (lines.length > 0) out.push(candidate(DEMO_STUDENT.id, DEMO_STUDENT.name, problemId, lines));
   }
+  // An absent student's work (ticket 250) is no example: the class review's picker leaves it out. The board resolves the refs already chosen without it.
   for (const c of CLASSMATES) {
+    if (absent.includes(c.id)) continue;
     const lines = classmateLines(c, problem, index);
     if (lines) out.push(candidate(c.id, c.name, problemId, lines));
   }
@@ -117,8 +119,8 @@ export function bucketCounts(cands: Candidate[]): Map<Bucket, number> {
 }
 
 /** Students who handed in this problem with a mistake in it. */
-export function struggleCount(problemId: string, session: StudentSession | null): number {
-  return candidatesFor(problemId, session).filter((c) => c.bucket !== "correct").length;
+export function struggleCount(problemId: string, session: StudentSession | null, absent: readonly string[] = []): number {
+  return candidatesFor(problemId, session, absent).filter((c) => c.bucket !== "correct").length;
 }
 
 /** The first wrong line's verdict in a working, if any. */
@@ -208,10 +210,10 @@ export function boardExamples(refs: ExampleRef[], problemId: string, session: St
     .map((c, i) => ({ letter: LETTERS[i], lines: c.lines }));
 }
 
-/** Problems ordered by how many struggled, most first; ties keep assignment order. */
-export function problemsByStruggle(session: StudentSession | null): { problem: Problem; struggled: number; handedIn: number }[] {
+/** Problems ordered by how many struggled, most first; ties keep assignment order. Both counts are over the class in the room (`absent`, ticket 250). */
+export function problemsByStruggle(session: StudentSession | null, absent: readonly string[] = []): { problem: Problem; struggled: number; handedIn: number }[] {
   return ASSIGNMENT.problems
-    .map((problem) => ({ problem, struggled: struggleCount(problem.id, session), handedIn: candidatesFor(problem.id, session).length }))
+    .map((problem) => ({ problem, struggled: struggleCount(problem.id, session, absent), handedIn: candidatesFor(problem.id, session, absent).length }))
     .sort((a, b) => b.struggled - a.struggled);
 }
 

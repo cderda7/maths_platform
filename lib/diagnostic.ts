@@ -2,7 +2,8 @@ import { DEMO_STUDENT, PROBLEMS } from "@/data/assignment";
 import { CLASSMATE_MAP, CLASSMATES } from "@/data/classmates";
 import { DIAGNOSTIC_MAP, FALLBACK_STEP, PROBLEM_DIAGNOSTICS, type Diagnostic, type DiagnosticStep } from "@/data/diagnostic";
 import { latestDiagnostic, liveDiagnostic, type ClassroomState } from "./classroom";
-import { arrivesAt, CLASS_SIZE, closedAt, currentIndex, type DiagnosticRun } from "./diagnosticChain";
+import { arrivesAt, closedAt, currentIndex, type DiagnosticRun } from "./diagnosticChain";
+import { presentCount } from "./absence";
 
 /** The question behind a push, by id. An id no longer known (a push stored before ticket 240) finds nothing. */
 export function questionFor(questionId: string): DiagnosticStep | undefined {
@@ -57,7 +58,7 @@ export function classmatePick(q: Diagnostic, index: number): string {
 export interface Tally {
   /** Answers in so far, the demo student's included once given. */
   answered: number;
-  /** Twenty while the step is open or once all twenty are in; the responders once force submit has closed it without everyone. */
+  /** The class present (twenty, less the absent: ticket 250) while the step is open or once all are in; the responders once force submit has closed it without everyone. */
   total: number;
   /** Answers per option id, every option present. */
   counts: Record<string, number>;
@@ -79,15 +80,16 @@ interface Arrival {
  * student after): the classmates whose answers landed after the step opened and before it closed, and the demo student's
  * once given. The one source of both `tally` and `pickersAt`, so the avatars under a count always number the count.
  */
-function arrivalsAt(run: DiagnosticRun, now: number, index: number): { q: Diagnostic | undefined; arrivals: Arrival[]; revealed: boolean } {
+function arrivalsAt(run: DiagnosticRun, now: number, index: number, absent: readonly string[]): { q: Diagnostic | undefined; arrivals: Arrival[]; revealed: boolean } {
   const id = run.steps[index];
   const q = id === undefined ? undefined : questionFor(id);
   const opened = run.openedAt[index];
-  const close = closedAt(run, index);
+  const close = closedAt(run, index, absent);
   const revealed = close !== null && now >= close;
   if (!q || opened === undefined) return { q, arrivals: [], revealed: false };
   const cutoff = revealed ? close : now;
-  const arrivals: Arrival[] = CLASSMATES.flatMap((c, i) => (opened + arrivesAt(i) <= cutoff ? [{ student: c.id, option: classmatePick(q, i), at: opened + arrivesAt(i) }] : []));
+  // An absent student (ticket 250) answers nothing.
+  const arrivals: Arrival[] = CLASSMATES.flatMap((c, i) => (!absent.includes(c.id) && opened + arrivesAt(i) <= cutoff ? [{ student: c.id, option: classmatePick(q, i), at: opened + arrivesAt(i) }] : []));
   const mine = run.answers[id];
   if (mine && mine.at <= cutoff && q.options.some((o) => o.id === mine.option)) arrivals.push({ student: DEMO_STUDENT.id, option: mine.option, at: mine.at });
   return { q, arrivals: arrivals.sort((a, b) => a.at - b.at), revealed };
@@ -96,15 +98,17 @@ function arrivalsAt(run: DiagnosticRun, now: number, index: number): { q: Diagno
 /**
  * The count per option on the step at `index` (the current one by default) at `now`: the classmates whose answers landed
  * after the step opened and before it closed, and the demo student's once given. Anyone who had not answered when force
- * submit closed the step is left out, so the totals read over the responders. Unknown steps tally nothing.
+ * submit closed the step is left out, so the totals read over the responders. Unknown steps tally nothing. `absent`: the
+ * live set's absent students (`liveAbsent`, ticket 250), out of the answers and the total.
  */
-export function tally(run: DiagnosticRun, now: number, index = currentIndex(run)): Tally {
-  const { q, arrivals, revealed } = arrivalsAt(run, now, index);
+export function tally(run: DiagnosticRun, now: number, index = currentIndex(run), absent: readonly string[] = []): Tally {
+  const { q, arrivals, revealed } = arrivalsAt(run, now, index, absent);
   const counts: Record<string, number> = Object.fromEntries((q?.options ?? []).map((o) => [o.id, 0]));
   for (const a of arrivals) counts[a.option] += 1;
   const answered = arrivals.length;
-  const complete = answered === CLASS_SIZE;
-  return { answered, total: revealed ? answered : CLASS_SIZE, counts, complete, revealed };
+  const size = presentCount(CLASSMATES, absent);
+  const complete = answered === size;
+  return { answered, total: revealed ? answered : size, counts, complete, revealed };
 }
 
 /**
@@ -112,8 +116,8 @@ export function tally(run: DiagnosticRun, now: number, index = currentIndex(run)
  * in the order the answers landed, so an avatar joins the end of its cell's row and nobody moves. Exactly the answers
  * `tally` counts: the lists' lengths are its counts at every moment.
  */
-export function pickersAt(run: DiagnosticRun, now: number, index = currentIndex(run)): Record<string, string[]> {
-  const { q, arrivals } = arrivalsAt(run, now, index);
+export function pickersAt(run: DiagnosticRun, now: number, index = currentIndex(run), absent: readonly string[] = []): Record<string, string[]> {
+  const { q, arrivals } = arrivalsAt(run, now, index, absent);
   const pickers: Record<string, string[]> = Object.fromEntries((q?.options ?? []).map((o) => [o.id, []]));
   for (const a of arrivals) pickers[a.option].push(a.student);
   return pickers;

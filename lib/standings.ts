@@ -3,10 +3,10 @@ import { CLASSMATE_MAP } from "@/data/classmates";
 import { GROUP_COLOURS, type GroupColour } from "@/data/groups";
 import { RACE_SCHEDULE } from "@/data/race";
 import type { ClassroomState } from "./classroom";
-import { feedbackFor } from "./feedback";
-import { computePhases } from "./group";
+import { computePhases, recordReviewProblems, reviewProblemsOf } from "./group";
 import { closedInOrder, closedMoment, currentProblem, groupProgress, penHolder, runStartedAt, stuckProblems, type GroupRun } from "./groupReview";
 import { assignmentGroupsOf } from "./seating";
+import { liveAbsent, presentGroups } from "./absence";
 import type { StudentSession } from "./session";
 
 /**
@@ -57,15 +57,11 @@ export interface RankedStanding extends GroupStanding {
 
 export const firstName = (id: string): string => (id === DEMO_STUDENT.id ? DEMO_STUDENT.name : CLASSMATE_MAP[id]?.name ?? id).split(" ")[0];
 
-/** A member's original mistakes: the demo student's from the session, a classmate's from the fixture. */
+/** A member's problems for the union (`reviewProblemsOf`, ticket 250): the demo student's from the session, a classmate's from the fixture. */
 export function wrongOf(id: string, session: StudentSession | null): string[] {
-  if (id === DEMO_STUDENT.id)
-    return session
-      ? feedbackFor(session)
-          .filter((p) => p.slips.length > 0)
-          .map((p) => p.problem.id)
-      : [];
-  return CLASSMATE_MAP[id]?.wrong ?? [];
+  if (id === DEMO_STUDENT.id) return session ? reviewProblemsOf(session) : [];
+  const m = CLASSMATE_MAP[id];
+  return m ? recordReviewProblems(m) : [];
 }
 
 export const wrongSetsOf = (members: string[], session: StudentSession | null): Record<string, string[]> => Object.fromEntries(members.map((id) => [id, wrongOf(id, session)]));
@@ -96,8 +92,8 @@ export const raceFinish = (schedule: number[], n: number): number => raceMoments
 
 /** Every group's standing, in seating order. Without a run nothing has started: every bar at zero. */
 export function standingsAt(c: ClassroomState | null | undefined, session: StudentSession | null, now: number): GroupStanding[] {
-  // Group review runs on the live assignment's own groups (ticket 185), not the class defaults.
-  const seating = assignmentGroupsOf(c, ASSIGNMENT.id);
+  // Group review runs on the live assignment's own groups (ticket 185), not the class defaults, less its absent students (ticket 250): a four with one away is a three.
+  const seating = presentGroups(assignmentGroupsOf(c, ASSIGNMENT.id), liveAbsent(c));
   const run = c?.group ?? null;
   const startedAt = run ? runStartedAt(run) : 0;
   // Ended by the teacher: the scripted groups hold where they were (ticket 145).
