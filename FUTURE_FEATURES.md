@@ -3254,6 +3254,12 @@ uploaded problems) settled the following as later, each on purpose.
 - **The Reset demo pill covers the report's key** ("no evidence yet" under it at 1280×800). Pre-existing, seen during this ticket's screenshots. Deferred: the pill is demo-only chrome; not part of this ask.
 - **One back-button component for the history Return button.** The pulsing "← Return to …" on a report opened from history (ticket 237) is still its own larger, bolder link. Deferred: it is deliberately louder; merging styles is a design call.
 
+## Back buttons at the window's edge (ticket 267, 2026-09-14)
+
+- **The rest of the page's left edge.** Only the back button moved to the report's spot; the logo, eyebrow, title and table on Class View, Mistakes, Groups and Create stay in their centred column, so on a wide window the button sits well left of them (21.6 px vs 387 px at 1920). Deferred: the user chose "just the button" over widening every page to the report's frame.
+- **Classic scrollbars.** `BACK_LEFT` measures the window with `100vw`, which counts a classic (always-shown) scrollbar that the centred column does not, so with one on a wide window the button lands half a scrollbar (~7 px) off. Deferred: macOS overlay scrollbars (the demo laptop) take no width; a container-query unit on the scroll region would fix it but also makes it the containing block for fixed flyouts.
+- **The history report's pulsing Return button** still sits at the report column's padding, which is the same 21.6 px until the window passes 1476 px. Deferred: it is not a BackButton (ticket 266 note).
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

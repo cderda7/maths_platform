@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Brand from "@/components/Brand";
@@ -26,7 +26,8 @@ import { useOptionalAssignment } from "./AssignmentContext";
  * height unzoomed: a `100vh` inside the zoomed frame shrinks to 72% of the window with it, a
  * percentage of an unzoomed parent does not. The zoom is 0.72 (ticket 142: the user's browser at
  * 90% of the old 0.8 was the size wanted at 100%), so a 1280 px laptop lays out at 1778 px. A page
- * may ask for its own (`zoom`): the whole frame, bar included, as a browser zoom would.
+ * may ask for its own (`zoom`): the whole frame, bar included, as a browser zoom would. The frame's zoom is also
+ * `--frame-zoom` and `--back-zoom`, for the back button's place (`BACK_LEFT`, ticket 267, which mirrors the column below).
  */
 export const TEACHER_ZOOM = 0.72;
 
@@ -36,7 +37,7 @@ export default function TeacherChrome({ children, zoom = TEACHER_ZOOM }: { child
   const tabs = assignment ? assignmentTabs(assignment) : [{ label: "Groups", href: CLASS_GROUPS_HREF }];
   return (
     <div className="h-screen">
-    <div className="flex h-full flex-col" style={{ zoom }} data-teacher-root>
+    <div className="flex h-full flex-col" style={{ zoom, "--frame-zoom": zoom, "--back-zoom": zoom } as CSSProperties} data-teacher-root>
       <header className="z-30 shrink-0 border-b border-line bg-paper/70 backdrop-blur">
         <div className="mx-auto flex max-w-[1640px] items-center justify-between px-6 py-4">
           <div className="flex items-center gap-5">
