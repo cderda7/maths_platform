@@ -3207,6 +3207,15 @@ uploaded problems) settled the following as later, each on purpose.
 - **A shared clock across devices.** Reveals and refusals use each tab's own `Date.now()`, fine on one machine. Deferred: real devices would need a server time.
 - **Stage timers pausing during a chain.** Only the classmates' work stream pauses; stage graces and group review timers run on. Deferred by the ticket.
 
+## Who picked each option (ticket 242, 2026-09-14)
+
+- **A one-line summary under a step's grid ("2 of 3 who slipped on Q1 repeated it").** Deferred 2026-09-14 by the user in favour of marks on the avatars, which carry the same answer per student.
+- **Avatars on the class card.** The class card shows counts only; who picked what is the Mistakes flyout's alone. Deferred by the user, who chose avatars in the Mistakes flyout only; the board stays anonymous.
+- **A mark for a student who got the step right after slipping on the original ("fixed it").** Only a repeat is marked. Deferred: not agreed; the plain avatar in the correct cell already says it.
+- **Fixed-height avatar rows.** A cell with more than seven pickers wraps, so the steps below grow down as answers land. Deferred: holding three rows in every cell would make the flyout far taller for mostly empty cells; could come back as overlapping avatar stacks or a "+n" chip.
+- **Clicking an avatar to open that student's working on the original problem.** Deferred: not agreed; the hover names the student and the working is beside the flyout on the Mistakes view.
+- **Marks from the student's whole record rather than the problems they have handed in so far.** A classmate who has not reached the problem in the live stream picks from their scripted work but gets no mark. Deferred: a mark claims "same slip as on Q1", which only a submitted Q1 can back.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

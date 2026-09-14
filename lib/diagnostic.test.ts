@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { PROBLEMS } from "@/data/assignment";
+import { DEMO_STUDENT, PROBLEMS } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
 import { DIAGNOSTIC_MAP, FALLBACK_STEP, PROBLEM_DIAGNOSTICS, type DiagnosticOption, type DiagnosticStep } from "@/data/diagnostic";
 import { boardContent } from "./board";
 import { classroomReducer, INITIAL_CLASSROOM, migrateClassroom, type ClassroomState } from "./classroom";
-import { arrivesAt, CLASS_SIZE, classmatePick, isCorrect, latestDiagnostic, liveDiagnostic, questionFor, runFor, slippedAt, stepsFor, tally, TRICKLE_FROM_MS, TRICKLE_TO_MS } from "./diagnostic";
+import { arrivesAt, CLASS_SIZE, classmatePick, isCorrect, latestDiagnostic, liveDiagnostic, pickersAt, problemLabelOf, questionFor, repeatedSlip, runFor, slippedAt, stepsFor, studentFor, tally, TRICKLE_FROM_MS, TRICKLE_TO_MS } from "./diagnostic";
 import { chainPauses, chainPosition, closedAt, currentIndex, DIAGNOSTIC_FORCE_MS, forceDeadline, inSolutionOrder, isRevealed, migrateRun, ordinal, type DiagnosticRun } from "./diagnosticChain";
 import { evaluateLine } from "./evaluate";
 import { mistakeKey, mistakesByProblem } from "./mistakes";
@@ -688,4 +688,108 @@ it("a chain survives a round trip through storage", () => {
   expect(back.diagnostics).toEqual(c.diagnostics);
   const r: DiagnosticRun = run(back);
   expect(tally(r, allIn(T0))).toEqual(tally(run(c), allIn(T0)));
+});
+
+// ---------------------------------------------------------------------------------------------
+// Who picked each option, and who repeated their own slip (ticket 242).
+
+describe("who picked each option (ticket 242)", () => {
+  /** Every 100 ms from before the push to well after every close. */
+  const moments = (from: number, to: number) => Array.from({ length: Math.floor((to - from) / 100) + 1 }, (_, i) => from + i * 100);
+  const expectPickersMatchTally = (r: DiagnosticRun, index: number, from: number, to: number) => {
+    for (const now of moments(from, to)) {
+      const t = tally(r, now, index);
+      const p = pickersAt(r, now, index);
+      expect(Object.keys(p), `${now}`).toEqual(Object.keys(t.counts));
+      expect(Object.fromEntries(Object.entries(p).map(([o, who]) => [o, who.length])), `${now}`).toEqual(t.counts);
+      const everyone = Object.values(p).flat();
+      expect(new Set(everyone).size, `${now}`).toBe(everyone.length);
+      expect(everyone.length, `${now}`).toBe(t.answered);
+      for (const id of everyone) expect(studentFor(id), id).toBeDefined();
+    }
+  };
+
+  it("the pickers per option equal the tally's counts at every moment: answering, the demo student's pick, the reveal", () => {
+    let c = push(INITIAL_CLASSROOM, Q1);
+    c = act(c, { type: "diagnostic/answer", option: "a", at: T0 + 4321 });
+    expectPickersMatchTally(run(c), 0, T0 - 500, allIn(T0) + 3000);
+    const p = pickersAt(run(c), allIn(T0));
+    expect(p.a).toContain(DEMO_STUDENT.id);
+    expect(Object.values(p).flat()).toHaveLength(CLASS_SIZE);
+    // In the order the answers landed: a later moment only adds to the end of each option's list.
+    for (const now of moments(T0, allIn(T0))) {
+      const before = pickersAt(run(c), now);
+      const after = pickersAt(run(c), now + 100);
+      for (const o of Object.keys(before)) expect(after[o].slice(0, before[o].length), `${o} ${now}`).toEqual(before[o]);
+    }
+  });
+
+  it("the pickers per option equal the tally's counts on a later step and after a force submit closes a step without the demo student", () => {
+    let c = push(INITIAL_CLASSROOM, Q1);
+    c = act(c, { type: "diagnostic/answer", option: "c", at: T0 + 10 });
+    c = act(c, { type: "diagnostic/next", at: allIn(T0) });
+    const second = allIn(T0);
+    // Force submit pressed at once on the second step: it closes ten seconds later over the nineteen classmates.
+    c = act(c, { type: "diagnostic/force", at: second + 500 });
+    expectPickersMatchTally(run(c), 0, T0, second + 20_000);
+    expectPickersMatchTally(run(c), 1, second - 1000, second + 20_000);
+    const closed = pickersAt(run(c), second + 20_000, 1);
+    expect(Object.values(closed).flat()).not.toContain(DEMO_STUDENT.id);
+    expect(Object.values(closed).flat().length).toBe(tally(run(c), second + 20_000, 1).total);
+  });
+
+  it("an unknown step has no pickers", () => {
+    const r: DiagnosticRun = { steps: ["d-gone"], pushedAt: T0, openedAt: [T0], answers: {}, forcedAt: {} };
+    expect(pickersAt(r, T0 + 60_000)).toEqual({});
+  });
+});
+
+describe("repeated slips (ticket 242)", () => {
+  const mistakes = mistakesByProblem(sessionAt("feedback"));
+  const rowsOf = (pid: string) => mistakes.find((p) => p.problem.id === pid)?.rows ?? [];
+  const everyone = [DEMO_STUDENT.id, ...CLASSMATES.map((c) => c.id)];
+
+  it("Q1's Factorise: Ethan and Sam on the signs-flipped option, Liam and Oliver on the product-right option, nobody else, nothing else", () => {
+    const s = step("d-q1-factorise");
+    const rows = rowsOf("q1");
+    const marked = everyone.flatMap((id) => s.options.filter((o) => repeatedSlip(s, id, o.id, rows)).map((o) => `${id}:${o.misconception}`));
+    expect(marked.sort()).toEqual(["ethan:signs flipped in the pair", "liam:product right, sum wrong", "oliver:product right, sum wrong", "sam:signs flipped in the pair"]);
+  });
+
+  it("on every step, a student's pick repeats their slip exactly when the option mirrors a wrong line in their own row", () => {
+    for (const s of ALL_STEPS) {
+      const rows = rowsOf(s.problemId);
+      for (const id of everyone)
+        for (const o of s.options) {
+          const own = rows.find((r) => r.id === id)?.lines.filter((l) => l.verdict.verdict === "wrong").map((l) => l.tex) ?? [];
+          expect(repeatedSlip(s, id, o.id, rows), `${s.id} ${id} ${o.id}`).toBe(!!o.slip && own.includes(o.slip));
+        }
+    }
+  });
+
+  it("every classmate who picks a tied distractor repeats their own slip; a common slip or the correct option never does", () => {
+    for (const s of ALL_STEPS) {
+      const rows = rowsOf(s.problemId);
+      CLASSMATES.forEach((c, i) => {
+        const pick = s.options.find((o) => o.id === classmatePick(s, i))!;
+        expect(repeatedSlip(s, c.id, pick.id, rows), `${s.id} ${c.id}`).toBe(!!pick.slip);
+      });
+    }
+  });
+
+  it("a student with no row on the problem (right, or not reached it yet) repeats nothing; the fallback question repeats nothing", () => {
+    const s = step("d-q1-factorise");
+    expect(repeatedSlip(s, "ethan", "a", [])).toBe(false);
+    expect(repeatedSlip(s, "ethan", "a", rowsOf("q2"))).toBe(false);
+    for (const o of FALLBACK_STEP.options) expect(repeatedSlip(FALLBACK_STEP, "liam", o.id, rowsOf("q2"))).toBe(false);
+  });
+
+  it("names the students and the problem a step asks about", () => {
+    expect(studentFor("sam")).toEqual(DEMO_STUDENT);
+    expect(studentFor("ethan")).toEqual({ id: "ethan", name: "Ethan Kowalski", initials: "EK" });
+    expect(studentFor("nobody")).toBeUndefined();
+    expect(problemLabelOf(step("d-q1-factorise"))).toBe("Q1");
+    expect(problemLabelOf(ALL_STEPS[ALL_STEPS.length - 1])).toBe("Q10");
+    expect(problemLabelOf(FALLBACK_STEP)).toBeNull();
+  });
 });

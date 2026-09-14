@@ -18,14 +18,33 @@ import type { Tally } from "@/lib/diagnostic";
  * a wrong option could be embarrassed), no misconceptions (the teacher's reasoning, not the
  * class's), and the right option green only once the step is revealed (`tally.revealed`). The
  * teacher's surfaces show everything live from the push.
+ *
+ * In the mistake view's flyout only (`size="panel"` with `pickers`, ticket 242) each cell also shows who picked it: a row of
+ * small initials avatars at the foot of the cell, under the count and its misconception, one per answer in the order they landed, wrapping inside the cell. A student whose
+ * pick repeats the slip they made on the original problem wears the slip pill's red. The class card and the board are
+ * never given pickers, and the board stays anonymous.
  */
-export default function DiagnosticResults({ question: q, tally, size = "card", className = "" }: { question: Diagnostic; tally: Tally; size?: "card" | "board" | "panel"; className?: string }) {
+export default function DiagnosticResults({
+  question: q,
+  tally,
+  size = "card",
+  pickers,
+  className = "",
+}: {
+  question: Diagnostic;
+  tally: Tally;
+  size?: "card" | "board" | "panel";
+  /** Who picked each option, by option id (ticket 242): shown on the panel only. */
+  pickers?: Record<string, readonly Picker[]>;
+  className?: string;
+}) {
   const board = size === "board";
   const misconceptions = !board;
   const counts = !board;
   const green = !board || tally.revealed;
   /** The mistake view's flyout (ticket 194): read at the 17 px of the problem cards beside it, the class view's side card keeps its compact sizes. */
   const panel = size === "panel";
+  const who = panel ? pickers : undefined;
   const optionPx = board ? 26 : panel ? 16 : 12.5;
   return (
     <div className={className} data-diagnostic-results={q.id}>
@@ -56,10 +75,44 @@ export default function DiagnosticResults({ question: q, tally, size = "card", c
                   {correct ? "correct" : o.misconception ?? ""}
                 </div>
               )}
+              {who && (
+                // Last in the cell, so the count and its misconception read as on every other surface. One avatar row held from the push, so the first answers landing move nothing; more rows wrap inside the cell.
+                <div className="mt-1.5 flex min-h-[22px] flex-wrap gap-[3px]" data-pickers={o.id}>
+                  {(who[o.id] ?? []).map((p) => (
+                    <PickerAvatar key={p.id} picker={p} />
+                  ))}
+                </div>
+              )}
             </li>
           );
         })}
       </ul>
     </div>
+  );
+}
+
+/** A student who picked an option: their initials and name, and when their pick repeats their own slip on the original, that problem's label ("Q1"). */
+export interface Picker {
+  id: string;
+  name: string;
+  initials: string;
+  repeatedOn?: string;
+}
+
+/**
+ * The roster's avatar (`Avatar` in `components/ui`), smaller; a repeated slip in the mistake view's slip pill colours
+ * (`SlipChip`), its title naming the student and the problem.
+ */
+function PickerAvatar({ picker: p }: { picker: Picker }) {
+  const tone = p.repeatedOn ? "border-wrong-deep bg-wrong-soft text-wrong-deep" : "border-accent-line bg-accent-soft text-accent-deep";
+  return (
+    <span
+      className={`grid h-[22px] w-[22px] shrink-0 place-items-center rounded-full border text-[9px] leading-none font-semibold ${tone}`}
+      title={p.repeatedOn ? `${p.name}, same slip as on ${p.repeatedOn}` : p.name}
+      data-picker={p.id}
+      data-repeated={p.repeatedOn ? true : undefined}
+    >
+      {p.initials}
+    </span>
   );
 }

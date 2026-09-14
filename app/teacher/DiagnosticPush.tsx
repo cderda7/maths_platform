@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import DiagnosticResults from "@/components/DiagnosticResults";
+import DiagnosticResults, { type Picker } from "@/components/DiagnosticResults";
 import DiagnosticStem from "@/components/DiagnosticStem";
 import FitText from "@/components/FitText";
 import M from "@/components/Math";
 import { Button, Card } from "@/components/ui";
 import type { DiagnosticStep } from "@/data/diagnostic";
 import DiagnosticControl from "@/components/DiagnosticControl";
-import { liveDiagnostic, runFor, slippedAt, stepsFor, tally } from "@/lib/diagnostic";
+import { liveDiagnostic, pickersAt, problemLabelOf, repeatedSlip, runFor, slippedAt, stepsFor, studentFor, tally } from "@/lib/diagnostic";
 import { chainPosition, currentIndex, forceDeadline, inSolutionOrder } from "@/lib/diagnosticChain";
 import type { MistakeRow } from "@/lib/mistakes";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
@@ -83,6 +83,17 @@ export default function DiagnosticPush({ problemId, rows, className = "" }: { pr
   const live = liveDiagnostic(classroom);
   /** This panel's chain is out: the chip carries a badge while it is. */
   const mine = !!live && steps.some((s) => live.steps.includes(s.id));
+  const label = problemLabelOf(steps[0]) ?? undefined;
+  const pickersOf = (q: DiagnosticStep, ids: Record<string, string[]>): Record<string, Picker[]> =>
+    Object.fromEntries(
+      Object.entries(ids).map(([option, who]) => [
+        option,
+        who.flatMap((id) => {
+          const s = studentFor(id);
+          return s ? [{ ...s, repeatedOn: repeatedSlip(q, id, option, rows) ? label : undefined }] : [];
+        }),
+      ]),
+    );
   const toggle = (id: string) => setSelected((sel) => (sel.includes(id) ? sel.filter((x) => x !== id) : [...sel, id]));
   const send = () => {
     dispatchClassroom({ type: "diagnostic/push", steps: inSolutionOrder(selected) });
@@ -104,6 +115,8 @@ export default function DiagnosticPush({ problemId, rows, className = "" }: { pr
     const shown = live && inLive >= 0 ? (inLive <= liveIndex ? { run: live, index: inLive } : null) : runFor(classroom, q.id);
     const current = !!live && inLive >= 0 && inLive === liveIndex;
     const t = shown && tally(shown.run, now, shown.index);
+    /** Who picked each option (ticket 242), the students repeating their own slip on this problem marked. */
+    const pickers = shown && pickersOf(q, pickersAt(shown.run, now, shown.index));
     const selectable = !live;
     const isSelected = selectable ? selected.includes(q.id) : inLive >= 0;
     const slipped = slippedAt(q, rows);
@@ -138,7 +151,7 @@ export default function DiagnosticPush({ problemId, rows, className = "" }: { pr
           </span>
         </div>
         {shown && t ? (
-          <DiagnosticResults question={q} tally={t} size="panel" className="mt-3" />
+          <DiagnosticResults question={q} tally={t} size="panel" pickers={pickers ?? undefined} className="mt-3" />
         ) : (
           <>
             <p className="mt-3 text-[17px] leading-snug text-ink" data-diag-stem>
