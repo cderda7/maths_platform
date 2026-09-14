@@ -69,7 +69,7 @@ export default function HolisticPage({ student, set }: { student: string; set?: 
 }
 
 /** The side column's width and its gap from the grid, layout px: a pattern's words and two sets of refs on one row. */
-const SIDE_COL = 540;
+const SIDE_COL = 500;
 const SIDE_GAP = 40;
 /** The scroll region's bottom padding (`TeacherChrome`'s py-12), which the side column stops above. */
 const PAGE_BOTTOM = 48;
@@ -172,12 +172,15 @@ function Header({ view }: { view: HolisticView }) {
 }
 
 /** The set column's width, layout px: "PS6 Thu 10 Sep" on one line and the longest topic in two. */
-const SET_COL = 272;
+const SET_COL = 256;
+/** An empty last column, layout px: the last result's 8 px pad plus this matches "PS6"'s 24 px from the card's left edge (ticket 283). */
+const GUTTER = 16;
 
 /**
  * Sets down, newest first (ticket 277; oldest first in ticket 269), categories across. Each category heads its column
  * with the Class View's chip, centred over its cells; every cell pads 8 px a side, so every result is one width. A
- * set's head pads 18 px left and its link 6 inside, so "PS6" starts where "SET" does. The grid sits in a positioned box
+ * set's head pads 18 px left and its link 6 inside, so "PS6" starts where "SET" does, 24 px in; an empty `GUTTER`
+ * column ends the last result 24 px from the right edge too (ticket 283). The grid sits in a positioned box
  * the cell flyout lays over (the card clips its corners, so the flyout cannot live inside it).
  */
 function Grid({ view, from, open, onCell, children }: { view: HolisticView; from: string; open: Open | null; onCell: (set: string, category: StoryCategory) => void; children: (wrapRef: RefObject<HTMLDivElement | null>) => React.ReactNode }) {
@@ -192,6 +195,7 @@ function Grid({ view, from, open, onCell, children }: { view: HolisticView; from
             {view.categories.map((c) => (
               <col key={c.category} />
             ))}
+            <col style={{ width: GUTTER }} />
           </colgroup>
           <thead>
             <tr className="border-b border-line">
@@ -206,6 +210,7 @@ function Grid({ view, from, open, onCell, children }: { view: HolisticView; from
                   </div>
                 </th>
               ))}
+              <th aria-hidden data-grid-gutter />
             </tr>
           </thead>
           <tbody>
@@ -219,6 +224,7 @@ function Grid({ view, from, open, onCell, children }: { view: HolisticView; from
                     <Cell status={c.cells[j]} set={set} category={c.category} open={open?.set === set.id && open.category === c.category} onOpen={() => onCell(set.id, c.category)} />
                   </td>
                 ))}
+                <td aria-hidden data-grid-gutter />
               </tr>
             ))}
           </tbody>
