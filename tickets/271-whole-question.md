@@ -2,6 +2,8 @@
 
 **What to build:** User 2026-09-14, on the Mistakes page (PS5 Q7–Q9) and Jordan's report (PS5 Q8): "ever time you post a Q in analytics, need to see the whole Q -- in msot places you're just posting the equation, but i have no idea what the studetn is meant to do with the equation".
 
+Then, on the first cut leaving PS6 Q8's graph out: "yeah i'd like a small thumbnail of th egraph."
+
 **Blocked by:** none.
 
 **Status:** done
@@ -13,6 +15,7 @@
 ## Solution
 
 - `components/ProblemQuestion.tsx`: a problem as the student was asked it, the stem's words then the expression, read as one line of prose. It wraps between words, never inside the maths (`.katex` nowrap) and never at a hyphen (`unbrokenHyphens` in `lib/stem.ts`, so "x-intercepts" stays whole in a narrow column).
+- A problem with a figure carries a small thumbnail of it after the expression (`figureWidth`, 64 px; 120 on the live diagnostic view, 96 on board controls): PS6 Q8's parabola.
 - Every teacher screen that named a problem by its bare expression now shows it:
   - **Mistakes** header: "Q8 Write in factorised form, then give the x-intercepts and the axis of symmetry. y = 2x² + 5x − 3 [complex familiar] close". One line at 1280 for every problem but PS5 Q10's long fountain stem, which wraps to two (header 87 px, the rest still 69).
   - **Student report**, the open problem: label, tag, then the question beside them, wrapping under itself.
@@ -27,5 +30,6 @@
 - [x] Mistakes on PS5 and PS6: every header reads stem then expression; Q10's two-line header holds its tag and action
 - [x] Jordan's report, PS5 Q8 and Q10 open, and the non-monic factorisation skill view: whole questions, nothing clipped, "x-intercepts" never splits
 - [x] Live diagnostic on PS6 Q2, class review setup and board controls screenshotted at 1280×800
+- [x] PS6 Q8's thumbnail on Jordan's PS6 report (58×39 on screen, the row 39 px) and in class review's problem list, inside its row
 - [x] Every problem on every set has a stem (vitest)
-- [x] vitest 913, eslint, tsc, next build, check:laptop 74; the ticket 244 report sweep on this build
+- [x] vitest 913, eslint, tsc, next build, check:laptop 74; the ticket 244 report sweep (7986/7986) on this build

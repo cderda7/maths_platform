@@ -68,7 +68,7 @@ export default function BoardControls() {
           <span className="shrink-0 font-display text-[26px] text-ink">{p.label}</span>
           {/* The whole question, stem then expression, as it reads on the board (ticket 271); it wraps rather than truncating. */}
           <p className="min-w-0 flex-1 text-[15px] leading-snug text-ink" data-controls-question>
-            <ProblemQuestion problem={p} mathClass="math-lg text-[20px]" />
+            <ProblemQuestion problem={p} mathClass="math-lg text-[20px]" figureWidth={96} />
           </p>
         </Card>
 

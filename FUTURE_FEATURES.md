@@ -3364,7 +3364,7 @@ uploaded problems) settled the following as later, each on purpose.
 
 ## Whole question on teacher screens (ticket 271, 2026-09-14)
 
-- **The figure beside a question.** PS6 Q8 ("The graph of the following is shown. Read off its x-intercepts…") shows its words and expression on teacher screens but not its graph. Deferred: a 300×190 figure does not fit a header row, and the words already say what the student had to do; a thumbnail that opens the figure on hover or press would carry it.
+- **A figure thumbnail that opens full size.** PS6 Q8's graph shows as a small thumbnail beside its question (64 px, 120 on the live diagnostic view, 96 on board controls), too small to read its tick labels. Deferred: the user asked for a small thumbnail; a hover or press that opens it at 300×190 would let the teacher read the axes.
 - **Counts and the Live diagnostic chip on a two-line header.** They centre on the first 69 px of a Mistakes header, so on PS5 Q10's two-line header they sit level with the first line, not the middle. Deferred: only one problem wraps at 1280, and centring them on a variable height means measuring every header.
 - **Stems that repeat the expression.** PS6 Q10's stem ends "…for the graph of y = x² + 4x + 5." and its expression is x² + 4x + 5 = 0, so the question reads the quadratic twice. A data edit for whoever next touches Problem Set 6's wording.
 

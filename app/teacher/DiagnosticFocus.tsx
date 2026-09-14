@@ -60,7 +60,7 @@ export default function DiagnosticFocus({ run, problem, rows, className = "" }: 
       {/* The whole question under the header (ticket 271): the stem's words, then the expression, never the expression alone. */}
       {problem && (
         <p className="mt-2 max-w-[1100px] text-[22px] leading-snug text-ink" data-focus-question>
-          <ProblemQuestion problem={problem} mathClass="text-[26px]" />
+          <ProblemQuestion problem={problem} mathClass="text-[26px]" figureWidth={120} />
         </p>
       )}
 

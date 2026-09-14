@@ -4,7 +4,7 @@
 
 | File | What it does |
 | --- | --- |
-| `components/ProblemQuestion.tsx` | New. A problem's stem words then its expression as one wrapping line; the maths never splits, a hyphenated word never breaks. |
+| `components/ProblemQuestion.tsx` | New. A problem's stem words then its expression as one wrapping line; the maths never splits, a hyphenated word never breaks; a figure follows as a `figureWidth` thumbnail. |
 | `lib/stem.ts` | `unbrokenHyphens`: a hyphen between word characters becomes U+2011. |
 | `lib/stem.test.ts` | The hyphen rule, and every problem on every set has a stem. |
 | `app/teacher/TeacherMistakes.tsx` | The problem header shows `ProblemQuestion` in place of the bare expression. |
@@ -23,7 +23,8 @@
           │
           ▼
  components/ProblemQuestion.tsx ◄271 ── lib/stem.ts unbrokenHyphens ◄271
-   <span stem words/> <span nowrap><M tex/></span>
+   <span stem words/> <span nowrap><M tex/></span> [<Figure/> thumbnail, figureWidth px]
+                                                        ▲ components/Figure.tsx (300×190 SVG)
           │
           ├──► TeacherMistakes      problem header      (Q · question · tag · action)
           ├──► TeacherReport        open problem line   (Q · tag · question)
