@@ -1,7 +1,7 @@
 import { ASSIGNMENT } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
 import { BEFORE_HAND_IN_STAGES, type ReviewStage } from "@/data/types";
-import { pathwayOf, type AdvanceKind, type ClassroomState } from "./classroom";
+import { lessonOver, pathwayOf, type AdvanceKind, type ClassroomState } from "./classroom";
 import { STAGE_SHORT } from "./pathway";
 import { classReadiness } from "./readiness";
 import { liveAbsent, presentCount } from "./absence";
@@ -21,7 +21,7 @@ import { classmatesAt, type StreamSet } from "./stream";
  * scripted from that moment). Working is over from then on even with a student marked missing on
  * the grid; the count while it is current says how many have handed the set in, whole or in part
  * (the one meaning of submitted, `lib/progress`, ticket 185). Once the
- * whole-class session ends every stage is over and none is current. Every count is over the class in the
+ * whole-class session ends (or the lesson is ended outright, `lessonOver`, ticket 263) every stage is over and none is current. Every count is over the class in the
  * room: an absent student (ticket 250) is in neither the done nor the total.
  *
  * "Force submit" (ticket 145) sits beside the current pill for the three stages the students work
@@ -71,11 +71,11 @@ export function canForce(id: ClassStageId, c: ClassroomState | null | undefined,
   }
 }
 
-/** The stage the class is on, or null once the whole-class session has ended. */
+/** The stage the class is on, or null once the lesson is over: the whole-class session ended, or the lesson ended outright (ticket 263). */
 export function currentClassStage(c: ClassroomState | null | undefined, session: StudentSession | null, now: number): ClassStageId | null {
   const pathway = pathwayOf(c);
   const wc = c?.wholeClass;
-  if (wc?.status === "ended") return null;
+  if (lessonOver(c)) return null;
   if (wc?.status === "active" && pathway.includes("whole-class")) return "whole-class";
   if (pathway.includes("group") && (!!c?.group || classReadiness(c, now).started)) return "group";
   if (pathway.includes("individual") && liveHandedIn(session)) return "individual";

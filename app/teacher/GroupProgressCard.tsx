@@ -4,6 +4,7 @@ import { Card, Eyebrow } from "@/components/ui";
 import { PROBLEM_MAP } from "@/data/assignment";
 import { GROUP_HEX } from "@/data/groups";
 import { useClassroom } from "@/lib/classroom-store";
+import { lessonOver } from "@/lib/classroom";
 import type { StudentSession } from "@/lib/session";
 import { firstName, standingsAt } from "@/lib/standings";
 import { useNow } from "@/lib/store";
@@ -12,12 +13,12 @@ import { useNow } from "@/lib/store";
  * Group review on the teacher's laptop: every group's bar, in seating order, and who has the pen
  * in the demo student's group. Never the leaderboard's order and never a medal: the race is for
  * the wall, the detail is for the teacher. Shown from the moment a run begins until the
- * whole-class session ends.
+ * lesson is over (class review ended, or the lesson ended outright, ticket 263).
  */
 export default function GroupProgressCard({ session }: { session: StudentSession | null }) {
   const classroom = useClassroom();
   const now = useNow();
-  if (!classroom.group || classroom.wholeClass?.status === "ended") return null;
+  if (!classroom.group || lessonOver(classroom)) return null;
   const rows = standingsAt(classroom, session, now);
   return (
     <Card className="p-6" data-group-progress>

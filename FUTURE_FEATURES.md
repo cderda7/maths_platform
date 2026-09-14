@@ -3368,6 +3368,17 @@ uploaded problems) settled the following as later, each on purpose.
 - **Counts and the Live diagnostic chip on a two-line header.** They centre on the first 69 px of a Mistakes header, so on PS5 Q10's two-line header they sit level with the first line, not the middle. Deferred: only one problem wraps at 1280, and centring them on a variable height means measuring every header.
 - **Stems that repeat the expression.** PS6 Q10's stem ends "…for the graph of y = x² + 4x + 5." and its expression is x² + 4x + 5 = 0, so the question reads the quadratic twice. A data edit for whoever next touches Problem Set 6's wording.
 
+## Teacher SKIP TO (ticket 263, 2026-09-14)
+
+- **Ending a lesson without class review in the product.** A pathway of individual and/or group review has no End: the Live card stays "in review" forever unless the presenter presses activity completed (`lessonEndedAt`). A teacher's "end lesson" (on the Pathway card, or when group review's race is over) was left out: the ticket asks for presenter jumps, and where the product's End belongs is a screen decision.
+- **A second Create inheriting the old lesson.** Fixed in passing (a sent set starts a new lesson); a teacher who wants to resend a set without losing the class review they ran would need an explicit choice. Not asked for.
+- **A jump moving Sam's iPad into the set.** The iPad stays on the screen it is on, as the teacher does (ticket 264's note): on his Classroom the card changes section and action, inside the set the screen changes. Opening the set on the iPad from the teacher's bar would need a cross-tab navigation message. Deferred until a demo needs it.
+- **More teacher targets.** Jumps to a named stage (straight to class review, back a stage), a diagnostic chain in flight, the gate half full, or group review mid-race were not asked for; students done and Sam's own bar cover them.
+- **Keeping Sam's live work through a jump.** A jump installs the scripted work for the stage, as Sam's skips do; carrying his real strokes forward (and handing in what he wrote) was left out.
+- **Live diagnostic chains on activity completed.** A chain still out stays out over the ended lesson; completing could end it. Left as is: pushing and ending chains has its own controls.
+- **A presenter strip on the student and board sides.** Sam's SKIP TO still floats over the bottom of the iPad frame; the board has no presenter controls. Only the teacher's strip was measured against controls.
+- **Hiding the presenter strip.** A keyboard toggle to hide both presenter strips for a clean screen recording was not asked for.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

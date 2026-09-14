@@ -2,8 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { SKIP_TARGETS, skipFixture, type SkipTarget } from "@/lib/demo";
-import { setClassroom } from "@/lib/classroom-store";
-import { setSession } from "@/lib/store";
+import { setLesson } from "@/lib/store";
 import { LIVE_ASSIGNMENT_ID } from "@/lib/assignments";
 import { studentSetHref } from "@/lib/studentClassroom";
 
@@ -14,8 +13,7 @@ import { studentSetHref } from "@/lib/studentClassroom";
  */
 function jump(t: SkipTarget) {
   const { session, classroom } = skipFixture(t, Date.now());
-  setClassroom(classroom);
-  setSession(session);
+  setLesson({ classroom, session });
 }
 
 export default function SkipTo() {

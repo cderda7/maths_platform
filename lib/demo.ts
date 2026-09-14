@@ -1,9 +1,10 @@
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
-import type { Pathway } from "@/data/types";
-import { classroomReducer, GRACE_MS, INITIAL_CLASSROOM, type ClassroomAction, type ClassroomState } from "./classroom";
+import type { Pathway, ReviewStage } from "@/data/types";
+import { classroomReducer, GRACE_MS, INITIAL_CLASSROOM, lessonOver, pathwayOf, type ClassroomAction, type ClassroomState } from "./classroom";
+import { currentClassStage, type ClassStageId } from "./classStage";
 import { DEFAULT_PATHWAY } from "./pathway";
 import { candidatesFor, problemsByStruggle, suggestExamples } from "./examples";
-import { INITIAL_SESSION, reworkedSession, sessionAt, type StudentSession } from "./session";
+import { DEMO_REFLECTION, INITIAL_SESSION, reworkedSession, scriptedSession, sessionAt, type StudentSession } from "./session";
 import { LAST_ARRIVAL_MS } from "./readiness";
 import { groupPlan } from "./group";
 import { liveAbsent } from "./absence";
@@ -29,6 +30,16 @@ const everyoneIn = (c: ClassroomState, now: number) => classroomReducer(c, { typ
 
 /** How many problems the whole-class jump projects: the two the class struggled with most. */
 const PROJECTED = 2;
+
+/** Class review as the teacher's setup would suggest it from `session`: the most-struggled problems in set order, suggested examples, screens frozen. */
+function suggestedSetup(session: StudentSession, absent: readonly string[]): ClassroomAction {
+  const problems = problemsByStruggle(session, absent)
+    .slice(0, PROJECTED)
+    .map((r) => r.problem.id);
+  const ordered = ASSIGNMENT.problems.map((p) => p.id).filter((id) => problems.includes(id));
+  const examples = Object.fromEntries(ordered.map((id) => [id, suggestExamples(candidatesFor(id, session, absent))]));
+  return { type: "wc/setup", problems: ordered, examples, mode: "frozen" };
+}
 
 /**
  * The report jump's group review, already run: begun ten minutes ago, the problems closing a minute
@@ -132,15 +143,121 @@ export function skipFixture(target: SkipTarget, now: number): { session: Student
     case "class review": {
       // The teacher's setup, as it would be done from the reworked run: the most-struggled problems, suggested examples, projected with the grace already over.
       const session = { ...reworkedSession(), stage: "frozen" as const };
-      const absent = liveAbsent(classroom);
-      const problems = problemsByStruggle(session, absent)
-        .slice(0, PROJECTED)
-        .map((r) => r.problem.id);
-      const ordered = ASSIGNMENT.problems.map((p) => p.id).filter((id) => problems.includes(id));
-      const examples = Object.fromEntries(ordered.map((id) => [id, suggestExamples(candidatesFor(id, session, absent))]));
-      classroom = classroomReducer(everyoneIn(classroom, now), { type: "wc/setup", problems: ordered, examples, mode: "frozen" });
+      classroom = classroomReducer(everyoneIn(classroom, now), suggestedSetup(session, liveAbsent(classroom)));
       classroom = classroomReducer(classroom, { type: "wc/project", at: now - GRACE_MS - 1000 });
       return { session, classroom };
     }
+  }
+}
+
+/**
+ * The teacher's presenter jumps (ticket 263), beside Sam's: the lesson moved for the whole class at once. Unlike Sam's
+ * skips, which rebuild the demo from nothing, each is a pure step from the classroom and session as they are, so what
+ * the teacher set up stays (the pathway Create chose, the seating, the students marked absent, a class review already
+ * set up) and only the lesson moves. Every surface reads the result: the teacher's screens, the board, Sam's iPad and
+ * his Classroom.
+ *
+ * - `send`: Problem Set 6 sent now under the demo pathway, the classmates' stream from zero, Sam at his run's start
+ *   (PS6 in his To do). A new lesson: whatever an earlier one left goes (`assignment/create`).
+ * - `done`: the stage the class is on (`currentClassStage`, by the pathway in force) ends for every student in the room.
+ *   The class goes into the next stage of the pathway, Sam with his scripted work: individual review on his hand-in,
+ *   group review at its intro with everyone through the gate, class review projected from the teacher's setup (or the
+ *   suggested one) with the grace over. On the last stage, and on a lesson already over, it is `completed`. Nothing
+ *   before the set is sent (`canTeacherSkip`).
+ * - `completed`: every stage over (group review run, class review ended, `lessonEndedAt` stamped), Sam's report sent
+ *   with its reflection and his homework playing from the jump: PS6 in the teacher's Past and Sam's Completed. Sends
+ *   the set first when nothing is sent, as Sam's skips do. A lesson already completed stays as it is.
+ */
+export type TeacherSkipTarget = "send" | "done" | "completed";
+
+export const TEACHER_SKIP_TARGETS: TeacherSkipTarget[] = ["send", "done", "completed"];
+
+export const TEACHER_SKIP_LABEL: Record<TeacherSkipTarget, string> = { send: "send assignment", done: "students done with current stage", completed: "activity completed" };
+
+export interface DemoState {
+  classroom: ClassroomState;
+  session: StudentSession;
+}
+
+/** Whether a teacher jump has anything to do: "students done" waits for a set to be sent. */
+export const canTeacherSkip = (target: TeacherSkipTarget, c: ClassroomState): boolean => target !== "done" || !!c.assignment;
+
+/** Sam's scripted work once handed in, as the pathway has it: corrected when individual review is on it, as handed in when it is not. */
+const handedInWork = (pathway: Pathway): StudentSession => (pathway.includes("individual") ? reworkedSession() : scriptedSession());
+
+/** The classmates' stream at its end (ticket 189): the set live long enough that every event has landed, so no arrival glows in the future. */
+function streamOver(c: ClassroomState, now: number): ClassroomState {
+  const a = c.assignment;
+  if (!a) return c;
+  const startedAt = Math.min(a.startedAt ?? a.createdAt, now - SKIP_STARTED_AGO_MS);
+  return { ...c, assignment: { ...a, startedAt } };
+}
+
+/** Through the gate: Sam in before the last scripted classmate, so the whole class in the room is in (an earlier arrival stands). */
+function throughGate(c: ClassroomState, now: number): ClassroomState {
+  const at = now - LAST_ARRIVAL_MS - 1000;
+  const prev = c.arrivals?.[DEMO_STUDENT.id];
+  return prev !== undefined && prev <= at ? c : { ...c, arrivals: { ...(c.arrivals ?? {}), [DEMO_STUDENT.id]: at } };
+}
+
+/** Group review behind the class: a run the class finished stands, anything else is the scripted run, finished. */
+const groupOver = (c: ClassroomState, session: StudentSession, now: number): GroupRun => (c.group?.done ? c.group : finishedRun(session, now, liveAbsent(c)));
+
+/** The class's stages in order: the working, then the pathway's review stages. */
+const stagesOf = (c: ClassroomState): ClassStageId[] => ["working", ...pathwayOf(c)];
+
+/** The class, and Sam, into a review stage of the pathway, everything before it over. */
+function enter(stage: ReviewStage, c: ClassroomState, now: number): DemoState {
+  const pathway = pathwayOf(c);
+  const before = { ...streamOver(c, now), advance: null };
+  switch (stage) {
+    case "individual":
+      // Sam's hand-in moves the class into individual review; the classmates' corrections arrive from it.
+      return { classroom: before, session: sessionAt("feedback") };
+    case "group": {
+      // Everyone through the gate and the class just gone in: the intro is read first, then the board opens (ticket 220).
+      const session = { ...handedInWork(pathway), stage: "group" as const };
+      const c2 = throughGate(before, now);
+      const plan = groupPlan(session, liveAbsent(c2));
+      return { session, classroom: classroomReducer({ ...c2, group: null }, { type: "group/begin", members: plan.members.map((m) => m.id), problems: plan.discussion.problems.map((p) => p.id), at: boardOpensAt(now), pens: DEMO_PENS }) };
+    }
+    case "whole-class": {
+      // Projected with the grace over: the teacher's own setup when there is one, else the suggested one.
+      const session = { ...handedInWork(pathway), stage: "frozen" as const };
+      let c2: ClassroomState = pathway.includes("group") ? { ...throughGate(before, now), group: groupOver(c, session, now) } : before;
+      if (c2.wholeClass?.status !== "setup") c2 = classroomReducer(c2, suggestedSetup(session, liveAbsent(c2)));
+      return { session, classroom: classroomReducer(c2, { type: "wc/project", at: now - GRACE_MS - 1000 }) };
+    }
+  }
+}
+
+function completeLesson(c: ClassroomState, session: StudentSession | null, now: number): DemoState {
+  const sent = c.assignment ? c : classroomReducer(c, demoSend(DEMO_PATHWAY, now));
+  if (session?.reportSent && lessonOver(sent)) return { classroom: sent, session };
+  const pathway = pathwayOf(sent);
+  const sam: StudentSession = session?.reportSent ? session : { ...handedInWork(pathway), stage: "homework", reflection: DEMO_REFLECTION, reportSent: true, homeworkAt: now };
+  let next: ClassroomState = { ...streamOver(sent, now), advance: null, lessonEndedAt: sent.lessonEndedAt ?? now };
+  if (pathway.includes("group")) next = { ...throughGate(next, now), group: groupOver(sent, sam, now) };
+  if (pathway.includes("whole-class")) {
+    if (!next.wholeClass) next = classroomReducer(next, suggestedSetup(sam, liveAbsent(next)));
+    next = classroomReducer(next, { type: "wc/end" });
+  }
+  return { classroom: next, session: sam };
+}
+
+/** A teacher jump applied to the demo as it stands. Pure: the bar writes the result through the stores. */
+export function teacherSkip(target: TeacherSkipTarget, c: ClassroomState, session: StudentSession | null, now: number): DemoState {
+  switch (target) {
+    case "send":
+      return { classroom: classroomReducer(c, demoSend(DEMO_PATHWAY, now, now)), session: INITIAL_SESSION };
+    case "done": {
+      if (!canTeacherSkip("done", c)) return { classroom: c, session: session ?? INITIAL_SESSION };
+      const current = currentClassStage(c, session, now);
+      const stages = stagesOf(c);
+      const next = current === null ? undefined : stages[stages.indexOf(current) + 1];
+      return next === undefined || next === "working" ? completeLesson(c, session, now) : enter(next, c, now);
+    }
+    case "completed":
+      return completeLesson(c, session, now);
   }
 }

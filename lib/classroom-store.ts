@@ -61,7 +61,11 @@ export function subscribeClassroom(cb: () => void): () => void {
   return () => listeners.delete(cb);
 }
 
-export function setClassroom(next: ClassroomState) {
+/**
+ * `announce` false leaves the other tabs to hear of it some other way: the demo's one-change move of the classroom and the
+ * session together (`setLesson` in `lib/store.ts`, ticket 263). It is still written, for a tab opened later.
+ */
+export function setClassroom(next: ClassroomState, announce = true) {
   wire();
   current = next;
   try {
@@ -69,7 +73,14 @@ export function setClassroom(next: ClassroomState) {
   } catch {
     /* storage unavailable: stay in-memory */
   }
-  channel?.postMessage(next);
+  if (announce) channel?.postMessage(next);
+  emit();
+}
+
+/** Another tab's classroom taken as it is, nothing written or announced (`setLesson`, ticket 263). */
+export function adoptClassroom(next: unknown) {
+  wire();
+  current = migrateClassroom(next);
   emit();
 }
 
@@ -82,10 +93,6 @@ export function dispatchClassroom(action: ClassroomAction) {
       ? { ...action, at: action.at ?? Date.now() }
       : action;
   setClassroom(classroomReducer(getClassroom(), stamped));
-}
-
-export function resetClassroom() {
-  setClassroom(INITIAL_CLASSROOM);
 }
 
 const serverSnapshot = () => INITIAL_CLASSROOM;

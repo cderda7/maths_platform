@@ -2,7 +2,7 @@ import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
 import type { Diagnostic } from "@/data/diagnostic";
 import type { Problem, Stage, Stroke } from "@/data/types";
 import { activeAssignment } from "./assignment";
-import { currentSlide, pathwayOf, type BoardView, type ClassroomState, type FollowMode } from "./classroom";
+import { currentSlide, lessonOver, pathwayOf, type BoardView, type ClassroomState, type FollowMode } from "./classroom";
 import { liveDiagnostic, questionFor, tally, type Tally } from "./diagnostic";
 import { chainPosition, currentIndex, isLastStep, type DiagnosticRun } from "./diagnosticChain";
 import { liveAbsent } from "./absence";
@@ -19,7 +19,7 @@ import { leaderboardAt, type RankedStanding } from "./standings";
  *
  *  - `blank` while students work and through individual review: the class and the assignment
  *    title, so a projector that is on doesn't read as broken, and nothing else. Also after
- *    whole-class review has ended, and before a set is sent (the class alone, ticket 264).
+ *    whole-class review has ended (or the lesson is over some other way, ticket 263), and before a set is sent (the class alone, ticket 264).
  *  - `group` while the class is in group review (the classroom has a run that isn't done): the
  *    race, five standings ranked with medals for the first three to finish.
  *  - `holding` once group review is over and the teacher has not advanced: the same standings,
@@ -94,7 +94,7 @@ export function boardContent(c: ClassroomState | null | undefined, session: Stud
     const refs = c?.wholeClass?.examples[slide.problemId] ?? [];
     return { kind: "whole-class", ...lesson, problem, index: slide.index, total: slide.total, view: slide.view, examples: boardExamples(refs, slide.problemId, session), teacherInk: slide.teacherInk, mode: slide.mode };
   }
-  if (c?.wholeClass?.status === "ended") return { kind: "blank", ...lesson };
+  if (lessonOver(c)) return { kind: "blank", ...lesson };
   if (c?.group && !c.group.done) return { kind: "group", ...lesson, standings: leaderboardAt(c, session, now) };
   if (c?.group?.done || groupReviewOver(c, session)) return { kind: "holding", ...lesson, standings: leaderboardAt(c, session, now) };
   return { kind: "blank", ...lesson };

@@ -4,7 +4,7 @@
 
 **Blocked by:** 264 (send assignment is what puts PS6 in Sam's To do).
 
-**Status:** open
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -27,6 +27,6 @@ Agreed: "students done with current stage" moves Sam too, so every surface agree
 
 ## Acceptance
 
-- [ ] Unit: each target from each starting stage (not sent, working, individual review, group review, class review, completed); absences (ticket 250) respected; idempotent on repeat
-- [ ] Click-through, teacher + board + Sam's iPad at 1280×800 and 1440×900: send assignment shows the live PS6 card and PS6 in Sam's To do; done with stage advances Class View, the board and the iPad together through every stage of the demo pathway; activity completed lands PS6 in Past and in Sam's Completed; the bar covers no teacher control
-- [ ] vitest, eslint, tsc, next build, check:laptop
+- [x] Unit: each target from each starting stage (not sent, working, individual review, group review, class review, completed); absences (ticket 250) respected; idempotent on repeat
+- [x] Click-through, teacher + board + Sam's iPad at 1280×800 and 1440×900: send assignment shows the live PS6 card and PS6 in Sam's To do; done with stage advances Class View, the board and the iPad together through every stage of the demo pathway; activity completed lands PS6 in Past and in Sam's Completed; the bar covers no teacher control
+- [x] vitest, eslint, tsc, next build, check:laptop

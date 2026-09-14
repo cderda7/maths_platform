@@ -19,7 +19,7 @@ import { CATEGORY_ORDER, categoryName, isFlat, type CategoryId, type LeafId } fr
 import { confidenceForms, confidenceLabel, type ConfidenceForm } from "@/lib/report";
 import { BEFORE_HAND_IN_STAGES, type Confidence } from "@/data/types";
 import { assignmentReportHref, assignmentStages, holisticHref, rosterEvidence, rosterProgress } from "@/lib/assignments";
-import { currentSlide } from "@/lib/classroom";
+import { currentSlide, lessonOver } from "@/lib/classroom";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { absenceLocked, canMarkAbsent } from "@/lib/absence";
 import { progressTag } from "@/lib/progress";
@@ -191,7 +191,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
   const wc = classroom.wholeClass;
   // Class review is the live lesson's; a finished set's stages are all over (ticket 187).
   const finished = assignment.kind === "finished";
-  const status = finished ? " · complete" : wc?.status === "active" ? " · in class review" : wc?.status === "ended" ? " · complete" : "";
+  const status = finished ? " · complete" : wc?.status === "active" ? " · in class review" : lessonOver(classroom) ? " · complete" : "";
   const [open, setOpen] = useState<{ student: string; mode: RowMode; category?: CategoryId; leaf?: LeafId; columns: ColumnBox[]; nonce: number; expandAll?: boolean; keep?: LeafId[] } | null>(null);
   /** A column view: one category open under every student's dot, at group level or with skills too. */
   const [column, setColumn] = useState<{ category: CategoryId; level: "groups" | "expanded"; boxes: Record<string, ColumnBox[]>; nonce: number } | null>(null);

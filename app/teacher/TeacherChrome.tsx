@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import Brand from "@/components/Brand";
 import { Avatar } from "@/components/ui";
 import ResetDemo from "@/components/ResetDemo";
+import TeacherSkipTo from "./TeacherSkipTo";
 import { ASSIGNMENT } from "@/data/assignment";
 import { assignmentTabs, CLASS_GROUPS_HREF } from "@/lib/assignments";
 import { useOptionalAssignment } from "./AssignmentContext";
@@ -28,6 +29,9 @@ import { useOptionalAssignment } from "./AssignmentContext";
  * 90% of the old 0.8 was the size wanted at 100%), so a 1280 px laptop lays out at 1778 px. A page
  * may ask for its own (`zoom`): the whole frame, bar included, as a browser zoom would. The frame's zoom is also
  * `--frame-zoom` and `--back-zoom`, for the back button's place (`BACK_LEFT`, ticket 267, which mirrors the column below).
+ * The presenter's controls, zoomed with the frame, sit in a strip of their own under the scroll region (ticket 263): SKIP TO
+ * bottom-left, Reset demo bottom-right. A fixed overlay covered whatever control scrolled beneath it (a roster row at
+ * rest on the Class View); the strip costs about 40 px of height at 1280 x 800 and covers nothing.
  */
 export const TEACHER_ZOOM = 0.72;
 
@@ -67,7 +71,11 @@ export default function TeacherChrome({ children, zoom = TEACHER_ZOOM }: { child
       <main className="min-h-0 flex-1 overflow-y-auto" data-teacher-scroll>
         <div className="mx-auto max-w-[1640px] px-6 py-12">{children}</div>
       </main>
-      <ResetDemo />
+      {/* The presenter's strip (ticket 263): its own row under the scroll region, so no teacher control ever sits beneath SKIP TO or Reset demo. */}
+      <footer className="flex shrink-0 items-center justify-between gap-4 px-4 py-2.5" data-presenter-strip>
+        <TeacherSkipTo />
+        <ResetDemo inline />
+      </footer>
     </div>
     </div>
   );

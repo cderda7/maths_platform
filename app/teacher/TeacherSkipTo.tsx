@@ -1,0 +1,42 @@
+"use client";
+
+import { canTeacherSkip, TEACHER_SKIP_LABEL, TEACHER_SKIP_TARGETS, teacherSkip, type TeacherSkipTarget } from "@/lib/demo";
+import { getClassroom, useClassroom } from "@/lib/classroom-store";
+import { getSnapshot, refreshBatchedSession, setLesson } from "@/lib/store";
+
+/**
+ * The teacher's presenter jumps (ticket 263): send assignment, students done with the current stage, activity completed.
+ * Bottom-left in the teacher frame's presenter strip (`TeacherChrome`), outside the product's chrome and across from
+ * "Reset demo", in the same dashed look as Sam's SKIP TO (`components/SkipTo.tsx`), so they read as demo controls. A
+ * jump moves the whole lesson as one change (`teacherSkip`, `setLesson`), so the board and Sam's iPad move with it; the teacher stays on the screen they are on, which
+ * re-renders from the new state. "students done" waits for a set to be sent.
+ */
+function jump(t: TeacherSkipTarget) {
+  const { classroom, session } = teacherSkip(t, getClassroom(), getSnapshot(), Date.now());
+  setLesson({ classroom, session });
+  refreshBatchedSession();
+}
+
+export default function TeacherSkipTo() {
+  const classroom = useClassroom();
+  return (
+    <div className="flex min-w-0 items-center gap-1.5 rounded-full border border-dashed border-line-strong bg-paper/80 px-2 py-1 backdrop-blur" data-teacher-skip-to>
+      <span className="pl-1.5 text-[11px] uppercase tracking-wide text-ink-muted">skip to</span>
+      {TEACHER_SKIP_TARGETS.map((t) => {
+        const enabled = canTeacherSkip(t, classroom);
+        return (
+          <button
+            key={t}
+            type="button"
+            disabled={!enabled}
+            onClick={() => jump(t)}
+            data-teacher-skip={t}
+            className="rounded-full px-2.5 py-1 text-[12px] text-ink-muted transition-colors enabled:hover:bg-cream-deep enabled:hover:text-ink disabled:cursor-default disabled:opacity-40"
+          >
+            {TEACHER_SKIP_LABEL[t]}
+          </button>
+        );
+      })}
+    </div>
+  );
+}

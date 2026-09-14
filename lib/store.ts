@@ -3,9 +3,9 @@
 import { useEffect, useSyncExternalStore } from "react";
 import type { Stage } from "@/data/types";
 import { INITIAL_SESSION, hydrateSession, sessionAt, sessionReducer, type RunKindParam, type SessionAction, type StudentSession } from "./session";
-import { pathwayOf } from "./classroom";
 import { activeAssignment } from "./assignment";
-import { getClassroom, resetClassroom } from "./classroom-store";
+import { adoptClassroom, getClassroom, setClassroom } from "./classroom-store";
+import { INITIAL_CLASSROOM, pathwayOf, type ClassroomState } from "./classroom";
 
 /**
  * The demo session store: one student session, shared between browser tabs on the same machine.
@@ -15,6 +15,10 @@ import { getClassroom, resetClassroom } from "./classroom-store";
  */
 const KEY = "edexia-maths-demo/session/v1";
 const CHANNEL = "edexia-maths-demo";
+/** The classroom and the session moved as one change (`setLesson`, ticket 263): its own key and channel. */
+const LESSON_KEY = "edexia-maths-demo/lesson/v1";
+const LESSON_CHANNEL = "edexia-maths-demo/lesson";
+let lessonChannel: BroadcastChannel | null = null;
 
 let current: StudentSession | null | undefined; // undefined = not read yet
 const listeners = new Set<() => void>();
@@ -44,11 +48,20 @@ function wire() {
       current = e.data;
       emit();
     };
+    lessonChannel = new BroadcastChannel(LESSON_CHANNEL);
+    lessonChannel.onmessage = (e: MessageEvent<Lesson>) => adoptLesson(e.data);
   }
   window.addEventListener("storage", (e) => {
     if (e.key === KEY) {
       current = load();
       emit();
+    }
+    if (e.key === LESSON_KEY && e.newValue) {
+      try {
+        adoptLesson(JSON.parse(e.newValue));
+      } catch {
+        /* unreadable: the two keys' own events follow */
+      }
     }
   });
 }
@@ -64,7 +77,7 @@ export function subscribe(cb: () => void): () => void {
   return () => listeners.delete(cb);
 }
 
-export function setSession(next: StudentSession | null) {
+export function setSession(next: StudentSession | null, announce = true) {
   wire();
   current = next;
   try {
@@ -73,8 +86,39 @@ export function setSession(next: StudentSession | null) {
   } catch {
     /* storage unavailable: stay in-memory */
   }
-  channel?.postMessage(next);
+  if (announce) channel?.postMessage(next);
   emit();
+}
+
+interface Lesson {
+  classroom: ClassroomState;
+  session: StudentSession;
+}
+
+/** Both halves of a lesson from another tab, taken in one task so no screen renders the new classroom against the old session. */
+function adoptLesson(l: Lesson) {
+  current = hydrateSession(l.session);
+  adoptClassroom(l.classroom);
+  emit();
+}
+
+/**
+ * The classroom and the session moved as one change (ticket 263): a presenter jump or Reset demo. Announced separately,
+ * another tab could render the new classroom against the old session for a moment, and the iPad's clockwork acts on
+ * what it renders (class review ended while Sam is still frozen: release him to his report, over the homework the jump
+ * gave him). So both go out in one message and one storage write, read in one task by every other tab; the two stores'
+ * own keys are written after it, for a tab opened later.
+ */
+export function setLesson(next: Lesson) {
+  wire();
+  try {
+    localStorage.setItem(LESSON_KEY, JSON.stringify(next));
+  } catch {
+    /* storage unavailable: the channel still carries it */
+  }
+  lessonChannel?.postMessage(next);
+  setClassroom(next.classroom, false);
+  setSession(next.session, false);
 }
 
 /**
@@ -89,8 +133,7 @@ export function dispatch(action: SessionAction) {
 
 /** Back to the start in every tab: a fresh session and an empty classroom, so deep-linked tabs move too. */
 export function resetSession() {
-  resetClassroom();
-  setSession(INITIAL_SESSION);
+  setLesson({ classroom: INITIAL_CLASSROOM, session: INITIAL_SESSION });
 }
 
 const serverSnapshot = () => null;
@@ -163,6 +206,14 @@ function subscribeBatch(everyMs: number) {
   };
   batchSubscribers.set(everyMs, fn);
   return fn;
+}
+
+/**
+ * Lands the batch now rather than at the next interval: for a discrete move of the whole lesson made in this tab (the
+ * teacher's presenter jumps, ticket 263), so the teacher's views never read the new classroom against the old session.
+ */
+export function refreshBatchedSession() {
+  if (batchListeners.size > 0) batchTick();
 }
 
 export function useBatchedSession(everyMs = 3000): Batch & { everyMs: number } {

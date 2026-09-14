@@ -154,12 +154,30 @@ export interface ClassroomState {
    * demo's list (`absentOf`, `data/absences.ts`: Chloe on Problem Set 6), so unmarking her stores an empty list.
    */
   absences?: Record<string, readonly string[]>;
+  /**
+   * When the lesson was brought to its end whatever its pathway (ticket 263): every stage over, none current (`lessonOver`).
+   * Simulation only for now: the presenter's "activity completed" stamps it, since nothing in the product ends a lesson whose
+   * pathway has no class review (FUTURE_FEATURES, "Ending a lesson without class review"). Class review's own End still ends
+   * a lesson through `wholeClass.status`. Absent until then; a new set sent (`assignment/create`) clears it.
+   */
+  lessonEndedAt?: number;
+}
+
+/** The lesson's own state, which a newly sent set starts without (ticket 263): the gate, the whiteboard, the chains, class review, the end. */
+const LESSON_KEYS = ["arrivals", "group", "diagnostics", "lessonEndedAt"] as const;
+
+/** The classroom as a new lesson starts it: the lesson's own state gone, the class's (seating, absences, the draft) kept. */
+function newLesson(c: ClassroomState): ClassroomState {
+  const next: ClassroomState = { ...c, advance: null, wholeClass: null };
+  for (const k of LESSON_KEYS) delete next[k];
+  return next;
 }
 
 export type ClassroomAction =
   /**
    * `id` names the assignment (Problem Set 6 when absent); its groups are frozen from `groups` or, absent, the class defaults.
    * `at` is the moment of creation (the store stamps it); `startedAt`, when the set went live, is `at` unless given (a skip sets it in the past).
+   * A set sent starts a new lesson (ticket 263): whatever an earlier lesson left (its gate, whiteboard, chains, class review, end) goes.
    */
   | { type: "assignment/create"; id?: string; groups?: SeatingGroups; title: string; problemIds: string[]; pathway: Pathway; newSkills?: LeafId[]; goal?: string; questions?: ReviewedQuestion[]; at?: number; startedAt?: number }
   /** The create screen's draft as typed; null clears it. */
@@ -264,7 +282,7 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
     case "review/set":
       return { ...c, review: a.review };
     case "assignment/create":
-      return { ...c, assignmentGroups: { ...(c.assignmentGroups ?? {}), [a.id ?? ASSIGNMENT.id]: a.groups ?? seatingOf(c.groups) }, assignment: { title: a.title, problemIds: [...a.problemIds], pathway: [...a.pathway], ...(a.newSkills ? { newSkills: [...a.newSkills] } : {}), createdAt: a.at ?? 0, startedAt: a.startedAt ?? a.at ?? 0, ...(a.goal !== undefined ? { goal: a.goal } : {}), ...(a.questions ? { questions: a.questions.map((q) => ({ ...q })) } : {}) } };
+      return { ...newLesson(c), assignmentGroups: { ...(c.assignmentGroups ?? {}), [a.id ?? ASSIGNMENT.id]: a.groups ?? seatingOf(c.groups) }, assignment: { title: a.title, problemIds: [...a.problemIds], pathway: [...a.pathway], ...(a.newSkills ? { newSkills: [...a.newSkills] } : {}), createdAt: a.at ?? 0, startedAt: a.startedAt ?? a.at ?? 0, ...(a.goal !== undefined ? { goal: a.goal } : {}), ...(a.questions ? { questions: a.questions.map((q) => ({ ...q })) } : {}) } };
     case "advance/start": {
       const at = a.at ?? 0;
       return { ...c, advance: { id: `${a.kind}@${at}`, kind: a.kind, deadline: at + GRACE_MS } };
@@ -427,6 +445,9 @@ function groupReducer(g: GroupRun, a: GroupAction): GroupRun {
 }
 
 export const isProjecting = (c: ClassroomState | null | undefined) => c?.wholeClass?.status === "active";
+
+/** Whether the lesson is over, every stage of its pathway behind the class: class review ended, or the lesson ended outright (`lessonEndedAt`, ticket 263). */
+export const lessonOver = (c: ClassroomState | null | undefined): boolean => c?.wholeClass?.status === "ended" || c?.lessonEndedAt !== undefined;
 /** The problem id on the board right now, if projecting. */
 export function currentSlide(c: ClassroomState | null | undefined): { problemId: string; view: BoardView; index: number; total: number; mode: FollowMode; teacherInk: Stroke[] } | null {
   const w = c?.wholeClass;
