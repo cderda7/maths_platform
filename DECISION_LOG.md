@@ -4412,7 +4412,7 @@ rule for pens is untouched and the exception is visible and named.
 
 **Defense.** One small, pure, unit-tested rule decides what Escape does on every screen, and adding a closable thing is one hook call with its existing close. The click-through drives every layer with real key presses at two laptop sizes.
 
-## 2026-09-14 · A fresh demo starts with Problem Set 6 not yet sent; Sam's Classroom is the student landing (tickets 260, 261)
+## 2026-09-14 · A fresh demo starts with Problem Set 6 not yet sent; Sam's Classroom is the student landing (tickets 263, 264)
 
 **Decision.** On a fresh demo PS6 has not been sent: Sam's Classroom (/student) shows PS1–PS5 under Completed and an empty To do, and the teacher's Edexia Classroom has no live PS6 card. Create or the teacher's new skip to "send assignment" sends it. Teacher skips (send assignment, students done with current stage, activity completed) move every surface together, Sam included.
 

@@ -1,8 +1,8 @@
-# 260: SKIP TO on the teacher side: send assignment, students done with the stage, activity completed
+# 263: SKIP TO on the teacher side: send assignment, students done with the stage, activity completed
 
-**What to build:** A presenter SKIP TO on the teacher laptop, in the same dashed demo-control look as the student's (`components/SkipTo.tsx`), with three jumps: **send assignment**, **students done with current stage**, **activity completed**. Each jump moves every surface together: the teacher's screens, the board, Sam's iPad and his Classroom (ticket 261).
+**What to build:** A presenter SKIP TO on the teacher laptop, in the same dashed demo-control look as the student's (`components/SkipTo.tsx`), with three jumps: **send assignment**, **students done with current stage**, **activity completed**. Each jump moves every surface together: the teacher's screens, the board, Sam's iPad and his Classroom (ticket 264).
 
-**Blocked by:** 261 (send assignment is what puts PS6 in Sam's To do).
+**Blocked by:** 264 (send assignment is what puts PS6 in Sam's To do).
 
 **Status:** open
 

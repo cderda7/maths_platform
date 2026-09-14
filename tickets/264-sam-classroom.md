@@ -1,6 +1,6 @@
-# 261: Sam's Classroom is his landing page: To do, Missing, Completed
+# 264: Sam's Classroom is his landing page: To do, Missing, Completed
 
-**What to build:** `/student` opens on Sam's own Classroom on the iPad: his assignments in three sections, **To do**, **Missing** and **Completed**. PS1–PS5 are Completed. PS6 appears in To do only once the teacher has sent it (Create, or the teacher's skip to "send assignment", ticket 260); pressing it opens PS6 at its start. Only Sam gets a Classroom.
+**What to build:** `/student` opens on Sam's own Classroom on the iPad: his assignments in three sections, **To do**, **Missing** and **Completed**. PS1–PS5 are Completed. PS6 appears in To do only once the teacher has sent it (Create, or the teacher's skip to "send assignment", ticket 263); pressing it opens PS6 at its start. Only Sam gets a Classroom.
 
 **Blocked by:** none.
 
