@@ -1275,6 +1275,13 @@ uploaded problems) settled the following as later, each on purpose.
   Remove it with its tests once no demo machine carries that state (see the ticket 208 note on
   `lib/renamedSets.ts`).
 
+## Teacher "send assignment" opens Create (ticket 272, 2026-09-14)
+
+- **Keeping the teacher's own draft through "send assignment".** The jump replaces any draft in progress with the demo's; stashing and restoring it was not asked for.
+- **Opening the set from other student screens.** Only Sam's Classroom answers a jump by navigating; a jump that leaves nothing out takes him home through `StudentApp`'s not-sent rule as before.
+- **A Create bar that never covers content at rest.** Since ticket 272 every Create step leaves the floating bar's whole height under its content (`CREATE_BAR_CLEARANCE`), so the last row scrolls clear of Back and Create; before scrolling, at 1280x800, the pair still floats over the Confirm groups card's violet column (Ruby's row). A bar in its own row under the scroll region, like the presenter strip, would never cover anything but costs every Create step about 70 px of height; not asked for.
+- **Where an addition goes with no removal accepted.** It still comes last; choosing a slot for it (by difficulty, or by the teacher dragging it) was left out.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

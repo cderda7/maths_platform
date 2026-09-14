@@ -136,14 +136,23 @@ describe("recommendations", () => {
     expect(recommendationsFor(without).map((a) => a.rec.id)).toEqual([CHANGE_SIGNS.id, ADD_CONTEXT.id]);
   });
 
-  it("applied: a changed question keeps its place, a removed one goes, the addition comes last", () => {
+  it("applied: a changed question keeps its place, a removed one goes, the addition takes its slot (ticket 272)", () => {
     const qs = pasted();
     const all = applyReview(qs, { labels: {}, answers: { [CHANGE_SIGNS.id]: "accept", [REMOVE_REPEAT.id]: "accept", [ADD_CONTEXT.id]: "accept" }, addition: 0 });
     expect(all).toHaveLength(10);
     expect(all[0]).toMatchObject({ id: "q1", tex: "x^{2} - 5x + 6 = 0", origin: "changed", difficulty: "simple familiar" });
     expect(all.find((q) => q.id === "q9")).toBeUndefined();
-    expect(all[9]).toMatchObject({ origin: "added", tex: "h = -x^{2} + 6x", difficulty: "complex unfamiliar" });
+    expect(all[8]).toMatchObject({ origin: "added", tex: "h = -x^{2} + 6x", difficulty: "complex unfamiliar" });
     expect(bankProblemsOf(all).map((p) => p.id)).toEqual(PROBLEMS.map((p) => p.id));
+    // In the students' order: each question is its bank problem at the same position.
+    expect(all.map((q) => bankProblemsOf([q])[0]?.id)).toEqual(PROBLEMS.map((p) => p.id));
+    // The addition fills the removed slot wherever the draft had it; with the removal kept as is it comes last.
+    const moved = [...qs.filter((q) => q.id !== "q9").slice(0, 2), qs.find((q) => q.id === "q9")!, ...qs.filter((q) => q.id !== "q9").slice(2)];
+    expect(applyReview(moved, { labels: {}, answers: { [REMOVE_REPEAT.id]: "accept", [ADD_CONTEXT.id]: "accept" }, addition: 0 })[2]).toMatchObject({ origin: "added" });
+    const noRemoval = applyReview(qs, { labels: {}, answers: { [REMOVE_REPEAT.id]: "keep", [ADD_CONTEXT.id]: "accept" }, addition: 0 });
+    expect(noRemoval.map((q) => q.id)).toEqual([...qs.map((q) => q.id), "added-add-context"]);
+    // A removal with no addition accepted just closes up.
+    expect(applyReview(qs, { labels: {}, answers: { [REMOVE_REPEAT.id]: "accept", [ADD_CONTEXT.id]: "keep" }, addition: 0 }).map((q) => q.id)).toEqual(qs.map((q) => q.id).filter((id) => id !== "q9"));
     // Its New skills against Problem Set 5 are Problem Set 6's own (ticket 209); the teacher's change stands, kept to skills still in the set.
     const recent = [PS5_ASSIGNMENT];
     const inferred = reviewNewSkills(all, {}, recent);

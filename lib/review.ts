@@ -157,11 +157,21 @@ export interface ReviewedQuestion extends DraftQuestion {
   origin: "typed" | "changed" | "added";
 }
 
-/** The set as the answers leave it: changes and removals applied to their targets, the addition appended. */
+/**
+ * The set as the answers leave it: changes and removals applied to their targets. An accepted addition takes the place of
+ * a removed question, first addition in the first freed slot (ticket 272: the scripted assessment removes the repeat of Q3
+ * and adds the worded problem in its place, so the set reads in the students' order, the ball problem at Q9); an addition
+ * with no slot freed for it comes last.
+ */
 export function applyReview(questions: DraftQuestion[], review: Pick<ReviewState, "labels" | "answers" | "addition">): ReviewedQuestion[] {
   const labels = labelsOf(questions, review.labels);
   const active = recommendationsFor(questions);
   const accepted = active.filter((a) => review.answers[a.rec.id] === "accept");
+  const additions: ReviewedQuestion[] = accepted.flatMap((a) => {
+    if (a.rec.kind !== "add") return [];
+    const o = additionOption(a.rec.options, review.addition);
+    return [{ id: `added-${a.rec.id}`, text: o.text, stem: o.stem, tex: o.tex, difficulty: o.difficulty, origin: "added" as const }];
+  });
   const out: ReviewedQuestion[] = [];
   for (const q of questions) {
     const change = accepted.find((a) => a.rec.kind === "change" && a.targetId === q.id);
@@ -169,15 +179,14 @@ export function applyReview(questions: DraftQuestion[], review: Pick<ReviewState
       out.push({ id: q.id, text: change.rec.to.text, stem: change.rec.to.stem, tex: change.rec.to.tex, difficulty: change.rec.to.difficulty, origin: "changed" });
       continue;
     }
-    if (accepted.some((a) => a.rec.kind === "remove" && a.targetId === q.id)) continue;
+    if (accepted.some((a) => a.rec.kind === "remove" && a.targetId === q.id)) {
+      const filled = additions.shift();
+      if (filled) out.push(filled);
+      continue;
+    }
     out.push({ ...q, difficulty: labels[q.id], origin: "typed" });
   }
-  for (const a of accepted) {
-    if (a.rec.kind !== "add") continue;
-    const o = additionOption(a.rec.options, review.addition);
-    out.push({ id: `added-${a.rec.id}`, text: o.text, stem: o.stem, tex: o.tex, difficulty: o.difficulty, origin: "added" });
-  }
-  return out;
+  return [...out, ...additions];
 }
 
 /** The bank problems the finalised set contains, in bank order: what the student side can run. */

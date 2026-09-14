@@ -1,6 +1,9 @@
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import type { Pathway, ReviewStage } from "@/data/types";
-import { classroomReducer, GRACE_MS, INITIAL_CLASSROOM, lessonOver, pathwayOf, type ClassroomAction, type ClassroomState } from "./classroom";
+import { classroomReducer, GRACE_MS, INITIAL_CLASSROOM, lessonOver, pathwayOf, unsent, type AssignmentDraft, type ClassroomAction, type ClassroomState } from "./classroom";
+import { generatedDraft } from "./draft";
+import { draftKey, type ReviewState } from "./review";
+import { RECOMMENDATIONS } from "@/data/review";
 import { currentClassStage, type ClassStageId } from "./classStage";
 import { DEFAULT_PATHWAY } from "./pathway";
 import { candidatesFor, problemsByStruggle, suggestExamples } from "./examples";
@@ -157,8 +160,10 @@ export function skipFixture(target: SkipTarget, now: number): { session: Student
  * set up) and only the lesson moves. Every surface reads the result: the teacher's screens, the board, Sam's iPad and
  * his Classroom.
  *
- * - `send`: Problem Set 6 sent now under the demo pathway, the classmates' stream from zero, Sam at his run's start
- *   (PS6 in his To do). A new lesson: whatever an earlier one left goes (`assignment/create`).
+ * - `send` (ticket 272): the moment before sending. Create's last step filled in and not yet pressed (`readyToSend`):
+ *   Problem Set 6's problems, goal and New skills under the demo pathway. Nothing is out: whatever was sent, and the
+ *   lesson it started, goes (`unsent`), seating and absences kept, and Sam is at his Classroom with nothing to do. The
+ *   teacher's bar opens the step; pressing Create there sends as a real Create does (a new lesson, Sam at his start).
  * - `done`: the stage the class is on (`currentClassStage`, by the pathway in force) ends for every student in the room.
  *   The class goes into the next stage of the pathway, Sam with his scripted work: individual review on his hand-in,
  *   group review at its intro with everyone through the gate, class review projected from the teacher's setup (or the
@@ -167,6 +172,8 @@ export function skipFixture(target: SkipTarget, now: number): { session: Student
  * - `completed`: every stage over (group review run, class review ended, `lessonEndedAt` stamped), Sam's report sent
  *   with its reflection and his homework playing from the jump: PS6 in the teacher's Past and Sam's Completed. Sends
  *   the set first when nothing is sent, as Sam's skips do. A lesson already completed stays as it is.
+ *
+ * On Sam's iPad a jump that leaves a set out opens it from his Classroom (`StudentClassroom`, ticket 272).
  */
 export type TeacherSkipTarget = "send" | "done" | "completed";
 
@@ -177,6 +184,24 @@ export const TEACHER_SKIP_LABEL: Record<TeacherSkipTarget, string> = { send: "se
 export interface DemoState {
   classroom: ClassroomState;
   session: StudentSession;
+}
+
+/**
+ * Create's draft as the demo teacher leaves it on the last step (ticket 272): Generate's set (`generatedDraft`) with every
+ * scripted recommendation accepted, the first addition shown, which is Problem Set 6's ten problems, and the demo
+ * pathway switched on. The pathway is the simulation's choice, standing in for the teacher's (Create waits for one,
+ * ticket 246); the New skills stay inferred and the groups the class defaults, as a teacher who changed neither has them.
+ */
+export function readyDraft(now: number): { draft: AssignmentDraft; review: ReviewState } {
+  const draft = generatedDraft(now);
+  const answers = Object.fromEntries(RECOMMENDATIONS.map((r) => [r.id, "accept" as const]));
+  return { draft, review: { step: "pathway", forDraft: draftKey(draft.questions), labels: {}, answers, addition: 0, pathway: [...DEMO_PATHWAY] } };
+}
+
+/** The demo just before its Create: nothing out, no lesson, Create's last step filled in (`readyDraft`). */
+function readyToSend(c: ClassroomState, now: number): ClassroomState {
+  const { draft, review } = readyDraft(now);
+  return { ...unsent(c), draft, review };
 }
 
 /** Whether a teacher jump has anything to do: "students done" waits for a set to be sent. */
@@ -249,7 +274,7 @@ function completeLesson(c: ClassroomState, session: StudentSession | null, now: 
 export function teacherSkip(target: TeacherSkipTarget, c: ClassroomState, session: StudentSession | null, now: number): DemoState {
   switch (target) {
     case "send":
-      return { classroom: classroomReducer(c, demoSend(DEMO_PATHWAY, now, now)), session: INITIAL_SESSION };
+      return { classroom: readyToSend(c, now), session: INITIAL_SESSION };
     case "done": {
       if (!canTeacherSkip("done", c)) return { classroom: c, session: session ?? INITIAL_SESSION };
       const current = currentClassStage(c, session, now);

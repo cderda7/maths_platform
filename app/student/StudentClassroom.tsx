@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import StudentChrome from "./StudentChrome";
 import { Button, Eyebrow } from "@/components/ui";
@@ -8,7 +8,7 @@ import { ASSIGNMENT } from "@/data/assignment";
 import { CLASS_SUBJECT } from "@/lib/classroomCards";
 import { useClassroom } from "@/lib/classroom-store";
 import { LIVE_ASSIGNMENT_ID } from "@/lib/assignments";
-import { useNow, useStudentSession } from "@/lib/store";
+import { subscribeLessonMoves, useNow, useStudentSession } from "@/lib/store";
 import { STUDENT_SECTION_EMPTY, STUDENT_SECTION_LABEL, STUDENT_SECTIONS, studentClassroom, studentSetHref, type StudentSection, type StudentSetCard } from "@/lib/studentClassroom";
 
 const noSubscribe = () => () => {};
@@ -17,7 +17,10 @@ const noSubscribe = () => () => {};
  * Sam's Classroom on the iPad (ticket 264), his landing: every set in his Classroom under To do, Missing and Completed
  * (`lib/studentClassroom`), each newest due first. A To do card's one action opens the set where his run is (its start
  * once sent); Missing and Completed cards open nothing. Live in every tab: the teacher's Create puts Problem Set 6 in
- * To do without a reload. When class review freezes the class, the iPad goes to the set, as every student screen does.
+ * To do without a reload. When class review freezes the class, the iPad goes to the set, as every student screen does; so
+ * does a presenter's jump from another tab that moves the lesson with a set out (the teacher's "students done" and
+ * "activity completed", ticket 272), landing where the jump put Sam. A jump that leaves nothing out ("send assignment",
+ * Reset demo) leaves him here.
  * No difficulty tags: this is the student's side.
  */
 export default function StudentClassroom() {
@@ -33,6 +36,16 @@ export default function StudentClassroom() {
   useEffect(() => {
     if (sent && frozen) router.replace(studentSetHref(LIVE_ASSIGNMENT_ID));
   }, [sent, frozen, router]);
+  const opened = useRef(false);
+  useEffect(
+    () =>
+      subscribeLessonMoves((l) => {
+        if (!l.classroom.assignment || opened.current) return;
+        opened.current = true;
+        router.push(studentSetHref(LIVE_ASSIGNMENT_ID));
+      }),
+    [router],
+  );
   return (
     <StudentChrome>
       <div className="mx-auto flex max-w-[860px] flex-col px-10 pt-8 pb-6" data-student-classroom>

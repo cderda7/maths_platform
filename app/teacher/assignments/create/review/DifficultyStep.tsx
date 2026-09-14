@@ -7,6 +7,7 @@ import { DifficultyTag } from "@/components/Tag";
 import type { Difficulty } from "@/data/types";
 import type { DraftQuestion } from "@/lib/classroom";
 import { countByDifficulty, DIFFICULTIES, labelsOf } from "@/lib/review";
+import { CREATE_BAR, CREATE_BAR_CLEARANCE } from "../createBar";
 
 /**
  * The difficulty step: the draft's tiles, each with its label, and the count of each label
@@ -17,7 +18,7 @@ export default function DifficultyStep({ questions, overrides, onLabel, onMove, 
   const labels = labelsOf(questions, overrides);
   const counts = countByDifficulty(Object.values(labels));
   return (
-    <div className="pb-24" data-difficulty-step>
+    <div className={CREATE_BAR_CLEARANCE} data-difficulty-step>
       <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3" data-counts>
         {DIFFICULTIES.map((d) => (
           <span key={d} className="flex items-center gap-2" data-count={d}>
@@ -30,7 +31,7 @@ export default function DifficultyStep({ questions, overrides, onLabel, onMove, 
         <span className="text-[13px] text-ink-muted">Tap a label to change it.</span>
       </div>
       <QuestionGrid items={questions.map((q) => ({ id: q.id, text: q.text, stem: q.stem, tex: q.tex, figureUrl: q.figureUrl, difficulty: labels[q.id] }))} onLabel={onLabel} onMove={onMove} animate />
-      <div className="fixed bottom-16 right-6 z-30 flex items-center gap-3">
+      <div className={CREATE_BAR}>
         {/* Back is a paper pill like the create bar's secondary buttons, so it reads as a control over content scrolling beneath (ticket 188). */}
         <Link href="/teacher/assignments/create" className="inline-flex items-center justify-center rounded-full border border-line-strong bg-paper px-6 py-3 text-[15px] font-medium text-ink shadow-lift transition-colors hover:border-ink-muted" data-back>
           Back

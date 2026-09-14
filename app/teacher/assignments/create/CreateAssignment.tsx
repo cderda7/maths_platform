@@ -10,6 +10,7 @@ import { MessageTile, PendingTile } from "./UploadTiles";
 import { Button, Eyebrow } from "@/components/ui";
 import { useReorder } from "@/components/useReorder";
 import { ASSIGNMENT } from "@/data/assignment";
+import { REVIEW_ASSIGNMENT_HREF } from "@/lib/assignments";
 import { GOAL_MAX, type AssignmentDraft, type DraftQuestion } from "@/lib/classroom";
 import { dispatchClassroom, getClassroom, useClassroom } from "@/lib/classroom-store";
 import { generatedDraft, isGenerated } from "@/lib/draft";
@@ -22,8 +23,7 @@ import { MAX_PAGES } from "@/lib/extract";
 import { openPdf, pageThumb, renderPage, type OpenPdf } from "@/lib/pdfPages";
 import { getSource, putSource, thumbOf } from "@/lib/sources";
 import { applyFix, applyRead, confirmAll, discardUnconfirmed, draftItem, dropNote, insertBefore, isPdfFile, isQuestion, messageItem, partitionDrop, pendingItem, removeItem, replaceItem, unconfirmedCount, updateQuestion, without, type FigureRef, type Item, type MessageItem, type PendingItem, type QuestionItem, type ReadFailure } from "@/lib/upload";
-
-export const REVIEW_PATH = "/teacher/assignments/create/review";
+import { CREATE_BAR, CREATE_BAR_CLEARANCE } from "./createBar";
 
 /** The gap between one generated tile fading in and the next (ticket 188). */
 const TILE_IN_STEP_MS = 35;
@@ -459,11 +459,11 @@ function Editor({ fresh }: { fresh: boolean }) {
     if (!any) return;
     const kept = confirmAll(qs);
     dispatchClassroom({ type: "draft/set", draft: { ...draftOf(title, goal, kept, Date.now()), generated: true } });
-    router.push(REVIEW_PATH);
+    router.push(REVIEW_ASSIGNMENT_HREF);
   };
 
   return (
-    <div className="pb-24">
+    <div className={CREATE_BAR_CLEARANCE}>
       <BackToClassroom />
       <Eyebrow className="mt-3">{ASSIGNMENT.className}</Eyebrow>
       <input
@@ -553,7 +553,7 @@ function Editor({ fresh }: { fresh: boolean }) {
         </p>
       )}
 
-      <div className="fixed bottom-16 right-6 z-30 flex items-center gap-3" data-bar>
+      <div className={CREATE_BAR} data-bar>
         {note && (
           <p className="max-w-[440px] rounded-2xl border border-line bg-paper/95 px-4 py-2 text-right text-[13px] leading-snug text-ink-muted shadow-card" data-note>
             {note}

@@ -230,6 +230,8 @@ export const CLASSROOM_HREF = "/teacher";
 export const CLASS_GROUPS_HREF = "/teacher/groups";
 /** The create flow's first screen (blank until generated, ticket 188). */
 export const NEW_ASSIGNMENT_HREF = "/teacher/assignments/create";
+/** The create flow's review steps, Create on the last (ticket 120); the presenter's "send assignment" lands there (ticket 272). */
+export const REVIEW_ASSIGNMENT_HREF = "/teacher/assignments/create/review";
 
 /** A set's page: no tab is the landing, which redirects to Class or Mistakes. */
 export function assignmentHref(id: string, tab?: AssignmentTab): string {

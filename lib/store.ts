@@ -90,16 +90,30 @@ export function setSession(next: StudentSession | null, announce = true) {
   emit();
 }
 
-interface Lesson {
+export interface Lesson {
   classroom: ClassroomState;
   session: StudentSession;
 }
+
+const lessonMoves = new Set<(l: Lesson) => void>();
 
 /** Both halves of a lesson from another tab, taken in one task so no screen renders the new classroom against the old session. */
 function adoptLesson(l: Lesson) {
   current = hydrateSession(l.session);
   adoptClassroom(l.classroom);
   emit();
+  for (const cb of lessonMoves) cb(l);
+}
+
+/**
+ * Called with every lesson another tab moves as one change (`setLesson`: a presenter jump, Reset demo), once adopted, for a
+ * screen that answers the move itself rather than the state (Sam's Classroom opens the set, ticket 272). A move can arrive
+ * twice, over the channel and as a storage event, so a listener acts once.
+ */
+export function subscribeLessonMoves(cb: (l: Lesson) => void): () => void {
+  wire();
+  lessonMoves.add(cb);
+  return () => lessonMoves.delete(cb);
 }
 
 /**

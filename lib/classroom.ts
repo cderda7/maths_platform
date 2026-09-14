@@ -173,6 +173,13 @@ function newLesson(c: ClassroomState): ClassroomState {
   return next;
 }
 
+/**
+ * The classroom with no set out and no lesson under way (ticket 272), the class's own state (seating, absences) kept.
+ * Simulation only: nothing in the product takes a sent set back; the presenter's "send assignment" puts the demo back
+ * before its Create so the moment of sending can be shown again (`teacherSkip` in `lib/demo.ts`).
+ */
+export const unsent = (c: ClassroomState): ClassroomState => ({ ...newLesson(c), assignment: null });
+
 export type ClassroomAction =
   /**
    * `id` names the assignment (Problem Set 6 when absent); its groups are frozen from `groups` or, absent, the class defaults.

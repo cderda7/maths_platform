@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ASSIGNMENT } from "@/data/assignment";
 import type { Pathway } from "@/data/types";
-import { canTeacherSkip, DEMO_PATHWAY, deepLinkClassroom, skipFixture, SKIP_STARTED_AGO_MS, SKIP_TARGETS, TEACHER_SKIP_LABEL, TEACHER_SKIP_TARGETS, teacherSkip, type DemoState, type TeacherSkipTarget } from "./demo";
+import { canTeacherSkip, DEMO_PATHWAY, deepLinkClassroom, readyDraft, skipFixture, SKIP_STARTED_AGO_MS, SKIP_TARGETS, TEACHER_SKIP_LABEL, TEACHER_SKIP_TARGETS, teacherSkip, type DemoState, type TeacherSkipTarget } from "./demo";
 import { classroomReducer, INITIAL_CLASSROOM, isDue, isPending, isProjecting, type ClassroomState } from "./classroom";
 import { currentClassStage } from "./classStage";
 import { classroomCards } from "./classroomCards";
@@ -9,6 +9,11 @@ import { studentClassroom, studentSection } from "./studentClassroom";
 import { boardContent } from "./board";
 import { assignmentIds } from "./assignments";
 import { DEFAULT_PATHWAY } from "./pathway";
+import { created, createAction } from "./create";
+import { isGenerated } from "./draft";
+import { applyReview, bankProblemsOf, reviewNewSkills } from "./review";
+import { LIVE_ASSIGNMENT_ID, recentSets } from "./assignments";
+import { RECENT_SETS } from "./newSkills";
 import { DEMO_REFLECTION, INITIAL_SESSION } from "./session";
 import { classReadiness, LAST_ARRIVAL_MS } from "./readiness";
 import { boardOpensAt, introShowing } from "./groupIntro";
@@ -99,13 +104,16 @@ describe("the teacher's presenter jumps (ticket 263)", () => {
   const now = 1_700_000_000_000;
   const fresh: DemoState = { classroom: INITIAL_CLASSROOM, session: INITIAL_SESSION };
   const apply = (t: TeacherSkipTarget, s: DemoState, at = now) => teacherSkip(t, s.classroom, s.session, at);
+  // Create pressed on the step "send assignment" fills in, as ReviewAssignment does: the set sent, the draft cleared, Sam at his start.
+  const create = (s: DemoState, at = now): DemoState => ({ classroom: created(s.classroom, at), session: INITIAL_SESSION });
+  const ready = apply("send", fresh);
   // Every starting stage of the demo pathway, reached by the jumps themselves.
-  const working = apply("send", fresh);
+  const working = create(ready);
   const indiv = apply("done", working);
   const group = apply("done", indiv);
   const classReview = apply("done", group);
   const completed = apply("done", classReview);
-  const STARTS: Record<string, DemoState> = { "not sent": fresh, working, "individual review": indiv, "group review": group, "class review": classReview, completed };
+  const STARTS: Record<string, DemoState> = { "not sent": fresh, "ready to send": ready, working, "individual review": indiv, "group review": group, "class review": classReview, completed };
   const stage = (s: DemoState, at = now) => currentClassStage(s.classroom, s.session, at);
   const card = (s: DemoState) => {
     const cards = classroomCards(s.classroom, s.session, now);
@@ -118,24 +126,74 @@ describe("the teacher's presenter jumps (ticket 263)", () => {
     expect(TEACHER_SKIP_TARGETS.map((t) => TEACHER_SKIP_LABEL[t])).toEqual(["send assignment", "students done with current stage", "activity completed"]);
   });
 
-  it("send assignment, from every stage: PS6 live now under the demo pathway, the stream from zero, Sam at his start with PS6 in To do", () => {
+  it("send assignment, from every stage: Create's last step filled in and not pressed, nothing out, Sam at his Classroom with nothing to do (ticket 272)", () => {
+    const { draft, review } = readyDraft(now);
     for (const [name, s] of Object.entries(STARTS)) {
       const r = apply("send", s);
-      expect(r.classroom.assignment?.pathway, name).toEqual(DEMO_PATHWAY);
-      expect(r.classroom.assignment?.startedAt, name).toBe(now);
+      // Nothing sent: no set, no lesson, no Live or Past card, nothing in Sam's To do, the blank board.
+      expect(r.classroom.assignment, name).toBeNull();
+      for (const k of ["arrivals", "group", "diagnostics", "lessonEndedAt"] as const) expect(r.classroom[k], `${name} ${k}`).toBeUndefined();
+      expect([r.classroom.advance, r.classroom.wholeClass], name).toEqual([null, null]);
+      expect(assignmentIds(r.classroom), name).not.toContain("pset-6");
+      expect(card(r), name).toBeNull();
       expect(r.session, name).toEqual(INITIAL_SESSION);
+      expect(section(r), name).toBeNull();
+      expect(studentClassroom(r.classroom, r.session, now).todo, name).toEqual([]);
+      expect(board(r), name).toBe("blank");
+      // Create's draft on its last step: Generate's set, every recommendation answered, the demo pathway chosen, so Create is on.
+      expect(r.classroom.draft, name).toEqual(draft);
+      expect(r.classroom.review, name).toEqual(review);
+      expect(isGenerated(r.classroom), name).toBe(true);
+      expect(r.classroom.review?.step, name).toBe("pathway");
+      expect(createAction(r.classroom), name).not.toBeNull();
+      // The class's own state kept: seating and absences.
+      expect(r.classroom.groups, name).toEqual(s.classroom.groups);
+      expect(r.classroom.absences, name).toEqual(s.classroom.absences);
+    }
+  });
+
+  it("the filled-in step holds Problem Set 6: its ten problems, goal and New skills, under the demo pathway", () => {
+    const { classroom } = ready;
+    const final = applyReview(classroom.draft!.questions, classroom.review!);
+    expect(bankProblemsOf(final).map((p) => p.id)).toEqual(ASSIGNMENT.problems.map((p) => p.id));
+    expect(final).toHaveLength(ASSIGNMENT.problems.length);
+    // Listed in the students' order: the ball problem at Q9, not last (ticket 272).
+    expect(final.map((q) => bankProblemsOf([q])[0]?.id)).toEqual(ASSIGNMENT.problems.map((p) => p.id));
+    expect(final.every((q) => q.tex !== null && bankProblemsOf([q]).length === 1)).toBe(true);
+    expect(classroom.draft!.goal).toBe(ASSIGNMENT.goal);
+    const skills = reviewNewSkills(final, classroom.review!, recentSets(LIVE_ASSIGNMENT_ID, RECENT_SETS));
+    expect(skills.changed).toBe(false);
+    expect([...skills.chosen].sort()).toEqual([...ASSIGNMENT.newSkills].sort());
+    expect(classroom.review!.pathway).toEqual(DEMO_PATHWAY);
+    expect(classroom.review!.groups).toBeUndefined();
+  });
+
+  it("pressing Create on it, from every stage: PS6 live now under the demo pathway, the stream from zero, Sam at his start with PS6 in To do, the draft cleared", () => {
+    for (const [name, s] of Object.entries(STARTS)) {
+      const r = create(apply("send", s));
+      expect(r.classroom.assignment?.pathway, name).toEqual(DEMO_PATHWAY);
+      expect(r.classroom.assignment?.problemIds, name).toEqual(ASSIGNMENT.problems.map((p) => p.id));
+      expect(r.classroom.assignment?.goal, name).toBe(ASSIGNMENT.goal);
+      expect([...(r.classroom.assignment?.newSkills ?? [])].sort(), name).toEqual([...ASSIGNMENT.newSkills].sort());
+      expect(r.classroom.assignment?.startedAt, name).toBe(now);
       expect(stage(r), name).toBe("working");
       expect(card(r), name).toMatchObject({ section: "live", status: "live", submitted: 0 });
       expect(studentClassroom(r.classroom, r.session, now).todo.map((k) => [k.id, k.action]), name).toEqual([["pset-6", "start"]]);
-      // A new lesson: nothing an earlier one left.
       for (const k of ["arrivals", "group", "diagnostics", "lessonEndedAt"] as const) expect(r.classroom[k], `${name} ${k}`).toBeUndefined();
-      expect([r.classroom.advance, r.classroom.wholeClass], name).toEqual([null, null]);
+      expect([r.classroom.draft, r.classroom.review], name).toEqual([null, null]);
       expect(board(r), name).toBe("blank");
     }
+    // Create waits for a pathway (ticket 246): a step with none chosen creates nothing.
+    const undecided = { ...ready.classroom, review: { ...ready.classroom.review!, pathway: null } };
+    expect(createAction(undecided)).toBeNull();
+    expect(created(undecided, now)).toBe(undecided);
   });
 
   it("students done is off before the set is sent and changes nothing there", () => {
     expect(canTeacherSkip("done", INITIAL_CLASSROOM)).toBe(false);
+    // Create's step filled in is not a set sent (ticket 272).
+    expect(canTeacherSkip("done", ready.classroom)).toBe(false);
+    expect(apply("done", ready)).toEqual(ready);
     expect(canTeacherSkip("send", INITIAL_CLASSROOM) && canTeacherSkip("completed", INITIAL_CLASSROOM)).toBe(true);
     for (const s of [working, indiv, group, classReview, completed]) expect(canTeacherSkip("done", s.classroom)).toBe(true);
     expect(apply("done", fresh)).toEqual(fresh);

@@ -11,6 +11,7 @@ import type { Pathway } from "@/data/types";
 import { LIVE_ASSIGNMENT_ID, recentSets } from "@/lib/assignments";
 import { RECENT_SETS } from "@/lib/newSkills";
 import { reviewNewSkills, type ReviewedQuestion, type ReviewState } from "@/lib/review";
+import { CREATE_BAR, CREATE_BAR_CLEARANCE } from "../createBar";
 
 /**
  * The pathway step, the last before Create: the set's New skills (inferred from the class's last two
@@ -54,7 +55,7 @@ export default function PathwayStep({
     setNudge((n) => n + 1);
   };
   return (
-    <div className="pb-24" data-pathway-step>
+    <div className={CREATE_BAR_CLEARANCE} data-pathway-step>
       <div className="mt-8 max-w-[980px] space-y-4">
         <NewSkills candidates={skills.candidates} chosen={skills.chosen} changed={skills.changed} onChange={(next) => onChange({ newSkills: next ?? undefined })} />
         <div ref={card} className="scroll-mb-40">
@@ -79,7 +80,7 @@ export default function PathwayStep({
           </div>
         </Card>
       )}
-      <div className="fixed bottom-16 right-6 z-30 flex items-center gap-3">
+      <div className={CREATE_BAR}>
         {waiting && (
           <span className="mr-1 text-[13px] text-ink-muted" data-create-waiting>
             Choose a review pathway first

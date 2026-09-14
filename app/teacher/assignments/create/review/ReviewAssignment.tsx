@@ -2,8 +2,7 @@
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
-import { assignmentHref, LIVE_ASSIGNMENT_ID, NEW_ASSIGNMENT_HREF, recentSets } from "@/lib/assignments";
-import { RECENT_SETS } from "@/lib/newSkills";
+import { assignmentHref, LIVE_ASSIGNMENT_ID, NEW_ASSIGNMENT_HREF } from "@/lib/assignments";
 import { useRouter } from "next/navigation";
 import TeacherChrome from "../../../TeacherChrome";
 import { BackToClassroom } from "../../../AssignmentContext";
@@ -16,7 +15,8 @@ import { Eyebrow, H1 } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
 import { dispatchClassroom, getClassroom, useClassroom } from "@/lib/classroom-store";
 import { moveItem } from "@/lib/reorder";
-import { applyReview, bankProblemsOf, reviewFor, reviewNewSkills, type ReviewState } from "@/lib/review";
+import { CLEAR_DRAFT, createAction } from "@/lib/create";
+import { applyReview, reviewFor, type ReviewState } from "@/lib/review";
 import { moveStudent, seatingOf } from "@/lib/seating";
 import { setSession } from "@/lib/store";
 import { INITIAL_SESSION } from "@/lib/session";
@@ -52,21 +52,10 @@ export default function ReviewAssignment({ assessMs }: { assessMs: number }) {
 
   const create = () => {
     // An undecided pathway never creates (ticket 246): the pathway step's Create answers by pointing at the card instead.
-    if (!draft || review.pathway === null) return;
-    const final = applyReview(questions, review);
-    dispatchClassroom({
-      type: "assignment/create",
-      id: LIVE_ASSIGNMENT_ID,
-      groups,
-      title: draft.title,
-      problemIds: bankProblemsOf(final).map((p) => p.id),
-      pathway: review.pathway,
-      newSkills: reviewNewSkills(final, review, recentSets(LIVE_ASSIGNMENT_ID, RECENT_SETS)).chosen,
-      goal: draft.goal ?? "",
-      questions: final,
-    });
-    dispatchClassroom({ type: "draft/set", draft: null });
-    dispatchClassroom({ type: "review/set", review: null });
+    const action = createAction(getClassroom());
+    if (!action) return;
+    dispatchClassroom(action);
+    for (const clear of CLEAR_DRAFT) dispatchClassroom(clear);
     // Sent: the set is in Sam's To do with his run at its start (ticket 264), whatever an earlier run left in the session.
     setSession(INITIAL_SESSION);
     router.push(assignmentHref(LIVE_ASSIGNMENT_ID));

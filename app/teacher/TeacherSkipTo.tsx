@@ -1,6 +1,8 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { canTeacherSkip, TEACHER_SKIP_LABEL, TEACHER_SKIP_TARGETS, teacherSkip, type TeacherSkipTarget } from "@/lib/demo";
+import { REVIEW_ASSIGNMENT_HREF } from "@/lib/assignments";
 import { getClassroom, useClassroom } from "@/lib/classroom-store";
 import { getSnapshot, refreshBatchedSession, setLesson } from "@/lib/store";
 
@@ -8,7 +10,9 @@ import { getSnapshot, refreshBatchedSession, setLesson } from "@/lib/store";
  * The teacher's presenter jumps (ticket 263): send assignment, students done with the current stage, activity completed.
  * Bottom-left in the teacher frame's presenter strip (`TeacherChrome`), outside the product's chrome and across from
  * "Reset demo", in the same dashed look as Sam's SKIP TO (`components/SkipTo.tsx`), so they read as demo controls. A
- * jump moves the whole lesson as one change (`teacherSkip`, `setLesson`), so the board and Sam's iPad move with it; the teacher stays on the screen they are on, which
+ * jump moves the whole lesson as one change (`teacherSkip`, `setLesson`), so the board and Sam's iPad move with it.
+ * "send assignment" takes the teacher to Create's last step, filled in and not yet sent, so the presenter shows the
+ * moment of sending by pressing Create (ticket 272); the other two leave the teacher on the screen they are on, which
  * re-renders from the new state. "students done" waits for a set to be sent.
  */
 function jump(t: TeacherSkipTarget) {
@@ -18,6 +22,7 @@ function jump(t: TeacherSkipTarget) {
 }
 
 export default function TeacherSkipTo() {
+  const router = useRouter();
   const classroom = useClassroom();
   return (
     <div className="flex min-w-0 items-center gap-1.5 rounded-full border border-dashed border-line-strong bg-paper/80 px-2 py-1 backdrop-blur" data-teacher-skip-to>
@@ -29,7 +34,10 @@ export default function TeacherSkipTo() {
             key={t}
             type="button"
             disabled={!enabled}
-            onClick={() => jump(t)}
+            onClick={() => {
+              jump(t);
+              if (t === "send") router.push(REVIEW_ASSIGNMENT_HREF);
+            }}
             data-teacher-skip={t}
             className="rounded-full px-2.5 py-1 text-[12px] text-ink-muted transition-colors enabled:hover:bg-cream-deep enabled:hover:text-ink disabled:cursor-default disabled:opacity-40"
           >
