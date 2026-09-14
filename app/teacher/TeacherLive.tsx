@@ -12,7 +12,7 @@ import { RowDrill, type ColumnBox, type RowMode } from "@/components/HierarchyDr
 import StatusKey from "@/components/StatusKey";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { useEscape } from "@/components/useEscape";
-import { StatusDot, STATUS_WORD } from "@/components/Tag";
+import { CategoryChip, StatusDot, STATUS_WORD } from "@/components/Tag";
 import { DEMO_STUDENT, unitLabel } from "@/data/assignment";
 import type { Classmate } from "@/data/classmates";
 import { CATEGORY_ORDER, categoryName, isFlat, type CategoryId, type LeafId } from "@/data/taxonomy";
@@ -467,7 +467,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
                   return (
                     <th key={c} className={`${HEAD} group/head select-none px-0 py-4 text-center font-semibold leading-tight ${openHere ? "text-ink" : ""}`} data-column={c} data-column-open={openHere ? column.level : undefined}>
                       <span className="relative inline-block">
-                        <span className={`inline-block whitespace-nowrap rounded-md px-2.5 py-1 text-[11px] group-hover/head:invisible group-focus-within/head:invisible ${openHere ? "bg-accent text-white" : "bg-standout-soft text-standout"}`}>{categoryName(c).short}</span>
+                        <CategoryChip open={openHere} className="group-hover/head:invisible group-focus-within/head:invisible">{categoryName(c).short}</CategoryChip>
                         <span className="invisible absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col gap-1 normal-case tracking-normal group-hover/head:visible group-focus-within/head:visible" data-column-controls={c}>
                           {levels.map(({ level, word }) => {
                             const active = openHere && column.level === level;

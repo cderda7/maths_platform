@@ -76,7 +76,7 @@ describe("Holistic Assessment's tiles (ticket 252)", () => {
           for (const t of g.tags) {
             expect(t.sets.length, `${id} ${t.label}`).toBeGreaterThanOrEqual(RECURRING_SETS);
             const onPage = new Set(view.habits.find((x) => x.category === g.category)!.habits.filter((h) => habitTagLabel(id, g.category, h.text) === t.label).flatMap((h) => h.refs.map((r) => r.label)));
-            expect(t.sets, `${id} ${t.label}`).toEqual(view.columns.map((c) => c.label).filter((l) => onPage.has(l)));
+            expect(t.sets, `${id} ${t.label}`).toEqual(view.sets.map((c) => c.label).filter((l) => onPage.has(l)));
           }
         // Every habit on two sets or more has its tag.
         for (const g of view.habits) {
@@ -116,7 +116,7 @@ describe("Holistic Assessment's tiles (ticket 252)", () => {
         const habitCats = t.habits.map((g) => g.category);
         expect(t.strengths.filter((s) => habitCats.includes(s.category)), t.student.id).toEqual([]);
         const view = holisticView(t.student.id, at)!;
-        for (const s of t.strengths) expect(view.rows.find((r) => r.category === s.category)!.cells.every((c) => c === "secure" || c === "none" || c === "absent" || c === "unseen")).toBe(true);
+        for (const s of t.strengths) expect(view.categories.find((r) => r.category === s.category)!.cells.every((c) => c === "secure" || c === "none" || c === "absent" || c === "unseen")).toBe(true);
       }
   });
 });

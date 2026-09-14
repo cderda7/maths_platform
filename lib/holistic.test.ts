@@ -29,8 +29,8 @@ describe("the holistic view (ticket 251)", () => {
   });
 
   it("shows the sets the Classroom holds, oldest first: PS1–PS5 before Create, PS1–PS6 after", () => {
-    expect(holisticView("mia", fresh)!.columns.map((c) => c.label)).toEqual(["PS1", "PS2", "PS3", "PS4", "PS5"]);
-    const cols = holisticView("mia", over)!.columns;
+    expect(holisticView("mia", fresh)!.sets.map((c) => c.label)).toEqual(["PS1", "PS2", "PS3", "PS4", "PS5"]);
+    const cols = holisticView("mia", over)!.sets;
     expect(cols.map((c) => c.label)).toEqual(["PS1", "PS2", "PS3", "PS4", "PS5", "PS6"]);
     expect(cols.map((c) => c.id)).toEqual(STORY_SETS.map((s) => s.id));
     expect(cols.map((c) => c.due)).toEqual(STORY_SETS.map((s) => s.due));
@@ -48,8 +48,8 @@ describe("the holistic view (ticket 251)", () => {
   it("every grid cell equals the story sheet for all twenty (Chloe absent on PS6), bar Sam's live Problem Set 6", () => {
     for (const id of everyone) {
       const v = holisticView(id, over)!;
-      expect(v.rows.map((r) => r.category), id).toEqual([...STORY_CATEGORIES]);
-      v.rows.forEach((r) =>
+      expect(v.categories.map((r) => r.category), id).toEqual([...STORY_CATEGORIES]);
+      v.categories.forEach((r) =>
         r.cells.forEach((cell, i) => {
           const story = STORY[id].cells[r.category][i].status;
           if (story === "live") return;
@@ -62,29 +62,29 @@ describe("the holistic view (ticket 251)", () => {
   it("Priya: secure wherever a set assesses the category, no habits", () => {
     for (const at of [fresh, over]) {
       const v = holisticView("priya", at)!;
-      for (const r of v.rows) for (const [i, cell] of r.cells.entries()) expect(cell, `${r.category} PS${i + 1}`).toBe(STORY_SETS[i].categories.includes(r.category) ? "secure" : "none");
+      for (const r of v.categories) for (const [i, cell] of r.cells.entries()) expect(cell, `${r.category} PS${i + 1}`).toBe(STORY_SETS[i].categories.includes(r.category) ? "secure" : "none");
       expect(v.habits).toEqual([]);
     }
   });
 
   it("Sam: Problem Set 6 is live, read from his session as the Class View reads it, with no habits from the sheet", () => {
     const v = holisticView("sam", over)!;
-    expect(v.columns[5]).toMatchObject({ label: "PS6", live: true });
+    expect(v.sets[5]).toMatchObject({ label: "PS6", live: true });
     const bundle = assignmentBundle(ASSIGNMENT.id, over.classroom)!;
     const classView = hierarchyFor(rosterEvidence(bundle, over.session, now).sam, bundle).categories;
-    for (const r of v.rows) expect(r.cells[5], r.category).toBe(classView[r.category] ?? "unseen");
-    expect(v.rows.some((r) => ["gap", "developing", "solid"].includes(r.cells[5]))).toBe(true);
+    for (const r of v.categories) expect(r.cells[5], r.category).toBe(classView[r.category] ?? "unseen");
+    expect(v.categories.some((r) => ["gap", "developing", "solid"].includes(r.cells[5]))).toBe(true);
     expect(v.habits.flatMap((g) => g.habits.flatMap((h) => h.refs)).some((ref) => ref.set === ASSIGNMENT.id)).toBe(false);
     // Before he has started, his live column reads not seen.
     const start = skipFixture("start", now);
     const early = holisticView("sam", { classroom: start.classroom, session: start.session, now })!;
-    expect(early.columns[5].live).toBe(true);
-    for (const r of early.rows) expect(r.cells[5]).toBe("unseen");
+    expect(early.sets[5].live).toBe(true);
+    for (const r of early.categories) expect(r.cells[5]).toBe("unseen");
   });
 
   it("Liam: the sets he missed read not seen, and his habits come only from the sets he handed in", () => {
     const v = holisticView("liam", over)!;
-    for (const i of [2, 4]) for (const r of v.rows) expect(r.cells[i], `${r.category} PS${i + 1}`).toBe(STORY_SETS[i].categories.includes(r.category) ? "unseen" : "none");
+    for (const i of [2, 4]) for (const r of v.categories) expect(r.cells[i], `${r.category} PS${i + 1}`).toBe(STORY_SETS[i].categories.includes(r.category) ? "unseen" : "none");
     const sets = new Set(v.habits.flatMap((g) => g.habits.flatMap((h) => h.refs.map((ref) => ref.label))));
     expect([...sets].sort()).toEqual(["PS1", "PS2", "PS4", "PS6"]);
   });
@@ -92,28 +92,28 @@ describe("the holistic view (ticket 251)", () => {
   it("Chloe: absent on Problem Set 6 once it is live (ticket 250): every assessed category reads absent, no PS6 habits; PS1–PS5 untouched", () => {
     const v = holisticView("chloe", over)!;
     expect(over.classroom!.absences?.[ASSIGNMENT.id]).toBeUndefined();
-    for (const r of v.rows) expect(r.cells[5], r.category).toBe("absent");
-    for (const r of v.rows) for (const i of [0, 1, 2, 3, 4]) expect(r.cells[i], `${r.category} PS${i + 1}`).not.toBe("absent");
+    for (const r of v.categories) expect(r.cells[5], r.category).toBe("absent");
+    for (const r of v.categories) for (const i of [0, 1, 2, 3, 4]) expect(r.cells[i], `${r.category} PS${i + 1}`).not.toBe("absent");
     expect(v.habits.flatMap((g) => g.habits.flatMap((h) => h.refs)).some((ref) => ref.label === "PS6")).toBe(false);
     // Before Create there is no PS6 column to be absent on.
-    expect(holisticView("chloe", fresh)!.rows.every((r) => !r.cells.includes("absent"))).toBe(true);
+    expect(holisticView("chloe", fresh)!.categories.every((r) => !r.cells.includes("absent"))).toBe(true);
   });
 
   it("follows the teacher's absence toggle on any set, as the Class View does", () => {
     // Chloe marked present on PS6: she has nothing handed in, so not seen.
     const present = classroomReducer(over.classroom!, { type: "absence/set", assignment: ASSIGNMENT.id, student: "chloe", absent: false });
     const back = holisticView("chloe", { ...over, classroom: present })!;
-    for (const r of back.rows) expect(r.cells[5], r.category).toBe("unseen");
+    for (const r of back.categories) expect(r.cells[5], r.category).toBe("unseen");
     // Tomas marked absent on PS4 (it assesses all six): absent in every row, his PS4 habits gone, the rest kept.
     const away = classroomReducer(over.classroom!, { type: "absence/set", assignment: "pset-4", student: "tomas", absent: true });
     const tomas = holisticView("tomas", { ...over, classroom: away })!;
-    for (const r of tomas.rows) expect(r.cells[3], r.category).toBe("absent");
+    for (const r of tomas.categories) expect(r.cells[3], r.category).toBe("absent");
     const labels = tomas.habits.flatMap((g) => g.habits.flatMap((h) => h.refs.map((ref) => ref.label)));
     expect(labels).not.toContain("PS4");
     expect(labels).toContain("PS5");
     // PS1 does not assess functions or graphing: those stay "—".
     const early = holisticView("mia", { ...over, classroom: classroomReducer(over.classroom!, { type: "absence/set", assignment: "pset-1", student: "mia", absent: true }) })!;
-    expect(early.rows.map((r) => r.cells[0])).toEqual(["absent", "none", "none", "absent", "absent", "absent"]);
+    expect(early.categories.map((r) => r.cells[0])).toEqual(["absent", "none", "none", "absent", "absent", "absent"]);
   });
 
   it("habits are grouped by category in canonical order, each with the set, its result and the problems, oldest set first", () => {
@@ -145,7 +145,7 @@ describe("the holistic view (ticket 251)", () => {
     const working = skipFixture("working", now);
     const justLive = { ...working.classroom, assignment: { ...working.classroom.assignment!, startedAt: now } };
     const v = holisticView("jordan", { classroom: justLive, session: working.session, now })!;
-    for (const r of v.rows) expect(r.cells[5], r.category).toBe("unseen");
+    for (const r of v.categories) expect(r.cells[5], r.category).toBe("unseen");
     expect(v.habits.flatMap((g) => g.habits.flatMap((h) => h.refs)).some((ref) => ref.label === "PS6")).toBe(false);
   });
 

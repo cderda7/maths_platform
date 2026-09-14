@@ -3357,6 +3357,11 @@ uploaded problems) settled the following as later, each on purpose.
 - **A student marked absent who then hands in** (live set) being brought back automatically, or a prompt to. Deferred: the teacher's mark stands until they press mark present (no system-decides).
 - **An "absent" override for a handed-in student** (a teacher who wants a submission left out of the counts, e.g. work done at home while away). Deferred: not asked for; the disabled button is the guard.
 
+## Holistic grid turned (ticket 269, 2026-09-14)
+
+- **A category chip on the holistic grid that opens that category across the sets** (its skills per set, as Class View's "see skills"): the user asked only for the look; deferred until a teacher needs a drill on this page.
+- **Sort or filter the set rows** (newest first, or only sets that assess a category): six sets fit on one screen today; with a term of sets the grid will want newest first or a scroll with a sticky head.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

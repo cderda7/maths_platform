@@ -3,24 +3,25 @@
 import Link from "next/link";
 import TeacherChrome from "../TeacherChrome";
 import { BackButton } from "../AssignmentContext";
-import { StatusDot } from "@/components/Tag";
+import { CategoryChip, StatusDot } from "@/components/Tag";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
+import { categoryName } from "@/data/taxonomy";
 import type { Status } from "@/data/types";
 import { assignmentHref, assignmentReportHref, HOLISTIC_HREF, holisticHref } from "@/lib/assignments";
 import { useClassroom } from "@/lib/classroom-store";
-import { holisticView, type HabitRef, type HolisticColumn, type HolisticStatus, type HolisticView } from "@/lib/holistic";
+import { holisticView, type HabitRef, type HolisticSet, type HolisticStatus, type HolisticView } from "@/lib/holistic";
 import { useBatchedSession, useNow } from "@/lib/store";
 
 /**
- * A student across every set (ticket 251): the story sheet's line for them, the category × set grid, and the
- * habits behind every result short of secure under their category, each naming its set and problems and opening
- * that working on the set's report. A set's column header opens the student's report on that set.
+ * A student across every set (ticket 251): the story sheet's line for them, the set × category grid (sets down since
+ * ticket 269), and the habits behind every result short of secure under their category, each naming its set and
+ * problems and opening that working on the set's report. A set's row head opens the student's report on that set.
  *
  * One page, two routes: `/teacher/students/<id>` (Back to Holistic Assessment's tiles, ticket 252) and
  * `/teacher/a/<set>/students/<id>` (`set`: Back to that set's Class View, under its tabs). Only Back differs.
  * The live set is read as its Class View reads it (`lib/holistic.ts`): the classroom, Sam's session in its 3 s
- * batches and the clock; until those have arrived the grid and habits wait, so the live column never flashes in.
+ * batches and the clock; until those have arrived the grid and habits wait, so the live row never flashes in.
  */
 export default function HolisticPage({ student, set }: { student: string; set?: string }) {
   const classroom = useClassroom();
@@ -61,44 +62,48 @@ export default function HolisticPage({ student, set }: { student: string; set?: 
   );
 }
 
-/** The category column's width, layout px: "Communication" at 17 px with room either side. */
-const CATEGORY_COL = 220;
+/** The set column's width, layout px: "PS6 Thu 10 Sep · live" and the longest topic on one line, with its padding. */
+const SET_COL = 400;
 
 /**
- * Every set column pads 6 px left and 18 px right (its header 0 and 12, its link 6 inside), so every chip is one width,
- * the header's label starts over its chips, and the last chip ends near the card's edge as the category names start from theirs.
+ * Sets down, categories across (ticket 269; ticket 251 had them the other way). Each category heads its column with
+ * the Class View's chip, centred over its cells; every cell pads 12 px a side, so every result is one width. A set's
+ * head pads 18 px left and its link 6 inside, so "PS1" starts where "SET" does.
  */
 function Grid({ view, from }: { view: HolisticView; from: string }) {
   return (
     <Card className="mt-9 overflow-clip" data-holistic-grid>
       <table className="w-full table-fixed border-collapse text-left">
         <colgroup>
-          <col style={{ width: CATEGORY_COL }} />
-          {view.columns.map((c) => (
-            <col key={c.id} />
+          <col style={{ width: SET_COL }} />
+          {view.categories.map((c) => (
+            <col key={c.category} />
           ))}
         </colgroup>
         <thead>
           <tr className="border-b border-line">
-            <th className="px-6 py-4 align-bottom">
-              <Eyebrow>Category</Eyebrow>
+            <th className="px-6 py-4 align-middle">
+              <Eyebrow>Set</Eyebrow>
             </th>
-            {view.columns.map((c) => (
-              <th key={c.id} className="py-1.5 pr-3 align-top font-normal">
-                <SetHead column={c} href={assignmentReportHref(c.id, view.student.id, { from })} />
+            {view.categories.map((c) => (
+              <th key={c.category} className="px-3 py-4 text-center align-middle" data-category-head={c.category}>
+                {/* A flex box, so the chip centres on the row as a block does, level with "SET", not on a text baseline. */}
+                <div className="flex justify-center">
+                  <CategoryChip>{categoryName(c.category).short}</CategoryChip>
+                </div>
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {view.rows.map((r) => (
-            <tr key={r.category} className="border-b border-line last:border-b-0" data-holistic-row={r.category}>
-              <th scope="row" className="px-6 py-3 text-[17px] font-medium text-ink">
-                {r.name}
+          {view.sets.map((set, j) => (
+            <tr key={set.id} className="border-b border-line last:border-b-0" data-holistic-row={set.id}>
+              <th scope="row" className="py-1.5 pr-3 pl-4.5 align-middle font-normal">
+                <SetHead set={set} href={assignmentReportHref(set.id, view.student.id, { from })} />
               </th>
-              {r.cells.map((status, i) => (
-                <td key={view.columns[i].id} className="py-3 pr-4.5 pl-1.5" data-cell={`${r.category}:${view.columns[i].id}`} data-cell-status={status}>
-                  <Cell status={status} />
+              {view.categories.map((c) => (
+                <td key={c.category} className="px-3 py-3" data-cell={`${c.category}:${set.id}`} data-cell-status={c.cells[j]}>
+                  <Cell status={c.cells[j]} />
                 </td>
               ))}
             </tr>
@@ -109,26 +114,26 @@ function Grid({ view, from }: { view: HolisticView; from: string }) {
   );
 }
 
-/** A set's header: its label and day, its topic in two lines at most, "live" on Sam's live set; the whole head opens the student's report on the set. */
-function SetHead({ column, href }: { column: HolisticColumn; href: string }) {
+/** A set's head: its label and day, its topic in two lines at most, "live" on Sam's live set; the whole head opens the student's report on the set. */
+function SetHead({ set, href }: { set: HolisticSet; href: string }) {
   return (
     <Link
       href={href}
       className="group block rounded-xl px-1.5 py-2.5 transition-colors hover:bg-accent-soft focus-visible:outline-2 focus-visible:outline-accent"
-      aria-label={`${column.label}, ${column.topic}: open the report on this set`}
-      data-set-head={column.id}
+      aria-label={`${set.label}, ${set.topic}: open the report on this set`}
+      data-set-head={set.id}
     >
       <span className="flex items-baseline gap-2 whitespace-nowrap">
-        <span className="font-display text-[24px] leading-none text-accent-deep">{column.label}</span>
-        <span className="text-[13.5px] text-ink-muted">{column.due}</span>
-        {column.live && (
+        <span className="font-display text-[24px] leading-none text-accent-deep">{set.label}</span>
+        <span className="text-[13.5px] text-ink-muted">{set.due}</span>
+        {set.live && (
           <span className="ml-auto inline-flex items-center gap-1 self-center rounded-full border border-accent-line bg-paper px-2 py-0.5 text-[12px] font-medium text-accent-deep" data-live-pill>
             <span aria-hidden className="live-dot h-1.5 w-1.5 rounded-full bg-accent" />
             live
           </span>
         )}
       </span>
-      <span className="mt-1.5 line-clamp-2 min-h-[2lh] text-[14px] leading-snug text-ink-soft group-hover:text-ink">{column.topic}</span>
+      <span className="mt-1.5 line-clamp-2 text-[14px] leading-snug text-ink-soft group-hover:text-ink">{set.topic}</span>
     </Link>
   );
 }

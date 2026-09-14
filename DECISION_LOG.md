@@ -4615,3 +4615,15 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** A disabled control on most rows of a finished set shows on hover. A student marked absent before handing in (then handing in on the live set) stays absent until the teacher presses mark present. A dispatch from outside the roster could still mark a handed-in student absent.
 
 **Defense.** The ask is to disable; the grey button with its reason explains itself, the one way in is guarded with the same progress the row already shows, and undo is never blocked.
+
+## 2026-09-14 · The holistic view names its axes by content: `sets` and `categories` (ticket 269)
+
+**Decision.** With the grid turned (sets down, categories across), `HolisticView.columns` and `rows` are renamed `sets` (`HolisticSet`) and `categories` (`HolisticCategory`); each category still carries one cell per set. The page reads `categories[k].cells[j]` for set `j`. The category chip is extracted to `CategoryChip` and used by Class View and the holistic grid.
+
+**Context.** User 2026-09-14: "swap rows for columns & columns for rows", and the category headers should look like Class View's chips. The model's field names described the old drawing.
+
+**Alternatives considered.** *Keep the names and transpose only in the page*: `view.columns` would mean the page's rows, a trap for the next edit. *Transpose the model too (cells per set)*: the tiles' strengths and the tests read per category, so they would each re-transpose. *Copy the chip's classes into the page*: two copies drift.
+
+**Tradeoffs.** A rename across five files for a presentational change; the chip now sets its own type, so on Class View it no longer inherits from the head row (tracking written as 0.6 px, the head's computed 0.06 em at 10 px, so nothing moved).
+
+**Defense.** Names that say what they hold survive the next re-layout, and one chip means "looks like Class View's" stays true.

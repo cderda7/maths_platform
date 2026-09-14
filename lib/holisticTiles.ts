@@ -55,7 +55,7 @@ export function holisticTiles(at: HolisticNow): HolisticTile[] {
 export function holisticTile(student: string, at: HolisticNow): HolisticTile | null {
   const view = holisticView(student, at);
   if (!view) return null;
-  const order = view.columns.map((c) => c.label);
+  const order = view.sets.map((c) => c.label);
 
   const habits: TileHabits[] = view.habits.flatMap((g) => {
     const byTag = new Map<string, Set<string>>();
@@ -72,8 +72,8 @@ export function holisticTile(student: string, at: HolisticNow): HolisticTile | n
     return tags.length ? [{ category: g.category, name: g.name, tags }] : [];
   });
 
-  const strengths = view.rows.flatMap((r) => {
-    const results = r.cells.filter((cell, j) => !(cell === "none" || cell === "absent" || (cell === "unseen" && !view.columns[j].finished)));
+  const strengths = view.categories.flatMap((r) => {
+    const results = r.cells.filter((cell, j) => !(cell === "none" || cell === "absent" || (cell === "unseen" && !view.sets[j].finished)));
     return results.length > 0 && results.every((cell) => cell === "secure") ? [{ category: r.category, name: r.name }] : [];
   });
 

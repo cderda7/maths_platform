@@ -26,7 +26,7 @@ import type { StudentSession } from "./session";
  */
 export type HolisticStatus = Status | "absent" | "none";
 
-export interface HolisticColumn {
+export interface HolisticSet {
   /** The set's id (`pset-4`): its per-assignment report and Class View. */
   id: string;
   /** "PS4". */
@@ -41,10 +41,10 @@ export interface HolisticColumn {
   finished: boolean;
 }
 
-export interface HolisticRow {
+export interface HolisticCategory {
   category: StoryCategory;
   name: string;
-  /** One per column, in the columns' order. */
+  /** One per set, in the sets' order. */
   cells: HolisticStatus[];
 }
 
@@ -72,8 +72,10 @@ export interface HolisticView {
   student: { id: string; name: string; initials: string };
   /** The story sheet's line for the student. */
   summary: string;
-  columns: HolisticColumn[];
-  rows: HolisticRow[];
+  /** The sets the Classroom holds, oldest first: the grid's rows (ticket 269). */
+  sets: HolisticSet[];
+  /** Every story category in canonical order, each with its cell per set: the grid's columns (ticket 269). */
+  categories: HolisticCategory[];
   /** Categories with a habit, in canonical order; none for a student secure everywhere. */
   habits: HabitGroup[];
 }
@@ -97,13 +99,13 @@ export function holisticView(student: string, { classroom, session, now }: Holis
   if (!isHolisticStudent(student)) return null;
   const row = STORY[student];
   const who = student === DEMO_STUDENT.id ? DEMO_STUDENT : CLASSMATE_MAP[student];
-  const sets = STORY_SETS.flatMap((s) => {
+  const bundles = STORY_SETS.flatMap((s) => {
     const bundle = assignmentBundle(s.id, classroom);
     return bundle ? [{ story: s, bundle }] : [];
   });
 
   /** Each set's cell and habits for the student. */
-  const read = sets.map(({ story, bundle }) => {
+  const read = bundles.map(({ story, bundle }) => {
     const i = story.n - 1;
     if (bundle.absent.includes(student)) return STORY_CATEGORIES.map((c) => ({ status: (categoriesTouched(bundle).includes(c) ? "absent" : "none") as HolisticStatus, habits: [] }));
     if (bundle.kind === "finished") {
@@ -117,8 +119,8 @@ export function holisticView(student: string, { classroom, session, now }: Holis
     return liveCells(bundle, student, i, { classroom, session, now });
   });
 
-  const columns: HolisticColumn[] = sets.map(({ story, bundle }) => ({ id: bundle.id, label: `PS${story.n}`, topic: topicOf(bundle.name), due: bundle.due, live: bundle.kind === "live" && student === DEMO_STUDENT.id, finished: bundle.kind === "finished" }));
-  const rows: HolisticRow[] = STORY_CATEGORIES.map((c, k) => ({ category: c, name: categoryName(c).name, cells: read.map((cells) => cells[k].status) }));
+  const sets: HolisticSet[] = bundles.map(({ story, bundle }) => ({ id: bundle.id, label: `PS${story.n}`, topic: topicOf(bundle.name), due: bundle.due, live: bundle.kind === "live" && student === DEMO_STUDENT.id, finished: bundle.kind === "finished" }));
+  const categories: HolisticCategory[] = STORY_CATEGORIES.map((c, k) => ({ category: c, name: categoryName(c).name, cells: read.map((cells) => cells[k].status) }));
 
   const habits: HabitGroup[] = STORY_CATEGORIES.flatMap((c, k) => {
     const out: HolisticHabit[] = [];
@@ -127,7 +129,7 @@ export function holisticView(student: string, { classroom, session, now }: Holis
       if (!SHORT.includes(status as Status)) return;
       for (const h of hs) {
         if (h.problems.length === 0) continue;
-        const ref: HabitRef = { set: columns[j].id, label: columns[j].label, status: status as Status, problems: h.problems };
+        const ref: HabitRef = { set: sets[j].id, label: sets[j].label, status: status as Status, problems: h.problems };
         const same = out.find((x) => x.text === h.text);
         if (same) same.refs.push(ref);
         else out.push({ text: h.text, refs: [ref] });
@@ -136,7 +138,7 @@ export function holisticView(student: string, { classroom, session, now }: Holis
     return out.length ? [{ category: c, name: categoryName(c).name, habits: out }] : [];
   });
 
-  return { student: { id: student, name: who.name, initials: who.initials }, summary: row.arc, columns, rows, habits };
+  return { student: { id: student, name: who.name, initials: who.initials }, summary: row.arc, sets, categories, habits };
 }
 
 /** Problem `n` (Q1 = 1) of a set as the set holds it: its id and label; none when the set does not hold it (a created set without that problem). */
