@@ -154,6 +154,29 @@ describe("whole-class session", () => {
     expect(c.advance).toBeNull();
     expect(classroomReducer(c, { type: "reset" }).wholeClass).toBeNull();
   });
+
+  it("covers the problems the board actually showed, once class review is over (ticket 282)", async () => {
+    const { boardCovered } = await import("./classroom");
+    // Nothing set up, set up, projected: class review has not happened yet.
+    expect(boardCovered(INITIAL_CLASSROOM)).toBeNull();
+    let c = setup();
+    expect(boardCovered(c)).toBeNull();
+    c = classroomReducer(c, { type: "wc/project", at: 1 });
+    expect(c.wholeClass?.reached).toBe(0);
+    expect(boardCovered(c)).toBeNull();
+    // Ended on the first slide: only the first problem was on the board.
+    expect(boardCovered(classroomReducer(c, { type: "wc/end" }))).toEqual(["q3"]);
+    // Next, back and forward again: the furthest slide counts, a step back never uncovers one.
+    c = classroomReducer(c, { type: "wc/next" });
+    c = classroomReducer(c, { type: "wc/prev" });
+    c = classroomReducer(c, { type: "wc/prev" });
+    expect(c.wholeClass).toMatchObject({ slide: 0, reached: 1 });
+    expect(boardCovered(classroomReducer(c, { type: "wc/end" }))).toEqual(["q3", "q2"]);
+    c = classroomReducer(classroomReducer(c, { type: "wc/next" }), { type: "wc/next" });
+    expect(boardCovered(classroomReducer(c, { type: "wc/end" }))).toEqual(["q3", "q2", "q1"]);
+    // Ended without ever being projected: nothing was on the board.
+    expect(boardCovered(classroomReducer(setup(), { type: "wc/end" }))).toBeNull();
+  });
 });
 
 describe("whole-class follow modes and the teacher's pad", () => {

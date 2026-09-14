@@ -264,8 +264,12 @@ function completeLesson(c: ClassroomState, session: StudentSession | null, now: 
   let next: ClassroomState = { ...streamOver(sent, now), advance: null, lessonEndedAt: sent.lessonEndedAt ?? now };
   if (pathway.includes("group")) next = { ...throughGate(next, now), group: groupOver(sent, sam, now) };
   if (pathway.includes("whole-class")) {
+    // Class review run to its end (ticket 282): set up if it was not, projected if it was not, every slide shown, then ended,
+    // so the report's "Covered in class review" reads every projected problem. A class review already ended stands.
     if (!next.wholeClass) next = classroomReducer(next, suggestedSetup(sam, liveAbsent(next)));
-    next = classroomReducer(next, { type: "wc/end" });
+    if (next.wholeClass?.status === "setup") next = classroomReducer(next, { type: "wc/project", at: now - GRACE_MS - 1000 });
+    while (next.wholeClass?.status === "active" && next.wholeClass.slide < next.wholeClass.problems.length - 1) next = classroomReducer(next, { type: "wc/next" });
+    if (next.wholeClass?.status === "active") next = classroomReducer(next, { type: "wc/end" });
   }
   return { classroom: next, session: sam };
 }

@@ -193,6 +193,16 @@ export const SkillTree = forwardRef<HTMLUListElement, TreeProps>(function SkillT
 export function ProblemWork({ problem: p, texs, leaf = null, onGoTo, student = false, narrow = false }: { problem: Problem; texs: string[]; leaf?: LeafId | null; onGoTo: (l: LeafId) => void; student?: boolean; narrow?: boolean }) {
   return (
     <section className="rounded-xl border border-line bg-paper p-3" data-work-problem={p.id}>
+      <ProblemHead problem={p} student={student} />
+      <WorkLines problem={p.id} texs={texs} leaf={leaf} onGoTo={onGoTo} student={student} narrow={narrow} />
+    </section>
+  );
+}
+
+/** A problem's label (with its difficulty tag, teacher side only) and its whole question beneath: `ProblemWork`'s head, and the student report's (ticket 282). */
+export function ProblemHead({ problem: p, student = false }: { problem: Problem; student?: boolean }) {
+  return (
+    <>
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
         <span className="font-display text-[16px] text-ink">{p.label}</span>
         {!student && <DifficultyTag d={p.difficulty} />}
@@ -201,8 +211,7 @@ export function ProblemWork({ problem: p, texs, leaf = null, onGoTo, student = f
       <p className="mt-1 min-w-0 text-[12.5px] leading-snug text-ink" data-work-problem-question={p.id}>
         <ProblemQuestion problem={p} mathClass="text-[13px]" />
       </p>
-      <WorkLines problem={p.id} texs={texs} leaf={leaf} onGoTo={onGoTo} student={student} narrow={narrow} />
-    </section>
+    </>
   );
 }
 
@@ -210,10 +219,11 @@ export function ProblemWork({ problem: p, texs, leaf = null, onGoTo, student = f
  * One version's lines, marked: red on a step that didn't hold, blue on a curated standout, a left rule on lines
  * tagged to `leaf`, and a ⚠ chip on a red line whose mistake belongs to another skill. `narrow` fits each line to
  * its column (maths never splits) and puts the chip under the line. Shared by `ProblemWork` and the teacher's
- * version columns (ticket 243).
+ * version columns (ticket 243). `unmarked` (ticket 282, class review's examples as the board first shows them): every line
+ * plain, no red, blue, skill rule or chip.
  */
-export function WorkLines({ problem, texs, leaf = null, onGoTo, student = false, narrow = false }: { problem: string; texs: string[]; leaf?: LeafId | null; onGoTo: (l: LeafId) => void; student?: boolean; narrow?: boolean }) {
-  const marks = lineMarks(problem, texs);
+export function WorkLines({ problem, texs, leaf = null, onGoTo, student = false, narrow = false, unmarked = false }: { problem: string; texs: string[]; leaf?: LeafId | null; onGoTo: (l: LeafId) => void; student?: boolean; narrow?: boolean; unmarked?: boolean }) {
+  const marks = unmarked ? texs.map(() => null) : lineMarks(problem, texs);
   if (texs.length === 0)
     return (
       <p className="mt-2 text-[12.5px] text-ink-muted" data-not-attempted>
@@ -224,9 +234,9 @@ export function WorkLines({ problem, texs, leaf = null, onGoTo, student = false,
     <ol className="mt-2 space-y-1.5">
       {texs.map((tex, i) => {
         const v = evaluateLine(problem, tex);
-        const tagged = leaf !== null && v.verdict !== "unclear" && v.tags.some((t) => t.leaf === leaf);
+        const tagged = !unmarked && leaf !== null && v.verdict !== "unclear" && v.tags.some((t) => t.leaf === leaf);
         const mark = marks[i];
-        const blamed = v.verdict === "wrong" && v.tags[0].leaf !== leaf ? v.tags[0].leaf : null;
+        const blamed = !unmarked && v.verdict === "wrong" && v.tags[0].leaf !== leaf ? v.tags[0].leaf : null;
         return (
           <li
             key={i}

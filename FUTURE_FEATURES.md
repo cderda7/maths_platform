@@ -1311,8 +1311,20 @@ uploaded problems) settled the following as later, each on purpose.
 - **Pens on Sam's board**: Liam now writes his own Q5; Jordan holds the pen twice, Sam and Zara three times. A fairer spread was not asked for.
 - **Harper as mint's only helper on Q10, three sets running.** Sets 2–4 each needed a status-safe repeated slip at a table with one helper; a class with more variety in who cannot do the last problem would need more authored work.
 - **Class review picks** take the class's most common slip first, from a table that left the problem unsolved; the teacher's own choice on the live set (ticket 282) may differ, and a rule for picking a contrasting second example is open.
-- **Report fit at 1280×800 on main.** Every teacher report scrolls 35–39 px on main before this ticket (measured on main's server while re-running ticket 244's click-through); ticket 268 had them fitting. Not caused by the data; left for a layout ticket.
 - **Regenerating review data** runs through a one-off generator (the rule plus hand-written last tries); a checked-in `npm run review:data` would make the next data change cheaper.
+
+## Report: not attempted and covered in class review (ticket 282, 2026-09-15)
+
+- **An "incomplete" word on an unfinished first submission.** Sam's Q9 now sits where its later versions put it, but its First submission pane shows only the lines; a *not finished* marker (as *not attempted* has) was not asked for.
+- **Homework for an unfinished problem.** `everWrong` (`lib/homework.ts`) still sends only problems with a wrong line or nothing written; Sam's unfinished Q9 stays out of his homework bank.
+- **The covered column during class review.** On the live set the column appears at the board's End; showing the covered problems slide by slide while the teacher is at the board was left out (tiles would move under a teacher reading a report).
+- **Covered for a student absent from group review.** A problem class review covered stays Incorrect for a student whose group never took it on (absent that day); whether class review covers them too is open.
+- **Covered on a pathway without group review.** With no group stage, any problem still wrong that class review showed is covered; no set has such a pathway, so it is covered by a unit test only, and whether that reads right to a teacher is untried.
+- **Which examples the report shows.** The Class review pane shows every example the board showed, the correct working included when the teacher chose it; marking which one is the student's own approach (the frozen screen's "your approach") was not asked for.
+- **A student's own report scrolling inside long working.** Sam's side column stacks up to four versions and scrolls inside when they run past Send (ticket 233's rule); fitting them without a scroll was not asked for.
+- **The report's column floors as measured widths.** Label and note floors are constants checked by the click-through; measuring text at run time would survive a font or wording change.
+- **An earlier set's report opened from history still scrolls at 1280×800.** The report shown inside a later set's Class View (`?report=…&student=…`, ticket 237) carries its pulsing Return button above the eyebrow, so with this ticket's fix it still scrolls 42–44 px (the fix here took about 44 px off it too). Fitting it means moving or shrinking that button, which ticket 237 placed; left for its own ticket.
+- **Escape on Sam's report from a script.** A synthetic `keydown` on `document` (no bubbling) does not close his working though it closes the teacher's; real key presses do (ticket 247). Not investigated further.
 
 ## Carson's notes
 

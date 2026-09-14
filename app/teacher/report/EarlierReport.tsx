@@ -15,7 +15,7 @@ import { historyReturnHref } from "@/lib/setHistory";
 export default function EarlierReport({ earlier, student }: { earlier: AssignmentBundle; student: string }) {
   const current = useAssignmentBundle();
   return (
-    <TeacherChrome zoom={REPORT_ZOOM}>
+    <TeacherChrome zoom={REPORT_ZOOM} fill>
       <div data-earlier-report={earlier.id}>
         <AssignmentContext.Provider value={earlier}>
           <ReportBody student={student} back={{ href: historyReturnHref(current.id, student), label: `Return to ${psetName(current.name)}` }} />

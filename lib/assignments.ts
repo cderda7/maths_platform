@@ -14,6 +14,7 @@ import type { StudentSession } from "./session";
 import { chainPauses } from "./diagnosticChain";
 import { classmatesAt, type StreamPause } from "./stream";
 import { absentOf, presentCount } from "./absence";
+import { liveClassReview, recordedClassReview, type ClassReviewShown } from "./report";
 
 /**
  * The assignments (ticket 185): every set the teacher's Classroom holds, by id, and everything a
@@ -207,6 +208,15 @@ export function assignmentStages(b: AssignmentBundle, c: ClassroomState | null |
     return ids.map((id) => ({ id, word: CLASS_STAGE_WORD[id], state: "over", done: null, total: classSize(b) }));
   }
   return classStages(c, session, now, b);
+}
+
+/**
+ * What class review covered on a set, for its reports (ticket 282): a finished set's record (`FinishedSet.classReview`), the
+ * live set's board once class review is over (`liveClassReview`); null when the set has had no class review.
+ */
+export function setClassReview(b: Pick<AssignmentBundle, "id" | "kind">, c: ClassroomState | null | undefined, session: StudentSession | null): ClassReviewShown | null {
+  if (b.kind === "finished") return recordedClassReview(FINISHED_SETS.find((s) => s.fixture.id === b.id)?.classReview);
+  return liveClassReview(c, session);
 }
 
 /** The stage the set is on, or null once every stage is over. */

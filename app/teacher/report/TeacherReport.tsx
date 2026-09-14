@@ -2,11 +2,12 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
-import { assignmentHref, assignmentStages, studentRecord } from "@/lib/assignments";
+import { assignmentHref, assignmentStages, setClassReview, studentRecord } from "@/lib/assignments";
 import TeacherChrome, { TEACHER_ZOOM } from "../TeacherChrome";
 import { WorkLines, WorkPanel } from "@/components/HierarchyDrill";
 import ProblemQuestion from "@/components/ProblemQuestion";
 import OutcomeTiles from "@/components/OutcomeTiles";
+import ClassReviewExamples from "@/components/ClassReviewExamples";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import SkillColumns from "@/components/SkillColumns";
 import StatusKey from "@/components/StatusKey";
@@ -15,7 +16,7 @@ import { DEMO_STUDENT } from "@/data/assignment";
 import { groupName, type LeafId } from "@/data/taxonomy";
 import { useClassroom } from "@/lib/classroom-store";
 import { commentaryFor } from "@/lib/commentary";
-import { columnsOf, labelSentence, OUTCOME_LABEL, outcomeOf, recordReviews, reportFacts, reviewStagesOver, sessionReviews, shownVersions, unsolvedOf, type Reviews, type ShownVersion } from "@/lib/report";
+import { columnsOf, labelSentence, OUTCOME_LABEL, outcomeOf, recordReviews, reportFacts, reportPathway, reviewStagesOver, sessionReviews, shownVersions, type OutcomeColumn, type Reviews, type ShownVersion } from "@/lib/report";
 import { pressWork, type ReportWork } from "@/lib/reportWork";
 import { classmateEvidence, hierarchyFor, leavesBehind, restrictTo, sessionEvidence, type Evidence } from "@/lib/hierarchy";
 import { useBatchedSession, useNow } from "@/lib/store";
@@ -43,7 +44,7 @@ export const REPORT_ZOOM = TEACHER_ZOOM * 1.25;
 
 export default function TeacherReport({ student, work = null, from = null }: { student: string | null; work?: string | null; from?: string | null }) {
   return (
-    <TeacherChrome zoom={REPORT_ZOOM}>
+    <TeacherChrome zoom={REPORT_ZOOM} fill>
       <ReportBody student={student} work={work} from={from} />
     </TeacherChrome>
   );
@@ -60,7 +61,7 @@ export function ReportBody({ student, back, work: initialWork = null, from = nul
   const assignment = useAssignmentBundle();
   const classroom = useClassroom();
   const now = useNow();
-  const { problems, pathway } = assignment;
+  const { problems } = assignment;
   // The set's record of the student: a classmate's, or Sam's on a finished set; none for Sam on the live set, who is his session.
   const classmate = studentRecord(assignment, student ?? DEMO_STUDENT.id) ?? assignment.sam ?? undefined;
   const who = classmate ?? DEMO_STUDENT;
@@ -77,9 +78,11 @@ export function ReportBody({ student, back, work: initialWork = null, from = nul
   const nothing = live && !session;
   // A record shows a review stage's versions once the class has finished that stage (ticket 244): all of them on a finished set.
   const over = reviewStagesOver(assignmentStages(assignment, classroom, session, now));
-  const reviews: Reviews = classmate ? recordReviews(classmate, problems, over) : session ? sessionReviews(session, classroom.group, problems) : {};
+  // What class review covered (ticket 282): a finished set's record, the live set's board once class review is over; its column shows only then.
+  const classReview = setClassReview(assignment, classroom, session);
+  const pathway = reportPathway(assignment.pathway, classReview);
+  const reviews: Reviews = classmate ? recordReviews(classmate, problems, over, classReview) : session ? sessionReviews(session, classroom.group, problems, classReview) : {};
   const columns = columnsOf(reviews, pathway, problems);
-  const unsolved = unsolvedOf(reviews, pathway, problems);
   const openProblem = work?.kind === "problem" ? problems.find((p) => p.id === work.id) : undefined;
   // The line under the tiles: how sure they were before starting, and on the live set what practice and caution the run brought.
   const notes = nothing ? [] : [classmate ? labelSentence(classmate.confidence) : facts!.confidence, ...(facts?.practices ?? [])];
@@ -188,15 +191,7 @@ export function ReportBody({ student, back, work: initialWork = null, from = nul
                     <div className="flex items-start justify-between gap-4">
                       {openProblem ? (
                         <div className="min-w-0">
-                          {/* Not solved in group review sits beside the outcome, not under the versions, so a long problem's working still fits (ticket 244). */}
-                          <div className="flex items-baseline gap-2">
-                            <Eyebrow>{OUTCOME_LABEL[outcomeOf(openProblem.id, reviews[openProblem.id], pathway)]}</Eyebrow>
-                            {unsolved.some((p) => p.id === openProblem.id) && (
-                              <span className="text-[12px] text-ink-muted" data-work-unsolved>
-                                · Not solved in group review
-                              </span>
-                            )}
-                          </div>
+                          <Eyebrow>{OUTCOME_LABEL[outcomeOf(openProblem.id, reviews[openProblem.id], pathway)]}</Eyebrow>
                           <div className="mt-2 flex min-w-0 items-baseline gap-2.5">
                             <span className="shrink-0 font-display text-[18px] text-ink">{openProblem.label}</span>
                             <span className="shrink-0 self-center">
@@ -250,13 +245,12 @@ export function ReportBody({ student, back, work: initialWork = null, from = nul
             ) : (
               <OutcomeTiles
                 columns={columns}
-                unsolved={unsolved}
                 open={work?.kind === "problem" ? work.id : null}
                 onPress={(id) => setWork((w) => pressWork(w, { kind: "problem", id }))}
                 describe={() => "see their working"}
                 starred={live && session ? session.stars : []}
                 lit={chosen ? chosen.problems : null}
-                noteFloor={teacherNoteFloor(unsolved.length)}
+                noteFloor={teacherNoteFloor}
                 noteInLabel
               />
             )}
@@ -313,13 +307,18 @@ export function ReportBody({ student, back, work: initialWork = null, from = nul
 }
 
 /**
- * Incorrect's narrowest with the not-solved note, which sits on its second label line so the card is no taller (ticket 244):
- * wide enough for "Q7 not solved in group review" on one line, and one "Q7, " wider for each further problem.
+ * A column's narrowest with the not-attempted note, which sits on its second label line so the card is no taller (tickets 244,
+ * 282): the label itself on one line (its measured width at 12 px, `LABEL_WIDTH`), and "Q10 not attempted" with one "Q10, "
+ * more for each further problem.
  */
-const teacherNoteFloor = (unsolved: number): number => 190 + 28 * Math.max(0, unsolved - 1);
+const LABEL_WIDTH: Record<OutcomeColumn["id"], number> = { first: 100, individual: 184, group: 158, covered: 142, wrong: 56 };
+const teacherNoteFloor = (c: OutcomeColumn): number => Math.max(LABEL_WIDTH[c.id], 108 + 30 * (c.notAttempted.length - 1));
 
 /** What keeps the working open when pressed: the working itself, a Q tile, a skill row. */
 const KEEPS_WORK = "[data-work-content], [data-work-tile], [data-hierarchy] button[data-node]";
+
+/** The most columns a problem's versions share one row in (ticket 282). */
+const MAX_VERSION_COLUMNS = 4;
 
 /** A problem's versions side by side, first submission on the left (ticket 243), each fitted to its column. */
 function Versions({ problem, versions, onGoTo }: { problem: string; versions: ShownVersion[]; onGoTo: (leaf: LeafId) => void }) {
@@ -350,12 +349,18 @@ function Versions({ problem, versions, onGoTo }: { problem: string; versions: Sh
     observer.observe(panel);
     return () => observer.disconnect();
   }, [problem, fitKey]);
+  // Class review's pane (ticket 282) takes a column per example beside the other versions while the row holds four columns at
+  // most; past that each column would be too narrow for a line and its chip, so the pane takes a row of its own beneath them.
+  const pane = versions.find((v) => v.examples);
+  const others = versions.length - (pane ? 1 : 0);
+  const ownRow = !!pane && others + pane.examples!.length > MAX_VERSION_COLUMNS;
+  const columns = ownRow ? others : others + (pane?.examples?.length ?? 0);
   return (
-    <div ref={ref} className="mt-4 grid gap-3" style={{ gridTemplateColumns: `repeat(${versions.length}, minmax(0, 1fr))` }} data-versions={versions.length}>
+    <div ref={ref} className="mt-4 grid gap-3" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }} data-versions={versions.length}>
       {versions.map((v) => (
-        <section key={v.kind} className="min-w-0 rounded-xl border border-line bg-paper p-3" data-version={v.kind}>
+        <section key={v.kind} className="min-w-0 rounded-xl border border-line bg-paper p-3" style={v.examples ? { gridColumn: ownRow ? "1 / -1" : `span ${v.examples.length}` } : undefined} data-version={v.kind}>
           <Eyebrow>{v.label}</Eyebrow>
-          <WorkLines problem={problem} texs={v.lines} onGoTo={onGoTo} narrow />
+          {v.examples ? <ClassReviewExamples problem={problem} examples={v.examples} onGoTo={onGoTo} /> : <WorkLines problem={problem} texs={v.lines} onGoTo={onGoTo} narrow />}
         </section>
       ))}
     </div>

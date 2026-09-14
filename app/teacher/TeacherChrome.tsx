@@ -34,10 +34,14 @@ import { useOptionalAssignment } from "./AssignmentContext";
  * bottom-left, Reset demo bottom-right. A fixed overlay covered whatever control scrolled beneath it (a roster row at
  * rest on the Class View); the strip costs about 40 px of height at 1280 x 800 and covers nothing.
  * Every teacher screen stamps the lesson's end when "end lesson"'s minute runs out (`LessonEnds`, ticket 273).
+ * The strip is the same size on every page (ticket 282): a page at its own zoom draws it back at `TEACHER_ZOOM`, since it is
+ * the presenter's, not the page's. A page that fills the frame to the strip (`fill`, the student report) keeps a short
+ * bottom padding instead of the frame's 48 px: the strip under it already separates it from the window's edge, and the
+ * report fits 1280 x 800 with nothing to scroll (ticket 243's rule, broken by the strip's height).
  */
 export const TEACHER_ZOOM = 0.72;
 
-export default function TeacherChrome({ children, zoom = TEACHER_ZOOM }: { children: ReactNode; zoom?: number }) {
+export default function TeacherChrome({ children, zoom = TEACHER_ZOOM, fill = false }: { children: ReactNode; zoom?: number; fill?: boolean }) {
   const path = usePathname();
   const assignment = useOptionalAssignment();
   const tabs = assignment ? assignmentTabs(assignment) : [{ label: "Groups", href: CLASS_GROUPS_HREF }];
@@ -72,10 +76,10 @@ export default function TeacherChrome({ children, zoom = TEACHER_ZOOM }: { child
         </div>
       </header>
       <main className="min-h-0 flex-1 overflow-y-auto" data-teacher-scroll>
-        <div className="mx-auto max-w-[1640px] px-6 py-12">{children}</div>
+        <div className={`mx-auto max-w-[1640px] px-6 pt-12 ${fill ? "pb-4" : "pb-12"}`}>{children}</div>
       </main>
       {/* The presenter's strip (ticket 263): its own row under the scroll region, so no teacher control ever sits beneath SKIP TO or Reset demo. */}
-      <footer className="flex shrink-0 items-center justify-between gap-4 px-4 py-2.5" data-presenter-strip>
+      <footer className="flex shrink-0 items-center justify-between gap-4 px-4 py-2.5" style={{ zoom: TEACHER_ZOOM / zoom }} data-presenter-strip>
         <TeacherSkipTo />
         <ResetDemo inline />
       </footer>

@@ -43,7 +43,8 @@ const REVIEWED = ["individual", "group"] as const;
 /** Where a record's review left each problem it brought to its group, as the teacher's report sorts it (`first` would mean a problem it had right after all). */
 export function recordOutcomes(record: Classmate, set: SetScope): { q: number; outcome: ReviewOutcome | "first" }[] {
   const reviews = recordReviews(record, set.problems);
-  return groupProblemsOf(record, set).map((pid) => ({ q: set.problems.findIndex((p) => p.id === pid) + 1, outcome: outcomeOf(pid, reviews[pid], REVIEWED) }));
+  // REVIEWED has no class review, so no outcome here is "covered" (ticket 282): the sheet's review part stops at group review.
+  return groupProblemsOf(record, set).map((pid) => ({ q: set.problems.findIndex((p) => p.id === pid) + 1, outcome: outcomeOf(pid, reviews[pid], REVIEWED) as ReviewOutcome | "first" }));
 }
 
 const holdsAll = (pid: string, lines: readonly string[]) => lines.length > 0 && lines.every((tex) => evaluateLine(pid, tex).verdict === "ok");

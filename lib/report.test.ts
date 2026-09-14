@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { Confidence } from "@/data/types";
-import { skipFixture } from "./demo";
+import { skipFixture, teacherSkip } from "./demo";
 import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
 import { assignmentBundle, assignmentStages } from "./assignments";
-import { CLASSMATE_MAP } from "@/data/classmates";
-import { columnsOf, labelSentence, outcomeColumns, outcomeOf, problemOutcome, recordReviews, reportFacts, reviewStagesOver, sessionReviews, shownVersions, unsolvedInGroup, unsolvedOf, type Reviews } from "./report";
+import { CLASSMATE_MAP, CLASSMATES } from "@/data/classmates";
+import { columnsOf, holds, labelSentence, liveClassReview, notAttempted, notAttemptedNote, outcomeColumns, outcomeOf, problemOutcome, recordedClassReview, recordReviews, reportFacts, reportPathway, reviewStagesOver, sessionReviews, shownVersions, type Reviews } from "./report";
+import { FINISHED_SETS, finishedSetById } from "./finishedSets";
+import { classroomReducer, pathwayOf } from "./classroom";
+import { boardExamples } from "./examples";
 import { INITIAL_SESSION, sessionAt, sessionReducer } from "./session";
 
 const labels = (cols: ReturnType<typeof outcomeColumns>) => Object.fromEntries(cols.map((c) => [c.id, c.problems.map((p) => p.label)]));
@@ -19,11 +22,11 @@ describe("problem outcomes", () => {
     expect(cols.map((c) => c.label)).toEqual(["Correct first try", "Correct after individual review", "Correct after group review", "Incorrect"]);
   });
 
-  it("reads the demo's reworked run: five right first try, four right after individual review, Q7 still wrong", () => {
+  it("reads the demo's reworked run: four right first try, four right after individual review, Q7 still wrong and Q9 unfinished (ticket 282)", () => {
     const by = labels(outcomeColumns(reworked, ["individual"], null));
-    expect(by.first).toEqual(["Q4", "Q5", "Q6", "Q8", "Q9"]);
+    expect(by.first).toEqual(["Q4", "Q5", "Q6", "Q8"]);
     expect(by.individual).toEqual(["Q1", "Q2", "Q3", "Q10"]);
-    expect(by.wrong).toEqual(["Q7"]);
+    expect(by.wrong).toEqual(["Q7", "Q9"]);
   });
 
   it("counts a problem the group's rework checked as correct after group review, once group review is in the pathway; one the group closed unsolved stays incorrect", () => {
@@ -34,30 +37,27 @@ describe("problem outcomes", () => {
     expect(classroom.group?.unsolved).toEqual(["q7"]);
     const with_ = labels(outcomeColumns(session, ["individual", "group"], classroom.group));
     expect(with_.individual).toEqual(["Q1", "Q2", "Q3", "Q10"]);
-    expect(with_.group).toEqual([]);
+    // Q9, left unfinished, is the group's once its rework checked (ticket 282).
+    expect(with_.group).toEqual(["Q9"]);
     expect(with_.wrong).toEqual(["Q7"]);
-    // The report names it: not solved in group review (ticket 223).
-    expect(unsolvedInGroup(session, ["individual", "group"], classroom.group).map((p) => p.label)).toEqual(["Q7"]);
-    expect(unsolvedInGroup(session, ["individual"], classroom.group)).toEqual([]);
-    expect(unsolvedInGroup(session, ["individual", "group"], null)).toEqual([]);
     // Had the group's rework checked, Q7 would sit in the group column.
     const solved = { ...classroom.group!, resolved: [...classroom.group!.resolved, "q7"], unsolved: [] };
     const withSolved = labels(outcomeColumns(session, ["individual", "group"], solved));
-    expect(withSolved.group).toEqual(["Q7"]);
+    expect(withSolved.group).toEqual(["Q7", "Q9"]);
     expect(withSolved.wrong).toEqual([]);
     const without = labels(outcomeColumns(session, ["individual"], classroom.group));
     expect(without.group).toBeUndefined();
-    expect(without.wrong).toEqual(["Q7"]);
+    expect(without.wrong).toEqual(["Q7", "Q9"]);
     const noRun = labels(outcomeColumns(session, ["individual", "group"], null));
     expect(noRun.group).toEqual([]);
-    expect(noRun.wrong).toEqual(["Q7"]);
+    expect(noRun.wrong).toEqual(["Q7", "Q9"]);
   });
 
   it("shows only the columns the pathway allows", () => {
     expect(outcomeColumns(reworked, [], null).map((c) => c.id)).toEqual(["first", "wrong"]);
     expect(outcomeColumns(reworked, ["group"], null).map((c) => c.id)).toEqual(["first", "group", "wrong"]);
-    expect(outcomeColumns(reworked, ["whole-class"], null).map((c) => c.id)).toEqual(["first", "wrong"]);
-    expect(outcomeColumns(reworked, ["individual", "group", "whole-class"], null).map((c) => c.id)).toEqual(["first", "individual", "group", "wrong"]);
+    expect(outcomeColumns(reworked, ["whole-class"], null).map((c) => c.id)).toEqual(["first", "covered", "wrong"]);
+    expect(outcomeColumns(reworked, ["individual", "group", "whole-class"], null).map((c) => c.id)).toEqual(["first", "individual", "group", "covered", "wrong"]);
   });
 
   it("ignores a rework when individual review is not in the pathway, and a run when group review is not", () => {
@@ -101,7 +101,6 @@ describe("versions on the teacher's report (ticket 243)", () => {
     expect(reviews.q7.group?.lines.length).toBeGreaterThan(0);
     // The same columns the student's own report shows.
     expect(labels(columnsOf(reviews, PATH))).toEqual(labels(outcomeColumns(session, PATH, classroom.group)));
-    expect(unsolvedOf(reviews, PATH).map((p) => p.label)).toEqual(["Q7"]);
   });
 
   it("shows only what tells the problem's story", () => {
@@ -139,7 +138,7 @@ describe("versions on the teacher's report (ticket 243)", () => {
     const isla = CLASSMATE_MAP.isla;
     const cols = (r: typeof ethan, over: readonly ("individual" | "group" | "whole-class")[]) => labels(columnsOf(recordReviews(r, undefined, over), PATH));
     // While individual review runs: nothing past the first submission, every unfixed problem in Incorrect.
-    expect(recordReviews(ethan, undefined, []).q1).toEqual({ first: ethan.attempts.q1, second: [] });
+    expect(recordReviews(ethan, undefined, []).q1).toEqual({ first: ethan.attempts.q1, finished: true, second: [] });
     expect(cols(ethan, []).individual).toEqual([]);
     expect(cols(ethan, []).wrong).toContain("Q1");
     expect(cols(oliver, []).group).toEqual([]);
@@ -150,7 +149,7 @@ describe("versions on the teacher's report (ticket 243)", () => {
     // Group review over: the group's rework and last try, on the problems Oliver never reached too (ticket 281).
     expect(cols(oliver, ["individual", "group"]).group).toEqual(["Q1", "Q2", "Q8", "Q9", "Q10"]);
     expect(recordReviews(isla, undefined, ["individual", "group"]).q10.group?.solved).toBe(false);
-    expect(unsolvedOf(recordReviews(isla, undefined, ["individual", "group"]), PATH).map((p) => p.label)).toEqual(["Q10"]);
+    expect(cols(isla, ["individual", "group"]).wrong).toContain("Q10");
     // The same four columns at every stage, and the same ten tiles.
     for (const over of [[], ["individual"], ["individual", "group"]] as const) {
       const c = columnsOf(recordReviews(oliver, undefined, over), PATH);
@@ -184,6 +183,162 @@ describe("versions on the teacher's report (ticket 243)", () => {
     expect(labelSentence("confident")).toBe("Confident before starting");
     expect(labelSentence("low")).toBe("Confidence low before starting");
     expect(labelSentence("low: fractions, discriminant")).toBe("Confidence low when fractions, discriminant comes up");
+  });
+});
+
+describe("not attempted and covered in class review (ticket 282)", () => {
+  const set = (n: number) => finishedSetById(`pset-${n}`)!;
+  const recordOf = (n: number, id: string) => [set(n).sam, ...set(n).classmates].find((r) => r.id === id)!;
+  // A finished set's report, as the teacher's report reads it: the recorded class review, its column where the pathway has one.
+  const report = (n: number, id: string) => {
+    const s = set(n);
+    const classReview = recordedClassReview(s.classReview);
+    const pathway = reportPathway(s.pathway, classReview);
+    const reviews = recordReviews(recordOf(n, id), s.fixture.problems, undefined, classReview);
+    const cols = columnsOf(reviews, pathway, s.fixture.problems);
+    const pid = (label: string) => s.fixture.problems.find((p) => p.label === label)!.id;
+    return { cols, by: labels(cols), notes: Object.fromEntries(cols.map((c) => [c.id, notAttemptedNote(c)])), kinds: (label: string) => shownVersions(pid(label), reviews[pid(label)], pathway), reviews, pid };
+  };
+
+  it("adds Covered in class review after group review and before Incorrect, only on a set whose pathway has class review", () => {
+    const withClass = ["first", "individual", "group", "covered", "wrong"];
+    const without = ["first", "individual", "group", "wrong"];
+    for (let n = 1; n <= 5; n++) expect(report(n, "sam").cols.map((c) => c.id), `PS${n}`).toEqual(n === 1 || n === 3 ? withClass : without);
+    expect(report(1, "sam").cols.find((c) => c.id === "covered")!.label).toBe("Covered in class review");
+    // Class review on the pathway but not happened yet: no column, so nothing moves until it has.
+    expect(reportPathway(["individual", "group", "whole-class"], null)).toEqual(["individual", "group"]);
+    expect(reportPathway(["individual", "group", "whole-class"], [])).toEqual(["individual", "group", "whole-class"]);
+    expect(reportPathway(["individual", "group"], [])).toEqual(["individual", "group"]);
+  });
+
+  it("moves a problem the group left unsolved that class review covered out of Incorrect; Incorrect keeps what it never covered", () => {
+    // PS1: violet left Q10 unsolved and class review covered it (Ruby, Finn); PS3: mint's Q10 (Grace, Harper).
+    expect(report(1, "ruby").by).toMatchObject({ covered: ["Q10"], wrong: [] });
+    expect(report(1, "finn").by).toMatchObject({ covered: ["Q10"], wrong: [] });
+    expect(report(3, "harper").by).toMatchObject({ covered: ["Q10"], wrong: [] });
+    // PS2, PS4, PS5 have no class review: mint's unsolved Q10 stays Incorrect.
+    expect(report(2, "harper").by.wrong).toContain("Q10");
+    expect(report(2, "harper").by.covered).toBeUndefined();
+    // A problem class review covered but the student's group never took on unsolved stays where it was.
+    const q10 = report(1, "ruby").reviews[report(1, "ruby").pid("Q10")];
+    expect(outcomeOf(report(1, "ruby").pid("Q10"), { ...q10, group: undefined }, ["individual", "group", "whole-class"])).toBe("wrong");
+    expect(outcomeOf(report(1, "ruby").pid("Q10"), { ...q10, classReview: undefined }, ["individual", "group", "whole-class"])).toBe("wrong");
+    // With no group review on the pathway, a problem still wrong that class review showed is covered.
+    expect(outcomeOf(report(1, "ruby").pid("Q10"), { ...q10, group: undefined }, ["individual", "whole-class"])).toBe("covered");
+    // Every record on every set: covered only on PS1 and PS3, and only a group-unsolved problem class review covered.
+    for (const s of FINISHED_SETS) {
+      const n = Number(s.fixture.id.split("-")[1]);
+      for (const r of [s.sam, ...s.classmates]) {
+        const { cols, reviews } = report(n, r.id);
+        for (const p of cols.find((c) => c.id === "covered")?.problems ?? []) {
+          expect(reviews[p.id].group?.solved, `${s.fixture.id} ${r.id} ${p.label}`).toBe(false);
+          expect(s.classReview?.some((c) => c.problem === p.id), `${s.fixture.id} ${r.id} ${p.label}`).toBe(true);
+        }
+        for (const p of cols.find((c) => c.id === "wrong")!.problems) expect(!!reviews[p.id].classReview && reviews[p.id].group?.solved === false, `${s.fixture.id} ${r.id} ${p.label}`).toBe(false);
+      }
+    }
+  });
+
+  it("puts a problem not attempted that the group solved under Correct after group review, its first pane reading not attempted", () => {
+    const liam = report(1, "liam");
+    expect(liam.by.group).toEqual(["Q6", "Q7", "Q8", "Q9", "Q10"]);
+    expect(liam.kinds("Q6").map((v) => [v.kind, v.lines.length])).toEqual([["first", 0], ["group", liam.reviews[liam.pid("Q6")].group!.lines.length]]);
+    expect(notAttempted(liam.reviews[liam.pid("Q6")])).toBe(true);
+    expect(notAttempted(liam.reviews[liam.pid("Q1")])).toBe(false);
+  });
+
+  it("names the problems not attempted under whichever column holds them, Incorrect and Covered included", () => {
+    expect(report(1, "liam").notes).toEqual({ first: null, individual: null, group: "Q6, Q7, Q8, Q9, Q10 not attempted", covered: null, wrong: null });
+    expect(report(1, "tomas").notes.group).toBe("Q10 not attempted");
+    expect(report(5, "grace").notes).toEqual({ first: null, individual: null, group: "Q8 not attempted", wrong: "Q9, Q10 not attempted" });
+    expect(report(3, "grace").notes).toEqual({ first: null, individual: null, group: null, covered: "Q10 not attempted", wrong: null });
+    expect(report(1, "ruby").notes).toEqual({ first: null, individual: null, group: null, covered: null, wrong: null });
+  });
+
+  it("the old not-solved-in-group-review note and tag are gone", async () => {
+    const mod = await import("./report");
+    expect("unsolvedOf" in mod || "unsolvedInGroup" in mod).toBe(false);
+  });
+
+  it("never calls an unfinished first submission right first time: it lands where its later versions put it", () => {
+    const { session, classroom } = skipFixture("report", 1_000_000);
+    const reviews = sessionReviews(session, classroom.group);
+    // Sam stopped Q9 before the height: nothing wrong in it, and no answer.
+    expect(reviews.q9.first.length).toBeGreaterThan(0);
+    expect(holds("q9", reviews.q9.first)).toBe(true);
+    expect(reviews.q9.finished).toBe(false);
+    expect(outcomeOf("q9", reviews.q9, [])).toBe("wrong");
+    expect(outcomeOf("q9", reviews.q9, ["individual", "group"])).toBe("group");
+    expect(shownVersions("q9", reviews.q9, ["individual", "group"]).map((v) => v.kind)).toEqual(["first", "group"]);
+    // Finished, the same lines would be right first time.
+    expect(outcomeOf("q9", { ...reviews.q9, finished: true }, [])).toBe("first");
+    // A record: working at or past `done` is not finished, however right its lines.
+    const q1 = ASSIGNMENT.problems[0];
+    const unfinished = { ...CLASSMATE_MAP.priya, done: 0, wrong: [], attempts: { [q1.id]: q1.solution.map((s) => s.tex) }, review: undefined };
+    expect(recordReviews(unfinished).q1.finished).toBe(false);
+    expect(outcomeOf("q1", recordReviews(unfinished).q1, [])).toBe("wrong");
+    expect(outcomeOf("q1", recordReviews({ ...unfinished, done: 1 }).q1, [])).toBe("first");
+  });
+
+  it("shows each outcome's versions, the covered problem's ending in the Class review pane with the board's examples, anonymous", () => {
+    const ruby = report(1, "ruby");
+    const q10 = ruby.kinds("Q10");
+    expect(q10.map((v) => v.kind)).toEqual(["first", "group-last", "class"]);
+    expect(q10.map((v) => v.label)).toEqual(["First submission", "Group's last try", "Class review"]);
+    // The pane's examples are the recorded picks' first submissions, in order (PS1 Q10: Finn, Oliver), and carry no names.
+    const picks = set(1).classReview!.find((c) => c.problem === ruby.pid("Q10"))!.examples;
+    expect(q10[2].examples).toEqual(picks.map((e) => e.lines));
+    expect(picks.map((e) => e.student)).toEqual(["finn", "oliver"]);
+    const text = JSON.stringify(q10);
+    for (const r of [set(1).sam, ...set(1).classmates]) expect(text.includes(`"${r.id}"`) || text.includes(r.name), r.id).toBe(false);
+    // With a second submission, it sits between the first and the group's last try.
+    const withSecond = { ...ruby.reviews[ruby.pid("Q10")], second: ruby.reviews[ruby.pid("Q10")].first };
+    expect(shownVersions(ruby.pid("Q10"), withSecond, ["individual", "group", "whole-class"]).map((v) => v.kind)).toEqual(["first", "second", "group-last", "class"]);
+    // A not-attempted covered problem: its first pane empty, then the group's last try and class review.
+    expect(report(3, "grace").kinds("Q10").map((v) => [v.kind, v.lines.length])).toEqual([["first", 0], ["group-last", report(3, "grace").reviews[report(3, "grace").pid("Q10")].group!.lines.length], ["class", 0]]);
+    // Still wrong without class review: no class pane.
+    expect(report(2, "harper").kinds("Q10").map((v) => v.kind)).not.toContain("class");
+  });
+
+  it("reads the live set's covered problems from the board once class review is over, examples as the board shows them", () => {
+    const now = 5_000_000_000;
+    // The teacher's jumps to group review done, then class review set up with one problem, Q7, which Sam's group left unsolved.
+    let demo = { classroom: skipFixture("working", now).classroom, session: sessionAt("working") };
+    for (let i = 0; i < 3; i++) demo = teacherSkip("done", demo.classroom, demo.session, now);
+    const { session: sam, classroom: before } = demo;
+    expect(before.wholeClass?.status).toBe("active");
+    const oneProblem = classroomReducer(classroomReducer({ ...before, wholeClass: null }, { type: "wc/setup", problems: ["q7"], examples: { q7: before.wholeClass!.examples.q7 } }), { type: "wc/project", at: now });
+    const pathway = pathwayOf(oneProblem);
+    const cols = (c: typeof oneProblem) => {
+      const cr = liveClassReview(c, sam);
+      return labels(columnsOf(sessionReviews(sam, c.group, ASSIGNMENT.problems, cr), reportPathway(pathway, cr)));
+    };
+    // Projected, not over: no column yet, Q7 in Incorrect.
+    expect(liveClassReview(oneProblem, sam)).toBeNull();
+    expect(cols(oneProblem).covered).toBeUndefined();
+    expect(cols(oneProblem).wrong).toContain("Q7");
+    // Ended: the column holds exactly what the board showed.
+    const ended = classroomReducer(oneProblem, { type: "wc/end" });
+    const cr = liveClassReview(ended, sam)!;
+    expect(cr.map((c) => c.problem)).toEqual(["q7"]);
+    expect(cr[0].examples).toEqual(boardExamples(ended.wholeClass!.examples.q7, "q7", sam).map((e) => e.lines));
+    expect(cols(ended).covered).toEqual(["Q7"]);
+    expect(cols(ended).wrong).not.toContain("Q7");
+    // Every other tile stays in its column.
+    const { covered, wrong, ...rest } = cols(ended);
+    const { wrong: wrongBefore, ...restBefore } = cols(oneProblem);
+    expect(rest).toEqual(restBefore);
+    expect([...covered, ...wrong].sort()).toEqual([...wrongBefore].sort());
+    // A classmate's record reads the same board: every one still wrong on Q7 after a group that left it unsolved is covered, and no one else moves.
+    const moved = CLASSMATES.filter((r) => {
+      const plain = recordReviews(r, ASSIGNMENT.problems, ["individual", "group"]);
+      const withBoard = recordReviews(r, ASSIGNMENT.problems, ["individual", "group"], cr);
+      const after = outcomeOf("q7", withBoard.q7, reportPathway(pathway, cr));
+      const was = outcomeOf("q7", plain.q7, ["individual", "group"]);
+      if (after !== was) expect([was, after, plain.q7.group?.solved], r.id).toEqual(["wrong", "covered", false]);
+      return after !== was;
+    });
+    expect(moved.length).toBeGreaterThan(0);
   });
 });
 

@@ -1,13 +1,17 @@
 import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
 import type { Classmate } from "@/data/classmates";
+import type { ClassReview } from "@/data/recordReview";
 import { leafName, type GroupId } from "@/data/taxonomy";
 import type { Confidence, Problem, ReviewStage } from "@/data/types";
+import { boardCovered, type ClassroomState } from "./classroom";
 import { groupVersion } from "./debrief";
 import { evaluateLine } from "./evaluate";
+import { boardExamples } from "./examples";
 import { feedbackFor } from "./feedback";
 import type { GroupRun } from "./groupReview";
 import { classmateLines } from "./hierarchy";
 import type { StudentSession } from "./session";
+import { firstFinished, recordFinished } from "./setScore";
 
 /**
  * The facts on the final report, shared by the student's and the teacher's views so the two
@@ -98,24 +102,28 @@ export function reportFacts(session: StudentSession): ReportFacts {
   };
 }
 
+
 /**
- * Where each problem ended up, for the tiles on the student's report: right when handed in,
- * right after the independent rework, right once the group's rework checked, or still wrong.
- * The first that applies wins, so a problem sits in exactly one column. A pathway without a
- * stage never yields that stage's outcome, and that column is not shown at all.
+ * Where each problem ended up, for the tiles on the student's report: right when handed in, right after the independent
+ * rework, right once the group's rework checked, left unsolved by the group and then covered in class review (ticket 282),
+ * or still wrong. The first that applies wins, so a problem sits in exactly one column. A pathway without a stage never
+ * yields that stage's outcome, and that column is not shown at all.
  */
-export type Outcome = "first" | "individual" | "group" | "wrong";
+export type Outcome = "first" | "individual" | "group" | "covered" | "wrong";
 
 export interface OutcomeColumn {
   id: Outcome;
   label: string;
   problems: Problem[];
+  /** The column's problems the student did not attempt (ticket 282): the note under the column names them. */
+  notAttempted: Problem[];
 }
 
 export const OUTCOME_LABEL: Record<Outcome, string> = {
   first: "Correct first try",
   individual: "Correct after individual review",
   group: "Correct after group review",
+  covered: "Covered in class review",
   wrong: "Incorrect",
 };
 
@@ -123,30 +131,72 @@ export const OUTCOME_LABEL: Record<Outcome, string> = {
 export const holds = (problem: string, lines: string[]): boolean => lines.length > 0 && lines.every((tex) => evaluateLine(problem, tex).verdict !== "wrong");
 
 /**
- * Everything one student wrote on one problem, stage by stage (ticket 243): the first submission, their own
- * second submission, and what their group wrote once it closed the problem (its rework that checked correct, or
- * its last try on a problem closed unsolved). The same shape for a live session and a set's record, so both
- * reports sort tiles and show working from it.
+ * A problem class review covered, as the report shows it (ticket 282): the examples the teacher put on the board, in the
+ * board's order, as lines only. Anonymous by construction: no student id reaches the report.
+ */
+export interface CoveredShown {
+  problem: string;
+  examples: readonly (readonly string[])[];
+}
+/** What class review covered on a set, or null when it has not happened (or the pathway has none): then there is no column. */
+export type ClassReviewShown = readonly CoveredShown[];
+
+/** A finished set's recorded class review (ticket 281), names dropped. */
+export const recordedClassReview = (review: ClassReview | undefined): ClassReviewShown | null =>
+  review ? review.map((c) => ({ problem: c.problem, examples: c.examples.map((e) => [...e.lines]) })) : null;
+
+/**
+ * The live set's class review (ticket 282): once class review is over, the problems the board showed (`boardCovered`), each
+ * with the examples projected on it, read as the board reads them (`boardExamples`: the same lines, in the same order).
+ */
+export function liveClassReview(c: ClassroomState | null | undefined, session: StudentSession | null): ClassReviewShown | null {
+  const covered = boardCovered(c);
+  if (!covered) return null;
+  return covered.map((problem) => ({ problem, examples: boardExamples(c?.wholeClass?.examples[problem] ?? [], problem, session).map((e) => e.lines) }));
+}
+
+/**
+ * The pathway the report reads (ticket 282): the set's, with class review only once it has happened (`classReview` not
+ * null). Before then the columns are the ones they were, so nothing moves until the board's End moves the covered tiles.
+ */
+export const reportPathway = (pathway: readonly ReviewStage[], classReview: ClassReviewShown | null): ReviewStage[] =>
+  pathway.filter((s) => s !== "whole-class" || classReview !== null);
+
+/**
+ * Everything one student wrote on one problem, stage by stage (ticket 243): the first submission and whether it was finished
+ * (ticket 282: an unfinished one is never right first time), their own second submission, what their group wrote once it
+ * closed the problem (its rework that checked correct, or its last try on a problem closed unsolved), and the examples class
+ * review put on the board when it covered the problem. The same shape for a live session and a set's record, so both reports
+ * sort tiles and show working from it.
  */
 export interface ProblemReview {
   first: string[];
+  finished: boolean;
   second: string[];
   group?: { lines: string[]; solved: boolean };
+  classReview?: string[][];
 }
 export type Reviews = Record<string, ProblemReview>;
 
-/** A live session's versions of one problem: its lines, its rework, and the group run's version once the run closed it. */
-function sessionReview(session: StudentSession, run: GroupRun | null | undefined, problem: string): ProblemReview {
+const coveredExamples = (classReview: ClassReviewShown | null | undefined, problem: string): { classReview: string[][] } | object => {
+  const c = classReview?.find((x) => x.problem === problem);
+  return c ? { classReview: c.examples.map((lines) => [...lines]) } : {};
+};
+
+/** A live session's versions of one problem: its lines, its rework, the group run's version once the run closed it, and class review's examples. */
+function sessionReview(session: StudentSession, run: GroupRun | null | undefined, problem: string, classReview?: ClassReviewShown | null): ProblemReview {
   const closed = run?.resolved.includes(problem) ? true : run?.unsolved?.includes(problem) ? false : null;
   return {
     first: (session.lines[problem] ?? []).map((l) => l.tex),
+    finished: firstFinished(session, problem),
     second: (session.rework[problem] ?? []).map((l) => l.tex),
     ...(run && closed !== null ? { group: { lines: groupVersion(run, problem), solved: closed } } : {}),
+    ...coveredExamples(classReview, problem),
   };
 }
 
-export const sessionReviews = (session: StudentSession, run: GroupRun | null | undefined, problems: Problem[] = ASSIGNMENT.problems): Reviews =>
-  Object.fromEntries(problems.map((p) => [p.id, sessionReview(session, run, p.id)]));
+export const sessionReviews = (session: StudentSession, run: GroupRun | null | undefined, problems: Problem[] = ASSIGNMENT.problems, classReview: ClassReviewShown | null = null): Reviews =>
+  Object.fromEntries(problems.map((p) => [p.id, sessionReview(session, run, p.id, classReview)]));
 
 /** Every review stage: a finished set's records show all they hold. */
 export const ALL_REVIEW_STAGES: readonly ReviewStage[] = ["individual", "group", "whole-class"];
@@ -156,14 +206,15 @@ export const ALL_REVIEW_STAGES: readonly ReviewStage[] = ["individual", "group",
  * (`review`, ticket 244). `over` is the review stages the class has finished: a second submission shows once
  * individual review is over and a group's version once group review is, so on the live set a problem a classmate
  * fixes later sits in Incorrect until then, the columns never moving (rule 9a). A finished set passes every stage.
+ * `classReview` (ticket 282) is what class review covered, null until it has happened.
  */
-export function recordReviews(record: Classmate, problems: Problem[] = ASSIGNMENT.problems, over: readonly ReviewStage[] = ALL_REVIEW_STAGES): Reviews {
+export function recordReviews(record: Classmate, problems: Problem[] = ASSIGNMENT.problems, over: readonly ReviewStage[] = ALL_REVIEW_STAGES, classReview: ClassReviewShown | null = null): Reviews {
   const reviews: Reviews = {};
   problems.forEach((p, i) => {
     const later = record.review?.[p.id];
     const second = over.includes("individual") ? later?.second : undefined;
     const group = over.includes("group") ? later?.group : undefined;
-    reviews[p.id] = { first: classmateLines(record, p, i) ?? [], second: second ?? [], ...(group ? { group } : {}) };
+    reviews[p.id] = { first: classmateLines(record, p, i) ?? [], finished: recordFinished(record, i), second: second ?? [], ...(group ? { group } : {}), ...coveredExamples(classReview, p.id) };
   });
   return reviews;
 }
@@ -176,44 +227,59 @@ export function recordReviews(record: Classmate, problems: Problem[] = ASSIGNMEN
 export const reviewStagesOver = (stages: readonly { id: string; state: string; done: number | null; total: number }[]): ReviewStage[] =>
   stages.flatMap((s) => (s.id !== "working" && (s.state === "over" || (s.state === "current" && s.done !== null && s.done >= s.total)) ? [s.id as ReviewStage] : []));
 
-const NO_REVIEW: ProblemReview = { first: [], second: [] };
+const NO_REVIEW: ProblemReview = { first: [], finished: false, second: [] };
 
+/**
+ * Where one problem ended up. Right first time needs the first submission finished with no wrong line (ticket 282: an
+ * unfinished one with nothing wrong in it yet is not right). Covered in class review needs class review in the pathway and
+ * its examples on the problem, and, when the pathway has group review, the student's group to have closed it unsolved:
+ * a problem the group never took on (an absent student's) stays Incorrect.
+ */
 export function outcomeOf(problem: string, review: ProblemReview = NO_REVIEW, pathway: readonly ReviewStage[]): Outcome {
-  if (holds(problem, review.first)) return "first";
+  if (review.finished && holds(problem, review.first)) return "first";
   if (pathway.includes("individual") && holds(problem, review.second)) return "individual";
   if (pathway.includes("group") && review.group?.solved) return "group";
+  if (pathway.includes("whole-class") && review.classReview && (!pathway.includes("group") || review.group?.solved === false)) return "covered";
   return "wrong";
 }
 
-export const problemOutcome = (session: StudentSession, problem: string, pathway: readonly ReviewStage[], run: GroupRun | null | undefined): Outcome =>
-  outcomeOf(problem, sessionReview(session, run, problem), pathway);
+export const problemOutcome = (session: StudentSession, problem: string, pathway: readonly ReviewStage[], run: GroupRun | null | undefined, classReview: ClassReviewShown | null = null): Outcome =>
+  outcomeOf(problem, sessionReview(session, run, problem, classReview), pathway);
 
-/** Of the problems still incorrect, those the student's group worked on and closed unsolved (ticket 223): the report names them. */
-export function unsolvedOf(reviews: Reviews, pathway: readonly ReviewStage[], problems: Problem[] = ASSIGNMENT.problems): Problem[] {
-  if (!pathway.includes("group")) return [];
-  return problems.filter((p) => reviews[p.id]?.group?.solved === false && outcomeOf(p.id, reviews[p.id], pathway) === "wrong");
-}
+/** Not attempted: nothing written on the first submission and nothing handed in for it. */
+export const notAttempted = (review: ProblemReview = NO_REVIEW): boolean => review.first.length === 0 && !review.finished;
 
-export const unsolvedInGroup = (session: StudentSession, pathway: readonly ReviewStage[], run: GroupRun | null | undefined, problems: Problem[] = ASSIGNMENT.problems): Problem[] =>
-  unsolvedOf(sessionReviews(session, run, problems), pathway, problems);
-
-/** The columns the pathway allows, in order, each with its problems in set order. An empty column stays, so the layout never shifts. */
+/**
+ * The columns the pathway allows, in order, each with its problems in set order and those of them not attempted. An empty
+ * column stays, so the layout never shifts. Pass the report's pathway (`reportPathway`): class review's column only once it happened.
+ */
 export function columnsOf(reviews: Reviews, pathway: readonly ReviewStage[], problems: Problem[] = ASSIGNMENT.problems): OutcomeColumn[] {
-  const ids: Outcome[] = ["first", ...(pathway.includes("individual") ? (["individual"] as const) : []), ...(pathway.includes("group") ? (["group"] as const) : []), "wrong"];
-  const columns = ids.map((id) => ({ id, label: OUTCOME_LABEL[id], problems: [] as Problem[] }));
-  for (const p of problems) columns.find((c) => c.id === outcomeOf(p.id, reviews[p.id], pathway))!.problems.push(p);
+  const stages: Outcome[] = ["individual", "group"];
+  const ids: Outcome[] = ["first", ...stages.filter((s) => pathway.includes(s as ReviewStage)), ...(pathway.includes("whole-class") ? (["covered"] as const) : []), "wrong"];
+  const columns = ids.map((id) => ({ id, label: OUTCOME_LABEL[id], problems: [] as Problem[], notAttempted: [] as Problem[] }));
+  for (const p of problems) {
+    const column = columns.find((c) => c.id === outcomeOf(p.id, reviews[p.id], pathway))!;
+    column.problems.push(p);
+    if (notAttempted(reviews[p.id])) column.notAttempted.push(p);
+  }
   return columns;
 }
 
-export const outcomeColumns = (session: StudentSession, pathway: readonly ReviewStage[], run: GroupRun | null | undefined, problems: Problem[] = ASSIGNMENT.problems): OutcomeColumn[] =>
-  columnsOf(sessionReviews(session, run, problems), pathway, problems);
+export const outcomeColumns = (session: StudentSession, pathway: readonly ReviewStage[], run: GroupRun | null | undefined, problems: Problem[] = ASSIGNMENT.problems, classReview: ClassReviewShown | null = null): OutcomeColumn[] =>
+  columnsOf(sessionReviews(session, run, problems, classReview), pathway, problems);
 
-export type VersionKind = "first" | "second" | "group" | "group-last";
+/** The note under a column: "Q9, Q10 not attempted", or null when it has none. */
+export const notAttemptedNote = (column: Pick<OutcomeColumn, "notAttempted">): string | null =>
+  column.notAttempted.length > 0 ? `${column.notAttempted.map((p) => p.label).join(", ")} not attempted` : null;
+
+export type VersionKind = "first" | "second" | "group" | "group-last" | "class";
 
 export interface ShownVersion {
   kind: VersionKind;
   label: string;
   lines: string[];
+  /** Class review's pane only: each example the board showed, unmarked and anonymous. */
+  examples?: string[][];
 }
 
 export const VERSION_LABEL: Record<VersionKind, string> = {
@@ -221,13 +287,15 @@ export const VERSION_LABEL: Record<VersionKind, string> = {
   second: "Second submission",
   group: "Group's rework",
   "group-last": "Group's last try",
+  class: "Class review",
 };
 
 /**
- * The versions a problem's working shows side by side on the teacher's report (ticket 243), only those that
- * tell its story: right first time, the first submission alone; right on the student's own rework, the first
- * and second; right in group review, the first, the second when there is one, and the group's rework; still
- * wrong, every version there is, the group's last try included when their group took it on.
+ * The versions a problem's working shows (ticket 243), only those that tell its story: right first time, the first
+ * submission alone; right on the student's own rework, the first and second; right in group review, the first (reading
+ * *not attempted* when nothing was written), the second when there is one, and the group's rework; covered in class review
+ * (ticket 282), the first, the second when there is one, the group's last try and the Class review pane with the board's
+ * examples; still wrong, every version there is, the group's last try included when their group took it on.
  */
 export function shownVersions(problem: string, review: ProblemReview = NO_REVIEW, pathway: readonly ReviewStage[]): ShownVersion[] {
   const outcome = outcomeOf(problem, review, pathway);
@@ -238,5 +306,6 @@ export function shownVersions(problem: string, review: ProblemReview = NO_REVIEW
   if (outcome === "individual") return [...out, v("second", review.second)];
   if (second) out.push(v("second", review.second));
   if (pathway.includes("group") && review.group) out.push(v(review.group.solved ? "group" : "group-last", review.group.lines));
+  if (outcome === "covered") out.push({ ...v("class", []), examples: review.classReview!.map((lines) => [...lines]) });
   return out;
 }

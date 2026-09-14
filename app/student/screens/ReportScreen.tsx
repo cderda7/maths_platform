@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button, Card, Eyebrow } from "@/components/ui";
-import { ProblemWork, WorkPanel } from "@/components/HierarchyDrill";
+import { ProblemHead, WorkLines, WorkPanel } from "@/components/HierarchyDrill";
+import ClassReviewExamples from "@/components/ClassReviewExamples";
 import SkillColumns from "@/components/SkillColumns";
 import StatusKey from "@/components/StatusKey";
 import { ASSIGNMENT } from "@/data/assignment";
 import { pathwayOf } from "@/lib/classroom";
 import OutcomeTiles from "@/components/OutcomeTiles";
-import { OUTCOME_LABEL, outcomeColumns, unsolvedInGroup } from "@/lib/report";
+import { liveClassReview, OUTCOME_LABEL, outcomeOf, reportPathway, sessionReviews, shownVersions, columnsOf } from "@/lib/report";
 import { isMastery } from "@/lib/peers";
 import { useAssignment, useClassroom } from "@/lib/classroom-store";
 import { sessionEvidence, sessionHierarchy } from "@/lib/hierarchy";
@@ -42,8 +43,11 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
   const classroom = useClassroom();
   const hierarchy = sessionHierarchy(session, assignment);
   const lines = sessionEvidence(session).lines;
-  const columns = outcomeColumns(session, pathwayOf(classroom), classroom.group, problems);
-  const unsolved = unsolvedInGroup(session, pathwayOf(classroom), classroom.group, problems);
+  // The teacher's report's columns and versions (ticket 282): class review's column once the board's End has covered problems.
+  const classReview = liveClassReview(classroom, session);
+  const pathway = reportPathway(pathwayOf(classroom), classReview);
+  const reviews = sessionReviews(session, classroom.group, problems, classReview);
+  const columns = columnsOf(reviews, pathway, problems);
   const n = sentences(session.reflection);
   const written = session.reflection.trim() !== "";
   const sent = session.reportSent;
@@ -75,9 +79,7 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
   };
   const nudged = nudge > 0 && !written;
 
-  const outcomeOf = (id: string) => columns.find((c) => c.problems.some((p) => p.id === id))?.id;
   const openProblem = work?.kind === "problem" ? problems.find((p) => p.id === work.id) : undefined;
-  const openOutcome = openProblem ? outcomeOf(openProblem.id) : undefined;
 
   return (
     <div className="grid h-full min-h-0 grid-cols-[1fr_320px]">
@@ -121,7 +123,6 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
           <Eyebrow>What happened</Eyebrow>
           <OutcomeTiles
             columns={columns}
-            unsolved={unsolved}
             open={work?.kind === "problem" ? work.id : null}
             onPress={(id) => setWork((w) => pressWork(w, { kind: "problem", id }))}
             describe={() => "see your marked working"}
@@ -136,11 +137,21 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
             <div data-work-content>
               {openProblem ? (
                 <>
-                  <Eyebrow>{openOutcome ? OUTCOME_LABEL[openOutcome] : "Your working"}</Eyebrow>
-                  <div className="mt-3">
-                    <ProblemWork problem={openProblem} texs={lines[openProblem.id] ?? []} onGoTo={(leaf) => setWork({ kind: "skill", leaf })} student narrow />
-                  </div>
-                  {unsolved.some((p) => p.id === openProblem.id) && <p className="mt-2 text-[12px] leading-snug text-ink-muted">Not solved in group review</p>}
+                  <Eyebrow>{OUTCOME_LABEL[outcomeOf(openProblem.id, reviews[openProblem.id], pathway)]}</Eyebrow>
+                  {/* The problem, then the versions that tell its story one under another (ticket 282, `shownVersions`, as the teacher's report). */}
+                  <section className="mt-3 rounded-xl border border-line bg-paper p-3" data-work-problem={openProblem.id}>
+                    <ProblemHead problem={openProblem} student />
+                  </section>
+                  {shownVersions(openProblem.id, reviews[openProblem.id], pathway).map((v) => (
+                    <section key={v.kind} className="mt-2.5 rounded-xl border border-line bg-paper p-3" data-version={v.kind}>
+                      <Eyebrow>{v.label}</Eyebrow>
+                      {v.examples ? (
+                        <ClassReviewExamples problem={openProblem.id} examples={v.examples} onGoTo={(leaf) => setWork({ kind: "skill", leaf })} stacked student />
+                      ) : (
+                        <WorkLines problem={openProblem.id} texs={v.lines} onGoTo={(leaf) => setWork({ kind: "skill", leaf })} student narrow />
+                      )}
+                    </section>
+                  ))}
                 </>
               ) : work.kind === "skill" ? (
                 <WorkPanel leaf={work.leaf} lines={lines} problems={problems} status={hierarchy.leaves[work.leaf] ?? "unseen"} wide={false} onGoTo={(leaf) => setWork({ kind: "skill", leaf })} student narrow />

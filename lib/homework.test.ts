@@ -32,10 +32,10 @@ describe("which problems go into homework (ticket 256)", () => {
   });
   it("not attempted goes", () => {
     expect(q1(withQ1([]))).toEqual(["q1"]);
-    expect(everWrong("q1", { first: [], second: [] })).toBe(true);
+    expect(everWrong("q1", { first: [], finished: false, second: [] })).toBe(true);
   });
   it("right at first but wrong on a second submission goes", () => {
-    expect(everWrong("q1", { first: ["(x-2)(x-3) = 0"], second: ["(x + 2)(x + 3) = 0"] })).toBe(true);
+    expect(everWrong("q1", { first: ["(x-2)(x-3) = 0"], finished: true, second: ["(x + 2)(x + 3) = 0"] })).toBe(true);
   });
 
   it("Sam's run sends Q1, Q2, Q3, Q7 and Q10, in set order; a run where every step held sends none", () => {

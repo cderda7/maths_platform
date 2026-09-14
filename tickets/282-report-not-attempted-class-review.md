@@ -4,7 +4,7 @@
 
 **Blocked by:** 281.
 
-**Status:** ready
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -33,8 +33,18 @@ Settled in the same conversation:
 - `components/OutcomeTiles.tsx`: the grey column, only under a pathway with class review; the per-column not-attempted note.
 - `app/teacher/report/TeacherReport.tsx`, `app/student/screens/ReportScreen.tsx`: the working's panes; "· Not solved in group review" removed.
 
+## Built (2026-09-15)
+
+- **Right first time** needs a finished first submission (`firstFinished` over the live student's lines and typed answer, `recordFinished` inside `done`, shared with ticket 285's score). Sam's unfinished Q9 moves from Correct first try to Correct after group review (his group solved it) on both reports; no finished record moves.
+- **Covered in class review** (grey, after group review, before Incorrect): a problem the student's group closed unsolved that class review showed. Finished sets read `FinishedSet.classReview`: PS1 Q10 moves for Ruby and Finn, PS3 Q10 for Grace and Harper; PS2, PS4, PS5 have no column and their unsolved problems stay Incorrect.
+- **The live set's rule:** covered = the problems the board actually showed, from the first slide to the furthest the teacher reached (`WholeClassSession.reached`), read once class review has ended (`boardCovered`). Until the board's End the report reads the pathway without class review (`reportPathway`), so the column appears and its tiles leave Incorrect once, at End. A class review ended without being projected covers nothing. "activity completed" now runs class review through every projected slide.
+- **Working:** a covered problem shows First submission, Second submission when there is one, Group's last try, then a Class review pane with the board's examples lettered A, B, C, unmarked, lines only (no names reach the report). On the teacher's report the pane shares the versions' row while that row holds four columns at most, else takes its own row beneath (past four a ⚠ chip ran outside its pane).
+- **Not attempted:** a problem the group solved sits under Correct after group review with *not attempted* in its First submission pane; every column names its not-attempted problems (the label's second line on the teacher's report, under the tiles on Sam's). The "not solved in group review" note and "· Not solved in group review" are gone.
+- **Sam's report:** the same columns; his side column shows the problem, then the same versions stacked (student wording, no difficulty tags).
+- **Fit:** every teacher report scrolled 35–42 px at 1280×800 since ticket 263's presenter strip (56 of the report's layout px, the report drawing its whole frame at 125%). The strip is now drawn at `TEACHER_ZOOM` on every page and the report's bottom padding is 16 px (`TeacherChrome fill`); a column is never narrower than its tiles on one row (a fifth column had wrapped Chloe's ten Incorrect tiles).
+
 ## Acceptance
 
-- [ ] Unit: outcomes for not attempted (group-solved, unsolved and uncovered, covered), the column only under class review, the live set's covered set from the projected problems once class review has happened, the panes per outcome, the note per column
-- [ ] Click-through at 1280×800 and 1440×900: all twenty reports on all six sets and Sam live, both reports; grey tiles and the column only on PS1, PS3, PS6; working panes as above; notes on one line; nothing to scroll with nothing or any working open
-- [ ] vitest, eslint, tsc, next build, check:laptop
+- [x] Unit: outcomes for not attempted (group-solved, unsolved and uncovered, covered), the column only under class review, the live set's covered set from the projected problems once class review has happened, the panes per outcome, the note per column
+- [x] Click-through at 1280×800 and 1440×900: all twenty reports on all six sets and Sam live, both reports; grey tiles and the column only on PS1, PS3, PS6; working panes as above; notes on one line; nothing to scroll with nothing or any working open
+- [x] vitest, eslint, tsc, next build, check:laptop

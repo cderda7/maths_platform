@@ -83,6 +83,11 @@ export interface WholeClassSession {
   modes: Record<string, FollowMode>;
   /** The teacher's writing per problem, mirrored onto frozen students' pads. */
   ink: Record<string, Stroke[]>;
+  /**
+   * The furthest slide the board has shown (ticket 282): 0 once projected, raised by every Next. Absent until the session is
+   * projected (and in sessions stored before it). What class review covered is `problems` up to it (`boardCovered`).
+   */
+  reached?: number;
 }
 
 /**
@@ -368,13 +373,13 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
     case "wc/project": {
       if (!c.wholeClass) return c;
       const at = a.at ?? 0;
-      return { ...c, wholeClass: { ...c.wholeClass, status: "active", slide: 0, view: "unmarked" }, advance: { id: `whole-class-start@${at}`, kind: "whole-class-start", deadline: at + GRACE_MS } };
+      return { ...c, wholeClass: { ...c.wholeClass, status: "active", slide: 0, view: "unmarked", reached: Math.max(c.wholeClass.reached ?? 0, 0) }, advance: { id: `whole-class-start@${at}`, kind: "whole-class-start", deadline: at + GRACE_MS } };
     }
     case "wc/next": {
       const w = c.wholeClass;
       if (!w) return c;
       if (w.slide >= w.problems.length - 1) return c;
-      return { ...c, wholeClass: { ...w, slide: w.slide + 1, view: "unmarked" } };
+      return { ...c, wholeClass: { ...w, slide: w.slide + 1, view: "unmarked", reached: Math.max(w.reached ?? w.slide, w.slide + 1) } };
     }
     case "wc/prev": {
       const w = c.wholeClass;
@@ -467,6 +472,18 @@ export const isProjecting = (c: ClassroomState | null | undefined) => c?.wholeCl
 
 /** Whether the lesson is over, every stage of its pathway behind the class: class review ended, or the lesson ended outright (`lessonEndedAt`, ticket 263). */
 export const lessonOver = (c: ClassroomState | null | undefined): boolean => c?.wholeClass?.status === "ended" || c?.lessonEndedAt !== undefined;
+/**
+ * What class review covered on the live set (ticket 282), once it is over: the problems the board actually showed, in the
+ * order shown, from the first slide to the furthest the teacher reached (`reached`). Null while class review has not
+ * happened: no session, still being set up or projected, or ended without ever being projected. The report's "Covered in
+ * class review" column shows only then, so its tiles move out of Incorrect once, at the board's End.
+ */
+export function boardCovered(c: ClassroomState | null | undefined): string[] | null {
+  const w = c?.wholeClass;
+  if (!w || w.status !== "ended" || w.reached === undefined) return null;
+  return w.problems.slice(0, w.reached + 1);
+}
+
 /** The problem id on the board right now, if projecting. */
 export function currentSlide(c: ClassroomState | null | undefined): { problemId: string; view: BoardView; index: number; total: number; mode: FollowMode; teacherInk: Stroke[] } | null {
   const w = c?.wholeClass;

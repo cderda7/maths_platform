@@ -69,7 +69,8 @@ export interface PickerContext {
 
 export const MAX_EXAMPLES = 3;
 export const MIN_EXAMPLES = 2;
-const LETTERS = ["A", "B", "C", "D"];
+/** The board's letters for its examples, in order (the report's Class review pane letters them the same, ticket 282). */
+export const EXAMPLE_LETTERS = ["A", "B", "C", "D"];
 
 export function bucketOf(problemId: string, lines: string[]): Bucket {
   for (const tex of lines) {
@@ -207,7 +208,7 @@ export function boardExamples(refs: ExampleRef[], problemId: string, session: St
   return refs
     .map((r) => cands.find((c) => c.studentId === r.studentId))
     .filter((c): c is Candidate => !!c)
-    .map((c, i) => ({ letter: LETTERS[i], lines: c.lines }));
+    .map((c, i) => ({ letter: EXAMPLE_LETTERS[i], lines: c.lines }));
 }
 
 /** Problems ordered by how many struggled, most first; ties keep assignment order. Both counts are over the class in the room (`absent`, ticket 250). */

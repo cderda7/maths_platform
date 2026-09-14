@@ -42,6 +42,9 @@
   --color-standout: #2f6fb3;
   --color-standout-soft: #e8f0fa;
   --color-standout-line: #c3d7ee;
+  /* Covered in class review (ticket 282): a neutral grey, no judgement in it. */
+  --color-covered-soft: #efeff1;
+  --color-covered-line: #d4d4d9;
 
   --font-display: var(--font-playfair), "Playfair Display", Georgia, "Times New Roman", serif;
   --font-sans: var(--font-inter), Inter, system-ui, -apple-system, sans-serif;

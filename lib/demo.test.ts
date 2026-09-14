@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ASSIGNMENT } from "@/data/assignment";
 import type { Pathway } from "@/data/types";
 import { canTeacherSkip, DEMO_PATHWAY, deepLinkClassroom, readyDraft, skipFixture, SKIP_STARTED_AGO_MS, SKIP_TARGETS, TEACHER_SKIP_LABEL, TEACHER_SKIP_TARGETS, teacherSkip, type DemoState, type TeacherSkipTarget } from "./demo";
-import { classroomReducer, INITIAL_CLASSROOM, isDue, isPending, isProjecting, type ClassroomState } from "./classroom";
+import { boardCovered, classroomReducer, INITIAL_CLASSROOM, isDue, isPending, isProjecting, type ClassroomState } from "./classroom";
 import { currentClassStage } from "./classStage";
 import { classroomCards } from "./classroomCards";
 import { studentClassroom, studentSection } from "./studentClassroom";
@@ -237,6 +237,8 @@ describe("the teacher's presenter jumps (ticket 263)", () => {
       expect(section(r), name).toBe("completed");
       expect(r.session.reportSent && r.session.reflection === DEMO_REFLECTION && r.session.stage === "homework", name).toBe(true);
       expect(r.classroom.wholeClass?.status, name).toBe("ended");
+      // Class review run through (ticket 282): every projected problem was on the board, so the report covers each.
+      expect(boardCovered(r.classroom), name).toEqual(r.classroom.wholeClass?.problems);
       expect(r.classroom.group?.done, name).toBe(true);
       expect(r.classroom.advance, name).toBeNull();
       expect(board(r), name).toBe("blank");
