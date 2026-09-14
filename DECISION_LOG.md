@@ -4560,3 +4560,46 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** The note is small (11.5 px under the 0.72 zoom) because the head is 53 px tall; it rides along with the sticky head as the roster scrolls. A second browser or a cleared storage shows it again (per browser, not per teacher account; there are no accounts). Three links per row, one in the tab order.
 
 **Defense.** Every roster rect (row, cells, name, avatars, toggle, buttons, heads) measures the same as main's with the note shown, after Dismiss, and after hovering, for every set at 1280 × 800 and 1440 × 900 in the click-through; the note stays where the eye already finds the names, and the dismissal survives exactly what the ticket names while the demo's own reset stays untouched.
+
+## 2026-09-14 · Tile tags are the habits on two sets or more, collapsed by an authored label per habit (ticket 252)
+
+**Decision.** A Holistic Assessment tile shows a student's recurring habits: a habit that shows on two sets or more, as "label · n sets" under its category, most sets first. The story sheet words a habit for its set, so `data/habitTags.ts` lists, per student and category, the wordings that are one habit with one short label (Sam's "right split, the signs put into the wrong brackets" on PS4 and "right split, signs in the wrong brackets" on PS5 read "signs in the wrong brackets · 2 sets"); a habit worded alike on every set needs no entry and reads its own words. The set count comes from `holisticView`'s refs, so it is what the student's page shows (the live set only on problems seen, a set marked absent gone). A habit on one set stays on the student's page only.
+
+**Context.** The ticket: tags come from the sheet's habits, "where a habit's wording differs by set, the view model picks one label per habit (a short label field in the data if needed; never grep-count or guess)", and the tile shows "their recurring habits". The sheet has 217 habits; Tomas alone has 21, so every habit as a tag would make a tile a list, not a glance. The arcs name each student's recurring slips ("turns fractions over and copies the sign printed in a bracket"), which the labels follow.
+
+**Alternatives considered.**
+- *A `label` on every habit in `data/story.ts`*: one source, but 217 call sites edited in the file tickets 211–214 and the generated sheet were authored against, and most habits never recur.
+- *Merging by similar words (shared tokens, edit distance)*: no authoring, but it would join "a sign lost" with "a sign copied" and miss "solved 2x + 1 = 0 as x = −2" as a fraction turned over; the ticket says never guess.
+- *Every habit as a tag, one-set ones without a count*: complete, but tiles of fifteen to twenty tags, and the between-sets picture (what keeps happening) buried under one-off slips.
+- *Labels on the holistic page's rows too*: would make the page match the tiles, but the page's rows name each set's own slip with its problems, which a teacher opening a working needs; left for later.
+
+**Tradeoffs.** Which wordings are one habit is an authoring judgement (Tomas's "multiplied by the same bracket, not its conjugate" counted as copying the bracket's sign), made reviewable in one file and held to the sheet by `data/habitTags.test.ts`, not proven. A new or reworded sheet habit that recurs under different words shows as two one-set habits until the table gains it. A student with only one-set habits (Liam before Problem Set 6) has a tile with no tags.
+
+**Defense.** The tag text and count are always the sheet's own habits on the sets the student's page shows, never inferred, and the grouping is explicit data a teacher-facing reviewer can read line by line. Keeping the tile to what recurs is what "between-assignment" means.
+
+## 2026-09-14 · A tile's strengths are the categories secure on every set that assessed the student in them (ticket 252)
+
+**Decision.** A strength is a category whose every result is secure, with at least one: a set that does not assess the category ("—"), a set the student was marked absent for, and the live set while it has nothing of the student's in the category ("not seen" there) are passed over; "not seen" on a finished set (missing, or never reached those problems) is a set with nothing secure, so it rules the strength out.
+
+**Context.** Agreed with the user: "strengths = the categories the student is secure in on every set that assessed them." Liam's communication is secure on the four sets he handed in and not seen on PS3 and PS5; Jordan's reasoning is secure on PS1 and PS2 and not seen after (he never reaches the worded problem); Chloe is away for PS6; at the start of the lesson every classmate's PS6 column reads not seen.
+
+**Alternatives considered.**
+- *Pass over every "not seen"*: Liam's communication and Jordan's reasoning become strengths on two or four sets of evidence, although four sets saw no reasoning from Jordan.
+- *Count every "not seen" and absent against*: Chloe loses every strength for being away, and every student loses theirs when Problem Set 6 goes live, returning as the stream reaches them.
+- *Secure on the latest set only*: a trend, not the whole record the page is about.
+
+**Tradeoffs.** The rule treats the live set differently from a finished one, so a strength can appear once the class has handed in if a classmate never reached a category on PS6 (Grace's functions: secure on PS4 and PS5, not seen on PS6). A strength says nothing about how many sets back it.
+
+**Defense.** A strength is a claim to a teacher; it is made only where every set that could have shown the category and has finished showed it secure, and an absence or a lesson still running never takes one away.
+
+## 2026-09-14 · The tiles keep their scroll in sessionStorage, restored on mount (ticket 252)
+
+**Decision.** A tile press stores the teacher scroll region's `scrollTop` in sessionStorage; the tiles page, once drawn, sets it back; the Classroom's entry forgets it, so arriving from the Classroom opens at the top. Back ("← Holistic Assessment") and the browser's back both land where the teacher left.
+
+**Context.** Teacher pages scroll `[data-teacher-scroll]`, not the window (ticket 68), and each page draws its own `TeacherChrome`, so the router's scroll restoration never applies and Back is a link push, not a history pop.
+
+**Alternatives considered.** *`router.back()` for Back*: restores nothing here (the element remounts) and breaks Back for a student page opened directly. *The student id in Back's URL, scrolling that tile into view*: returns near, not exactly where, and puts the tiles' state in the student page's link. *A module variable*: lost on reload, and stale across the demo's tabs.
+
+**Tradeoffs.** Arriving at `/teacher/students` by typing the URL after opening a student returns to the old scroll. One more storage key.
+
+**Defense.** Exact return by both ways back, with no change to the student page and one line on the Classroom's entry.

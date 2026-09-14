@@ -4,7 +4,7 @@
 
 **Blocked by:** 251.
 
-**Status:** open
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -23,6 +23,6 @@ The user (2026-09-14): "let's add a Holistic Assessment thing to Edexia Classroo
 
 ## Acceptance
 
-- [ ] Unit: tile view model for all twenty (Priya: strengths only; Liam: few seen sets); a repeated habit collapses with its set count
-- [ ] Click-through at 1280×800 and 1440×900: entry visible on Classroom with Live cards unmoved; twenty tiles, none clipping its text, equal heights per row; each opens the right student; Back keeps scroll; no sideways scroll
-- [ ] vitest, eslint, tsc, next build, check:laptop
+- [x] Unit: tile view model for all twenty (Priya: strengths only; Liam: few seen sets); a repeated habit collapses with its set count
+- [x] Click-through at 1280×800 and 1440×900: entry visible on Classroom with Live cards unmoved; twenty tiles, none clipping its text, equal heights per row; each opens the right student; Back keeps scroll; no sideways scroll
+- [x] vitest, eslint, tsc, next build, check:laptop

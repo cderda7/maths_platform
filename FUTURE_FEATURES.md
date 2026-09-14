@@ -3337,6 +3337,19 @@ uploaded problems) settled the following as later, each on purpose.
 - **The note reachable from the student's own row** (a hint the first time a teacher hovers a name). Deferred: the ticket placed it beside the names, once.
 - **Links from the other rosters** (Mistakes rows, Groups seats, the smartboard) to the holistic page. Deferred: the ticket names Class View only.
 
+## Holistic Assessment tiles (ticket 252, 2026-09-14)
+
+- **One-set habits on the tiles** (a muted "+3 more" or a toggle). Deferred: the ticket asks for recurring habits; the one-offs are on the student's page.
+- **The student's page grouping rows by the tiles' labels** ("signs in the wrong brackets" with PS4 and PS5 refs on one row). Deferred: the page's rows name each set's own slip beside its problems; `data/habitTags.ts` could drive it later.
+- **The same slip across categories** (Tomas copies a bracket's sign in Graphing and in New skills) reading as one tag. Deferred: tags are grouped by category, as agreed.
+- **Sorting or filtering the tiles** (most gaps first, by category, by habit, by name) and a name search. Deferred: not asked for; the class order matches the Class View.
+- **A tag press opening that habit on the student's page** (scrolled to its row, or its first working). Deferred: the whole tile is one link, as the Classroom's cards are.
+- **Which sets a tag shows on, visible without hovering** ("PS3–PS6"). Deferred: the count is the ticket's example; the sets are in the tag's tooltip.
+- **Strength tags counting their sets** ("Communication · 6 sets") or distinguishing two sets of evidence from six. Deferred: the agreed rule is secure on every set that assessed the student.
+- **Habit tags coloured by their latest result** (gap red, solid green). Deferred: a tag spans sets with different results; one colour for habits keeps strengths and habits apart.
+- **Sam's own habits on the live set feeding his tile.** Deferred: the sheet has none for his live row (see ticket 251).
+- **Keeping the tiles' scroll when the URL is typed or the tab reloads mid-visit** (today the Classroom's entry resets it, a typed URL keeps the last). Deferred: minor.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

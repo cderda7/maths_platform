@@ -56,6 +56,8 @@ const ROUTES = [
   "/teacher/a/pset-6/groups",
   ...FINISHED_SETS.flatMap((id) => [`/teacher/a/${id}/class`, `/teacher/a/${id}/mistakes`, `/teacher/a/${id}/groups`, `/teacher/a/${id}/report?student=mia`]),
   "/teacher/groups",
+  // Holistic Assessment's tiles (ticket 252), every student.
+  "/teacher/students",
   // A student across every set (ticket 251), on both routes: the most habits (Tomas) and the live set (Sam), and a habit's working.
   "/teacher/students/tomas",
   "/teacher/students/sam",

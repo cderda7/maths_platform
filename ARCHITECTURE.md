@@ -140,7 +140,7 @@ two routes, the help chat's (`/api/help-chat`, ticket 69) and problem extraction
  Dependency rule: app ──▶ components ──▶ data ──▶ types. Nothing points the other way.
 ```
 
-## The six-set Classroom (tickets 208–217, 234, 237, 251, 253)
+## The six-set Classroom (tickets 208–217, 234, 237, 251, 252, 253)
 
 ```
  data/story.ts  class story sheet: STORY_SETS (PS1–PS6) + STORY (20 students × 6 categories × 6 sets)
@@ -159,7 +159,7 @@ two routes, the help chat's (`/api/help-chat`, ticket 69) and problem extraction
  lib/assignments.ts REGISTRY: pset-6 live, then pset-5 … pset-1
       │  assignmentBundle(id) { title, name, due, problems, newSkills, classmates, sam, groups }
       │
-      ├─► app/teacher/Classroom.tsx   pinned: heading, + New assignment, LIVE (Set 6); Past scrolls, newest due first
+      ├─► app/teacher/Classroom.tsx   pinned: heading, Holistic Assessment + New assignment, LIVE (Set 6); Past scrolls, newest due first
       ├─► /teacher/a/<id>/class       ClassView ─► TeacherLive: rows, dots, due line; HierarchyDrill
       │        lib/hierarchy.ts hierarchyFor(ev, set): a set's New skills → "new", others → their home
       ├─► /teacher/a/<id>/mistakes, /groups, /report?student=
@@ -176,6 +176,10 @@ two routes, the help chat's (`/api/help-chat`, ticket 69) and problem extraction
       │                 set header ─► /report?student=&from=     habit "PS4 · Q1" ─► /report?student=&work=&from=
       │                 ▲ TeacherLive: a name or either avatar ─► /teacher/a/<set>/students/<id>   (ticket 253)
       │                   "Did you know?" in the Student head ─ Dismiss ─► lib/holisticNote.ts (own localStorage key)
+      │        └─► lib/holisticTiles.ts holisticTiles(…)   (ticket 252)   data/habitTags.ts: one label per habit worded by set
+      │                 habits on ≥ 2 sets as "label · n sets" by category; strengths: secure on every set that assessed them
+      │                 └─► app/teacher/students/HolisticTiles.tsx   /teacher/students (Classroom's title-row entry)
+      │                          tile ─► /teacher/students/<id> ; Back returns at the scroll left (tilesScroll.ts)
       └─► lib/newSkills.ts inferNewSkills(problems, recentSets("pset-6", 2) = PS5, PS4) ─► Create's review
 ```
 
@@ -440,6 +444,7 @@ two routes, the help chat's (`/api/help-chat`, ticket 69) and problem extraction
 | 264 | `/student` is Sam's Edexia Classroom on the iPad: To do, Missing, Completed (`lib/studentClassroom.ts`), PS1–PS5 Completed from the story, Problem Set 6 in To do only once sent (Create, a skip or a deep link; a fresh demo has not sent it), Completed once the report goes with its reflection, Missing when the lesson ends without his hand-in; START / CONTINUE opens `/student/a/pset-6`, the Edexia mark returns; `app/student/layout.tsx` keeps the iPad (`StudentShell`: the lesson's clockwork, countdown, diagnostic, SKIP TO) mounted across both; `/student?stage=…` redirects and sends the set first (`deepLinkClassroom`); Create resets Sam's run to its start; the blank board names no set before one is sent | `/student`, `/student/a/pset-6`, `/board` | 188, 256, 265 | [architecture/264-sam-classroom.md](architecture/264-sam-classroom.md) |
 | 244 | Every record on every set (all twenty students, Sam's finished records included) carries what review made of its mistakes: each problem fixed on the student's own rework has its second submission, and every wrong problem its seating group's one version (the rework that checked, or the last try, the first habit-holder's working; sky's Set 6 versions are the demo group's script), written by `withReview` from `data/psetN/review.ts` and `data/classmates-review.ts`; the class story sheet gains a review part per set (`STORY_REVIEW`, every case's reasoning) held to the agreed rules by `lib/reviewRule.ts`; on the live set a classmate's second submission shows once individual review is finished and the group's version once group review is (`recordReviews(…, over)`, `reviewStagesOver`); on the teacher's report the not-solved note is Incorrect's second label line, the skills card takes the page's spare height and a working too tall for it scales down whole, so every working opens without scrolling | `/teacher/a/<set>/report` | 243 | [architecture/244-record-review-outcomes.md](architecture/244-record-review-outcomes.md) |
 | 253 | On a set's Class View a student's name, their avatar and the closing avatar open their holistic page under the set (`/teacher/a/<set>/students/<id>`, Back → that Class View); same boxes, nothing moves; in another student's history mode the press leaves history mode instead; "student report" and "mark absent" stay. A "Did you know? A name opens that student's Holistic Assessment, also in Edexia Classroom." note with Dismiss lies over the Student head's blank space beside its label (absolute, in the sticky head); Dismiss is for good in this browser (`lib/holisticNote.ts`, its own localStorage key read through `useSyncExternalStore`, untouched by Reset demo; clearing the key shows it again) | `/teacher/a/<set>/class` | 250, 251 | [architecture/253-name-opens-holistic.md](architecture/253-name-opens-holistic.md) |
+| 252 | Holistic Assessment: an entry on Edexia Classroom's title row beside "+ New assignment" (one height, the Live cards unmoved) opens `/teacher/students`, twenty tiles three to a row, one height per row; a tile shows avatar, name, the story sheet's line, the habits seen on two sets or more as "label · n sets" under their category (a habit the sheet words differently by set collapses by an authored label in `data/habitTags.ts`, e.g. Sam's "signs in the wrong brackets · 2 sets") and the strengths, the categories secure on every set that assessed the student in them; `lib/holisticTiles.ts` over `holisticView` (ticket 251), so the live set moves the tiles as it moves the student's page; a tile opens `/teacher/students/<id>`, whose Back and the browser's back return at the scroll left (sessionStorage) | `/teacher`, `/teacher/students` | 251 | [architecture/252-holistic-tiles.md](architecture/252-holistic-tiles.md) |
 
 ## Conventions
 

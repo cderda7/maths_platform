@@ -5,6 +5,8 @@ import Link from "next/link";
 import TeacherChrome from "./TeacherChrome";
 import { Eyebrow, H1 } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
+import { forgetTilesScroll } from "./students/tilesScroll";
+import { HOLISTIC_HREF } from "@/lib/assignments";
 import { CLASS_SUBJECT, classroomCards, type AssignmentCard } from "@/lib/classroomCards";
 import { useClassroom } from "@/lib/classroom-store";
 import { CLASS_SIZE } from "@/lib/readiness";
@@ -16,7 +18,7 @@ const CREATE_HREF = "/teacher/assignments/create";
 /**
  * Edexia Classroom (ticket 186), the teacher's home: every assignment the class has, as cards, the
  * live ones (the class still working, or in review, ticket 234) above the past ones (done), each
- * newest due first, and "+ New assignment" on the title row. The heading and the Live section are
+ * newest due first, and Holistic Assessment (ticket 252) and "+ New assignment" on the title row. The heading and the Live section are
  * pinned; only Past scrolls (ticket 216). A card is one link to the assignment's
  * landing (ticket 185: Class or Mistakes). The cards are `lib/classroomCards` over the classroom,
  * Sam's session in its 3 s batches and the clock, the inputs the assignment's own tabs read, so the
@@ -68,16 +70,27 @@ export default function Classroom() {
           </div>
           <div className="mt-3 flex items-center justify-between gap-6">
             <H1>Edexia Classroom</H1>
-            <Link
-              href={CREATE_HREF}
-              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-ink py-2.5 pr-5 pl-4 text-[15px] font-medium text-white shadow-card transition-colors hover:bg-ink-soft focus-visible:ring-4 focus-visible:ring-accent/30 focus-visible:outline-none"
-              data-new-assignment
-            >
-              <span aria-hidden className="grid h-5 w-5 place-items-center text-[20px] leading-none font-normal">
-                +
-              </span>
-              New assignment
-            </Link>
+            {/* Holistic Assessment (ticket 252) beside "+ New assignment", one height with it, so the title row and the Live cards stay where they were. */}
+            <div className="flex shrink-0 items-center gap-3">
+              <Link
+                href={HOLISTIC_HREF}
+                onClick={forgetTilesScroll}
+                className="inline-flex shrink-0 items-center rounded-full border border-line-strong bg-paper px-5 py-[9px] text-[15px] font-medium text-ink shadow-card transition-colors hover:border-accent-line hover:bg-accent-soft focus-visible:ring-4 focus-visible:ring-accent/30 focus-visible:outline-none"
+                data-holistic-entry
+              >
+                Holistic Assessment
+              </Link>
+              <Link
+                href={CREATE_HREF}
+                className="inline-flex shrink-0 items-center gap-2 rounded-full bg-ink py-2.5 pr-5 pl-4 text-[15px] font-medium text-white shadow-card transition-colors hover:bg-ink-soft focus-visible:ring-4 focus-visible:ring-accent/30 focus-visible:outline-none"
+                data-new-assignment
+              >
+                <span aria-hidden className="grid h-5 w-5 place-items-center text-[20px] leading-none font-normal">
+                  +
+                </span>
+                New assignment
+              </Link>
+            </div>
           </div>
 
           {/* Before Create nothing is live: no Live section at all, Past opens where it would sit (ticket 216). */}

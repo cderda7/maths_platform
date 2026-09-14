@@ -37,6 +37,8 @@ export interface HolisticColumn {
   due: string;
   /** Sam's column on the live set: his session, still moving. */
   live: boolean;
+  /** A finished set: its results are final. The live set is still being handed in, so "not seen" there is not yet a result (ticket 252's strengths). */
+  finished: boolean;
 }
 
 export interface HolisticRow {
@@ -115,7 +117,7 @@ export function holisticView(student: string, { classroom, session, now }: Holis
     return liveCells(bundle, student, i, { classroom, session, now });
   });
 
-  const columns: HolisticColumn[] = sets.map(({ story, bundle }) => ({ id: bundle.id, label: `PS${story.n}`, topic: topicOf(bundle.name), due: bundle.due, live: bundle.kind === "live" && student === DEMO_STUDENT.id }));
+  const columns: HolisticColumn[] = sets.map(({ story, bundle }) => ({ id: bundle.id, label: `PS${story.n}`, topic: topicOf(bundle.name), due: bundle.due, live: bundle.kind === "live" && student === DEMO_STUDENT.id, finished: bundle.kind === "finished" }));
   const rows: HolisticRow[] = STORY_CATEGORIES.map((c, k) => ({ category: c, name: categoryName(c).name, cells: read.map((cells) => cells[k].status) }));
 
   const habits: HabitGroup[] = STORY_CATEGORIES.flatMap((c, k) => {
