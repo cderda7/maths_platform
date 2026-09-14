@@ -3248,6 +3248,12 @@ uploaded problems) settled the following as later, each on purpose.
 - **Escape in a Class View drill opened straight onto a skill** closes the whole drill in one press (child and parent layers mount together). Deferred: ordering by open time cannot split them, and closing all of it reads as expected.
 - **A visible hint that Escape works** (an "esc" keycap beside close buttons). Deferred: not asked for.
 
+## Report back button (ticket 266, 2026-09-14)
+
+- **Ethan's PS4 report scrolls 10 px at 1280×800.** The "← Class view" button's row adds ~15 px to the report; every other report on PS1–PS5 still fits, but Ethan's six commentary lines leave his page 10 px into its empty bottom padding (no content hidden). Deferred: ticket 244 (in flight) makes the skills card fill the page height, which reworks this page's vertical fit; trimming spacing the user did not ask about now would clash with it.
+- **The Reset demo pill covers the report's key** ("no evidence yet" under it at 1280×800). Pre-existing, seen during this ticket's screenshots. Deferred: the pill is demo-only chrome; not part of this ask.
+- **One back-button component for the history Return button.** The pulsing "← Return to …" on a report opened from history (ticket 237) is still its own larger, bolder link. Deferred: it is deliberately louder; merging styles is a design call.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

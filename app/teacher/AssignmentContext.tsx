@@ -22,15 +22,24 @@ export function useAssignmentBundle(): AssignmentBundle {
 /** The page's assignment, or null on a Classroom page. */
 export const useOptionalAssignment = (): AssignmentBundle | null => useContext(AssignmentContext);
 
-/** "← Edexia Classroom", above the eyebrow on every assignment page: white on a dark purple box (ticket 200), so the way back reads as a button. */
-export function BackToClassroom() {
+/** The way back above a teacher page's eyebrow: white on a dark purple box (ticket 200), so it reads as a button. */
+export function BackButton({ href, children, ...data }: { href: string; children: string } & Record<`data-${string}`, true>) {
   return (
     <Link
-      href={CLASSROOM_HREF}
+      href={href}
       className="mb-1 inline-flex items-center rounded-md bg-accent-dark px-3 py-1.5 text-[13.5px] font-medium text-white transition-colors hover:bg-accent-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-      data-back-to-classroom
+      {...data}
     >
-      ← Edexia Classroom
+      ← {children}
     </Link>
+  );
+}
+
+/** "← Edexia Classroom", above the eyebrow on every assignment page. */
+export function BackToClassroom() {
+  return (
+    <BackButton href={CLASSROOM_HREF} data-back-to-classroom>
+      Edexia Classroom
+    </BackButton>
   );
 }

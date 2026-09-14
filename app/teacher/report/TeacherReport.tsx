@@ -21,7 +21,7 @@ import { pressWork, type ReportWork } from "@/lib/reportWork";
 import { classmateEvidence, hierarchyFor, leavesBehind, restrictTo, sessionEvidence, type Evidence } from "@/lib/hierarchy";
 import { useBatchedSession } from "@/lib/store";
 import { useEscape } from "@/components/useEscape";
-import { useAssignmentBundle } from "../AssignmentContext";
+import { BackButton, useAssignmentBundle } from "../AssignmentContext";
 
 /**
  * The individual view: one student, opened from their name on the class view (`student` from
@@ -104,21 +104,24 @@ export function ReportBody({ student, back }: { student: string | null; back?: {
           ← {back.label}
         </Link>
       )}
-      <Eyebrow>
+      {/* "← Class view" above the eyebrow (ticket 266), the Class View's own "← Edexia Classroom" button: unzoomed back to the Class View's
+          scale and raised by the difference in the page's top padding, so the two match to the pixel, size and distance under the bar. */}
+      {!back && (
+        <div style={{ zoom: TEACHER_ZOOM / REPORT_ZOOM, marginTop: -12 }}>
+          <BackButton href={assignmentHref(assignment.id, "class")} data-back-to-class>
+            Class view
+          </BackButton>
+        </div>
+      )}
+      <Eyebrow className={back ? undefined : "mt-[9.6px]"}>
         {assignment.className} · {assignment.title}
       </Eyebrow>
-      <div className="mt-3 flex items-end justify-between">
-        <div className="flex items-center gap-4">
-          <Avatar initials={who.initials} size="h-12 w-12 text-[15px]" />
-          <div>
-            <H1>{who.name}</H1>
-          </div>
+      {/* Flush under the eyebrow beneath the button (ticket 266): the name's tall line box keeps the air, and the button's row costs the page almost no height. */}
+      <div className={`flex items-center gap-4${back ? " mt-3" : ""}`}>
+        <Avatar initials={who.initials} size="h-12 w-12 text-[15px]" />
+        <div>
+          <H1>{who.name}</H1>
         </div>
-        {!back && (
-          <Link href={assignmentHref(assignment.id, "class")} className="text-[13.5px] text-accent-deep hover:underline">
-            ← Class view
-          </Link>
-        )}
       </div>
 
       <div className="mt-5 grid grid-cols-[1fr_440px] gap-6">
