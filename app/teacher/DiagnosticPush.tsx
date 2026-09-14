@@ -2,17 +2,17 @@
 
 import { useState } from "react";
 import DiagnosticResults from "@/components/DiagnosticResults";
+import DiagnosticStem from "@/components/DiagnosticStem";
 import FitText from "@/components/FitText";
 import M from "@/components/Math";
 import { Button, Card } from "@/components/ui";
-import type { Diagnostic } from "@/data/diagnostic";
-import { boardDiagnostic, customQuestion, openDiagnostic, pushBelongsTo, runFor, tally } from "@/lib/diagnostic";
+import type { DiagnosticStep } from "@/data/diagnostic";
+import { boardDiagnostic, openDiagnostic, runFor, slippedAt, stepsFor, tally } from "@/lib/diagnostic";
 import type { DiagnosticRun } from "@/lib/classroom";
+import type { MistakeRow } from "@/lib/mistakes";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { useNow } from "@/lib/store";
 import { DIAGNOSTIC_CHIP as CHIP } from "./DiagnosticCard";
-
-type Tab = "example" | "own";
 
 /** The flyout's frame: the card's border (1) plus padding (24) so the chip in flow sits exactly where the card's own chip would. */
 const FRAME = 25;
@@ -59,34 +59,24 @@ function clampToViewport(el: HTMLDivElement | null) {
 /**
  * The mistake view's live diagnostic, one beside each problem: the "Live diagnostic" chip in flow,
  * and on a click the push panel as a flyout from the chip's corner, down and to the right over
- * blank space; the problem card never changes size (ticket 132). Two tabs in one shape: the
- * problem's own suggested question, and one the teacher writes here (stem, optional expression,
- * up to four options, the right one). Once a question is out (ticket 137) the tab's option grid is its result: each option with the
- * class's count and the misconception it reveals, the right one green, live as the answers land;
- * Withdraw while the class is still answering, then "show on board" / "clear board". Each tab
- * keeps its own latest result; a push waits its turn while another panel's is open. The flyout
- * collapses the moment the pointer leaves it (ticket 144); what the teacher had typed or chosen
- * (the tab, a question of their own) is state on this component, not on the flyout, so it is
- * there again when the chip is clicked next.
+ * blank space; the problem card never changes size (ticket 132). The panel is the problem's step
+ * questions (ticket 240), stacked in solution order and every one expanded: each asks one step of
+ * a similar problem, headed for the teacher by the step's name and how many of the rows beside it
+ * slipped at that step. Each step has its own send to class; once a step is out (ticket 137) its
+ * option grid is its result: each option with the class's count and the misconception it reveals,
+ * the right one green, live as the answers land; Withdraw while the class is still answering,
+ * then "show on board" / "clear board". A push waits its turn while another is open. The flyout
+ * grows down with its steps, the page scrolling with it (no scroll box of its own), and collapses
+ * the moment the pointer leaves it (ticket 144).
  */
-export default function DiagnosticPush({ example, problemId, className = "" }: { example: Diagnostic; problemId: string; className?: string }) {
+export default function DiagnosticPush({ problemId, rows, className = "" }: { problemId: string; rows: readonly MistakeRow[]; className?: string }) {
   const classroom = useClassroom();
   const now = useNow();
   const [open, setOpen] = useState(false);
-  const [tab, setTab] = useState<Tab>("example");
-  const [stem, setStem] = useState("");
-  const [tex, setTex] = useState("");
-  const [options, setOptions] = useState(["", "", "", ""]);
-  const [correct, setCorrect] = useState("a");
-  const own = customQuestion(stem, tex, options, correct, 0, problemId);
+  const steps = stepsFor(problemId);
   const pending = openDiagnostic(classroom);
-  /** A push waiting on the class: this panel's own, or another panel's (which holds the send buttons). */
-  const mine = !!pending && pushBelongsTo(pending, example, problemId);
-  const elsewhere = !!pending && !mine;
-  const exampleRun = runFor(classroom, example, problemId, false);
-  const ownRun = runFor(classroom, example, problemId, true);
-
-  const push = (q: Diagnostic) => dispatchClassroom({ type: "diagnostic/push", questionId: q.id, question: q.id === example.id ? undefined : q });
+  /** This panel's push waiting on the class: the chip carries a badge while it is. */
+  const mine = !!pending && steps.some((s) => s.id === pending.questionId);
 
   const chip = (
     <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className={`${CHIP} relative transition-colors hover:bg-accent-deep`} data-diag-toggle={problemId}>
@@ -94,27 +84,6 @@ export default function DiagnosticPush({ example, problemId, className = "" }: {
       {/* A badge on the corner, not in the row: the chip keeps its width, so the cards' right edges stay in line. */}
       {mine && !open && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 animate-pulse rounded-full bg-white ring-2 ring-accent" aria-hidden data-diag-waiting />}
     </button>
-  );
-
-  /** The action row under a tab: the waiting band with Withdraw while this panel's push is out, else send at the panel's bottom right (off while another panel's is). */
-  const actions = (run: DiagnosticRun | null, send: () => void, disabled: boolean, attr: string) => (
-    <div className="mt-4 flex justify-end">
-      {mine && run ? (
-        <div className="flex flex-1 items-center justify-between rounded-xl border border-accent-line bg-accent-soft/50 px-4 py-3 text-[15px] text-ink" data-pending>
-          <span className="flex items-center gap-2">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
-            Waiting · {tally(run, now).answered}/{tally(run, now).total} in
-          </span>
-          <button type="button" className="text-accent-deep hover:underline" onClick={() => dispatchClassroom({ type: "diagnostic/withdraw" })} data-diag-withdraw>
-            Withdraw
-          </button>
-        </div>
-      ) : (
-        <Button variant="sky" size="lg" disabled={disabled || elsewhere} title={elsewhere ? "Another diagnostic is waiting on the class" : undefined} onClick={send} {...{ [attr]: true }}>
-          send to class
-        </Button>
-      )}
-    </div>
   );
 
   /** The board links under a result: "show on board" from the first answer, "clear board" while the board has it. Only the latest run can be on the board. */
@@ -138,108 +107,72 @@ export default function DiagnosticPush({ example, problemId, className = "" }: {
     );
   };
 
+  const step = (q: DiagnosticStep, index: number) => {
+    const run = runFor(classroom, q.id);
+    const waiting = !!pending && pending.questionId === q.id;
+    const elsewhere = !!pending && !waiting;
+    const slipped = slippedAt(q, rows);
+    return (
+      <section key={q.id} className={index === 0 ? "mt-4" : "mt-5 border-t border-line pt-5"} data-diag-step={q.id} data-step-index={index}>
+        <div className="flex items-baseline justify-between gap-4">
+          <span className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-muted" data-step-name>
+            {index + 1} · {q.name}
+          </span>
+          <span className={`shrink-0 text-[14px] ${slipped > 0 ? "font-medium text-wrong" : "text-ink-muted"}`} data-slipped={slipped}>
+            {slipped} slipped here
+          </span>
+        </div>
+        {run ? (
+          <>
+            <DiagnosticResults question={q} tally={tally(run, now)} size="panel" className="mt-3" />
+            {!waiting && boardLinks(run)}
+          </>
+        ) : (
+          <>
+            <p className="mt-3 text-[17px] leading-snug text-ink" data-diag-stem>
+              <DiagnosticStem question={q} />
+            </p>
+            {/* Two equal columns, as the result grid after a send: A and C share a width, B and D start on one line (ticket 207). */}
+            <ul className="mt-4 grid grid-cols-2 gap-2 text-ink" data-diag-options>
+              {q.options.map((o) => (
+                <li key={o.id} className={`flex min-w-0 items-baseline gap-2 rounded-xl border px-3 py-1.5 ${o.id === q.correct ? "border-secure-line bg-secure-soft" : "border-line bg-paper"}`} data-option={o.id}>
+                  <span className="shrink-0 text-[12px] font-semibold uppercase text-ink-muted">{o.id}</span>
+                  <div className="min-w-0 flex-1 text-[16px]">
+                    <FitText max={16} fitKey={`${q.id}:${o.id}`}>
+                      <M tex={o.tex} />
+                    </FitText>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        {/* The waiting band with Withdraw while this step's push is out, else send at the step's bottom right (off while another push is). */}
+        {waiting && run ? (
+          <div className="mt-4 flex items-center justify-between rounded-xl border border-accent-line bg-accent-soft/50 px-4 py-3 text-[15px] text-ink" data-pending>
+            <span className="flex items-center gap-2">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
+              Waiting · {tally(run, now).answered}/{tally(run, now).total} in
+            </span>
+            <button type="button" className="text-accent-deep hover:underline" onClick={() => dispatchClassroom({ type: "diagnostic/withdraw" })} data-diag-withdraw>
+              Withdraw
+            </button>
+          </div>
+        ) : (
+          <div className="mt-4 flex justify-end">
+            <Button variant="sky" disabled={elsewhere} title={elsewhere ? "Another diagnostic is waiting on the class" : undefined} onClick={() => dispatchClassroom({ type: "diagnostic/push", questionId: q.id })} data-push={q.id}>
+              send to class
+            </Button>
+          </div>
+        )}
+      </section>
+    );
+  };
+
   const body = (
     <>
       <div className="flex items-center">{chip}</div>
-
-      <div className="mt-3 grid grid-cols-2 gap-1 rounded-full border border-line bg-cream/60 p-1 text-[15px]" role="tablist">
-        {(["example", "own"] as Tab[]).map((t) => (
-          <button
-            key={t}
-            type="button"
-            role="tab"
-            aria-selected={tab === t}
-            onClick={() => setTab(t)}
-            className={`rounded-full px-3 py-2 font-medium transition-colors ${tab === t ? "bg-standout-soft text-standout" : "text-ink-soft hover:text-ink"}`}
-            data-diag-tab={t}
-          >
-            {t === "example" ? "example" : "make your own"}
-          </button>
-        ))}
-      </div>
-
-      {tab === "example" ? (
-        <div data-diag-example>
-          {exampleRun ? (
-            <>
-              <DiagnosticResults question={example} tally={tally(exampleRun, now)} size="panel" className="mt-4" />
-              {!mine && boardLinks(exampleRun)}
-            </>
-          ) : (
-            <>
-              <p className="mt-4 text-[17px] leading-snug text-ink" data-diag-stem>
-                {example.stem}{" "}
-                {/* The question mark stays with the maths: never a line of its own. */}
-                <span className="whitespace-nowrap">
-                  <M tex={example.tex} />?
-                </span>
-              </p>
-              {/* Two equal columns, as the result grid after a send: A and C share a width, B and D start on one line (ticket 207). */}
-              <ul className="mt-4 grid grid-cols-2 gap-2 text-ink" data-diag-options>
-                {example.options.map((o) => (
-                  <li key={o.id} className={`flex min-w-0 items-baseline gap-2 rounded-xl border px-3 py-1.5 ${o.id === example.correct ? "border-secure-line bg-secure-soft" : "border-line bg-paper"}`} data-option={o.id}>
-                    <span className="shrink-0 text-[12px] font-semibold uppercase text-ink-muted">{o.id}</span>
-                    <div className="min-w-0 flex-1 text-[16px]">
-                      <FitText max={16} fitKey={`${example.id}:${o.id}`}>
-                        <M tex={o.tex} />
-                      </FitText>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-          {actions(exampleRun, () => push(example), false, "data-push")}
-        </div>
-      ) : (
-        <div data-diag-own>
-          <div className="mt-3 space-y-2">
-            <input value={stem} onChange={(e) => setStem(e.target.value)} placeholder="Question" aria-label="Question" className="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-[16px] text-ink outline-none focus:border-accent" data-own-stem />
-            <input value={tex} onChange={(e) => setTex(e.target.value)} placeholder="Expression (TeX, optional)" aria-label="Expression" className="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-[16px] text-ink outline-none focus:border-accent" data-own-tex />
-            <ul className="space-y-1.5">
-              {options.map((o, i) => {
-                const id = "abcd"[i];
-                return (
-                  <li key={id} className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setCorrect(id)}
-                      aria-pressed={correct === id}
-                      title="Correct answer"
-                      className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border text-[12px] font-semibold uppercase ${correct === id ? "border-secure-line bg-secure-soft text-secure" : "border-line bg-paper text-ink-muted"}`}
-                      data-own-correct={id}
-                    >
-                      {id}
-                    </button>
-                    <input
-                      value={o}
-                      onChange={(e) => setOptions((os) => os.map((x, n) => (n === i ? e.target.value : x)))}
-                      placeholder={`Option ${id.toUpperCase()}`}
-                      aria-label={`Option ${id.toUpperCase()}`}
-                      className="min-w-0 flex-1 rounded-xl border border-line bg-paper px-3 py-2 text-[16px] text-ink outline-none focus:border-accent"
-                      data-own-option={id}
-                    />
-                    {o.trim() && (
-                      <span className="hidden w-32 shrink-0 text-ink sm:block" data-own-preview>
-                        <FitText max={16} fitKey={o}>
-                          <M tex={o} />
-                        </FitText>
-                      </span>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-          {actions(ownRun, () => own && push(customQuestion(stem, tex, options, correct, now, problemId)!), !own, "data-push-own")}
-          {ownRun && ownRun.question && (
-            <>
-              <DiagnosticResults question={ownRun.question} tally={tally(ownRun, now)} size="panel" className="mt-4 border-t border-line pt-4" />
-              {!mine && boardLinks(ownRun)}
-            </>
-          )}
-        </div>
-      )}
+      <div data-diag-steps>{steps.map(step)}</div>
     </>
   );
 
@@ -261,6 +194,8 @@ export default function DiagnosticPush({ example, problemId, className = "" }: {
       {open && (
         <div ref={clampToViewport} className="absolute" style={{ top: CHIP_TOP - FRAME, left: -FRAME }} data-diag-flyout>
           <Card className="w-[460px] p-6 shadow-lift">{body}</Card>
+          {/* Room under a tall flyout, so the page scrolls its last send button clear of the demo's corner controls; unhoverable, so the pointer over it has left. */}
+          <div className="pointer-events-none h-16" aria-hidden />
         </div>
       )}
     </div>

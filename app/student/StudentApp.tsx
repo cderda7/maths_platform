@@ -193,7 +193,7 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
           </div>
         )}
         {diagnostic && !frozen && (
-          <DiagnosticModal questionId={diagnostic.questionId} question={diagnostic.question} onAnswer={(option) => dispatchClassroom({ type: "diagnostic/answer", option })} />
+          <DiagnosticModal questionId={diagnostic.questionId} onAnswer={(option) => dispatchClassroom({ type: "diagnostic/answer", option })} />
         )}
       </StudentChrome>
       <SkipTo />

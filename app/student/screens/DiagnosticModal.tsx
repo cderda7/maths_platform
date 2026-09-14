@@ -1,15 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import DiagnosticStem from "@/components/DiagnosticStem";
+import FitText from "@/components/FitText";
 import M from "@/components/Math";
 import { Button, Eyebrow } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
-import type { Diagnostic } from "@/data/diagnostic";
 import { questionFor } from "@/lib/diagnostic";
 
 /** A diagnostic pushed by the teacher, over whatever the student was doing. Answer, then straight back. */
-export default function DiagnosticModal({ questionId, question, onAnswer }: { questionId: string; question?: Diagnostic; onAnswer: (option: string) => void }) {
-  const d = questionFor(questionId, question);
+export default function DiagnosticModal({ questionId, onAnswer }: { questionId: string; onAnswer: (option: string) => void }) {
+  const d = questionFor(questionId);
   const [pick, setPick] = useState<string | null>(null);
   if (!d) return null;
   return (
@@ -17,17 +18,7 @@ export default function DiagnosticModal({ questionId, question, onAnswer }: { qu
       <div className="w-[600px] rounded-3xl bg-paper p-8 shadow-lift">
         <Eyebrow>Quick check from {ASSIGNMENT.teacher}</Eyebrow>
         <h2 className="font-display mt-2 text-[26px] leading-tight text-ink">
-          {d.stem}
-          {d.tex ? (
-            <>
-              {" "}
-              <span className="whitespace-nowrap">
-                <M tex={d.tex} />?
-              </span>
-            </>
-          ) : (
-            "?"
-          )}
+          <DiagnosticStem question={d} />
         </h2>
         <ul className="mt-5 grid grid-cols-2 gap-2.5">
           {d.options.map((o) => {
@@ -41,8 +32,13 @@ export default function DiagnosticModal({ questionId, question, onAnswer }: { qu
                   className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left text-[18px] transition-colors ${on ? "border-ink bg-ink text-white" : "border-line bg-paper text-ink hover:border-ink-muted"}`}
                   data-option={o.id}
                 >
-                  <span className={`text-[12px] font-semibold uppercase ${on ? "text-white/70" : "text-ink-muted"}`}>{o.id}</span>
-                  <M tex={o.tex} />
+                  <span className={`shrink-0 text-[12px] font-semibold uppercase ${on ? "text-white/70" : "text-ink-muted"}`}>{o.id}</span>
+                  {/* A long option (a sentence in maths) scales to its button rather than running out of it. */}
+                  <span className="min-w-0 flex-1">
+                    <FitText max={18} fitKey={`${d.id}:${o.id}`}>
+                      <M tex={o.tex} />
+                    </FitText>
+                  </span>
                 </button>
               </li>
             );

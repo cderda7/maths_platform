@@ -3157,6 +3157,16 @@ uploaded problems) settled the following as later, each on purpose.
 - **The line under class review in the third column** instead of beside it, for lack of room in the card. A wider map card, or a shorter line there, would keep it to the right. Deferred: flagged to the user.
 - **Remember a teacher's usual pathway.** Every new set starts on individual working alone; the last set's pathway could be the starting point. Deferred: the user asked for the plain default.
 
+## Step diagnostics (ticket 240, 2026-09-14)
+
+- **"Make your own" diagnostic questions.** Removed from the Live diagnostic flyout in favour of step questions on a similar problem. Deferred: the user chose subskill steps over a free-form question; a teacher-written step could come back later.
+- **Step diagnostics for sets made through Create.** Their problems have no class slips and no similar problem yet, so each still falls back to one fixed question (`FALLBACK_STEP`). Deferred: needs authored or generated similar problems and slip analogues per problem.
+- **Figures in a step question.** Q8's "read the intercepts" step asks without a graph (the diagnostic has no figure slot on the flyout, the board or the iPad). Deferred: nobody slipped on Q8 and every surface would need a figure.
+- **Generated similar problems and distractors.** All 33 steps are hand-authored and hand-checked. Deferred: generation needs a checker as strict as the unit tests before anything reaches a projector.
+- **Common-slip picks from real data.** A few students who have not reached a problem pick a common slip by hand-authored name (Chloe, Liam, Grace, Harper, Jordan, Tomas, Oliver, Noah). Deferred: a model of likely slips per student would replace the list.
+- **Slip counts per step from a mapping, not the wrong line.** A step counts a student when their wrong line is one a distractor mirrors, so one slip (Q1's pair) counts on both "Find the pair" and "Factorise". Deferred: fine for the demo; a per-step attribution of where a slip began would separate them.
+- **Chain sends, who picked what, the problem label on the class card.** Tickets 241 and 242.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

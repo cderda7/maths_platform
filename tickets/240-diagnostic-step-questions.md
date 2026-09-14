@@ -4,7 +4,7 @@
 
 **Blocked by:** 137, 194.
 
-**Status:** todo
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -68,9 +68,19 @@ From `lib/mistakes.ts` over `data/classmates.ts` and `data/evaluation.ts`, end s
 
 ## Acceptance
 
-- [ ] Unit: no step's tex equals or contains its problem's expression; every problem has at least two steps; every step has four options with exactly one correct.
-- [ ] Unit, maths: every factorised option expands to its stated quadratic (or visibly does not, for a distractor); every pair option's sum and product match or miss as its label says; every zeros / intercepts / formula option is checked numerically against the similar problem.
-- [ ] Unit, slips: every classmate who picks a distractor has the matching slip on the original in `lib/mistakes.ts`, and every classmate with a slip at a step picks its analogue there. Chloe picks no distractor tied to a real slip.
-- [ ] Unit: each step's "given that" stem states the correct result of the previous step.
-- [ ] Click-through at 1280×800 and 1440×900 on a production build: every problem's flyout shows its steps stacked and expanded in solution order, with no make-your-own control. Slip counts equal the table above. No maths wider than its cell or split across lines. The flyout stays inside the viewport horizontally, grows down, and never resizes the problem card. Sending one step still works end to end on the card, the board and Sam's iPad.
-- [ ] vitest, eslint, tsc, next build, check:laptop, sweep:hint-boxes
+- [x] Unit: no step's tex equals or contains its problem's expression; every problem has at least two steps; every step has four options with exactly one correct.
+- [x] Unit, maths: every factorised option expands to its stated quadratic (or visibly does not, for a distractor); every pair option's sum and product match or miss as its label says; every zeros / intercepts / formula option is checked numerically against the similar problem.
+- [x] Unit, slips: every classmate who picks a distractor has the matching slip on the original in `lib/mistakes.ts`, and every classmate with a slip at a step picks its analogue there. Chloe picks no distractor tied to a real slip.
+- [x] Unit: each step's "given that" stem states the correct result of the previous step.
+- [x] Click-through at 1280×800 and 1440×900 on a production build: every problem's flyout shows its steps stacked and expanded in solution order, with no make-your-own control. Slip counts equal the table above. No maths wider than its cell or split across lines. The flyout stays inside the viewport horizontally, grows down, and never resizes the problem card. Sending one step still works end to end on the card, the board and Sam's iPad.
+- [x] vitest, eslint, tsc, next build, check:laptop, sweep:hint-boxes
+
+## Done (2026-09-14)
+
+- **Numbers.** 33 step questions (132 options) across the ten problems: Q1 3, Q2 5, Q3 4, Q4 3, Q5 4, Q6 3, Q7 3, Q8 2, Q9 4, Q10 3. vitest 768 (37 in `lib/diagnostic.test.ts`, 3 in `lib/stem.test.ts`), eslint clean, tsc clean, next build, check:laptop 62/62, sweep:hint-boxes 132/132. Click-through `steps240.mjs` 284/284 checks at 1280×800 and 1440×900 on a production build.
+- **The slip table, re-derived from the code.** `mistakesByProblem` over the classmates and Sam's scripted hand-in agrees with the table above row for row; no change needed.
+- **Slip counts per step** (the flyout's "n slipped here"): Q1 4 · 4 · 0 (the pair slips are counted on both "Find the pair" and "Factorise", which both carry their analogues, per the Solution and ticket 242's Q1 step 2 marks); Q2 0 · 0 · 0 · 6 · 1; Q3 7 · 0 · 0 · 0 (the null factor law without zero and Harper's expansion slip are both the first line, "Expand first"); Q4 0 · 0 · 5; Q5 0 · 1 · 0 · 3 (the turning point step folds in the height, since "(2, −9)" only restates); Q6 0 · 1 · 0; Q7 11 · 3 · 0; Q8 0 · 0; Q9 1 · 0 · 0 · 4; Q10 0 · 2 · 2. Sam's live row counts.
+- **Q8 has no flyout on screen**: nobody slipped on it, so the mistake view has no row for it (unchanged). Its two steps exist and are tested.
+- **Classmate picks are derived, not listed**: a classmate picks the distractor whose `slip` (the original wrong line) is in their own work; a few common-slip picks are named for students who have not reached the problem (Chloe on Q1 and Q6, Liam Q4, Grace Q5 and Q8, Harper Q7, Tomas and Jordan Q8, Oliver Q9, Noah Q10).
+- **Wording choices.** "−3 × (−4) = 12 and −3 + (−4) = −7" with brackets, as the model solutions write negatives. Q7's pair step asks "which two numbers add to 9 and multiply to 20" (its options as pairs), and Q10's justify step "how many real solutions does it have" (options as words): the statement-style options scaled below 11 px in the flyout's cells.
+- **Also fixed.** The iPad's options now scale inside their buttons (`FitText`), so a long option cannot run out of its button; a pair like "−6 and −2" sets its second minus as a sign, not a subtraction.

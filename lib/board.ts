@@ -73,7 +73,7 @@ function groupReviewOver(c: ClassroomState | null | undefined, session: StudentS
 export function boardContent(c: ClassroomState | null | undefined, session: StudentSession | null, now = 0): BoardContent {
   const lesson: Lesson = { className: ASSIGNMENT.className, title: activeAssignment(c).title };
   const run = boardDiagnostic(c, now);
-  const question = run && questionFor(run.questionId, run.question);
+  const question = run && questionFor(run.questionId);
   if (run && question) return { kind: "diagnostic", ...lesson, question, tally: tally(run, now) };
   const slide = currentSlide(c);
   if (slide) {

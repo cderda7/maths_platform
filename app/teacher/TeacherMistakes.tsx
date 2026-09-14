@@ -11,7 +11,6 @@ import { DifficultyTag, SlipChip } from "@/components/Tag";
 import { arriving, EMPTY_HOLD, holdAbovePointer, holdKey } from "@/lib/arrivals";
 import { assignmentStages, currentStageOf } from "@/lib/assignments";
 import { CLASS_SIZE, groupBySlip, mistakesByProblem, type WorkColumn } from "@/lib/mistakes";
-import { diagnosticFor } from "@/lib/diagnostic";
 import { useBatchedSession, useNow } from "@/lib/store";
 import { useClassroom } from "@/lib/classroom-store";
 import DiagnosticPush, { DiagnosticFootprint, PROBLEM_HEADER } from "./DiagnosticPush";
@@ -175,8 +174,7 @@ function ArrivingName({ arrivedAt, now, children, ...rest }: { arrivedAt: number
  * student alone on theirs boxed alone). An open problem carries a "close" button; once pressed, the button reads
  * "close all" (while other problems are still open) until the pointer leaves the card.
  * To the right of each problem sits its live diagnostic (ticket 127): the "Live diagnostic" chip
- * alone until clicked, then the push panel with the problem's own suggested question and the
- * make-your-own tab as a flyout from the chip, down and to the right (ticket 132); the card
+ * alone until clicked, then the push panel with the problem's step questions (ticket 240) as a flyout from the chip, down and to the right (ticket 132); the card
  * keeps its width either way, and a little clear of the card so the open flyout never touches
  * it (ticket 142). Left of the card, level with its header row, a small box counts the class who
  * got it correct, "14/20 correct" (ticket 140; outside the card since 142), its tooltip splitting the
@@ -402,7 +400,7 @@ export default function TeacherMistakes() {
               </div>
             </Card>
             {/* The extra margin keeps the open flyout (laid 25 px left of the chip) clear of the card. A finished set has no live class to push to (ticket 187). */}
-            {assignment.kind === "live" && <DiagnosticPush example={diagnosticFor(problem.id)} problemId={problem.id} className="ml-5 shrink-0" />}
+            {assignment.kind === "live" && <DiagnosticPush problemId={problem.id} rows={rows} className="ml-5 shrink-0" />}
             </div>
           );
         })}

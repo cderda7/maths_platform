@@ -1,5 +1,6 @@
 "use client";
 
+import DiagnosticStem from "@/components/DiagnosticStem";
 import FitText from "@/components/FitText";
 import M from "@/components/Math";
 import type { Diagnostic } from "@/data/diagnostic";
@@ -21,17 +22,7 @@ export default function DiagnosticResults({ question: q, tally, size = "card", m
   return (
     <div className={className} data-diagnostic-results={q.id}>
       <p className={board ? "font-display text-[34px] leading-tight text-ink" : panel ? "text-[17px] leading-snug text-ink" : "text-[14px] text-ink"} data-diag-stem>
-        {q.stem}
-        {q.tex ? (
-          <>
-            {" "}
-            <span className="whitespace-nowrap">
-              <M tex={q.tex} />?
-            </span>
-          </>
-        ) : (
-          "?"
-        )}
+        <DiagnosticStem question={q} />
       </p>
       <ul className={`grid grid-cols-2 ${board ? "mt-8 gap-6" : panel ? "mt-4 gap-2" : "mt-3 gap-1.5"}`} data-diag-cells>
         {q.options.map((o) => {

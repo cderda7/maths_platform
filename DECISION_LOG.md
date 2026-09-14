@@ -4305,3 +4305,16 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Two pathway constants that read alike; the third column's line sits under the pill rather than to its right, the one place the user's "to the right" is not kept. Hover-only text is unseen on touch (focus shows it for keyboards).
 
 **Defense.** The demo's behaviour is untouched and the new set's default is named for what it is; the placement rule is pure geometry from fixed widths, so it cannot drift from the layout.
+
+
+## 2026-09-14 · A live diagnostic is a problem's steps on a similar problem, each distractor tied to the wrong line it mirrors (ticket 240)
+
+**Decision.** `data/diagnostic.ts` holds, per problem, a similar problem and an ordered list of `DiagnosticStep`s (a `Diagnostic` plus a teacher-side `name`, id `d-<problem>-<step>`). A distractor that mirrors a real slip carries `slip`: the exact wrong line from the evaluation table. A classmate's pick is derived: the option whose `slip` is a line of their own work on the problem, else a common slip `picks` names them on (only students who have not reached the problem), else the correct one. The flyout's "n slipped here" counts the mistake view's rows with a wrong line one of the step's distractors mirrors. A push carries only the step id; teacher-written questions and their travel with the run are gone. Stems may hold inline `$…$` maths. Every option's maths is checked by a small TeX evaluator in the tests.
+
+**Context.** The user found every diagnostic repeated its problem, then asked for atomic step questions whose wrong answers come from the class's real slips so the teacher sees where and why students went wrong. The old authored `picks` had drifted from the data (Chloe picking on problems she never started, Liam on problems he never reached).
+
+**Alternatives considered.** *Author every classmate's pick per step by hand*: the ticket's wording, but it duplicates the slip data and drifts exactly as the old list did. *Tie a distractor to a slip label or taxonomy leaf*: several slips share a leaf (Q7's two fraction slips), so a leaf cannot say which analogue a student picks. *One step per slip only*: rule 2 asks for every thinking step, with common slips where no student slipped. *Keep a teacher-written tab*: the user removed it.
+
+**Tradeoffs.** A slip whose wrong line was written at the factorised line (Q1's pair) is tied to both "Find the pair" and "Factorise", so those two steps both read 4 slipped; the line does not say which thought failed. The derived picks use each student's end-of-set work, not their work at the moment of the push in the live stream. Common-slip picks remain a short hand list. A push stored before this ticket names an id that no longer exists and renders nothing.
+
+**Defense.** The wrong line is the one fact the data really records about a slip, so tying to it makes a false attribution impossible by construction, and tests pin it against `mistakesByProblem`. Ticket 242's "repeated their own slip" is then one comparison (the student's wrong line equals the option's `slip`), and 241's chain needs only ordered step ids. Checking the maths mechanically is the only honest guard for 132 options that go on a projector.

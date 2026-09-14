@@ -22,7 +22,7 @@ export default function DiagnosticCard({ className = "" }: { className?: string 
   const classroom = useClassroom();
   const now = useNow();
   const run = latestDiagnostic(classroom);
-  const question = run && questionFor(run.questionId, run.question);
+  const question = run && questionFor(run.questionId);
   if (!run || !question)
     return (
       <Link href={assignmentHref(LIVE_ASSIGNMENT_ID, "mistakes")} className={`block ${className}`} data-diagnostic-card="empty">

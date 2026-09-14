@@ -220,11 +220,12 @@ no marks until the teacher shows them, and the teacher's working pad.
   the wrong pair), Amelia alone on Q6, nobody on Q8, and every other problem wrong in at least
   two ways. To the right of every problem a **Live
   diagnostic** chip: click it and the push panel opens from the chip as a flyout, down and to
-  the right over the blank space, a little clear of the card (the problems never move), with that problem's own
-  suggested question (example) or one you write (make your own), **send to class** at the panel's bottom right;
-  the panel collapses as soon as the pointer leaves it, and a question you were writing is still there when
-  you open it again; once the
-  question is out the tab's option grid is its result (the same cells as the class view's card),
+  the right over the blank space, a little clear of the card (the problems never move), with that problem's step
+  questions: one per step of the model solution, asked on a similar problem (Q1's on x² − 7x + 12: find the pair,
+  factorise, find the zeros), stacked and all expanded, each headed by its step name and how many students slipped
+  there on the original, every wrong option the analogue of a slip a student really made, and each with its own
+  **send to class**; the flyout grows down with the page and collapses as soon as the pointer leaves it; once a
+  step is out its option grid is its result (the same cells as the class view's card),
   `Waiting · n/20 in` with Withdraw while the class answers, then the board links; a badge on
   the collapsed chip while its push waits, and the other panels' send buttons wait their turn.
   The nineteen classmates answer over eight seconds after the push; Sam answers on the iPad.

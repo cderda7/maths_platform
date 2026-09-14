@@ -1,37 +1,34 @@
 import { CLASSMATES } from "@/data/classmates";
-import { DIAGNOSTIC_MAP, DIAGNOSTICS, type Diagnostic } from "@/data/diagnostic";
+import { DIAGNOSTIC_MAP, FALLBACK_STEP, PROBLEM_DIAGNOSTICS, type Diagnostic, type DiagnosticStep } from "@/data/diagnostic";
 import { latestDiagnostic, openDiagnostic, type ClassroomState, type DiagnosticRun } from "./classroom";
 
-/** The question behind a push: one the teacher wrote (carried with the push) or a fixture by id. */
-export function questionFor(questionId: string, question?: Diagnostic): Diagnostic | undefined {
-  return question ?? DIAGNOSTIC_MAP[questionId];
+/** The question behind a push, by id. An id no longer known (a push stored before ticket 240) finds nothing. */
+export function questionFor(questionId: string): DiagnosticStep | undefined {
+  return DIAGNOSTIC_MAP[questionId];
 }
 
-export function isCorrect(questionId: string, option: string, question?: Diagnostic): boolean {
-  return questionFor(questionId, question)?.correct === option;
-}
-
-/** The suggested check for a problem; the class view's example when no fixture names the problem. */
-export function diagnosticFor(problemId: string): Diagnostic {
-  return DIAGNOSTICS.find((d) => d.problemId === problemId) ?? DIAGNOSTICS[0];
+export function isCorrect(questionId: string, option: string): boolean {
+  return questionFor(questionId)?.correct === option;
 }
 
 /**
- * Whether a push (waiting or answered) came from the panel that shows `example` under
- * `problemId`: a fixture push is matched by its id, a teacher-written one by the problem it was
- * written under (none on the class view). The pending band, the response line and Withdraw
- * show only in the panel the push belongs to.
+ * A problem's step questions in solution order (ticket 240), each on the problem's similar problem. A problem with none
+ * authored (one of a set made through Create) falls back to the one fixed question.
  */
-export function pushBelongsTo(push: { questionId: string; question?: Diagnostic }, example: Diagnostic, problemId?: string): boolean {
-  return push.question ? push.question.problemId === problemId : push.questionId === example.id;
+export function stepsFor(problemId: string): DiagnosticStep[] {
+  return PROBLEM_DIAGNOSTICS.find((p) => p.problemId === problemId)?.steps ?? [FALLBACK_STEP];
 }
 
-/** A teacher-written question is valid with a stem, at least two options and a correct one among them. */
-export function customQuestion(stem: string, tex: string, options: string[], correct: string, at = Date.now(), problemId?: string): Diagnostic | null {
-  const opts = options.map((t, i) => ({ id: "abcd"[i], tex: t.trim() })).filter((o) => o.tex.length > 0);
-  if (stem.trim().length === 0 || opts.length < 2 || !opts.some((o) => o.id === correct)) return null;
-  const q: Diagnostic = { id: `custom-${at}`, stem: stem.trim(), tex: tex.trim(), options: opts, correct };
-  return problemId ? { ...q, problemId } : q;
+/** The distractor on a step that mirrors a wrong line, if one does. */
+export const optionForSlip = (step: Diagnostic, line: string) => step.options.find((o) => o.slip === line);
+
+/**
+ * How many students slipped at this step on the original problem: the rows (the mistake view's, Sam's live row among them)
+ * with a wrong line that one of the step's distractors mirrors.
+ */
+export function slippedAt(step: Diagnostic, rows: readonly { lines: readonly { tex: string; verdict: { verdict: string } }[] }[]): number {
+  const slips = new Set(step.options.flatMap((o) => (o.slip ? [o.slip] : [])));
+  return rows.filter((r) => r.lines.some((l) => l.verdict.verdict === "wrong" && slips.has(l.tex))).length;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -54,21 +51,16 @@ export function arrivesAt(index: number): number {
 }
 
 /**
- * The option a classmate picks for a teacher-written question, which has no authored picks: three
- * in five take the option the teacher marked correct, the rest spread across the distractors in
- * turn, so the counts favour the right answer and every distractor gets some.
+ * The option the classmate at `index` of the roster picks (ticket 240): the distractor mirroring a wrong line in their own
+ * work on the step's problem, else a common slip the step names them on (only students who have not reached the problem),
+ * else the correct one.
  */
-export function writtenPick(q: Diagnostic, index: number): string {
-  const distractors = q.options.filter((o) => o.id !== q.correct);
-  if (distractors.length === 0 || index % 5 < 3) return q.correct;
-  return distractors[Math.floor(index / 5) % distractors.length].id;
-}
-
-/** The option the classmate at `index` of the roster picks: the fixture's authored pick, or the correct one; the written-question rule when there is no fixture. */
 export function classmatePick(q: Diagnostic, index: number): string {
-  if (!q.picks) return writtenPick(q, index);
-  const id = CLASSMATES[index].id;
-  const picked = Object.entries(q.picks).find(([, who]) => who?.includes(id));
+  const c = CLASSMATES[index];
+  const work = q.problemId ? (c.attempts[q.problemId] ?? []) : [];
+  const mirrored = q.options.find((o) => o.slip && work.includes(o.slip));
+  if (mirrored) return mirrored.id;
+  const picked = Object.entries(q.picks ?? {}).find(([, who]) => who?.includes(c.id));
   return picked ? picked[0] : q.correct;
 }
 
@@ -84,7 +76,7 @@ export interface Tally {
 
 /** The count per option at `now`: the classmates whose answers have landed and the demo student's once given. Unknown questions tally nothing. */
 export function tally(run: DiagnosticRun, now: number): Tally {
-  const q = questionFor(run.questionId, run.question);
+  const q = questionFor(run.questionId);
   const counts: Record<string, number> = Object.fromEntries((q?.options ?? []).map((o) => [o.id, 0]));
   if (!q) return { answered: 0, total: CLASS_SIZE, counts, complete: false };
   let answered = 0;
@@ -102,16 +94,10 @@ export function tally(run: DiagnosticRun, now: number): Tally {
   return { answered, total: CLASS_SIZE, counts, complete: answered === CLASS_SIZE };
 }
 
-/**
- * The latest run that came from the panel showing `example` under `problemId`, open or answered;
- * `written` narrows it to the panel's own tab (a teacher-written question) or its example tab.
- */
-export function runFor(c: ClassroomState | null | undefined, example: Diagnostic, problemId?: string, written?: boolean): DiagnosticRun | null {
+/** The latest run of this question, open or answered. */
+export function runFor(c: ClassroomState | null | undefined, questionId: string): DiagnosticRun | null {
   const runs = c?.diagnostics ?? [];
-  for (let i = runs.length - 1; i >= 0; i--) {
-    const run = runs[i];
-    if (pushBelongsTo(run, example, problemId) && (written === undefined || !!run.question === written)) return run;
-  }
+  for (let i = runs.length - 1; i >= 0; i--) if (runs[i].questionId === questionId) return runs[i];
   return null;
 }
 

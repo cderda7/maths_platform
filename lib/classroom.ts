@@ -1,6 +1,5 @@
 import type { Pathway, Stroke } from "@/data/types";
 import type { LeafId } from "@/data/taxonomy";
-import type { Diagnostic } from "@/data/diagnostic";
 import { ASSIGNMENT } from "@/data/assignment";
 import { DEFAULT_GROUPS, type GroupColour, type SeatingGroups } from "@/data/groups";
 import { assignmentGroupsOf, moveStudent, seatingOf } from "./seating";
@@ -133,8 +132,6 @@ export interface AssignmentDraft {
  */
 export interface DiagnosticRun {
   questionId: string;
-  /** A teacher-written question travels with the push; a fixture is found by id. */
-  question?: Diagnostic;
   pushedAt: number;
   /** The demo student's option, once they have answered. */
   answer?: string;
@@ -217,7 +214,7 @@ export type ClassroomAction =
   | { type: "wc/marks"; on: boolean }
   | { type: "wc/end" }
   /** A diagnostic to every student's screen; refused while one is still open. The store stamps `at`. */
-  | { type: "diagnostic/push"; questionId: string; question?: Diagnostic; at?: number }
+  | { type: "diagnostic/push"; questionId: string; at?: number }
   /** The demo student's answer to the open run. */
   | { type: "diagnostic/answer"; option: string }
   /** Drops the open run: nothing to show anywhere. */
@@ -360,8 +357,7 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
     case "diagnostic/push": {
       const runs = c.diagnostics ?? [];
       if (openDiagnostic(c)) return c;
-      const run: DiagnosticRun = { questionId: a.questionId, pushedAt: a.at ?? 0 };
-      return { ...c, diagnostics: [...runs, a.question ? { ...run, question: a.question } : run] };
+      return { ...c, diagnostics: [...runs, { questionId: a.questionId, pushedAt: a.at ?? 0 }] };
     }
     case "diagnostic/answer": {
       const runs = c.diagnostics ?? [];
