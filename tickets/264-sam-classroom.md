@@ -4,7 +4,7 @@
 
 **Blocked by:** none.
 
-**Status:** open
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -26,6 +26,6 @@ Agreed default: on a fresh demo PS6 has not been sent. Sam's To do is empty and 
 
 ## Acceptance
 
-- [ ] Unit: section of each set for Sam before sending, after sending, mid-lesson, after completion, and completed without hand-in
-- [ ] Click-through, teacher + Sam's iPad at 1280×800 and 1440×900: fresh demo shows PS1–PS5 Completed and an empty To do; teacher Create sends PS6 and it appears in To do without a reload; pressing it opens start; the header mark returns; finishing PS6 moves it to Completed; reset returns to not sent; nothing clips inside the iPad frame
-- [ ] vitest, eslint, tsc, next build, check:laptop, sweep:hint-boxes
+- [x] Unit: section of each set for Sam before sending, after sending, mid-lesson, after completion, and completed without hand-in
+- [x] Click-through, teacher + Sam's iPad at 1280×800 and 1440×900: fresh demo shows PS1–PS5 Completed and an empty To do; teacher Create sends PS6 and it appears in To do without a reload; pressing it opens start; the header mark returns; finishing PS6 moves it to Completed; reset returns to not sent; nothing clips inside the iPad frame
+- [x] vitest, eslint, tsc, next build, check:laptop, sweep:hint-boxes

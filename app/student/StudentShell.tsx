@@ -1,0 +1,130 @@
+"use client";
+
+import { useEffect, type ReactNode } from "react";
+import IpadStage from "@/components/IpadStage";
+import SkipTo from "@/components/SkipTo";
+import DiagnosticModal from "./screens/DiagnosticModal";
+import { groupPlan } from "@/lib/group";
+import { closedMoment, currentProblem, currentVisit, isClosed, leaveAt, leaving, penHolder, turnScript, visitsOf } from "@/lib/groupReview";
+import { debriefEndsAt, PEER_DEBRIEF_MS, pendingDebrief } from "@/lib/debrief";
+import { DEMO_PENS } from "@/data/group-scripts";
+import { dispatch, useLiveSession, useNow } from "@/lib/store";
+import { dispatchClassroom, getClassroom, useClassroom } from "@/lib/classroom-store";
+import { GRACE_MS, isDue, isPending, isProjecting, liveDiagnostic, pathwayOf } from "@/lib/classroom";
+import { classReadiness } from "@/lib/readiness";
+import { boardOpensFor } from "@/lib/groupIntro";
+import { DEMO_STUDENT } from "@/data/assignment";
+import { liveAbsent } from "@/lib/absence";
+
+const mmss = (ms: number) => {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+};
+
+/**
+ * Sam's iPad (ticket 264): the device and everything that runs on it whichever screen is open, his
+ * Classroom (`/student`) or a set (`/student/a/<id>`). The layout keeps it mounted across the two, so
+ * the device never re-fits and the lesson keeps moving while he is on his Classroom: a teacher's advance
+ * is applied, the gate and the shared whiteboard play on, class review freezes him, a diagnostic reaches
+ * him. The countdown and the diagnostic show over every screen; the presenter's SKIP TO sits outside it.
+ */
+export default function StudentShell({ children }: { children: ReactNode }) {
+  const session = useLiveSession();
+  const classroom = useClassroom();
+  const now = useNow();
+  const advance = classroom.advance;
+  const counting = isPending(classroom, now);
+  const due = isDue(classroom, now) && advance && !!session && !session.appliedAdvances.includes(advance.id);
+  useEffect(() => {
+    // The grace ran out: apply the teacher's advance once (the reducer ignores repeats by id). Ending group review also ends the
+    // classroom's shared run where it stands (idempotent), so the board and the race hold.
+    if (due && advance) {
+      dispatch({ type: "advance/apply", id: advance.id, kind: advance.kind, at: now });
+      if (advance.kind === "force-group") dispatchClassroom({ type: "group/end", at: now });
+    }
+  }, [due, advance, now]);
+  const atGate = session?.stage === "class-wait";
+  const arrived = classroom.arrivals?.[DEMO_STUDENT.id] !== undefined;
+  const readiness = classReadiness(classroom, now);
+  const started = readiness.started;
+  useEffect(() => {
+    // The gate into group review: record the arrival once; go in the moment the class is in (or the teacher started it).
+    // Not before the clock's first tick: the hydration render reads 0, which would date the arrival to 1970 (ticket 226).
+    if (now === 0) return;
+    if (atGate && !arrived) dispatchClassroom({ type: "class/arrive", student: DEMO_STUDENT.id, at: now });
+    if (atGate && arrived && started) dispatch({ type: "group/start" });
+  }, [atGate, arrived, started, now]);
+  // The shared whiteboard: begin the run on arrival; while a peer holds the pen, play their scripted turn (each event once, by index).
+  const onBoard = session?.stage === "group";
+  const board = classroom.group ?? null;
+  useEffect(() => {
+    // Not before the clock's first tick (a run begun at 0 would have opened its board in 1970, skipping the intro), and not on a
+    // render older than the store (a restart on mount has already dropped this run) (ticket 226).
+    if (!session || !onBoard || now === 0 || (getClassroom().group ?? null) !== board) return;
+    if (!board) {
+      const plan = groupPlan(session, liveAbsent(classroom));
+      // The board opens once the intro has been read, counted from when the class went in, not from this tab (ticket 220).
+      dispatchClassroom({ type: "group/begin", members: plan.members.map((m) => m.id), problems: plan.discussion.problems.map((p) => p.id), at: boardOpensFor(readiness.startedAt, now), pens: DEMO_PENS });
+      return;
+    }
+    // The debrief moves on by itself once its hold is over (ticket 228): the student is done with it, and the group moves on if it is still there.
+    const debriefing = pendingDebrief(board, session.debrief);
+    if (debriefing && now >= debriefEndsAt(board, debriefing)) {
+      dispatch({ type: "debrief/done", problem: debriefing });
+      if (!board.done && currentProblem(board) === debriefing) dispatchClassroom({ type: "group/next", at: now });
+      return;
+    }
+    if (board.done) {
+      if (!debriefing) dispatch({ type: "group/done" });
+      return;
+    }
+    const problem = currentProblem(board);
+    if (problem === undefined) return;
+    if (isClosed(board, problem)) {
+      // Closed (resolved, or unsolved on its return): the group moves on when the demo student's debrief ends (above); a peer's own debrief, a moment longer, is the fallback when no student tab is on it.
+      const visits = visitsOf(board);
+      const nextHolder = visits[board.index + 1]?.pen;
+      const last = board.index >= visits.length - 1;
+      if ((last || nextHolder !== DEMO_STUDENT.id) && now >= closedMoment(board, problem) + PEER_DEBRIEF_MS) dispatchClassroom({ type: "group/next", at: now });
+      return;
+    }
+    if (leaving(board)) {
+      // A third wrong check: once the group has read it, the board leaves the problem for now (ticket 222).
+      const at = leaveAt(board);
+      if (now >= at) dispatchClassroom({ type: "group/leave", index: board.index, at });
+      return;
+    }
+    const holder = penHolder(board);
+    if (!holder || holder === DEMO_STUDENT.id) return;
+    const events = turnScript(problem, board.turnFrom ?? 0, currentVisit(board)?.returning ?? false);
+    const next = events[board.scriptDone];
+    if (next && now >= board.turnStartedAt + next.at) dispatchClassroom({ type: "group/scripted", index: board.scriptDone, event: next, at: board.turnStartedAt + next.at });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onBoard, board, now]);
+  const projecting = isProjecting(classroom);
+  const frozen = session?.stage === "frozen";
+  useEffect(() => {
+    // Whole-class review: once the grace is over, every student tab is frozen (a late-opened tab too); ending releases to the report.
+    if (projecting && !counting && !frozen) dispatch({ type: "freeze" });
+    if (!projecting && frozen) dispatch({ type: "release" });
+  }, [projecting, counting, frozen]);
+  // A teacher's diagnostic chain (tickets 137, 241) lives on the classroom, not the session: sent to every student, answered here, over every screen until the teacher's done.
+  const diagnostic = liveDiagnostic(classroom);
+  // Individual review forced with group review next: what the student is waiting for is the group.
+  const groupStartPill = counting && advance?.kind === "force-review" && pathwayOf(classroom).includes("group");
+  return (
+    <IpadStage>
+      {children}
+      {counting && advance && (
+        <div className="pointer-events-none absolute inset-x-0 top-[33px] z-20 flex justify-center px-8" data-countdown>
+          <div className="flex items-center gap-3 rounded-full border border-accent-line bg-accent-soft px-4 py-1.5 text-[13.5px] text-ink shadow-card">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
+            {groupStartPill ? "Group review starts in" : "Your teacher is moving the class on in"} {mmss(Math.min(GRACE_MS, advance.deadline - now))}
+          </div>
+        </div>
+      )}
+      {diagnostic && <DiagnosticModal run={diagnostic} now={now} absent={liveAbsent(classroom)} onAnswer={(option) => dispatchClassroom({ type: "diagnostic/answer", option })} />}
+      <SkipTo />
+    </IpadStage>
+  );
+}

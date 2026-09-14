@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { skipFixture, SKIP_TARGETS } from "./demo";
-import { isDue, isPending, isProjecting } from "./classroom";
+import { ASSIGNMENT } from "@/data/assignment";
+import { deepLinkClassroom, skipFixture, SKIP_STARTED_AGO_MS, SKIP_TARGETS } from "./demo";
+import { INITIAL_CLASSROOM, isDue, isPending, isProjecting, type ClassroomState } from "./classroom";
+import { assignmentIds } from "./assignments";
+import { DEFAULT_PATHWAY } from "./pathway";
 import { INITIAL_SESSION } from "./session";
 import { classReadiness, LAST_ARRIVAL_MS } from "./readiness";
 import { boardOpensAt, introShowing } from "./groupIntro";
@@ -51,5 +54,37 @@ describe("skip-to fixtures", () => {
     for (const id of classroom.wholeClass!.problems) expect(classroom.wholeClass!.examples[id].length).toBeGreaterThanOrEqual(2);
     expect(isPending(classroom, now)).toBe(false);
     expect(isDue(classroom, now)).toBe(true);
+  });
+});
+
+describe("deep links into the student app send Problem Set 6 first (ticket 264)", () => {
+  const now = 1_700_000_000_000;
+  const sent = (c: ClassroomState) => assignmentIds(c).includes("pset-6");
+
+  it("a named stage sends the set when nothing is sent, under the default pathway, live for an hour like a skip", () => {
+    const c = deepLinkClassroom(INITIAL_CLASSROOM, { explicit: true, pathway: null }, now);
+    expect(sent(c)).toBe(true);
+    expect(c.assignment?.pathway).toEqual(DEFAULT_PATHWAY);
+    expect(c.assignment?.startedAt).toBe(now - SKIP_STARTED_AGO_MS);
+    expect(c.assignment?.goal).toBe(ASSIGNMENT.goal);
+  });
+
+  it("a set already sent stays as it is", () => {
+    const created = skipFixture("working", now - 5000).classroom;
+    expect(deepLinkClassroom(created, { explicit: true, pathway: null }, now)).toBe(created);
+  });
+
+  it("?pathway= sends the set with that pathway, live from now, whatever is there", () => {
+    const c = deepLinkClassroom(skipFixture("working", now - 5000).classroom, { explicit: false, pathway: ["whole-class"] }, now);
+    expect(c.assignment?.pathway).toEqual(["whole-class"]);
+    expect(c.assignment?.startedAt).toBe(now);
+  });
+
+  it("a plain link sends nothing: Problem Set 6 stays out of Sam's Classroom", () => {
+    expect(deepLinkClassroom(INITIAL_CLASSROOM, { explicit: false, pathway: null }, now)).toBe(INITIAL_CLASSROOM);
+  });
+
+  it("every skip sends the set", () => {
+    for (const t of SKIP_TARGETS) expect(sent(skipFixture(t, now).classroom), t).toBe(true);
   });
 });

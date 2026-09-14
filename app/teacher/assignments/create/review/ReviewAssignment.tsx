@@ -18,6 +18,8 @@ import { dispatchClassroom, getClassroom, useClassroom } from "@/lib/classroom-s
 import { moveItem } from "@/lib/reorder";
 import { applyReview, bankProblemsOf, reviewFor, reviewNewSkills, type ReviewState } from "@/lib/review";
 import { moveStudent, seatingOf } from "@/lib/seating";
+import { setSession } from "@/lib/store";
+import { INITIAL_SESSION } from "@/lib/session";
 
 /**
  * Step two of a new assignment (ticket 120), one route with the step in the classroom store:
@@ -65,6 +67,8 @@ export default function ReviewAssignment({ assessMs }: { assessMs: number }) {
     });
     dispatchClassroom({ type: "draft/set", draft: null });
     dispatchClassroom({ type: "review/set", review: null });
+    // Sent: the set is in Sam's To do with his run at its start (ticket 264), whatever an earlier run left in the session.
+    setSession(INITIAL_SESSION);
     router.push(assignmentHref(LIVE_ASSIGNMENT_ID));
   };
 

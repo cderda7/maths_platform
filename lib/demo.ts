@@ -1,6 +1,7 @@
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import type { Pathway } from "@/data/types";
-import { classroomReducer, GRACE_MS, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
+import { classroomReducer, GRACE_MS, INITIAL_CLASSROOM, type ClassroomAction, type ClassroomState } from "./classroom";
+import { DEFAULT_PATHWAY } from "./pathway";
 import { candidatesFor, problemsByStruggle, suggestExamples } from "./examples";
 import { INITIAL_SESSION, reworkedSession, sessionAt, type StudentSession } from "./session";
 import { LAST_ARRIVAL_MS } from "./readiness";
@@ -75,8 +76,30 @@ function finishedRun(session: StudentSession, now: number, absent: readonly stri
  */
 export const SKIP_STARTED_AGO_MS = 60 * 60_000;
 
+/**
+ * Problem Set 6 sent by a presenter jump rather than the teacher's Create: the fixture's problems and goal
+ * under `pathway`, created at `now` and live since `startedAt` (a skip's hour ago unless given).
+ */
+export function demoSend(pathway: Pathway, now: number, startedAt = now - SKIP_STARTED_AGO_MS): ClassroomAction {
+  return { type: "assignment/create", title: ASSIGNMENT.title, problemIds: ASSIGNMENT.problems.map((p) => p.id), pathway: [...pathway], goal: ASSIGNMENT.goal, at: now, startedAt };
+}
+
+/**
+ * What a deep link into the student app (`/student/a/pset-6?stage=…&run=…&pathway=…`) does to the classroom
+ * before the run starts (ticket 264: a fresh demo has not sent Problem Set 6). `?pathway=` sends the set
+ * with that pathway, live from now, whatever is there (as before ticket 264). A named stage sends the
+ * set only when nothing is sent yet, under the pathway a run read before any set was sent
+ * (`DEFAULT_PATHWAY`) and live for an hour like a skip, so the classmates are where they were; a set
+ * already sent stays as it is. A plain link changes nothing.
+ */
+export function deepLinkClassroom(c: ClassroomState, link: { explicit: boolean; pathway: Pathway | null }, now: number): ClassroomState {
+  if (link.pathway) return classroomReducer(c, demoSend(link.pathway, now, now));
+  if (link.explicit && !c.assignment) return classroomReducer(c, demoSend(DEFAULT_PATHWAY, now));
+  return c;
+}
+
 export function skipFixture(target: SkipTarget, now: number): { session: StudentSession; classroom: ClassroomState } {
-  let classroom = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: ASSIGNMENT.title, problemIds: ASSIGNMENT.problems.map((p) => p.id), pathway: DEMO_PATHWAY, goal: ASSIGNMENT.goal, at: now, startedAt: now - SKIP_STARTED_AGO_MS });
+  let classroom = classroomReducer(INITIAL_CLASSROOM, demoSend(DEMO_PATHWAY, now));
   switch (target) {
     case "start":
       return { session: INITIAL_SESSION, classroom };

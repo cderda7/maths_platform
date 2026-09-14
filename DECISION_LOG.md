@@ -4424,6 +4424,23 @@ rule for pens is untouched and the exception is visible and named.
 
 **Defense.** Sending is the product's real first event, so the demo now starts where a lesson starts, and one shared state for every surface keeps the tabs consistent, as the rest of the demo already guarantees.
 
+## 2026-09-14 · Sam's Classroom and the set are two routes under one iPad layout; deep links send the set (ticket 264)
+
+**Decision.** `/student` is Sam's Classroom and `/student/a/pset-6` the set, both under `app/student/layout.tsx`, whose `StudentShell` holds the device and everything that runs on it whichever screen is open (teacher advances, the gate, the whiteboard's scripted turns, class review's freeze, the countdown, the diagnostic, SKIP TO). `/student?stage=…` redirects there with its query. A deep link that names a stage sends Problem Set 6 when nothing is sent (`deepLinkClassroom`: `DEFAULT_PATHWAY`, live an hour ago like a skip); `?pathway=` sends as before; a plain link to the unsent set goes back to the Classroom. The teacher's Create resets Sam's session to the start. The blank board names no set before one is sent.
+
+**Context.** The default is now "not sent" (entry above), so the student side can no longer assume the fixture set, and plain `/student` stops meaning "continue the stored run".
+
+**Alternatives considered.**
+- *One route with the open screen in the session store* (`view: classroom | set`): a teacher skip could move the iPad into the set, but the URL would never say where Sam is, Back would not return to the Classroom, and every reader of the session would carry a UI field.
+- *The Classroom and the set as sibling pages without a shared layout*: simpler tree, but the iPad re-fits on every navigation (a frame at the wrong scale) and while Sam sits on his Classroom nothing applies a teacher's advance (it goes stale after a minute) or plays the group's turns.
+- *Deep links render the set at `/student?stage=…` in place*: no redirect hop, but two URLs for one screen.
+- *Deep links under the skips' three-stage pathway*: one fixture, but `?stage=frozen`, `?stage=class-wait` and friends would change behaviour from what they did before any set was sent (`DEFAULT_PATHWAY`).
+- *Leave Sam's session alone on Create*: a stale run from before a Reset would open PS6 mid-lesson from To do.
+
+**Tradeoffs.** One redirect round trip for the old deep links; the set route renders nothing for a moment on a cold load until the store is read; Create now clobbers a run a presenter had put Sam in before creating.
+
+**Defense.** A URL per screen matches the teacher's `/teacher/a/<id>`, and keeping the device and its clockwork in the layout means the lesson moves the same on every student screen, as the tabs already guarantee across surfaces.
+
 ## 2026-09-14 · `/` redirects to `/teacher`; the chooser moves to `/demo` (ticket 265)
 
 **Decision.** `app/page.tsx` is a server `redirect("/teacher")`, prerendered by Next as a 307; the presenter's chooser moves unchanged to `app/demo/page.tsx`.

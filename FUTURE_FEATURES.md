@@ -3306,6 +3306,16 @@ uploaded problems) settled the following as later, each on purpose.
 - **A chain across problems.** A chain is sent from one problem's flyout, so the header names one problem. A chain mixing steps from several problems would need a header per card. Not possible today.
 - **Uniform scaling as an option.** A presenter setting that zooms the whole row instead of narrowing (for a projector mirroring the laptop) was considered and left out.
 
+## Sam's Classroom (ticket 264, 2026-09-14)
+
+- **Reopening a finished set from Completed.** Completed and Missing cards open nothing (the ticket gives the action to To do cards only), so once the homework screen is left the report is reached only by SKIP TO report; ticket 256's note expected the Classroom to be where a finished set is reopened. Deferred: the spec's cards carry one action on To do; reopening changes what the student sees and needs its own screen decision (the report, the homework, or both).
+- **Completed Problem Sets 1–5 for the student.** They list only; Sam has no student-side report or homework for them. Deferred: only Problem Set 6 runs live on the iPad.
+- **A teacher skip or send moving Sam's iPad into the set.** The iPad stays on whichever screen it is on (the URL says which); ticket 263's jumps change what his Classroom and the set show, not which is open. Deferred: 263's scope.
+- **Missing sets being opened late.** A Missing card opens nothing; a real student would still hand the set in late. Deferred: Sam is never missing a set in the demo.
+- **Status on a card beyond its section** (handed in, marked, the score, a due-soon or overdue flag). Deferred: the ticket asks for the name and due date.
+- **A notice on the Classroom** (the post-rework sentence, a forced hand-in) waits until the set is opened. Deferred: it belongs to the set's next screen.
+- **The student's Classroom when several sets are live**, and assignments other than Problem Set 6 being sent. Deferred: one live set in the demo.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

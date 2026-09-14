@@ -1,6 +1,6 @@
 "use client";
 
-import IpadStage from "@/components/IpadStage";
+import { useRouter } from "next/navigation";
 import StudentChrome from "./StudentChrome";
 import OverviewScreen from "./screens/OverviewScreen";
 import GoalScreen from "./screens/GoalScreen";
@@ -10,48 +10,40 @@ import ConfidenceScreen from "./screens/ConfidenceScreen";
 import WorkingScreen from "./screens/WorkingScreen";
 import FeedbackScreen from "./screens/FeedbackScreen";
 import GroupBoardScreen from "./screens/GroupBoardScreen";
-import { groupPlan } from "@/lib/group";
-import { closedMoment, currentProblem, currentVisit, isClosed, leaveAt, leaving, penHolder, turnScript, visitsOf } from "@/lib/groupReview";
-import { debriefEndsAt, PEER_DEBRIEF_MS, pendingDebrief } from "@/lib/debrief";
-import { DEMO_PENS } from "@/data/group-scripts";
 import ReportScreen from "./screens/ReportScreen";
 import { useEffect } from "react";
 import { dispatch, useStudentSession } from "@/lib/store";
-import { dispatchClassroom, getClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
-import { GRACE_MS, isDue, isPending, isProjecting, liveDiagnostic, pathwayOf } from "@/lib/classroom";
+import { dispatchClassroom, getClassroom, setClassroom, useAssignment, useClassroom } from "@/lib/classroom-store";
 import { pathwayStages } from "@/lib/classStage";
 import { crumbTitle } from "@/lib/crumbTitle";
 import FrozenScreen from "./screens/FrozenScreen";
 import { useNow } from "@/lib/store";
-import { ASSIGNMENT } from "@/data/assignment";
 import type { Pathway, Stage } from "@/data/types";
 import { warmupOffered, type RunKindParam } from "@/lib/session";
 import WaitingScreen from "./screens/WaitingScreen";
 import ClassWaitScreen from "./screens/ClassWaitScreen";
-import { classReadiness } from "@/lib/readiness";
-import { boardOpensFor, introShowing } from "@/lib/groupIntro";
+import { introShowing } from "@/lib/groupIntro";
 import { DEMO_STUDENT } from "@/data/assignment";
 import PeerScreen from "./screens/PeerScreen";
 import HistoryScreen from "./screens/HistoryScreen";
-import DiagnosticModal from "./screens/DiagnosticModal";
-import { liveAbsent } from "@/lib/absence";
 import HomeworkScreen from "./screens/HomeworkScreen";
-import SkipTo from "@/components/SkipTo";
 import { EscapeLayer } from "@/components/useEscape";
-
-const mmss = (ms: number) => {
-  const s = Math.max(0, Math.ceil(ms / 1000));
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-};
+import { deepLinkClassroom } from "@/lib/demo";
+import { STUDENT_CLASSROOM_HREF } from "@/lib/studentClassroom";
 
 /**
- * The whole student side: one screen per stage, state in the shared demo session store so the
- * teacher tab sees the same run. `explicit` means the URL named a stage, which resets the run.
+ * A set on Sam's iPad (`/student/a/pset-6`, ticket 264): one screen per stage, state in the shared demo session
+ * store so the teacher tab sees the same run. `explicit` means the URL named a stage, which resets the run. The
+ * lesson's clockwork (advances, the gate, the whiteboard, class review's freeze, diagnostics) runs in the
+ * iPad around it (`StudentShell`), so it keeps going on his Classroom too. A set not sent is not in his
+ * Classroom: a deep link sends it first (`deepLinkClassroom`); otherwise the iPad goes back to the Classroom.
  */
 export default function StudentApp({ initStage, explicit, run = "weak", pathway = null }: { initStage: Stage; explicit: boolean; run?: RunKindParam; pathway?: Pathway | null }) {
+  const router = useRouter();
   useEffect(() => {
-    // A `?pathway=` deep link creates the demo assignment with that pathway before the run starts.
-    if (pathway) dispatchClassroom({ type: "assignment/create", title: ASSIGNMENT.title, problemIds: ASSIGNMENT.problems.map((p) => p.id), pathway, goal: ASSIGNMENT.goal });
+    // A deep link sends Problem Set 6 before the run starts: `?pathway=` with that pathway, a named stage when nothing is sent yet.
+    const linked = deepLinkClassroom(getClassroom(), { explicit, pathway }, Date.now());
+    if (linked !== getClassroom()) setClassroom(linked);
     // A named stage starts a fresh run at that stage: at the gate or on the board, that is a fresh group review, intro first (ticket 226).
     if (explicit && (initStage === "class-wait" || initStage === "group")) dispatchClassroom({ type: "group/restart", student: DEMO_STUDENT.id });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -59,147 +51,64 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
   const session = useStudentSession(initStage, explicit, run);
   const { title, goal } = useAssignment();
   const classroom = useClassroom();
+  const sent = !!classroom.assignment;
+  useEffect(() => {
+    // Not sent (never, or Reset demo in another tab): the set is not in his Classroom, so that is where the iPad goes. Read from the
+    // store, not the render: on mount the deep link above has just sent it.
+    if (!getClassroom().assignment) router.replace(STUDENT_CLASSROOM_HREF);
+  }, [sent, router]);
   const now = useNow();
-  const advance = classroom.advance;
-  const counting = isPending(classroom, now);
-  const due = isDue(classroom, now) && advance && !session.appliedAdvances.includes(advance.id);
-  useEffect(() => {
-    // The grace ran out: apply the teacher's advance once (the reducer ignores repeats by id). Ending group review also ends the
-    // classroom's shared run where it stands (idempotent), so the board and the race hold.
-    if (due && advance) {
-      dispatch({ type: "advance/apply", id: advance.id, kind: advance.kind, at: now });
-      if (advance.kind === "force-group") dispatchClassroom({ type: "group/end", at: now });
-    }
-  }, [due, advance, now]);
-  const atGate = session.stage === "class-wait";
-  const arrived = classroom.arrivals?.[DEMO_STUDENT.id] !== undefined;
-  const readiness = classReadiness(classroom, now);
-  const started = readiness.started;
-  useEffect(() => {
-    // The gate into group review: record the arrival once; go in the moment the class is in (or the teacher started it).
-    // Not before the clock's first tick: the hydration render reads 0, which would date the arrival to 1970 (ticket 226).
-    if (now === 0) return;
-    if (atGate && !arrived) dispatchClassroom({ type: "class/arrive", student: DEMO_STUDENT.id, at: now });
-    if (atGate && arrived && started) dispatch({ type: "group/start" });
-  }, [atGate, arrived, started, now]);
-  // The shared whiteboard: begin the run on arrival; while a peer holds the pen, play their scripted turn (each event once, by index).
+  // The group intro hides what each student got wrong, so a forced hand-in's "still contain a mistake" notice waits for the board (ticket 220).
   const onBoard = session.stage === "group";
   const board = classroom.group ?? null;
-  useEffect(() => {
-    // Not before the clock's first tick (a run begun at 0 would have opened its board in 1970, skipping the intro), and not on a
-    // render older than the store (a restart on mount has already dropped this run) (ticket 226).
-    if (!onBoard || now === 0 || (getClassroom().group ?? null) !== board) return;
-    if (!board) {
-      const plan = groupPlan(session, liveAbsent(classroom));
-      // The board opens once the intro has been read, counted from when the class went in, not from this tab (ticket 220).
-      dispatchClassroom({ type: "group/begin", members: plan.members.map((m) => m.id), problems: plan.discussion.problems.map((p) => p.id), at: boardOpensFor(readiness.startedAt, now), pens: DEMO_PENS });
-      return;
-    }
-    // The debrief moves on by itself once its hold is over (ticket 228): the student is done with it, and the group moves on if it is still there.
-    const debriefing = pendingDebrief(board, session.debrief);
-    if (debriefing && now >= debriefEndsAt(board, debriefing)) {
-      dispatch({ type: "debrief/done", problem: debriefing });
-      if (!board.done && currentProblem(board) === debriefing) dispatchClassroom({ type: "group/next", at: now });
-      return;
-    }
-    if (board.done) {
-      if (!debriefing) dispatch({ type: "group/done" });
-      return;
-    }
-    const problem = currentProblem(board);
-    if (problem === undefined) return;
-    if (isClosed(board, problem)) {
-      // Closed (resolved, or unsolved on its return): the group moves on when the demo student's debrief ends (above); a peer's own debrief, a moment longer, is the fallback when no student tab is on it.
-      const visits = visitsOf(board);
-      const nextHolder = visits[board.index + 1]?.pen;
-      const last = board.index >= visits.length - 1;
-      if ((last || nextHolder !== DEMO_STUDENT.id) && now >= closedMoment(board, problem) + PEER_DEBRIEF_MS) dispatchClassroom({ type: "group/next", at: now });
-      return;
-    }
-    if (leaving(board)) {
-      // A third wrong check: once the group has read it, the board leaves the problem for now (ticket 222).
-      const at = leaveAt(board);
-      if (now >= at) dispatchClassroom({ type: "group/leave", index: board.index, at });
-      return;
-    }
-    const holder = penHolder(board);
-    if (!holder || holder === DEMO_STUDENT.id) return;
-    const events = turnScript(problem, board.turnFrom ?? 0, currentVisit(board)?.returning ?? false);
-    const next = events[board.scriptDone];
-    if (next && now >= board.turnStartedAt + next.at) dispatchClassroom({ type: "group/scripted", index: board.scriptDone, event: next, at: board.turnStartedAt + next.at });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onBoard, board, now]);
-  // The group intro hides what each student got wrong, so a forced hand-in's "still contain a mistake" notice waits for the board (ticket 220).
   const reading = onBoard && !!board && introShowing(board, now);
-  const projecting = isProjecting(classroom);
   const frozen = session.stage === "frozen";
-  // A teacher's diagnostic chain (tickets 137, 241) lives on the classroom, not the session: sent to every student, answered here, over every screen until the teacher's done.
-  const diagnostic = liveDiagnostic(classroom);
-  useEffect(() => {
-    // Whole-class review: once the grace is over, every student tab is frozen (a late-opened tab too); ending releases to the report.
-    if (projecting && !counting && !frozen) dispatch({ type: "freeze" });
-    if (!projecting && frozen) dispatch({ type: "release" });
-  }, [projecting, counting, frozen]);
   // The header's rule (ticket 168): the assignment title beside the wordmark on every screen. The pathway
   // strip names the stage, each screen's own heading names itself; the crumb is the one thing that never changes.
   // "PSET 6" rather than "PROBLEM SET 6" (ticket 236), so the whole title fits beside the four-stage strip.
   const crumb = crumbTitle(title);
-  // Individual review forced with group review next: what the student is waiting for is the group.
-  const groupStartPill = counting && advance?.kind === "force-review" && pathwayOf(classroom).includes("group");
   // The header's pathway strip (ticket 151): the same stages the teacher's Pathway card lights, from the same function.
   // Not on the report or the screens it opens (ticket 178): the pathway is behind the student there, so the
   // header's right end is the name and avatar alone and the space the strip took stays blank.
   const afterPathway = session.stage === "report" || session.stage === "peers" || session.stage === "history" || session.stage === "homework";
   const stages = afterPathway ? [] : pathwayStages(classroom, session, now);
+  // Before the store is read on the client, a plain link cannot know whether the set is sent: nothing, rather than a flash of a set that is not his.
+  if (!sent && !explicit && !pathway) return <StudentChrome frozen={frozen}>{null}</StudentChrome>;
   return (
-    <IpadStage>
-      <StudentChrome crumb={crumb} frozen={frozen} stages={stages}>
-        {session.stage === "overview" && (
-          <OverviewScreen onStart={() => dispatch({ type: "overview/start" })} />
-        )}
-        {session.stage === "goal" && <GoalScreen goal={goal} onContinue={() => dispatch({ type: "goal/continue" })} />}
-        {session.stage === "warmup-chat" && <WarmupChatScreen session={session} dispatch={dispatch} />}
-        {session.stage === "practice" && <PracticeScreen session={session} dispatch={dispatch} />}
-        {session.stage === "confidence" && (
-          <ConfidenceScreen
-            answered={warmupOffered(session) ? session.confidence : null}
-            onSubmit={(confidence) => dispatch({ type: "confidence/set", confidence })}
-            onWarmup={() => dispatch({ type: "warmup/accept" })}
-            onStart={() => dispatch({ type: "warmup/decline" })}
-          />
-        )}
-        {session.stage === "working" && <WorkingScreen session={session} dispatch={dispatch} />}
-        {session.stage === "feedback" && <FeedbackScreen session={session} dispatch={dispatch} />}
-        {session.stage === "waiting" && <WaitingScreen />}
-        {session.stage === "class-wait" && <ClassWaitScreen />}
-        {session.stage === "frozen" && <FrozenScreen session={session} dispatch={dispatch} />}
-        {session.stage === "group" && <GroupBoardScreen session={session} dispatch={dispatch} />}
-        {session.stage === "report" && <ReportScreen session={session} dispatch={dispatch} />}
-        {session.stage === "peers" && <PeerScreen onBack={() => dispatch({ type: "peers/close" })} />}
-        {session.stage === "history" && <HistoryScreen session={session} onBack={() => dispatch({ type: "history/close" })} />}
-        {session.stage === "homework" && <HomeworkScreen session={session} />}
-        {counting && advance && (
-          <div className="pointer-events-none absolute inset-x-0 top-[33px] z-20 flex justify-center px-8" data-countdown>
-            <div className="flex items-center gap-3 rounded-full border border-accent-line bg-accent-soft px-4 py-1.5 text-[13.5px] text-ink shadow-card">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
-              {groupStartPill ? "Group review starts in" : "Your teacher is moving the class on in"} {mmss(Math.min(GRACE_MS, advance.deadline - now))}
-            </div>
+    <StudentChrome crumb={crumb} frozen={frozen} stages={stages}>
+      {session.stage === "overview" && <OverviewScreen onStart={() => dispatch({ type: "overview/start" })} />}
+      {session.stage === "goal" && <GoalScreen goal={goal} onContinue={() => dispatch({ type: "goal/continue" })} />}
+      {session.stage === "warmup-chat" && <WarmupChatScreen session={session} dispatch={dispatch} />}
+      {session.stage === "practice" && <PracticeScreen session={session} dispatch={dispatch} />}
+      {session.stage === "confidence" && (
+        <ConfidenceScreen
+          answered={warmupOffered(session) ? session.confidence : null}
+          onSubmit={(confidence) => dispatch({ type: "confidence/set", confidence })}
+          onWarmup={() => dispatch({ type: "warmup/accept" })}
+          onStart={() => dispatch({ type: "warmup/decline" })}
+        />
+      )}
+      {session.stage === "working" && <WorkingScreen session={session} dispatch={dispatch} />}
+      {session.stage === "feedback" && <FeedbackScreen session={session} dispatch={dispatch} />}
+      {session.stage === "waiting" && <WaitingScreen />}
+      {session.stage === "class-wait" && <ClassWaitScreen />}
+      {session.stage === "frozen" && <FrozenScreen session={session} dispatch={dispatch} />}
+      {session.stage === "group" && <GroupBoardScreen session={session} dispatch={dispatch} />}
+      {session.stage === "report" && <ReportScreen session={session} dispatch={dispatch} />}
+      {session.stage === "peers" && <PeerScreen onBack={() => dispatch({ type: "peers/close" })} />}
+      {session.stage === "history" && <HistoryScreen session={session} onBack={() => dispatch({ type: "history/close" })} />}
+      {session.stage === "homework" && <HomeworkScreen session={session} />}
+      {session.notice && !frozen && !reading && <EscapeLayer active onEscape={() => dispatch({ type: "notice/dismiss" })} />}
+      {session.notice && !frozen && !reading && (
+        <div className="absolute inset-x-0 bottom-6 z-20 flex justify-center px-8" data-notice>
+          <div className="flex items-center gap-4 rounded-full border border-accent-line bg-paper px-5 py-2.5 text-[14px] text-ink shadow-lift">
+            <span>{session.notice}</span>
+            <button type="button" className="text-ink-muted hover:text-ink" onClick={() => dispatch({ type: "notice/dismiss" })} aria-label="Dismiss" data-notice-dismiss>
+              ✕
+            </button>
           </div>
-        )}
-        {session.notice && !frozen && !reading && <EscapeLayer active onEscape={() => dispatch({ type: "notice/dismiss" })} />}
-        {session.notice && !frozen && !reading && (
-          <div className="absolute inset-x-0 bottom-6 z-20 flex justify-center px-8" data-notice>
-            <div className="flex items-center gap-4 rounded-full border border-accent-line bg-paper px-5 py-2.5 text-[14px] text-ink shadow-lift">
-              <span>{session.notice}</span>
-              <button type="button" className="text-ink-muted hover:text-ink" onClick={() => dispatch({ type: "notice/dismiss" })} aria-label="Dismiss" data-notice-dismiss>
-                ✕
-              </button>
-            </div>
-          </div>
-        )}
-        {diagnostic && <DiagnosticModal run={diagnostic} now={now} absent={liveAbsent(classroom)} onAnswer={(option) => dispatchClassroom({ type: "diagnostic/answer", option })} />}
-      </StudentChrome>
-      <SkipTo />
-    </IpadStage>
+        </div>
+      )}
+    </StudentChrome>
   );
 }

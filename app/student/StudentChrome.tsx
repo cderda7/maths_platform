@@ -4,6 +4,7 @@ import { Avatar } from "@/components/ui";
 import { DEMO_STUDENT } from "@/data/assignment";
 import type { PathwayStage } from "@/lib/classStage";
 import PathwayStrip from "./PathwayStrip";
+import { STUDENT_CLASSROOM_HREF } from "@/lib/studentClassroom";
 
 /**
  * The persistent frame inside the iPad screen: a thin iPadOS-style status strip and the
@@ -36,7 +37,8 @@ export default function StudentChrome({ children, crumb, frozen = false, stages 
       <header className={`flex h-14 items-center justify-between border-b border-line bg-paper/70 px-7 backdrop-blur ${frozen ? "pointer-events-none" : ""}`} aria-disabled={frozen || undefined}>
         {/* The left group gives way first (ticket 185 side fix): with a four-stage pathway the set's title truncates on one line rather than the brand, title and name each wrapping to two. */}
         <div className="flex min-w-0 items-center gap-5">
-          <Brand />
+          {/* The Edexia mark is the way home: his Classroom (ticket 264). While class review freezes the screen the header takes no presses. */}
+          <Brand href={STUDENT_CLASSROOM_HREF} label="Edexia Classroom" />
           {crumb && <span className="min-w-0 truncate text-[13px] text-ink-muted" title={crumb}>{crumb}</span>}
         </div>
         {/* The strip sits with the name, not between the crumb and the name: pinned there it is in the same place on every screen whatever the crumb's length (the assignment title on every screen since ticket 168). */}

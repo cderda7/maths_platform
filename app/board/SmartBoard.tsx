@@ -48,9 +48,11 @@ function Blank({ content }: { content: BoardContent }) {
     <div className="grid flex-1 place-items-center text-center">
       <div>
         <Eyebrow className="text-[15px] tracking-[0.18em] text-ink-muted/70">{content.className}</Eyebrow>
-        <p className="mt-4 font-display text-[40px] leading-tight text-ink-muted/60" data-board-title>
-          {content.title}
-        </p>
+        {content.title && (
+          <p className="mt-4 font-display text-[40px] leading-tight text-ink-muted/60" data-board-title>
+            {content.title}
+          </p>
+        )}
       </div>
     </div>
   );

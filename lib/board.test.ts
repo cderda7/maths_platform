@@ -11,9 +11,9 @@ const now = 1_700_000_000_000;
 const created = (pathway: Pathway, title = "Set 4") => classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title, problemIds: ["q1", "q2", "q3", "q4"], pathway, at: now });
 
 describe("what the board shows per stage", () => {
-  it("is blank before any assignment exists: the class and the fixture title, nothing else", () => {
+  it("is blank before any assignment is sent: the class alone, no set named (ticket 264)", () => {
     const b = boardContent(INITIAL_CLASSROOM, null);
-    expect(b).toEqual({ kind: "blank", className: "11 Methods", title: "PROBLEM SET 6 — ROOTS OF A QUADRATIC" });
+    expect(b).toEqual({ kind: "blank", className: "11 Methods", title: "" });
     expect(boardContent(null, null).kind).toBe("blank");
   });
 

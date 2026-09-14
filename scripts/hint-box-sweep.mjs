@@ -173,9 +173,9 @@ async function openTab(browser) {
     evaluate,
     /** The practice stage with every warm-up in the bank ticked, so the strip offers them all. */
     async gotoEveryWarmup() {
-      await tab.goto(BASE + "/student?stage=practice");
+      await tab.goto(BASE + "/student/a/pset-6?stage=practice");
       await evaluate(`(() => { const s = JSON.parse(localStorage.getItem(${JSON.stringify(SESSION_KEY)})); s.confidence = { level: "low-when", leaves: ${JSON.stringify(LEAVES)} }; localStorage.setItem(${JSON.stringify(SESSION_KEY)}, JSON.stringify(s)); })()`);
-      await tab.goto(BASE + "/student");
+      await tab.goto(BASE + "/student/a/pset-6");
     },
     async goto(url) {
       await send("Page.navigate", { url });

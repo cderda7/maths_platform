@@ -1,22 +1,22 @@
-import StudentApp from "./StudentApp";
-import type { Stage } from "@/data/types";
-import { parsePathway } from "@/lib/pathway";
+import { redirect } from "next/navigation";
+import StudentClassroom from "./StudentClassroom";
+import { LIVE_ASSIGNMENT_ID } from "@/lib/assignments";
+import { studentSetHref } from "@/lib/studentClassroom";
 
-const STAGES: Stage[] = ["overview", "goal", "confidence", "warmup-chat", "practice", "working", "feedback", "waiting", "frozen", "class-wait", "group", "report", "peers", "history", "homework"];
+/** The query a deep link into the student app carries (`app/student/a/[id]/page.tsx`). */
+const DEEP_LINK_KEYS = ["stage", "run", "pathway"];
 
 /**
- * Deep links land a reviewer on a specific moment: /student?stage=confidence, /student?stage=working.
- * A named stage starts a fresh run at that stage; plain /student continues the stored run.
- * Add &run=strong for a run where every step held (the mastery path, /student?stage=report&run=strong).
- * Add &pathway=wc (or indiv,group · group,wc · none …) to create the demo assignment with that
- * review pathway before the run starts. The server page parses the URL; the client app owns all
- * state from there.
+ * Sam's Classroom, his landing on the iPad (ticket 264): To do, Missing and Completed. A deep link from before the
+ * Classroom (`/student?stage=report`, `?run=strong`, `?pathway=wc`) names a moment in Problem Set 6, so it redirects,
+ * query and all, to the set's own route, which sends the set first.
  */
 export default async function Page(props: PageProps<"/student">) {
   const sp = await props.searchParams;
-  const raw = Array.isArray(sp.stage) ? sp.stage[0] : sp.stage;
-  const stage = STAGES.find((s) => s === raw);
-  const runRaw = Array.isArray(sp.run) ? sp.run[0] : sp.run;
-  const pathway = parsePathway(Array.isArray(sp.pathway) ? sp.pathway[0] : sp.pathway);
-  return <StudentApp initStage={stage ?? "overview"} explicit={stage !== undefined} run={runRaw === "strong" ? "strong" : "weak"} pathway={pathway} />;
+  if (DEEP_LINK_KEYS.some((k) => sp[k] !== undefined)) {
+    const query = new URLSearchParams();
+    for (const [k, v] of Object.entries(sp)) for (const one of Array.isArray(v) ? v : v === undefined ? [] : [v]) query.append(k, one);
+    redirect(`${studentSetHref(LIVE_ASSIGNMENT_ID)}?${query.toString()}`);
+  }
+  return <StudentClassroom />;
 }

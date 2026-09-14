@@ -19,7 +19,7 @@ import { leaderboardAt, type RankedStanding } from "./standings";
  *
  *  - `blank` while students work and through individual review: the class and the assignment
  *    title, so a projector that is on doesn't read as broken, and nothing else. Also after
- *    whole-class review has ended.
+ *    whole-class review has ended, and before a set is sent (the class alone, ticket 264).
  *  - `group` while the class is in group review (the classroom has a run that isn't done): the
  *    race, five standings ranked with medals for the first three to finish.
  *  - `holding` once group review is over and the teacher has not advanced: the same standings,
@@ -83,7 +83,8 @@ function groupReviewOver(c: ClassroomState | null | undefined, session: StudentS
 
 /** `now` drives the scripted race; 0 (the server, before the first tick) reads as the start. */
 export function boardContent(c: ClassroomState | null | undefined, session: StudentSession | null, now = 0): BoardContent {
-  const lesson: Lesson = { className: ASSIGNMENT.className, title: activeAssignment(c).title };
+  // Nothing sent, no set to name (ticket 264): the blank board is the class alone.
+  const lesson: Lesson = { className: ASSIGNMENT.className, title: c?.assignment ? activeAssignment(c).title : "" };
   const run = liveDiagnostic(c);
   const question = run && questionFor(run.steps[currentIndex(run)]);
   if (run && question) return { kind: "diagnostic", ...lesson, run, question, tally: tally(run, now, currentIndex(run), liveAbsent(c)), position: chainPosition(run), last: isLastStep(run) };

@@ -42,7 +42,7 @@ matched by the file's hash; typed text through the shorthand parser) so it runs 
 Everything else in the demo still runs offline.
 
 **/** opens the teacher's Edexia Classroom (it redirects to `/teacher`, ticket 265). The presenter's
-chooser is **/demo**: pick a side there. Use tabs of the same browser: the student iPad (`/student`) in one,
+chooser is **/demo**: pick a side there. Use tabs of the same browser: the student iPad (`/student`, Sam's Classroom) in one,
 the teacher in another, the board (`/board`) in a third when projecting. Or open **/split** to see any one, two or all
 three of them in one tab, fitted to the window (toggles in the dashed toolbar; stacked, the
 student over the teacher with the board down the right, or side by side; drag the handle on any
@@ -95,7 +95,9 @@ Teacher, before the lesson (Edexia Classroom at `/teacher`, New assignment → `
    later columns empty to stop there; tap "student submission" to clear the map and start again;
    the sentence under the map reads the pathway back. Create.
 
-Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the pen):
+Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the pen). It opens on Sam's Edexia
+Classroom (ticket 264): To do, Missing, Completed. Problem Set 1–5 are Completed; Problem Set 6 shows in To do once
+the teacher has pressed Create (or a SKIP TO or deep link sent it). START opens it; the Edexia mark returns:
 
 2. Overview (CONTINUE pulses until pressed), the teacher's goal in a speech bubble ("Before you get started, Ms
    Okafor wants you to know…"; skipped when blank), then the check-in: confidence (a not-confident answer is offered the warm-up). Work Q1–Q10 on the pad; each burst of strokes is read as
@@ -303,12 +305,13 @@ vitest (the shared suite and the jump test), then check:laptop.
 
 ## Deep links
 
-`/student?stage=<stage>` starts a fresh run at that stage (`overview`, `goal`, `practice`, `confidence`,
+`/student/a/pset-6?stage=<stage>` (or the older `/student?stage=<stage>`, which redirects there) sends Problem Set 6 if
+nothing is sent yet and starts a fresh run at that stage (`overview`, `goal`, `practice`, `confidence`,
 `working`, `feedback`, `waiting`, `frozen`, `rework`, `group-pass`, `group-discuss`, `report`,
 `peers`, `history`). Add `&run=strong` for a run where every step held. Add
 `&pathway=<p>` to create the demo assignment with that review pathway first: `none`, `indiv`,
-`group`, `wc`, `indiv,group`, `indiv,wc`, `group,wc`, `indiv,group,wc`. Plain `/student`
-continues the stored run.
+`group`, `wc`, `indiv,group`, `indiv,wc`, `group,wc`, `indiv,group,wc`. Plain `/student/a/pset-6`
+continues the stored run (back to the Classroom while the set is not sent); plain `/student` is the Classroom.
 
 Useful starts: `/student?stage=working&pathway=wc` (hand in, wait for the board),
 `/student?stage=rework&pathway=indiv,wc` (rework Q4 to trip the guard, then project),
@@ -321,7 +324,8 @@ Useful starts: `/student?stage=working&pathway=wc` (hand in, wait for the board)
 ## Where things are
 
 - `app/page.tsx` redirects `/` to `/teacher`; `app/demo/` the presenter's chooser.
-- `app/student/` the iPad app (one client component, one screen per stage);
+- `app/student/` the iPad: `layout.tsx` + `StudentShell` (the device and the lesson's clockwork), `page.tsx` Sam's
+  Classroom, `a/[id]/page.tsx` + `StudentApp` the set (one screen per stage);
   `app/teacher/` the teacher pages, the creation screen with `PathwayMap`, whole-class setup and
   the board; `app/split/` the presenter's split view, the three routes in scaled iframes.
 - `components/` the presentational kit, the drawpad, `InkView`, the pad and transcription columns.
