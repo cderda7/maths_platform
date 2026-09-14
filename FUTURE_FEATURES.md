@@ -1288,6 +1288,13 @@ uploaded problems) settled the following as later, each on purpose.
 - **Opening upward near the bottom.** A tree under the last students runs past the card and adds scroll room; opening it over the rows above when there is more room there was left out.
 - **A close control on the sheet.** The sheet closes on its blank paper, another row, Escape or the row's "close"; no × of its own.
 
+## Set score on the first submission (ticket 285, 2026-09-14)
+
+- **The score after review beside it.** The Set column reads the first submission only; a second figure for where review left the student (the report's final columns) was not asked for and would crowd the column.
+- **The score anywhere else.** The holistic page, the Classroom's set cards and the student's history show no per-set score; carrying it there was not asked for.
+- **A class average or spread per set.** Not asked for.
+- **Telling "ran out of time" from "wrong" in the number.** Unattempted problems score as not right (Grace 7/10 on Problem Set 5 with nothing wrong); a split such as "7/7 of 10" was left out, the missing and progress marks carry it.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

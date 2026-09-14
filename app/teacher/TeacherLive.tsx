@@ -17,14 +17,15 @@ import { DEMO_STUDENT, unitLabel } from "@/data/assignment";
 import type { Classmate } from "@/data/classmates";
 import { categoryName, isFlat, type CategoryId, type LeafId } from "@/data/taxonomy";
 import { confidenceForms, confidenceLabel, type ConfidenceForm } from "@/lib/report";
-import { BEFORE_HAND_IN_STAGES, type Confidence } from "@/data/types";
+import type { Confidence } from "@/data/types";
 import { assignmentReportHref, assignmentStages, holisticHref, rosterEvidence, rosterProgress, type AssignmentBundle } from "@/lib/assignments";
 import { currentSlide, lessonOver } from "@/lib/classroom";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { absenceLocked, canMarkAbsent } from "@/lib/absence";
 import { liveStudentTag, progressTag } from "@/lib/progress";
 import { classmatesAt } from "@/lib/stream";
-import { categoriesTouched, columnOf, hierarchyFor, problemsStarted, restrictTo, type Evidence } from "@/lib/hierarchy";
+import { categoriesTouched, columnOf, hierarchyFor, restrictTo, type Evidence } from "@/lib/hierarchy";
+import { recordScore, sessionScore, setScoreText } from "@/lib/setScore";
 import { pillLabel, type HistoryPoint } from "@/lib/history";
 import { categoryHistory, hasEarlierSets, historyCategories, historyReportHref } from "@/lib/setHistory";
 import { dismissHolisticNote, useHolisticNote } from "@/lib/holisticNote";
@@ -151,8 +152,6 @@ function ago(ms: number | null, now: number): string {
   const s = Math.max(0, Math.round((now - ms) / 1000));
   return s <= 1 ? "just now" : `${s}s ago`;
 }
-
-const HANDED_IN = BEFORE_HAND_IN_STAGES;
 
 /**
  * History mode from a link (tickets 215, 237; since 237 the way back from a history pill's report): `?history=<student>`, read by the page and handed in as `init`, kept only when the
@@ -401,7 +400,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
    * A row still on the set carries its progress beside the name, in the pill that read "in progress" (ticket 185):
    * "Q4 in progress" or "warming up"; the live student before his first screen keeps "not started", and once handed in has no pill, like every classmate (ticket 275).
    */
-  type Row = { id: string; name: string; initials: string; live: boolean; missing: boolean; evidence: Evidence; sub: string; confidence: { text: string; tone: string }; set: string; setSub: string; tag: string | null; /** Marked absent on the set (ticket 250): greyed, out of every count. */ absent: boolean; /** Handed in and present, so mark absent is disabled (ticket 270). */ locked: boolean };
+  type Row = { id: string; name: string; initials: string; live: boolean; missing: boolean; evidence: Evidence; sub: string; confidence: { text: string; tone: string }; /** The Set column: right on the first submission over the set's problems once handed in, a dash before (ticket 285). */ set: string; tag: string | null; /** Marked absent on the set (ticket 250): greyed, out of every count. */ absent: boolean; /** Handed in and present, so mark absent is disabled (ticket 270). */ locked: boolean };
   /** A student with a fixed record on the set: a classmate, or Sam on a finished set (ticket 187). */
   const recordRow = (c: Classmate): Row => ({
     id: c.id,
@@ -412,8 +411,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
     evidence: evidence[c.id],
     sub: "",
     confidence: progress[c.id].kind === "not-started" ? confidenceWord(null) : { text: c.confidence, tone: c.confidence === "confident" ? "text-secure" : "text-accent-deep" },
-    set: `${Math.min(c.done, problems.length)}/${problems.length}`,
-    setSub: "",
+    set: setScoreText(progress[c.id], recordScore(c, problems), problems.length),
     tag: progressTag(progress[c.id]),
     absent: assignment.absent.includes(c.id),
     locked: absenceLocked(progress[c.id], assignment.absent.includes(c.id)),
@@ -428,8 +426,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
       evidence: evidence[DEMO_STUDENT.id],
       sub: "",
       confidence: confidenceWord(live?.confidence ?? null),
-      set: `${live ? problemsStarted(live) : 0}/${problems.length}`,
-      setSub: live && !HANDED_IN.includes(live.stage) ? "handed in" : "",
+      set: setScoreText(progress[DEMO_STUDENT.id], live ? sessionScore(live, problems) : 0, problems.length),
       tag: liveStudentTag(progress[DEMO_STUDENT.id]),
       absent: false,
       locked: false,
@@ -683,10 +680,9 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
                         ) : r.missing ? (
                           <Missing />
                         ) : (
-                          <>
+                          <span className={r.set === "—" ? "text-ink-muted" : undefined} data-set-score={r.id}>
                             {r.set}
-                            {r.setSub && <div className="-mx-2 whitespace-nowrap text-[12px] text-ink-muted" data-set-sub>{r.setSub}</div>}
-                          </>
+                          </span>
                         )}
                         </div>
                       </td>

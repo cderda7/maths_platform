@@ -4796,3 +4796,19 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Rows under the sheet cannot be clicked until it closes (a click there closes it, the next acts). A tree near the bottom adds scroll room under the card while open. The column view still inserts rows under every student, so it still reflows (logged). The sheet is outside the student's `tbody`, so the row buttons' hover needs `sheetHover` state.
 
 **Defense.** The same overlay idea as history, mirrored downward, means one mental model for both, and nothing on the roster moves under the pointer, which removes the problem ticket 280's anchoring only patched.
+
+## 2026-09-14 · A set score counts the first submission only (ticket 285)
+
+**Decision.** The Class View's Set column reads problems right on the first submission over the set's problems (`lib/setScore.ts`): finished with no wrong line, the rule group review already uses (ticket 278). A second submission, the rework and the group's version never raise it. A student still on the set reads a dash.
+
+**Context.** The column read problems handed in, so a student who wrote all ten with three wrong read 10/10 (Sam on Problem Set 5). Carson: the set score should be based on the initial submission, not post-review stages; a dash before hand-in was agreed in chat.
+
+**Alternatives considered.**
+- *Score after review (the report's final state)*: rewards the review, hides what the student could do alone; rejected by Carson.
+- *Keep problems handed in beside a score*: two numbers in one narrow column; the progress tag beside the name already shows how far a student has got.
+- *A running score while working*: a number that climbs mid-set reads as a result before there is one.
+- *Counting a finished-looking problem with all lines right but no answer as right*: the group union counts it against, and two definitions of right first time would drift.
+
+**Tradeoffs.** Unfinished and unattempted problems score as not right, so a student who ran out of time reads low with no wrong answers (Grace 7/10 on Problem Set 5); the missing and progress marks tell those apart. The live student's score reads his session's lines and typed answer directly rather than `reviewProblemsOf`, because `progressOf` also reads rework; a test holds the two equal on the demo runs.
+
+**Defense.** One definition of right first time across group review's union, the report's Correct first try and the score, each checked against the others in tests, so the Class View never tells a teacher a different story from the student's report.
