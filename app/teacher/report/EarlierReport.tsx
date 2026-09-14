@@ -10,15 +10,15 @@ import { historyReturnHref } from "@/lib/setHistory";
 /**
  * A student's report on an earlier set, opened from a history pill on this set's Class View (ticket 237). The chrome is
  * this set's (its tabs, Class current), so the teacher never lands on the earlier set's pages; the report under it is the
- * earlier set's, and a pulsing "← Return to PSet N" goes back to this student's history with the category's stack standing.
+ * earlier set's, and a pulsing "← Return to PSet N" goes back to this student's history with every stack standing (ticket 279).
  */
-export default function EarlierReport({ earlier, student, open }: { earlier: AssignmentBundle; student: string; open: string | null }) {
+export default function EarlierReport({ earlier, student }: { earlier: AssignmentBundle; student: string }) {
   const current = useAssignmentBundle();
   return (
     <TeacherChrome zoom={REPORT_ZOOM}>
       <div data-earlier-report={earlier.id}>
         <AssignmentContext.Provider value={earlier}>
-          <ReportBody student={student} back={{ href: historyReturnHref(current.id, student, open), label: `Return to ${psetName(current.name)}` }} />
+          <ReportBody student={student} back={{ href: historyReturnHref(current.id, student), label: `Return to ${psetName(current.name)}` }} />
         </AssignmentContext.Provider>
       </div>
     </TeacherChrome>

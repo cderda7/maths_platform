@@ -15,18 +15,18 @@ import { useEscape } from "@/components/useEscape";
 import { CategoryChip, StatusDot, STATUS_WORD } from "@/components/Tag";
 import { DEMO_STUDENT, unitLabel } from "@/data/assignment";
 import type { Classmate } from "@/data/classmates";
-import { CATEGORY_ORDER, categoryName, isFlat, type CategoryId, type LeafId } from "@/data/taxonomy";
+import { categoryName, isFlat, type CategoryId, type LeafId } from "@/data/taxonomy";
 import { confidenceForms, confidenceLabel, type ConfidenceForm } from "@/lib/report";
 import { BEFORE_HAND_IN_STAGES, type Confidence } from "@/data/types";
-import { assignmentReportHref, assignmentStages, holisticHref, rosterEvidence, rosterProgress } from "@/lib/assignments";
+import { assignmentReportHref, assignmentStages, holisticHref, rosterEvidence, rosterProgress, type AssignmentBundle } from "@/lib/assignments";
 import { currentSlide, lessonOver } from "@/lib/classroom";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { absenceLocked, canMarkAbsent } from "@/lib/absence";
 import { progressTag } from "@/lib/progress";
 import { classmatesAt } from "@/lib/stream";
-import { columnOf, hierarchyFor, problemsStarted, restrictTo, type Evidence } from "@/lib/hierarchy";
+import { categoriesTouched, columnOf, hierarchyFor, problemsStarted, restrictTo, type Evidence } from "@/lib/hierarchy";
 import { pillLabel, type HistoryPoint } from "@/lib/history";
-import { categoryHistory, hasEarlierSets, historyReportHref } from "@/lib/setHistory";
+import { categoryHistory, hasEarlierSets, historyCategories, historyReportHref } from "@/lib/setHistory";
 import { dismissHolisticNote, useHolisticNote } from "@/lib/holisticNote";
 import { useBatchedSession, useNow } from "@/lib/store";
 
@@ -155,20 +155,18 @@ function ago(ms: number | null, now: number): string {
 const HANDED_IN = BEFORE_HAND_IN_STAGES;
 
 /**
- * History mode from a link (tickets 215, 237; since 237 the way back from a history pill's report): `?history=<student>&open=<category>`, read by the page and handed in as `init`, kept only when the
- * set has that student and the category is one the taxonomy knows (a category the set does not show opens no stack).
+ * History mode from a link (tickets 215, 237; since 237 the way back from a history pill's report): `?history=<student>`, read by the page and handed in as `init`, kept only when the
+ * set has that student; every stack stands, as "see history" opens them (ticket 279).
  */
 export interface ClassViewInit {
   /** `?history=<student>`: open history mode on this student. */
   history: string | null;
-  /** `?open=<category>`: with that category's stack standing. */
-  open: string | null;
 }
 
-function historyFromQuery(init: ClassViewInit | undefined, set: { classmates: readonly Classmate[] }): { student: string; open: CategoryId[] } | null {
+function historyFromQuery(init: ClassViewInit | undefined, set: AssignmentBundle): { student: string; open: CategoryId[] } | null {
   const student = init?.history;
   if (!student || !(student === DEMO_STUDENT.id || set.classmates.some((c) => c.id === student))) return null;
-  return { student, open: CATEGORY_ORDER.filter((c) => c === init.open) };
+  return { student, open: historyCategories(set.id, student, categoriesTouched(set)) };
 }
 
 /**
@@ -199,8 +197,8 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
    * History mode (ticket 175): one student whose category pills widen to carry their names, every other row
    * faded; `open` lists the categories whose earlier results stand stacked above the pill. Independent of
    * `open` (a drill under the same student stays), exclusive of `column`. The way back from a history pill's report
-   * links here with `?history=<student>&open=<category>` (tickets 215, 237): the page opens in history mode on that student
-   * with that category's stack standing, scrolls the row into view and drops the query, so a reload is the plain view.
+   * links here with `?history=<student>` (tickets 215, 237, 279): the page opens in history mode on that student
+   * with every stack standing, scrolls the row into view and drops the query, so a reload is the plain view.
    */
   const [history, setHistory] = useState<{ student: string; open: CategoryId[] } | null>(() => historyFromQuery(init, assignment));
   const fromQuery = useRef(history?.student ?? null);
@@ -211,13 +209,12 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
     document.querySelector(`tr[data-row="${CSS.escape(student)}"]`)?.scrollIntoView({ block: "center" });
     window.history.replaceState(null, "", window.location.pathname);
   }, []);
-  // Escape closes what was opened last (ticket 247), one press each: the history stacks, history mode, the row's drill or the column view.
+  // Escape closes what was opened last (ticket 247), one press each: history mode with its stacks (opened together since ticket 279), the row's drill or the column view.
   useEscape(open !== null || column !== null, () => {
     setOpen(null);
     setColumn(null);
   });
   useEscape(history !== null, () => setHistory(null));
-  useEscape((history?.open.length ?? 0) > 0, () => setHistory((h) => (h ? { ...h, open: [] } : h)));
   const tableRef = useRef<HTMLTableElement>(null);
   const rosterRef = useRef<HTMLDivElement>(null);
   const sideTopRef = useRef<HTMLDivElement>(null);
@@ -337,11 +334,14 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
   const holisticClick = (student: string, e: React.MouseEvent) => {
     if (leaveHistory(student)) e.preventDefault();
   };
-  /** "see history": this student's pills widen and name themselves; a column view closes, another student's drill closes, this student's own drill stays. */
+  /**
+   * "see history": this student's pills widen and name themselves, and every category with earlier results stacks them above its pill at once (ticket 279);
+   * a column view closes, another student's drill closes, this student's own drill stays.
+   */
   const openHistory = (student: string) => {
     setColumn(null);
     if (open && open.student !== student) setOpen(null);
-    setHistory({ student, open: [] });
+    setHistory({ student, open: historyCategories(assignment.id, student, columns) });
   };
   /** A widened pill: its five earlier results stack above it; again, they go. Several can stand at once. */
   const toggleHistory = (c: CategoryId) => {
@@ -976,7 +976,7 @@ function HistoryBlocker({ student, setId, stacks, tableRef, rosterRef, dueRef, o
           >
             {/* Each pill opens the student's report on that set, inside this set's Class View (ticket 237). */}
             {points.map((p) => (
-              <Link key={p.set.id} href={historyReportHref(setId, p.set.id, student, category)} role="listitem" className={HISTORY_LINK} aria-label={`${p.set.name}, ${p.date}: ${STATUS_WORD[p.status]}. Open the student's report on it`} data-history-point={p.set.id}>
+              <Link key={p.set.id} href={historyReportHref(setId, p.set.id, student)} role="listitem" className={HISTORY_LINK} aria-label={`${p.set.name}, ${p.date}: ${STATUS_WORD[p.status]}. Open the student's report on it`} data-history-point={p.set.id}>
                 <StatusDot status={p.status} shape="pill" label={pillLabel(p)} className={HISTORY_PILL} />
               </Link>
             ))}

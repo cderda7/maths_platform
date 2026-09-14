@@ -4661,3 +4661,17 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** `lessonEndedAt` is state the product itself never sets yet (logged in FUTURE_FEATURES). Clearing lesson state on Create changes a second Create in one session (it used to inherit the old run's group and class review; that was never intended). `setLesson` adds a third channel and key, and a tab without BroadcastChannel depends on storage events arriving in write order. The strip takes about 40 screen px of height from every teacher page at 1280×800. A presenter jump replaces Sam's live session with the scripted one, as his own skips do.
 
 **Defense.** A step from the state as it stands is the only reading of "students done with current stage" that respects the teacher's own choices, and the tests hold each done equal to Sam's own skip to that stage on the demo pathway, so both bars agree. `lessonOver` names the one idea (every stage behind the class) that four readers had spelled as "class review ended". One message per jump removes the race at its cause rather than by timing, and Reset and Sam's skips get the same guarantee. A strip is the only placement that can promise, and the click-through measures, that no teacher control is ever under the bar on any route at either laptop size.
+
+## 2026-09-14 · "see history" opens every stack, and the `open` query goes (ticket 279)
+
+**Decision.** Pressing "see history" stands the earlier results above every category that has any (`historyCategories`). The way back from a history pill's report opens the same way, so the `open=<category>` query (pill link, return link, page, `ClassViewInit`) is removed. The separate Escape press that closed only the stacks is removed; one press closes history mode.
+
+**Context.** The user found the second step (press each category pill to see its column) slow: the teacher pressed "see history" to see the history.
+
+**Alternatives considered.**
+- *Keep `open` so the return restores exactly what was standing*: the teacher may have hidden a stack before opening a report; restoring that needs the whole open list in the URL, for a rare case.
+- *Keep two Escape presses (stacks, then mode)*: with the stacks opening with the mode, the first press would leave named pills with nothing above them, a state the teacher never asked for.
+
+**Tradeoffs.** A teacher who hid some stacks and opened a report comes back to all of them standing. On a top row the sheet covering the rows above is as wide as every column with history rather than one.
+
+**Defense.** "see history" now shows the history in one press; one rule (`historyCategories`) decides what stands on both ways in, and there is no query state left that only mattered for the old one-at-a-time flow.

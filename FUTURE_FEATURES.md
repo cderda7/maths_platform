@@ -3379,6 +3379,11 @@ uploaded problems) settled the following as later, each on purpose.
 - **A presenter strip on the student and board sides.** Sam's SKIP TO still floats over the bottom of the iPad frame; the board has no presenter controls. Only the teacher's strip was measured against controls.
 - **Hiding the presenter strip.** A keyboard toggle to hide both presenter strips for a clean screen recording was not asked for.
 
+## "see history" opens every stack (ticket 279, 2026-09-14)
+
+- **Remembering hidden stacks across a report.** A teacher who hides a stack, opens a history pill's report and returns sees every stack again; carrying the open list through the URL was left out as a rare case.
+- **An "open all / close all" control for history.** The category pills still toggle one stack each; a single control to hide every stack while staying in history mode was not asked for.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

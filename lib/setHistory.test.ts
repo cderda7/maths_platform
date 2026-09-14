@@ -10,7 +10,7 @@ import { INITIAL_CLASSROOM, classroomReducer } from "./classroom";
 import { categoriesTouched, classmateHierarchy } from "./hierarchy";
 import { FINISHED_SETS } from "./finishedSets";
 import { HISTORY_LENGTH, parseDay, pillLabel, stepsApart } from "./history";
-import { assessed, categoryHistory, earlierReportSet, earlierResults, earlierSources, hasEarlierSets, historyFrom, historyReportHref, historyReturnHref, type HistorySource } from "./setHistory";
+import { assessed, categoryHistory, earlierReportSet, earlierResults, earlierSources, hasEarlierSets, historyCategories, historyFrom, historyReportHref, historyReturnHref, type HistorySource } from "./setHistory";
 
 const ps5Everyone = [PS5_SAM, ...PS5_CLASSMATES];
 const ps5Record = (student: string): Classmate | null => ps5Everyone.find((c) => c.id === student) ?? null;
@@ -69,9 +69,8 @@ describe("history reads real earlier sets only (tickets 215, 237)", () => {
   it("a pill reads its day; its link opens the student's report on that set inside this set's Class View; the way back reopens the history", () => {
     const h = historyFrom(sets.slice(4), "mia", "algebra");
     expect(h.map(pillLabel)).toEqual(["Fri 4 Sep", "Mon 7 Sep"]);
-    expect(historyReportHref("pset-6", "pset-4", "mia", "graphing")).toBe(`${assignmentHref("pset-6", "class")}?report=pset-4&student=mia&open=graphing`);
-    expect(historyReturnHref("pset-6", "mia", "graphing")).toBe(`${assignmentHref("pset-6", "class")}?history=mia&open=graphing`);
-    expect(historyReturnHref("pset-6", "mia", null)).toBe(`${assignmentHref("pset-6", "class")}?history=mia`);
+    expect(historyReportHref("pset-6", "pset-4", "mia")).toBe(`${assignmentHref("pset-6", "class")}?report=pset-4&student=mia`);
+    expect(historyReturnHref("pset-6", "mia")).toBe(`${assignmentHref("pset-6", "class")}?history=mia`);
   });
 });
 
@@ -159,6 +158,16 @@ describe("history over the Classroom's registry (tickets 215, 237)", () => {
       }
     }
     expect(jumps).toEqual([]);
+  });
+
+  it("see history opens every shown category with earlier results, in column order (ticket 279)", () => {
+    const columns = categoriesTouched(ASSIGNMENT);
+    for (const record of recordsOf("pset-6")) {
+      expect(historyCategories("pset-6", record.id, columns), record.id).toEqual(columns.filter((c) => categoryHistory("pset-6", record.id, c).length > 0));
+    }
+    expect(historyCategories("pset-6", "mia", columns)).toEqual(columns);
+    expect(historyCategories(first.id, "mia", columns)).toEqual([]);
+    expect(historyCategories("pset-6", "nobody", columns)).toEqual([]);
   });
 
   it("Sam's live row on Problem Set 6 has no fixed record, and his history still reads his earlier results", () => {

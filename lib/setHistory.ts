@@ -70,17 +70,22 @@ export function categoryHistory(id: string, student: string, category: CategoryI
   return historyFrom(earlierSources(id), student, category);
 }
 
-/**
- * Where a history pill goes (ticket 237): the student's report on the earlier set, shown inside this set's Class View
- * (`?report=<earlier>&student=<student>&open=<category>`), so the teacher never leaves this set; the tabs stay its own.
- */
-export function historyReportHref(setId: string, earlierId: string, student: string, category: CategoryId): string {
-  return `${assignmentHref(setId, "class")}?report=${encodeURIComponent(earlierId)}&student=${encodeURIComponent(student)}&open=${encodeURIComponent(category)}`;
+/** The categories whose stacks "see history" opens (ticket 279): every one of `columns` with an earlier result, in column order. */
+export function historyCategories(id: string, student: string, columns: readonly CategoryId[]): CategoryId[] {
+  return columns.filter((c) => categoryHistory(id, student, c).length > 0);
 }
 
-/** The way back from that report: this set's Class View in history mode on the student, the category's stack standing (`?history=<student>&open=<category>`). */
-export function historyReturnHref(setId: string, student: string, category: string | null): string {
-  return `${assignmentHref(setId, "class")}?history=${encodeURIComponent(student)}${category ? `&open=${encodeURIComponent(category)}` : ""}`;
+/**
+ * Where a history pill goes (ticket 237): the student's report on the earlier set, shown inside this set's Class View
+ * (`?report=<earlier>&student=<student>`), so the teacher never leaves this set; the tabs stay its own.
+ */
+export function historyReportHref(setId: string, earlierId: string, student: string): string {
+  return `${assignmentHref(setId, "class")}?report=${encodeURIComponent(earlierId)}&student=${encodeURIComponent(student)}`;
+}
+
+/** The way back from that report: this set's Class View in history mode on the student, every stack standing as "see history" opens it (`?history=<student>`, ticket 279). */
+export function historyReturnHref(setId: string, student: string): string {
+  return `${assignmentHref(setId, "class")}?history=${encodeURIComponent(student)}`;
 }
 
 /** The earlier set a Class View's `?report=` names (ticket 237), when it is a finished set before `id` and the student sat it; else null, and the Class View shows its roster. */

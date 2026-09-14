@@ -12,5 +12,5 @@ import { earlierReportSet } from "@/lib/setHistory";
 export default function ClassView({ init, report, student }: { init: ClassViewInit; report: string | null; student: string | null }) {
   const current = useAssignmentBundle();
   const earlier = earlierReportSet(current.id, report, student);
-  return earlier && student ? <EarlierReport earlier={earlier} student={student} open={init.open} /> : <TeacherLive init={init} />;
+  return earlier && student ? <EarlierReport earlier={earlier} student={student} /> : <TeacherLive init={init} />;
 }
