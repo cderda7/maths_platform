@@ -1,6 +1,7 @@
 import { DEMO_DRAFT_GOAL, DEMO_DRAFT_TITLE, DEMO_PASTE_LINES } from "@/data/draft-seed";
 import type { AssignmentDraft, ClassroomState } from "./classroom";
 import { parseQuestion, stemText } from "./mathInput";
+import { DUE_DEFAULT } from "./dueDate";
 
 /**
  * The create screen's start (ticket 188). "+In-Class PSet" opens it blank: a greyed title and goal,
@@ -13,11 +14,11 @@ import { parseQuestion, stemText } from "./mathInput";
 /** Whether the create screen shows the editor (the draft was generated) or the blank start. */
 export const isGenerated = (c: ClassroomState | null | undefined): boolean => c?.draft?.generated === true;
 
-/** The draft Generate stores: the seeded set with each line read as the editor reads a typed one, ids `seed-1` … `seed-10`. */
+/** The draft Generate stores: the seeded set with each line read as the editor reads a typed one, ids `seed-1` … `seed-10`, due on the default day (ticket 289). */
 export function generatedDraft(at: number): AssignmentDraft {
   const questions = DEMO_PASTE_LINES.map((text, i) => {
     const p = parseQuestion(text);
     return { id: `seed-${i + 1}`, text, stem: stemText(p.stem), tex: p.tex };
   });
-  return { title: DEMO_DRAFT_TITLE, goal: DEMO_DRAFT_GOAL, questions, updatedAt: at, generated: true };
+  return { title: DEMO_DRAFT_TITLE, goal: DEMO_DRAFT_GOAL, questions, updatedAt: at, generated: true, due: DUE_DEFAULT.pset };
 }

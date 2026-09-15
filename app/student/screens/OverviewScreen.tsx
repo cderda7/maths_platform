@@ -23,7 +23,7 @@ export default function OverviewScreen({ onStart }: { onStart: () => void }) {
         <div className="mt-1.5 flex flex-wrap items-baseline gap-x-4">
           <h1 className="font-display text-[30px] leading-[1.1] text-ink">{active.title}</h1>
           <p className="text-[13px] text-ink-muted">
-            {ASSIGNMENT.teacher} · due {ASSIGNMENT.due}
+            {ASSIGNMENT.teacher} · due {active.due}
           </p>
         </div>
       </header>

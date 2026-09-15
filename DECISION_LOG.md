@@ -4912,3 +4912,22 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Sam's PS1 report on the teacher side now shows his reflection under "In their words" where it said "Not sent yet". The read-only report has no "Your working →" history screen and no "Where the class is stuck →" (both session-bound). Whether a set is Completed is only known in the browser, so a stale link renders the chrome for a frame before going to the Classroom.
 
 **Defense.** The student and the teacher see one record through one set of pure functions (`recordReviews`, `columnsOf`, `setClassReview`), tested against each other; the layout exists once; each screen has one address that survives reload.
+
+## 2026-09-15 · A due date is stored as a calendar day with its year, shown as cards show it, and picked in a shared calendar with no gate (ticket 289)
+
+**Decision.** Create's Questions page gets a due-date picker beside the title (`components/DuePicker.tsx`). The chosen day is stored on the draft and then on the created assignment as an ISO calendar day (`IsoDay`, "2026-09-17"), and turned into the cards' form ("Thu 17 Sep", `dayLabel`) once, where the live set's bundle is built (`activeAssignment` → `assignmentBundle`). Everything that shows or sorts a due date keeps reading the bundle's `due` string. The demo's today is a constant, `DEMO_TODAY` = Thu 10 Sep 2026, and the in-class default (`DUE_DEFAULT.pset`) is that day's lesson. Days before today are shown greyed and cannot be chosen. A set sent without a day (a presenter skip, a deep link, an assignment stored before this ticket, a malformed stored value) is due on its fixture's day. The picker is a component with `min`, `today`, `note` and `label` props so ticket 291's homework (default Mon 14 Sep, nothing on or before Mon 7 Sep, a note under the date) is a second caller, not a fork.
+
+**Context.** The user (2026-09-15): "actually implement 'due date picker' in this iteration, don't defer to F_F". Problem Set 6's "Thu 10 Sep" was fixed data; every existing flow and skip had to stay due Thu 10 Sep.
+
+**Alternatives considered.**
+- *Store the label ("Thu 17 Sep")*: matches the fixtures, but names no year and has to be parsed back for every calendar operation; a stored day is unambiguous and the label is derived.
+- *Convert every fixture's `due` to an ISO day*: one format everywhere, but touches six fixtures, the story sheet, the history pills and many tests for no visible change; left for when a second term or year exists.
+- *The machine's clock as today*: the demo would drift (shown on 20 Sep, Problem Set 6's own day could not be picked).
+- *A native `<input type="date">`*: free keyboard and locale support, but its popup cannot be styled in Edexia's look, reads "10/09/2026" rather than "Thu 10 Sep", and differs per browser.
+- *A date-picker library*: a dependency for one small grid whose behaviour is fully covered by ~200 lines and pure tested helpers.
+- *Confirming the default before Create*: rejected by the no-confirm-gates rule; the field always holds a day.
+- *Monday-first vs Sunday-first weeks*: Monday first, as an Australian school week reads.
+
+**Tradeoffs.** Two representations of a due date exist (fixtures' labels, created sets' ISO days) until the fixtures move; `dueOrder` still sorts by month and day only, fine for one term. The calendar is taller than the blank space right of the goal and overlaps the top of Q5's tile while open (it is an overlay, so nothing moves). "Today" is fixed in code.
+
+**Defense.** The stored value is exact, the display path is the one every screen already used, the default keeps every existing flow and skip unchanged, and the shared component with `min`/`note` makes homework's picker a call site.

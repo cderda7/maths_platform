@@ -122,6 +122,7 @@ export interface AssignmentBundle {
   className: string;
   classCode: string;
   teacher: string;
+  /** As cards show it ("Thu 10 Sep"): a finished set's fixture day; the live set's the day picked on Create (ticket 289), else its fixture's. */
   due: string;
   /** The unit and topic the eyebrow names (`unitLabel`). */
   unit: UnitRef;
@@ -151,7 +152,7 @@ export function assignmentBundle(id: string, c: ClassroomState | null | undefine
   const base = { id, kind: def.kind, className: f.className, classCode: f.classCode, teacher: f.teacher, due: f.due, unit: f.unit, classmates: def.classmates, groups: assignmentGroupsOf(c, id), absent: absentOf(c, id) };
   if (def.kind === "finished") return { ...base, title: f.title, name: def.name ?? f.title, newSkills: f.newSkills, goal: f.goal, problems: f.problems, pathway: def.pathway, sam: def.sam, startedAt: null, pauses: [] };
   const active = activeAssignment(c);
-  return { ...base, title: active.title, name: active.title === f.title ? (def.name ?? f.title) : active.title, newSkills: active.newSkills, goal: active.goal, problems: active.problems, pathway: pathwayOf(c), sam: null, startedAt: liveStartedAt(c), pauses: chainPauses(c?.diagnostics) };
+  return { ...base, due: active.due, title: active.title, name: active.title === f.title ? (def.name ?? f.title) : active.title, newSkills: active.newSkills, goal: active.goal, problems: active.problems, pathway: pathwayOf(c), sam: null, startedAt: liveStartedAt(c), pauses: chainPauses(c?.diagnostics) };
 }
 
 /**

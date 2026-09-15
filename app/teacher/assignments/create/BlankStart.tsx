@@ -6,6 +6,8 @@ import { BackToClassroom } from "../../AssignmentContext";
 import { Button, Eyebrow } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
 import { GOAL_MAX } from "@/lib/classroom";
+import DuePicker from "@/components/DuePicker";
+import { DUE_DEFAULT } from "@/lib/dueDate";
 
 const nothing = () => {};
 const INERT_HANDLERS: TileHandlers = { onChange: nothing, onFocus: nothing, onBlur: nothing, onNext: nothing, onBackspaceEmpty: nothing, onRemove: nothing, onPasteLines: nothing, onKeep: nothing, onUpload: nothing, onRead: nothing, onFix: nothing };
@@ -18,7 +20,7 @@ const refuse = (e: DragEvent<HTMLDivElement>) => {
 
 /**
  * The create screen before anything is generated (ticket 188): what starting from scratch looks
- * like, shown, not usable. The title's placeholder, the goal box and one ghost Q1 tile ("Type a
+ * like, shown, not usable. The title's placeholder, the due date (ticket 289), the goal box and one ghost Q1 tile ("Type a
  * question, or drop a picture or PDF", Upload) sit exactly where the editor puts them, greyed and
  * `inert` (no focus, no click, no typing, no drop). Centred over the tile grid, the one live control:
  * a pulsing "Generate simulated assignment", which fills the screen with the demo teacher's set.
@@ -31,15 +33,21 @@ export default function BlankStart({ onGenerate }: { onGenerate: () => void }) {
       <BackToClassroom />
       <Eyebrow className="mt-3">{ASSIGNMENT.className}</Eyebrow>
       <div inert className="select-none" data-blank-inert>
-        <input
-          value=""
-          readOnly
-          tabIndex={-1}
-          placeholder="Untitled assignment"
-          aria-label="Title"
-          className="mt-3 w-full bg-transparent font-display text-[40px] leading-[1.05] text-ink outline-none placeholder:text-ink-muted/35 md:text-[48px]"
-          data-title
-        />
+        <div className="mt-3 flex items-center gap-6" data-title-row>
+          <input
+            value=""
+            readOnly
+            tabIndex={-1}
+            placeholder="Untitled assignment"
+            aria-label="Title"
+            className="min-w-0 flex-1 bg-transparent font-display text-[40px] leading-[1.05] text-ink outline-none placeholder:text-ink-muted/35 md:text-[48px]"
+            data-title
+          />
+          {/* The due date where the editor puts it (ticket 289), greyed like the goal, at the day the picker starts on. */}
+          <div className="opacity-60">
+            <DuePicker value={DUE_DEFAULT.pset} onChange={nothing} />
+          </div>
+        </div>
 
         <div className="mt-6 max-w-3xl opacity-60" data-goal>
           <label htmlFor="goal" className="block text-[11px] font-semibold tracking-[0.12em] uppercase text-ink-muted">

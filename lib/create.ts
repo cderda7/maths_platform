@@ -3,11 +3,12 @@ import { classroomReducer, type ClassroomAction, type ClassroomState } from "./c
 import { RECENT_SETS } from "./newSkills";
 import { applyReview, bankProblemsOf, reviewFor, reviewNewSkills } from "./review";
 import { seatingOf } from "./seating";
+import { isIsoDay } from "./dueDate";
 
 /**
  * Create on the pathway step, as a pure step (ticket 272, lifted out of `ReviewAssignment`): the draft as the review leaves
  * it sent as Problem Set 6, with the pathway, the New skills in force and the groups confirmed there (the class defaults
- * when nobody was moved). Null while nothing is drafted or the pathway is undecided: an undecided pathway never creates
+ * when nobody was moved) and the due date picked beside the title (ticket 289). Null while nothing is drafted or the pathway is undecided: an undecided pathway never creates
  * (ticket 246). `at` is the moment of creation; the store stamps it when absent.
  */
 export function createAction(c: ClassroomState, at?: number): ClassroomAction | null {
@@ -26,6 +27,7 @@ export function createAction(c: ClassroomState, at?: number): ClassroomAction | 
     newSkills: reviewNewSkills(final, review, recentSets(LIVE_ASSIGNMENT_ID, RECENT_SETS)).chosen,
     goal: draft.goal ?? "",
     questions: final,
+    ...(isIsoDay(draft.due) ? { due: draft.due } : {}),
     ...(at !== undefined ? { at } : {}),
   };
 }

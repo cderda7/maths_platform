@@ -10,6 +10,7 @@ import type { ReviewedQuestion, ReviewState } from "./review";
 import { currentSetId, currentSetTitle } from "./renamedSets";
 import { chainReducer, latestRun, liveRun, migrateRun, type ChainAction, type DiagnosticRun } from "./diagnosticChain";
 import { absentOf, liveAbsent, withAbsence } from "./absence";
+import type { IsoDay } from "./dueDate";
 
 export type { DiagnosticRun } from "./diagnosticChain";
 
@@ -45,6 +46,11 @@ export interface CreatedAssignment {
    * or not the bank holds it; `problemIds` is the part of it the student side can run.
    */
   questions?: ReviewedQuestion[];
+  /**
+   * The day the set is due (ticket 289), as the teacher picked it beside the title on Questions. Absent when a presenter
+   * skip or a deep link sent the set (and in assignments stored before it): the fixture's day stands (`activeAssignment`).
+   */
+  due?: IsoDay;
 }
 
 /**
@@ -131,6 +137,8 @@ export interface AssignmentDraft {
    * opens blank too.
    */
   generated?: true;
+  /** The due date picked beside the title (ticket 289); absent, the picker starts at the kind's default (`DUE_DEFAULT`). */
+  due?: IsoDay;
 }
 
 export interface ClassroomState {
@@ -193,7 +201,7 @@ export type ClassroomAction =
    * `at` is the moment of creation (the store stamps it); `startedAt`, when the set went live, is `at` unless given (a skip sets it in the past).
    * A set sent starts a new lesson (ticket 263): whatever an earlier lesson left (its gate, whiteboard, chains, class review, end) goes.
    */
-  | { type: "assignment/create"; id?: string; groups?: SeatingGroups; title: string; problemIds: string[]; pathway: Pathway; newSkills?: LeafId[]; goal?: string; questions?: ReviewedQuestion[]; at?: number; startedAt?: number }
+  | { type: "assignment/create"; id?: string; groups?: SeatingGroups; title: string; problemIds: string[]; pathway: Pathway; newSkills?: LeafId[]; goal?: string; questions?: ReviewedQuestion[]; due?: IsoDay; at?: number; startedAt?: number }
   /** The create screen's draft as typed; null clears it. */
   | { type: "draft/set"; draft: AssignmentDraft | null }
   /** The review step's decisions; null clears them. */
@@ -301,7 +309,7 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
     case "review/set":
       return { ...c, review: a.review };
     case "assignment/create":
-      return { ...newLesson(c), assignmentGroups: { ...(c.assignmentGroups ?? {}), [a.id ?? ASSIGNMENT.id]: a.groups ?? seatingOf(c.groups) }, assignment: { title: a.title, problemIds: [...a.problemIds], pathway: [...a.pathway], ...(a.newSkills ? { newSkills: [...a.newSkills] } : {}), createdAt: a.at ?? 0, startedAt: a.startedAt ?? a.at ?? 0, ...(a.goal !== undefined ? { goal: a.goal } : {}), ...(a.questions ? { questions: a.questions.map((q) => ({ ...q })) } : {}) } };
+      return { ...newLesson(c), assignmentGroups: { ...(c.assignmentGroups ?? {}), [a.id ?? ASSIGNMENT.id]: a.groups ?? seatingOf(c.groups) }, assignment: { title: a.title, problemIds: [...a.problemIds], pathway: [...a.pathway], ...(a.newSkills ? { newSkills: [...a.newSkills] } : {}), createdAt: a.at ?? 0, startedAt: a.startedAt ?? a.at ?? 0, ...(a.goal !== undefined ? { goal: a.goal } : {}), ...(a.questions ? { questions: a.questions.map((q) => ({ ...q })) } : {}), ...(a.due !== undefined ? { due: a.due } : {}) } };
     case "advance/start": {
       const at = a.at ?? 0;
       return { ...c, advance: { id: `${a.kind}@${at}`, kind: a.kind, deadline: at + GRACE_MS } };

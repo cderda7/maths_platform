@@ -24,6 +24,8 @@ import { openPdf, pageThumb, renderPage, type OpenPdf } from "@/lib/pdfPages";
 import { getSource, putSource, thumbOf } from "@/lib/sources";
 import { applyFix, applyRead, confirmAll, discardUnconfirmed, draftItem, dropNote, insertBefore, isPdfFile, isQuestion, messageItem, partitionDrop, pendingItem, removeItem, replaceItem, unconfirmedCount, updateQuestion, without, type FigureRef, type Item, type MessageItem, type PendingItem, type QuestionItem, type ReadFailure } from "@/lib/upload";
 import { CREATE_BAR, CREATE_BAR_CLEARANCE } from "./createBar";
+import DuePicker from "@/components/DuePicker";
+import { DEMO_TODAY, DUE_DEFAULT, dueOrDefault, type IsoDay } from "@/lib/dueDate";
 
 /** The gap between one generated tile fading in and the next (ticket 188). */
 const TILE_IN_STEP_MS = 35;
@@ -133,9 +135,9 @@ const noSubscribe = () => () => {};
  * store seeded the set here, ticket 121). The editor only mounts over a generated draft, so the seed
  * fallback is for a draft cleared from another tab mid-render.
  */
-function storedOrSeed(): { title: string; goal: string; questions: QuestionItem[] } {
+function storedOrSeed(): { title: string; goal: string; due: IsoDay; questions: QuestionItem[] } {
   const d = getClassroom().draft ?? generatedDraft(0);
-  return { title: d.title, goal: d.goal ?? "", questions: d.questions.map(itemOf) };
+  return { title: d.title, goal: d.goal ?? "", due: dueOrDefault(d.due, DEMO_TODAY, DUE_DEFAULT.pset), questions: d.questions.map(itemOf) };
 }
 
 /** A stored question back as a tile; an uploaded one keeps its provenance and its unconfirmed state across a reload. */
@@ -198,6 +200,8 @@ function Editor({ fresh }: { fresh: boolean }) {
   const router = useRouter();
   const [title, setTitle] = useState(() => storedOrSeed().title);
   const [goal, setGoal] = useState(() => storedOrSeed().goal);
+  /** The set's due date (ticket 289): the draft's, else the next lesson day; stored with the draft on every change. */
+  const [due, setDue] = useState(() => storedOrSeed().due);
   const [qs, setQs] = useState<Item[]>(() => withGhost(storedOrSeed().questions));
   // Opened by Generate, nothing takes the focus: focusing the ghost would scroll the grid under the pointer that just pressed.
   const [focusId, setFocusId] = useState<string | null>(() => (fresh ? null : qs[qs.length - 1].id));
@@ -211,8 +215,8 @@ function Editor({ fresh }: { fresh: boolean }) {
   const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    dispatchClassroom({ type: "draft/set", draft: { ...draftOf(title, goal, qs, Date.now()), generated: true } });
-  }, [title, goal, qs]);
+    dispatchClassroom({ type: "draft/set", draft: { ...draftOf(title, goal, qs, Date.now()), generated: true, due } });
+  }, [title, goal, qs, due]);
 
   /** A change by the teacher's hand: clears the undo line and the drop note. */
   const edit = (f: (qs: Item[]) => Item[]) => {
@@ -458,7 +462,7 @@ function Editor({ fresh }: { fresh: boolean }) {
   const proceed = () => {
     if (!any) return;
     const kept = confirmAll(qs);
-    dispatchClassroom({ type: "draft/set", draft: { ...draftOf(title, goal, kept, Date.now()), generated: true } });
+    dispatchClassroom({ type: "draft/set", draft: { ...draftOf(title, goal, kept, Date.now()), generated: true, due } });
     router.push(REVIEW_ASSIGNMENT_HREF);
   };
 
@@ -466,17 +470,28 @@ function Editor({ fresh }: { fresh: boolean }) {
     <div className={CREATE_BAR_CLEARANCE}>
       <BackToClassroom />
       <Eyebrow className="mt-3">{ASSIGNMENT.className}</Eyebrow>
-      <input
-        value={title}
-        onChange={(e) => {
-          setRemoved(null);
-          setTitle(e.target.value);
-        }}
-        placeholder="Untitled assignment"
-        aria-label="Title"
-        className="mt-3 w-full bg-transparent font-display text-[40px] leading-[1.05] text-ink outline-none placeholder:text-ink-muted/50 md:text-[48px]"
-        data-title
-      />
+      {/* The title and, beside it, the due date (ticket 289): the calendar opens over the goal below, moving nothing. */}
+      <div className="mt-3 flex items-center gap-6" data-title-row>
+        <input
+          value={title}
+          onChange={(e) => {
+            setRemoved(null);
+            setTitle(e.target.value);
+          }}
+          placeholder="Untitled assignment"
+          aria-label="Title"
+          className="min-w-0 flex-1 bg-transparent font-display text-[40px] leading-[1.05] text-ink outline-none placeholder:text-ink-muted/50 md:text-[48px]"
+          data-title
+        />
+        <DuePicker
+          value={due}
+          min={DEMO_TODAY}
+          onChange={(d) => {
+            setRemoved(null);
+            setDue(d);
+          }}
+        />
+      </div>
 
       <div className="mt-6 max-w-3xl" data-goal>
         <label htmlFor="goal" className="block text-[11px] font-semibold tracking-[0.12em] uppercase text-ink-muted">
