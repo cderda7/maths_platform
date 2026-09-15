@@ -132,7 +132,7 @@ function HomeworkColumn({ cards, classroom, session, onOpen }: { cards: StudentS
           // No note when every leftover was dropped as a duplicate (ticket 294): the triangle and the name alone.
           const note = missedNote(p, classroom, session);
           return (
-            <div key={p.id} className={`${shape} border-line bg-paper/70`} style={{ gridRow }} data-hw-cell={p.id} data-hw-status={p.status} data-hw-rows={rows}>
+            <div key={p.id} className={`${shape} border-wrong-deep bg-paper/70`} style={{ gridRow }} data-hw-cell={p.id} data-hw-status={p.status} data-hw-rows={rows}>
               <span className="flex items-center gap-2.5">
                 <CautionTriangle />
                 <span className="text-[15px] font-medium text-ink">HW{p.n}</span>
