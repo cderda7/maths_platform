@@ -5221,3 +5221,22 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Sam no longer reads on the Classroom that his missed problems went into the next homework; he finds them in that homework's list under their sets.
 
 **Defense.** The cell states facts the student can check (when it was due, when he handed it in) in the words the user gave, and the carry-over is visible where it matters, in the homework itself.
+
+## 2026-09-15 · Help is example first: Q, then Q* worked, then Q** finished, then back to Q (tickets 310–320)
+
+**Decision.** A student who asks for help on a set question (or takes the practice offer after a repeated slip) goes through three steps before returning to the question. Q* is a whole question like Q, fully worked. Q** is a second one, where the student writes the lines for the skill they named, each line checked. Then back on Q. The warm-up runs the same three steps on each skill: worked example, completion problem, a problem alone. Who gets a warm-up stays the student's own answer: a confident student is never offered one. A wrong line is marked, and chat opens only when the student presses it. Video comes off the help menu. Practice taken during the set leaves a marker on the teacher's report and never changes the score. The teacher's laptop gains a live "Where students are" column beside the mistakes, one row per place, reused in the review modes.
+
+**Context.** An outside review, discussed with the user: worked examples existed behind a flat help menu, so no student was guaranteed to see a method modelled, and no example-problem pair was ever formed. The strongest-evidenced structure is faded guidance (example, completion, independent problem), and the unit of instruction is an example followed by a minimally different problem. The user also said the teacher cannot see where students are during the set ("critical infrastructure & insight that's currently missing").
+
+**Alternatives considered.**
+- *A mandatory worked example for everyone before the set*: worked examples cost students who already have the method (expertise reversal) and teach them to click through.
+- *The skill map chooses the starting step (secure skips, solid starts at completion)*: evidence-driven, but it overrides what the student said. The user: asking a student if they are confident and then telling them to warm up means they "will not feel heard". Past sets inform the teacher instead; only today's work prompts the student.
+- *Q* and Q** as isolated skill problems*: reusable per skill (15 items rather than 20 per set), but the jump back into the full question is left to the student, the transfer the pair exists to support. The user chose whole questions.
+- *A required "explain it in your own words" chat after the example*: prompted self-explanation, but slow to type on an iPad and easy to answer with "idk". The completion step does the same job with a line that can be checked.
+- *Tutor speaks up on a wrong line*: faster help, but the user chose the line marked and chat on the student's press.
+- *Help unlocks only after the student has written a line*: guards against using the example as a shortcut, but the user rejected it: a student may want support before writing.
+- *One row per student on the teacher's column, sorted by progress*: rows reshuffle while the teacher reads; one row per place keeps rows still and shows a crowd on one question.
+
+**Tradeoffs.** Two whole questions to author per set question (20 for Problem Set 6; sets made through Create will need them generated). A student who asks for help spends three steps before returning, where today they could get one hint and go. Right first time on a question after practice means right after seeing a near-identical one worked, so the report marks it. The classmates' demo story grows (warm-ups, hints, help at their real slips).
+
+**Defense.** Every help route now models before asking and closes the pair on the question itself. The student's voice decides whether they warm up and whether they ask. The teacher sees both where students are and what is going wrong without leaving the page. And the score stays the honest first-submission measure it was.

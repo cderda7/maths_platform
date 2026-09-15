@@ -1543,6 +1543,20 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **A column beside Live.** The column exists beside Past only; a Live set's upcoming homework shows nothing beside it. If teachers want to see what a live set feeds into, a muted cell beside Live could show it. Deferred: the agreed rule is Past only, matching Sam's side.
 - **Narrow laptops.** The column costs every card 230 layout px; below 1280 px a title or top-gap chip could truncate. Deferred: the laptop sizes checked are 1280×800 and 1440×900.
 
+## Worked example-problem pairs and Where students are (tickets 310–320, 2026-09-15)
+
+- **An experiment: the three-step help against today's on-demand help.** Same set, same class, two conditions. The outcome is not the set score but right first time on the next set, and retention on a spaced item about three weeks later. Needs real classes and a record of which condition and which steps each student took. Deferred: the demo has one simulated class.
+- **The skill map choosing where a student starts.** Solid skills could start at the completion problem and secure ones skip to the problem alone (the expertise-reversal argument). Rejected for now by the user: the student's own answer decides; revisit if students who ticked a secure skill find the worked example slow.
+- **An optional quick check for confident students on a shaky skill.** One problem before the set on a skill the past sets show as a gap, framed as the student's choice. Not built: the user chose that confident students are never offered a warm-up.
+- **A required self-explanation step.** After the worked example, the student says in their own words what a step did. Left out because the completion step does the job with a checkable line and typing on an iPad is slow; worth trying if completion lines turn out to be copied from the example.
+- **Video for the "why".** Video came off the help menu: it assumes headphones, which students rarely have in class, and a static worked example beats it for how to do a step. A clip explaining why a method works is a different job and could return with captions.
+- **The tutor speaking up on a wrong completion line.** The user chose a marked line and chat on the student's press; a nudge after a second wrong line is the obvious next step if students sit on marked lines.
+- **Q* and Q** for sets made through Create.** Problem Set 6's are hand-written. A created set needs them generated with its problems, and maybe shown to the teacher on Refine.
+- **A student-side "after practice" marker.** The marker is on the teacher's report only; Sam's own report could show it too.
+- **Minutes on a step changing colour.** Where students are shows how many minutes each student has been on a step as a plain number. Colouring it past a limit (5 minutes was proposed) as the one "go and look" signal is Carson's open call.
+- **Skill history in the student panel.** Pressing a name shows the confidence answer and marked work only; the Class view's category status pills and history pills were left out by the user for now.
+- **A chain of more than one completion step.** Fading one more line at a time (two completion problems before the problem alone) is the fuller faded-guidance sequence; one keeps practice short (see the five-item runs entry).
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
