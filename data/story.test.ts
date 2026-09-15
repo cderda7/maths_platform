@@ -8,6 +8,7 @@ import { GROUP_SCRIPTS } from "./group-scripts";
 import { DEFAULT_GROUPS, FROZEN_GROUPS } from "./groups";
 import { STORY, STORY_CATEGORIES, STORY_CLASS_REVIEW, STORY_RANK, STORY_REVIEW, STORY_SETS, storyAbsent, storyResults, type StoryCategory } from "./story";
 import { DEMO_ABSENCES } from "./absences";
+import { PATTERN_TAGS } from "./patternTags";
 import { CATEGORY_ORDER, isLeafId } from "./taxonomy";
 import { assignmentBundle } from "@/lib/assignments";
 import { classReviewMismatches, hardestUnsolved, missedProblems, recordStatus, renderClassStory, reviewMismatches } from "@/lib/classStory";
@@ -124,6 +125,17 @@ describe("the class story sheet (ticket 210)", () => {
         });
       }
     }
+  });
+
+  it("describes behaviour, never a trait (ticket 298): no summary, pattern, tag or review reason judges the student", () => {
+    const TRAIT = /careless|confiden|\blazy|sloppy|silly|\brush|guess|\bhope|too fast|\bslow|\bunsure|struggl|\bweak|astray|\bjump|out of reach|attention|in (his|her|their) head/i;
+    const texts = students.flatMap((id) => [
+      [`${id} summary`, STORY[id].arc],
+      ...STORY_CATEGORIES.flatMap((c) => STORY[id].cells[c].flatMap((cell) => cell.patterns.map((p) => [`${id} ${c} pattern`, p.text]))),
+      ...Object.entries(PATTERN_TAGS[id] ?? {}).flatMap(([c, tags]) => (tags ?? []).map((t) => [`${id} ${c} tag`, t.label])),
+      ...STORY_REVIEW.flatMap((set) => (set[id] ?? []).map((r) => [`${id} review Q${r.q}`, r.why])),
+    ]);
+    for (const [where, text] of texts) expect(text, where).not.toMatch(TRAIT);
   });
 
   it("never jumps: each student's neighbouring results in a category differ by at most one step", () => {

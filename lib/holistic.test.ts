@@ -138,7 +138,7 @@ describe("the holistic view (ticket 251)", () => {
 
   it("a pattern worded the same on two sets is one pattern with a ref for each", () => {
     const jordan = holisticView("jordan", over)!.patterns.find((g) => g.category === "algebra")!;
-    const guessed = jordan.patterns.find((h) => h.text === "non-monic pairs guessed, never expanded back")!;
+    const guessed = jordan.patterns.find((h) => h.text === "non-monic pairs not expanded back to check")!;
     expect(guessed.refs.map((r) => [r.label, r.status, r.problems.map((p) => p.label)])).toEqual([
       ["PS4", "gap", ["Q1", "Q2", "Q4"]],
       ["PS5", "gap", ["Q4", "Q8"]],

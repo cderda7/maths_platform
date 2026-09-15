@@ -146,7 +146,7 @@ const Q10_SIGN_LOST = [solution(10)[0], solution(10)[1], "2w^2 + 3w = 35", "2w^2
 const q = (n: number) => `ps4-q${n}`;
 
 /**
- * Sam's Problem Set 4: confident, quick and mostly right, four careless slips: the right split with its signs
+ * Sam's Problem Set 4: mostly right, four sign slips, one pattern: the right split with its signs
  * in the wrong brackets twice, half of b with the wrong sign, a turning point's sign. On Problem Set 5 he
  * swaps the brackets' signs again.
  */
@@ -186,7 +186,7 @@ const CLASSMATES: Classmate[] = [
     confidence: "confident",
     done: 8,
     wrong: [q(1), q(2), q(4)],
-    notes: [{ text: "non-monic pairs guessed, never expanded back", problems: [q(1), q(2), q(4)] }],
+    notes: [{ text: "non-monic pairs not expanded back to check", problems: [q(1), q(2), q(4)] }],
     attempts: { [q(1)]: Q1_GUESSED, [q(2)]: Q2_GUESSED, [q(4)]: Q4_GUESSED },
     clarification: "I looked for two numbers that multiply to the last number and wrote the brackets. I didn't multiply them out again, so I never saw the middle was wrong. I didn't get to Q9 or Q10.",
     groupStatus: "Group review done · the split on Q2",
@@ -250,7 +250,7 @@ const CLASSMATES: Classmate[] = [
     done: 5,
     wrong: [q(1), q(2), q(3), q(4), q(5)],
     notes: [
-      { text: "non-monic pairs guessed, never expanded back", problems: [q(1), q(2)] },
+      { text: "non-monic pairs not expanded back to check", problems: [q(1), q(2)] },
       { text: "2x = −1 and 2x = 1 solved with the fraction turned over", problems: [q(3), q(4)] },
       { text: "one root found by trying, the equation never made zero", problems: [q(5)] },
     ],
@@ -278,7 +278,7 @@ const CLASSMATES: Classmate[] = [
     done: 10,
     wrong: [q(1), q(4), q(6)],
     notes: [
-      { text: "non-monic pairs guessed, never expanded back", problems: [q(1), q(4)] },
+      { text: "non-monic pairs not expanded back to check", problems: [q(1), q(4)] },
       { text: "solved 2x − 1 = 0 as x = −1/2", problems: [q(4)] },
       { text: "half of b squared without its sign", problems: [q(6)] },
     ],
@@ -306,7 +306,7 @@ const CLASSMATES: Classmate[] = [
     done: 10,
     wrong: [q(2), q(5), q(7)],
     notes: [
-      { text: "a non-monic pair guessed, never expanded back", problems: [q(2)] },
+      { text: "a non-monic pair not expanded back to check", problems: [q(2)] },
       { text: "a root's sign lost rearranging", problems: [q(5)] },
       { text: "halves lost completing the square", problems: [q(7)] },
     ],
@@ -322,12 +322,12 @@ const CLASSMATES: Classmate[] = [
     done: 10,
     wrong: [q(2), q(4), q(5), q(7), q(9)],
     notes: [
-      { text: "a non-monic pair guessed, never expanded back", problems: [q(2)] },
-      { text: "a root's sign lost in the rush", problems: [q(4)] },
+      { text: "a non-monic pair not expanded back to check", problems: [q(2)] },
+      { text: "a root's sign lost", problems: [q(4)] },
       { text: "factorised before making the equation equal zero", problems: [q(5)] },
-      { text: "half of −5 rushed as −5/4", problems: [q(7)] },
-      { text: "the minimum value given as the x, jumped straight to it", problems: [q(9)] },
-      { text: "steps jumped completing the square and in the worded problem", problems: [q(8), q(10)] },
+      { text: "half of −5 taken as −5/4", problems: [q(7)] },
+      { text: "the minimum value given as the x, the working not shown", problems: [q(9)] },
+      { text: "steps not shown completing the square and in the worded problem", problems: [q(8), q(10)] },
     ],
     attempts: { [q(1)]: Q1_JUMP, [q(2)]: Q2_GUESSED_OTHER, [q(4)]: Q4_ROOT_SIGN, [q(5)]: Q5_BEFORE_ZERO, [q(6)]: Q6_JUMP, [q(7)]: Q7_QUARTER, [q(8)]: Q8_JUMP, [q(9)]: Q9_X_AS_MIN, [q(10)]: Q10_JUMP },
     clarification: "I went fast and wrote a lot in one line. In Q5 I took the x out and tried numbers until 5 worked. In Q9 I wrote the 2 from the turning point as the minimum. Q7 I halved twice.",
@@ -372,7 +372,7 @@ const CLASSMATES: Classmate[] = [
     confidence: "confident",
     done: 6,
     wrong: [],
-    notes: [{ text: "solved in one jump", problems: [q(1), q(2), q(3), q(4)] }],
+    notes: [{ text: "solved in one line", problems: [q(1), q(2), q(3), q(4)] }],
     attempts: { [q(1)]: Q1_JUMP, [q(2)]: Q2_JUMP, [q(3)]: Q3_JUMP, [q(4)]: Q4_JUMP },
     clarification: "I could see the brackets so I wrote them. I started late and stopped at Q6.",
     groupStatus: "Group review done · writing out Q4's split",
@@ -402,7 +402,7 @@ const CLASSMATES: Classmate[] = [
     done: 8,
     wrong: [q(1), q(2), q(5)],
     notes: [
-      { text: "non-monic pairs guessed, never expanded back", problems: [q(1), q(2)] },
+      { text: "non-monic pairs not expanded back to check", problems: [q(1), q(2)] },
       { text: "null factor law on x(x − 3) = 10, a product that isn't 0", problems: [q(5)] },
     ],
     attempts: { [q(1)]: Q1_GUESSED, [q(2)]: Q2_GUESSED, [q(4)]: Q4_BRACKETS, [q(5)]: Q5_NFL_TEN },
@@ -449,7 +449,7 @@ const CLASSMATES: Classmate[] = [
     notes: [
       { text: "halves lost completing the square", problems: [q(7)] },
       { text: "(5/2)² taken as 5/4 completing the square", problems: [q(7)] },
-      { text: "a non-monic pair guessed", problems: [q(2)] },
+      { text: "a non-monic pair not checked", problems: [q(2)] },
     ],
     attempts: { [q(2)]: Q2_GUESSED, [q(7)]: Q7_HALVES },
     clarification: "The halves in Q7 got away from me: I squared 5/2 wrong and then halved again. Q2 I guessed the pair and moved on.",

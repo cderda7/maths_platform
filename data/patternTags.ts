@@ -26,7 +26,7 @@ export const PATTERN_TAGS: Readonly<Record<string, Partial<Record<StoryCategory,
       tag(
         "factor pairs not checked by expanding back",
         "a factor pair that multiplies to the constant, not checked by expanding",
-        "non-monic pairs guessed, never expanded back",
+        "non-monic pairs not expanded back to check",
         "non-monic factors not checked by expanding",
         "a pair that multiplies to 8 but adds to 9",
       ),
@@ -64,7 +64,7 @@ export const PATTERN_TAGS: Readonly<Record<string, Partial<Record<StoryCategory,
     new: [tag("added to complete the square, never taken away", "added the square to complete it, never took it away", "added 16 to complete the square, never took it away")],
   },
   liam: {
-    algebra: [tag("factor pairs guessed, never expanded back", "non-monic pairs guessed, never expanded back", "guessed a factor pair without expanding back")],
+    algebra: [tag("factor pairs never expanded back", "non-monic pairs not expanded back to check", "a factor pair not expanded back to check")],
     new: [tag("a bracket squared term by term", "(√7 + 2)² squared term by term", "(2x − 3)² squared term by term")],
   },
   aiden: {
@@ -81,31 +81,31 @@ export const PATTERN_TAGS: Readonly<Record<string, Partial<Record<StoryCategory,
     ],
   },
   mia: {
-    algebra: [tag("factor pairs guessed, never expanded back", "tried brackets until one looked close", "non-monic pairs guessed, never expanded back", "guessed a factor pair, never expanded back")],
+    algebra: [tag("factor pairs never expanded back", "brackets tried in turn, none expanded back", "non-monic pairs not expanded back to check", "a factor pair never expanded back")],
   },
   noah: {
     new: [tag("a bracket squared term by term", "(√7 + 2)² squared term by term", "(2x − 3)² squared term by term", "(x − 3)² squared term by term")],
   },
   chloe: {
     algebra: [
-      tag("factor pairs guessed without checking", "a factor pair guessed without checking", "a non-monic pair guessed, never expanded back", "non-monic pair guessed, never expanded back"),
+      tag("factor pairs not checked", "a factor pair written without checking", "a non-monic pair not expanded back to check", "non-monic pair not expanded back to check"),
       tag("halves lost", "halves lost completing the square", "sum of the intercepts never halved"),
     ],
     functions: [tag("a negative's sign lost", "a root's sign lost rearranging", "(−3)² taken as −9")],
   },
   ethan: {
-    algebra: [tag("factor pairs written without checking", "a factor pair written without checking the middle", "a non-monic pair guessed, never expanded back", "non-monic pair guessed, never expanded back")],
-    functions: [tag("a sign lost in the rush", "a root's sign lost in the rush", "(−3)² taken as −9, the axis not shown")],
-    graphing: [tag("the axis given where the height is asked", "the minimum value given as the x, jumped straight to it", "axis given as the height, jumped straight to it", "axis given as the height, a step skipped")],
+    algebra: [tag("factor pairs written without checking", "a factor pair written without checking the middle", "a non-monic pair not expanded back to check", "non-monic pair not expanded back to check")],
+    functions: [tag("a negative's sign lost", "a root's sign lost", "(−3)² taken as −9, the axis not shown")],
+    graphing: [tag("the axis given where the height is asked", "the minimum value given as the x, the working not shown", "axis given as the height, the working not shown", "axis given as the height, a step skipped")],
     communication: [
       tag(
-        "steps jumped, the working in one line",
-        "steps jumped on the exact answer",
+        "steps not shown, the working in one line",
+        "steps not shown on the exact answer",
         "the rationalising done in one line",
         "the square completed in one line",
-        "steps jumped completing the square and in the worded problem",
+        "steps not shown completing the square and in the worded problem",
         "the landing written straight down, the working not shown",
-        "the height given in one jump",
+        "the height given in one line",
       ),
     ],
   },
@@ -141,7 +141,7 @@ export const PATTERN_TAGS: Readonly<Record<string, Partial<Record<StoryCategory,
     graphing: [tag("the turning point read with the sign flipped", "the turning point read with the sign flipped", "turning point read with the sign flipped")],
     reasoning: [
       tag(
-        "unsure what the result means in context",
+        "the result not tied back to the context",
         "the diagonal stated without saying which length it is",
         "width and length swapped in the sentence",
         "the landing given as the nozzle's zero",
@@ -152,23 +152,23 @@ export const PATTERN_TAGS: Readonly<Record<string, Partial<Record<StoryCategory,
   grace: {
     communication: [
       tag(
-        "right, but jumps steps a reader can't follow",
-        "simplified in one jump, the square factor not shown",
+        "right, with steps left out a reader needs",
+        "simplified in one line, the square factor not shown",
         "rationalised in one line",
         "factorised in one line, the pair not shown",
-        "solved in one jump",
-        "right every time, but jumps steps a reader can't follow",
+        "solved in one line",
+        "right every time, with steps left out a reader needs",
       ),
     ],
   },
   harper: {
     algebra: [tag("a sign lost expanding or rearranging", "the minus not multiplied through the bracket", "a sign lost in the expansion", "the common factor's sign lost", "a sign lost rearranging x² − 3x = 10")],
-    graphing: [tag("the height read from the wrong line", "the minimum value read off the wrong line", "axis given as the height, jumped straight to it", "turning point's height from the wrong line")],
-    communication: [tag("steps written in one line", "the perfect square written in one line", "the square completed in one line", "the landing written straight down", "the height given in one jump")],
-    new: [tag("a perfect square's middle term slipped", "(√7 + 2)² with the middle term's 2 lost", "(2x − 3)²'s middle term sign lost")],
+    graphing: [tag("the height read from the wrong line", "the minimum value read off the wrong line", "axis given as the height, the working not shown", "turning point's height from the wrong line")],
+    communication: [tag("steps written in one line", "the perfect square written in one line", "the square completed in one line", "the landing written straight down", "the height given in one line")],
+    new: [tag("a perfect square's middle term lost", "(√7 + 2)² with the middle term's 2 lost", "(2x − 3)²'s middle term sign lost")],
   },
   oliver: {
-    algebra: [tag("factor pairs guessed, never expanded back", "factor pairs guessed without expanding back", "non-monic pairs guessed, never expanded back", "guesses factor pairs without expanding back")],
+    algebra: [tag("factor pairs never expanded back", "factor pairs written without expanding back", "non-monic pairs not expanded back to check", "factor pairs not expanded back")],
     new: [
       tag("a bracket squared term by term", "(2x − 3)² squared term by term", "(x − 3)² squared term by term"),
       tag("null factor law on a product that isn't 0", "null factor law on x(x − 3) = 10, a product that isn't 0", "null factor law on a product that isn't 0"),
@@ -194,10 +194,10 @@ export const PATTERN_TAGS: Readonly<Record<string, Partial<Record<StoryCategory,
   },
   sofia: {
     algebra: [
-      tag("a non-monic pair guessed", "a non-monic pair guessed", "non-monic pairs guessed, never expanded back"),
-      tag("fractions and halves astray", "the fraction left upside down dividing surds", "rationalised the top instead of the bottom", "halves lost completing the square", "denominator a, not 2a"),
+      tag("a non-monic pair not checked", "a non-monic pair not checked", "non-monic pairs not expanded back to check"),
+      tag("fractions and halves lost or turned over", "the fraction left upside down dividing surds", "rationalised the top instead of the bottom", "halves lost completing the square", "denominator a, not 2a"),
     ],
-    new: [tag("fractions astray", "the conjugate's fraction left unsimplified", "(5/2)² taken as 5/4 completing the square")],
+    new: [tag("fractions not carried through", "the conjugate's fraction left unsimplified", "(5/2)² taken as 5/4 completing the square")],
   },
 };
 

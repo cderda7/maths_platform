@@ -47,7 +47,7 @@ describe("Holistic Assessment's tiles (ticket 252)", () => {
     // Guessed factor pairs on PS3–PS6, worded two ways, first; his PS1 slip (√50 written as 25√2) never came back, so it is gone (ticket 276).
     expect(tags("liam")).toEqual({
       algebra: [
-        ["factor pairs guessed, never expanded back", "PS3 PS4 PS5 PS6"],
+        ["factor pairs never expanded back", "PS3 PS4 PS5 PS6"],
         ["only two of the four terms expanded", "PS2"],
       ],
       new: [
@@ -61,7 +61,7 @@ describe("Holistic Assessment's tiles (ticket 252)", () => {
     // Before Problem Set 6 the window is PS1–PS5, so PS1's slip is still recent.
     expect(tags("liam", fresh)).toEqual({
       algebra: [
-        ["factor pairs guessed, never expanded back", "PS3 PS4 PS5"],
+        ["factor pairs never expanded back", "PS3 PS4 PS5"],
         ["only two of the four terms expanded", "PS2"],
       ],
       new: [

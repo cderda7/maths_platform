@@ -99,7 +99,7 @@ const Q7_JUMP = ["\\dfrac{4}{\\sqrt{5} - 1} = \\sqrt{5} + 1"];
 const q = (n: number) => `ps2-q${n}`;
 
 /**
- * Sam's Problem Set 2: confident, quick and mostly right; two careless signs. √5 × (−√5) came out
+ * Sam's Problem Set 2: mostly right; two sign slips, one pattern. √5 × (−√5) came out
  * positive in Q2, and in Q7 he copied the denominator's minus into the conjugate, then took (√5 − 1)² as
  * 5 − 1 because that was the answer he expected.
  */
@@ -138,7 +138,7 @@ const CLASSMATES: Classmate[] = [
     confidence: "confident",
     done: 10,
     wrong: [q(2)],
-    notes: [{ text: "first and last terms multiplied, the middle terms guessed", problems: [q(2)] }],
+    notes: [{ text: "first and last terms multiplied, the middle terms not worked out", problems: [q(2)] }],
     attempts: { [q(2)]: Q2_MIDDLE_GUESSED },
     clarification: "I did 2 × 3 and root 5 × minus root 5 and then just put minus root 5 in the middle because there was a minus. I didn't write the other two out.",
     groupStatus: "Group review done · four products on Q2",
@@ -334,7 +334,7 @@ const CLASSMATES: Classmate[] = [
     done: 10,
     wrong: [q(2), q(4)],
     notes: [
-      { text: "brackets expanded by guessing the middle term", problems: [q(2)] },
+      { text: "the middle term written without multiplying it out", problems: [q(2)] },
       { text: "(3 − √2)(3 + √2) taken as 9 + 2", problems: [q(4)] },
     ],
     attempts: { [q(2)]: Q2_MIDDLE_GUESSED, [q(4)]: Q4_ADDED },

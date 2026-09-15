@@ -89,7 +89,7 @@ const Q6_JUMP = ["x^2 - 8x + 10 = (x - 4)^2 - 6", "\\text{turning point } (4, -6
 const q = (n: number) => `ps5-q${n}`;
 
 /**
- * Sam's Problem Set 5: confident going in, quick and mostly right, three careless slips (a right
+ * Sam's Problem Set 5: mostly right, three sign slips, one pattern (a right
  * split put into the wrong brackets, a turning point's sign, a negative a read as opening upwards).
  * On Problem Set 6 he names factorising as the skill he is unsure of.
  */
@@ -129,7 +129,7 @@ const CLASSMATES: Classmate[] = [
     confidence: "confident",
     done: 8,
     wrong: [q(4), q(8)],
-    notes: [{ text: "non-monic pairs guessed, never expanded back", problems: [q(4), q(8)] }],
+    notes: [{ text: "non-monic pairs not expanded back to check", problems: [q(4), q(8)] }],
     attempts: { [q(4)]: Q4_GUESSED, [q(8)]: Q8_GUESSED },
     clarification: "I found numbers that multiplied to the end number and wrote the brackets. I didn't multiply them back out so I didn't see the middle was wrong. I ran out of time for Q9 and Q10.",
     groupStatus: "Group review done · expanded Q4 back",
@@ -194,7 +194,7 @@ const CLASSMATES: Classmate[] = [
     wrong: [q(1), q(4)],
     notes: [
       { text: "intercepts read off the factors with the signs flipped", problems: [q(1)] },
-      { text: "a non-monic pair guessed, never expanded back", problems: [q(4)] },
+      { text: "a non-monic pair not expanded back to check", problems: [q(4)] },
     ],
     attempts: { [q(1)]: Q1_SIGNS, [q(4)]: Q4_GUESSED },
     clarification: "I took the numbers straight out of the brackets in Q1. In Q4 I guessed the brackets again. I got through five this time.",
@@ -220,7 +220,7 @@ const CLASSMATES: Classmate[] = [
     done: 10,
     wrong: [q(4), q(8), q(9)],
     notes: [
-      { text: "non-monic pairs guessed, never expanded back", problems: [q(4), q(8)] },
+      { text: "non-monic pairs not expanded back to check", problems: [q(4), q(8)] },
       { text: "took −1 out and left the signs inside behind", problems: [q(9)] },
     ],
     attempts: { [q(4)]: Q4_GUESSED, [q(8)]: Q8_GUESSED_OTHER, [q(9)]: Q9_SIGN_LEFT },
@@ -247,7 +247,7 @@ const CLASSMATES: Classmate[] = [
     done: 10,
     wrong: [q(4), q(5), q(8)],
     notes: [
-      { text: "non-monic pair guessed, never expanded back", problems: [q(4)] },
+      { text: "non-monic pair not expanded back to check", problems: [q(4)] },
       { text: "(−3)² taken as −9", problems: [q(5)] },
       { text: "sum of the intercepts never halved", problems: [q(8)] },
     ],
@@ -264,8 +264,8 @@ const CLASSMATES: Classmate[] = [
     wrong: [q(5), q(8), q(10)],
     notes: [
       { text: "(−3)² taken as −9, the axis not shown", problems: [q(5)] },
-      { text: "non-monic pair guessed, never expanded back", problems: [q(8)] },
-      { text: "axis given as the height, jumped straight to it", problems: [q(10)] },
+      { text: "non-monic pair not expanded back to check", problems: [q(8)] },
+      { text: "axis given as the height, the working not shown", problems: [q(10)] },
     ],
     attempts: { [q(5)]: Q5_SQUARE_RUSHED, [q(8)]: Q8_GUESSED, [q(10)]: Q10_AXIS_HEIGHT_RUSHED },
     clarification: "I rushed the end. In Q10 I saw the turning point and wrote it down as the answer. On Q5 I squared −3 and got −9, and in Q8 I wrote brackets that looked right.",
@@ -310,7 +310,7 @@ const CLASSMATES: Classmate[] = [
     confidence: "confident",
     done: 7,
     wrong: [],
-    notes: [{ text: "right every time, but jumps steps a reader can't follow", problems: [q(1), q(2), q(4), q(6)] }],
+    notes: [{ text: "right every time, with steps left out a reader needs", problems: [q(1), q(2), q(4), q(6)] }],
     attempts: { [q(1)]: Q1_JUMP, [q(2)]: Q2_JUMP, [q(4)]: Q4_JUMP, [q(6)]: Q6_JUMP },
     clarification: "I did most of it in my head. I didn't finish Q8 to Q10 because I started late.",
     groupStatus: "Group review done · writing out Q4's split",
@@ -325,7 +325,7 @@ const CLASSMATES: Classmate[] = [
     notes: [
       { text: "the 2 multiplied x² and nothing else", problems: [q(7)] },
       { text: "negative a read as concave up", problems: [q(9)] },
-      { text: "axis given as the height, jumped straight to it", problems: [q(10)] },
+      { text: "axis given as the height, the working not shown", problems: [q(10)] },
     ],
     attempts: { [q(7)]: Q7_FIRST_TERM, [q(9)]: Q9_UPWARDS, [q(10)]: Q10_AXIS_HEIGHT_RUSHED },
     clarification: "Every one of mine was done too fast. In Q7 I only multiplied the first term, in Q9 I wrote concave up without looking at the minus, and in Q10 I jumped to the turning point and called it the height.",
@@ -339,7 +339,7 @@ const CLASSMATES: Classmate[] = [
     done: 9,
     wrong: [q(4), q(7), q(8)],
     notes: [
-      { text: "non-monic pairs guessed, never expanded back", problems: [q(4), q(8)] },
+      { text: "non-monic pairs not expanded back to check", problems: [q(4), q(8)] },
       { text: "(x − 3)² squared term by term", problems: [q(7)] },
     ],
     attempts: { [q(4)]: Q4_GUESSED, [q(7)]: Q7_SQUARED_APART, [q(8)]: Q8_GUESSED },
@@ -385,7 +385,7 @@ const CLASSMATES: Classmate[] = [
     confidence: "low: fractions",
     done: 10,
     wrong: [q(4), q(8)],
-    notes: [{ text: "non-monic pairs guessed, never expanded back", problems: [q(4), q(8)] }],
+    notes: [{ text: "non-monic pairs not expanded back to check", problems: [q(4), q(8)] }],
     attempts: { [q(4)]: Q4_GUESSED, [q(8)]: Q8_GUESSED },
     clarification: "I guessed the brackets in Q4 and Q8. The numbers in front of x squared made the halves messy, so I tried pairs until one looked right.",
     groupStatus: "Group review done · the split on Q4 and Q8",

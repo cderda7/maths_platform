@@ -211,7 +211,7 @@ const CLASSMATES: Classmate[] = [
     wrong: [q(2), q(5)],
     notes: [
       { text: "(2x − 3)² squared term by term", problems: [q(2)] },
-      { text: "a factor pair guessed without expanding back", problems: [q(5)] },
+      { text: "a factor pair written without expanding back", problems: [q(5)] },
     ],
     attempts: { [q(2)]: Q2_TERM_BY_TERM, [q(5)]: Q5_GUESSED },
     clarification: "I squared the 2x and the 3 and forgot the middle. In Q5 I wrote down two numbers that make 15 and didn't check them. I got to Q5 and stopped.",
@@ -241,7 +241,7 @@ const CLASSMATES: Classmate[] = [
     done: 10,
     wrong: [q(4), q(9)],
     notes: [
-      { text: "tried brackets until one looked close", problems: [q(9)] },
+      { text: "brackets tried in turn, none expanded back", problems: [q(9)] },
       { text: "x² − 49 written as (x − 7)²", problems: [q(4)] },
     ],
     attempts: { [q(4)]: Q4_SQUARE, [q(9)]: Q9_CLOSE },
@@ -267,7 +267,7 @@ const CLASSMATES: Classmate[] = [
     confidence: "confident",
     done: 10,
     wrong: [q(8)],
-    notes: [{ text: "a factor pair guessed without checking", problems: [q(8)] }],
+    notes: [{ text: "a factor pair written without checking", problems: [q(8)] }],
     attempts: { [q(8)]: Q8_GUESSED },
     clarification: "2 and 12 was the first pair I thought of. I didn't add them and I skipped the checking part.",
     groupStatus: "Group review done · Q8 add as well as multiply",
@@ -280,7 +280,7 @@ const CLASSMATES: Classmate[] = [
     done: 10,
     wrong: [q(6), q(8)],
     notes: [
-      { text: "a perfect square's middle term rushed, written in one line", problems: [q(6)] },
+      { text: "a perfect square's middle term with the wrong sign, written in one line", problems: [q(6)] },
       { text: "a factor pair written without checking the middle", problems: [q(8)] },
     ],
     attempts: { [q(6)]: Q6_RUSHED, [q(8)]: Q8_GUESSED },
@@ -356,7 +356,7 @@ const CLASSMATES: Classmate[] = [
     done: 9,
     wrong: [q(2), q(5), q(6), q(8)],
     notes: [
-      { text: "factor pairs guessed without expanding back", problems: [q(5), q(8)] },
+      { text: "factor pairs written without expanding back", problems: [q(5), q(8)] },
       { text: "(2x − 3)² squared term by term", problems: [q(2)] },
       { text: "a perfect square taken for a difference of squares", problems: [q(6)] },
     ],
@@ -395,7 +395,7 @@ const CLASSMATES: Classmate[] = [
     confidence: "confident",
     done: 10,
     wrong: [q(9)],
-    notes: [{ text: "a non-monic pair guessed", problems: [q(9)] }],
+    notes: [{ text: "a non-monic pair not checked", problems: [q(9)] }],
     attempts: { [q(9)]: Q9_GUESSED },
     clarification: "I got the 2x² and the 3 right and didn't look at the middle. I didn't know how to do it with the 2 in front.",
     groupStatus: "Group review done · the split on Q9",

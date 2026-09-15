@@ -4950,3 +4950,19 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Only what is a token can be tuned: `rounded-full` chips, font choices and sizes, spacing and the SVG figures' literal colours are out of reach until they become tokens (listed in FUTURE_FEATURES). A shade follows its main by a fixed rule (hue shift and chroma ratio; `-deep`/`-dark` also take the lightness shift, `-soft`/`-line` keep theirs), which is a design opinion; editing a shade directly detaches it. The route writes a source file on a POST from the page, which is acceptable only because it answers under `next dev` alone and refuses non-JSON and cross-site requests. `StatusDot` now depends on a global class for half markers.
 
 **Defense.** One file stays the single source of truth for the design, the page and the file cannot disagree after Save, and the comparison is exact because it is the same page with one stylesheet on or off. Nothing reaches production, and at the defaults the markers render pixel-identical to before.
+
+## 2026-09-15 · Student profiles describe behaviour and cite the work, never a trait; a test bans the words (ticket 298)
+
+**Decision.** Every summary, pattern wording, review reason and tile tag in the class story sheet describes what the student's work shows, and the patterns column cites the set and problem. Trait words and states of mind are banned: careless, confident / low in confidence (the student's self-report in the chat box), slow, rushes, guesses, hopes, unsure, "out of reach". Sam's summary names the one sign pattern behind his seven patterns across five topics. `data/story.test.ts` fails on a trait word. Students' own reflections keep their words.
+
+**Context.** An outside review, endorsed by the user: Sam's seven patterns are one transferable error (a minus belongs to the term that follows it), which no human marker and no topic-binned mastery model would see, yet his profile called him "careless". That gets the fix wrong and blames the child for something the platform's own evidence shows is systematic. The user: ban trait words, describe the behaviour, cite the line; "put one of those sentences in front of a parent".
+
+**Alternatives considered.**
+- *Soften the words* ("tends to rush"): still a judgement about the child, and still unsupported by the ink.
+- *Keep the confidence self-report in the summary, labelled as self-reported* ("rates herself low"): it is data from a chat box, not from the work, and in a profile it reads as a trait. It stays where it already lives, in the report's confidence line.
+- *Detect cross-topic signatures in code and show them as a first-class pattern*: that is the real product feature; for now the summary names Sam's by hand (FUTURE_FEATURES).
+- *A review-time checklist instead of a test*: the first pass missed Lucas's "unsure"; the test caught it.
+
+**Tradeoffs.** Wordings are a little longer ("not expanded back to check" instead of "guessed"). The regex is a blunt list: a new trait word it doesn't cover still gets through, and a legitimate use of a banned word (a maths "jump" in a function) would need rewording or a narrower pattern. The per-set Mistakes tab's short labels ("guessed pair, not expanded back") and hint copy were outside this ticket and still say "guessed".
+
+**Defense.** The platform's claim is that it reads the work. A profile that describes the work and points at the line can be shown to a teacher, a student or a parent, and it points at the fix. A trait label can't be checked, and it points at the child.

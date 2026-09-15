@@ -28,7 +28,7 @@ export const PS1_EVALUATION: Record<string, Record<string, LineVerdict>> = {
   "ps1-q1": {
     "\\sqrt{48} = \\sqrt{16 \\times 3}": ok(T(SURDS), "Largest square factor"),
     "\\sqrt{16 \\times 3} = 4\\sqrt{3}": A(ok(T(SURDS), "Took its root out")),
-    "\\sqrt{48} = 4\\sqrt{3}": A(okc(T(SURDS), "Simplified in one jump, the square factor not shown")),
+    "\\sqrt{48} = 4\\sqrt{3}": A(okc(T(SURDS), "Simplified in one line, the square factor not shown")),
     "\\sqrt{48} = \\sqrt{4 \\times 12}": ok(T(SURDS), "A square factor"),
     "\\sqrt{4 \\times 12} = 2\\sqrt{12}": A(wrong(
       T(SURDS),
@@ -51,7 +51,7 @@ export const PS1_EVALUATION: Record<string, Record<string, LineVerdict>> = {
     "3\\sqrt{50} = 3\\sqrt{25 \\times 2}": ok(T(SURDS), "Largest square factor"),
     "3\\sqrt{25 \\times 2} = 3 \\times 5\\sqrt{2}": ok(T(SURDS), "Took its root out"),
     "3 \\times 5\\sqrt{2} = 15\\sqrt{2}": A(ok(T(SURDS), "Simplified")),
-    "3\\sqrt{50} = 15\\sqrt{2}": A(okc(T(SURDS), "Simplified in one jump, the square factor not shown")),
+    "3\\sqrt{50} = 15\\sqrt{2}": A(okc(T(SURDS), "Simplified in one line, the square factor not shown")),
     "3\\sqrt{50} = 3 \\times 25\\sqrt{2}": wrong(
       T(SURDS),
       "Took its root out",

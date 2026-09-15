@@ -34,7 +34,7 @@ describe("Problem Set 5's data (ticket 187)", () => {
     expect(CLASSMATES.find((c) => c.id === "chloe")!.done).toBe(0);
   });
 
-  it("Sam's answers are fixed and finished: all ten reached, three careless slips", () => {
+  it("Sam's answers are fixed and finished: all ten reached, three sign slips, one pattern", () => {
     expect(PS5_SAM.done).toBe(10);
     expect(PS5_SAM.wrong).toEqual(["ps5-q4", "ps5-q6", "ps5-q9"]);
   });
