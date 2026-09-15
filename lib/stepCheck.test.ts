@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { PROBLEMS } from "@/data/assignment";
+import { PROBLEM_MAP, PROBLEMS } from "@/data/assignment";
 import { EVALUATION } from "@/data/evaluation";
 import { isMisconceptionId } from "@/data/misconceptions";
+import { COMPLETIONS, QUESTION_PAIRS } from "@/data/pairs";
 import { PRACTICES, WARMUP_BANK } from "@/data/practice";
-import { tag, type SolutionStep } from "@/data/types";
+import { tag, type PracticeProblem, type SolutionStep } from "@/data/types";
 import type { LeafId } from "@/data/taxonomy";
 import { FINISHED_SETS } from "./finishedSets";
+import { problemLeaves } from "./hierarchy";
+import { blankSteps } from "./pairs";
+import { practiceFor } from "./warmup";
 import { nextLine, type RevealedLine } from "./recognition";
 import { CHECKED_MISCONCEPTIONS, checkStep, readsAsStep, type BlankStep } from "./stepCheck";
 import { padScript, warmupScript } from "./warmup";
@@ -101,10 +105,11 @@ describe("equivalent forms count as right", () => {
     },
   );
 
-  it("reads a double minus on a fraction as the fraction, never worked out", () => {
+  it("reads a minus on a fraction's top or bottom as a minus in front, and a fraction of two numbers by its value (ticket 325)", () => {
     expect(checkStep(step("x = -\\tfrac{1}{2}"), "x = \\frac{-1}{2}")).toEqual(right);
     expect(checkStep(step("x = -\\tfrac{1}{2}"), "x = \\frac{1}{-2}")).toEqual(right);
-    expect(checkStep(step("x = -\\tfrac{1}{2}"), "x = -0.5").result).toBe("wrong");
+    expect(checkStep(step("x = -\\tfrac{1}{2}"), "x = -0.5")).toEqual(right);
+    expect(checkStep(step("x = -\\tfrac{1}{2}"), "x = 0.5").result).toBe("wrong");
   });
 
   it("reads the set's own steps in other hands", () => {
@@ -237,6 +242,138 @@ describe("agrees with the evaluation tables", () => {
     expect(OTHER_ROUTE.every((k) => sets.some((s) => s.problems.some((p) => k.startsWith(`${p.id} `) && s.evaluation[p.id]?.[k.slice(p.id.length + 1)])))).toBe(true);
   });
 });
+
+/**
+ * Ticket 325: the same statement with its numbers written another way is right. A number is compared by value (a
+ * decimal, a fraction of two numbers however written), a bracket in a product either way round; the statement's shape
+ * is kept (same factors, same cases, same terms up to order), so a line that is equal but another step stays wrong.
+ */
+describe("equal values count as right, a different step does not (ticket 325)", () => {
+  it.each([
+    ["x = \\tfrac{1}{2}", ["x = 0.5", "x = 1/2", "x = \\frac{1}{2}", "x = \\dfrac{2}{4}", "x = 0.50", "x = \\tfrac{3}{6}", "x = \\frac{-1}{-2}", "\\tfrac{2}{4} = x"]],
+    ["x = 3", ["x = 6/2", "x = \\tfrac{6}{2}", "x = \\dfrac{9}{3}", "x = 3.0", "x = \\frac{-6}{-2}"]],
+    ["x = -\\tfrac{1}{2}", ["x = -0.5", "x = \\frac{-2}{4}", "x = -1/2", "x = \\tfrac{1}{-2}"]],
+    ["(x - 2)(x + 3) = 0", ["-(2 - x)(x + 3) = 0", "(2 - x)(-3 - x) = 0", "(x + 3)(x - 2) = 0"]],
+    ["-(x - 2)(x + 3) = 0", ["(2 - x)(x + 3) = 0", "(x + 3)(2 - x) = 0", "(x - 2)(-x - 3) = 0"]],
+    ["\\tfrac{1}{3}(x + 2)(x + 4)", ["\\tfrac{2}{6}(x + 2)(x + 4)", "\\dfrac{3}{9}(x + 2)(x + 4)", "\\dfrac{2}{6}(x + 4)(x + 2)", "\\frac{1}{3}(-x - 2)(-x - 4)"]],
+    ["x = \\tfrac{1}{4} \\;\\text{or}\\; x = -2", ["x = 0.25 or x = -2", "x = -\\tfrac{4}{2} or x = \\tfrac{2}{8}", "x = -2, 0.25"]],
+    ["y = 0.5x^2 - 3", ["y = \\tfrac{1}{2}x^2 - 3", "y = \\tfrac{2}{4}x^2 - \\tfrac{6}{2}", "y = -3 + 0.50x^2"]],
+  ] as const)("%s", (tex, lines) => {
+    for (const line of lines) expect(checkStep(step(tex), line), line).toEqual(right);
+  });
+
+  it("a number that only rounds to the value is wrong", () => {
+    for (const line of ["x = 0.33", "x = 0.333", "x = 0.3333333333333333", "x = 0.3333333333333333333333"]) expect(checkStep(step("x = \\tfrac{1}{3}"), line).result, line).toBe("wrong");
+    expect(checkStep(step("x = \\tfrac{1}{2}"), "x = 0.50000000000000000001").result).toBe("wrong");
+    expect(checkStep(step("x = \\tfrac{1}{2}"), "x = 0.49").result).toBe("wrong");
+    expect(checkStep(step("x = \\tfrac{2}{3}"), "x = 0.67").result).toBe("wrong");
+  });
+
+  it("an equal line that is another step stays wrong", () => {
+    expect(checkStep(ps6("q1", "(x-2)(x-3) = 0"), "x^2 - 5x + 6 = 0").result).toBe("wrong");
+    expect(checkStep(ps6("q1", "(x-2)(x-3) = 0"), "x = 2 \\;\\text{or}\\; x = 3").result).toBe("wrong");
+    expect(checkStep(ps6("q1", "x = 2 \\;\\text{or}\\; x = 3"), "x - 2 = 0 \\;\\text{or}\\; x - 3 = 0").result).toBe("wrong");
+    expect(checkStep(ps6("q1", "x = 2 \\;\\text{or}\\; x = 3"), "(x - 2)(x - 3) = 0").result).toBe("wrong");
+    expect(checkStep(ps6("q7", "\\tfrac{1}{3}(x + 2)(x + 4)"), "\\tfrac{1}{3}(x^2 + 6x + 8)").result).toBe("wrong");
+    expect(checkStep(ps6("q7", "\\tfrac{1}{3}(x^2 + 6x + 8)"), "\\tfrac{1}{3}x^2 + 2x + \\tfrac{8}{3}").result).toBe("wrong");
+    expect(checkStep(ps6("q4", "b^2 - 4ac = 25 + 12 = 37"), "b^2 - 4ac = 37").result).toBe("wrong");
+    expect(checkStep(ps6("q4", "b^2 - 4ac = 25 + 12 = 37"), "b^2 - 4ac = 37 = 37").result).toBe("wrong");
+    expect(checkStep(ps6("q5", "x = \\tfrac{5 + (-1)}{2} = 2"), "x = \\tfrac{4}{2} = 2").result).toBe("wrong");
+    expect(checkStep(ps6("q7", "2 \\times 4 = 8,\\quad 2 + 4 = 6"), "8 = 8,\\quad 6 = 6").result).toBe("wrong");
+    expect(checkStep(step("x = \\dfrac{6}{2} = 3"), "x = 3").result).toBe("wrong");
+    // A fraction the step writes not in lowest terms is the step's point: the number rewritten to match another.
+    const overTwo = step("\\dfrac{x}{8} + \\dfrac{x}{4} = \\dfrac{3}{2} + \\dfrac{6}{2}", "algebra.number.fractions");
+    expect(checkStep(overTwo, "\\dfrac{x}{8} + \\dfrac{x}{4} = \\dfrac{3}{2} + 3").result).toBe("wrong");
+    expect(checkStep(overTwo, "\\dfrac{x}{8} + \\dfrac{x}{4} = \\dfrac{3}{2} + \\dfrac{12}{4}").result).toBe("wrong");
+    expect(checkStep(overTwo, "\\frac{x}{8} + \\frac{x}{4} = 1.5 + \\frac{-6}{-2}")).toEqual(right);
+    expect(checkStep(step("\\dfrac{2x}{8} = \\dfrac{9}{2}"), "\\dfrac{x}{4} = 4.5").result).toBe("wrong");
+    expect(checkStep(step("\\tfrac{8}{1}"), "8").result).toBe("wrong");
+    // A changed shape, not only a number: a fraction of x for a coefficient, both sides of an equation turned.
+    expect(checkStep(step("y = \\tfrac{1}{2}x"), "y = \\tfrac{x}{2}").result).toBe("wrong");
+    expect(checkStep(step("(x - 2)(x + 3) = 0"), "(2 - x)(x + 3) = 0").result).toBe("wrong");
+    expect(checkStep(step("6x"), "2 \\cdot 3x").result).toBe("wrong");
+    expect(checkStep(step("\\tfrac{3}{2}"), "\\tfrac{2 \\times 3}{4}").result).toBe("wrong");
+    expect(checkStep(ps6("q9", "-x(x - 6) = 0"), "x(x - 6) = 0").result).toBe("wrong");
+  });
+
+  it("sentences are still judged by their words (a meaning check is in FUTURE_FEATURES)", () => {
+    const sentence = ps6("q10", "\\text{The graph never meets the x-axis}");
+    expect(checkStep(sentence, "\\text{the graph never meets the x-axis.}")).toEqual(right);
+    expect(checkStep(sentence, "\\text{The graph does not touch the x-axis}").result).toBe("wrong");
+  });
+
+  it("a slip written with its numbers another way still names its misconception", () => {
+    expect(checkStep(ps6("q2", "x = \\tfrac{1}{2} \\;\\text{or}\\; x = -4"), "x = -0.5 or x = -4")).toEqual(wrong("solving-sign"));
+    expect(checkStep(ps6("q7", "\\tfrac{1}{3}(x + 2)(x + 4)"), "\\tfrac{2}{6}(x - 2)(x - 4)")).toEqual(wrong("pair-signs-swapped"));
+    expect(checkStep(ps6("q4", "x = \\dfrac{5 \\pm \\sqrt{37}}{6}"), "x = \\dfrac{5 \\pm \\sqrt{37}}{\\tfrac{6}{2}}")).toEqual(wrong("formula-2a"));
+  });
+
+  /** Every line a student can be asked to write: each blank of every Q** (for every skill the help picker offers) and of every completion problem. */
+  const blanks = [
+    ...QUESTION_PAIRS.flatMap((p) =>
+      problemLeaves(PROBLEM_MAP[p.problemId])
+        .filter((l) => practiceFor(l) !== null)
+        .flatMap((leaf) => blankSteps(p.completion.solution, leaf).map((i) => ({ id: `${p.completion.id} ${leaf} line ${i}`, steps: p.completion.solution, i }))),
+    ),
+    ...(Object.entries(COMPLETIONS) as [LeafId, PracticeProblem][]).flatMap(([leaf, c]) => blankSteps(c.steps, leaf).map((i) => ({ id: `${c.id} line ${i}`, steps: c.steps, i }))),
+  ];
+
+  it("covers every blank of the pairs and completion problems, and the rewrites below change most of them", () => {
+    expect(blanks.length).toBeGreaterThan(40);
+    const written = blanks.filter((b) => asDecimals(b.steps[b.i].tex) !== b.steps[b.i].tex || asUnsimplified(b.steps[b.i].tex) !== b.steps[b.i].tex);
+    expect(written.length).toBeGreaterThan(blanks.length / 2);
+    expect(blanks.some((b) => asDecimals(b.steps[b.i].tex) !== b.steps[b.i].tex)).toBe(true);  });
+
+  it.each(blanks.map((b) => [b.id, b] as const))("%s: its fractions as decimals and its numbers as unsimplified fractions are right; the step before or after is not", (_, b) => {
+    const st = b.steps[b.i];
+    for (const line of [asDecimals(st.tex), asUnsimplified(st.tex), asUnsimplified(asDecimals(st.tex))]) expect(checkStep(st, line), line).toEqual(right);
+    for (const other of [b.steps[b.i - 1], b.steps[b.i + 1]]) if (other) expect(checkStep(st, other.tex).result, other.tex).not.toBe("right");
+  });
+});
+
+/** Words in `\text{…}` and exponents or subscripts are left alone by the rewrites below. */
+const outsideWords = (tex: string, fn: (maths: string) => string): string =>
+  tex
+    .split(/(\\text\{[^}]*\})/)
+    .map((part, i) => (i % 2 ? part : fn(part)))
+    .join("");
+
+const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
+/** A fraction of whole numbers in lowest terms (`\tfrac{1}{2}`, not `\dfrac{6}{2}`, which a step writes on purpose). */
+const lowest = (a: string, b: string) => Number(b) > 1 && gcd(Number(a), Number(b)) === 1;
+
+/** `\tfrac{a}{b}` in lowest terms (any fraction command) as its exact decimal where it has one: `\tfrac{1}{4}` is `0.25`. */
+const asDecimals = (tex: string): string =>
+  outsideWords(tex, (m) =>
+    m.replace(/\\[td]?frac\{(\d+)\}\{(\d+)\}/g, (whole, a: string, b: string) => {
+      if (!lowest(a, b)) return whole;
+      const top = Number(a);
+      const bottom = Number(b);
+      for (let n = 1; n <= 6; n++) {
+        const scale = 10 ** n;
+        if (scale % bottom === 0) {
+          const digits = String((top * scale) / bottom).padStart(n + 1, "0");
+          return `${digits.slice(0, -n)}.${digits.slice(-n)}`;
+        }
+      }
+      return whole;
+    }),
+  );
+
+/**
+ * Every number as an unsimplified fraction: a fraction of whole numbers in lowest terms with top and bottom doubled
+ * (`\tfrac{1}{3}` is `\tfrac{2}{6}`), a fraction the step writes not in lowest terms left as it is, and every other
+ * number n outside an exponent or subscript as `\tfrac{2n}{2}` (`6x` is `\tfrac{12}{2}x`, `0.25` is `\tfrac{50}{200}`).
+ */
+const asUnsimplified = (tex: string): string =>
+  outsideWords(tex, (m) => {
+    const held: string[] = [];
+    const hold = (s: string) => ` ${held.push(s) - 1} `;
+    const fractions = m.replace(/\\([td]?frac)\{(\d+)\}\{(\d+)\}/g, (whole, cmd: string, a: string, b: string) => hold(lowest(a, b) ? `\\${cmd}{${2 * Number(a)}}{${2 * Number(b)}}` : whole));
+    const powers = fractions.replace(/[\^_](\{[^}]*\}|\d)/g, (s) => hold(s));
+    const numbers = powers.replace(/(?<![\d ])(\d+)(?:\.(\d+))?(?![\d ])/g, (_, w: string, f = "") => hold(`\\tfrac{${2 * Number(w + f)}}{${2 * 10 ** f.length}}`));
+    return numbers.replace(/ (\d+) /g, (_, k: string) => held[Number(k)]);
+  });
 
 describe("the demo pad's script can write a wrong line before the right one", () => {
   const monic = PRACTICES["algebra.expand-factor.monic"]!;

@@ -5367,3 +5367,21 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Pills after a student who leaves a row shift left. The fold measures layout every render (thirteen rows, cheap). Sam's time on a step restarts when the teacher's tab reloads, and a step spanning a diagnostic chain reads the chain's time too. The split's maths is upright while the chain view and the later Mistakes tab keep italic maths. The table's rows are tighter than the mockup's (a 24 px avatar) so the tallest moment of the stream fits.
 
 **Defense.** One place model feeds rows that never reorder, and the order inside a row is as reproducible as the model itself. The frame is ready for the review stages without a second layout. The teacher can choose and send a diagnostic without the mistakes being covered, and nothing the teacher reads on the right moves when a student moves on the left (checked on every move in the click-through).
+
+## 2026-09-15 · A blank step compares its numbers by value (ticket 325)
+
+**Decision.** Ticket 311's line check keeps the shape of the statement (same factors, same cases, same terms up to order, nothing multiplied out, collected or rearranged) and now compares each number inside it by value, exactly. A written number is read as a whole-number fraction (BigInt), so `0.5`, `0.50`, `1/2`, `\tfrac{1}{2}` and `\dfrac{2}{4}` are one number and `0.33` is not ⅓. A fraction of one lone number over another is its value (`6/2` for 3). A bracket in a product is read either way round with its minus on the product (`-(x - 2)(x + 3)` is `(2 - x)(x + 3)`). One exception: a fraction of two numbers the step itself writes not in lowest terms (`\dfrac{6}{2}` in `\dfrac{3}{2} + \dfrac{6}{2}`) is kept as a fraction in both lines, so `3` written there is wrong. `checkStep`'s signature and result shape are unchanged.
+
+**Context.** The user (2026-09-15), asked whether right maths in another form (`0.5` for ½, `6/2` for 3) should be accepted, get a gentle third result, or stay wrong, chose to accept equal values, but not a skipped or undone step. Ticket 312's help ladder marks every line written into a Q** blank with this check.
+
+**Alternatives considered.**
+- *Whole lines equal by value (sample both sides, as `sameFunction` does).* Accepts `x^2 - 5x + 6 = 0` for `(x - 2)(x - 3) = 0` and `b^2 - 4ac = 37` for `25 + 12 = 37`: the skipped steps the user excluded.
+- *A third result, "right, written differently".* The user chose acceptance; a third result needs a screen for it, and ticket 312 marks right or wrong.
+- *Every fraction by value, no exception.* Then in the fractions warm-up's "Wrote the 3 over 2" blank, the line before it (`… + 3`) is marked right: the undone step. The test over every blank's neighbours catches exactly this.
+- *An authored list of steps whose fractions are held.* Exact, but one more thing to author per blank and per created set; the rule "a fraction the step writes not in lowest terms is written that way on purpose" covers it with nothing to author.
+- *Collapse products of numbers too (`2 \times 4` as 8).* Multiplying is a step (the stated pair `2 \times 4 = 8, 2 + 4 = 6` would read as `8 = 8`), and ticket 311's slip for a stated pair needs the two factors.
+- *Floats for numbers.* `0.50000000000000000001` would equal ½ and a long `0.333…` could collide with ⅓; whole-number fractions cannot round.
+
+**Tradeoffs.** A fraction the step writes not in lowest terms also holds wherever the same fraction appears in the written line, and an equal fraction written with other numbers there (`\dfrac{12}{4}` for `\dfrac{6}{2}`) is wrong. Shapes that are equal but written differently still read wrong: `\tfrac{x}{2}` for `\tfrac{1}{2}x`, an equation with both sides turned by −1. A number too long to hold exactly equals only itself.
+
+**Defense.** It does what the user chose with the rule they gave (same shape, numbers by value) and keeps every one of ticket 311's "a different step" cases wrong: every existing test and every evaluation-table verdict stands, with one test changed that asserted the old strictness. Every blank a student can be asked to write is tested both ways, right in other numbers and not right as its neighbouring step.

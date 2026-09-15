@@ -1626,6 +1626,15 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **The frame for the review stages.** `StageSplit` takes any left rows; tickets 318–320 fill it for individual, group and class review.
 - **Sort or filter the rows.** A teacher might want only students on help, or only those long on a step, highlighted; not asked for.
 
+## Blank steps: numbers by value (ticket 325, 2026-09-15)
+
+- **Equal shapes written differently.** `\tfrac{x}{2}` for `\tfrac{1}{2}x`, `\tfrac{3x}{8}` for `\tfrac{3}{8}x`, an equation with both sides multiplied by −1 (`(2 - x)(x + 3) = 0` for `(x - 2)(x + 3) = 0`), `x^{1/2}` for `\sqrt{x}`: equal, the same step, and still wrong because the shape changed, not a number. Deferred: the user's rule is same shape with numbers by value; each needs its own normal form and a check against the "different step" tests.
+- **An equal held fraction.** A fraction the step writes not in lowest terms is kept as written, so `\dfrac{12}{4}` where the step writes `\dfrac{6}{2}` is wrong. A rule for "the same denominator the step aimed for" could accept equal fractions over a matching denominator. Deferred: no blank today asks for one where another would do.
+- **Recurring decimals.** `0.\overline{3}` for ⅓ is unreadable: the grammar has no recurring-decimal notation. Deferred with handwriting recognition, which decides how a student writes it.
+- **Mixed numbers.** `1\tfrac{1}{2}` reads as a product of 1 and ½, so it is neither 1½ nor ½. Deferred: no Year 10 blank has a mixed number, and the reading is ambiguous without context.
+- **Ticket 311's "Equivalent statements in another form" entry.** `0.5` for `\tfrac{1}{2}`, `\tfrac{6}{2}` for 3 and `(2 - x)` for `-(x - 2)` inside a product are now right (this ticket); the "right, written differently" third result was not chosen, and both sides multiplied by −1 is above.
+- **Sentences by meaning.** Still exact wording in this ticket (see "Judging a sentence" under ticket 311 and "Sentence blanks judged by meaning" under ticket 310).
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

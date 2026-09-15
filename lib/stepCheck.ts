@@ -18,9 +18,17 @@ import { expressionAt, tokenizeTex, type TexNode, type TexToken } from "./texEva
  * the two sides of an equation swapped (an inequality's sign turned with them); the statements of a line joined by
  * "or", "and", a comma or a colon in any order; `x = 2, 3` as `x = 2, x = 3`; words in `\text{…}` by their words
  * (case, punctuation and spacing aside); a `\checkmark`. It keeps everything that makes a step a step: nothing is
- * multiplied out, collected or worked out, so `x^2 - 5x + 6 = 0` is not `(x - 2)(x - 3) = 0`, `\tfrac{6}{2}` is not
- * `3`, `6x` is not `2 \cdot 3x`, `0.5` is not `\tfrac{1}{2}`, and a flipped sign or a missing factor is a different
- * statement. See DECISION_LOG.md, "A blank step is checked by form, not by value".
+ * multiplied out, collected or worked out, so `x^2 - 5x + 6 = 0` is not `(x - 2)(x - 3) = 0`, `6x` is not
+ * `2 \cdot 3x`, `25 + 12` is not `37`, and a flipped sign or a missing factor is a different statement. See
+ * DECISION_LOG.md, "A blank step is checked by form, not by value".
+ *
+ * **Numbers by value (ticket 325).** Inside that shape, each number is compared by value: a decimal, a whole number
+ * and a fraction of two numbers are the same number when they are equal (`0.5`, `1/2`, `\tfrac{1}{2}`, `\dfrac{2}{4}`;
+ * `6/2` written for `3`), exactly, never rounded (`0.33` is not `\tfrac{1}{3}`). A bracket in a product is read either
+ * way round with its minus on the product (`-(x - 2)(x + 3)` is `(2 - x)(x + 3)`). The one number kept as written is
+ * a fraction the step itself writes not in lowest terms (`\dfrac{6}{2}` in `\tfrac{3}{2} + \dfrac{6}{2}`): rewriting
+ * the number that way is that step, so `3` there is the undone step. Sentences stay words. See DECISION_LOG.md, "A
+ * blank step compares its numbers by value".
  *
  * **Wrong, with the misconception when the slip is a known one.** A wrong line is compared with the expected line
  * slip by slip (`SLIPS`): each slip either rebuilds the expected line the way that slip would have written it (the
@@ -72,13 +80,24 @@ type Line = Part[];
 
 const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
 
-/** A number as written, as an exact fraction: "0.25" is 1/4. */
+const bigGcd = (a: bigint, b: bigint): bigint => (b === BigInt(0) ? a : bigGcd(b, a % b));
+
+/**
+ * A number as written, as an exact fraction: "0.25" is 1/4, "0.50" is 1/2. Worked in whole numbers, never floats, so a
+ * long decimal that only rounds to a value (0.3333 for ⅓, 0.50000000000000000001 for ½) is never that value. A number
+ * too long to hold exactly is kept as its own digits, equal only to itself.
+ */
 function numberFactor(raw: string): Factor {
   const [whole, frac = ""] = raw.split(".");
-  const p = Number((whole || "0") + frac);
-  const q = 10 ** frac.length;
-  const g = gcd(p, q) || 1;
-  return { f: "num", p: p / g, q: q / g };
+  const digits = frac.replace(/0+$/, "");
+  const ten = BigInt(10);
+  let p = BigInt((whole || "0") + digits);
+  let q = ten ** BigInt(digits.length);
+  const g = bigGcd(p, q) || BigInt(1);
+  p /= g;
+  q /= g;
+  if (p > BigInt(Number.MAX_SAFE_INTEGER) || q > BigInt(Number.MAX_SAFE_INTEGER)) return { f: "id", v: `#${raw}` };
+  return { f: "num", p: Number(p), q: Number(q) };
 }
 
 const flip = (s: Sign): Sign => (s === "+" ? "-" : s === "-" ? "+" : "±");
@@ -125,8 +144,32 @@ function numberSum(p: number, q: number): Sum {
   return [{ sign: p < 0 ? "-" : "+", factors: [{ f: "num", p: Math.abs(p) / g, q: q / g }] }];
 }
 
-/** A fraction as written: never worked out (`\tfrac{6}{2}` is not 3), a minus on its top or bottom moved in front. */
-function quotient(num: Sum, den: Sum): Sum {
+/** A sum that is one number and nothing else (`3`, `0.5`, not `2 \times 4` or `-3`): that number. */
+const loneNumber = (s: Sum): { p: number; q: number } | null =>
+  s.length === 1 && s[0].sign === "+" && s[0].factors.length === 1 && s[0].factors[0].f === "num" ? s[0].factors[0] : null;
+
+/**
+ * How a line is being read. The step's own line is read first and notes every fraction of two numbers it writes on
+ * purpose (`held`); the written line is then read against that list.
+ */
+interface Reading {
+  /** True while reading the step's line, false while reading the line written into it. */
+  step: boolean;
+  /** Top and bottom of each fraction of two numbers the step writes not in lowest terms (`6|2` for `\dfrac{6}{2}`). */
+  held: Set<string>;
+}
+
+/**
+ * A fraction, a minus on its top or bottom moved in front. A fraction of one number over one number is that number
+ * (ticket 325): `\tfrac{6}{2}` written for 3 is 3, `\dfrac{2}{4}` is `0.5`. Two exceptions keep it as written:
+ * - A fraction the step itself writes not in lowest terms (`\dfrac{6}{2}` in `\tfrac{3}{2} + \dfrac{6}{2}`, a whole
+ *   number over 1, a decimal on top) is the step's point, a number rewritten to match another: the step and the written
+ *   line both keep that fraction as a fraction, so writing 3 there is the undone step. Every fraction in lowest terms
+ *   (`\tfrac{1}{2}`) the step writes is its value, however the line writes it.
+ * - Anything but a lone number on top or bottom: `\tfrac{5 + (-1)}{2}` is not 2 and `\tfrac{2 \times 3}{4}` is not
+ *   `\tfrac{3}{2}`, because working those out is a step.
+ */
+function quotient(num: Sum, den: Sum, r: Reading): Sum {
   let sign: Sign = "+";
   const unsign = (s: Sum): Sum => {
     if (s.length === 1 && s[0].sign === "-") {
@@ -137,47 +180,60 @@ function quotient(num: Sum, den: Sum): Sum {
   };
   const top = unsign(num);
   const bottom = unsign(den);
+  const a = loneNumber(top);
+  const b = loneNumber(bottom);
+  const key = a && b ? `${factorKey({ f: "num", ...a })}|${factorKey({ f: "num", ...b })}` : "";
+  const lowest = !!a && !!b && a.q === 1 && b.q === 1 && b.p > 1 && gcd(a.p, b.p) === 1;
+  if (a && b && !lowest && r.step) r.held.add(key);
+  if (a && b && b.p !== 0 && !r.held.has(key)) {
+    const p = a.p * b.q;
+    const q = a.q * b.p;
+    if (Number.isSafeInteger(p) && Number.isSafeInteger(q)) {
+      const g = gcd(p, q) || 1;
+      return [{ sign, factors: [{ f: "num", p: p / g, q: q / g }] }];
+    }
+  }
   return [{ sign, factors: [{ f: "frac", num: top, den: bottom }] }];
 }
 
 /** One side of a product as a term: a minus in front of a bracket stays in front of the product (`-(x - 4)(x + 2)`), never carried into the bracket. */
-function factorOf(n: TexNode): Term {
+function factorOf(n: TexNode, r: Reading): Term {
   if (n.k === "neg") {
-    const t = factorOf(n.a);
+    const t = factorOf(n.a, r);
     return { ...t, sign: flip(t.sign) };
   }
-  return asTerm(sumOf(n));
+  return asTerm(sumOf(n, r));
 }
 
-function sumOf(n: TexNode): Sum {
+function sumOf(n: TexNode, r: Reading): Sum {
   switch (n.k) {
     case "num":
       return [{ sign: "+", factors: [numberFactor(n.raw)] }];
     case "id":
       return [{ sign: "+", factors: [{ f: "id", v: n.v }] }];
     case "add":
-      return [...sumOf(n.a), ...sumOf(n.b)];
+      return [...sumOf(n.a, r), ...sumOf(n.b, r)];
     case "sub":
-      return [...sumOf(n.a), ...negate(sumOf(n.b))];
+      return [...sumOf(n.a, r), ...negate(sumOf(n.b, r))];
     case "pm":
-      return [...sumOf(n.a), ...plusMinus(sumOf(n.b))];
+      return [...sumOf(n.a, r), ...plusMinus(sumOf(n.b, r))];
     case "neg":
-      return negate(sumOf(n.a));
+      return negate(sumOf(n.a, r));
     case "upm":
-      return plusMinus(sumOf(n.a));
+      return plusMinus(sumOf(n.a, r));
     case "mul": {
-      const a = factorOf(n.a);
-      const b = factorOf(n.b);
+      const a = factorOf(n.a, r);
+      const b = factorOf(n.b, r);
       return [{ sign: signTimes(a.sign, b.sign), factors: [...a.factors, ...b.factors] }];
     }
     case "div":
-      return quotient(sumOf(n.a), sumOf(n.b));
+      return quotient(sumOf(n.a, r), sumOf(n.b, r), r);
     case "pow":
-      return [{ sign: "+", factors: [{ f: "pow", base: sumOf(n.a), exp: sumOf(n.b) }] }];
+      return [{ sign: "+", factors: [{ f: "pow", base: sumOf(n.a, r), exp: sumOf(n.b, r) }] }];
     case "sqrt":
-      return [{ sign: "+", factors: [{ f: "sqrt", arg: sumOf(n.a) }] }];
+      return [{ sign: "+", factors: [{ f: "sqrt", arg: sumOf(n.a, r) }] }];
     case "tuple":
-      return [{ sign: "+", factors: [{ f: "tuple", items: n.items.map(sumOf) }] }];
+      return [{ sign: "+", factors: [{ f: "tuple", items: n.items.map((it) => sumOf(it, r)) }] }];
   }
 }
 
@@ -203,7 +259,23 @@ function factorKey(f: Factor): string {
       return "□";
   }
 }
-const termKey = (t: Term): string => t.sign + t.factors.map(factorKey).sort().join("·");
+/**
+ * A term's key. A bracket in a product is read either way round, its minus on the term (ticket 325): `-(x - 2)(x + 3)`
+ * and `(2 - x)(x + 3)` are the same product, and so are `(x - 2)(x - 3)` and `(2 - x)(3 - x)`. Each bracket takes
+ * whichever of its two ways has the smaller key, and the term's sign turns once for every bracket turned.
+ */
+function termKey(t: Term): string {
+  let sign = t.sign;
+  const keys = t.factors.map((f) => {
+    const key = factorKey(f);
+    if (f.f !== "group") return key;
+    const turned = factorKey(group(negate(f.sum)));
+    if (turned >= key) return key;
+    sign = flip(sign);
+    return turned;
+  });
+  return sign + keys.sort().join("·");
+}
 const sumKey = (s: Sum): string => s.map(termKey).sort().join(" ");
 const normText = (s: string): string => s.toLowerCase().replace(/[.,!?;:]/g, " ").replace(/\s+/g, " ").trim();
 const itemKey = (it: Piece[] | null): string => (it === null ? "∅" : it.map((p) => ("text" in p ? `"${p.text}"` : `{${sumKey(p.sum)}}`)).join(" "));
@@ -225,7 +297,7 @@ const EXPRESSION_START = (k: TexToken | undefined) =>
 const isSeparator = (k: TexToken | undefined) => !!k && ((k.t === "op" && (k.v === "," || k.v === ";" || k.v === ":")) || (k.t === "text" && /^(or|and)$/.test(normText(k.v))));
 
 /** A line as the canonical form, or null when it cannot be read. Typed shorthand (`x = 1/3 or x = -2`) is turned into TeX first. */
-function readLine(written: string): Line | null {
+function readLine(written: string, r: Reading): Line | null {
   const raw = written.trim();
   if (!raw) return null;
   const tex = isTex(raw) ? raw : toTex(raw);
@@ -248,7 +320,7 @@ function readLine(written: string): Line | null {
           if (text) pieces.push({ text });
         } else if (EXPRESSION_START(k)) {
           const { node, end } = expressionAt(tokens, p, tex);
-          pieces.push({ sum: sumOf(node) });
+          pieces.push({ sum: sumOf(node, r) });
           p = end;
         } else break;
       }
@@ -294,9 +366,10 @@ function readLine(written: string): Line | null {
 
 /** Whether a written line is the step: right, wrong (with the misconception when the slip is a known one), or unreadable. */
 export function checkStep(step: BlankStep, written: string): StepCheck {
-  const expected = readLine(step.tex);
+  const held = new Set<string>();
+  const expected = readLine(step.tex, { step: true, held });
   if (!expected) throw new Error(`step does not read: ${step.tex}`);
-  const got = readLine(written);
+  const got = readLine(written, { step: false, held });
   if (!got) return { result: "unreadable" };
   if (lineKey(got) === lineKey(expected)) return { result: "right" };
   const leaves = step.tags.map((t) => t.leaf as string);
@@ -308,7 +381,7 @@ export function checkStep(step: BlankStep, written: string): StepCheck {
 }
 
 /** Whether a step's TeX reads at all (the tests hold every authored step to it). */
-export const readsAsStep = (tex: string): boolean => readLine(tex) !== null;
+export const readsAsStep = (tex: string): boolean => readLine(tex, { step: true, held: new Set() }) !== null;
 
 type Slip = (expected: Line, got: Line, leaves: string[]) => MisconceptionId | null;
 

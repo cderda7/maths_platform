@@ -44,12 +44,12 @@ describe("tokens in globals.css", () => {
     for (const name of ["--color-gap", "--color-wrong", "--marker-pill-radius", "--marker-dot-radius", "--marker-half-angle", "--marker-half-stripe", ...CORNER_TOKENS]) expect(value(name), name).toBeDefined();
   });
 
-  it("declares each Classroom border kind at today's look: 1px solid in line's colour (ticket 321)", () => {
+  it("declares each Classroom border kind as a width, a style the tuner offers and its own colour (ticket 321; the values themselves are tuned by hand)", () => {
     for (const k of BORDER_KINDS) {
-      expect(value(k.width), k.width).toBe("1px");
-      expect(value(k.style), k.style).toBe("solid");
-      expect(value(k.color), k.color).toBe(value("--color-line"));
+      expect(value(k.width), k.width).toMatch(/^\d+(\.\d+)?px$/);
+      expect(parseFloat(value(k.width)!), k.width).toBeLessThanOrEqual(4);
       expect(BORDER_STYLES).toContain(value(k.style));
+      expect(value(k.color), k.color).toMatch(/^#[0-9a-f]{6}$/i);
     }
     const families = colorFamilies(tokens);
     for (const k of BORDER_KINDS) expect(families.find((f) => f.main === k.color)?.shades, k.color).toEqual([]);
@@ -121,7 +121,8 @@ describe("a proposal", () => {
     expect(changedValues(tokens, proposal)).toEqual({ [set.width]: "3px", [set.style]: "dashed", [set.color]: "#8a84b0" });
     const next = setTokenValues(CSS, changedValues(tokens, proposal));
     const saved = parseTokens(next);
-    expect(saved.find((t) => t.name === hw.width)?.value).toBe("1px");
+    expect(saved.find((t) => t.name === hw.width)?.value).toBe(value(hw.width));
+    expect(saved.find((t) => t.name === hw.color)?.value).toBe(value(hw.color));
     expect(saved.find((t) => t.name === "--color-line")?.value).toBe("#e7e4f1");
     expect(saved.find((t) => t.name === set.style)?.value).toBe("dashed");
   });

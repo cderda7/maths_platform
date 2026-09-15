@@ -368,7 +368,7 @@ Useful starts: `/student?stage=working&pathway=wc` (hand in, wait for the board)
   summary and the guard; examples and marks for the board; the frozen view; recognition,
   evaluation, escalation, statuses, groups, report facts, mistakes, peers, versions; the line
   check for a blank step (`stepCheck.ts`: right, wrong with its misconception, or unreadable, on
-  the one TeX grammar in `texEval.ts`).
+  the one TeX grammar in `texEval.ts`; the same shape of statement with its numbers compared by value).
 - `lib/pairs.ts` and `data/pairs.ts`: the worked example-problem pair's questions (Q* and Q** for every Problem Set 6
   question, a completion problem for every practice skill) and `blankSteps`, the one rule for which lines a student writes.
 - `specs/` the two specs; `tickets/` one file per ticket; `architecture/` one note per ticket;
