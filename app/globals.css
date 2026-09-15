@@ -47,7 +47,7 @@
   --color-covered-line: #d4d4d9;
   /* The Classroom's box borders by kind (ticket 321): problem set cards and homework cells, each apart from `line` so the design tuner can move one kind alone. */
   --color-set-border: #e7e4f1;
-  --color-hw-border: #e7e4f1;
+  --color-hw-border: #5b4ae8;
 
   --font-display: var(--font-playfair), "Playfair Display", Georgia, "Times New Roman", serif;
   --font-sans: var(--font-inter), Inter, system-ui, -apple-system, sans-serif;
@@ -86,9 +86,9 @@
  * --color-hw-border), and a state's own (`hover:outline-accent-line`, a To do card, a completed or missed cell).
  */
 :root {
-  --set-card-border-width: 1px;
+  --set-card-border-width: 2px;
   --set-card-border-style: solid;
-  --hw-card-border-width: 1px;
+  --hw-card-border-width: 1.5px;
   --hw-card-border-style: solid;
 }
 @utility set-card-edge {
