@@ -1338,6 +1338,10 @@ uploaded problems) settled the following as later, each on purpose.
 - **Internal step id `assessment`.** Refine's id stays `assessment` (the ticket allowed it); renaming it to `refine` across the review state, `data-step` attributes and click-throughs is a cleanup for when those are next touched.
 - **A spaced glyph in "+In-Class PSet".** The button keeps its separate + glyph with the old gap, so it reads "+ In-Class PSet" on screen while its text is exactly "+In-Class PSet"; a tight "+In" was not asked for.
 
+## Detective stage for weak students (raised 2026-09-15)
+
+- **Tier the detective disclosure by how much of the set held up.** Individual review's detective sentence (ticket 21, `lib/feedback.ts`) gives every student the same message: how many problems contain a mistake, no locations, go find them. For a strong student with one or two slips that is a puzzle worth solving. For a weak student who got 1 of 10 right, "5 of your problems contain a mistake" is a search through nearly the whole set with no foothold, and reads as punishment rather than a puzzle. The idea: scale how much the app reveals to the share of the set the student got right. A mostly-right student keeps the bare count; a student with most of the set wrong is told where to look (which problems, or the first line that went wrong on some of them) so the rework is fixing mistakes, not hunting for them. Not scoped yet: where the tier boundaries fall, what each tier reveals, whether the teacher sees or sets the tiers, and how it sits with the no-location rule and the guard for correct problems made wrong. Deferred because it changes ticket 21's core rule and needs Carson's call on the tiers.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
