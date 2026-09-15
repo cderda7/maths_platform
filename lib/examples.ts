@@ -52,7 +52,6 @@ export interface ExampleOption {
   /** "correct", or the first wrong line's misconception by name (ticket 299). */
   name: string;
   misconception: MisconceptionId | null;
-  leaf: LeafId | null;
   count: number;
   columns: { lines: string[]; students: Candidate[] }[];
   /** The mistake sits on one of the set's New skills (ticket 209; the unit's focus leaves before it). */
@@ -154,13 +153,11 @@ export function optionsFor(cands: Candidate[], ctx: PickerContext = {}): Example
       columns.set(k, [...(columns.get(k) ?? []), c]);
     }
     const first = key === CORRECT ? null : firstWrong(students[0].problemId, students[0].lines);
-    const leaf = first ? first.tags[0].leaf : null;
     const misconception = first?.misconception ?? null;
     return {
       key,
       name: misconception ? misconceptionName(misconception) : "correct",
       misconception,
-      leaf,
       count: students.length,
       columns: [...columns.values()].sort((a, b) => b.length - a.length).map((s) => ({ lines: s[0].lines, students: s })),
       newSkill: !!first && first.tags.some((t) => ctx.newSkills?.includes(t.leaf)),

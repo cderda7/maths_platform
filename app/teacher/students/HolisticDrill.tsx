@@ -119,9 +119,9 @@ export function CellDrill({ work, set, category, picked, onPick, wrapRef }: { wo
  * A picked skill's problems in the side column: the set and category over the skill's name and result, then every
  * problem on the set its result is read from (`problemsBehindLeaf`) as the teacher's report draws it (the whole
  * question, the student's lines, red where a step did not hold, a rule on the lines tagged to the skill), in two
- * balanced columns (three past six problems), zoomed down to fit the column's height rather than scroll. A ⚠ chip on a line opens the skill it was identified as.
+ * balanced columns (three past six problems), zoomed down to fit the column's height rather than scroll. A ⚠ chip on a red line names its misconception (ticket 301).
  */
-export function SkillWork({ work, set, category, leaf, onGoTo, onClose }: { work: HolisticWork; set: HolisticSet; category: CategoryId; leaf: LeafId; onGoTo: (l: LeafId) => void; onClose: () => void }) {
+export function SkillWork({ work, set, category, leaf, onClose }: { work: HolisticWork; set: HolisticSet; category: CategoryId; leaf: LeafId; onClose: () => void }) {
   const problems = problemsBehindLeaf(leaf, work.problems, work.lines);
   const status = work.result.leaves[leaf] ?? "unseen";
   return (
@@ -153,7 +153,7 @@ export function SkillWork({ work, set, category, leaf, onGoTo, onClose }: { work
           <div className={`gap-3 ${problems.length > 6 ? "columns-3" : problems.length > 1 ? "columns-2" : "columns-1"}`}>
             {problems.map((p) => (
               <div key={p.id} className="mb-3 break-inside-avoid">
-                <ProblemWork problem={p} texs={work.lines[p.id] ?? []} leaf={leaf} onGoTo={onGoTo} narrow />
+                <ProblemWork problem={p} texs={work.lines[p.id] ?? []} leaf={leaf} narrow />
               </div>
             ))}
           </div>

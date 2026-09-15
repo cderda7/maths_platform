@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useEscape } from "@/components/useEscape";
 import M from "@/components/Math";
-import { LeafChip } from "@/components/Tag";
 import { CORRECT, exampleOf, optionOf, type Candidate, type ExampleOption, type ExampleRef } from "@/lib/examples";
 
 const BADGE = "rounded-full px-1.5 py-px text-[10px] font-semibold uppercase tracking-[0.06em]";
@@ -52,9 +51,8 @@ export default function ExamplePicker({ letter, candidate, options, taken, onPic
           )}
         </button>
       </div>
-      {current && (current.leaf || current.newSkill || current.fixedInGroup || current.unsolvedInGroup) && (
+      {current && (current.newSkill || current.fixedInGroup || current.unsolvedInGroup) && (
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5 pl-[30px]">
-          {current.leaf && <LeafChip id={current.leaf} />}
           {current.newSkill && <span className={`${BADGE} bg-standout-soft text-standout`} data-badge="new">new skill</span>}
           {current.fixedInGroup && <span className={`${BADGE} bg-secure-soft text-secure`} data-badge="group">fixed in group review</span>}
           {current.unsolvedInGroup && <span className={`${BADGE} bg-wrong-soft text-wrong`} data-badge="group-unsolved">not solved in group review</span>}

@@ -1443,6 +1443,13 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **PS3–PS5 read the same top gap.** "brackets don't expand back" on three cards in a row is true but reads repetitive; a card could show the top gap's trend ("3rd set running") instead of repeating it.
 - **Rename speculative wording in hints, clues and the sheet's reasons.** Clues and notes ("a guessed pair can look right"), review reasons ("one root found by trying") and practice copy still use the words the naming rule bans for mistake names.
 
+## Misconception chips (ticket 301, 2026-09-15)
+
+- **Open the misconception from its chip.** The chip opens nothing. A misconception view (ticket 299's future features: the class's misconceptions across sets, the lines behind each) would give it somewhere true to go.
+- **A way back to the tagged skill from a red line.** The removed link took a teacher from a red line to the skill it was tagged to in one press; if that is missed, a quiet skill label beside the chip or in the line's tooltip could return it without naming the mistake by skill.
+- **Student-facing misconception names.** Sam's report shows the teacher's names ("perfect square sign wrong"). A student-worded variant per misconception (like `studentLeafName` for skills) was not asked for.
+- **The rework side of Compare.** A still-wrong rework line (Sam's Q7) is unmarked on the right by design, so it names no misconception; whether Compare should show that the rework repeated the same misconception is open.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

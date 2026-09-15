@@ -6,12 +6,12 @@ import M from "@/components/Math";
 import ProblemQuestion from "@/components/ProblemQuestion";
 import { Eyebrow } from "@/components/ui";
 import { useEscape } from "@/components/useEscape";
-import { DifficultyTag, StatusDot, STATUS_TEXT, STATUS_WORD } from "@/components/Tag";
+import { DifficultyTag, MisconceptionChip, StatusDot, STATUS_TEXT, STATUS_WORD } from "@/components/Tag";
 import { categoryOf, groupName, groupOf, groupsOf, isFlat, leafName, studentLeafName, type CategoryId, type GroupId, type LeafId } from "@/data/taxonomy";
 import type { Problem, Status } from "@/data/types";
 import { evaluateLine } from "@/lib/evaluate";
 import { lineMarks } from "@/lib/examples";
-import { columnOf, homeLeaves, problemsBehindLeaf, STATUS_RANK, type HierarchyResult } from "@/lib/hierarchy";
+import { homeLeaves, problemsBehindLeaf, STATUS_RANK, type HierarchyResult } from "@/lib/hierarchy";
 
 /*
  * The skill drill as an outline. Rules, in order: a group's dot sits on the same vertical line as
@@ -186,15 +186,15 @@ export const SkillTree = forwardRef<HTMLUListElement, TreeProps>(function SkillT
 
 /**
  * One problem's marked transcription (the student's final lines): red on a step that didn't hold, blue on a
- * curated standout, a left rule on lines tagged to `leaf` when there is one, and a ⚠ chip on a red line whose
- * mistake belongs to another skill (a click opens that skill). `narrow` (the student report's side column,
+ * curated standout, a left rule on lines tagged to `leaf` when there is one, and a ⚠ chip naming the misconception on
+ * every red line (ticket 301). `narrow` (the student report's side column,
  * ticket 233) puts the problem under its label and fits each line to the column, since maths never splits.
  */
-export function ProblemWork({ problem: p, texs, leaf = null, onGoTo, student = false, narrow = false }: { problem: Problem; texs: string[]; leaf?: LeafId | null; onGoTo: (l: LeafId) => void; student?: boolean; narrow?: boolean }) {
+export function ProblemWork({ problem: p, texs, leaf = null, student = false, narrow = false }: { problem: Problem; texs: string[]; leaf?: LeafId | null; student?: boolean; narrow?: boolean }) {
   return (
     <section className="rounded-xl border border-line bg-paper p-3" data-work-problem={p.id}>
       <ProblemHead problem={p} student={student} />
-      <WorkLines problem={p.id} texs={texs} leaf={leaf} onGoTo={onGoTo} student={student} narrow={narrow} />
+      <WorkLines problem={p.id} texs={texs} leaf={leaf} narrow={narrow} />
     </section>
   );
 }
@@ -217,12 +217,12 @@ export function ProblemHead({ problem: p, student = false }: { problem: Problem;
 
 /**
  * One version's lines, marked: red on a step that didn't hold, blue on a curated standout, a left rule on lines
- * tagged to `leaf`, and a ⚠ chip on a red line whose mistake belongs to another skill. `narrow` fits each line to
+ * tagged to `leaf`, and a ⚠ chip naming the misconception on every red line (ticket 301). `narrow` fits each line to
  * its column (maths never splits) and puts the chip under the line. Shared by `ProblemWork` and the teacher's
  * version columns (ticket 243). `unmarked` (ticket 282, class review's examples as the board first shows them): every line
  * plain, no red, blue, skill rule or chip.
  */
-export function WorkLines({ problem, texs, leaf = null, onGoTo, student = false, narrow = false, unmarked = false }: { problem: string; texs: string[]; leaf?: LeafId | null; onGoTo: (l: LeafId) => void; student?: boolean; narrow?: boolean; unmarked?: boolean }) {
+export function WorkLines({ problem, texs, leaf = null, narrow = false, unmarked = false }: { problem: string; texs: string[]; leaf?: LeafId | null; narrow?: boolean; unmarked?: boolean }) {
   const marks = unmarked ? texs.map(() => null) : lineMarks(problem, texs);
   if (texs.length === 0)
     return (
@@ -236,7 +236,7 @@ export function WorkLines({ problem, texs, leaf = null, onGoTo, student = false,
         const v = evaluateLine(problem, tex);
         const tagged = !unmarked && leaf !== null && v.verdict !== "unclear" && v.tags.some((t) => t.leaf === leaf);
         const mark = marks[i];
-        const blamed = !unmarked && v.verdict === "wrong" && v.tags[0].leaf !== leaf ? v.tags[0].leaf : null;
+        const misconception = !unmarked && v.verdict === "wrong" ? (v.misconception ?? null) : null;
         return (
           <li
             key={i}
@@ -255,21 +255,7 @@ export function WorkLines({ problem, texs, leaf = null, onGoTo, student = false,
             ) : (
               <M tex={tex} />
             )}
-            {blamed && (
-              <button
-                type="button"
-                onClick={() => onGoTo(blamed)}
-                className="flex shrink-0 items-center gap-1.5 rounded-full border border-wrong-line bg-paper px-2 py-0.5 text-[11.5px] text-wrong hover:bg-wrong-soft"
-                title={`Identified as ${leafName(blamed).short}. Open that skill.`}
-                data-blame={blamed}
-              >
-                <svg viewBox="0 0 16 16" className="h-3 w-3" aria-hidden>
-                  <path d="M8 1.5 15 14H1z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-                  <path d="M8 6v4M8 11.6v.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                </svg>
-                {(student ? studentLeafName(blamed) : leafName(blamed)).short}
-              </button>
-            )}
+            {misconception && <MisconceptionChip id={misconception} />}
           </li>
         );
       })}
@@ -278,7 +264,7 @@ export function WorkLines({ problem, texs, leaf = null, onGoTo, student = false,
 }
 
 /** The student's work on the problems that invoke a leaf, one `ProblemWork` each. `wide` lays them in three columns, `narrow` in one. */
-export function WorkPanel({ leaf, lines, problems, status, wide, onGoTo, student = false, narrow = false }: { leaf: LeafId; lines: Record<string, string[]>; problems: Problem[]; status: Status; wide: boolean; onGoTo: (l: LeafId) => void; /** The student's own report: no difficulty tags. */ student?: boolean; narrow?: boolean }) {
+export function WorkPanel({ leaf, lines, problems, status, wide, student = false, narrow = false }: { leaf: LeafId; lines: Record<string, string[]>; problems: Problem[]; status: Status; wide: boolean; /** The student's own report: no difficulty tags. */ student?: boolean; narrow?: boolean }) {
   const invoking = problemsBehindLeaf(leaf, problems, lines);
   return (
     <div className={wide ? "w-full" : "min-w-0 flex-1"} data-col="work" data-leaf={leaf}>
@@ -288,7 +274,7 @@ export function WorkPanel({ leaf, lines, problems, status, wide, onGoTo, student
       </div>
       <div className={`mt-2 grid gap-3 ${narrow ? "grid-cols-1" : wide ? "grid-cols-3" : "grid-cols-2"}`}>
         {invoking.map((p) => (
-          <ProblemWork key={p.id} problem={p} texs={lines[p.id] ?? []} leaf={leaf} onGoTo={onGoTo} student={student} narrow={narrow} />
+          <ProblemWork key={p.id} problem={p} texs={lines[p.id] ?? []} leaf={leaf} student={student} narrow={narrow} />
         ))}
       </div>
     </div>
@@ -320,7 +306,6 @@ export function RowDrill({
   category,
   initialLeaf = null,
   expandAll = false,
-  onNavigate,
   student = false,
   locked = false,
   pickedLeaf,
@@ -335,7 +320,6 @@ export function RowDrill({
   initialLeaf?: LeafId | null;
   /** Category mode: open every group of the category (a click on the dot since ticket 280, or a column view at skill level). */
   expandAll?: boolean;
-  onNavigate?: (leaf: LeafId) => void;
   /** The student's own report: student-facing skill names, no difficulty tags. */
   student?: boolean;
   /** No group opens or closes; the mode's initial state is the whole view. */
@@ -374,21 +358,13 @@ export function RowDrill({
     setLeaf(null);
   };
   const pickLeaf = (l: LeafId) => (outside ? onPickLeaf(l) : setLeaf(leaf === l ? null : l));
-  const goTo = (target: LeafId) => {
-    if (mode === "category" && category && columnOf(target, result.newSkills) !== category) {
-      onNavigate?.(target);
-      return;
-    }
-    setOpenGroups((os) => (os.includes(groupOf(target)) ? os : [...os, groupOf(target)]));
-    setLeaf(target);
-  };
 
   if (mode === "category" && category) {
     const box = columns.find((c) => c.category === category);
     return (
       <div ref={rootRef} className={`flex min-h-0 gap-8 ${below ? "flex-col" : "items-start"}`} data-drill data-mode={mode} data-panel={below ? "below" : "beside"} data-locked={locked || undefined}>
         <SkillTree ref={treeRef} category={category} result={result} openGroups={openGroups} leaf={leaf} onGroup={toggleGroup} onLeaf={pickLeaf} marginLeft={Math.max(0, box?.left ?? 0)} student={student} lockGroups={locked} />
-        {leaf && <WorkPanel leaf={leaf} lines={lines} problems={problems} status={result.leaves[leaf]!} wide={below} onGoTo={goTo} student={student} />}
+        {leaf && <WorkPanel leaf={leaf} lines={lines} problems={problems} status={result.leaves[leaf]!} wide={below} student={student} />}
       </div>
     );
   }
@@ -402,7 +378,7 @@ export function RowDrill({
           <SkillTree key={c.category} category={c.category} result={result} openGroups={openGroups} leaf={leaf} onGroup={toggleGroup} onLeaf={pickLeaf} width={c.width} student={student} lockGroups={locked} />
         ))}
       </div>
-      {leaf && !outside && <WorkPanel leaf={leaf} lines={lines} problems={problems} status={result.leaves[leaf]!} wide onGoTo={goTo} student={student} />}
+      {leaf && !outside && <WorkPanel leaf={leaf} lines={lines} problems={problems} status={result.leaves[leaf]!} wide student={student} />}
     </div>
   );
 }

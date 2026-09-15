@@ -26,7 +26,7 @@ import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { absenceLocked, canMarkAbsent } from "@/lib/absence";
 import { liveStudentTag, progressTag } from "@/lib/progress";
 import { classmatesAt } from "@/lib/stream";
-import { categoriesTouched, columnOf, hierarchyFor, restrictTo, type Evidence } from "@/lib/hierarchy";
+import { categoriesTouched, hierarchyFor, restrictTo, type Evidence } from "@/lib/hierarchy";
 import { recordScore, sessionScore, setScoreText } from "@/lib/setScore";
 import { pillLabel, type HistoryPoint } from "@/lib/history";
 import { categoryHistory, hasEarlierSets, historyCategories, historyReportHref } from "@/lib/setHistory";
@@ -324,7 +324,6 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
     });
   };
   /** A blamed line asks for another category: re-open this student's drill there, on that skill. */
-  const jump = (student: string, leaf: LeafId) => openRow(student, "category", columnOf(leaf, assignment.newSkills), leaf);
   /**
    * The second click of a double-click on the same target (a row, or one of its pills) within DOUBLE_MS: ignored, so a
    * double-click never opens and then shuts what one click opened.
@@ -485,7 +484,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
         )}
         {open && openIndex >= 0 && (
           <DrillSheet key={open.student} student={open.student} tableRef={tableRef} rosterRef={rosterRef} onClose={() => setOpen(null)} onHover={setSheetHover} onPointerOver={markerOver} onPointerOut={markerOut}>
-            <RowDrill key={`${open.student}-${open.mode}-${open.category ?? ""}-${open.leaf ?? ""}-${open.nonce}`} mode={open.mode} result={openResult!} lines={rows[openIndex].evidence.lines} problems={problems} columns={open.columns} category={open.category} initialLeaf={open.leaf ?? null} expandAll={open.expandAll} onNavigate={(leaf) => jump(open.student, leaf)} />
+            <RowDrill key={`${open.student}-${open.mode}-${open.category ?? ""}-${open.leaf ?? ""}-${open.nonce}`} mode={open.mode} result={openResult!} lines={rows[openIndex].evidence.lines} problems={problems} columns={open.columns} category={open.category} initialLeaf={open.leaf ?? null} expandAll={open.expandAll} />
           </DrillSheet>
         )}
         <Card className="overflow-clip">
@@ -700,7 +699,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
                     {column && (
                       <tr className="border-b border-line bg-cream/60" data-drill-row={r.id} data-column-drill={column.category}>
                         <td colSpan={columns.length + 4} className="px-5 py-3">
-                          <RowDrill key={`${r.id}-col-${column.category}-${column.level}-${column.nonce}`} mode="category" result={h} lines={r.evidence.lines} problems={problems} columns={column.boxes[r.id] ?? []} category={column.category} expandAll={column.level === "expanded"} onNavigate={(leaf) => jump(r.id, leaf)} />
+                          <RowDrill key={`${r.id}-col-${column.category}-${column.level}-${column.nonce}`} mode="category" result={h} lines={r.evidence.lines} problems={problems} columns={column.boxes[r.id] ?? []} category={column.category} expandAll={column.level === "expanded"} />
                         </td>
                       </tr>
                     )}

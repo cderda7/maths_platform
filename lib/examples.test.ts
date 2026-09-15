@@ -68,7 +68,7 @@ describe("board examples", () => {
       ["product right, sum wrong", 3], // Lucas, Ruby and (ticket 189) Jordan: a pair adding to nine
     ]);
     for (const o of options.slice(1)) {
-      expect(o.leaf).toBeTruthy();
+      expect(o.misconception).toBeTruthy();
       expect(o.columns.map((c) => c.students.length)).toEqual([...o.columns.map((c) => c.students.length)].sort((x, y) => y - x));
       expect(o.count).toBe(o.columns.reduce((n, c) => n + c.students.length, 0));
     }

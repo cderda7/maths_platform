@@ -6,7 +6,7 @@ import TeacherChrome from "../TeacherChrome";
 import M from "@/components/Math";
 import ProblemQuestion from "@/components/ProblemQuestion";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
-import { DifficultyTag, LeafChip } from "@/components/Tag";
+import { DifficultyTag, MisconceptionChip } from "@/components/Tag";
 import { DEMO_STUDENT } from "@/data/assignment";
 import { evaluateLine } from "@/lib/evaluate";
 import { useBatchedSession } from "@/lib/store";
@@ -96,7 +96,8 @@ export default function TeacherCompare() {
                                   {v && v.verdict !== "unclear" && (
                                     <>
                                       {v.label}
-                                      <LeafChip id={v.tags[0].leaf} />
+                                      {/* A red line names its misconception; a line that holds needs no chip, and the rework side is never marked (ticket 301). */}
+                                      {wrong && v.misconception && <MisconceptionChip id={v.misconception} />}
                                     </>
                                   )}
                                   {diff && <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">changed</span>}

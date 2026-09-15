@@ -122,15 +122,15 @@ export default function ReportLayout({
                     <section key={v.kind} className="mt-2.5 rounded-xl border border-line bg-paper p-3" data-version={v.kind}>
                       <Eyebrow>{v.label}</Eyebrow>
                       {v.examples ? (
-                        <ClassReviewExamples problem={openProblem.id} examples={v.examples} onGoTo={(leaf) => setWork({ kind: "skill", leaf })} stacked student />
+                        <ClassReviewExamples problem={openProblem.id} examples={v.examples} stacked />
                       ) : (
-                        <WorkLines problem={openProblem.id} texs={v.lines} onGoTo={(leaf) => setWork({ kind: "skill", leaf })} student narrow />
+                        <WorkLines problem={openProblem.id} texs={v.lines} narrow />
                       )}
                     </section>
                   ))}
                 </>
               ) : work.kind === "skill" ? (
-                <WorkPanel leaf={work.leaf} lines={lines} problems={problems} status={hierarchy.leaves[work.leaf] ?? "unseen"} wide={false} onGoTo={(leaf) => setWork({ kind: "skill", leaf })} student narrow />
+                <WorkPanel leaf={work.leaf} lines={lines} problems={problems} status={hierarchy.leaves[work.leaf] ?? "unseen"} wide={false} student narrow />
               ) : null}
             </div>
           </div>

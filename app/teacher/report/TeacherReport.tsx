@@ -13,7 +13,7 @@ import SkillColumns from "@/components/SkillColumns";
 import StatusKey from "@/components/StatusKey";
 import { DifficultyTag } from "@/components/Tag";
 import { DEMO_STUDENT } from "@/data/assignment";
-import { groupName, type LeafId } from "@/data/taxonomy";
+import { groupName } from "@/data/taxonomy";
 import { useClassroom } from "@/lib/classroom-store";
 import { commentaryFor } from "@/lib/commentary";
 import { columnsOf, labelSentence, OUTCOME_LABEL, outcomeOf, recordReviews, reportFacts, reportPathway, reviewStagesOver, sessionReviews, shownVersions, type OutcomeColumn, type Reviews, type ShownVersion } from "@/lib/report";
@@ -211,10 +211,10 @@ export function ReportBody({ student, back, work: initialWork = null, from = nul
                       </button>
                     </div>
                     {openProblem ? (
-                      <Versions problem={openProblem.id} versions={shownVersions(openProblem.id, reviews[openProblem.id], pathway)} onGoTo={(leaf) => setWork({ kind: "skill", leaf })} />
+                      <Versions problem={openProblem.id} versions={shownVersions(openProblem.id, reviews[openProblem.id], pathway)} />
                     ) : work.kind === "skill" ? (
                       <div className="-mt-5">
-                        <WorkPanel leaf={work.leaf} lines={evidence.lines} problems={problems} status={full.leaves[work.leaf] ?? "unseen"} wide onGoTo={(leaf) => setWork({ kind: "skill", leaf })} />
+                        <WorkPanel leaf={work.leaf} lines={evidence.lines} problems={problems} status={full.leaves[work.leaf] ?? "unseen"} wide />
                       </div>
                     ) : null}
                   </div>
@@ -321,7 +321,7 @@ const KEEPS_WORK = "[data-work-content], [data-work-tile], [data-hierarchy] butt
 const MAX_VERSION_COLUMNS = 4;
 
 /** A problem's versions side by side, first submission on the left (ticket 243), each fitted to its column. */
-function Versions({ problem, versions, onGoTo }: { problem: string; versions: ShownVersion[]; onGoTo: (leaf: LeafId) => void }) {
+function Versions({ problem, versions }: { problem: string; versions: ShownVersion[] }) {
   // A problem too long for the card (Set 4's nine-line worded problem at 1280) is scaled down as a whole until it fits,
   // never scrolled and never wrapped (ticket 244): the maths keeps its lines, only smaller. A style write, not state.
   const ref = useRef<HTMLDivElement>(null);
@@ -360,7 +360,7 @@ function Versions({ problem, versions, onGoTo }: { problem: string; versions: Sh
       {versions.map((v) => (
         <section key={v.kind} className="min-w-0 rounded-xl border border-line bg-paper p-3" style={v.examples ? { gridColumn: ownRow ? "1 / -1" : `span ${v.examples.length}` } : undefined} data-version={v.kind}>
           <Eyebrow>{v.label}</Eyebrow>
-          {v.examples ? <ClassReviewExamples problem={problem} examples={v.examples} onGoTo={onGoTo} /> : <WorkLines problem={problem} texs={v.lines} onGoTo={onGoTo} narrow />}
+          {v.examples ? <ClassReviewExamples problem={problem} examples={v.examples} /> : <WorkLines problem={problem} texs={v.lines} narrow />}
         </section>
       ))}
     </div>

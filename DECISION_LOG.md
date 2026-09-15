@@ -5017,3 +5017,20 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Grouping judgement is now concentrated in one file: a misconception drawn too wide lumps distinct errors ("applied to some terms only" covers √2 on the first term, a scale on two of three terms and a conjugate on the bottom only), and one drawn too narrow splits a count. Some pills read more abstractly than the old names. More slips are repeated: 14 past review cases moved from the student's own rework to the group, and the sheet and records changed with them. Top gaps are less varied (PS3, PS4 and PS5 all read "brackets don't expand back"), and PS1's is a three-way tie at three students broken by problem order. Pills are longer than skill names, so a pill group's columns widen and some cards scroll sideways sooner. The counts are one class's today; nothing is aggregated across schools.
 
 **Defense.** A mistake gets one name, the same wherever a teacher meets it, and that name is the thing counted. Permanent ids are the precondition for any cross-class statistic; the version field and the no-rename rule keep those counts honest as wording improves. The data change is real behaviour, not noise: under the agreed rules a student making the same misconception on two problems brings it to the group.
+
+## 2026-09-15 · A red line's chip names its misconception and opens nothing (ticket 301)
+
+**Decision.** The ⚠ chip on a red line shows the line's misconception, on every red line, as plain text: the teacher's report, Sam's own report, the Class tab's drills and the holistic page's skill work all draw `MisconceptionChip`. Compare shows it on the handed-in side's red lines and nothing on lines that hold. The class review picker shows no skill chip. The chip's old link to a skill is deleted end to end.
+
+**Context.** Ticket 299 made misconception the name of a mistake. The user chose to switch these chips too, with the blame chip no longer linking to a skill. Before, the chip appeared only when a red line's skill differed from the skill open ("Identified as monic factorising. Open that skill.") and jumped there.
+
+**Alternatives considered.**
+- *Keep the link and change only the label*: the chip would name a misconception and open a skill, so pressing it lands somewhere its words don't describe.
+- *Show the chip only when the skill differs, as before*: that condition was about where the skill lives, which the label no longer mentions. The misconception is worth reading on every red line, including in the skill's own drill.
+- *Chips on every Compare line (label + skill)*: a line that holds has no misconception, and the skill chip was the thing being retired.
+- *A chip on the rework side's still-wrong lines in Compare*: that side is never marked red by design, and a chip there alone would contradict it.
+
+**Tradeoffs.** A teacher can no longer jump from a red line to the skill it was tagged to; they reach that skill through the tree. Every red line now carries a chip, so drills and reports are a little busier, and a narrow column puts the chip on its own row under the line. Sam sees misconception names on his own report, which are teacher vocabulary.
+
+**Defense.** One name for a mistake everywhere, and a control that does nothing unexpected. The removed callbacks existed only for the link, so the components are simpler for it.
+

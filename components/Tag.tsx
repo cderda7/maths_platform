@@ -43,6 +43,23 @@ export function LeafChip({ id, status, after, student = false, className = "", .
   );
 }
 
+/**
+ * A wrong line's misconception (ticket 301), small, beside or under the line: a ⚠ and the taxonomy name in red on paper. It names
+ * the mistake and opens nothing (a skill chip used to link to the skill the line was tagged to). The work drill, the reports'
+ * versions and Compare draw it.
+ */
+export function MisconceptionChip({ id, className = "", ...rest }: { id: MisconceptionId; className?: string } & React.HTMLAttributes<HTMLSpanElement>) {
+  return (
+    <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border border-wrong-line bg-paper px-2 py-0.5 text-[11.5px] whitespace-nowrap text-wrong ${className}`} data-blame={id} {...rest}>
+      <svg viewBox="0 0 16 16" className="h-3 w-3" aria-hidden>
+        <path d="M8 1.5 15 14H1z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+        <path d="M8 6v4M8 11.6v.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      </svg>
+      {misconceptionName(id)}
+    </span>
+  );
+}
+
 /** The misconception a student's wrong step shows (ticket 299), by its taxonomy name: a light red pill with a dark red border, under the student's name on the teacher's mistakes view. */
 export function SlipChip({ id, className = "", ...rest }: { id: MisconceptionId; className?: string } & React.HTMLAttributes<HTMLSpanElement>) {
   return (

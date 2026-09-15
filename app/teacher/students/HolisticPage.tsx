@@ -10,12 +10,11 @@ import { CategoryChip, StatusDot } from "@/components/Tag";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import { useEscape } from "@/components/useEscape";
 import { ASSIGNMENT } from "@/data/assignment";
-import { STORY_CATEGORIES, type StoryCategory } from "@/data/story";
+import type { StoryCategory } from "@/data/story";
 import { categoryName, type LeafId } from "@/data/taxonomy";
 import type { Status } from "@/data/types";
 import { assignmentHref, assignmentReportHref, HOLISTIC_HREF, holisticHref } from "@/lib/assignments";
 import { useClassroom } from "@/lib/classroom-store";
-import { columnOf } from "@/lib/hierarchy";
 import { holisticView, holisticWork, type PatternRef, type HolisticNow, type HolisticSet, type HolisticStatus, type HolisticView } from "@/lib/holistic";
 import { useBatchedSession, useNow } from "@/lib/store";
 
@@ -110,14 +109,6 @@ function Body({ view, at, from }: { view: HolisticView; at: HolisticNow; from: s
     setPicked(null);
     setOpen((o) => (o && o.set === setId && o.category === category ? null : { set: setId, category }));
   };
-  /** A ⚠ chip names a skill: open it, under its own category's tree on the same set. */
-  const goTo = (leaf: LeafId) => {
-    if (!shown) return;
-    const column = columnOf(leaf, shown.work.result.newSkills);
-    if (!(STORY_CATEGORIES as readonly string[]).includes(column)) return;
-    setOpen({ set: shown.set.id, category: column as StoryCategory });
-    setPicked(leaf);
-  };
 
   return (
     <div className="mt-3 flex items-start" style={{ gap: SIDE_GAP }}>
@@ -128,7 +119,7 @@ function Body({ view, at, from }: { view: HolisticView; at: HolisticNow; from: s
         </Grid>
       </div>
       <aside ref={sideRef} className="flex shrink-0 flex-col" style={{ width: SIDE_COL }} data-holistic-side={shown && picked ? "work" : "patterns"}>
-        {shown && picked ? <SkillWork work={shown.work} set={shown.set} category={shown.category} leaf={picked} onGoTo={goTo} onClose={() => setPicked(null)} /> : <Patterns view={view} from={from} />}
+        {shown && picked ? <SkillWork work={shown.work} set={shown.set} category={shown.category} leaf={picked} onClose={() => setPicked(null)} /> : <Patterns view={view} from={from} />}
       </aside>
     </div>
   );
