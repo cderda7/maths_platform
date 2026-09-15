@@ -1,5 +1,6 @@
 import { ASSIGNMENT } from "@/data/assignment";
 import { SIMILAR_MAP, type SimilarProblem } from "@/data/homework";
+import { PS5_SIMILAR_PROBLEMS } from "@/data/homework-similar-ps5";
 import type { Problem } from "@/data/types";
 import { holds, sessionReviews, type ProblemReview } from "./report";
 import type { StudentSession } from "./session";
@@ -25,7 +26,10 @@ export function homeworkProblems(session: StudentSession, problems: Problem[] = 
   return problems.filter((p) => everWrong(p.id, reviews[p.id]));
 }
 
-export const similarFor = (problemId: string): SimilarProblem | undefined => SIMILAR_MAP[problemId];
+/** Every set's similar problems by problem id: Problem Set 6's (`data/homework.ts`) and Problem Set 5's (ticket 293). Ids never collide (`ps5-q4` beside `q4`). */
+const ALL_SIMILAR: Readonly<Record<string, SimilarProblem>> = { ...SIMILAR_MAP, ...Object.fromEntries(PS5_SIMILAR_PROBLEMS.map((s) => [s.problemId, s])) };
+
+export const similarFor = (problemId: string): SimilarProblem | undefined => ALL_SIMILAR[problemId];
 
 /** An expression with its numbers blanked: two questions of the same shape set at the same width, glyph for glyph. */
 export const texShape = (tex: string): string => tex.replace(/[0-9]/g, "0");

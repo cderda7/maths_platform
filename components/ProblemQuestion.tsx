@@ -1,7 +1,16 @@
 import Figure from "@/components/Figure";
 import M from "@/components/Math";
-import type { Problem } from "@/data/types";
+import type { FigureId } from "@/data/types";
 import { unbrokenHyphens } from "@/lib/stem";
+
+/** A question as `ProblemQuestion` shows it: a problem's, or a typed one's (a stem with inline `$…$` maths, maybe no expression, maybe an uploaded diagram). */
+export interface QuestionLike {
+  stem: string;
+  tex: string | null;
+  figure?: FigureId;
+  /** A diagram cut from an uploaded file (a data URL). */
+  figureUrl?: string;
+}
 
 /**
  * A problem as the question the student was asked (ticket 271): the stem's words, then the expression, read as one
@@ -10,24 +19,56 @@ import { unbrokenHyphens } from "@/lib/stem";
  * never the bare expression, since "y = 2x² + 5x − 3" alone does not say what the student had to do with it. A problem
  * with a figure ("The graph of the following is shown") carries a small thumbnail of it after the expression,
  * `figureWidth` layout px wide (the figure is 300 × 190), so a header row keeps close to its height.
+ *
+ * A typed question (ticket 293, the homework screen's teacher's ten) may carry inline maths in its stem between `$` signs:
+ * each piece is set in KaTeX at the words' size in ink, unbroken, holding the punctuation right after it so a wrap never starts a line with a comma.
  */
-export default function ProblemQuestion({ problem: p, stemClass = "text-ink-soft", mathClass = "", figureWidth = 64 }: { problem: Pick<Problem, "stem" | "tex" | "figure">; stemClass?: string; mathClass?: string; figureWidth?: number }) {
+export default function ProblemQuestion({ problem: p, stemClass = "text-ink-soft", mathClass = "", figureWidth = 64 }: { problem: QuestionLike; stemClass?: string; mathClass?: string; figureWidth?: number }) {
   return (
     <>
       <span className={stemClass} data-question-stem>
-        {unbrokenHyphens(p.stem)}
-      </span>{" "}
-      <span className={`whitespace-nowrap ${mathClass}`} data-question-tex>
-        <M tex={p.tex} />
+        <StemWords stem={p.stem} />
       </span>
-      {p.figure && (
+      {p.tex && (
         <>
           {" "}
-          <span className="inline-block rounded-md border border-line bg-paper p-0.5 align-middle" style={{ width: figureWidth }} data-question-figure={p.figure}>
-            <Figure id={p.figure} />
+          <span className={`whitespace-nowrap ${mathClass}`} data-question-tex>
+            <M tex={p.tex} />
           </span>
         </>
       )}
+      {(p.figure || p.figureUrl) && (
+        <>
+          {" "}
+          <span className="inline-block rounded-md border border-line bg-paper p-0.5 align-middle" style={{ width: figureWidth }} data-question-figure={p.figure ?? "uploaded"}>
+            {/* eslint-disable-next-line @next/next/no-img-element -- a data URL the browser drew */}
+            {p.figure ? <Figure id={p.figure} /> : <img src={p.figureUrl} alt="" className="block w-full" />}
+          </span>
+        </>
+      )}
+    </>
+  );
+}
+
+/** A stem's words; any `$…$` piece set as maths with the punctuation after it. A stem without `$` is its words as before. */
+function StemWords({ stem }: { stem: string }) {
+  if (!stem.includes("$")) return <>{unbrokenHyphens(stem)}</>;
+  const pieces = stem.split("$");
+  return (
+    <>
+      {pieces.map((piece, i) => {
+        if (i % 2 === 1) {
+          const after = /^[,.;:?!]+/.exec(pieces[i + 1] ?? "")?.[0] ?? "";
+          return (
+            <span key={i} className="whitespace-nowrap" data-question-inline-tex>
+              <M tex={piece} className="text-ink" />
+              {after}
+            </span>
+          );
+        }
+        const lead = i > 0 ? (/^[,.;:?!]+/.exec(piece)?.[0] ?? "") : "";
+        return <span key={i}>{unbrokenHyphens(piece.slice(lead.length))}</span>;
+      })}
     </>
   );
 }

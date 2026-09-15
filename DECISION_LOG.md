@@ -5104,3 +5104,20 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** A simulation-only field on the product's classroom state (as `lessonEndedAt` was for ticket 263). `Lesson` carries an optional landing, which only the homework jump sets. From the teacher's tab, "homework open" moves Sam's iPad from whatever screen it is on, including the live set.
 
 **Defense.** Both jumps reuse the real flow's pure steps (`homeworkSent`, `completeLesson`, the store's `openHomeworks`), and tests hold each jump equal to walking the real flow from every demo moment, so the shortcuts cannot drift from what the teacher's own presses produce.
+
+## 2026-09-15 · A homework's list is a pipeline of small pure steps, and Problem Set 6's own problems read the session as it stands (ticket 293)
+
+**Decision.** Sam's homework screen reads one pure function, `homeworkList(id, classroom, session)` in `lib/homeworkList.ts`, built as separate steps: `ownSets` (the homework's frozen `setIds`, newest first) → `ownProblems` (each set's ever-wrong problems with their similar problems) → `groupBySet` (empty groups omitted), then Everyone from the sent homework's questions; every question is numbered on from 1 in the order he does them. Ever-wrong reads the same sources as his report on each set: a finished set's handed-in record, and for Problem Set 6 his session as it stands. Problem Set 5's similar problems live in their own data file (`data/homework-similar-ps5.ts`), read by the same `similarFor`. `ProblemQuestion` learns a typed question's shape (inline `$…$` maths, a null expression, an uploaded diagram) so the teacher's ten show in the same whole-question look.
+
+**Context.** Ticket 293 (the user, 2026-09-15): the homework is "the list of problem mistakes from the PSet that get added to the HW bank -- custom to each student", done before "the teacher's 10", "grouping by the set it came from". Ticket 294 next carries a missed homework's own problems in and removes duplicate skills among them; ticket 292 froze the sets at opening but not the problems.
+
+**Alternatives considered.**
+- *One function that builds the groups directly*: shorter now, but 294 would have to reopen it to add carried sets and a dedupe that must run across groups before grouping.
+- *Snapshot Sam's Problem Set 6 ever-wrong problems into the homework at opening*: the stamp is computed by `openHomeworks` on the classroom in every tab, and the classroom does not hold the student session, so the teacher's tab could not stamp the same list. After the lesson ends no stage writes first submissions or rework, so reading the session later gives the same list.
+- *Number each section from 1 (own 1–8, Everyone 1–10)*: matches the teacher's Q1–Q10, but two "3"s on one screen make "problem 3" ambiguous; a single run follows the ticket's order (his own first, then the ten).
+- *Show original problems beside their similar ones*: the ticket says never the original.
+- *Put Problem Set 5's similar problems in `data/story.ts` or the set's fixture*: the story is being edited in parallel and describes what happened, not what homework gives; the fixture is teacher-side data for the set.
+
+**Tradeoffs.** A reset of Sam's session while Homework 3 is open (a SKIP TO into the lesson) changes his Problem Set 6 group, since nothing is snapshotted. The teacher's ten are numbered 9–18 for Sam in the demo while the teacher sees Q1–Q10. A problem with no similar problem is left out of the list silently; a test keeps every one of Sam's covered.
+
+**Defense.** Each step is small and tested on its own, 294 inserts rather than rewrites, the screen stays a thin reader, and Problem Set 6's list is provably the folder animation's (tested on the weak run, the strong run and activity completed).

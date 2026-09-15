@@ -1487,6 +1487,18 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **A landing for the teacher's own screen on "homework open".** It leaves the teacher where they are (as activity completed does); landing on the Classroom to show the card turn "open" is a one-line change if the presenter prefers.
 - **Grouping the presenter's buttons.** The teacher's strip now holds five jumps in one pill; a divider between the lesson's jumps and the homework's could help once more are added.
 
+## Homework screen (ticket 293, 2026-09-15)
+
+- **Answering homework.** The screen is a read-only list; working a problem on the pad, with the same recognition, marking and review as a set, is the next step. Deferred by the ticket (no answering).
+- **Done and undone marks.** No problem shows whether it is done; once answering exists, a mark per row and a count on the To do card and the HW cell. Deferred by the ticket.
+- **Reading back a finished homework.** A completed or missed homework has no screen (only an open one renders); the HW1 and HW2 cells could open a read-only view of what was in them and what was done. Deferred by the ticket.
+- **Snapshot a student's own problems at opening.** Problem Set 6's own problems read Sam's session as it stands, which equals the session at opening because no stage writes after the lesson ends; a real backend should store each student's list when the homework opens, so a later reset or a late rework cannot change it.
+- **A similar problem for every problem.** Only Problem Set 6's ten and Problem Set 5's Q4, Q6 and Q9 (Sam's) have similar problems; any other student's list, or a problem without one, would leave it out. Generating (or authoring) a similar problem per bank problem with a shape check would lift that. Ticket 294 adds Problem Sets 3 and 4's for Sam.
+- **One numbering with the teacher's.** Sam's list numbers everything in one run (his own 1–8, the teacher's ten 9–18) while the teacher sees Q1–Q10; a shared reference ("Everyone Q3") may be needed once students ask about a problem.
+- **Where a similar problem came from.** A row does not say which original it replaces ("like Q4"), nor the type line the folder animation shows; a quiet link back to his report's problem could help him revise before starting.
+- **Other students' homework screens.** Only Sam has a student view; each classmate's list follows from their records, but nothing shows it (the teacher could preview a student's homework from the report).
+- **Lots of own problems.** A student who got most of two sets wrong gets a long list before the teacher's ten; a cap, or the dedupe of ticket 294 extended beyond missed homework, may be wanted.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
