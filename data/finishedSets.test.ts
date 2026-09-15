@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ASSIGNMENT, DEMO_STUDENT } from "./assignment";
 import { CLASSMATES } from "./classmates";
 import { EVALUATION } from "./evaluation";
+import { isMisconceptionId } from "./misconceptions";
 import { DEFAULT_GROUPS } from "./groups";
 import { STORY, STORY_CATEGORIES } from "./story";
 import { isLeafId } from "./taxonomy";
@@ -85,14 +86,14 @@ describe.each(FINISHED_SETS.map((s) => [s.fixture.id, s] as const))("finished se
     }
   });
 
-  it("gives every verdict real tags, and every wrong line a clue, a note and a name of five words or fewer", () => {
+  it("gives every verdict real tags, and every wrong line a clue, a note and a misconception from the taxonomy", () => {
     for (const [pid, table] of Object.entries(set.evaluation)) {
       for (const [tex, v] of Object.entries(table)) {
         expect(v.tags.length, `${pid}: ${tex}`).toBeGreaterThan(0);
         for (const t of v.tags) expect(isLeafId(t.leaf), `${pid}: ${tex}`).toBe(true);
         if (v.verdict === "wrong") {
-          expect(v.clue && v.note && v.name, `${pid}: ${tex}`).toBeTruthy();
-          expect(v.name!.split(" ").length, v.name).toBeLessThanOrEqual(5);
+          expect(v.clue && v.note, `${pid}: ${tex}`).toBeTruthy();
+          expect(v.misconception && isMisconceptionId(v.misconception), `${pid}: ${tex}`).toBe(true);
         }
       }
     }
@@ -187,7 +188,7 @@ describe.each(FINISHED_SETS.map((s) => [s.fixture.id, s] as const))("finished se
     expect(ms.map((m) => m.problem.id)).toEqual(f.problems.map((p) => p.id));
     ms.forEach((m, i) => {
       expect(m.right + m.rows.length, m.problem.id).toBe(everyone.filter((c) => i < c.done).length);
-      for (const r of m.rows) expect(r.slips.length, `${m.problem.id} ${r.id}`).toBeGreaterThan(0);
+      for (const r of m.rows) expect(r.misconceptions.length, `${m.problem.id} ${r.id}`).toBeGreaterThan(0);
     });
   });
 });

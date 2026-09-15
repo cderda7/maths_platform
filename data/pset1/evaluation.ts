@@ -4,13 +4,12 @@ import type { LeafId } from "../taxonomy";
 /**
  * Problem Set 1's scripted evaluation (ticket 211): every line any of the class wrote on the set, with its
  * verdict and tags, in the same shape as Problem Set 6's table (`data/evaluation.ts`) and read through the
- * same `evaluateLine`. A wrong line's `name` is the teacher's name for the mistake; the same name on two
- * problems is the same pattern (a square taken out of the root without its root, on Q2, Q4 and Q5; a square
- * factor left under the root, on Q1 and Q6).
+ * same `evaluateLine`. A wrong line's `misconception` is its entry in the misconception taxonomy (ticket 299), the
+ * label and cluster of the Mistakes tab; the same one on two problems is the same pattern (a square taken out of the
+ * root without its root, on Q2, Q4 and Q5; a square factor left under the root, on Q1 and Q6).
  *
- * A wrong line's first tag is its slip (`lib/mistakes.ts`). The surd slips carry surds alone, so they count
- * under New skills and make the set's top gap; the fraction, expansion and linear slips carry their Algebra
- * leaf alone, so they leave New skills untouched.
+ * A wrong line's first tag is the skill it exercised. The surd slips carry surds alone, so they count under New
+ * skills; the fraction, expansion and linear slips carry their Algebra leaf alone, so they leave New skills untouched.
  */
 const SURDS: LeafId = "algebra.number.surds";
 const LIN: LeafId = "algebra.equations.linear";
@@ -20,9 +19,9 @@ const EXPAND: LeafId = "algebra.expand-factor.expand";
 const WORDED: LeafId = "reasoning.interpret.worded";
 const CONCL: LeafId = "reasoning.justify.conclusions";
 
-/** The mistake names shared across problems. */
-const ROOT_NOT_TAKEN = "square out, root not taken";
-const SQUARE_LEFT = "square factor left under root";
+/** The misconceptions shared across problems (`data/misconceptions.ts`). */
+const ROOT_NOT_TAKEN = "root-not-taken";
+const SQUARE_LEFT = "square-left-in-root";
 
 export const PS1_EVALUATION: Record<string, Record<string, LineVerdict>> = {
   "ps1-q1": {
@@ -70,7 +69,7 @@ export const PS1_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Collected the surds",
       "Roots can be multiplied under one root, but not added under one. Only like surds collect, and these two only look alike once each is simplified.",
       "Simplify √12 and √27 on their own first. What do they have in common?",
-      "added under one root",
+      "roots-added",
     )),
   },
   "ps1-q4": {
@@ -83,14 +82,14 @@ export const PS1_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Collected like surds",
       "Like surds collect like like terms, sign and all: 6 of something take away 2 of it. The subtraction became an addition on the way.",
       "What is 6a − 2a? So what is 6√2 − 2√2?",
-      "sign lost collecting surds",
+      "collecting-sign",
     )),
     "2\\sqrt{18} - \\sqrt{8} = 6\\sqrt{2} + 2\\sqrt{2}": wrong(
       T(SURDS),
       "Rewrote the difference",
       "Each surd was simplified right, but the sign between them didn't come across. The operation in the question stays with the term it belongs to.",
       "Look at the sign in front of √8 in the question. Is it still there?",
-      "sign changed rewriting",
+      "rearranging-sign",
     ),
     "6\\sqrt{2} + 2\\sqrt{2} = 8\\sqrt{2}": A(ok(T(LIN, SURDS), "Collected like surds", true)),
     "\\sqrt{8} = 4\\sqrt{2}": wrong(
@@ -137,14 +136,14 @@ export const PS1_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Simplified",
       "Everything on the bottom of a fraction divides the top. The 2 was divided out, but the √5 beside it was dropped instead.",
       "Multiply your answer by 2√5. Do you get back 6√10?",
-      "the bottom's surd dropped",
+      "denominator-dropped",
     )),
     "6\\sqrt{10} \\div 2\\sqrt{5} = \\dfrac{2\\sqrt{5}}{6\\sqrt{10}}": wrong(
       T(FRAC),
       "Wrote it as a fraction",
       "The number you divide by goes on the bottom. This fraction is the division the other way round, so every line after it answers a different question.",
       "In 6√10 ÷ 2√5, which one is being shared out?",
-      "fraction turned upside down",
+      "divided-wrong-way",
     ),
     "\\dfrac{2\\sqrt{5}}{6\\sqrt{10}} = \\dfrac{1}{3\\sqrt{2}}": A(ok(T(FRAC, SURDS), "Simplified", true)),
   },
@@ -157,7 +156,7 @@ export const PS1_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "√2 into both terms",
       "The number in front of a bracket multiplies every term inside it, not just the first. A surd in front works the same way.",
       "√2 multiplied the 3. What happens to √8?",
-      "√2 on first term only",
+      "partial-distribution",
     ),
     "\\sqrt{2} \\times 3 + \\sqrt{8} = 3\\sqrt{2} + 2\\sqrt{2}": ok(T(EXPAND, SURDS), "Multiplied each term", true),
     "3\\sqrt{2} + 2\\sqrt{2} = 5\\sqrt{2}": A(ok(T(EXPAND, SURDS), "Collected like surds", true)),
@@ -174,7 +173,7 @@ export const PS1_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Divided both sides by √3",
       "To leave x on its own, both sides are divided by what multiplies x. Here the division went the other way round.",
       "√3 multiplies x. What do you divide 3√3 by?",
-      "divided the wrong way round",
+      "divided-wrong-way",
     ),
     "x = \\dfrac{1}{3}": A(ok(T(FRAC), "Solved", true)),
   },
@@ -190,7 +189,7 @@ export const PS1_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Diagonal",
       "The root of a sum is not the sum of the roots. Add under the root first, then take the root of the total.",
       "What is 72 + 72? Take the root of that.",
-      "root of a sum split",
+      "roots-added",
     ),
     "\\text{Side } 6\\sqrt{2}\\text{ cm, diagonal } 12\\sqrt{2}\\text{ cm}": A(ok(T(CONCL), "In context", true)),
     // Ticket 281: violet's table on Q10, the set's hardest problem nobody at that table got right.
@@ -207,7 +206,7 @@ export const PS1_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Diagonal",
       "A square's diagonal is longer than its side: it is the side multiplied by √2. Dividing by √2 went the other way round.",
       "Which is longer, the side or the diagonal? What does that say about × √2 or ÷ √2?",
-      "divided the wrong way round",
+      "divided-wrong-way",
     ),
     "\\text{Side } 6\\sqrt{2}\\text{ cm, diagonal } 6\\text{ cm}": A(ok(T(CONCL), "In context", true)),
   },

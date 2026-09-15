@@ -1,7 +1,8 @@
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
 import { STANDOUT } from "@/data/evaluation";
-import { leafName, type LeafId } from "@/data/taxonomy";
+import { misconceptionName, type MisconceptionId } from "@/data/misconceptions";
+import type { LeafId } from "@/data/taxonomy";
 import { BEFORE_HAND_IN_STAGES, type Problem } from "@/data/types";
 import { evaluateLine } from "./evaluate";
 import type { GroupRun } from "./groupReview";
@@ -48,8 +49,9 @@ export interface BoardExample {
 export interface ExampleOption {
   /** `CORRECT`, or the mistake key. */
   key: string;
-  /** "correct", or the wrong line's name in five words or fewer. */
+  /** "correct", or the first wrong line's misconception by name (ticket 299). */
   name: string;
+  misconception: MisconceptionId | null;
   leaf: LeafId | null;
   count: number;
   columns: { lines: string[]; students: Candidate[] }[];
@@ -153,9 +155,11 @@ export function optionsFor(cands: Candidate[], ctx: PickerContext = {}): Example
     }
     const first = key === CORRECT ? null : firstWrong(students[0].problemId, students[0].lines);
     const leaf = first ? first.tags[0].leaf : null;
+    const misconception = first?.misconception ?? null;
     return {
       key,
-      name: key === CORRECT ? "correct" : (first?.name ?? (leaf ? leafName(leaf).short : "mistake")),
+      name: misconception ? misconceptionName(misconception) : "correct",
+      misconception,
       leaf,
       count: students.length,
       columns: [...columns.values()].sort((a, b) => b.length - a.length).map((s) => ({ lines: s[0].lines, students: s })),

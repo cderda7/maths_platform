@@ -40,10 +40,10 @@ describe("Problem Set 5's data (ticket 187)", () => {
   });
 
   it("the patterns Problem Set 6 catches start here: Mia and Jordan guess non-monic pairs, Tomas flips signs and fractions", () => {
-    const names = (id: string) => byId[id].wrong.flatMap((pid) => byId[id].attempts[pid].map((tex) => evaluateLine(pid, tex)).flatMap((v) => (v.verdict === "wrong" ? [v.name] : [])));
-    expect(names("mia")).toContain("guessed pair, not expanded back");
-    expect(names("jordan")).toEqual(["guessed pair, not expanded back", "guessed pair, not expanded back"]);
-    expect(names("tomas")).toEqual(["intercepts with signs flipped", "turning point sign flipped", "fraction flipped solving a factor", "axis without the minus"]);
+    const names = (id: string) => byId[id].wrong.flatMap((pid) => byId[id].attempts[pid].map((tex) => evaluateLine(pid, tex)).flatMap((v) => (v.verdict === "wrong" ? [v.misconception] : [])));
+    expect(names("mia")).toContain("brackets-dont-expand");
+    expect(names("jordan")).toEqual(["brackets-dont-expand", "brackets-dont-expand"]);
+    expect(names("tomas")).toEqual(["root-vertex-sign", "root-vertex-sign", "divided-wrong-way", "minus-b-dropped"]);
   });
 });
 
@@ -80,7 +80,7 @@ describe("Problem Set 5 in the registry (ticket 187)", () => {
       const reached = everyone.filter((c) => PS5_PROBLEMS.indexOf(m.problem) < c.done).length;
       expect(m.right + m.rows.length, m.problem.id).toBe(reached);
       expect(CLASS_SIZE - m.right - m.rows.length, m.problem.id).toBe(everyone.filter((c) => PS5_PROBLEMS.indexOf(m.problem) >= c.done).length);
-      for (const r of m.rows) expect(r.slips.length, `${m.problem.id} ${r.id}`).toBeGreaterThan(0);
+      for (const r of m.rows) expect(r.misconceptions.length, `${m.problem.id} ${r.id}`).toBeGreaterThan(0);
     }
     expect(ms[3].rows.map((r) => r.id)).toEqual(["sam", "jordan", "tomas", "zara", "liam", "mia", "chloe", "oliver", "finn", "sofia"]);
     expect(ms[0].right).toBe(18);
@@ -91,23 +91,23 @@ describe("Problem Set 5 in the registry (ticket 187)", () => {
     const byCluster: { key: string; students: number }[] = [];
     for (const m of mistakesByProblem(null, b)) {
       for (const g of groupBySlip(m.rows)) for (const mg of g.mistakes) byCluster.push({ key: `${m.problem.label} ${mg.key}`, students: mg.rows.length });
-      for (const r of m.rows) for (const l of r.lines) if (l.verdict.verdict === "wrong") byName.set(l.verdict.name!, (byName.get(l.verdict.name!) ?? new Set()).add(r.id));
+      for (const r of m.rows) for (const l of r.lines) if (l.verdict.verdict === "wrong") byName.set(l.verdict.misconception!, (byName.get(l.verdict.misconception!) ?? new Set()).add(r.id));
     }
     const names = [...byName.entries()].map(([n, s]) => [n, s.size] as const).sort((x, y) => y[1] - x[1]);
-    expect(names[0]).toEqual(["guessed pair, not expanded back", 7]);
+    expect(names[0]).toEqual(["brackets-dont-expand", 7]);
     expect(names[1][1]).toBeLessThan(7);
     const clusters = byCluster.sort((x, y) => y.students - x.students);
     expect(clusters[0]).toEqual({ key: "Q4 (3x - 4)(x + 2) = 0", students: 6 });
     expect(clusters[1].students).toBeLessThan(6);
   });
 
-  it("the Classroom's PAST card: done, 20/20 submitted, top gap graph features on nine students, non-monic factorising next on eight", () => {
+  it("the Classroom's PAST card: done, 20/20 submitted, top gap a pair guessed and not expanded back on seven students, a root or vertex sign wrong next on five (ticket 299)", () => {
     const card = assignmentCard(b, INITIAL_CLASSROOM, null, now);
     expect(card).toMatchObject({ id: "pset-5", name: "Problem Set 5 — Features of a parabola", due: "Mon 7 Sep", section: "past", status: "done", submitted: 20, total: 20, mistakes: 49 });
-    // Ticket 210: the axis given as the height is a graph feature, as on Problem Set 6's Q9, so the sign readers and the height readers make one cluster.
-    expect(card.topGap).toEqual({ slips: ["graphing.quadratics.features"], name: "graph features", students: 9 });
-    const rest = mistakesByProblem(null, b).map((m) => ({ ...m, rows: m.rows.filter((r) => !r.slips.includes("graphing.quadratics.features")) }));
-    expect(topGap(rest)).toEqual({ slips: ["algebra.expand-factor.nonmonic"], name: "non-monic factorising", students: 8 });
+    // Ticket 299: clusters are misconceptions, so the turning points' signs and the intercepts' signs read off the brackets are one cluster, and the heights given as x another.
+    expect(card.topGap).toEqual({ misconceptions: ["brackets-dont-expand"], name: "brackets don't expand back", students: 7 });
+    const rest = mistakesByProblem(null, b).map((m) => ({ ...m, rows: m.rows.filter((r) => !r.misconceptions.includes("brackets-dont-expand")) }));
+    expect(topGap(rest)).toEqual({ misconceptions: ["root-vertex-sign"], name: "root or vertex sign wrong", students: 5 });
   });
 
   it("a name opens that student's own record: report link, commentary and words", () => {

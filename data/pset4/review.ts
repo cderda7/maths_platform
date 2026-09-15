@@ -25,7 +25,6 @@ export const PS4_REVIEW: SetReview = {
   second: {
     sam: { [q(7)]: solution(7), [q(8)]: solution(8) },
     amelia: { [q(6)]: solution(6), [q(7)]: solution(7), [q(10)]: solution(10) },
-    tomas: { [q(5)]: solution(5), [q(9)]: solution(9) },
     zara: { [q(7)]: solution(7) },
     aiden: { [q(8)]: solution(8) },
     mia: { [q(6)]: solution(6) },

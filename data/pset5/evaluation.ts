@@ -4,8 +4,8 @@ import type { LeafId } from "../taxonomy";
 /**
  * Problem Set 5's scripted evaluation (ticket 187): every line any of the class wrote on the set,
  * with its verdict and tags, in the same shape as Problem Set 6's table (`data/evaluation.ts`) and
- * read through the same `evaluateLine`. A wrong line's `name` is the teacher's name for the
- * mistake; the same name on two problems is the same pattern (a guessed non-monic pair on Q4 and
+ * read through the same `evaluateLine`. A wrong line's `misconception` is its entry in the
+ * misconception taxonomy (ticket 299); the same one on two problems is the same pattern (a guessed non-monic pair on Q4 and
  * Q8, a turning point's sign on Q2, Q3 and Q6).
  */
 const QUAD: LeafId = "algebra.equations.quadratic";
@@ -23,9 +23,9 @@ const SKETCH: LeafId = "graphing.quadratics.sketch";
 const WORDED: LeafId = "reasoning.interpret.worded";
 const CONCL: LeafId = "reasoning.justify.conclusions";
 
-/** The mistake names shared across problems. */
-const GUESSED_PAIR = "guessed pair, not expanded back";
-const TP_SIGN = "turning point sign flipped";
+/** The misconceptions shared across problems (`data/misconceptions.ts`). */
+const GUESSED_PAIR = "brackets-dont-expand";
+const TP_SIGN = "root-vertex-sign";
 
 export const PS5_EVALUATION: Record<string, Record<string, LineVerdict>> = {
   "ps5-q1": {
@@ -37,7 +37,7 @@ export const PS5_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Each factor zero",
       "The null factor law sets each factor of the product to zero as it is printed. Changing the signs first makes a different product.",
       "Which factors are in (x − 2)(x + 6)? Set each of those to zero.",
-      "intercepts with signs flipped",
+      "root-vertex-sign",
     ),
     "x = -2 \\;\\text{or}\\; x = 6": A(ok(T(LIN, ZERO), "x-intercepts", true)),
     "y = -12,\\; x = 2, -6": A(okc(T(NFL, FEAT), "Intercepts in one line, the working not shown")),
@@ -90,7 +90,7 @@ export const PS5_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Factorised",
       "The split was right, but the signs went to the wrong brackets on the way into the factors. Expanding back shows the middle term's sign at once.",
       "Expand (3x − 2)(x + 4). Is the x term −10x or +10x?",
-      "signs swapped in the pair",
+      "pair-signs-swapped",
     ),
     "x = \\tfrac{2}{3} \\;\\text{or}\\; x = -4": A(ok(T(NFL, ZERO), "x-intercepts", true)),
     "x = -\\tfrac{3}{2} \\;\\text{or}\\; x = 4": A(wrong(
@@ -98,7 +98,7 @@ export const PS5_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "x-intercepts",
       "The factors were right. Solving the factor with a coefficient on x turned the fraction over. Substituting the root back into its own factor is a one-line check.",
       "Solve 3x + 2 = 0 one step at a time. What is x?",
-      "fraction flipped solving a factor",
+      "divided-wrong-way",
     )),
   },
   "ps5-q5": {
@@ -110,7 +110,7 @@ export const PS5_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Axis of symmetry",
       "The axis formula starts with a minus. With every coefficient positive, the turning point has to sit left of the y-axis.",
       "The formula is x = −b/2a. Where did the minus go?",
-      "axis without the minus",
+      "minus-b-dropped",
     ),
     "y = 3^2 + 6(3) + 5 = 32": ok(T(EVAL), "Height on the axis", true),
     "\\text{turning point } (3, 32)": A(ok(T(FEAT, SKETCH), "Turning point", true)),
@@ -119,7 +119,7 @@ export const PS5_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Height on the axis",
       "Squaring a negative number gives a positive one. A bracket around the −3 before squaring keeps the sign honest.",
       "What is (−3)²?",
-      "(−3)² taken as −9",
+      "product-sign",
     ),
     "\\text{turning point } (-3, -22)": A(ok(T(FEAT, SKETCH), "Turning point", true)),
   },
@@ -133,7 +133,7 @@ export const PS5_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Completed the square",
       "Completing the square adds a number to make a perfect square. Whatever is added has to be taken away again, or the rule changes.",
       "Expand your answer back. Do you get x² − 8x + 10?",
-      "16 added, never taken away",
+      "square-not-balanced",
     ),
     "y = (x - 4)^2 + 10": ok(T(BINOM), "Turning-point form", true),
     "\\text{turning point } (4, 10)": A(ok(T(FEAT), "Turning point", true)),
@@ -155,7 +155,7 @@ export const PS5_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Expanded the square",
       "A squared bracket is the bracket times itself, and that makes a middle term. Squaring each term on its own loses it.",
       "Write (x − 3)² as (x − 3)(x − 3) and expand. What is the middle term?",
-      "squared each term separately",
+      "squared-termwise",
     ),
     "y = 2x^2 + 18 - 5": ok(T(EXPAND), "Distributed the 2", true),
     "y = 2x^2 + 13": ok(T(EXPAND), "Standard form", true),
@@ -164,7 +164,7 @@ export const PS5_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Distributed the 2",
       "The number in front of a bracket multiplies every term inside it, not just the first.",
       "The 2 multiplied x². What happens to −6x and 9?",
-      "the 2 on x² only",
+      "partial-distribution",
     ),
     "y = 2x^2 - 6x + 4": ok(T(EXPAND), "Standard form", true),
     "y\\text{-intercept } (0, 4)": A(ok(T(FEAT), "y-intercept", true)),
@@ -197,7 +197,7 @@ export const PS5_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Axis of symmetry",
       "The axis sits halfway between the intercepts: their sum, then halved. The halving got lost in the fraction.",
       "½ + (−3) is −5/2. What is half of that?",
-      "roots' sum never halved",
+      "halving-wrong",
     )),
   },
   "ps5-q9": {
@@ -212,7 +212,7 @@ export const PS5_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Shape",
       "The sign of a decides which way the parabola opens. Picture y = −x²: does it open up or down?",
       "a is negative. Does the graph have a highest point or a lowest point?",
-      "negative a, concave up",
+      "concavity-sign",
     ),
     "\\text{minimum turning point } (1, 9)": A(ok(T(FEAT, SKETCH), "Turning point", true)),
     "-(x^2 + 2x - 8) = -(x + 4)(x - 2) = 0": wrong(
@@ -220,7 +220,7 @@ export const PS5_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Took out −1, factorised",
       "Taking −1 out of a sum changes the sign of every term left inside. Expanding back shows whether it did.",
       "Expand −(x² + 2x − 8). Do you get −x² + 2x + 8?",
-      "sign left behind in bracket",
+      "minus-not-distributed",
     ),
     "x = -4 \\;\\text{or}\\; x = 2": ok(T(NFL, ZERO), "x-intercepts", true),
     "-(x^2 - 2x - 8) = -(x - 8)(x + 1) = 0": wrong(
@@ -228,7 +228,7 @@ export const PS5_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Took out −1, factorised",
       "A pair for x² − 2x − 8 has to multiply to −8 and add to −2. A pair that only multiplies gives the wrong middle term, and expanding back shows it.",
       "Expand (x − 8)(x + 1). Is the x term −2x?",
-      "pair multiplies, doesn't add",
+      "pair-sum-wrong",
     ),
     "x = 8 \\;\\text{or}\\; x = -1": ok(T(NFL, ZERO), "x-intercepts", true),
     "x = -1,\\; y = -1 - 2 + 8 = 5": ok(T(FEAT, EVAL), "Height on the axis", true),
@@ -247,14 +247,14 @@ export const PS5_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "In context",
       "Both solutions are where the height is zero, but only one of them is where the water comes down. The other is where it leaves.",
       "The nozzle is at x = 0. Which solution is where the water lands?",
-      "landed at the nozzle",
+      "context-not-checked",
     )),
     "\\text{The water reaches 2 m and lands 4 m from the nozzle}": A(wrong(
       T(FEAT),
       "In context",
       "The turning point's two numbers answer different questions: the first is how far along, the second how high.",
       "In the turning point (2, 1), which number is the height?",
-      "axis given as the height",
+      "x-for-y",
     )),
   },
 };

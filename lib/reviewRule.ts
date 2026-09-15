@@ -1,6 +1,7 @@
 import type { Classmate } from "@/data/classmates";
 import { GROUP_COLOURS, type GroupColour, type SeatingGroups } from "@/data/groups";
 import { STORY, type ReviewOutcome, type StoryCategory, type StoryStatus } from "@/data/story";
+import type { MisconceptionId } from "@/data/misconceptions";
 import { evaluateLine } from "./evaluate";
 import { classmateLines, columnOf, type SetScope } from "./hierarchy";
 
@@ -26,8 +27,8 @@ import { classmateLines, columnOf, type SetScope } from "./hierarchy";
 export type ReviewBasis = "one-off" | "repeated" | "pattern" | "incomplete" | "not attempted";
 
 export interface ReviewSlip {
-  /** The wrong line's mistake name (`LineVerdict.name`). */
-  name: string;
+  /** The wrong line's misconception (`LineVerdict.misconception`, ticket 299). */
+  misconception: MisconceptionId;
   category: StoryCategory;
   status: StoryStatus | "unseen" | "absent" | "none" | "live";
   /** The sheet's pattern on this problem in that category, or null when the sheet names none there. */
@@ -75,7 +76,7 @@ export interface RuleOptions {
 
 const STRICT: Record<"one-off" | "repeated" | "pattern", number> = { "one-off": 0, repeated: 1, pattern: 2 };
 
-type Slipped = { name: string; leaf: Parameters<typeof columnOf>[0] };
+type Slipped = { misconception: MisconceptionId; leaf: Parameters<typeof columnOf>[0] };
 
 /** Whether a record handed a problem in right first time: reached inside `done` and off the wrong list. */
 export const rightFirstTime = (r: Pick<Classmate, "done" | "wrong">, set: SetScope, pid: string): boolean => {
@@ -91,7 +92,7 @@ export function slipsOn(r: Classmate, set: SetScope, pid: string): Slipped[] {
   const i = set.problems.findIndex((p) => p.id === pid);
   return (classmateLines(r, set.problems[i], i) ?? []).flatMap((tex) => {
     const v = evaluateLine(pid, tex);
-    return v.verdict === "wrong" ? [{ name: v.name ?? "", leaf: v.tags[0].leaf }] : [];
+    return v.verdict === "wrong" && v.misconception ? [{ misconception: v.misconception, leaf: v.tags[0].leaf }] : [];
   });
 }
 
@@ -119,9 +120,9 @@ export function reviewByRule(set: SetScope, n: number, everyone: readonly Classm
           const category = columnOf(s.leaf, set.newSkills) as StoryCategory;
           const cell = STORY[r.id].cells[category][n - 1];
           const pattern = cell.patterns.find((pt) => pt.problems.includes(q)) ?? null;
-          const repeated = (pattern !== null && pattern.problems.length > 1) || r.wrong.some((other) => other !== pid && slipsOn(r, set, other).some((o) => o.name === s.name));
+          const repeated = (pattern !== null && pattern.problems.length > 1) || r.wrong.some((other) => other !== pid && slipsOn(r, set, other).some((o) => o.misconception === s.misconception));
           const basis = cell.status === "gap" ? "pattern" : repeated ? "repeated" : "one-off";
-          if (!pick || STRICT[basis] > STRICT[pick.basis]) pick = { basis, slip: { name: s.name, category, status: cell.status, pattern } };
+          if (!pick || STRICT[basis] > STRICT[pick.basis]) pick = { basis, slip: { misconception: s.misconception, category, status: cell.status, pattern } };
         }
         brought.push({ r, pid, basis: pick!.basis, slip: pick!.slip });
       }

@@ -4,9 +4,9 @@ import type { LeafId } from "../taxonomy";
 /**
  * Problem Set 4's scripted evaluation (ticket 214): every line any of the class wrote on the set, with its
  * verdict and tags, in the shape of Problem Set 6's table (`data/evaluation.ts`) and read through the same
- * `evaluateLine`. A wrong line carries only the leaf of its slip (the Mistakes tab's chip reads the first);
- * a line that is right given a wrong line above is `builtOn`. The same name on two problems is the same
- * pattern: a guessed non-monic pair (Q1, Q2, Q4), a square added and never taken away (Q6, Q8, Q9), half of
+ * `evaluateLine`. A wrong line carries the leaf of the skill it exercised and its misconception (ticket 299, the Mistakes
+ * tab's chip); a line that is right given a wrong line above is `builtOn`. The same misconception on two problems is
+ * the same pattern: a guessed non-monic pair (Q1, Q2, Q4), a square added and never taken away (Q6, Q8, Q9), half of
  * b with the wrong sign (Q6, Q7), a turning point's sign (Q8, Q9), a fraction flipped solving a factor (Q3, Q4).
  */
 const QUAD: LeafId = "algebra.equations.quadratic";
@@ -22,14 +22,14 @@ const FEAT: LeafId = "graphing.quadratics.features";
 const WORDED: LeafId = "reasoning.interpret.worded";
 const CONCL: LeafId = "reasoning.justify.conclusions";
 
-/** The mistake names shared across problems. */
-const GUESSED_PAIR = "guessed pair, not expanded back";
-const SIGNS_SWAPPED = "signs swapped in the pair";
-const FRACTION_FLIPPED = "fraction flipped solving a factor";
-const ROOT_SIGN = "sign lost solving a factor";
-const NOT_TAKEN_AWAY = "square added, never taken away";
-const HALF_B_SIGN = "half of b, wrong sign";
-const TP_SIGN = "turning point sign flipped";
+/** The misconceptions shared across problems (`data/misconceptions.ts`). */
+const GUESSED_PAIR = "brackets-dont-expand";
+const SIGNS_SWAPPED = "pair-signs-swapped";
+const FRACTION_FLIPPED = "divided-wrong-way";
+const ROOT_SIGN = "solving-sign";
+const NOT_TAKEN_AWAY = "square-not-balanced";
+const HALF_B_SIGN = "square-sign";
+const TP_SIGN = "root-vertex-sign";
 
 const guessed = (product: string, got: string): LineVerdict =>
   A(wrong(
@@ -82,7 +82,7 @@ export const PS4_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Each factor zero",
       "The null factor law sets each factor to zero as it is printed. Changing a sign first makes a different product.",
       "Which factors are in (x − 4)(2x + 1)? Set each of those to zero.",
-      "factor's sign flipped",
+      "root-vertex-sign",
     ),
     "x = -4 \\;\\text{or}\\; 2x = -1": ok(T(LIN, ZERO), "Solved the first, rearranged the second", true),
     "x = -4 \\;\\text{or}\\; x = -2": A(wrong(
@@ -157,14 +157,14 @@ export const PS4_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Made one side zero",
       "Moving a term to the other side changes its sign. The 10 is on the right; on the left it is −10.",
       "Take 10 from both sides of x² − 3x = 10. What is left on the left?",
-      "the 10's sign kept",
+      "rearranging-sign",
     ),
     "x^2 + 3x - 10 = 0": wrong(
       T(QUAD),
       "Made one side zero",
       "Only the 10 moves. A sign changed on a term that stayed where it was, so this is a different equation.",
       "Compare your line with x² − 3x = 10. Which term changed that shouldn't have?",
-      "sign lost rearranging",
+      "rearranging-sign",
     ),
     "(x + 5)(x - 2) = 0": ok(T(MONIC), "Factorised", true),
     "x + 5 = 0 \\;\\text{or}\\; x - 2 = 0": ok(T(NFL, ZERO), "Each factor zero", true),
@@ -175,14 +175,14 @@ export const PS4_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Solutions",
       "Factorising while the equation equals 10 leaves only guessing. A quadratic can have two solutions, and one side zero finds both.",
       "Make one side zero first. How many solutions do you get?",
-      "one root, found by trying",
+      "root-missing",
     )),
     "x = 10 \\;\\text{or}\\; x - 3 = 10": wrong(
       T(NFL),
       "Each factor zero",
       "A rule got used where it doesn't apply. The null factor law needs the product to equal zero.",
       "What does x(x − 3) equal here? Does the null factor law work for that?",
-      "null factor law without zero",
+      "nfl-without-zero",
     ),
     "x = 10 \\;\\text{or}\\; x = 13": A(ok(T(ZERO), "Solutions", true)),
     "x = 5 \\;\\text{or}\\; x = 2": A(wrong(
@@ -190,14 +190,14 @@ export const PS4_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Solutions",
       "A root makes its own factor zero, so its sign is the opposite of the one in the bracket.",
       "Put x = 2 into x + 2. Is it zero?",
-      "root's sign copied from bracket",
+      "root-vertex-sign",
     )),
     "(x - 10)(x + 1) = 0": wrong(
       T(MONIC),
       "Factorised",
       "A pair for x² − 3x − 10 has to multiply to −10 and add to −3. This pair only multiplies, and expanding back shows it.",
       "Expand (x − 10)(x + 1). Is the x term −3x?",
-      "pair multiplies, doesn't add",
+      "pair-sum-wrong",
     ),
     "x - 10 = 0 \\;\\text{or}\\; x + 1 = 0": ok(T(NFL, ZERO), "Each factor zero", true),
     "x = 10 \\;\\text{or}\\; x = -1": A(ok(T(ZERO), "Solutions", true)),
@@ -234,7 +234,7 @@ export const PS4_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Wrote the perfect square",
       "The 9 inside the square was added to make it; outside, it has to come off. Its sign went the wrong way on the way out.",
       "(x + 3)² is x² + 6x + 9. What do you take away to get back to x² + 6x?",
-      "the 9 added back",
+      "square-not-balanced",
     ),
     "(x + 3)^2 + 11": A(ok(T(BINOM), "Collected the constants", true)),
     "(x - 3)^2 - 9 + 2": wrong(
@@ -255,7 +255,7 @@ export const PS4_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Added and took away (5/2)²",
       "Squaring a fraction squares the top and the bottom. Squaring only the top leaves the wrong number to add and take away.",
       "What is (5/2)²? Square the 2 as well.",
-      "(5/2)² taken as 25/2",
+      "power-on-part",
     ),
     "\\left(x - \\tfrac{5}{2}\\right)^2 - \\tfrac{25}{2} + 1": ok(T(BINOM, MONIC, FRAC), "Wrote the perfect square", true),
     "\\left(x - \\tfrac{5}{2}\\right)^2 - \\tfrac{23}{2}": A(ok(T(BINOM, FRAC), "Collected the constants", true)),
@@ -272,7 +272,7 @@ export const PS4_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Wrote the perfect square",
       "The bracket takes half of b. A whole b makes a −10x when the square is expanded, and the number taken away is four times too big.",
       "Expand (x − 5)². Is the middle term −5x? What is half of −5?",
-      "b never halved",
+      "halving-wrong",
     ),
     "(x - 5)^2 - 24": A(ok(T(BINOM), "Collected the constants", true)),
     "\\left(x - \\tfrac{5}{4}\\right)^2 - \\tfrac{25}{16} + 1": wrong(
@@ -280,7 +280,7 @@ export const PS4_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Wrote the perfect square",
       "Half of b was halved twice on the way into the bracket. Expanding the square shows a middle term half the size it should be.",
       "Expand (x − 5/4)². Is the middle term −5x?",
-      "half of −5 as −5/4",
+      "halving-wrong",
     ),
     "\\left(x - \\tfrac{5}{4}\\right)^2 - \\tfrac{9}{16}": A(ok(T(BINOM, FRAC), "Collected the constants", true)),
     "x^2 - 5x + \\tfrac{5}{4} - \\tfrac{5}{4} + 1": wrong(
@@ -288,14 +288,14 @@ export const PS4_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Added and took away (5/2)²",
       "The number that makes a perfect square is half of b, squared. Squaring 5/2 squares the 5 as well as the 2.",
       "What is (5/2)²? Is it 5/4?",
-      "(5/2)² taken as 5/4",
+      "power-on-part",
     ),
     "\\left(x - \\tfrac{5}{4}\\right)^2 - \\tfrac{1}{4}": A(wrong(
       T(FRAC),
       "Wrote the perfect square",
       "The bracket takes half of b once: the halves got lost between the square and the bracket. Expanding back shows a different middle term.",
       "Half of −5 is −5/2. What goes in the bracket?",
-      "half of b halved again",
+      "halving-wrong",
     )),
   },
   "ps4-q8": {
@@ -318,7 +318,7 @@ export const PS4_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Took the 2 out of the x terms",
       "Taking a number out of a bracket divides every term inside by it, not just the first.",
       "Expand 2(x² + 8x). Do you get 2x² + 8x?",
-      "2 out of 2x² only",
+      "partial-distribution",
     ),
     "2(x^2 + 8x + 16) - 32 - 3": ok(T(BINOM, EXPAND), "Added 16 inside, took away 2 × 16", true),
     "2(x + 4)^2 - 35": ok(T(BINOM, FEAT), "Turning-point form", true),
@@ -353,14 +353,14 @@ export const PS4_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Minimum value",
       "The turning point's two numbers answer different questions: the first is where along, the second is the value there.",
       "In the turning point (2, 3), which number is the value of y?",
-      "x given as the minimum",
+      "x-for-y",
     )),
     "\\text{minimum value } 7 \\text{ when } x = 2": A(wrong(
       T(FEAT),
       "Minimum value",
       "The value came off the line in the question, not the completed square. Only turning-point form shows the least value.",
       "Put x = 2 into (x − 2)² + 3. What is y?",
-      "value read off wrong line",
+      "vertex-y-wrong",
     )),
     "y = (x^2 - 4x + 4) + 7": wrong(
       T(BINOM),
@@ -390,21 +390,21 @@ export const PS4_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "In context",
       "Both solutions make the area 35, but only one of them can be a length. A check that passes on the numbers can still fail on the situation.",
       "Can a rectangle have a width of −5 cm?",
-      "negative width kept",
+      "context-not-checked",
     )),
     "\\text{The width is } -5 \\text{ cm}": A(wrong(
       T(CONCL),
       "In context",
       "The working found two solutions and the sentence gives the one a rectangle can't have. Reading the answer back against the question catches it.",
       "Can a rectangle have a width of −5 cm? Which solution is left?",
-      "negative width given",
+      "context-not-checked",
     )),
     "\\text{The width is 10 cm}": A(wrong(
       T(CONCL),
       "In context",
       "The working is right, but the sentence gives the other side. The question named w as the width and 2w + 3 as the length.",
       "Which of 3.5 and 10 is w?",
-      "width and length swapped",
+      "question-not-answered",
     )),
     // Ticket 281: Harper's Q10, mint's table on the set's hardest problem.
     "2w^2 + 3w = 35": ok(T(QUAD), "Expanded"),
@@ -413,7 +413,7 @@ export const PS4_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Made one side zero",
       "Only the 35 moves. The 3w stayed where it was, so its sign stays: this is a different equation.",
       "Expand w(2w + 3). What sign does the w term have?",
-      "sign lost rearranging",
+      "rearranging-sign",
     ),
     "2w^2 - 3w - 35 = (2w + 7)(w - 5)": ok(T(QUAD, NONMONIC), "Factorised", true),
     "w = -\\tfrac{7}{2} \\;\\text{or}\\; w = 5": ok(T(NFL, ZERO), "Null factor law", true),

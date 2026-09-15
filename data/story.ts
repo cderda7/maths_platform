@@ -57,7 +57,7 @@ export interface StorySet {
   categories: readonly StoryCategory[];
   /** Ten problems for a set still to be authored (their model solutions carry at least these leaves); null for an authored set. */
   outline: readonly OutlineProblem[] | null;
-  /** The Classroom card's top gap, as it reads: the leaves' short names. */
+  /** The Classroom card's top gap, as it reads: the misconceptions' names (ticket 299). */
   topGap: string;
   /** Where the set's data lives. */
   source: string;
@@ -106,7 +106,7 @@ export const STORY_SETS: readonly StorySet[] = [
       q("Solve, leaving the answer exact: √3 x = √75 − √12.", SURDS, LIN, FRAC),
       q("A square tile has area 72 cm². Find its side length and its diagonal, exactly.", WORDED, SURDS, CONCL),
     ],
-    topGap: "surds",
+    topGap: "square out, root not taken",
     source: "ticket 211, data/pset1/",
   },
   {
@@ -130,7 +130,7 @@ export const STORY_SETS: readonly StorySet[] = [
       q("Simplify 1/(2 + √3) + 1/(2 − √3).", BINOM, FRAC),
       q("A rectangle is (3 + √2) cm by (3 − √2) cm. Find its area and the length of its diagonal, exactly.", WORDED, BINOM, SURDS, CONCL),
     ],
-    topGap: "binomial identity",
+    topGap: "applied to some terms only",
     source: "ticket 212, data/pset2/",
   },
   {
@@ -154,7 +154,7 @@ export const STORY_SETS: readonly StorySet[] = [
       q("Factorise 2x² + 7x + 3.", NONMONIC),
       q("Show that (x + 3)² − (x − 3)² = 12x.", FORMAL, BINOM, EXPAND),
     ],
-    topGap: "binomial identity",
+    topGap: "brackets don't expand back",
     source: "ticket 213, data/pset3/",
   },
   {
@@ -178,7 +178,7 @@ export const STORY_SETS: readonly StorySet[] = [
       q("Find the minimum value of x² − 4x + 7 by completing the square.", BINOM, FEAT),
       q("A rectangle's length is 3 cm more than twice its width and its area is 35 cm². Find its width.", WORDED, QUAD, NONMONIC, NFL, CONCL),
     ],
-    topGap: "non-monic factorising",
+    topGap: "brackets don't expand back",
     source: "ticket 214, data/pset4/",
   },
   {
@@ -191,7 +191,7 @@ export const STORY_SETS: readonly StorySet[] = [
     pathway: ["individual", "group"],
     categories: ALL,
     outline: null,
-    topGap: "graph features",
+    topGap: "brackets don't expand back",
     source: "data/pset5/ (ticket 187)",
   },
   {
@@ -204,7 +204,7 @@ export const STORY_SETS: readonly StorySet[] = [
     pathway: ["individual", "group", "whole-class"],
     categories: ALL,
     outline: null,
-    topGap: "fractions",
+    topGap: "applied to some terms only",
     source: "data/assignment.ts, data/classmates.ts (the live set; rows are the classmates' end state)",
   },
 ];
@@ -560,8 +560,8 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       kept(10, "Repeated: the diagonal found by dividing the side by √2 (Q9, Q10). Nobody at the table had Q10 right, so the group's last try is still wrong."),
     ],
     sofia: [
-      own(7, "One-off: the fraction left upside down dividing surds, on Q7 alone. Found on the second submission."),
-      own(10, "One-off: the diagonal found by dividing the side by √2, on Q10 alone. Found on the second submission."),
+      grp(7, "Repeated: divided the wrong way round (Q7, Q10). Oliver, Ruby and Finn had Q7 right, and the group's rework holds."),
+      kept(10, "Repeated: divided the wrong way round (Q7, Q10). Nobody at the table had Q10 right, so the group's last try is still wrong."),
     ],
   },
   // Problem Set 2
@@ -662,17 +662,17 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       grp(10, "Not attempted. Sam and Zara had Q10 right, and the group's rework holds."),
     ],
     amelia: [
-      own(2, "One-off: (2x − 3)² expanded without the middle term, on Q2 alone. Found on the second submission."),
-      own(4, "One-off: difference of squares as square, on Q4 alone. Found on the second submission."),
+      grp(2, "Repeated: a perfect square and a difference of two squares written for each other (Q2, Q4). Priya and Aiden had Q2 right, and the group's rework holds."),
+      grp(4, "Repeated: a perfect square and a difference of two squares written for each other (Q2, Q4). Priya, Tomas and Aiden had Q4 right, and the group's rework holds."),
       own(7, "One-off: a common factor taken out and not put back in the answer, on Q7 alone. Found on the second submission."),
       own(10, "One-off: the last line doesn't say what was shown, on Q10 alone. Found on the second submission."),
     ],
     tomas: [
       grp(1, "Pattern: Algebra is a gap on the set (signs in the second bracket copied, not multiplied). Priya and Amelia had Q1 right, and the group's rework holds."),
-      own(2, "One-off: the middle term's sign copied from the bracket, on Q2 alone. Found on the second submission."),
-      own(6, "One-off: the square's sign flipped, on Q6 alone. Found on the second submission."),
+      grp(2, "Repeated: a perfect square's sign wrong (Q2, Q6). Priya and Aiden had Q2 right, and the group's rework holds."),
+      grp(6, "Repeated: a perfect square's sign wrong (Q2, Q6). Priya, Amelia and Aiden had Q6 right, and the group's rework holds."),
       grp(7, "Pattern: Algebra is a gap on the set (a negative common factor's sign lost). Priya had Q7 right, and the group's rework holds."),
-      own(10, "One-off: both squares expanded, the subtraction's signs not shown, on Q10 alone. Found on the second submission."),
+      grp(10, "Repeated: a minus not carried through a bracket (Q7, Q10). Priya and Aiden had Q10 right, and the group's rework holds."),
     ],
     zara: [
       own(4, "One-off: x² − 49 factorised as (x − 7)², on Q4 alone. Found on the second submission."),
@@ -687,9 +687,9 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       grp(10, "Not attempted. Sam and Zara had Q10 right, and the group's rework holds."),
     ],
     aiden: [
-      own(1, "One-off: the 4 on x only, on Q1 alone. Found on the second submission."),
+      grp(1, "Repeated: a multiplier applied to some terms only (Q1, Q7). Priya and Amelia had Q1 right, and the group's rework holds."),
       own(3, "One-off: (3x)² as 3x², on Q3 alone. Found on the second submission."),
-      own(7, "One-off: the common factor divided out of the first two terms only, on Q7 alone. Found on the second submission."),
+      grp(7, "Repeated: a multiplier applied to some terms only (Q1, Q7). Priya had Q7 right, and the group's rework holds."),
     ],
     mia: [
       own(4, "One-off: x² − 49 written as (x − 7)², on Q4 alone. Found on the second submission."),
@@ -765,10 +765,10 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     ],
     tomas: [
       grp(3, "Pattern: New skills is a gap on the set (factors set to zero with their signs flipped). Priya, Amelia and Aiden had Q3 right, and the group's rework holds."),
-      own(5, "One-off: a root's sign copied from its bracket, on Q5 alone. Found on the second submission."),
+      grp(5, "Repeated: a root or turning point with the sign of its bracket's number (Q3, Q5, Q9). Priya, Amelia and Aiden had Q5 right, and the group's rework holds."),
       grp(6, "Pattern: New skills is a gap on the set (half of b taken with the wrong sign). Priya and Aiden had Q6 right, and the group's rework holds."),
       grp(7, "Pattern: Algebra is a gap on the set (fractions lost in half of b). Priya and Aiden had Q7 right, and the group's rework holds."),
-      own(9, "One-off: the minimum's x read with the sign flipped, on Q9 alone. Found on the second submission."),
+      grp(9, "Repeated: a root or turning point with the sign of its bracket's number (Q3, Q5, Q9). Priya, Amelia and Aiden had Q9 right, and the group's rework holds."),
       grp(10, "Not attempted. Priya and Aiden had Q10 right, and the group's rework holds."),
     ],
     zara: [
@@ -876,7 +876,7 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     ],
     tomas: [
       grp(1, "Pattern: New skills is a gap on the set (intercepts read off the factors with the signs flipped). Priya, Amelia and Aiden had Q1 right, and the group's rework holds."),
-      own(2, "One-off: h read as +3 from (x + 3), on Q2 alone. Found on the second submission."),
+      grp(2, "Repeated: an intercept or turning point with the sign of its bracket's number (Q1, Q2). Priya, Amelia and Aiden had Q2 right, and the group's rework holds."),
       grp(4, "Pattern: Algebra is a gap on the set (solved 3x + 2 = 0 as −3/2). Priya, Amelia and Aiden had Q4 right, and the group's rework holds."),
       own(5, "One-off: axis of symmetry without the minus, on Q5 alone. Found on the second submission."),
       grp(8, "Not attempted. Priya and Aiden had Q8 right, and the group's rework holds."),

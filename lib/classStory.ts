@@ -49,9 +49,9 @@ export function recordOutcomes(record: Classmate, set: SetScope): { q: number; o
 
 const holdsAll = (pid: string, lines: readonly string[]) => lines.length > 0 && lines.every((tex) => evaluateLine(pid, tex).verdict === "ok");
 const hasWrong = (pid: string, lines: readonly string[]) => lines.some((tex) => evaluateLine(pid, tex).verdict === "wrong");
-const wrongNames = (pid: string, lines: readonly string[]) => lines.flatMap((tex) => {
+const wrongMisconceptions = (pid: string, lines: readonly string[]) => lines.flatMap((tex) => {
   const v = evaluateLine(pid, tex);
-  return v.verdict === "wrong" ? [v.name ?? ""] : [];
+  return v.verdict === "wrong" && v.misconception ? [v.misconception] : [];
 });
 
 /**
@@ -116,9 +116,9 @@ export function reviewMismatches(everyone: readonly Classmate[], set: SetScope, 
         const reused = everyone.find((m) => JSON.stringify(m.attempts[pid] ?? null) === JSON.stringify(g.lines));
         if (reused) out.push(`${where}: the group's last try is ${reused.id}'s first submission`);
         if (!call?.scripted) {
-          const table = everyone.filter((m) => seating[colour].includes(m.id) && !absent.includes(m.id)).flatMap((m) => wrongNames(pid, m.attempts[pid] ?? []));
-          const real = table.length > 0 ? table : everyone.flatMap((m) => wrongNames(pid, m.attempts[pid] ?? []));
-          if (!wrongNames(pid, g.lines).some((name) => real.includes(name))) out.push(`${where}: the group's last try shares no slip ${table.length > 0 ? "a member at the table" : "the class"} made`);
+          const table = everyone.filter((m) => seating[colour].includes(m.id) && !absent.includes(m.id)).flatMap((m) => wrongMisconceptions(pid, m.attempts[pid] ?? []));
+          const real = table.length > 0 ? table : everyone.flatMap((m) => wrongMisconceptions(pid, m.attempts[pid] ?? []));
+          if (!wrongMisconceptions(pid, g.lines).some((id) => real.includes(id))) out.push(`${where}: the group's last try shares no slip ${table.length > 0 ? "a member at the table" : "the class"} made`);
         }
       }
       for (const m of everyone.filter((o) => o.id !== r.id && seating[colour].includes(o.id) && !absent.includes(o.id) && groupProblemsOf(o, set).includes(pid))) {

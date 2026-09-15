@@ -9,7 +9,7 @@ import { streamEvents } from "./stream";
 
 const P = ASSIGNMENT.problems;
 const ORDER = P.map((p) => p.id);
-const row = (id: string, arrivedAt?: number): MistakeRow => ({ id, name: id, initials: id.slice(0, 2), live: false, lines: [], slips: [], arrivedAt });
+const row = (id: string, arrivedAt?: number): MistakeRow => ({ id, name: id, initials: id.slice(0, 2), live: false, lines: [], misconceptions: [], arrivedAt });
 const card = (i: number, rows: MistakeRow[], right = 0): ProblemMistakes => ({ problem: P[i], rows, right, pending: 0 });
 const ids = (s: HoldState) => s.problems.map((p) => `${p.problem.id}:${p.rows.map((r) => r.id).join(",")}`);
 

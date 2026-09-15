@@ -1,7 +1,7 @@
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATES, type Classmate } from "@/data/classmates";
 import type { Problem } from "@/data/types";
-import type { LeafId } from "@/data/taxonomy";
+import type { MisconceptionId } from "@/data/misconceptions";
 import { evaluateLine, type Verdict } from "./evaluate";
 import { feedbackFor, progressOf, type ProblemFeedback } from "./feedback";
 import { CLASS_SIZE } from "./readiness";
@@ -19,8 +19,8 @@ export interface MistakeRow {
   initials: string;
   live: boolean;
   lines: { tex: string; verdict: Verdict }[];
-  /** Leaves of the steps that didn't hold. */
-  slips: LeafId[];
+  /** The misconceptions of the steps that didn't hold (ticket 299), in the order written. */
+  misconceptions: MisconceptionId[];
   /**
    * When the student submitted this problem, absolute ms, on a live set's stream (ticket 189): the rows come
    * in this order, so a new name lands at the end of its cluster, and the view highlights it for a moment.
@@ -42,9 +42,9 @@ export interface ProblemMistakes {
   pending: number;
 }
 
-/** Students who slipped on the same leaves, adjacent, so the view can draw one pill across them. */
+/** Students who slipped with the same misconceptions (ticket 299), adjacent, so the view can draw one pill across them. */
 export interface SlipGroup {
-  slips: LeafId[];
+  misconceptions: MisconceptionId[];
   /** Index of the group's first column among the problem's columns. */
   start: number;
   /** The group's students in view order: its columns' rows concatenated. */
@@ -132,7 +132,7 @@ export function groupByMistake(rows: MistakeRow[], start = 0): MistakeGroup[] {
 }
 
 /**
- * Orders a problem's students so those who slipped on the same leaves sit next to each other
+ * Orders a problem's students so those who slipped with the same misconceptions sit next to each other
  * (groups in order of first appearance, students in their original order within a group),
  * inside each of those, those who made the exact same mistake next to each other (the same
  * rule again), and inside each of those, those whose working is identical in one column;
@@ -142,11 +142,11 @@ export function groupByMistake(rows: MistakeRow[], start = 0): MistakeGroup[] {
 export function groupBySlip(rows: MistakeRow[]): SlipGroup[] {
   const groups: SlipGroup[] = [];
   for (const r of rows) {
-    const slips = [...new Set(r.slips)];
-    const key = slips.join("|");
-    const g = groups.find((x) => x.slips.join("|") === key);
+    const misconceptions = [...new Set(r.misconceptions)];
+    const key = misconceptions.join("|");
+    const g = groups.find((x) => x.misconceptions.join("|") === key);
     if (g) g.rows.push(r);
-    else groups.push({ slips, start: 0, rows: [r], mistakes: [], columns: [] });
+    else groups.push({ misconceptions, start: 0, rows: [r], mistakes: [], columns: [] });
   }
   let start = 0;
   for (const g of groups) {
@@ -160,7 +160,7 @@ export function groupBySlip(rows: MistakeRow[]): SlipGroup[] {
 }
 
 const evaluateAll = (pid: string, texs: string[]) => texs.map((tex) => ({ tex, verdict: evaluateLine(pid, tex) }));
-const slipsOf = (lines: { verdict: Verdict }[]) => lines.flatMap((l) => (l.verdict.verdict === "wrong" ? [l.verdict.tags[0].leaf] : []));
+const misconceptionsOf = (lines: { verdict: Verdict }[]) => lines.flatMap((l) => (l.verdict.verdict === "wrong" && l.verdict.misconception ? [l.verdict.misconception] : []));
 
 /**
  * Whether the live student got a problem right: a finished hand-in on it with no wrong line.
@@ -217,7 +217,7 @@ export function mistakesByProblem(session: StudentSession | null, set: MistakeSe
       const me = mine.find((p) => p.problem.id === problem.id);
       if (me && me.slips.length > 0) {
         const lines = me.lines.map((l) => ({ tex: l.tex, verdict: l.verdict }));
-        rows.push({ id: DEMO_STUDENT.id, name: DEMO_STUDENT.name, initials: DEMO_STUDENT.initials, live: true, lines, slips: slipsOf(lines) });
+        rows.push({ id: DEMO_STUDENT.id, name: DEMO_STUDENT.name, initials: DEMO_STUDENT.initials, live: true, lines, misconceptions: misconceptionsOf(lines) });
       }
       // On a finished set Sam is one more record, read like the classmates' and listed first.
       if (sam?.wrong.includes(problem.id)) rows.push(recordRow(sam, problem.id));
@@ -233,5 +233,5 @@ export function mistakesByProblem(session: StudentSession | null, set: MistakeSe
 
 function recordRow(c: Classmate, problemId: string): MistakeRow {
   const lines = evaluateAll(problemId, c.attempts[problemId] ?? []);
-  return { id: c.id, name: c.name, initials: c.initials, live: false, lines, slips: slipsOf(lines) };
+  return { id: c.id, name: c.name, initials: c.initials, live: false, lines, misconceptions: misconceptionsOf(lines) };
 }

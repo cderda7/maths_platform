@@ -25,11 +25,10 @@ export const PS3_REVIEW: SetReview = {
   second: {
     sam: { [q(8)]: solution(8) },
     jordan: { [q(6)]: solution(6) },
-    amelia: { [q(2)]: solution(2), [q(4)]: solution(4), [q(7)]: solution(7), [q(10)]: solution(10) },
-    tomas: { [q(2)]: solution(2), [q(6)]: solution(6), [q(10)]: solution(10) },
+    amelia: { [q(7)]: solution(7), [q(10)]: solution(10) },
     zara: { [q(4)]: solution(4) },
     liam: { [q(2)]: solution(2) },
-    aiden: { [q(1)]: solution(1), [q(3)]: solution(3), [q(7)]: solution(7) },
+    aiden: { [q(3)]: solution(3) },
     mia: { [q(4)]: solution(4), [q(9)]: solution(9) },
     chloe: { [q(8)]: solution(8) },
     ethan: { [q(6)]: solution(6), [q(8)]: solution(8) },

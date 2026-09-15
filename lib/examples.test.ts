@@ -63,9 +63,9 @@ describe("board examples", () => {
     expect(options[0].key).toBe(CORRECT);
     expect(options[0].name).toBe("correct");
     expect(options.slice(1).map((o) => [o.name, o.count])).toEqual([
-      ["scaled two of three terms", 7], // six classmates and Sam
-      ["tripled, third never restored", 4],
-      ["pair adds to nine", 3], // Lucas, Ruby and (ticket 189) Jordan
+      ["applied to some terms only", 7], // six classmates and Sam scaled two of three terms
+      ["factor missing from answer", 4], // tripled, the third never restored
+      ["product right, sum wrong", 3], // Lucas, Ruby and (ticket 189) Jordan: a pair adding to nine
     ]);
     for (const o of options.slice(1)) {
       expect(o.leaf).toBeTruthy();
@@ -73,7 +73,7 @@ describe("board examples", () => {
       expect(o.count).toBe(o.columns.reduce((n, c) => n + c.students.length, 0));
     }
     const q2 = optionsFor(candidatesFor("q2", s));
-    const guessed = q2.find((o) => o.name === "guessed pair, not expanded back")!;
+    const guessed = q2.find((o) => o.name === "brackets don't expand back")!;
     expect(guessed.count).toBe(6);
     expect(guessed.columns).toHaveLength(2); // the five classmates' three lines, and sam's own route
     expect(guessed.columns[0].students).toHaveLength(5);

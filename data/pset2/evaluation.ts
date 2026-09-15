@@ -4,8 +4,8 @@ import type { LeafId } from "../taxonomy";
 /**
  * Problem Set 2's scripted evaluation (ticket 212): every line any of the class wrote on the set, with its
  * verdict and tags, in the same shape as Problem Set 6's table (`data/evaluation.ts`) and read through the
- * same `evaluateLine`. A wrong line's first tag is the slip the Mistakes tab clusters on; its `name` is the
- * teacher's name for the mistake, and the same name on two problems is the same pattern (a fraction turned
+ * same `evaluateLine`. A wrong line's `misconception` (ticket 299) is what the Mistakes tab clusters on and names it
+ * by, and the same one on two problems is the same pattern (a fraction turned
  * over on Q5 and Q6, the root moved onto the top on Q5 and Q6, the conjugate multiplied on the bottom only
  * on Q7 and Q8, a denominator dropped on Q9).
  */
@@ -16,11 +16,11 @@ const SURDS: LeafId = "algebra.number.surds";
 const WORDED: LeafId = "reasoning.interpret.worded";
 const CONCL: LeafId = "reasoning.justify.conclusions";
 
-/** The mistake names shared across problems. */
-const TURNED_OVER = "fraction turned over";
-const TOP_NOT_BOTTOM = "rationalised the top, not bottom";
-const BOTTOM_ONLY = "conjugate on the bottom only";
-const MIDDLE_GUESSED = "middle terms guessed";
+/** The misconceptions shared across problems (`data/misconceptions.ts`). */
+const TURNED_OVER = "divided-wrong-way";
+const TOP_NOT_BOTTOM = "rationalise-wrong-factor";
+const BOTTOM_ONLY = "partial-distribution";
+const MIDDLE_GUESSED = "collecting-sign";
 
 export const PS2_EVALUATION: Record<string, Record<string, LineVerdict>> = {
   "ps2-q1": {
@@ -31,7 +31,7 @@ export const PS2_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Multiplied √3 into both terms",
       "The number in front of a bracket multiplies every term inside it, the last one as much as the first.",
       "The √3 multiplied 2√3. What does it do to the −1?",
-      "√3 on first term only",
+      "partial-distribution",
     ),
     "6 - 1 = 5": A(ok(T(SURDS), "Simplified", true)),
     "\\sqrt{3} \\times 2\\sqrt{3} + \\sqrt{3} \\times 1": wrong(
@@ -39,7 +39,7 @@ export const PS2_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Multiplied √3 into both terms",
       "A term's sign travels with it into the product. A positive times a negative is negative.",
       "What is √3 × (−1)?",
-      "the minus not multiplied through",
+      "minus-not-distributed",
     ),
     "6 + \\sqrt{3}": A(ok(T(SURDS, EXPAND), "Simplified", true)),
   },
@@ -51,7 +51,7 @@ export const PS2_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Expanded, four terms",
       "A root times itself gives the number under it, and the signs multiply as they would for any number.",
       "What is √5 × (−√5)?",
-      "√5 × (−√5) as +5",
+      "product-sign",
     ),
     "11 + \\sqrt{5}": A(ok(T(SURDS, EXPAND), "Collected like terms", true)),
     "6 + 2\\sqrt{5} + 3\\sqrt{5} - 5": wrong(
@@ -59,7 +59,7 @@ export const PS2_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Expanded, four terms",
       "Each of the four products takes its sign from both the terms it multiplies, not from the bracket the first one sits in.",
       "What is 2 × (−√5)?",
-      "product's sign from the bracket",
+      "product-sign",
     ),
     "1 + 5\\sqrt{5}": A(ok(T(SURDS, EXPAND), "Collected like terms", true)),
     "6 - \\sqrt{5} - 5": wrong(
@@ -75,7 +75,7 @@ export const PS2_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Expanded, four terms",
       "Two brackets of two terms make four products: first, outer, inner, last. Two of them are missing here.",
       "You multiplied 2 × 3 and √5 × (−√5). Which two products are left?",
-      "only two of four terms",
+      "partial-distribution",
     ),
     "1": A(ok(T(EXPAND), "Collected like terms", true)),
   },
@@ -88,7 +88,7 @@ export const PS2_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Squared the root",
       "The middle term of (a + b)² is 2ab: the product of the two terms, then doubled. Writing the bracket out twice shows both copies.",
       "Here a = √7 and b = 2. What is 2ab?",
-      "middle term not doubled",
+      "middle-not-doubled",
     ),
     "11 + 2\\sqrt{7}": A(ok(T(SURDS), "Simplified", true)),
     "(\\sqrt{7})^2 + 2^2": wrong(
@@ -96,7 +96,7 @@ export const PS2_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Perfect square",
       "A squared bracket is the bracket times itself, and that makes a middle term. Squaring each term on its own loses it.",
       "Write (√7 + 2)² as (√7 + 2)(√7 + 2) and expand. How many terms do you get?",
-      "squared each term separately",
+      "squared-termwise",
     ),
     "7 + 4 = 11": A(ok(T(SURDS), "Simplified", true)),
   },
@@ -108,7 +108,7 @@ export const PS2_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Difference of two squares",
       "(a − b)(a + b) is a difference: the middle terms cancel and the last one is subtracted. Its name says the sign.",
       "Expand (3 − √2)(3 + √2) term by term. What is the last product?",
-      "difference of squares added",
+      "square-vs-difference",
     ),
     "9 + 2 = 11": A(ok(T(SURDS), "Simplified", true)),
   },
@@ -165,14 +165,14 @@ export const PS2_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Multiplied by the conjugate",
       "The root only clears when the bottom becomes a difference of two squares, and that needs the same two terms with the sign between them changed.",
       "Expand (√5 − 1)(√5 − 1). Is there still a root in it?",
-      "same bracket, not the conjugate",
+      "rationalise-wrong-factor",
     ),
     "\\dfrac{4(\\sqrt{5} - 1)}{5 - 1}": wrong(
       T(BINOM),
       "Difference of two squares below",
       "(a − b)(a − b) is a perfect square, with a middle term. Only (a − b)(a + b) comes to a² − b².",
       "Expand (√5 − 1)² term by term. What is the middle term?",
-      "square taken as difference",
+      "square-vs-difference",
     ),
     "\\sqrt{5} - 1": A(ok(T(FRAC), "Cancelled the 4", true)),
     "\\dfrac{4}{(\\sqrt{5} - 1)(\\sqrt{5} + 1)}": wrong(
@@ -188,7 +188,7 @@ export const PS2_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Cancelled the 4",
       "A rationalised answer is finished when nothing more cancels. Every term on top shares a factor with the bottom here.",
       "Take 4 out of the top. What cancels?",
-      "answer not cancelled",
+      "not-cancelled",
     )),
     "\\dfrac{4}{\\sqrt{5} - 1} = \\sqrt{5} + 1": A(okc(T(BINOM, SURDS, FRAC), "Rationalised in one line, the conjugate not shown")),
   },
@@ -211,7 +211,7 @@ export const PS2_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Expanded the top",
       "(√3 + 1)² is (√3 + 1)(√3 + 1): four products. Writing them all out keeps the second √3.",
       "Expand (√3 + 1)(√3 + 1) term by term. How many √3 terms are there?",
-      "a term dropped expanding",
+      "middle-not-doubled",
     ),
     "\\dfrac{4 + \\sqrt{3}}{2}": A(ok(T(SURDS, FRAC), "Collected", true)),
   },
@@ -224,7 +224,7 @@ export const PS2_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Common denominator",
       "Both tops were scaled for a common denominator, but the bottom kept only one of the two. The common denominator is the product of both.",
       "What did you multiply each fraction's bottom by?",
-      "a denominator dropped",
+      "denominator-dropped",
     ),
     "\\dfrac{4}{2 + \\sqrt{3}}": ok(T(FRAC), "Collected the top", true),
     "\\dfrac{4(2 - \\sqrt{3})}{4 - 3}": ok(T(BINOM, SURDS), "Rationalised", true),
@@ -234,7 +234,7 @@ export const PS2_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Common denominator",
       "Over a common denominator each top is multiplied by whatever its own bottom was. One of the tops was left as it was.",
       "The first fraction's bottom was multiplied by (2 − √3). What happens to its top?",
-      "one numerator not scaled",
+      "partial-distribution",
     ),
     "\\dfrac{3 + \\sqrt{3}}{4 - 3}": ok(T(BINOM, SURDS), "Difference of two squares below", true),
     "3 + \\sqrt{3}": A(ok(T(FRAC), "Simplified", true)),
@@ -250,21 +250,21 @@ export const PS2_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "In context",
       "The question asks for two things. The working found both, but the sentence answers only one of them.",
       "Read the question again. What else did it ask for?",
-      "the diagonal left out",
+      "question-not-answered",
     )),
     "\\text{Area } \\sqrt{22} \\text{ cm}^2 \\text{, diagonal } 7 \\text{ cm}": A(wrong(
       T(WORDED),
       "In context",
       "The working is right, but the sentence puts each result against the other's name. Reading each line's letter back says which is which.",
       "Which line did A = 7 come from, and which d?",
-      "area and diagonal swapped",
+      "question-not-answered",
     )),
     "\\text{Area } 7 \\text{ cm}^2 \\text{ and } \\sqrt{22} \\text{ cm}": A(wrong(
       T(WORDED),
       "In context",
       "The sentence has both numbers but names only one. A reader can't tell what the √22 cm measures.",
       "What is the √22 cm the length of?",
-      "the diagonal not named",
+      "question-not-answered",
     )),
     // Ticket 281: Harper's Q10, mint's table on the set's hardest problem.
     "(3 + \\sqrt{2})^2 = 9 + 6\\sqrt{2} + 2": ok(T(BINOM), "Perfect square"),
@@ -273,7 +273,7 @@ export const PS2_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Perfect square",
       "The middle term of (a − b)² is −2ab: the product of the two terms, then doubled. The first square doubled it; this one didn't.",
       "Here a = 3 and b = √2. What is 2ab?",
-      "middle term not doubled",
+      "middle-not-doubled",
     ),
     "d^2 = (11 + 6\\sqrt{2}) + (11 - 3\\sqrt{2}) = 22 + 3\\sqrt{2}": ok(T(BINOM, SURDS), "Squared both sides", true),
     "d = \\sqrt{22 + 3\\sqrt{2}}": ok(T(SURDS), "Diagonal", true),

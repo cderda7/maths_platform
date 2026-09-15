@@ -30,7 +30,6 @@ export const PS1_REVIEW: SetReview = {
     chloe: { [q(1)]: solution(1), [q(5)]: solution(5) },
     isla: { [q(4)]: solution(4) },
     oliver: { [q(4)]: solution(4), [q(10)]: solution(10) },
-    sofia: { [q(7)]: solution(7), [q(10)]: solution(10) },
   },
   groups: {
     coral: { [q(3)]: rework(3), [q(4)]: rework(4), [q(7)]: rework(7), [q(8)]: rework(8), [q(10)]: rework(10) },

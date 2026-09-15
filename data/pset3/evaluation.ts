@@ -3,8 +3,8 @@ import type { LeafId } from "../taxonomy";
 
 /**
  * Problem Set 3's scripted evaluation (ticket 213): every line any of the class wrote on the set, with its
- * verdict and tags, read through the same `evaluateLine` as every other set. A wrong line's `name` is the
- * teacher's name for the mistake; the same name on two problems is the same pattern (a pair guessed and not
+ * verdict and tags, read through the same `evaluateLine` as every other set. A wrong line's `misconception` is its
+ * entry in the misconception taxonomy (ticket 299); the same one on two problems is the same pattern (a pair guessed and not
  * expanded back on Q5 and Q8, a pair that multiplies but does not add on Q5 and Q8, x² − 49 as (x − 7)² on Q4).
  */
 const EXPAND: LeafId = "algebra.expand-factor.expand";
@@ -13,11 +13,11 @@ const NONMONIC: LeafId = "algebra.expand-factor.nonmonic";
 const BINOM: LeafId = "algebra.expand-factor.binomial";
 const FORMAL: LeafId = "reasoning.justify.formal";
 
-/** The mistake names shared across problems. */
-const GUESSED_PAIR = "pair guessed, not expanded back";
-const PAIR_NOT_ADDING = "pair multiplies, doesn't add";
-const SIGN_FLIPPED = "sign flipped writing the pair";
-const CHECK_COPIED = "check copied from the question";
+/** The misconceptions shared across problems (`data/misconceptions.ts`). */
+const GUESSED_PAIR = "brackets-dont-expand";
+const PAIR_NOT_ADDING = "pair-sum-wrong";
+const SIGN_FLIPPED = "pair-signs-swapped";
+const CHECK_COPIED = "check-wrong";
 
 /** A wrong line that also skips a step a reader could not follow. */
 const compound = (v: LineVerdict): LineVerdict => ({ ...v, compounds: true });
@@ -31,7 +31,7 @@ export const PS3_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Every term by every term",
       "A positive times a negative is negative. The sign of each product comes from multiplying both signs, not from copying one of them.",
       "What is 4 × (−7)?",
-      "4 × (−7) as +28",
+      "product-sign",
     ),
     "x^2 - 3x + 28": A(ok(T(EXPAND), "Collected like terms", true)),
     "x^2 + 3x - 28": A(wrong(
@@ -39,14 +39,14 @@ export const PS3_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Collected like terms",
       "The four terms were right. Collecting −7x and +4x gives the sign of the larger one.",
       "What is −7x + 4x?",
-      "sign lost collecting like terms",
+      "collecting-sign",
     )),
     "x^2 - 7x + 4x - 7": wrong(
       T(EXPAND),
       "Every term by every term",
       "Each term in the first bracket multiplies every term in the second. The 4 has two terms to multiply, not one.",
       "The 4 multiplied x. What does it do to the −7?",
-      "the 4 on x only",
+      "partial-distribution",
     ),
     "x^2 - 3x - 7": A(ok(T(EXPAND), "Collected like terms", true)),
   },
@@ -58,7 +58,7 @@ export const PS3_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Squared the bracket",
       "A squared bracket is the bracket times itself, and multiplying it out makes a middle term. Squaring each term on its own loses it.",
       "Write (2x − 3)² as (2x − 3)(2x − 3) and expand. What is the x term?",
-      "squared each term separately",
+      "squared-termwise",
     ),
     "4x^2 + 9": A(ok(T(EXPAND), "Simplified", true)),
     "(2x)^2 - 3^2": wrong(
@@ -66,7 +66,7 @@ export const PS3_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Squared the bracket",
       "a² − b² is (a + b)(a − b), the difference of two squares. A perfect square (a − b)² has a middle term −2ab.",
       "Expand (2x − 3)(2x − 3). Does it come to 4x² − 9?",
-      "square taken as difference",
+      "square-vs-difference",
     ),
     "4x^2 - 9": A(ok(T(EXPAND), "Simplified", true)),
     "(2x)^2 - 2(2x)(-3) + 3^2": wrong(
@@ -74,14 +74,14 @@ export const PS3_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Used (a − b)² = a² − 2ab + b²",
       "The identity's minus already carries the bracket's sign. Putting −3 in for b as well subtracts a negative, and the middle term comes out positive.",
       "In (a − b)², what is b when the bracket is (2x − 3)?",
-      "the bracket's minus used twice",
+      "square-sign",
     ),
     "(2x)^2 + 2(2x)(3) + 3^2": wrong(
       T(BINOM),
       "Used (a − b)² = a² − 2ab + b²",
       "The bracket is a difference, so the middle term of its square is subtracted. (a + b)² is the identity with a plus.",
       "Which identity fits (2x − 3)²: (a + b)² or (a − b)²?",
-      "middle term's minus lost",
+      "square-sign",
     ),
     "4x^2 + 12x + 9": A(ok(T(EXPAND), "Simplified", true)),
   },
@@ -93,7 +93,7 @@ export const PS3_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Simplified",
       "A power applies to everything in its bracket. Squaring 3x squares the 3 as well as the x.",
       "What is (3x) × (3x)?",
-      "(3x)² as 3x²",
+      "power-on-part",
     )),
   },
   "ps3-q4": {
@@ -104,7 +104,7 @@ export const PS3_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Factorised",
       "A difference of two squares factorises into one bracket with a plus and one with a minus. A perfect square expands with a middle term, and there is none here.",
       "Expand (x − 7)². Do you get x² − 49?",
-      "difference of squares as square",
+      "square-vs-difference",
     )),
   },
   "ps3-q5": {
@@ -151,21 +151,21 @@ export const PS3_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Factorised",
       "(x − 5)(x + 5) is a difference of two squares: it has no x term. A square number at the end does not make the whole thing a difference of squares.",
       "Expand (x − 5)(x + 5). Where did −10x go?",
-      "perfect square as difference",
+      "square-vs-difference",
     )),
     "(x + 5)^2": A(wrong(
       T(BINOM),
       "Factorised",
       "The middle term of a perfect square takes the sign inside the bracket. −10x needs a minus in the bracket.",
       "Expand (x + 5)². Is the x term −10x?",
-      "the square's sign flipped",
+      "square-sign",
     )),
     "x^2 - 10x + 25 = (x + 5)^2": A(compound(wrong(
       T(BINOM),
       "Factorised in one line",
       "Spotting a perfect square in one go skips the line that shows its middle term, and that is the line that holds the sign.",
       "Write x² − 10x + 25 as x² − 2(5)x + 5². What sign goes in the bracket?",
-      "perfect square's sign rushed",
+      "square-sign",
     ))),
   },
   "ps3-q7": {
@@ -178,7 +178,7 @@ export const PS3_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Took out the common factor",
       "Taking out a negative factor changes the sign of every term left inside. Expanding back shows whether it did.",
       "Expand −3(x² − 4x − 12). Do you get 3x² − 12x − 36?",
-      "negative factor, signs kept",
+      "minus-not-distributed",
     ),
     "-3(x - 6)(x + 2)": A(ok(T(MONIC), "Factorised", true)),
     "3(x^2 + 4x - 12)": wrong(
@@ -186,7 +186,7 @@ export const PS3_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Took out the 3",
       "Dividing each term by 3 keeps its sign: −12x ÷ 3 is −4x.",
       "What is −12x ÷ 3?",
-      "sign lost taking out 3",
+      "minus-not-distributed",
     ),
     "6 \\times (-2) = -12,\\; 6 + (-2) = 4": ok(T(MONIC), "Found the pair", true),
     "3(x + 6)(x - 2)": A(ok(T(MONIC), "Factorised", true)),
@@ -195,14 +195,14 @@ export const PS3_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Factorised fully",
       "The 3 taken out at the start is part of the expression. Expanding (x − 6)(x + 2) back gives x² − 4x − 12, a third of the question.",
       "Expand your answer. Do you get 3x² − 12x − 36?",
-      "common factor left off",
+      "factor-missing",
     )),
     "3(x^2 - 4x) - 36": A(wrong(
       T(EXPAND),
       "Took out the common factor",
       "A common factor comes out of every term. The −36 has a factor of 3 too, and the bracket left behind can still be factorised.",
       "Is −36 a multiple of 3? What is left inside the bracket if it comes out as well?",
-      "3 out of two terms",
+      "partial-distribution",
     )),
   },
   "ps3-q8": {
@@ -215,7 +215,7 @@ export const PS3_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Found the pair",
       "The pair has to add to −11, not 11. Two negatives multiply to the same 24 and add to the negative.",
       "What pair multiplies to 24 and adds to −11?",
-      "pair's signs swapped",
+      "pair-signs-swapped",
     ),
     "(x + 3)(x + 8)": A(ok(T(MONIC), "Factorised", true)),
     "2 \\times 12 = 24": ok(T(MONIC), "A pair for 24"),
@@ -262,7 +262,7 @@ export const PS3_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Factorised",
       "With a 2 in front of x², the first and last terms can be right while the middle term is wrong. Nothing here was expanded back.",
       "Expand (2x + 3)(x + 1). Do you get 7x?",
-      "non-monic pair guessed",
+      "brackets-dont-expand",
     )),
     "(2x + 1)(x + 1) = 2x^2 + 3x + 1": ok(T(NONMONIC), "Tried a pair"),
     "(2x + 2)(x + 1) = 2x^2 + 4x + 2": ok(T(NONMONIC), "Tried a pair"),
@@ -272,7 +272,7 @@ export const PS3_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Factorised",
       "The last try expanded to 5x, not 7x: close is not equal. The split (two numbers that multiply to ac and add to b) finds the pair without trying.",
       "Your own line says (2x + 3)(x + 1) is 2x² + 5x + 3. Is that the question?",
-      "stopped at a close try",
+      "brackets-dont-expand",
     )),
   },
   "ps3-q10": {
@@ -287,28 +287,28 @@ export const PS3_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Took every term away",
       "The minus in front of the bracket changes the sign of every term inside. As written the line comes to 18, so it does not show 12x.",
       "Collect your left-hand side. Is it 12x?",
-      "12x claimed, signs not changed",
+      "minus-not-distributed",
     ),
     "= x^2 + 6x + 9 - x^2 + 6x + 9": wrong(
       T(FORMAL, EXPAND),
       "Took every term away",
       "Two of the three signs changed. A show-that needs every line to hold, and this one comes to 12x + 18.",
       "What is −(+9)?",
-      "one sign left unchanged",
+      "minus-not-distributed",
     ),
     "\\text{so } x = 12": A(wrong(
       T(FORMAL),
       "Said what was shown",
       "The working showed the two sides are equal for every x. The last line should say that, not solve for x.",
       "What did the question ask you to show?",
-      "last line solves for x",
+      "question-not-answered",
     )),
     "(x + 3)^2 = x^2 + 9": wrong(
       T(BINOM),
       "Expanded the first square",
       "A squared bracket has a middle term, 2 × x × 3. Squaring each term on its own loses it.",
       "Write (x + 3)² as (x + 3)(x + 3) and expand.",
-      "squared each term separately",
+      "squared-termwise",
     ),
     // Ticket 281: Harper's Q10, mint's table on the set's hardest problem.
     "= 2x^2 + 12x": wrong(
@@ -316,7 +316,7 @@ export const PS3_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Collected like terms",
       "The four terms were taken away right. Collecting x² and −x² gives nothing: the sign of the second one came across as a plus.",
       "What is x² − x²?",
-      "sign lost collecting like terms",
+      "collecting-sign",
     ),
     "\\text{so } (x + 3)^2 - (x - 3)^2 = 2x^2 + 12x": A(ok(T(FORMAL), "Said what was shown", true)),
   },

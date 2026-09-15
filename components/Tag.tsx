@@ -1,4 +1,5 @@
 import type { Difficulty, Status } from "@/data/types";
+import { misconceptionName, type MisconceptionId } from "@/data/misconceptions";
 import { leafName, studentLeafName, type LeafId } from "@/data/taxonomy";
 
 const DIFF_STYLES: Record<Difficulty, string> = {
@@ -42,11 +43,11 @@ export function LeafChip({ id, status, after, student = false, className = "", .
   );
 }
 
-/** The step a student got wrong, named by its leaf: a light red pill with a dark red border, under the student's name on the teacher's mistakes view. */
-export function SlipChip({ id, className = "", ...rest }: { id: LeafId; className?: string } & React.HTMLAttributes<HTMLSpanElement>) {
+/** The misconception a student's wrong step shows (ticket 299), by its taxonomy name: a light red pill with a dark red border, under the student's name on the teacher's mistakes view. */
+export function SlipChip({ id, className = "", ...rest }: { id: MisconceptionId; className?: string } & React.HTMLAttributes<HTMLSpanElement>) {
   return (
     <span className={`inline-flex items-center rounded-full border border-wrong-deep bg-wrong-soft px-3.5 py-1 text-[17px] font-medium text-wrong-deep ${className}`} data-slip={id} {...rest}>
-      {leafName(id).short}
+      {misconceptionName(id)}
     </span>
   );
 }

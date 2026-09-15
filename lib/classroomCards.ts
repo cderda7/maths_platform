@@ -1,5 +1,4 @@
-import type { LeafId } from "@/data/taxonomy";
-import { leafName } from "@/data/taxonomy";
+import { misconceptionName, type MisconceptionId } from "@/data/misconceptions";
 import { dueOrder } from "./dueDate";
 import { assignmentBundle, assignmentHref, assignmentIds, assignmentStages, currentStageOf, submittedCount, type AssignmentBundle } from "./assignments";
 import type { ClassroomState } from "./classroom";
@@ -25,37 +24,37 @@ export const CLASS_SUBJECT = "Mathematical Methods";
  */
 export const mistakeCount = (problems: readonly ProblemMistakes[]): number => problems.reduce((n, p) => n + p.rows.length, 0);
 
-/** The set's most common mistake cluster: the leaves its students slipped on, named as on the Mistakes tab's chips. */
+/** The set's most common mistake cluster: the misconceptions its students slipped with, named as on the Mistakes tab's chips (ticket 299). */
 export interface TopGap {
-  slips: LeafId[];
-  /** The cluster's leaves in their short names, joined: "non-monic factorising", "surds + fractions". */
+  misconceptions: MisconceptionId[];
+  /** The cluster's misconceptions by name, joined: "brackets don't expand back", "root or vertex sign wrong + halving step wrong". */
   name: string;
   /** How many different students are in the cluster on at least one problem. */
   students: number;
 }
 
 /**
- * The top gap across a set (ticket 186): a cluster is the exact set of leaves a student slipped on
+ * The top gap across a set (tickets 186, 299): a cluster is the exact set of misconceptions a student slipped with
  * in one problem (the Mistakes tab's pill over a group of students, `groupBySlip`), gathered across
  * every problem; the cluster with the most different students wins, a tie going to the cluster seen
  * first in problem order (then row order within the problem). A row with no recognised slip joins
  * no cluster. Null when nobody has slipped.
  */
 export function topGap(problems: readonly ProblemMistakes[]): TopGap | null {
-  const clusters = new Map<string, { slips: LeafId[]; students: Set<string> }>();
+  const clusters = new Map<string, { misconceptions: MisconceptionId[]; students: Set<string> }>();
   for (const p of problems) {
     for (const r of p.rows) {
-      const slips = [...new Set(r.slips)];
-      if (slips.length === 0) continue;
-      const key = slips.join("|");
-      const cluster = clusters.get(key) ?? { slips, students: new Set<string>() };
+      const misconceptions = [...new Set(r.misconceptions)];
+      if (misconceptions.length === 0) continue;
+      const key = misconceptions.join("|");
+      const cluster = clusters.get(key) ?? { misconceptions, students: new Set<string>() };
       cluster.students.add(r.id);
       clusters.set(key, cluster);
     }
   }
-  let best: { slips: LeafId[]; students: Set<string> } | null = null;
+  let best: { misconceptions: MisconceptionId[]; students: Set<string> } | null = null;
   for (const c of clusters.values()) if (!best || c.students.size > best.students.size) best = c;
-  return best && { slips: best.slips, name: best.slips.map((l) => leafName(l).short).join(" + "), students: best.students.size };
+  return best && { misconceptions: best.misconceptions, name: best.misconceptions.map(misconceptionName).join(" + "), students: best.students.size };
 }
 
 export type CardSection = "live" | "past";

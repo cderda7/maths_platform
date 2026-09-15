@@ -29,7 +29,7 @@ export const PS5_REVIEW: SetReview = {
   second: {
     sam: { [q(4)]: solution(4), [q(6)]: solution(6), [q(9)]: solution(9) },
     amelia: { [q(6)]: solution(6), [q(8)]: solution(8) },
-    tomas: { [q(2)]: solution(2), [q(5)]: solution(5) },
+    tomas: { [q(5)]: solution(5) },
     zara: { [q(4)]: solution(4), [q(6)]: solution(6), [q(10)]: solution(10) },
     aiden: { [q(7)]: solution(7) },
     noah: { [q(7)]: solution(7) },

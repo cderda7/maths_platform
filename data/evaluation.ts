@@ -1,3 +1,4 @@
+import type { MisconceptionId } from "./misconceptions";
 import type { LeafId } from "./taxonomy";
 import { tag, type Tag } from "./types";
 
@@ -21,8 +22,8 @@ export interface LineVerdict {
   clue?: string;
   /** For wrong lines: the note shown in teacher views. */
   note?: string;
-  /** For wrong lines: what went wrong in five words or fewer, the teacher's name for the mistake (the class review picker, ticket 148). */
-  name?: string;
+  /** For wrong lines: the misconception the line shows (`data/misconceptions.ts`, ticket 299), the one label every screen gives the mistake and the id it is counted under. */
+  misconception?: MisconceptionId;
   /**
    * The line states what the problem asked for (the roots, the value of k, the factorised form,
    * the turning point, the greatest height, the sentence about the graph), right or wrong. A
@@ -35,7 +36,7 @@ export interface LineVerdict {
 export const T = (...leaves: LeafId[]): Tag[] => leaves.map((l) => tag(l));
 export const ok = (tags: Tag[], label: string, builtOn = false): LineVerdict => ({ verdict: "ok", tags, label, builtOn });
 export const okc = (tags: Tag[], label: string): LineVerdict => ({ verdict: "ok", tags, label, compounds: true });
-export const wrong = (tags: Tag[], label: string, clue: string, note: string, name: string): LineVerdict => ({ verdict: "wrong", tags, label, clue, note, name });
+export const wrong = (tags: Tag[], label: string, clue: string, note: string, misconception: MisconceptionId): LineVerdict => ({ verdict: "wrong", tags, label, clue, note, misconception });
 /** Marks a verdict as an answer line: the problem is finished once this is among its lines. */
 export const A = (v: LineVerdict): LineVerdict => ({ ...v, answer: true });
 
@@ -67,7 +68,7 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Factorised",
       "Somewhere a pair of signs doesn't survive the trip back. Expanding a factorisation is a one-line check.",
       "Expand this back: what sign does the x term come out with?",
-      "signs flipped in the pair",
+      "pair-signs-swapped",
     ),
     "x = 2, 3": A(okc(T(NFL), "Roots read off, the null factor law not shown")),
     "x = -2 \\;\\text{or}\\; x = -3": A(ok(T(NFL, QUAD), "Null factor law", true)),
@@ -76,7 +77,7 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Factorised",
       "A pair can multiply to the right constant and still add to the wrong middle term. Expanding back would catch it in one line.",
       "1 and 6 multiply to 6 but add to 7. Which pair adds to 5?",
-      "wrong pair, adds to seven",
+      "pair-sum-wrong",
     ),
     "x = 1 \\;\\text{or}\\; x = 6": A(ok(T(NFL, QUAD), "Null factor law", true)),
   },
@@ -93,7 +94,7 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Factorised",
       "When the x² term has a coefficient, a guessed pair can look right and still not multiply out. Something here didn't get expanded back.",
       "Try expanding this back. What do you get for the x term?",
-      "guessed pair, not expanded back",
+      "brackets-dont-expand",
     ),
     "2x + 4 = 0 \\;\\text{or}\\; x - 1 = 0": ok(T(NFL), "Null factor law", true),
     "x = -2 \\;\\text{or}\\; x = 1": A(ok(T(LIN), "Solved each factor", true)),
@@ -102,7 +103,7 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Solved each factor",
       "The factors were right, but solving one of them didn't keep its sign. Substituting each root back into its own factor is a one-line check.",
       "Put x = −½ into 2x − 1. Does it come out as zero?",
-      "sign lost solving a factor",
+      "solving-sign",
     )),
   },
   q3: {
@@ -117,7 +118,7 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Split the product",
       "A rule got used somewhere it doesn't apply. Check what each rule needs to be true before it can be used.",
       "The null factor law needs the product to equal zero. What does this one equal?",
-      "null factor law without zero",
+      "nfl-without-zero",
     ),
     "x = 9 \\;\\text{or}\\; x = 4": A(ok(T(LIN), "Solved each part", true)),
     "x^2 + x - 6 = 6": wrong(
@@ -125,7 +126,7 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Expanded first",
       "Expanding two brackets collects two x terms, and one sign in that collection didn't survive. Multiplying out again, term by term, shows which.",
       "−3x + 2x: what does that come to?",
-      "sign lost in the expansion",
+      "collecting-sign",
     ),
     "x^2 + x - 12 = 0": ok(T(LIN), "Rearranged to standard form", true),
     "(x + 4)(x - 3) = 0": ok(T(MONIC), "Factorised", true),
@@ -140,14 +141,14 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Quadratic formula",
       "The formula has a denominator that depends on a. Somewhere a coefficient didn't make it into that denominator.",
       "What is the denominator of the quadratic formula? Check it against a = 3.",
-      "divided by a, not 2a",
+      "formula-2a",
     )),
     "x = \\dfrac{-5 \\pm \\sqrt{37}}{6}": A(wrong(
       T(QUAD),
       "Quadratic formula",
       "The formula starts with −b. When b is already negative, that minus still has to act on it.",
       "b = −5, so what is −b?",
-      "−b copied as −5",
+      "minus-b-dropped",
     )),
   },
   q5: {
@@ -161,7 +162,7 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "x-intercepts",
       "Reading a root off a factor flips a sign somewhere. Substituting the root back into the factor is a one-line check.",
       "Put x = −5 into (x − 5). Does it come out as zero?",
-      "roots with the signs flipped",
+      "root-vertex-sign",
     ),
     "x = \\tfrac{-5 + 1}{2} = -2": ok(T(FEAT), "Axis of symmetry", true),
     "(2, -5)": A(wrong(
@@ -169,7 +170,7 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Turning point",
       "The turning point's x is right but its y came from the wrong line. The y-value is the function evaluated at that x, not the constant term.",
       "Substitute x = 2 into y = x² − 4x − 5. What is y?",
-      "height from the wrong line",
+      "vertex-y-wrong",
     )),
   },
   q6: {
@@ -181,7 +182,7 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Discriminant condition",
       "Touching once and crossing twice are different pictures. Which one does the discriminant's sign describe here?",
       "A graph that touches the x-axis once has how many roots? What does that make the discriminant?",
-      "touches once read as Δ>0",
+      "discriminant-root-count",
     ),
     "k < 9": A(ok(T(LIN), "Solved the inequality", true)),
   },
@@ -194,14 +195,14 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Cleared the fraction",
       "Whatever you do to one term you do to every term. One of them didn't get the same treatment.",
       "You multiplied by 3. Did every term get multiplied by 3?",
-      "scaled two of three terms",
+      "partial-distribution",
     ),
     "x^2 + 6x + 8": wrong(
       T(FRAC),
       "Multiplied through by 3",
       "Multiplying an expression by 3 makes a different expression. Whatever you scale by has to come back out at the end.",
       "You multiplied every term by 3 this time. Where did the 3 go?",
-      "tripled, third never restored",
+      "factor-missing",
     ),
     "(x + 2)(x + 4)": A(ok(T(NONMONIC), "Factorised", true)),
     "1 \\times 8 = 8,\\quad 1 + 8 = 9": wrong(
@@ -209,7 +210,7 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Found the pair",
       "The pair has two jobs at once: multiply to the constant and add to the middle term. One of those jobs got skipped.",
       "1 and 8 multiply to 8 but add to 9. Which pair adds to 6?",
-      "pair adds to nine",
+      "pair-sum-wrong",
     ),
     "\\tfrac{1}{3}(x + 1)(x + 8)": A(ok(T(NONMONIC, BINOM), "Factorised", true)),
     // Jordan's return to Q7 in group review (ticket 222): the third and the pair right, the brackets' signs flipped.
@@ -218,7 +219,7 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Factorised",
       "Brackets can look right and still be a different expression. Expand them back and compare the middle term with the one you started from.",
       "Expand (x − 2)(x − 4). Is the middle term +6x?",
-      "signs flipped in the factors",
+      "pair-signs-swapped",
     )),
   },
   q8: {
@@ -229,7 +230,7 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Read from the graph",
       "The crossings were read on the wrong side of the axis. Check the sign of each intercept against the picture.",
       "Where does the curve actually cross? Look at the axis labels.",
-      "roots mirrored",
+      "graph-signs",
     )),
   },
   q9: {
@@ -243,14 +244,14 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Greatest height",
       "The greatest height is the function's value at the axis of symmetry, not the axis itself.",
       "Substitute x = 3 into h = −x² + 6x. What is h?",
-      "axis given as the height",
+      "x-for-y",
     )),
     "-x(x + 6) = 0": wrong(
       T(EXPAND),
       "Height zero, factorised",
       "Taking a negative factor out of two terms changes the sign of what is left behind. Expanding back shows whether it did.",
       "Expand −x(x + 6). Do you get −x² + 6x?",
-      "sign left behind in bracket",
+      "minus-not-distributed",
     ),
     "x = 0 \\;\\text{or}\\; x = -6": ok(T(NFL, ZERO), "Lands at x = −6", true),
     "x = -3": ok(T(FEAT, SKETCH), "Axis of symmetry", true),
@@ -265,14 +266,14 @@ export const EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Justified",
       "The sign of the discriminant and the number of solutions are linked one way, not the other. Which sign goes with which count?",
       "A negative discriminant means what about the square root in the formula?",
-      "negative Δ read as two",
+      "discriminant-root-count",
     ),
     "\\text{The graph crosses the x-axis twice}": A(wrong(
       T(CONCL),
       "In context",
       "A conclusion about the graph has to follow from the number of real solutions. Check the link.",
       "No real solutions means no x-intercepts. What does the graph do instead?",
-      "said the graph crosses twice",
+      "context-not-checked",
     )),
     "\\text{So the graph crosses the x-axis at two points}": A(ok(T(CONCL, SKETCH), "In context", true)),
   },

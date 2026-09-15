@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ASSIGNMENT } from "@/data/assignment";
-import type { LeafId } from "@/data/taxonomy";
+import type { MisconceptionId } from "@/data/misconceptions";
 import { assignmentBundle, type AssignmentBundle } from "./assignments";
 import { classroomReducer, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
 import { assignmentCard, classroomCards, dueOrder, mistakeCount, newestFirst, sectionCards, topGap } from "./classroomCards";
@@ -11,17 +11,17 @@ import { CLASS_SIZE } from "./readiness";
 const now = 1_700_000_000_000;
 /** Problem Set 6 exists once created (ticket 188): the classroom as the create flow leaves it. */
 const CREATED = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: ASSIGNMENT.title, problemIds: ASSIGNMENT.problems.map((p) => p.id), pathway: ["individual", "group"], goal: ASSIGNMENT.goal, at: now });
-const NON_MONIC: LeafId = "algebra.expand-factor.nonmonic";
-const MONIC: LeafId = "algebra.expand-factor.monic";
-const SURDS: LeafId = "algebra.number.surds";
+const GUESSED: MisconceptionId = "brackets-dont-expand";
+const SUM: MisconceptionId = "pair-sum-wrong";
+const ROOT: MisconceptionId = "root-not-taken";
 
-const row = (id: string, slips: LeafId[]): MistakeRow => ({ id, name: id, initials: id.slice(0, 2).toUpperCase(), live: false, lines: [], slips });
+const row = (id: string, misconceptions: MisconceptionId[]): MistakeRow => ({ id, name: id, initials: id.slice(0, 2).toUpperCase(), live: false, lines: [], misconceptions });
 const problem = (i: number, rows: MistakeRow[]): ProblemMistakes => ({ problem: ASSIGNMENT.problems[i], rows, right: 0, pending: 0 });
 
 describe("mistakes so far", () => {
   it("counts every wrong answer to a problem: one per student per problem", () => {
     expect(mistakeCount([])).toBe(0);
-    expect(mistakeCount([problem(0, [row("a", [MONIC, MONIC]), row("b", [SURDS])]), problem(1, [row("a", [SURDS])])])).toBe(3);
+    expect(mistakeCount([problem(0, [row("a", [SUM, SUM]), row("b", [ROOT])]), problem(1, [row("a", [ROOT])])])).toBe(3);
   });
 
   it("on Problem Set 6 it is the number of rows on its Mistakes tab", () => {
@@ -40,26 +40,26 @@ describe("the top gap", () => {
 
   it("is the cluster with the most different students across every problem, not the biggest on one problem", () => {
     const gap = topGap([
-      problem(0, [row("a", [SURDS]), row("b", [SURDS]), row("c", [MONIC])]),
-      problem(1, [row("c", [NON_MONIC]), row("d", [NON_MONIC])]),
-      problem(2, [row("e", [NON_MONIC]), row("a", [SURDS])]),
+      problem(0, [row("a", [ROOT]), row("b", [ROOT]), row("c", [SUM])]),
+      problem(1, [row("c", [GUESSED]), row("d", [GUESSED])]),
+      problem(2, [row("e", [GUESSED]), row("a", [ROOT])]),
     ]);
-    expect(gap).toEqual({ slips: [NON_MONIC], name: "non-monic factorising", students: 3 });
+    expect(gap).toEqual({ misconceptions: [GUESSED], name: "brackets don't expand back", students: 3 });
   });
 
   it("counts a student once per cluster however many problems they slipped on", () => {
-    const gap = topGap([problem(0, [row("a", [SURDS]), row("b", [MONIC])]), problem(1, [row("a", [SURDS]), row("c", [MONIC])]), problem(2, [row("a", [SURDS])])]);
-    expect(gap?.slips).toEqual([MONIC]);
+    const gap = topGap([problem(0, [row("a", [ROOT]), row("b", [SUM])]), problem(1, [row("a", [ROOT]), row("c", [SUM])]), problem(2, [row("a", [ROOT])])]);
+    expect(gap?.misconceptions).toEqual([SUM]);
     expect(gap?.students).toBe(2);
   });
 
   it("breaks a tie by problem order, then row order", () => {
-    expect(topGap([problem(0, [row("a", [MONIC])]), problem(1, [row("b", [SURDS]), row("c", [MONIC])]), problem(2, [row("d", [SURDS])])])?.slips).toEqual([MONIC]);
-    expect(topGap([problem(0, [row("a", [SURDS]), row("b", [MONIC])])])?.slips).toEqual([SURDS]);
+    expect(topGap([problem(0, [row("a", [SUM])]), problem(1, [row("b", [ROOT]), row("c", [SUM])]), problem(2, [row("d", [ROOT])])])?.misconceptions).toEqual([SUM]);
+    expect(topGap([problem(0, [row("a", [ROOT]), row("b", [SUM])])])?.misconceptions).toEqual([ROOT]);
   });
 
-  it("a student who slipped on two leaves in one problem is their own cluster, named by both", () => {
-    expect(topGap([problem(0, [row("a", [SURDS, MONIC, SURDS])])])).toEqual({ slips: [SURDS, MONIC], name: "surds + monic factorising", students: 1 });
+  it("a student who slipped with two misconceptions in one problem is their own cluster, named by both", () => {
+    expect(topGap([problem(0, [row("a", [ROOT, SUM, ROOT])])])).toEqual({ misconceptions: [ROOT, SUM], name: "square out, root not taken + product right, sum wrong", students: 1 });
   });
 
   it("is computed from the set's work: Problem Set 6's is the biggest cluster of its Mistakes tab", () => {

@@ -16,7 +16,7 @@ import { groupBySlip, mistakesByProblem } from "@/lib/mistakes";
 const now = 1_700_000_000_000;
 const everyone = [PS4_SAM, ...PS4_CLASSMATES];
 const byId = Object.fromEntries(everyone.map((c) => [c.id, c]));
-const names = (id: string) => byId[id].wrong.flatMap((pid) => byId[id].attempts[pid].map((tex) => evaluateLine(pid, tex)).flatMap((v) => (v.verdict === "wrong" ? [v.name] : [])));
+const names = (id: string) => byId[id].wrong.flatMap((pid) => byId[id].attempts[pid].map((tex) => evaluateLine(pid, tex)).flatMap((v) => (v.verdict === "wrong" ? [v.misconception] : [])));
 
 describe("Problem Set 4's data (ticket 214)", () => {
   it("is the first set to assess Functions and Graphing, with binomial identity and the null factor law as New skills", () => {
@@ -27,7 +27,7 @@ describe("Problem Set 4's data (ticket 214)", () => {
   it("Sam's answers are fixed and finished: all ten reached, the split's signs swapped twice, half of b's sign, a turning point's sign", () => {
     expect(PS4_SAM.done).toBe(10);
     expect(PS4_SAM.wrong).toEqual(["ps4-q1", "ps4-q2", "ps4-q7", "ps4-q8"]);
-    expect(names("sam")).toEqual(["signs swapped in the pair", "signs swapped in the pair", "half of b, wrong sign", "turning point sign flipped"]);
+    expect(names("sam")).toEqual(["pair-signs-swapped", "pair-signs-swapped", "square-sign", "root-vertex-sign"]);
   });
 
   it("nobody is missing: Liam hands in five (two before ticket 281), Grace six, Jordan and Oliver eight, Tomas nine; Priya is all right", () => {
@@ -36,12 +36,12 @@ describe("Problem Set 4's data (ticket 214)", () => {
   });
 
   it("the patterns Problem Sets 5 and 6 catch start here, under the same names", () => {
-    for (const id of ["jordan", "liam", "oliver"]) expect(names(id).filter((n) => n === "guessed pair, not expanded back").length, id).toBeGreaterThanOrEqual(2);
-    expect(names("mia")).toContain("guessed pair, not expanded back");
-    expect(names("zara")).toEqual(["square added, never taken away", "(5/2)² taken as 25/2", "square added, never taken away", "square added, never taken away", "x given as the minimum"]);
-    expect(names("oliver")).toContain("null factor law without zero");
-    for (const id of ["zara", "ruby", "ethan"]) expect(names(id), id).toContain("x given as the minimum");
-    for (const id of ["sam", "isla", "lucas", "finn", "tomas"]) expect(names(id), id).toContain("turning point sign flipped");
+    for (const id of ["jordan", "liam", "oliver"]) expect(names(id).filter((n) => n === "brackets-dont-expand").length, id).toBeGreaterThanOrEqual(2);
+    expect(names("mia")).toContain("brackets-dont-expand");
+    expect(names("zara")).toEqual(["square-not-balanced", "power-on-part", "square-not-balanced", "square-not-balanced", "x-for-y"]);
+    expect(names("oliver")).toContain("nfl-without-zero");
+    for (const id of ["zara", "ruby", "ethan"]) expect(names(id), id).toContain("x-for-y");
+    for (const id of ["sam", "isla", "lucas", "finn", "tomas"]) expect(names(id), id).toContain("root-vertex-sign");
   });
 });
 
@@ -49,12 +49,12 @@ describe("Problem Set 4 in the registry (ticket 214)", () => {
   const b = assignmentBundle("pset-4", INITIAL_CLASSROOM)!;
   const ms = mistakesByProblem(null, b);
 
-  it("has a clear top gap: non-monic factorising on nine students, graph features next on eight", () => {
+  it("has a clear top gap: a pair guessed and not expanded back on eight students, a root or vertex sign wrong next on six (ticket 299)", () => {
     const card = assignmentCard(b, INITIAL_CLASSROOM, null, now);
     expect(card).toMatchObject({ id: "pset-4", due: "Fri 4 Sep", section: "past", status: "done", submitted: 20, total: 20, mistakes: 58 });
-    expect(card.topGap).toEqual({ slips: ["algebra.expand-factor.nonmonic"], name: "non-monic factorising", students: 9 });
-    const rest = ms.map((m) => ({ ...m, rows: m.rows.filter((r) => !(r.slips.length === 1 && r.slips[0] === "algebra.expand-factor.nonmonic")) }));
-    expect(topGap(rest)).toEqual({ slips: ["graphing.quadratics.features"], name: "graph features", students: 8 });
+    expect(card.topGap).toEqual({ misconceptions: ["brackets-dont-expand"], name: "brackets don't expand back", students: 8 });
+    const rest = ms.map((m) => ({ ...m, rows: m.rows.filter((r) => r.misconceptions.join() !== "brackets-dont-expand") }));
+    expect(topGap(rest)).toEqual({ misconceptions: ["root-vertex-sign"], name: "root or vertex sign wrong", students: 6 });
   });
 
   it("keeps every problem's wrong workings to four columns or fewer, but for Q5's six short lines and five on Q4 and Q7 (Liam's Q4 since ticket 281)", () => {

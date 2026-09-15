@@ -66,7 +66,8 @@ const template = (mins: number[]) => mins.map((m) => `minmax(${m}px, 1fr)`).join
  * First the labels (ticket 245): with `--label-fit` at 1 and every column at the floor, the tightest label's overshoot
  * of its box sets the factor all the problem's labels are scaled by, down to 13 px; a label still wider than its box
  * at that size widens its group's columns, equally, until it fits (the card scrolls sideways when they no longer fit
- * the card). Then the working, on the columns the labels settled: the widest line's overshoot sets `--fit` the same way
+ * the card). A misconception pill (ticket 299) is never scaled and never wraps a word, so one wider than its cell widens
+ * its pill group's columns the same way. Then the working, on the columns the labels settled: the widest line's overshoot sets `--fit` the same way
  * (KaTeX scales with the font size, so one measurement is enough). Opening a problem only adds the working, so the
  * labels, and with them the columns, come out the same: nothing moves.
  */
@@ -84,15 +85,19 @@ function FitGrid({ columns, children, ...rest }: { columns: number } & React.HTM
       for (const box of labels) labelScale = Math.min(labelScale, contentWidth(box) / widestMaths(box));
       labelScale = Math.max(FIT_FLOOR, labelScale);
       el.style.setProperty("--label-fit", labelScale.toFixed(4));
-      // Widening one group's columns can take width from its neighbours' flexible share, so check again until every label fits (a few passes at most).
+      // What must fit on one row, with the cell it sits in: each label's maths in its box, each pill group's widest pill in its cell.
+      const fits = [
+        ...labels.map((box) => ({ box, cell: box.parentElement!, over: () => widestMaths(box) - contentWidth(box) })),
+        ...[...el.querySelectorAll<HTMLElement>("[data-slip-group]")].map((box) => ({ box, cell: box, over: () => Math.max(0, ...[...box.querySelectorAll<HTMLElement>("[data-slip]")].map((pill) => pill.scrollWidth + pill.offsetWidth - pill.clientWidth)) - contentWidth(box) })),
+      ];
+      // Widening one group's columns can take width from its neighbours' flexible share, so check again until everything fits (a few passes at most).
       for (let pass = 0; pass < 6; pass++) {
         let widened = false;
-        for (const box of labels) {
-          const over = widestMaths(box) - contentWidth(box);
+        for (const { box, cell, over: overOf } of fits) {
+          const over = overOf();
           if (over <= 0) continue;
           const start = Number(box.dataset.start);
           const span = Number(box.dataset.span);
-          const cell = box.parentElement!;
           const each = cell.offsetWidth / span + over / span + 1;
           for (let c = start; c < start + span; c++) mins[c] = Math.max(mins[c], Math.ceil(each));
           widened = true;
@@ -458,13 +463,15 @@ export default function TeacherMistakes() {
                   ))}
                   {groups.map((g) => (
                     <div
-                      key={g.slips.join("|")}
+                      key={g.misconceptions.join("|")}
                       className={`row-start-3 flex min-w-0 flex-wrap items-start gap-1.5 pr-5 pb-4 pl-5 ${column(g.start)} ${isOpen ? "bg-accent-soft/30" : ""}`}
                       style={{ gridColumn: `${g.start + 1} / span ${g.columns.length}` }}
                       data-slip-group={g.rows.map((r) => r.id).join(",")}
+                      data-start={g.start}
+                      data-span={g.columns.length}
                     >
-                      {/* Two leaves in one narrow column wrap chip by chip, never a word inside a chip (ticket 213). */}
-                      {g.slips.map((id) => (
+                      {/* Two misconceptions in one narrow column wrap chip by chip, never a word inside a chip (tickets 213, 299). */}
+                      {g.misconceptions.map((id) => (
                         <SlipChip key={id} id={id} className="min-w-0 max-w-full flex-[1_1_auto] justify-start whitespace-nowrap" />
                       ))}
                     </div>

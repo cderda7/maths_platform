@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { RECOGNITION, RECOGNITION_REWORK } from "@/data/recognition";
 import { PROBLEMS } from "@/data/assignment";
+import { isMisconceptionId } from "@/data/misconceptions";
 import { evaluateLine } from "./evaluate";
 
 describe("scripted evaluation", () => {
@@ -66,15 +67,14 @@ describe("scripted evaluation", () => {
   });
 });
 
-describe("wrong lines are named for the teacher (ticket 148)", () => {
-  it("every wrong entry carries a name of five words or fewer; ok entries none", async () => {
+describe("wrong lines are named for the teacher (tickets 148, 299)", () => {
+  it("every wrong entry carries a misconception from the taxonomy; ok entries none", async () => {
     const { EVALUATION } = await import("@/data/evaluation");
     for (const [pid, table] of Object.entries(EVALUATION))
       for (const [tex, v] of Object.entries(table)) {
         if (v.verdict === "wrong") {
-          expect(v.name, `${pid} ${tex}`).toBeTruthy();
-          expect(v.name!.split(/\s+/).length, `${pid} ${tex}: ${v.name}`).toBeLessThanOrEqual(5);
-        } else expect(v.name, `${pid} ${tex}`).toBeUndefined();
+          expect(v.misconception && isMisconceptionId(v.misconception), `${pid} ${tex}`).toBe(true);
+        } else expect(v.misconception, `${pid} ${tex}`).toBeUndefined();
       }
   });
 });
