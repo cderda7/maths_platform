@@ -1,4 +1,4 @@
-import { HOMEWORKS, SAM_HOMEWORK_STORY, type HomeworkDef, type HomeworkRecord } from "@/data/homeworks";
+import { CLASS_HOMEWORK_STORY, HOMEWORKS, SAM_HOMEWORK_STORY, type HomeworkDef, type HomeworkRecord } from "@/data/homeworks";
 import { storySet } from "@/data/story";
 import { activeAssignment } from "./assignment";
 import { assignmentBundle, assignmentIds, LIVE_ASSIGNMENT_ID } from "./assignments";
@@ -231,5 +231,22 @@ export function psetDueNote(due: IsoDay, c: ClassroomState | null | undefined): 
   return hw && homeworkOpened(hw, c) ? `Mistakes from this set go into Homework ${hw.n + 1}` : null;
 }
 
-/** Sam's homework history (`SAM_HOMEWORK_STORY`), for a homework's card: his status on it on `today`. */
-export const samHomeworkStatus = (homework: HomeworkDef, today: string = dayLabel(DEMO_TODAY)): HomeworkStatus => homeworkStatus(homework, SAM_HOMEWORK_STORY[homework.id], today);
+/**
+ * How many of the class have done a homework (ticket 305), for the teacher's homework cell: a student counts once they finished
+ * all of it by its due date and by `today` (so an open homework shows its count so far). Finishing late does not count, as
+ * missed is final (`homeworkStatus`). `total` is the class (every student in the records).
+ */
+export function homeworkDoneCount(
+  homework: HomeworkDef,
+  records: Readonly<Record<string, Readonly<Record<string, HomeworkRecord>>>> = CLASS_HOMEWORK_STORY,
+  today: string = dayLabel(DEMO_TODAY),
+): { done: number; total: number } {
+  const limit = Math.min(dueOrder(homework.due), dueOrder(today));
+  const students = Object.values(records);
+  const done = students.filter((r) => {
+    const finished = r[homework.id]?.finishedOn;
+    const d = finished ? dueOrder(finished) : -1;
+    return d >= 0 && d <= limit;
+  }).length;
+  return { done, total: students.length };
+}

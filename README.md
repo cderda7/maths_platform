@@ -106,7 +106,8 @@ Teacher, before the lesson (Edexia Classroom at `/teacher`, +In-Class PSet → `
    **+Homework** (ticket 291) runs the same screens with no goal box and no pathway: Generate fills Homework 3 (ten
    problems on features of a parabola and roots of a quadratic, `data/homework-draft-seed.ts`), the due date starts at
    Mon 14 Sep and cannot fall on or before Homework 2's Mon 7 Sep, the strip reads QUESTIONS — DIFFICULTY — REFINE — SEND,
-   and Refine's Create sends it: it joins Homework 1 and 2 in the Classroom's Past (they open nothing), covering Problem Sets 5 and 6.
+   and Refine's Create sends it: it joins Homework 1 and 2 in the homework column to the right of the Classroom's Past cards (ticket 305): each
+   cell spans the sets it covers and reads the class's count ("14/20 done"), or "sent · opens after Problem Set 6" until it opens; cells open nothing.
 
 Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the pen). It opens on Sam's Edexia
 Classroom (ticket 264): To do, Missing, Completed. Problem Set 1–5 are Completed, with a homework column to their right (ticket 290):

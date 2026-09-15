@@ -10,7 +10,6 @@ import { HOMEWORK_PASTE_LINES } from "@/data/homework-draft-seed";
 import { HOMEWORK_RECOMMENDATIONS, RECOMMENDATIONS } from "@/data/review";
 import { assignmentBundle } from "./assignments";
 import { classroomReducer, draftFor, INITIAL_CLASSROOM, migrateClassroom, reviewStateFor, type ClassroomState } from "./classroom";
-import { coveredSetsPhrase, homeworkCards, pastWithHomework, sectionCards } from "./classroomCards";
 import { clearDraft, created, homeworkSendAction, homeworkSent } from "./create";
 import { assessMsFrom, CREATE_ROUTES, hasPathway, PIPELINES } from "./createPipeline";
 import { readyDraft } from "./demo";
@@ -19,7 +18,6 @@ import { dayLabel, DEMO_TODAY, DUE_DEFAULT } from "./dueDate";
 import { classHomeworks, coveredSetIds, homeworkForDue, nextHomework, psetDueNote } from "./homeworks";
 import { parseQuestion, stemText } from "./mathInput";
 import { applyReview, draftKey, normTex, recommendationsFor, type ReviewState } from "./review";
-import { INITIAL_SESSION } from "./session";
 
 const now = 1_700_000_000_000;
 const renders = (tex: string) => katex.renderToString(tex, { throwOnError: true, strict: false, trust: true });
@@ -225,33 +223,5 @@ describe("the in-class set's due-date note (ticket 291)", () => {
     expect(psetDueNote("2026-09-21", opened)).toBeNull();
     // Inside the fixtures' past homeworks, which opened long ago.
     expect(psetDueNote("2026-09-02", INITIAL_CLASSROOM)).toBe("Mistakes from this set go into Homework 3");
-  });
-});
-
-describe("homework on the teacher's Classroom (ticket 291)", () => {
-  it("Homework 1 and 2 before anything is sent: the sets they cover and Sam's status", () => {
-    expect(homeworkCards(INITIAL_CLASSROOM)).toEqual([
-      { kind: "homework", id: "hw-1", name: "Homework 1", due: "Tue 1 Sep", sets: ["Problem Set 1", "Problem Set 2"], state: "over", sam: "completed" },
-      { kind: "homework", id: "hw-2", name: "Homework 2", due: "Mon 7 Sep", sets: ["Problem Set 3", "Problem Set 4"], state: "over", sam: "missed" },
-    ]);
-  });
-
-  it("Homework 3 once sent: sent, covering Problem Set 5 (and 6 once it is out), newest in Past", () => {
-    const sent = homeworkSent(drafted(INITIAL_CLASSROOM, "accept"), now);
-    expect(homeworkCards(sent)[2]).toMatchObject({ id: "hw-3", name: "Homework 3", due: "Mon 14 Sep", sets: ["Problem Set 5"], state: "sent" });
-    const withPs6 = created({ ...sent, ...readyDraft(now) }, now);
-    expect(homeworkCards(withPs6)[2].sets).toEqual(["Problem Set 5", "Problem Set 6"]);
-    expect(homeworkCards({ ...withPs6, homeworks: withPs6.homeworks!.map((h) => ({ ...h, openedAt: now })) })[2].state).toBe("open");
-
-    const past = pastWithHomework(sectionCards(["pset-5", "pset-4", "pset-3", "pset-2", "pset-1"].map((id) => assignmentBundle(id, sent)!), sent, INITIAL_SESSION, now).past, homeworkCards(sent));
-    expect(past.map((k) => k.id)).toEqual(["hw-3", "pset-5", "hw-2", "pset-4", "pset-3", "hw-1", "pset-2", "pset-1"]);
-  });
-
-  it("names covered sets in a phrase", () => {
-    expect(coveredSetsPhrase([])).toBe("");
-    expect(coveredSetsPhrase(["Problem Set 5"])).toBe("Problem Set 5");
-    expect(coveredSetsPhrase(["Problem Set 1", "Problem Set 2"])).toBe("Problem Sets 1 and 2");
-    expect(coveredSetsPhrase(["Problem Set 3", "Problem Set 4", "Problem Set 5"])).toBe("Problem Sets 3, 4 and 5");
-    expect(coveredSetsPhrase(["Problem Set 5", "Quadratics quiz"])).toBe("Problem Set 5 and Quadratics quiz");
   });
 });

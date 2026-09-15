@@ -48,3 +48,36 @@ export const SAM_HOMEWORK_STORY: Readonly<Record<string, HomeworkRecord>> = {
   "hw-1": { finishedOn: "Mon 31 Aug" },
   "hw-2": { finishedOn: null },
 };
+
+const rec = (hw1: string | null, hw2: string | null): Readonly<Record<string, HomeworkRecord>> => ({ "hw-1": { finishedOn: hw1 }, "hw-2": { finishedOn: hw2 } });
+
+/**
+ * The whole class's homework history (ticket 305), the demo's simulation data beside Sam's: Homework 1 (due Tue 1 Sep) and
+ * Homework 2 (due Mon 7 Sep) for all twenty, keyed by student id, Sam's record his own story's. Each follows the student's arc
+ * in `STORY` (`data/story.ts`): the students whose sets end short (Liam hands in about half, Grace starts late and does not
+ * reach the last problems, Tomas's and Jordan's work ends before the worded problems, Oliver's drops on the factorising sets)
+ * miss, some finishing a day or two late (still missed: `homeworkStatus`); everyone who hands in every set finishes on time.
+ * Nobody has finished Homework 3, which is not yet due. Homework 1: 17 of 20 on time; Homework 2: 14 of 20.
+ */
+export const CLASS_HOMEWORK_STORY: Readonly<Record<string, Readonly<Record<string, HomeworkRecord>>>> = {
+  sam: SAM_HOMEWORK_STORY,
+  priya: rec("Sat 29 Aug", "Sat 5 Sep"),
+  jordan: rec("Tue 1 Sep", "Tue 8 Sep"),
+  amelia: rec("Mon 31 Aug", "Sun 6 Sep"),
+  tomas: rec("Wed 2 Sep", null),
+  zara: rec("Sun 30 Aug", "Sun 6 Sep"),
+  liam: rec(null, null),
+  aiden: rec("Mon 31 Aug", "Mon 7 Sep"),
+  mia: rec("Sun 30 Aug", "Sun 6 Sep"),
+  noah: rec("Mon 31 Aug", "Sat 5 Sep"),
+  chloe: rec("Tue 1 Sep", "Mon 7 Sep"),
+  ethan: rec("Tue 1 Sep", "Mon 7 Sep"),
+  isla: rec("Mon 31 Aug", "Sun 6 Sep"),
+  lucas: rec("Sun 30 Aug", "Mon 7 Sep"),
+  grace: rec("Thu 3 Sep", "Wed 9 Sep"),
+  harper: rec("Mon 31 Aug", "Sun 6 Sep"),
+  oliver: rec("Tue 1 Sep", null),
+  ruby: rec("Mon 31 Aug", "Mon 7 Sep"),
+  finn: rec("Sun 30 Aug", "Sun 6 Sep"),
+  sofia: rec("Mon 31 Aug", "Sun 6 Sep"),
+};

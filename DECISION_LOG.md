@@ -5189,3 +5189,21 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** 105 more strings to author and keep in step with their options: a line is not checked mathematically against its option the way `detail` is, only for coverage, typesetting, length and wording. Board cells are one or two lines taller from the push, even on a step never revealed. A set made through Create still falls back to the one fixed question, which has its lines. Generated steps will need lines generated too.
 
 **Defense.** The meaning travels with the option it explains, the student sees only what concerns them and only when everyone else does, and the board reads itself. The teacher talks through the lines, not writes them.
+
+## 2026-09-15 · The teacher's homework is a column beside Past with a class count, reusing the student's span rule (ticket 305)
+
+**Decision.** The teacher's Classroom drops ticket 291's homework cards from Past. Every card narrows by 230 layout px (a 214 px column and a 16 px gap) and a homework column sits to the right of Past only: each homework's cell spans its covered Past sets' rows, computed by the same `homeworkColumn` Sam's iPad reads, and a Past set no homework covers keeps an empty space. Live cards take the same grid template with the column left empty, so every card on the page is one width and the due dates and arrows line up. A cell reads "Homework N", its due date, and the class's count "done/20", where done means finished by the due date (and by today while it is still open); sent and not yet open it reads "sent · opens after Problem Set 6" behind a dashed line. No student's status shows. The other nineteen students' Homework 1 and 2 records are authored as named demo data (`CLASS_HOMEWORK_STORY`) from their story arcs.
+
+**Context.** The user (2026-09-15), with a screenshot of the teacher's Classroom: "you didn't accomplish the 'homeworks as column' idea, representing what psets it covered." The agreed design fixed the span rule, the Past-only column, the class count without a triangle or missed count, the sent state and non-pressable cells.
+
+**Alternatives considered.**
+- *Keep the homework cards and add a "covers" line*: that was ticket 291, which the user rejected; the coverage must read spatially.
+- *Column across Live too (HW3 spanning PS6 while it is Live)*: the user agreed the Past-only rule, the same as Sam's Completed-only column; a Live set's homework is not settled.
+- *Narrow only the Past cards*: the Live card would be 230 px wider than the cards under it, its arrow and due date out of line.
+- *A cell taller than one card when its words wrap*: a sent homework beside one set would grow that row and push every card below; the cell's type and padding are sized to one card's height and the click-through holds every card one height.
+- *Counting late finishers ("17 done, 2 late")*: the user asked for it to go to FUTURE_FEATURES.
+- *Deriving classmates' homework from their set hand-ins*: a rule would hide the story; named data per student keeps the demo exception separate from the counting rule (the demo-exceptions rule).
+
+**Tradeoffs.** Cards lose 230 px of width at every size; the longest title (Problem Set 4) still fits on one line at 1280×800 with room to spare, and titles truncate with an ellipsis if a longer one comes. The count total is the records' student count, which must be kept at twenty with the class (tested against `STORY`). Homework 3's count is 0/20 until homework answering exists.
+
+**Defense.** One span rule serves both sides, the teacher sees which sets each homework covers at a glance with the one number a class view needs, nothing moves as homework is sent or opens, and the class data stays authored and testable beside Sam's.

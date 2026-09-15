@@ -1534,6 +1534,15 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **Teacher-edited lines.** A teacher may word a line for their class, or turn the board lines off for a step they want to discuss first. Deferred: no editing surface for diagnostics yet.
 - **Change the diagnostic's flow.** The user raised it with this ticket and withdrew it the same day ("no longer a concern"). Recorded in case it returns.
 
+## Teacher homework column (ticket 305, 2026-09-15)
+
+- **Count late finishers.** The cell counts only students who finished by the due date ("14/20 done"); a student who finished Homework 2 a day late (Jordan, Grace) counts nowhere. The user asked for this to be recorded: a second figure ("2 late") or a split bar would show the teacher who is catching up. Deferred: the agreed cell reads done only.
+- **Press a cell for homework results.** Cells are not pressable; a teacher view of a homework's results (who did it, who missed, which problems carried) is already listed under ticket 291. The cell is the natural way in once it exists.
+- **Live counts for an open homework.** Homework 3's count stays 0/20 because no student can answer homework yet; once answering exists, the count should rise live as students finish, as the Live card's submitted count does.
+- **Homework records from real submissions.** Homework 1 and 2 for the class are authored demo data (`CLASS_HOMEWORK_STORY`); a real class would record each student's finishing time from their homework screen.
+- **A column beside Live.** The column exists beside Past only; a Live set's upcoming homework shows nothing beside it. If teachers want to see what a live set feeds into, a muted cell beside Live could show it. Deferred: the agreed rule is Past only, matching Sam's side.
+- **Narrow laptops.** The column costs every card 230 layout px; below 1280 px a title or top-gap chip could truncate. Deferred: the laptop sizes checked are 1280×800 and 1440×900.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

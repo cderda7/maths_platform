@@ -1,6 +1,7 @@
 import { misconceptionName, type MisconceptionId } from "@/data/misconceptions";
 import { dayLabel, DEMO_TODAY, dueOrder } from "./dueDate";
-import { classHomeworks, coveredSetIds, homeworkOpened, samHomeworkStatus, type HomeworkStatus } from "./homeworks";
+import { CLASS_HOMEWORK_STORY } from "@/data/homeworks";
+import { classHomeworks, futureHomeworks, homeworkColumn, homeworkDoneCount } from "./homeworks";
 import { assignmentBundle, assignmentHref, assignmentIds, assignmentStages, currentStageOf, submittedCount, type AssignmentBundle } from "./assignments";
 import type { ClassroomState } from "./classroom";
 import { mistakesByProblem, type ProblemMistakes } from "./mistakes";
@@ -112,57 +113,26 @@ export function classroomCards(c: ClassroomState | null | undefined, session: St
 }
 
 /**
- * A homework on the teacher's Classroom (ticket 291): Homework 1 and 2 from the fixtures and every homework sent from
- * +Homework, in Past among the sets, newest due first. It opens nothing (a teacher view of homework results is future work).
- * - `state`: `sent` while it waits for its sets' lessons to end (ticket 292 opens it), `open` once opened and not yet due,
- *   `over` once its due date is behind today, when Sam's status on it shows (`sam`, from his homework history).
- * - `sets`: the sets it covers by the date rule (`coveredSetIds`), named as the teacher names them ("Problem Set 5").
+ * One piece of the homework column beside the teacher's Past cards (ticket 305, replacing ticket 291's homework cards): a
+ * homework's cell spans the Past sets it covers (`homeworkColumn`, the rule Sam's column reads, over the class's homeworks),
+ * or an empty space beside a Past set no homework covers yet. `row` is the first covered card's index in Past (newest first),
+ * `span` how many cards it runs down. A cell reads the class, never one student:
+ * - `sent`: sent and not yet open, waiting on `opensAfter`'s lesson ("Problem Set 6"; null if none is named);
+ * - `open` (opened, not yet due) and `over` (past its due date): `done` of `total` finished it by the due date, so far while open.
  */
-export interface HomeworkCard {
-  kind: "homework";
-  id: string;
-  name: string;
-  due: string;
-  sets: string[];
-  state: "sent" | "open" | "over";
-  sam: HomeworkStatus;
-}
+export type TeacherHomeworkPiece =
+  | { kind: "homework"; id: string; name: string; due: string; state: "sent" | "open" | "over"; opensAfter: string | null; done: number; total: number; row: number; span: number; setIds: string[] }
+  | { kind: "empty"; row: number; span: 1; setIds: [string] };
 
-export type ClassroomCard = AssignmentCard | HomeworkCard;
-
-export const isHomeworkCard = (card: ClassroomCard): card is HomeworkCard => (card as HomeworkCard).kind === "homework";
-
-/** A set's short name, before the dash of its topic: "Problem Set 5 — Features of a parabola" is "Problem Set 5". */
-const shortSetName = (name: string): string => name.split(" — ")[0].trim();
-
-/** The sets a homework covers, in a phrase: "Problem Set 5", "Problem Sets 1 and 2", "Problem Sets 3, 4 and 5". */
-export function coveredSetsPhrase(names: readonly string[]): string {
-  if (names.length === 0) return "";
-  const nums = names.map((n) => /^Problem Set (\S+)$/.exec(n)?.[1]);
-  const parts = nums.every((x) => x !== undefined) && names.length > 1 ? (nums as string[]) : [...names];
-  const list = parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
-  return parts === nums ? `Problem Sets ${list}` : list;
-}
-
-/** The class's homeworks as the Classroom's cards (ticket 291), oldest due first; `today` is the demo's (ticket 289). */
-export function homeworkCards(c: ClassroomState | null | undefined, today: string = dayLabel(DEMO_TODAY)): HomeworkCard[] {
+/** The teacher's homework column beside `past` (the Past cards as listed, newest due first); `today` is the demo's (ticket 289). */
+export function teacherHomeworkColumn(past: readonly { id: string; due: string }[], c: ClassroomState | null | undefined, today: string = dayLabel(DEMO_TODAY)): TeacherHomeworkPiece[] {
   const homeworks = classHomeworks(c);
-  // Oldest first, so a set's name reads in the order the class met them.
-  const sets = assignmentIds(c)
-    .flatMap((id) => assignmentBundle(id, c) ?? [])
-    .sort((a, b) => dueOrder(a.due) - dueOrder(b.due));
-  return homeworks.map((hw) => {
-    const covered = new Set(coveredSetIds(hw, sets, homeworks));
-    const over = dueOrder(today) > dueOrder(hw.due);
-    const state = over ? "over" : homeworkOpened(hw, c) ? "open" : "sent";
-    return { kind: "homework", id: hw.id, name: hw.name, due: hw.due, sets: sets.filter((b) => covered.has(b.id)).map((b) => shortSetName(b.name)), state, sam: samHomeworkStatus(hw, today) };
+  const future = futureHomeworks(c);
+  return homeworkColumn(past, homeworks, {}, today).map((p): TeacherHomeworkPiece => {
+    if (p.kind === "empty") return p;
+    const hw = homeworks.find((h) => h.id === p.id)!;
+    const state = !p.opened ? "sent" : dueOrder(today) > dueOrder(hw.due) ? "over" : "open";
+    const { done, total } = homeworkDoneCount(hw, CLASS_HOMEWORK_STORY, today);
+    return { kind: "homework", id: p.id, name: p.name, due: p.due, state, opensAfter: future.find((f) => f.id === p.id)?.opensAfter ?? null, done, total, row: p.row, span: p.span, setIds: p.setIds };
   });
-}
-
-/**
- * Past with the homework cards among the sets (ticket 291), newest due first; a set due on a homework's own due date sits
- * above it, as it belongs to the next homework (`homeworkForDue`).
- */
-export function pastWithHomework(past: readonly AssignmentCard[], homework: readonly HomeworkCard[]): ClassroomCard[] {
-  return [...past, ...homework].sort((a, b) => dueOrder(b.due) - dueOrder(a.due));
 }

@@ -4,11 +4,10 @@ import { useEffect, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import TeacherChrome from "./TeacherChrome";
 import { Eyebrow, H1 } from "@/components/ui";
-import CautionTriangle from "@/components/CautionTriangle";
-import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
+import { ASSIGNMENT } from "@/data/assignment";
 import { forgetTilesScroll } from "./students/tilesScroll";
 import { HOLISTIC_HREF } from "@/lib/assignments";
-import { CLASS_SUBJECT, classroomCards, coveredSetsPhrase, homeworkCards, isHomeworkCard, pastWithHomework, type AssignmentCard, type HomeworkCard } from "@/lib/classroomCards";
+import { CLASS_SUBJECT, classroomCards, teacherHomeworkColumn, type AssignmentCard, type TeacherHomeworkPiece } from "@/lib/classroomCards";
 import { CREATE_ROUTES } from "@/lib/createPipeline";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { CLASS_SIZE } from "@/lib/readiness";
@@ -23,8 +22,9 @@ import { useBatchedSession, useNow } from "@/lib/store";
  * landing (ticket 185: Class or Mistakes). The cards are `lib/classroomCards` over the classroom,
  * Sam's session in its 3 s batches and the clock, the inputs the assignment's own tabs read, so the
  * live card's counts move with the class. One class (ASSUMPTIONS.md, ONE CLASS).
- * Homework (ticket 291) sits in Past among the sets, newest due first: Homework 1 and 2, and each homework sent from
- * +Homework. A homework card opens nothing.
+ * Homework sits in a column to the right of Past (ticket 305, replacing ticket 291's homework cards): each homework's cell
+ * spans the rows of the Past sets it covers and reads the class's count; a cell opens nothing. Every section's cards sit in
+ * the grid's first column, so Live and Past cards are one width.
  *
  * The page takes the chrome's full container, as the header and Class View do: "+In-Class PSet"
  * ends where the header's avatar ends, and the cards span the same width.
@@ -35,8 +35,7 @@ export default function Classroom() {
   const now = useNow();
   // Sam's session and the clock arrive a microtask after mount; until then the counts would be the empty class's.
   const ready = updatedAt !== null && now > 0;
-  const { live, past: sets } = classroomCards(classroom, session, now);
-  const past = pastWithHomework(sets, homeworkCards(classroom));
+  const { live, past } = classroomCards(classroom, session, now);
   const hasLive = ready && live.length > 0;
   const rootRef = useRef<HTMLDivElement>(null);
   const pinnedRef = useRef<HTMLDivElement>(null);
@@ -92,16 +91,18 @@ export default function Classroom() {
           {/* Before Create nothing is live: no Live section at all, Past opens where it would sit (ticket 216). */}
           {hasLive && (
             <Section label="Live" id="live" className="mt-12">
-              {live.map((card) => (
-                <Card key={card.id} card={card} />
+              {live.map((card, i) => (
+                <Card key={card.id} card={card} row={i + 1} />
               ))}
             </Section>
           )}
         </div>
 
         {ready && past.length > 0 && (
-          <Section label="Past" id="past">
-            {past.map((card) => (isHomeworkCard(card) ? <HomeworkCardItem key={card.id} card={card} /> : <Card key={card.id} card={card} />))}
+          <Section label="Past" id="past" column={<HomeworkColumn pieces={teacherHomeworkColumn(past, classroom)} />}>
+            {past.map((card, i) => (
+              <Card key={card.id} card={card} row={i + 1} />
+            ))}
           </Section>
         )}
       </div>
@@ -126,11 +127,18 @@ function CreateButton({ href, label, onClick, ...data }: { href: string; label: 
   );
 }
 
-function Section({ label, id, className = "", children }: { label: string; id: "live" | "past"; className?: string; children: ReactNode }) {
+/**
+ * A section of cards: a two-column grid, the cards in the first column and the homework column's width kept in the second
+ * (ticket 305), filled beside Past only, so every card on the page is one width and its arrow and due date line up.
+ */
+function Section({ label, id, className = "", column, children }: { label: string; id: "live" | "past"; className?: string; column?: ReactNode; children: ReactNode }) {
   return (
     <section className={className} aria-label={label} data-section={id}>
       <Eyebrow>{label}</Eyebrow>
-      <ul className="mt-3 space-y-3">{children}</ul>
+      <div className="mt-3 grid grid-cols-[minmax(0,1fr)_214px] gap-x-4 gap-y-3" data-card-grid>
+        <ul className="contents">{children}</ul>
+        {column}
+      </div>
     </section>
   );
 }
@@ -138,9 +146,9 @@ function Section({ label, id, className = "", children }: { label: string; id: "
 const Dot = () => <span aria-hidden className="text-ink-muted/60">·</span>;
 
 /** One assignment: the whole card is the link, its title and status on the left, the due date and an arrow on the right. */
-function Card({ card }: { card: AssignmentCard }) {
+function Card({ card, row }: { card: AssignmentCard; /** Its row in the section's grid, first column. */ row: number }) {
   return (
-    <li>
+    <li className="col-start-1 min-w-0" style={{ gridRow: row }}>
       <Link
         href={card.href}
         className="group flex scroll-mt-(--classroom-pinned) items-center gap-8 rounded-2xl border border-line bg-paper px-9 py-7 shadow-card transition-[border-color,box-shadow] duration-150 hover:border-accent-line hover:shadow-lift focus-visible:border-accent focus-visible:ring-4 focus-visible:ring-accent/20 focus-visible:outline-none"
@@ -167,75 +175,47 @@ function Card({ card }: { card: AssignmentCard }) {
 }
 
 /**
- * A homework among the Past cards (ticket 291): the set card's shape and type, marked with a Homework chip, and nothing to
- * press: no link, no hover, no arrow (the arrow's room kept blank, so its due date lines up with the sets'). Its line names
- * the sets it covers, then where it stands: "sent" until it opens, "open" until it is due, then Sam's status on it.
+ * The homework column beside Past (ticket 305, `teacherHomeworkColumn`): a homework's cell runs from its first covered card's
+ * top to its last's bottom and reads its name, its due date and the class's count ("14/20 done"), or, sent and not yet open,
+ * "sent · opens after Problem Set 6" behind a dashed line. A Past set no homework covers keeps an empty space. Nothing in the
+ * column is pressable: a plain div, no link, hover or focus.
  */
-function HomeworkCardItem({ card }: { card: HomeworkCard }) {
-  const covers = coveredSetsPhrase(card.sets);
+function HomeworkColumn({ pieces }: { pieces: TeacherHomeworkPiece[] }) {
   return (
-    <li>
-      <div className="flex items-center gap-8 rounded-2xl border border-line bg-paper px-9 py-7 shadow-card select-none" data-homework-card={card.id} data-state={card.state}>
-        <div className="min-w-0 flex-1">
-          <h3 className="truncate font-display text-[31px] leading-tight text-ink" data-card-title>
-            {card.name}
-          </h3>
-          <p className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[17px] leading-7 text-ink-soft" data-status-line>
-            <span className="-my-0.5 rounded-full border border-standout-line bg-standout-soft px-3 py-0.5 text-[15px] leading-6 font-medium text-standout" data-homework-chip>
-              homework
+    <div className="contents" data-hw-column>
+      {pieces.map((p) => {
+        const gridRow = `${p.row + 1} / span ${p.span}`;
+        const rows = p.setIds.join(" ");
+        if (p.kind === "empty") return <div key={`empty-${rows}`} className="col-start-2" style={{ gridRow }} data-hw-empty={rows} aria-hidden />;
+        const sent = p.state === "sent";
+        return (
+          <div
+            key={p.id}
+            className={`col-start-2 flex flex-col justify-center rounded-2xl border px-6 py-3 select-none ${sent ? "border-dashed border-line-strong" : "border-line bg-paper/70"}`}
+            style={{ gridRow }}
+            data-hw-cell={p.id}
+            data-hw-state={p.state}
+            data-hw-rows={rows}
+          >
+            <span className={`font-display text-[25px] leading-tight ${sent ? "text-ink-muted" : "text-ink"}`} data-hw-name>
+              {p.name}
             </span>
-            {covers && (
-              <>
-                <Dot />
-                <span data-covers>covers {covers}</span>
-              </>
+            <span className="mt-1 text-[16px] whitespace-nowrap text-ink-muted" data-due>
+              due {p.due}
+            </span>
+            {sent ? (
+              <span className="mt-2 text-[15px] leading-5 text-balance text-ink-muted" data-hw-sent>
+                {p.opensAfter ? `sent · opens after ${p.opensAfter}` : "sent"}
+              </span>
+            ) : (
+              <span className="mt-2.5 text-[17px] leading-7 text-ink-soft" data-hw-count>
+                <Count n={p.done} of={p.total} /> done
+              </span>
             )}
-            <Dot />
-            <HomeworkState card={card} />
-          </p>
-        </div>
-        <span className="shrink-0 text-[16px] whitespace-nowrap text-ink-muted" data-due>
-          due {card.due}
-        </span>
-        {/* The set cards' arrow's room, blank: a homework opens nothing. */}
-        <span aria-hidden className="invisible shrink-0 text-[26px] leading-none">
-          →
-        </span>
-      </div>
-    </li>
-  );
-}
-
-function HomeworkState({ card }: { card: HomeworkCard }) {
-  if (card.state !== "over")
-    return (
-      <span className="font-medium text-ink" data-homework-state>
-        {card.state}
-      </span>
-    );
-  const name = DEMO_STUDENT.name.split(" ")[0];
-  if (card.sam === "completed")
-    return (
-      <span className="inline-flex items-center gap-2" data-homework-state data-sam="completed">
-        <CheckMark />
-        {name} completed it on time
-      </span>
-    );
-  return (
-    <span className="inline-flex items-center gap-2" data-homework-state data-sam={card.sam}>
-      <CautionTriangle className="h-[19px] w-[21px]" />
-      {name} missed it
-    </span>
-  );
-}
-
-/** The green check of Sam's completed homework cell (ticket 290), at the line's size. */
-function CheckMark() {
-  return (
-    <svg viewBox="0 0 24 22" className="h-[19px] w-[21px]" aria-hidden data-homework-check>
-      <circle cx="12" cy="11" r="10.2" fill="var(--color-secure)" />
-      <path d="M7.4 11.3l3.1 3.1 6.1-6.3" fill="none" stroke="#fff" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
