@@ -5843,3 +5843,22 @@ rule for pens is untouched and the exception is visible and named.
 - `pillNeeds` changes chip widths on every stage's cards (never narrower), so a card that fitted exactly may now scroll sideways a few pixels sooner.
 
 **Defense.** The grid is a pure read of the runs every other group view reads, so it cannot disagree with them, and the rules for tones and counts are a few lines tested against Problem Set 6's real outcomes over time. The cards reuse ticket 318's structure, changing only what Carson asked: groups instead of students.
+
+## 2026-09-16 · Class review works an example, then the class does a near-identical question (tickets 344, 320)
+
+**Decision.** "Write with me" is removed. Class review runs three steps per question: the chosen examples with every iPad frozen, then a similar question (Q*) worked line by line on the board and every iPad, then a second similar question (Q**) that every student works on their own iPad with their lines marked. The teacher ends the third step, and a five-second countdown runs first, as force submit's grace does elsewhere. Nothing from class review reaches the report or the set score. The teacher's Mistakes tab keeps the split, with no column headers: read-only rows per example grouped by question in the set's order, the class's progress above them while students write, and a row of the remaining questions along the bottom under "Add to class review?".
+
+**Context.** An outside review, and then Carson: none of the lesson's stages modelled a method and immediately gave the class a near-identical question, which is the structure the worked-example research is strongest on. Screens frozen leaves the student watching; write with me is copying. The pair already exists in the product for help and the warm-up (tickets 310–313), so class review can use the same Q*/Q** and the same marking.
+
+**Alternatives considered.**
+- *Keep write with me beside the new mode*: three modes to explain and to build, and Carson chose to replace it.
+- *Only students who got the question wrong do Q***: the teacher would have to manage two groups in the room, and a student who was right first time still gains from a second, differently-shaped question. Carson: everyone does Q**.
+- *Q** as a completion problem (blank lines) rather than the whole question*: shorter, and it matches the help steps, but class review's Q** is the independent attempt the lesson has been building to.
+- *The step ends when every student has finished*: one slow student holds up the room. *Next unlocks only once everyone is finished* is the same gate with extra steps.
+- *No countdown*: students lose whatever they were mid-way through with no warning. The five seconds match the force-submit grace students already know.
+- *Record "right after class review" on the report*: Carson said no. The set score is the first submission (ticket 285), and class review is teaching time, not assessment.
+- *Pressing a row on the left to put that example on the board*: a second control for what the board already does; Carson: rows read-only.
+
+**Tradeoffs.** Q* and Q** exist only for Problem Set 6 (ticket 310), so class review on an older or created set runs the examples step alone until they are generated. Every student writing on Q** means a room where some finish in a minute and others do not; the teacher carries that judgement, with the counts on the laptop only. Removing `FollowMode` drops the stored mode from every class review session.
+
+**Defense.** The lesson now models a method and asks for it back at every stage: the warm-up, help inside the set, and the class review that closes the lesson. The teacher keeps the room's pace, the student keeps the pen, and the assessment window stays exactly as it was.

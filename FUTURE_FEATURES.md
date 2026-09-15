@@ -1841,6 +1841,15 @@ Raised in a project checkpoint review; Carson asked for these on the list. Space
 - **Cards for a regrouped class.** The cards map a student to their group in review; a student moved between groups mid-review would show under their new group. Deferred: seating does not change mid-review in the demo.
 - **Sideways scroll on half-width cards.** Q7's card (three workings) scrolls sideways at half width, as ticket 315's cards do. A narrower card body (stacking workings) could avoid it. Deferred.
 
+## Class review pair mode (tickets 344, 320, 2026-09-16)
+
+- **Q\* and Q\*\* for older and created sets.** Only Problem Set 6 has them (ticket 310), so class review on Problem Sets 1-5, or on a set made in Create, runs the examples step alone. Generating them with the set's questions is already noted under ticket 310.
+- **A student who already saw this pair in help.** A student who took "I need help" on that question worked Q* and Q** during the set, and meets them again in class review. One pair per question is what exists; a third question per pair, or a rule that gives that student a different one, is open.
+- **What happens to the work students write in class review.** It is live on the teacher's laptop and then gone: nothing is marked, scored or kept in the report (Carson, 2026-09-16). Keeping it as evidence for the skill map, or showing it on the student's own report, is open.
+- **A student who finishes Q\*\* early.** They wait on their own work. A next thing to do (the rest of the question, a harder variant, or their own unfinished questions) is open.
+- **The five-second countdown's length.** Matched to force submit's countdown; whether class review wants longer is open.
+- **Writing on the board during the worked example.** The teacher reveals Q*'s authored lines; writing their own line mid-example, or annotating a revealed line, is not built.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
