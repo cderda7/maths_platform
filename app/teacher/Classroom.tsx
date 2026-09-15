@@ -151,7 +151,7 @@ function Card({ card, row }: { card: AssignmentCard; /** Its row in the section'
     <li className="col-start-1 min-w-0" style={{ gridRow: row }}>
       <Link
         href={card.href}
-        className="group flex scroll-mt-(--classroom-pinned) items-center gap-8 rounded-2xl border border-line bg-paper px-9 py-7 shadow-card transition-[border-color,box-shadow] duration-150 hover:border-accent-line hover:shadow-lift focus-visible:border-accent focus-visible:ring-4 focus-visible:ring-accent/20 focus-visible:outline-none"
+        className="group flex scroll-mt-(--classroom-pinned) items-center gap-8 rounded-2xl set-card-edge bg-paper px-9 py-7 shadow-card outline-set-border transition-[outline-color,box-shadow] duration-150 hover:shadow-lift hover:outline-accent-line focus-visible:ring-4 focus-visible:ring-accent/20 focus-visible:outline-accent"
         data-assignment-card={card.id}
         data-status={card.status}
       >
@@ -178,7 +178,8 @@ function Card({ card, row }: { card: AssignmentCard; /** Its row in the section'
  * The homework column beside Past (ticket 305, `teacherHomeworkColumn`): a homework's cell runs from its first covered card's
  * top to its last's bottom and reads its name, its due date and the class's count ("14/20 done"), or, sent and not yet open,
  * "sent · opens after Problem Set 6" behind a dashed line. A Past set no homework covers keeps an empty space. Nothing in the
- * column is pressable: a plain div, no link, hover or focus.
+ * column is pressable: a plain div, no link, hover or focus. An open cell's line is the homework cell border tokens (ticket 321);
+ * the sent cell's dashes are its own.
  */
 function HomeworkColumn({ pieces }: { pieces: TeacherHomeworkPiece[] }) {
   return (
@@ -191,7 +192,7 @@ function HomeworkColumn({ pieces }: { pieces: TeacherHomeworkPiece[] }) {
         return (
           <div
             key={p.id}
-            className={`col-start-2 flex flex-col justify-center rounded-2xl border px-6 py-3 select-none ${sent ? "border-dashed border-line-strong" : "border-line bg-paper/70"}`}
+            className={`col-start-2 flex flex-col justify-center rounded-2xl px-6 py-3 select-none ${sent ? "border border-dashed border-line-strong" : "hw-card-edge bg-paper/70 outline-hw-border"}`}
             style={{ gridRow }}
             data-hw-cell={p.id}
             data-hw-state={p.state}

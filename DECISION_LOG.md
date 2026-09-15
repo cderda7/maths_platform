@@ -5277,3 +5277,20 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** A line that means the same thing in another form is wrong: `(2 - x)` for `-(x - 2)` inside a product, `\tfrac{6}{2}` for `3`, `0.5` for `\tfrac{1}{2}`, a sentence in other words. Eleven misconceptions are named; others show as wrong with no chip. Four older table entries label a line "brackets don't expand back" where the check names the narrower misconception whose description it fits; the test lists them, and the tables are unchanged. Refactoring `evalTex` onto the tree touches the diagnostic and homework tests' evaluator; they pass unchanged.
 
 **Defense.** The rule is the one the ticket states: the same statement, a step still a step. It is one pure function with no knowledge of where a step came from, so ticket 310's questions, the practice bank and a created set's steps are all checked the same way. It reuses the app's normalisation and grammar rather than adding a second parser. It is held by 706 tests: every Problem Set 6 and practice step, and every line of every set's evaluation table. Its misconceptions are those the teacher-facing tables already count, so a chip on a Q** line means what it means everywhere else.
+
+## 2026-09-15 · Tuner borders are an inward outline over a clear 1px border, per kind (ticket 321)
+
+**Decision.** The Classroom's problem set cards and homework cells each get their own border tokens (width, style, colour) in `app/globals.css`, tuned in a Borders section of the design tuner. The line is an outline of the token width at `outline-offset: -width`, over a transparent 1px border that keeps each box's old layout. State colours (hover, To do, completed, missed) become outline colours; the teacher's sent cell keeps its own dashed border.
+
+**Context.** The user wanted to add borders to the problem set and homework boxes from the tuner and chose separate controls per kind with width, colour and style. The boxes' 1px `line` border was shared with ~160 hairlines, and width was a literal.
+
+**Alternatives considered.**
+- *A real border of the token width, the extra width taken back out of the padding*: built first. A border's width snaps to whole screen pixels under the teacher's 0.72 zoom where padding does not, so at 4px each teacher card came out 2.3 px short and the fifth card rose 9 px: toggling Space made the list jump.
+- *A real border with no compensation*: simplest CSS, but every card grows and every word moves as the slider drags, the opposite of a tuner you compare with Space.
+- *Real 1px border plus an outline for the extra width*: pixel-identical at 1px, but a dashed or dotted line would be two dash patterns side by side.
+- *One control for every large card*: offered; the user chose per kind.
+- *Border colours following `line`*: a token file of hex values cannot say "follows"; the two colours start at `line`'s hex and part from it once tuned.
+
+**Tradeoffs.** At the saved 1px an outline antialiases slightly differently from the border it replaced: the teacher's rounded corners differ by at most 6/255 and Sam's scaled iPad edges by at most 4/255, invisible but not byte-identical. The outline is also the focus ring's property: Sam's pressable cards show their 1px border under the focus ring instead of the tuned line, and the teacher's card turns its line accent on focus. Two token-named utilities replace plain `border` classes on these boxes.
+
+**Defense.** No width, style or zoom can move a box or a word, which is what makes live tuning and the Space comparison trustworthy; each kind moves alone, and every state keeps its meaning.

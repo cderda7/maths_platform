@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { StatusDot } from "@/components/Tag";
-import { changedValues, colorFamilies, CORNER_TOKENS, EMPTY_PROPOSAL, LINKS, proposedColors, scaleLength, type Family, type Proposal, type Token } from "@/lib/designTokens";
+import { BORDER_KINDS, BORDER_MAX_PX, BORDER_STYLES, changedValues, colorFamilies, CORNER_TOKENS, EMPTY_PROPOSAL, LINKS, proposedColors, scaleLength, type Family, type Proposal, type Token } from "@/lib/designTokens";
 import { hexToOklch, oklchToHex, rgbToHex, type Oklch } from "@/lib/oklch";
 
 /**
@@ -33,7 +33,8 @@ function load(): Saved {
 
 const isTyping = (el: EventTarget | null) => el instanceof HTMLElement && (el.isContentEditable || (el instanceof HTMLInputElement && el.type !== "range" && el.type !== "checkbox") || el instanceof HTMLTextAreaElement);
 
-type Section = "colours" | "markers" | "corners";
+type Section = "colours" | "markers" | "corners" | "borders";
+const BORDER_COLORS: string[] = BORDER_KINDS.map((k) => k.color);
 
 function Tuner() {
   const [initial] = useState(load);
@@ -102,7 +103,10 @@ function Tuner() {
   const families = tokens ? colorFamilies(tokens) : [];
   const fileValue = (name: string) => tokens?.find((t) => t.name === name)?.value ?? "";
   const valueOf = (name: string) => proposal.values[name] ?? fileValue(name);
-  const rows = familyRows(families, proposal.split);
+  const rows = familyRows(
+    families.filter((f) => !f.main || !BORDER_COLORS.includes(f.main)),
+    proposal.split,
+  );
   const rowOfToken = (name: string) => rows.find((r) => r.tokens.includes(name))?.key;
 
   // Keyboard: ⌥C toggles; with the panel open, Space held compares and ⌘Z undoes.
@@ -167,8 +171,10 @@ function Tuner() {
         if (found.length) break;
       }
       const marker = target.closest("[data-status], .marker-half");
+      // A Classroom box (ticket 321): its border lives in Borders, not in the Colours rows.
+      const box = target.closest(".set-card-edge, .hw-card-edge, [data-hw-cell]");
       setOpen(true);
-      setSections((s) => [...new Set<Section>([...s, ...(found.length ? (["colours"] as const) : []), ...(marker ? (["markers"] as const) : [])])]);
+      setSections((s) => [...new Set<Section>([...s, ...(found.length ? (["colours"] as const) : []), ...(marker ? (["markers"] as const) : []), ...(box ? (["borders"] as const) : [])])]);
       if (found.length) setExpanded(found[0]);
       setPicked({ rows: found, at: Date.now() });
     };
@@ -382,6 +388,33 @@ function Tuner() {
                 </p>
               </div>
             )}
+
+            <SectionHead title="Borders" open={sections.includes("borders")} onClick={() => toggleSection("borders")} />
+            {sections.includes("borders") && (
+              <div className="dt-editor dt-section">
+                {BORDER_KINDS.map((k) => (
+                  <div key={k.key} className="dt-border" data-tuner-border={k.key}>
+                    <div className="dt-border-head">
+                      <strong>{k.label}</strong>
+                      {[k.width, k.style, k.color].some((t) => changed[t]) && <span className="dt-dot" title="changed" />}
+                    </div>
+                    <Slider label="Width" min={0} max={BORDER_MAX_PX} step={0.5} value={parseFloat(valueOf(k.width))} format={(v) => `${v}px`} onChange={(v) => setValue(k.width, `${v}px`)} name={`${k.key}-border-width`} />
+                    <div className="dt-field">
+                      <span>Style</span>
+                      <span className="dt-seg">
+                        {BORDER_STYLES.map((s) => (
+                          <button key={s} type="button" className={valueOf(k.style) === s ? "dt-seg-on" : ""} onClick={() => setValue(k.style, s)} data-tuner-border-style={`${k.key}-${s}`}>
+                            {s[0].toUpperCase() + s.slice(1)}
+                          </button>
+                        ))}
+                      </span>
+                    </div>
+                    {colors[k.color] && <ShadeEditor name={k.color} value={colors[k.color]} follows={false} canFollow={false} onChange={(c) => setColor(k.color, c)} onRelink={() => {}} />}
+                  </div>
+                ))}
+                <p className="dt-muted">Drawn inward from each box&apos;s edge, so nothing moves. Hover, To do, completed and missed boxes keep their own colour; a not-yet-open cell keeps its dashes.</p>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -557,6 +590,10 @@ const TUNER_CSS = `
 .dt-seg button{border:0;background:#fff;padding:3px 10px;font:12px system-ui,sans-serif;color:#4a4863;min-width:34px}
 .dt-seg button+button{border-left:1px solid #dcdae6}
 .dt-seg .dt-seg-on{background:#1d1b33;color:#fff}
+.dt-border{display:flex;flex-direction:column;gap:4px;padding:4px 0 8px}
+.dt-border+.dt-border{border-top:1px solid #efeef4;padding-top:8px}
+.dt-border-head{display:flex;align-items:center;gap:6px;color:#1d1b33;font-size:12px}
+.dt-border-head strong{font-weight:600}
 .dt-preview{display:flex;align-items:center;gap:10px;padding:10px;margin-bottom:6px;background:#faf8f4;border-radius:8px}
 .dt-foot{display:flex;align-items:center;gap:6px;padding:10px 12px;border-top:1px solid #ecebf2}
 .dt-foot .dt-muted{margin-right:auto}

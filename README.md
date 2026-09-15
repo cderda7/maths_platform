@@ -43,7 +43,8 @@ Everything else in the demo still runs offline.
 
 **Design tuner** (ticket 296, `npm run dev` only): press ⌥C on any page for a panel that tunes the design tokens in
 `app/globals.css` on the live page. Colours by lightness, vividness and hue (red moves gap and wrong together until
-Split), the status markers' corners and incomplete fill (split, corner to corner, or hatched), and all corners. Hold
+Split), the status markers' corners and incomplete fill (split, corner to corner, or hatched), all corners, and
+the Classroom's box borders (ticket 321: problem set cards and homework cells apart, width, style and colour). Hold
 Space to see the saved design, ⌘Z to undo, ⌥-click anything to find its colours; Save to globals.css writes the
 changed values. Unsaved changes stay in that browser across reloads (the small tag at the top says so).
 

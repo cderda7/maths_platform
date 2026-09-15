@@ -1580,6 +1580,14 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **Handwriting recognition output.** The check reads TeX and the typing shorthand. A real recogniser's output (MathML, or TeX with `\left.`, `\mathbf`, implicit multiplication spaces) needs its own normalisation in front of `readLine`. Deferred with recognition itself.
 - **Demo slips as data.** `warmupScript(p, slips)` and `padScript(steps, slips)` take the wrong lines a demo run writes, but no named slips data exists yet. Ticket 312 chooses which blanks show a wrong line in its click-through.
 
+## Design tuner borders (ticket 321, 2026-09-15)
+
+- **Borders for every large card.** Borders tunes only the Classroom's problem set cards and homework cells; report panels, the Future panel and other `rounded-2xl` cards keep `border-line`. Deferred: the user chose per-kind controls for the two boxes they were looking at.
+- **A sent homework cell's border in the tuner.** The teacher's not-yet-open cell keeps its own dashed line-strong border and takes no tokens, so it stays distinct; a "not yet open" border kind could tune it.
+- **State border colours in Borders.** To do (accent), completed (green), missed (dark red) and hover colours still come from their colour families; Borders could list them per kind.
+- **Border colours that follow `line`.** The two border colours start at `line`'s hex but don't move with it; the token file would need a way to say "follows".
+- **Shadow per kind.** Card shadows (`shadow-card`, `shadow-lift`) aren't tunable; a shadow strength beside the border would round out the box look.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

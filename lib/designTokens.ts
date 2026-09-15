@@ -126,6 +126,20 @@ export function changedValues(tokens: Token[], proposal: Proposal): Record<strin
 /** Tailwind's corner steps the Corners slider scales together. */
 export const CORNER_TOKENS = ["--radius-sm", "--radius-md", "--radius-lg", "--radius-xl", "--radius-2xl", "--radius-3xl"];
 
+/**
+ * The Classroom's box borders the Borders section tunes, one kind each (ticket 321): width and style are `:root` tokens,
+ * the colour a `--color-*` token the section edits in place of a Colours row.
+ */
+export const BORDER_KINDS = [
+  { key: "set", label: "Problem set cards", width: "--set-card-border-width", style: "--set-card-border-style", color: "--color-set-border" },
+  { key: "hw", label: "Homework cells", width: "--hw-card-border-width", style: "--hw-card-border-style", color: "--color-hw-border" },
+] as const;
+
+export const BORDER_STYLES = ["solid", "dashed", "dotted"] as const;
+
+/** The widest border the width slider reaches, in px: the line is drawn inward over the padding, and the thinnest box (Sam's homework cell) has 8px of it. */
+export const BORDER_MAX_PX = 4;
+
 /** A `rem` or `px` length times k, in the same unit, to 4 decimals. */
 export function scaleLength(value: string, k: number): string {
   const m = /^(-?[\d.]+)(rem|px|%)$/.exec(value.trim());

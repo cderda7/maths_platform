@@ -117,7 +117,8 @@ function HomeworkColumn({ cards, classroom, onOpen }: { cards: StudentSetCard[];
         const gridRow = `${p.row + 1} / span ${p.span}`;
         const rows = p.setIds.join(" ");
         if (p.kind === "empty") return <div key={`empty-${rows}`} className="col-start-2" style={{ gridRow }} data-hw-empty={rows} aria-hidden />;
-        const shape = "col-start-2 flex flex-col justify-center rounded-2xl border px-4 py-2 select-none";
+        // The line is the homework cell border tokens, an outline (ticket 321); a state colours it, a focus ring shows the 1px border under it.
+        const shape = "col-start-2 flex flex-col justify-center rounded-2xl hw-card-edge px-4 py-2 select-none";
         // Its due date, then the day it was handed in when it was (ticket 307); a missed homework never handed in shows the due date alone.
         const dates = (
           <span className="mt-1.5 flex flex-col text-[12.5px] leading-[17px] whitespace-nowrap text-ink-muted" data-hw-dates>
@@ -127,7 +128,7 @@ function HomeworkColumn({ cards, classroom, onOpen }: { cards: StudentSetCard[];
         );
         if (p.status === "completed")
           return (
-            <div key={p.id} className={`${shape} border-secure-line bg-secure-soft/70`} style={{ gridRow }} data-hw-cell={p.id} data-hw-status={p.status} data-hw-rows={rows}>
+            <div key={p.id} className={`${shape} bg-secure-soft/70 outline-secure-line`} style={{ gridRow }} data-hw-cell={p.id} data-hw-status={p.status} data-hw-rows={rows}>
               <span className="flex items-center gap-2.5">
                 <CompletedMark />
                 <span className="whitespace-nowrap text-[15px] font-medium text-ink">HW{p.n} completed</span>
@@ -137,7 +138,7 @@ function HomeworkColumn({ cards, classroom, onOpen }: { cards: StudentSetCard[];
           );
         if (p.status === "missed")
           return (
-            <div key={p.id} className={`${shape} border-wrong-deep bg-paper/70`} style={{ gridRow }} data-hw-cell={p.id} data-hw-status={p.status} data-hw-rows={rows}>
+            <div key={p.id} className={`${shape} bg-paper/70 outline-wrong-deep`} style={{ gridRow }} data-hw-cell={p.id} data-hw-status={p.status} data-hw-rows={rows}>
               <span className="flex items-center gap-2.5">
                 <CautionTriangle />
                 <span className="whitespace-nowrap text-[15px] font-medium text-ink">HW{p.n} missing</span>
@@ -152,7 +153,7 @@ function HomeworkColumn({ cards, classroom, onOpen }: { cards: StudentSetCard[];
         );
         if (!p.opened)
           return (
-            <div key={p.id} className={`${shape} border-line bg-paper/40`} style={{ gridRow }} data-hw-cell={p.id} data-hw-status={p.status} data-hw-opened="false" data-hw-rows={rows}>
+            <div key={p.id} className={`${shape} bg-paper/40 outline-hw-border`} style={{ gridRow }} data-hw-cell={p.id} data-hw-status={p.status} data-hw-opened="false" data-hw-rows={rows}>
               {label}
             </div>
           );
@@ -163,7 +164,7 @@ function HomeworkColumn({ cards, classroom, onOpen }: { cards: StudentSetCard[];
             type="button"
             onClick={() => onOpen(studentHomeworkHref(p.id))}
             aria-label={`${p.name}, open`}
-            className={`${shape} items-start border-line bg-paper/70 text-left transition-[border-color,background-color,box-shadow] hover:border-line-strong hover:bg-paper hover:shadow-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent active:bg-cream-deep/60 active:shadow-none`}
+            className={`${shape} items-start bg-paper/70 text-left outline-hw-border transition-[outline-color,background-color,box-shadow] hover:bg-paper hover:shadow-card hover:outline-line-strong focus-visible:border-hw-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent active:bg-cream-deep/60 active:shadow-none`}
             style={{ gridRow }}
             data-hw-cell={p.id}
             data-hw-status={p.status}
@@ -204,7 +205,8 @@ function SetCard({ card, row, onOpen }: { card: StudentSetCard; /** Its row in t
       </span>
     </>
   );
-  const shape = "flex h-14 items-center gap-6 rounded-2xl border px-6";
+  // The line is the problem set card border tokens, an outline (ticket 321); a To do card colours it accent, a focus ring shows the 1px border under it.
+  const shape = "flex h-14 items-center gap-6 rounded-2xl set-card-edge px-6";
   const { href } = card;
   if (href)
     return (
@@ -213,7 +215,7 @@ function SetCard({ card, row, onOpen }: { card: StudentSetCard; /** Its row in t
           type="button"
           onClick={() => onOpen(href)}
           aria-label={`${card.name}, your report`}
-          className={`${shape} w-full border-line bg-paper/70 text-left transition-[border-color,background-color,box-shadow] hover:border-line-strong hover:bg-paper hover:shadow-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent active:bg-cream-deep/60 active:shadow-none`}
+          className={`${shape} w-full bg-paper/70 text-left outline-set-border transition-[outline-color,background-color,box-shadow] hover:bg-paper hover:shadow-card hover:outline-line-strong focus-visible:border-set-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent active:bg-cream-deep/60 active:shadow-none`}
           data-open-report={card.id}
         >
           {body}
@@ -221,7 +223,7 @@ function SetCard({ card, row, onOpen }: { card: StudentSetCard; /** Its row in t
       </li>
     );
   return (
-    <li style={{ gridRow: row }} className={`col-start-1 ${shape} ${todo ? "border-accent-line bg-paper shadow-card" : "border-line bg-paper/70"}`} data-student-set={card.id} data-kind={card.kind} data-section={card.section}>
+    <li style={{ gridRow: row }} className={`col-start-1 ${shape} ${todo ? "bg-paper shadow-card outline-accent-line" : "bg-paper/70 outline-set-border"}`} data-student-set={card.id} data-kind={card.kind} data-section={card.section}>
       {body}
       {card.action && (
         <Button variant="accent" hit className="uppercase tracking-[0.08em]" onClick={() => onOpen(card.kind === "homework" ? studentHomeworkHref(card.id) : studentSetHref(card.id))} {...(card.kind === "homework" ? { "data-open-homework": card.id } : { "data-open-set": card.id })}>

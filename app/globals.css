@@ -45,6 +45,9 @@
   /* Covered in class review (ticket 282): a neutral grey, no judgement in it. */
   --color-covered-soft: #efeff1;
   --color-covered-line: #d4d4d9;
+  /* The Classroom's box borders by kind (ticket 321): problem set cards and homework cells, each apart from `line` so the design tuner can move one kind alone. */
+  --color-set-border: #e7e4f1;
+  --color-hw-border: #e7e4f1;
 
   --font-display: var(--font-playfair), "Playfair Display", Georgia, "Times New Roman", serif;
   --font-sans: var(--font-inter), Inter, system-ui, -apple-system, sans-serif;
@@ -73,6 +76,32 @@
   --marker-dot-radius: 50%;
   --marker-half-angle: 90deg;
   --marker-half-stripe: 50%;
+}
+/*
+ * The Classroom's box borders (ticket 321), teacher's and Sam's: problem set cards (`set-card-edge`) and homework cells
+ * (`hw-card-edge`), each kind its own width and style. The line is an outline drawn inward from the box's edge over a
+ * transparent 1px border, so a box keeps the layout it had with a real border and no width moves a box or a word (a real
+ * border's width snaps to whole screen pixels under the teacher's zoom where padding does not, so no padding sum could
+ * hold it still). Colours are outline colours: `outline-set-border` / `outline-hw-border` (--color-set-border,
+ * --color-hw-border), and a state's own (`hover:outline-accent-line`, a To do card, a completed or missed cell).
+ */
+:root {
+  --set-card-border-width: 1px;
+  --set-card-border-style: solid;
+  --hw-card-border-width: 1px;
+  --hw-card-border-style: solid;
+}
+@utility set-card-edge {
+  border: 1px solid transparent;
+  outline-width: var(--set-card-border-width);
+  outline-style: var(--set-card-border-style);
+  outline-offset: calc(-1 * var(--set-card-border-width));
+}
+@utility hw-card-edge {
+  border: 1px solid transparent;
+  outline-width: var(--hw-card-border-width);
+  outline-style: var(--hw-card-border-style);
+  outline-offset: calc(-1 * var(--hw-card-border-width));
 }
 .marker-half {
   background-image: repeating-linear-gradient(var(--marker-half-angle), var(--marker-color) 0 var(--marker-half-stripe), var(--marker-rest, transparent) 0 calc(2 * var(--marker-half-stripe)));

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { changedValues, colorFamilies, CORNER_TOKENS, EMPTY_PROPOSAL, parseTokens, proposedColors, scaleLength, setTokenValues } from "@/lib/designTokens";
+import { BORDER_KINDS, BORDER_STYLES, changedValues, colorFamilies, CORNER_TOKENS, EMPTY_PROPOSAL, parseTokens, proposedColors, scaleLength, setTokenValues } from "@/lib/designTokens";
 import { hexToOklch, oklchToHex, rgbToHex } from "@/lib/oklch";
 
 const CSS = readFileSync(join(__dirname, "../app/globals.css"), "utf8");
@@ -42,6 +42,17 @@ describe("oklch", () => {
 describe("tokens in globals.css", () => {
   it("declares the tunable tokens", () => {
     for (const name of ["--color-gap", "--color-wrong", "--marker-pill-radius", "--marker-dot-radius", "--marker-half-angle", "--marker-half-stripe", ...CORNER_TOKENS]) expect(value(name), name).toBeDefined();
+  });
+
+  it("declares each Classroom border kind at today's look: 1px solid in line's colour (ticket 321)", () => {
+    for (const k of BORDER_KINDS) {
+      expect(value(k.width), k.width).toBe("1px");
+      expect(value(k.style), k.style).toBe("solid");
+      expect(value(k.color), k.color).toBe(value("--color-line"));
+      expect(BORDER_STYLES).toContain(value(k.style));
+    }
+    const families = colorFamilies(tokens);
+    for (const k of BORDER_KINDS) expect(families.find((f) => f.main === k.color)?.shades, k.color).toEqual([]);
   });
 
   it("groups colours into families, a shade under its base", () => {
@@ -102,6 +113,17 @@ describe("a proposal", () => {
 
   it("carries non-colour values that differ from the file", () => {
     expect(changedValues(tokens, { ...EMPTY_PROPOSAL, values: { "--marker-half-angle": "45deg", "--marker-pill-radius": value("--marker-pill-radius")! } })).toEqual({ "--marker-half-angle": "45deg" });
+  });
+
+  it("tunes each kind of Classroom border alone, width, style and colour (ticket 321)", () => {
+    const [set, hw] = BORDER_KINDS;
+    const proposal = { ...EMPTY_PROPOSAL, values: { [set.width]: "3px", [set.style]: "dashed" }, colors: { [set.color]: hexToOklch("#8a84b0")! } };
+    expect(changedValues(tokens, proposal)).toEqual({ [set.width]: "3px", [set.style]: "dashed", [set.color]: "#8a84b0" });
+    const next = setTokenValues(CSS, changedValues(tokens, proposal));
+    const saved = parseTokens(next);
+    expect(saved.find((t) => t.name === hw.width)?.value).toBe("1px");
+    expect(saved.find((t) => t.name === "--color-line")?.value).toBe("#e7e4f1");
+    expect(saved.find((t) => t.name === set.style)?.value).toBe("dashed");
   });
 
   it("scales a corner in its own unit", () => {
