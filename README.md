@@ -344,6 +344,13 @@ Sets 1–5 are finished: each opens on Class, Mistakes, Groups and every student
 students' real working (every line in the set's evaluation table); the board and class review are the live
 lesson's, Set 6's. Set 6 is created by Create (or any presenter skip) and streams in.
 
+- **Review outcomes follow one group rule on every set** (tickets 332, 338). A report's "Correct after group
+  review" and "Incorrect" read what the group worked after individual review: only the questions a member still had
+  wrong, unfinished or not attempted once corrections were in, solved when someone at the table had it right first
+  time or fixed it in individual review. Amber sat out Problem Sets 1 and 2 (every slip at the table fixed alone), so
+  its four reports there show no group version. Each set keeps one question nobody at a table could explain (violet's
+  Q10 on Set 1, mint's Q10 on Sets 2–6); where a rework had fixed it, that rework now slips again.
+
 - **New skills are per set** (ticket 209). Every skill has one home in the taxonomy (null factor law in
   Functions › Zeros, the discriminant in Algebra › Equations, the binomial identity in Algebra › Expanding &
   factorising, surds in Algebra › Number). A set lists its New skills; on that set their evidence shows in the

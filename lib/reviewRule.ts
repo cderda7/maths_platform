@@ -1,39 +1,33 @@
 import type { Classmate } from "@/data/classmates";
 import { GROUP_COLOURS, type GroupColour, type SeatingGroups } from "@/data/groups";
-import { STORY, type ReviewOutcome, type StoryCategory, type StoryStatus } from "@/data/story";
+import { STORY, STORY_SETS, type ReviewOutcome, type StoryCategory, type StoryStatus } from "@/data/story";
 import type { MisconceptionId } from "@/data/misconceptions";
 import { evaluateLine } from "./evaluate";
 import { classmateLines, columnOf, type SetScope } from "./hierarchy";
 import { canExplain, fixedInIndividualReview, recordWork, stillToReview } from "./reviewUnion";
 
 /**
- * The sets whose review records follow ticket 332's group rule: a group works only what a present member still has wrong
- * after individual review, a member who fixed a question there can explain it, and a one-off slip is rewritten in
- * individual review but may slip again (then it goes to the group). Problem Sets 1–5 keep their authored outcomes under
- * ticket 278's first-submission rule until ticket 338 regenerates them; ticket 338 removes this list and its one reader,
- * `afterReviewRule`, so every set runs the one rule.
- */
-export const AFTER_REVIEW_RULE_SETS: readonly number[] = [6];
-export const afterReviewRule = (n: number): boolean => AFTER_REVIEW_RULE_SETS.includes(n);
-
-/**
- * The agreed rules for what review made of a set record's problems (tickets 244 and 281), applied literally so a test
- * can hold the class story sheet's review part to them.
+ * The agreed rules for what review made of a set record's problems (tickets 244, 281, 332, 338), applied literally so a
+ * test can hold the class story sheet's review part to them. Every set runs the one rule (ticket 338 removed ticket 332's
+ * Problem Set 6-only scoping).
  *
- * What a member brings to their group (ticket 278): every problem they did not get right first time, one they got wrong,
- * one they started and left incomplete, and one they did not attempt. An absent member brings nothing (ticket 250).
- *
- * Where a member's problem ends (the user, 2026-09-14, ticket 281):
+ * What a member has from their first submission (ticket 278): every problem they did not get right first time, one they
+ * got wrong, one they started and left incomplete, and one they did not attempt. An absent member brings nothing (ticket
+ * 250). Each such problem has a **basis**:
  * - a **one-off** slip (its mistake made on that one problem of the set, the sheet's pattern for it naming only that
- *   problem, and no gap in its category) is fixed on the student's own rework;
- * - everything else goes to the group: a **repeated** slip, a **pattern** (a gap in the slip's category on the set), a
- *   problem left **incomplete** or **not attempted**. The group **solves** a problem when at least one present member
- *   had it right first time, a pattern at the table included (a groupmate shows them within two or three tries); a
- *   problem nobody present had right stays **unsolved**, and the group's last try is its own freshly written working.
- * - The one **exception**, at most once per set: a problem nobody present had right that the group still solves,
- *   because one member's first submission went wrong on a single line and the hint after the group's second wrong check
- *   names exactly that slip (`exception`). Where a set's group run is scripted (`fixed`: the live set's demo group),
- *   the script decides, and `data/group-scripts.test.ts` holds the script to these rules.
+ *   problem, and no gap in its category) is rewritten in individual review, and fixed there when the rewrite holds;
+ * - a **repeated** slip, a **pattern** (a gap in the slip's category on the set), a problem left **incomplete** or **not
+ *   attempted** is never rewritten alone: it is the group's.
+ *
+ * What the group works (ticket 332, `lib/reviewUnion.ts`): on a pathway with individual review, only the questions a present
+ * member still has once corrections are in (a one-off whose rewrite slipped again included); without it, first
+ * submissions. A group with nothing left sits out. The group **solves** a question when a present member can explain it:
+ * right first time, or fixed in individual review (a groupmate shows them within one or two tries). A question nobody at
+ * the table can explain stays **unsolved**, and the group's last try is its own freshly written working.
+ * The one **exception**, at most once per set: a question nobody present could explain that the group still solves,
+ * because one member's first submission went wrong on a single line and the hint after the group's second wrong check
+ * names exactly that slip (`exception`). Where a set's group run is scripted (`fixed`: the live set's demo group), the
+ * script decides, and `data/group-scripts.test.ts` holds the script to these rules.
  */
 export type ReviewBasis = "one-off" | "repeated" | "pattern" | "incomplete" | "not attempted";
 
@@ -54,7 +48,7 @@ export interface RuleCase {
   basis: ReviewBasis;
   /** The slip that decided the basis (the strictest of the problem's wrong lines); null for a problem with none. */
   slip: ReviewSlip | null;
-  /** The present groupmates who can explain it: right first time (and, under ticket 332's rule, fixed in individual review). */
+  /** The present groupmates who can explain it: right first time, or (with individual review on the pathway) fixed there. */
   helpers: string[];
 }
 
@@ -62,7 +56,7 @@ export interface GroupCall {
   colour: GroupColour;
   q: number;
   solved: boolean;
-  /** The present members who had the problem right first time: the group solves it when there is one. */
+  /** The present members who can explain it (right first time, or fixed in individual review): the group solves it when there is one. */
   helpers: string[];
   /** The member whose single-line slip the exception's hint named, when the group solved it that way; else null. */
   excepted: string | null;
@@ -89,13 +83,16 @@ const STRICT: Record<"one-off" | "repeated" | "pattern", number> = { "one-off": 
 
 type Slipped = { misconception: MisconceptionId; leaf: Parameters<typeof columnOf>[0] };
 
+/** Whether a set's pathway has individual review (every set's does today), so its group review takes the union after corrections (ticket 332). */
+export const afterIndividual = (n: number): boolean => STORY_SETS[n - 1].pathway.includes("individual");
+
 /** Whether a record handed a problem in right first time: reached inside `done` and off the wrong list. */
 export const rightFirstTime = (r: Pick<Classmate, "done" | "wrong">, set: SetScope, pid: string): boolean => {
   const i = set.problems.findIndex((p) => p.id === pid);
   return i >= 0 && i < r.done && !r.wrong.includes(pid);
 };
 
-/** A record's problems for its group (ticket 278) on a set, in set order: every problem not right first time. */
+/** A record's problems not right first time on a set (ticket 278), in set order: what review may take up, in individual review or with the group. */
 export const groupProblemsOf = (r: Pick<Classmate, "done" | "wrong">, set: SetScope): string[] => set.problems.filter((p) => !rightFirstTime(r, set, p.id)).map((p) => p.id);
 
 /** The wrong lines' slips on a record's problem (first submission). */
@@ -138,21 +135,21 @@ export function reviewByRule(set: SetScope, n: number, everyone: readonly Classm
         brought.push({ r, pid, basis: pick!.basis, slip: pick!.slip });
       }
     }
-    const after = afterReviewRule(n);
+    const after = afterIndividual(n);
     for (const p of set.problems) {
       const here = brought.filter((c) => c.pid === p.id);
       if (here.length === 0) continue;
       const q = index(p.id) + 1;
       const work = (m: Classmate) => recordWork(m, set.problems, p.id);
-      const helpers = members.filter((m) => (after ? canExplain(p.id, work(m), true) : rightFirstTime(m, set, p.id))).map((m) => m.id);
-      // Ticket 332: the group takes the question only when a present member still has it after individual review.
-      const inUnion = !after || members.some((m) => stillToReview(p.id, work(m), true));
+      const helpers = members.filter((m) => canExplain(p.id, work(m), after)).map((m) => m.id);
+      // Ticket 332: the group takes the question only when a present member still has it (after individual review, when the pathway has it).
+      const inUnion = members.some((m) => stillToReview(p.id, work(m), after));
       const scripted = fixed[colour]?.[p.id] !== undefined;
       const excepted = inUnion && !scripted && helpers.length === 0 && exception?.colour === colour && exception.problem === p.id ? exception.member : null;
       const solved = scripted ? fixed[colour]![p.id] : helpers.length > 0 || excepted !== null;
       if (inUnion) groups.push({ colour, q, solved, helpers, excepted, scripted });
       for (const c of here) {
-        const own = after ? fixedInIndividualReview(p.id, work(c.r)) : c.basis === "one-off";
+        const own = after && fixedInIndividualReview(p.id, work(c.r));
         const outcome: ReviewOutcome = own ? "individual" : solved ? "group" : "wrong";
         cases.push({ student: c.r.id, colour, q, outcome, basis: c.basis, slip: c.slip, helpers });
       }

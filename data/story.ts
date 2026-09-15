@@ -482,9 +482,9 @@ export const STORY: Readonly<Record<string, StoryRow>> = {
 /* ---------- the review part (tickets 244, 281) ---------- */
 
 /**
- * Where review left a problem a student brought to their group (ticket 278: one they got wrong, left incomplete or did not
- * attempt): fixed on their own rework (`individual`), solved by their seating group (`group`), or still wrong (`wrong`,
- * their group's own last try on it unsolved).
+ * Where review left a problem a student did not get right first time (ticket 278: one they got wrong, left incomplete or did
+ * not attempt): fixed on their own rework in individual review (`individual`), solved by their seating group (`group`), or
+ * still wrong (`wrong`, their group's own last try on it unsolved).
  */
 export type ReviewOutcome = "individual" | "group" | "wrong";
 
@@ -504,17 +504,22 @@ const kept = (q: number, why: string): ReviewCase => ({ q, outcome: "wrong", why
 
 /**
  * The review part: for Problem Sets 1–6 (index 0–5), every student's group problems and where review left each, with the
- * reasoning checked against the student's real work. The rules, settled with the user on 2026-09-14 (ticket 281;
- * `lib/reviewRule.ts` applies them literally and the tests hold this sheet to them):
+ * reasoning checked against the student's real work. The rules, settled with the user on 2026-09-14 (ticket 281) and
+ * 2026-09-15 (ticket 332), on every set since ticket 338 (`lib/reviewRule.ts` applies them literally and the tests hold this
+ * sheet to them):
  * - a **one-off** slip (the mistake on that one problem of the set, the sheet's pattern naming only it, no gap in its
- *   category) is fixed on the student's own rework;
- * - everything else is the group's: a **repeated** slip, a **pattern** (a gap in the slip's category on the set), a
- *   problem left **incomplete** or **not attempted**. The group solves it when a member at the table had it right first
- *   time, a pattern included; a problem nobody at the table had right stays unsolved, on the group's own last try;
- * - at most once a set, the **exception**: a problem nobody had right that the group solves because one member's first
+ *   category) is rewritten in individual review, and fixed there when the rewrite holds;
+ * - a **repeated** slip, a **pattern** (a gap in the slip's category on the set), a problem left **incomplete** or **not
+ *   attempted** is never rewritten alone. The group works only what a present member still has after individual review
+ *   (a one-off whose rewrite slipped again included), and a group with nothing left sits out. It solves a question when a
+ *   member at the table can explain it (right first time, or fixed in individual review), a pattern included; a question
+ *   nobody at the table can explain stays unsolved, on the group's own last try;
+ * - at most once a set, the **exception**: a question nobody could explain that the group solves because one member's first
  *   submission went wrong on a single line and the hint after the second wrong check named it (Set 6's Q9 at sky);
  * - on every set one or two groups meet the set's hardest problem with nobody at the table able to do it (violet's Q10 on
- *   Set 1, mint's Q10 on Sets 2–4 and 6, mint's Q9 and Q10 on Set 5), and the demo group's Set 6 run is its script.
+ *   Set 1, mint's Q10 on Sets 2–6), and the demo group's Set 6 run is its script. Where a set needed it, a one-off's rewrite
+ *   slipped again so that stays true (ticket 338: Oliver's Q10 on Set 1, Isla's and Lucas's Q10 on Sets 2 and 3, Lucas's
+ *   Q10 on Set 4, Harper's Q10 on Set 5).
  * The records (`data/psetN/review.ts`, `data/classmates-review.ts`) equal it: `data/finishedSets.test.ts`, `data/story.test.ts`.
  */
 export const STORY_REVIEW: readonly StoryReview[] = [
@@ -555,20 +560,20 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     ],
     oliver: [
       own(4, "One-off: √8 simplified as 4√2, on Q4 alone. Found on the second submission."),
-      own(10, "One-off: √(72 + 72) split into √72 + √72, on Q10 alone. Found on the second submission."),
+      kept(10, "One-off: √(72 + 72) split into √72 + √72, on Q10 alone. The second submission slipped again (the side left as 2√18). Nobody at the table could explain Q10 after individual review, so the group's last try is still wrong."),
     ],
     ruby: [
       grp(1, "Repeated: a square factor left under the root (Q1, Q6, Q10). Oliver, Finn and Sofia had Q1 right, and the group's rework holds."),
       grp(6, "Repeated: a square factor left under the root (Q1, Q6, Q10). Oliver, Finn and Sofia had Q6 right, and the group's rework holds."),
-      kept(10, "Repeated: a square factor left under the root (Q1, Q6, Q10). Nobody at the table had Q10 right, so the group's last try is still wrong."),
+      kept(10, "Repeated: a square factor left under the root (Q1, Q6, Q10). Nobody at the table could explain Q10 after individual review (Oliver's rewrite slipped again), so the group's last try is still wrong."),
     ],
     finn: [
       grp(9, "Repeated: divided the wrong way round solving for x (Q9, Q10). Oliver, Ruby and Sofia had Q9 right, and the group's rework holds."),
-      kept(10, "Repeated: the diagonal found by dividing the side by √2 (Q9, Q10). Nobody at the table had Q10 right, so the group's last try is still wrong."),
+      kept(10, "Repeated: the diagonal found by dividing the side by √2 (Q9, Q10). Nobody at the table could explain Q10 after individual review (Oliver's rewrite slipped again), so the group's last try is still wrong."),
     ],
     sofia: [
       grp(7, "Repeated: divided the wrong way round (Q7, Q10). Oliver, Ruby and Finn had Q7 right, and the group's rework holds."),
-      kept(10, "Repeated: divided the wrong way round (Q7, Q10). Nobody at the table had Q10 right, so the group's last try is still wrong."),
+      kept(10, "Repeated: divided the wrong way round (Q7, Q10). Nobody at the table could explain Q10 after individual review (Oliver's rewrite slipped again), so the group's last try is still wrong."),
     ],
   },
   // Problem Set 2
@@ -581,7 +586,7 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       own(2, "One-off: a bracket's middle terms wrong expanding, on Q2 alone. Found on the second submission."),
     ],
     amelia: [
-      grp(7, "Repeated: multiplied only the denominator by the conjugate (Q7, Q8). Priya and Aiden had Q7 right, and the group's rework holds."),
+      grp(7, "Repeated: multiplied only the denominator by the conjugate (Q7, Q8). Priya and Aiden had Q7 right and Tomas fixed it in individual review, and the group's rework holds."),
       grp(8, "Repeated: multiplied only the denominator by the conjugate (Q7, Q8). Priya, Tomas and Aiden had Q8 right, and the group's rework holds."),
       own(9, "One-off: a denominator dropped adding the two fractions, on Q9 alone. Found on the second submission."),
       own(10, "One-off: the area found, the sentence about the diagonal left out, on Q10 alone. Found on the second submission."),
@@ -590,8 +595,8 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       grp(5, "Repeated: the fraction turned over rationalising (Q5, Q6). Priya, Amelia and Aiden had Q5 right, and the group's rework holds."),
       grp(6, "Repeated: the fraction turned over rationalising (Q5, Q6). Priya, Amelia and Aiden had Q6 right, and the group's rework holds."),
       own(7, "One-off: multiplied by the same bracket, not its conjugate, on Q7 alone. Found on the second submission."),
-      grp(9, "Not attempted. Priya and Aiden had Q9 right, and the group's rework holds."),
-      grp(10, "Not attempted. Priya and Aiden had Q10 right, and the group's rework holds."),
+      grp(9, "Not attempted. Priya and Aiden had Q9 right and Amelia fixed it in individual review, and the group's rework holds."),
+      grp(10, "Not attempted. Priya and Aiden had Q10 right and Amelia fixed it in individual review, and the group's rework holds."),
     ],
     zara: [
       own(3, "One-off: (√7 + 2)² with 2√7 for the middle term, on Q3 alone. Found on the second submission."),
@@ -599,12 +604,12 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     ],
     liam: [
       own(2, "One-off: only two of the four terms expanded, on Q2 alone. Found on the second submission."),
-      grp(3, "Pattern: New skills is a gap on the set ((√7 + 2)² squared term by term). Sam and Jordan had Q3 right, and the group's rework holds."),
+      grp(3, "Pattern: New skills is a gap on the set ((√7 + 2)² squared term by term). Sam and Jordan had Q3 right and Zara fixed it in individual review, and the group's rework holds."),
       grp(4, "Pattern: New skills is a gap on the set ((3 − √2)(3 + √2) taken as 9 + 2). Sam, Jordan and Zara had Q4 right, and the group's rework holds."),
       grp(6, "Not attempted. Sam, Jordan and Zara had Q6 right, and the group's rework holds."),
-      grp(7, "Not attempted. Jordan and Zara had Q7 right, and the group's rework holds."),
+      grp(7, "Not attempted. Jordan and Zara had Q7 right and Sam fixed it in individual review, and the group's rework holds."),
       grp(8, "Not attempted. Sam, Jordan and Zara had Q8 right, and the group's rework holds."),
-      grp(9, "Not attempted. Sam and Jordan had Q9 right, and the group's rework holds."),
+      grp(9, "Not attempted. Sam and Jordan had Q9 right and Zara fixed it in individual review, and the group's rework holds."),
       grp(10, "Not attempted. Sam, Jordan and Zara had Q10 right, and the group's rework holds."),
     ],
     aiden: [
@@ -625,21 +630,21 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     ],
     isla: [
       own(2, "One-off: the product's sign wrong, on Q2 alone. Found on the second submission."),
-      own(10, "One-off: the sentence gives the area where the diagonal was asked, on Q10 alone. Found on the second submission."),
+      kept(10, "One-off: the sentence gives the area where the diagonal was asked, on Q10 alone. The second submission slipped again (the sentence answers only the area). Lucas's rewrite slipped again too, so nobody at the table could explain Q10 after individual review, and the group's last try is still wrong."),
     ],
     lucas: [
       own(2, "One-off: a sign lost expanding (2 + √5)(3 − √5), on Q2 alone. Found on the second submission."),
-      own(10, "One-off: the diagonal stated without saying which length it is, on Q10 alone. Found on the second submission."),
+      kept(10, "One-off: the diagonal stated without saying which length it is, on Q10 alone. The second submission slipped again ((3 − √2)²'s middle term not doubled). Isla's rewrite slipped again too, so nobody at the table could explain Q10 after individual review, and the group's last try is still wrong."),
     ],
     grace: [
       grp(8, "Not attempted. Isla, Lucas and Harper had Q8 right, and the group's rework holds."),
       grp(9, "Not attempted. Isla, Lucas and Harper had Q9 right, and the group's rework holds."),
-      kept(10, "Not attempted. Nobody at the table had Q10 right, so the group's last try is still wrong."),
+      kept(10, "Not attempted. Nobody at the table could explain Q10 after individual review (Isla's and Lucas's rewrites slipped again), so the group's last try is still wrong."),
     ],
     harper: [
       own(1, "One-off: the minus not multiplied through the bracket, on Q1 alone. Found on the second submission."),
       grp(3, "Repeated: (√7 + 2)² with the middle term's 2 lost (Q3, Q10). Isla, Lucas and Grace had Q3 right, and the group's rework holds."),
-      kept(10, "Repeated: (3 − √2)²'s middle term not doubled (Q3, Q10). Nobody at the table had Q10 right, so the group's last try is still wrong."),
+      kept(10, "Repeated: (3 − √2)²'s middle term not doubled (Q3, Q10). Nobody at the table could explain Q10 after individual review (Isla's and Lucas's rewrites slipped again), so the group's last try is still wrong."),
     ],
     oliver: [
       own(2, "One-off: the middle term wrong expanding, on Q2 alone. Found on the second submission."),
@@ -653,7 +658,7 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     ],
     sofia: [
       grp(5, "Repeated: rationalised the top instead of the bottom (Q5, Q6). Oliver, Ruby and Finn had Q5 right, and the group's rework holds."),
-      grp(6, "Repeated: rationalised the top instead of the bottom (Q5, Q6). Oliver and Ruby had Q6 right, and the group's rework holds."),
+      grp(6, "Repeated: rationalised the top instead of the bottom (Q5, Q6). Oliver and Ruby had Q6 right and Finn fixed it in individual review, and the group's rework holds."),
       own(7, "One-off: the conjugate's fraction left unsimplified, on Q7 alone. Found on the second submission."),
     ],
   },
@@ -664,7 +669,7 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     ],
     jordan: [
       own(6, "One-off: a perfect square factorised as a difference of squares, on Q6 alone. Found on the second submission."),
-      grp(8, "Repeated: a factor pair that multiplies to the constant, the brackets wrong (Q8, Q9). Zara had Q8 right, and the group's rework holds."),
+      grp(8, "Repeated: a factor pair that multiplies to the constant, the brackets wrong (Q8, Q9). Zara had Q8 right and Sam fixed it in individual review, and the group's rework holds."),
       grp(9, "Repeated: a factor pair that multiplies to the constant, the brackets wrong (Q8, Q9). Sam and Zara had Q9 right, and the group's rework holds."),
       grp(10, "Not attempted. Sam and Zara had Q10 right, and the group's rework holds."),
     ],
@@ -678,8 +683,8 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       grp(1, "Pattern: Algebra is a gap on the set (the second bracket's signs wrong multiplying). Priya and Amelia had Q1 right, and the group's rework holds."),
       grp(2, "Repeated: a perfect square's sign wrong (Q2, Q6). Priya and Aiden had Q2 right, and the group's rework holds."),
       grp(6, "Repeated: a perfect square's sign wrong (Q2, Q6). Priya, Amelia and Aiden had Q6 right, and the group's rework holds."),
-      grp(7, "Pattern: Algebra is a gap on the set (a negative common factor's sign lost). Priya had Q7 right, and the group's rework holds."),
-      grp(10, "Repeated: a minus not carried through a bracket (Q7, Q10). Priya and Aiden had Q10 right, and the group's rework holds."),
+      grp(7, "Pattern: Algebra is a gap on the set (a negative common factor's sign lost). Priya had Q7 right and Amelia fixed it in individual review, and the group's rework holds."),
+      grp(10, "Repeated: a minus not carried through a bracket (Q7, Q10). Priya and Aiden had Q10 right and Amelia fixed it in individual review, and the group's rework holds."),
     ],
     zara: [
       own(4, "One-off: x² − 49 factorised as (x − 7)², on Q4 alone. Found on the second submission."),
@@ -687,16 +692,16 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     liam: [
       own(2, "One-off: (2x − 3)² squared term by term, on Q2 alone. Found on the second submission."),
       grp(5, "Pattern: Algebra is a gap on the set (a pair that multiplies to −15 but adds to 14). Sam, Jordan and Zara had Q5 right, and the group's rework holds."),
-      grp(6, "Not attempted. Sam and Zara had Q6 right, and the group's rework holds."),
+      grp(6, "Not attempted. Sam and Zara had Q6 right and Jordan fixed it in individual review, and the group's rework holds."),
       grp(7, "Not attempted. Sam, Jordan and Zara had Q7 right, and the group's rework holds."),
-      grp(8, "Not attempted. Zara had Q8 right, and the group's rework holds."),
+      grp(8, "Not attempted. Zara had Q8 right and Sam fixed it in individual review, and the group's rework holds."),
       grp(9, "Not attempted. Sam and Zara had Q9 right, and the group's rework holds."),
       grp(10, "Not attempted. Sam and Zara had Q10 right, and the group's rework holds."),
     ],
     aiden: [
       grp(1, "Repeated: a multiplier applied to some terms only (Q1, Q7). Priya and Amelia had Q1 right, and the group's rework holds."),
       own(3, "One-off: (3x)² as 3x², on Q3 alone. Found on the second submission."),
-      grp(7, "Repeated: a multiplier applied to some terms only (Q1, Q7). Priya had Q7 right, and the group's rework holds."),
+      grp(7, "Repeated: a multiplier applied to some terms only (Q1, Q7). Priya had Q7 right and Amelia fixed it in individual review, and the group's rework holds."),
     ],
     mia: [
       own(4, "One-off: x² − 49 written as (x − 7)², on Q4 alone. Found on the second submission."),
@@ -716,20 +721,20 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     isla: [
       own(1, "One-off: the second bracket's signs wrong multiplying, on Q1 alone. Found on the second submission."),
       own(7, "One-off: the common factor's sign left behind, on Q7 alone. Found on the second submission."),
-      own(10, "One-off: the working shown, the last line doesn't say what it shows, on Q10 alone. Found on the second submission."),
+      kept(10, "One-off: the working shown, the last line doesn't say what it shows, on Q10 alone. The second submission slipped again (the last sign inside the bracket left unchanged). Lucas's rewrite slipped again too, so nobody at the table could explain Q10 after individual review, and the group's last try is still wrong."),
     ],
     lucas: [
       own(8, "One-off: a pair that multiplies to 24 but adds to 10, on Q8 alone. Found on the second submission."),
-      own(10, "One-off: the identity shown, one line's sign not justified, on Q10 alone. Found on the second submission."),
+      kept(10, "One-off: the identity shown, one line's sign not justified, on Q10 alone. The second submission slipped again (x² − x² collected as 2x²). Isla's rewrite slipped again too, so nobody at the table could explain Q10 after individual review, and the group's last try is still wrong."),
     ],
     grace: [
-      kept(10, "Not attempted. Nobody at the table had Q10 right, so the group's last try is still wrong."),
+      kept(10, "Not attempted. Nobody at the table could explain Q10 after individual review (Isla's and Lucas's rewrites slipped again), so the group's last try is still wrong."),
     ],
     harper: [
-      grp(1, "Repeated: a sign lost in the expansion (Q1, Q10). Lucas and Grace had Q1 right, and the group's rework holds."),
+      grp(1, "Repeated: a sign lost in the expansion (Q1, Q10). Lucas and Grace had Q1 right and Isla fixed it in individual review, and the group's rework holds."),
       own(2, "One-off: (2x − 3)²'s middle term sign lost, on Q2 alone. Found on the second submission."),
       own(7, "One-off: the common factor's sign lost, on Q7 alone. Found on the second submission."),
-      kept(10, "Repeated: x² − x² collected as 2x² (Q1, Q10). Nobody at the table had Q10 right, so the group's last try is still wrong."),
+      kept(10, "Repeated: x² − x² collected as 2x² (Q1, Q10). Nobody at the table could explain Q10 after individual review (Isla's and Lucas's rewrites slipped again), so the group's last try is still wrong."),
     ],
     oliver: [
       own(2, "One-off: (2x − 3)² squared term by term, on Q2 alone. Found on the second submission."),
@@ -774,15 +779,15 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     tomas: [
       grp(3, "Pattern: New skills is a gap on the set (factors set to zero with their signs flipped). Priya, Amelia and Aiden had Q3 right, and the group's rework holds."),
       grp(5, "Repeated: a root or turning point with the sign of its bracket's number (Q3, Q5, Q9). Priya, Amelia and Aiden had Q5 right, and the group's rework holds."),
-      grp(6, "Pattern: New skills is a gap on the set (half of b taken with the wrong sign). Priya and Aiden had Q6 right, and the group's rework holds."),
-      grp(7, "Pattern: Algebra is a gap on the set (fractions lost in half of b). Priya and Aiden had Q7 right, and the group's rework holds."),
+      grp(6, "Pattern: New skills is a gap on the set (half of b taken with the wrong sign). Priya and Aiden had Q6 right and Amelia fixed it in individual review, and the group's rework holds."),
+      grp(7, "Pattern: Algebra is a gap on the set (fractions lost in half of b). Priya and Aiden had Q7 right and Amelia fixed it in individual review, and the group's rework holds."),
       grp(9, "Repeated: a root or turning point with the sign of its bracket's number (Q3, Q5, Q9). Priya, Amelia and Aiden had Q9 right, and the group's rework holds."),
-      grp(10, "Not attempted. Priya and Aiden had Q10 right, and the group's rework holds."),
+      grp(10, "Not attempted. Priya and Aiden had Q10 right and Amelia fixed it in individual review, and the group's rework holds."),
     ],
     zara: [
       grp(6, "Repeated: added the square to complete it, never took it away (Q6, Q8, Q9). Sam and Jordan had Q6 right, and the group's rework holds."),
       own(7, "One-off: half of −5 squared as 25/2, on Q7 alone. Found on the second submission."),
-      grp(8, "Repeated: added the square to complete it, never took it away (Q6, Q8, Q9). Jordan had Q8 right, and the group's rework holds."),
+      grp(8, "Repeated: added the square to complete it, never took it away (Q6, Q8, Q9). Jordan had Q8 right and Sam fixed it in individual review, and the group's rework holds."),
       grp(9, "Repeated: added the square to complete it, never took it away (Q6, Q8, Q9). Sam had Q9 right, and the group's rework holds."),
     ],
     liam: [
@@ -792,8 +797,8 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       grp(4, "Pattern: Algebra is a gap on the set (2x = −1 and 2x = 1 solved with the fraction turned over). Sam and Zara had Q4 right, and the group's rework holds."),
       grp(5, "Pattern: Algebra is a gap on the set (one root found by trying, the equation never made zero). Sam, Jordan and Zara had Q5 right, and the group's rework holds."),
       grp(6, "Not attempted. Sam and Jordan had Q6 right, and the group's rework holds."),
-      grp(7, "Not attempted. Jordan had Q7 right, and the group's rework holds."),
-      grp(8, "Not attempted. Jordan had Q8 right, and the group's rework holds."),
+      grp(7, "Not attempted. Jordan had Q7 right and Sam and Zara fixed it in individual review, and the group's rework holds."),
+      grp(8, "Not attempted. Jordan had Q8 right and Sam fixed it in individual review, and the group's rework holds."),
       grp(9, "Not attempted. Sam had Q9 right, and the group's rework holds."),
       grp(10, "Not attempted. Zara had Q10 right, and the group's rework holds."),
     ],
@@ -802,7 +807,7 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     ],
     mia: [
       grp(1, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Noah, Chloe and Ethan had Q1 right, and the group's rework holds."),
-      grp(4, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Noah and Chloe had Q4 right, and the group's rework holds."),
+      grp(4, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Noah and Chloe had Q4 right and Ethan fixed it in individual review, and the group's rework holds."),
       own(6, "One-off: half of b squared without its sign, on Q6 alone. Found on the second submission."),
     ],
     noah: [
@@ -823,35 +828,35 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     isla: [
       own(5, "One-off: x² − 3x = 10 rearranged with the 10's sign wrong, on Q5 alone. Found on the second submission."),
       own(8, "One-off: the turning point's sign wrong, on Q8 alone. Found on the second submission."),
-      kept(10, "Pattern: Reasoning is a gap on the set (the negative width given in the sentence). Nobody at the table had Q10 right, so the group's last try is still wrong."),
+      kept(10, "Pattern: Reasoning is a gap on the set (the negative width given in the sentence). Nobody at the table could explain Q10 after individual review (Lucas's rewrite slipped again), so the group's last try is still wrong."),
     ],
     lucas: [
       own(5, "One-off: x² − 3x = 10 rearranged with a sign lost, on Q5 alone. Found on the second submission."),
-      grp(8, "Repeated: the turning point read with the sign flipped (Q8, Q9). Harper had Q8 right, and the group's rework holds."),
-      grp(9, "Repeated: the turning point read with the sign flipped (Q8, Q9). Isla had Q9 right, and the group's rework holds."),
-      own(10, "One-off: width and length swapped in the sentence, on Q10 alone. Found on the second submission."),
+      grp(8, "Repeated: the turning point read with the sign flipped (Q8, Q9). Harper had Q8 right and Isla fixed it in individual review, and the group's rework holds."),
+      grp(9, "Repeated: the turning point read with the sign flipped (Q8, Q9). Isla had Q9 right and Harper fixed it in individual review, and the group's rework holds."),
+      kept(10, "One-off: width and length swapped in the sentence, on Q10 alone. The second submission slipped again (the negative width kept beside the answer). Nobody at the table could explain Q10 after individual review, so the group's last try is still wrong."),
     ],
     grace: [
       grp(7, "Not attempted. Isla, Lucas and Harper had Q7 right, and the group's rework holds."),
-      grp(8, "Not attempted. Harper had Q8 right, and the group's rework holds."),
-      grp(9, "Not attempted. Isla had Q9 right, and the group's rework holds."),
-      kept(10, "Not attempted. Nobody at the table had Q10 right, so the group's last try is still wrong."),
+      grp(8, "Not attempted. Harper had Q8 right and Isla fixed it in individual review, and the group's rework holds."),
+      grp(9, "Not attempted. Isla had Q9 right and Harper fixed it in individual review, and the group's rework holds."),
+      kept(10, "Not attempted. Nobody at the table could explain Q10 after individual review (Lucas's rewrite slipped again), so the group's last try is still wrong."),
     ],
     harper: [
-      grp(5, "Repeated: a sign lost rearranging x² − 3x = 10 (Q5, Q10). Grace had Q5 right, and the group's rework holds."),
+      grp(5, "Repeated: a sign lost rearranging x² − 3x = 10 (Q5, Q10). Grace had Q5 right and Isla and Lucas fixed it in individual review, and the group's rework holds."),
       own(9, "One-off: the minimum value read off the wrong line, on Q9 alone. Found on the second submission."),
-      kept(10, "Repeated: a sign lost rearranging w(2w + 3) = 35 (Q5, Q10). Nobody at the table had Q10 right, so the group's last try is still wrong."),
+      kept(10, "Repeated: a sign lost rearranging w(2w + 3) = 35 (Q5, Q10). Nobody at the table could explain Q10 after individual review (Lucas's rewrite slipped again), so the group's last try is still wrong."),
     ],
     oliver: [
       grp(1, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Ruby, Finn and Sofia had Q1 right, and the group's rework holds."),
       grp(2, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Ruby and Finn had Q2 right, and the group's rework holds."),
       own(5, "One-off: null factor law on x(x − 3) = 10, a product that isn't 0, on Q5 alone. Found on the second submission."),
-      grp(9, "Not attempted. Finn and Sofia had Q9 right, and the group's rework holds."),
+      grp(9, "Not attempted. Finn and Sofia had Q9 right and Ruby fixed it in individual review, and the group's rework holds."),
       grp(10, "Not attempted. Ruby, Finn and Sofia had Q10 right, and the group's rework holds."),
     ],
     ruby: [
       grp(4, "Repeated: a pair that multiplies but doesn't add (Q4, Q5). Oliver and Sofia had Q4 right, and the group's rework holds."),
-      grp(5, "Repeated: a pair that multiplies but doesn't add (Q4, Q5). Finn and Sofia had Q5 right, and the group's rework holds."),
+      grp(5, "Repeated: a pair that multiplies but doesn't add (Q4, Q5). Finn and Sofia had Q5 right and Oliver fixed it in individual review, and the group's rework holds."),
       own(9, "One-off: the minimum value given as the x of the turning point, on Q9 alone. Found on the second submission."),
     ],
     finn: [
@@ -872,10 +877,10 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       own(9, "One-off: negative a read as concave up, on Q9 alone. Found on the second submission."),
     ],
     jordan: [
-      kept(4, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Nobody at the table had Q4 right, so the group's last try is still wrong."),
+      grp(4, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Sam and Zara fixed Q4 in individual review, and the group's rework holds."),
       grp(8, "Pattern: Algebra is a gap on the set (the non-monic pair's signs swapped). Sam and Zara had Q8 right, and the group's rework holds."),
-      grp(9, "Not attempted. Zara had Q9 right, and the group's rework holds."),
-      grp(10, "Not attempted. Sam had Q10 right, and the group's rework holds."),
+      grp(9, "Not attempted. Zara had Q9 right and Sam fixed it in individual review, and the group's rework holds."),
+      grp(10, "Not attempted. Sam had Q10 right and Zara fixed it in individual review, and the group's rework holds."),
     ],
     amelia: [
       own(6, "One-off: added 16 to complete the square, never took it away, on Q6 alone. Found on the second submission."),
@@ -887,7 +892,7 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       grp(2, "Repeated: an intercept or turning point with the sign of its bracket's number (Q1, Q2). Priya, Amelia and Aiden had Q2 right, and the group's rework holds."),
       grp(4, "Pattern: Algebra is a gap on the set (solved 3x + 2 = 0 as −3/2). Priya, Amelia and Aiden had Q4 right, and the group's rework holds."),
       own(5, "One-off: axis of symmetry without the minus, on Q5 alone. Found on the second submission."),
-      grp(8, "Not attempted. Priya and Aiden had Q8 right, and the group's rework holds."),
+      grp(8, "Not attempted. Priya and Aiden had Q8 right and Amelia fixed it in individual review, and the group's rework holds."),
       grp(9, "Not attempted. Priya, Amelia and Aiden had Q9 right, and the group's rework holds."),
       grp(10, "Not attempted. Priya and Aiden had Q10 right, and the group's rework holds."),
     ],
@@ -898,19 +903,19 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     ],
     liam: [
       grp(1, "Pattern: New skills is a gap on the set (intercepts read off the factors with the signs flipped). Sam, Jordan and Zara had Q1 right, and the group's rework holds."),
-      kept(4, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Nobody at the table had Q4 right, so the group's last try is still wrong."),
-      grp(6, "Not attempted. Jordan had Q6 right, and the group's rework holds."),
+      grp(4, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Sam and Zara fixed Q4 in individual review, and the group's rework holds."),
+      grp(6, "Not attempted. Jordan had Q6 right and Sam and Zara fixed it in individual review, and the group's rework holds."),
       grp(7, "Not attempted. Sam, Jordan and Zara had Q7 right, and the group's rework holds."),
       grp(8, "Not attempted. Sam and Zara had Q8 right, and the group's rework holds."),
-      grp(9, "Not attempted. Zara had Q9 right, and the group's rework holds."),
-      grp(10, "Not attempted. Sam had Q10 right, and the group's rework holds."),
+      grp(9, "Not attempted. Zara had Q9 right and Sam fixed it in individual review, and the group's rework holds."),
+      grp(10, "Not attempted. Sam had Q10 right and Zara fixed it in individual review, and the group's rework holds."),
     ],
     aiden: [
       own(7, "One-off: the 2 multiplied x² and nothing else, on Q7 alone. Found on the second submission."),
     ],
     mia: [
-      grp(4, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Noah and Ethan had Q4 right, and the group's rework holds."),
-      grp(8, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Noah had Q8 right, and the group's rework holds."),
+      grp(4, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Noah and Ethan had Q4 right and Chloe fixed it in individual review, and the group's rework holds."),
+      grp(8, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Noah had Q8 right and Chloe and Ethan fixed it in individual review, and the group's rework holds."),
       grp(9, "Pattern: Algebra is a gap on the set (took −1 out and left the signs inside behind). Noah, Chloe and Ethan had Q9 right, and the group's rework holds."),
     ],
     noah: [
@@ -929,29 +934,29 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     isla: [
       own(5, "One-off: axis of symmetry without the minus, on Q5 alone. Found on the second submission."),
       own(9, "One-off: took −1 out and left the signs inside behind, on Q9 alone. Found on the second submission."),
-      kept(10, "Pattern: Reasoning is a gap on the set (the landing given as the nozzle's zero). Nobody at the table had Q10 right, so the group's last try is still wrong."),
+      kept(10, "Pattern: Reasoning is a gap on the set (the landing given as the nozzle's zero). Nobody at the table could explain Q10 after individual review (Harper's rewrite slipped again), so the group's last try is still wrong."),
     ],
     lucas: [
       grp(2, "Repeated: turning point read with the sign flipped (Q2, Q3). Isla, Grace and Harper had Q2 right, and the group's rework holds."),
       grp(3, "Repeated: turning point read with the sign flipped (Q2, Q3). Isla, Grace and Harper had Q3 right, and the group's rework holds."),
       own(9, "One-off: took −1 out and left the signs inside behind, on Q9 alone. Found on the second submission."),
-      kept(10, "Pattern: Reasoning is a gap on the set (the landing given as the nozzle's zero). Nobody at the table had Q10 right, so the group's last try is still wrong."),
+      kept(10, "Pattern: Reasoning is a gap on the set (the landing given as the nozzle's zero). Nobody at the table could explain Q10 after individual review (Harper's rewrite slipped again), so the group's last try is still wrong."),
     ],
     grace: [
       grp(8, "Not attempted. Isla, Lucas and Harper had Q8 right, and the group's rework holds."),
-      kept(9, "Not attempted. Nobody at the table had Q9 right, so the group's last try is still wrong."),
-      kept(10, "Not attempted. Nobody at the table had Q10 right, so the group's last try is still wrong."),
+      grp(9, "Not attempted. Isla, Lucas and Harper fixed Q9 in individual review, and the group's rework holds."),
+      kept(10, "Not attempted. Nobody at the table could explain Q10 after individual review (Harper's rewrite slipped again), so the group's last try is still wrong."),
     ],
     harper: [
       own(7, "One-off: the 2 multiplied x² and nothing else, on Q7 alone. Found on the second submission."),
       own(9, "One-off: negative a read as concave up, on Q9 alone. Found on the second submission."),
-      own(10, "One-off: axis given as the height, the working not shown, on Q10 alone. Found on the second submission."),
+      kept(10, "One-off: axis given as the height, the working not shown, on Q10 alone. The second submission slipped again (the working written out, the height still given as 2 m). Nobody at the table could explain Q10 after individual review, so the group's last try is still wrong."),
     ],
     oliver: [
-      grp(4, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Ruby had Q4 right, and the group's rework holds."),
+      grp(4, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Ruby had Q4 right and Finn fixed it in individual review, and the group's rework holds."),
       own(7, "One-off: (x − 3)² squared term by term, on Q7 alone. Found on the second submission."),
-      grp(8, "Pattern: Algebra is a gap on the set (the non-monic pair's signs swapped). Ruby had Q8 right, and the group's rework holds."),
-      grp(10, "Not attempted. Finn and Sofia had Q10 right, and the group's rework holds."),
+      grp(8, "Pattern: Algebra is a gap on the set (the non-monic pair's signs swapped). Ruby had Q8 right and Finn fixed it in individual review, and the group's rework holds."),
+      grp(10, "Not attempted. Finn and Sofia had Q10 right and Ruby fixed it in individual review, and the group's rework holds."),
     ],
     ruby: [
       own(5, "One-off: (−3)² taken as −9, on Q5 alone. Found on the second submission."),
@@ -964,11 +969,11 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       own(8, "One-off: sum of the intercepts never halved, on Q8 alone. Found on the second submission."),
     ],
     sofia: [
-      grp(4, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Ruby had Q4 right, and the group's rework holds."),
-      grp(8, "Pattern: Algebra is a gap on the set (the non-monic pair's signs swapped). Ruby had Q8 right, and the group's rework holds."),
+      grp(4, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Ruby had Q4 right and Finn fixed it in individual review, and the group's rework holds."),
+      grp(8, "Pattern: Algebra is a gap on the set (the non-monic pair's signs swapped). Ruby had Q8 right and Finn fixed it in individual review, and the group's rework holds."),
     ],
   },
-  // Problem Set 6 (ticket 332: the group works its union after individual review; a member who fixed a question there can explain it)
+  // Problem Set 6
   {
     jordan: [
       own(2, "One-off: non-monic brackets wrong, on Q2 alone. Found on the second submission."),

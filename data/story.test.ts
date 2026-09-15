@@ -284,7 +284,7 @@ describe("the class story sheet (ticket 210)", () => {
       ...FINISHED_SETS.map((f, i) => hardestUnsolved([f.sam, ...f.classmates], f.fixture, i + 1, f.groups ?? DEFAULT_GROUPS)),
       hardestUnsolved(CLASSMATES, ASSIGNMENT, 6, FROZEN_GROUPS[ASSIGNMENT.id], { absent: DEMO_ABSENCES[ASSIGNMENT.id], fixed: { sky } }),
     ].map((groups) => groups.map((g) => `${g.colour} Q${g.q}`));
-    expect(hardest).toEqual([["violet Q10"], ["mint Q10"], ["mint Q10"], ["mint Q10"], ["mint Q9", "mint Q10"], ["mint Q10"]]);
+    expect(hardest).toEqual([["violet Q10"], ["mint Q10"], ["mint Q10"], ["mint Q10"], ["mint Q10"], ["mint Q10"]]);
     for (const groups of hardest) expect(new Set(groups.map((g) => g.split(" ")[0])).size).toBeGreaterThanOrEqual(1);
     for (const groups of hardest) expect(new Set(groups.map((g) => g.split(" ")[0])).size).toBeLessThanOrEqual(2);
     // The exception's condition holds for Zara, and no finished set uses one: every solved problem there has a helper.

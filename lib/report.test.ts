@@ -250,7 +250,8 @@ describe("not attempted and covered in class review (ticket 282)", () => {
   it("names the problems not attempted under whichever column holds them, Incorrect and Covered included", () => {
     expect(report(1, "liam").notes).toEqual({ first: null, individual: null, group: "Q6, Q7, Q8, Q9, Q10 not attempted", covered: null, wrong: null });
     expect(report(1, "tomas").notes.group).toBe("Q10 not attempted");
-    expect(report(5, "grace").notes).toEqual({ first: null, individual: null, group: "Q8 not attempted", wrong: "Q9, Q10 not attempted" });
+    // Ticket 338: Isla, Lucas and Harper fixed Q9 in individual review and explain it to mint; nobody can explain Q10.
+    expect(report(5, "grace").notes).toEqual({ first: null, individual: null, group: "Q8, Q9 not attempted", wrong: "Q10 not attempted" });
     expect(report(3, "grace").notes).toEqual({ first: null, individual: null, group: null, covered: "Q10 not attempted", wrong: null });
     expect(report(1, "ruby").notes).toEqual({ first: null, individual: null, group: null, covered: null, wrong: null });
   });

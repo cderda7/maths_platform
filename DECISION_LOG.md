@@ -5762,3 +5762,30 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** The card covers what is under it (Class View's Key, the lower mistake cards' right columns, the Classroom's homework column) until Later or Keep. The trigger's "submitted" for Sam is an approximation (the session has no per-question submit). Other teacher pages (Groups, reports, Holistic Assessment, Create) show neither the card nor the dot. A reload replays the slide once.
 
 **Defense.** Deriving the decision from the same inputs as the strip's counts means the card, the strip and a reload can never disagree, and a stage ending needs no code of its own to honour "the plan runs as it was". Storing only the teacher's answers gives 336 an `answer` to extend and 337 a record to replace. The corner and the zero-layout mount are measured in the click-through (every rect of the frame identical before, during and after), which is what "nothing moves" asks.
+
+## 2026-09-16 · Past sets follow the after-individual-review group rule; a set's one unsolvable question is kept by rewrites that slip again (ticket 338)
+
+**Decision.**
+- **One rule on every set.** `AFTER_REVIEW_RULE_SETS` and `afterReviewRule` are gone. `reviewByRule` and `reviewMismatches` read ticket 332's rule on Problem Sets 1–6, keyed on whether the set's pathway has individual review (`afterIndividual`, every set's does). Ticket 281's branch ("a one-off is fixed on own rework, only first submissions help") is deleted.
+- **What changed in the data.**
+  - Group versions exist only on each group's union after individual review. Amber sits out Problem Sets 1 and 2: every slip at the table was a one-off fixed alone.
+  - Fixers now explain. On Problem Set 5, sky solves Q4 (Sam and Zara fixed it) and mint solves Q9 (Isla, Lucas and Harper fixed it).
+- **Realism kept with the fewest rewrites.** Without data changes every set would lose its only question nobody at a table could explain, because each had a one-off fixer at that table. Seven rewrites now slip again, each a slip another student made on the question: Oliver's Q10 (Set 1), Isla's and Lucas's Q10 (Sets 2 and 3), Lucas's Q10 (Set 4), Harper's Q10 (Set 5). No first submission changed, so no set score or status changed. Each set keeps exactly one such question: violet's Q10 on Set 1, mint's Q10 on Sets 2–5. Class review on Sets 1 and 3 still covers it.
+- **The sheet's reasoning names who explained.** Right first time, "and X fixed it in individual review" where a fixer sits at the table, and whose rewrite slipped again where nobody could.
+
+**Context.** Ticket 332 applied the rule to Problem Set 6 and left Sets 1–5 on ticket 278's outcomes. Their reports mixed the two rules: a group "worked" a question every member already had right after corrections, and a fixer sat beside a group that left the question unsolved (the FUTURE_FEATURES note from ticket 281). Carson settled the rule and asked that each set keep some questions nobody at a table could do, changing second submissions where needed, never first ones.
+
+**Alternatives considered.**
+- *Keep every old unsolved question (also mint's Q9 and sky's Q4 on Set 5).* This needs five more rewrites slipping again, three of them on one question and two including Sam's own record, whose Completed report would change. Rejected: the rule's point is that a fixer helps, and Set 5 still keeps mint's Q10.
+- *Pick a different unsolvable question per set* (one with no fixer at the table). None exists: on Sets 1–5 every question outside Q10 (and Set 5's Q4 and Q9) has a right-first-time member at every table.
+- *Let a set have no unsolvable question.* Rejected by the realism rule, and on Sets 1 and 3 class review would have nothing to cover.
+- *Change a first submission so nobody fixes it.* Rejected: it moves set scores and statuses.
+- *Keep the first-submission branch for sets without individual review.* No set lacks it; the pathway check stays so a future set without individual review reads first submissions through the same `canExplain`/`stillToReview`.
+
+**Tradeoffs.**
+- **Mint's pattern.** Mint's Q10 is the unsolved question on five of six sets. It is also the class's weakest table on the hardest question, which is plausible, but it repeats.
+- **Isla and Lucas slip twice.** Both slip again on Q10 on two sets running (and Lucas a third time). This is authored data, not a pattern the sheet counts (patterns read first submissions).
+- **`groupStatus` strings.** Finished records keep their flavour strings, which name group questions that some tables no longer work (amber's on Sets 1 and 2). No screen shows them for a finished set.
+- **More outcomes move on Set 5** (four students' tiles change), so a teacher comparing an old screenshot sees different columns.
+
+**Defense.** Every report, the story sheet and the checks now read one rule from one module, so no screen can show a group working what individual review already fixed. The data change is the smallest that keeps Carson's "nobody at the table can do it" on every set, it leaves first submissions, scores and statuses alone, and each rewrite is a real slip from that question's own table of lines.

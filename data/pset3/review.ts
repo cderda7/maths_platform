@@ -2,13 +2,18 @@ import type { ClassReviewPicks, GroupVersion, SetReview } from "../recordReview"
 import { PS3_PROBLEMS } from "./assignment";
 
 /**
- * What review made of Problem Set 3's problems (tickets 244, 281): the second submissions written in individual review
- * and each seating group's version of every problem it took on, which since ticket 278 is every problem a member did not
- * get right first time (a mistake, a problem left incomplete, one not attempted). Which problem ends where, and why, is
+ * What review made of Problem Set 3's problems (tickets 244, 281, 338): the second submissions written in individual review
+ * and each seating group's version of every question it worked. Which problem ends where, and why, is
  * the class story sheet's review part for the set (`STORY_REVIEW` in `data/story.ts`, checked against
- * `lib/reviewRule.ts`): a one-off slip is rewritten right on the student's own (the model solution's working, line by
- * line); everything else is the group's, which solves it with the model working when a member at the table had it right
- * first time, and otherwise closes it unsolved on its own last try, still wrong.
+ * `lib/reviewRule.ts`): a one-off slip is rewritten on the student's own in individual review, and most rewrites are the
+ * model solution's working, line by line. Since ticket 338 the group works only its union after individual review (ticket
+ * 332, `lib/reviewUnion.ts`): the questions a present member still had wrong, left incomplete or did not attempt once
+ * corrections were in, so a question every member had right after their corrections has no group version, and a group with
+ * nothing left sat out. The group solves a question with the model working when a member at the table could explain it
+ * (right first time, or fixed in individual review), and otherwise closes it unsolved on its own last try, still wrong.
+ *
+ * Isla's and Lucas's Q10 rewrites slipped again (ticket 338), so nobody at mint could explain Q10 and it stays the set's
+ * question nobody at a table could do, the one class review covered.
  */
 
 const solution = (k: number): string[] => PS3_PROBLEMS[k - 1].solution.map((s) => s.tex);
@@ -17,6 +22,11 @@ const q = (k: number) => `ps3-q${k}`;
 const rework = (k: number): GroupVersion => ({ solved: true, lines: solution(k) });
 /** The group's last try on a problem it closed unsolved: its own working, still wrong, never a member's first submission. */
 const lastTry = (lines: readonly string[]): GroupVersion => ({ solved: false, lines });
+
+/** Isla's Q10 rewritten and wrong again (ticket 338): the bracket written out and the sentence right this time, the last sign inside it left unchanged. */
+const ISLA_Q10_AGAIN = ["(x + 3)^2 = x^2 + 6x + 9", "(x - 3)^2 = x^2 - 6x + 9", "(x^2 + 6x + 9) - (x^2 - 6x + 9)", "= x^2 + 6x + 9 - x^2 + 6x + 9", "= 12x", "\\text{so } (x + 3)^2 - (x - 3)^2 = 12x"];
+/** Lucas's Q10 rewritten and wrong again (ticket 338): every sign changed this time, then x² and −x² collected to 2x². */
+const LUCAS_Q10_AGAIN = ["(x + 3)^2 = x^2 + 6x + 9", "(x - 3)^2 = x^2 - 6x + 9", "= x^2 + 6x + 9 - x^2 + 6x - 9", "= 2x^2 + 12x", "\\text{so } (x + 3)^2 - (x - 3)^2 = 2x^2 + 12x"];
 
 /** Mint's last try on Q10: every term taken away inside a bracket and collected to 12x, then Isla's last line solving for x. */
 const MINT_Q10: GroupVersion = lastTry(["(x + 3)^2 = x^2 + 6x + 9", "(x - 3)^2 = x^2 - 6x + 9", "(x^2 + 6x + 9) - (x^2 - 6x + 9)", "= x^2 + 6x + 9 - x^2 + 6x - 9", "= 12x", "\\text{so } x = 12"]);
@@ -32,18 +42,18 @@ export const PS3_REVIEW: SetReview = {
     mia: { [q(4)]: solution(4), [q(9)]: solution(9) },
     chloe: { [q(8)]: solution(8) },
     ethan: { [q(6)]: solution(6), [q(8)]: solution(8) },
-    isla: { [q(1)]: solution(1), [q(7)]: solution(7), [q(10)]: solution(10) },
-    lucas: { [q(8)]: solution(8), [q(10)]: solution(10) },
+    isla: { [q(1)]: solution(1), [q(7)]: solution(7), [q(10)]: ISLA_Q10_AGAIN },
+    lucas: { [q(8)]: solution(8), [q(10)]: LUCAS_Q10_AGAIN },
     harper: { [q(2)]: solution(2), [q(7)]: solution(7) },
     oliver: { [q(2)]: solution(2), [q(6)]: solution(6) },
     sofia: { [q(9)]: solution(9) },
   },
   groups: {
-    coral: { [q(1)]: rework(1), [q(2)]: rework(2), [q(3)]: rework(3), [q(4)]: rework(4), [q(6)]: rework(6), [q(7)]: rework(7), [q(10)]: rework(10) },
-    amber: { [q(2)]: rework(2), [q(4)]: rework(4), [q(6)]: rework(6), [q(8)]: rework(8), [q(9)]: rework(9), [q(10)]: rework(10) },
-    mint: { [q(1)]: rework(1), [q(2)]: rework(2), [q(7)]: rework(7), [q(8)]: rework(8), [q(10)]: MINT_Q10 },
-    sky: { [q(2)]: rework(2), [q(4)]: rework(4), [q(5)]: rework(5), [q(6)]: rework(6), [q(7)]: rework(7), [q(8)]: rework(8), [q(9)]: rework(9), [q(10)]: rework(10) },
-    violet: { [q(2)]: rework(2), [q(5)]: rework(5), [q(6)]: rework(6), [q(8)]: rework(8), [q(9)]: rework(9), [q(10)]: rework(10) },
+    coral: { [q(1)]: rework(1), [q(2)]: rework(2), [q(4)]: rework(4), [q(6)]: rework(6), [q(7)]: rework(7), [q(10)]: rework(10) },
+    amber: { [q(2)]: rework(2), [q(10)]: rework(10) },
+    mint: { [q(1)]: rework(1), [q(10)]: MINT_Q10 },
+    sky: { [q(5)]: rework(5), [q(6)]: rework(6), [q(7)]: rework(7), [q(8)]: rework(8), [q(9)]: rework(9), [q(10)]: rework(10) },
+    violet: { [q(5)]: rework(5), [q(8)]: rework(8), [q(10)]: rework(10) },
   },
 };
 

@@ -4,7 +4,7 @@
 
 **Blocked by:** 332.
 
-**Status:** open
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -23,8 +23,8 @@ Ticket 332 changes which questions reach a group: only the questions a present m
 
 ## Acceptance
 
-- [ ] Unit: the review-mismatch check between records, the story sheet and the rules finds nothing on any set; every group version is for a question in that group's union; set scores unchanged on every set
-- [ ] The outcome counts per set (own rework, group, still wrong) are listed in the ticket's architecture note next to the old ones, with each change explained
-- [ ] Click-through against a production build at 1280×800 and 1440×900: all twenty student reports and the teacher report on all six sets show the new outcomes and open the right working; a student whose group sat out shows no group version; screenshots checked
-- [ ] vitest, eslint, tsc, next build, check:laptop
-- [ ] Ticket docs: `architecture/338.md`, ARCHITECTURE, DECISION_LOG, FUTURE_FEATURES, README
+- [x] Unit: the review-mismatch check between records, the story sheet and the rules finds nothing on any set; every group version is for a question in that group's union; set scores unchanged on every set
+- [x] The outcome counts per set (own rework, group, still wrong) are listed in the ticket's architecture note next to the old ones, with each change explained
+- [x] Click-through against a production build at 1280×800 and 1440×900: all twenty student reports and the teacher report on all six sets show the new outcomes and open the right working; a student whose group sat out shows no group version; screenshots checked
+- [x] vitest, eslint, tsc, next build, check:laptop
+- [x] Ticket docs: `architecture/338.md`, ARCHITECTURE, DECISION_LOG, FUTURE_FEATURES, README
