@@ -3,7 +3,7 @@
 import PracticePad from "@/components/PracticePad";
 import { useEscape } from "@/components/useEscape";
 import { Button, Eyebrow } from "@/components/ui";
-import { groupOf, groupWord, studentLeafName, type LeafId } from "@/data/taxonomy";
+import { studentLeafName, type LeafId } from "@/data/taxonomy";
 import type { Problem } from "@/data/types";
 import { problemLeaves } from "@/lib/hierarchy";
 import { runFirst, type PracticePrompt as Prompt, type SessionAction, type StudentSession } from "@/lib/session";
@@ -24,10 +24,9 @@ export function Scrim({ children, onDismiss }: { children: React.ReactNode; onDi
   );
 }
 
-/** The isolated-practice prompt, for a second mistake on a group (asking for help goes straight to the pad). */
-export function PromptModal({ prompt, onAccept, onDecline }: { prompt: Prompt; problem: Problem; onAccept: () => void; onDecline: () => void }) {
+/** The isolated-practice prompt, for a second mistake on a group and every one after a "Not now" (asking for help goes straight to the pad). */
+export function PromptModal({ prompt, sentence, onAccept, onDecline }: { prompt: Prompt; sentence: string; problem: Problem; onAccept: () => void; onDecline: () => void }) {
   const s = studentLeafName(prompt.leaf);
-  const word = groupWord(groupOf(prompt.leaf));
   // No tap on the dim closes it, but Escape is "Not now" (ticket 247).
   useEscape(true, onDecline);
   return (
@@ -35,7 +34,7 @@ export function PromptModal({ prompt, onAccept, onDecline }: { prompt: Prompt; p
       <div className="w-[560px] rounded-3xl bg-paper p-8 shadow-lift" data-prompt={prompt.reason}>
         <h2 className="font-display text-[28px] leading-tight text-ink">2 minutes on {s.short}?</h2>
         <p className="mt-3 text-[14px] text-ink-soft">
-          This is your second mistake on {word}.
+          {sentence}
           <br />
           Let&rsquo;s do a short problem to review.
         </p>

@@ -13,7 +13,7 @@ import { useAssignment } from "@/lib/classroom-store";
 import { nextLine, scriptDone } from "@/lib/recognition";
 import { HelpPicker, PracticeOverlay, PromptModal } from "./PracticePrompt";
 import HandInCheck from "./HandInCheck";
-import { blankProblems, type SessionAction, type StudentSession } from "@/lib/session";
+import { blankProblems, promptSentence, type SessionAction, type StudentSession } from "@/lib/session";
 
 /**
  * The working screen: problem on the left, the drawpad in the middle, and the transcription
@@ -162,6 +162,7 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
       {session.prompt && !helpOpen && (
         <PromptModal
           prompt={session.prompt}
+          sentence={promptSentence(session) ?? ""}
           problem={p}
           onAccept={() => dispatch({ type: "prompt/accept", problem: p.id })}
           onDecline={() => dispatch({ type: "prompt/decline", problem: p.id })}

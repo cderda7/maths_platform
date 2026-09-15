@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { INITIAL_ESCALATION, recordMistake, requestHelp } from "./escalation";
+import { INITIAL_ESCALATION, practiceTaken, recordMistake, requestHelp } from "./escalation";
 
 describe("subskill-instance counter", () => {
   it("1st instance is a no-op", () => {
@@ -10,20 +10,30 @@ describe("subskill-instance counter", () => {
     expect(r.state.caution).toEqual([]);
   });
 
-  it("2nd instance triggers practice and resets the count", () => {
+  it("2nd instance offers practice; the count holds until practice is taken", () => {
     const first = recordMistake(INITIAL_ESCALATION, "algebra.expand-factor").state;
     const r = recordMistake(first, "algebra.expand-factor");
     expect(r.trigger).toBe(true);
     expect(r.cautioned).toBe(false);
-    expect(r.state.counts["algebra.expand-factor"]).toBe(0);
+    expect(r.state.counts["algebra.expand-factor"]).toBe(2);
     expect(r.state.entries["algebra.expand-factor"]).toBe(1);
     expect(r.state.caution).toEqual([]);
+    expect(practiceTaken(r.state, "algebra.expand-factor").counts["algebra.expand-factor"]).toBe(0);
   });
 
-  it("a repeat 2nd instance after the reset triggers again and raises caution", () => {
+  it("a declined offer stays armed: the 3rd instance offers again (ticket 297)", () => {
     let s = INITIAL_ESCALATION;
     s = recordMistake(s, "algebra.expand-factor").state;
-    s = recordMistake(s, "algebra.expand-factor").state; // practice #1
+    s = recordMistake(s, "algebra.expand-factor").state; // offer #1, declined
+    const r = recordMistake(s, "algebra.expand-factor");
+    expect(r.trigger).toBe(true);
+    expect(r.state.entries["algebra.expand-factor"]).toBe(2);
+  });
+
+  it("a repeat 2nd instance after practice is taken triggers again and raises caution", () => {
+    let s = INITIAL_ESCALATION;
+    s = recordMistake(s, "algebra.expand-factor").state;
+    s = practiceTaken(recordMistake(s, "algebra.expand-factor").state, "algebra.expand-factor"); // practice #1
     s = recordMistake(s, "algebra.expand-factor").state; // 1st after reset: no-op
     const r = recordMistake(s, "algebra.expand-factor"); // 2nd after reset
     expect(r.trigger).toBe(true);
@@ -61,12 +71,12 @@ describe("subskill-instance counter", () => {
     expect(r.state.counts["algebra.equations"]).toBe(0);
   });
 
-  it("the slipped leaves come back with the trigger and reset", () => {
+  it("the slipped leaves come back with the trigger and reset once practice is taken", () => {
     let s = recordMistake(INITIAL_ESCALATION, "algebra.expand-factor", "algebra.expand-factor.monic").state;
     expect(s.slips["algebra.expand-factor"]).toEqual(["algebra.expand-factor.monic"]);
     const second = recordMistake(s, "algebra.expand-factor", "algebra.expand-factor.nonmonic");
     expect(second.slipped).toEqual(["algebra.expand-factor.monic", "algebra.expand-factor.nonmonic"]);
-    s = second.state;
+    s = practiceTaken(second.state, "algebra.expand-factor");
     expect(s.slips["algebra.expand-factor"]).toEqual([]);
   });
 

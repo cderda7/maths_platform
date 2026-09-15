@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_ENV, DEMO_CONFIDENCE, INITIAL_RUN, INITIAL_SESSION, INITIAL_WARMUP, blankProblems, hydrateSession, reworkNotice, runProblem, sessionAt, sessionReducer, warmupFocus, warmupOffered, warmupProblem, warmupSeed, type StudentSession } from "./session";
+import { DEFAULT_ENV, DEMO_CONFIDENCE, INITIAL_RUN, INITIAL_SESSION, INITIAL_WARMUP, blankProblems, hydrateSession, promptSentence, reworkNotice, runProblem, sessionAt, sessionReducer, warmupFocus, warmupOffered, warmupProblem, warmupSeed, type StudentSession } from "./session";
 import { PRACTICE, WARMUP_BANK } from "@/data/practice";
 import { PROBLEMS } from "@/data/assignment";
 import { warmupScript } from "./warmup";
@@ -396,7 +396,6 @@ describe("escalation inside the session", () => {
     s = reveal(s, "q2", "(2x + 4)(x - 1) = 0", 14);
     // Monic first, then non-monic: the practice goes to monic, the more fundamental of the two.
     expect(s.prompt).toEqual({ leaf: "algebra.expand-factor.monic", reason: "detected" });
-    expect(s.escalation.counts["algebra.expand-factor"]).toBe(0);
     expect(s.escalation.caution).toEqual([]);
   });
 
@@ -432,6 +431,48 @@ describe("escalation inside the session", () => {
     expect(s.overlay).toBeNull();
     expect(s.problemIndex).toBe(1);
     expect(s.practices).toEqual([{ leaf: "algebra.expand-factor.monic", reason: "detected", accepted: true, problem: "q2" }]);
+  });
+
+  it("after 'Not now' the very next slip on the same topic offers practice again (ticket 297)", () => {
+    let s = sessionAt("working");
+    s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 3);
+    s = reveal(s, "q2", "(2x + 4)(x - 1) = 0", 3);
+    s = sessionReducer(s, { type: "prompt/decline", problem: "q2" });
+    expect(s.prompt).toBeNull();
+    // Q3: expanding the wrong way, a third slip in expanding & factorising.
+    s = reveal(s, "q3", "(x - 3)(x + 2) = 6", 3);
+    s = reveal(s, "q3", "x^2 + x - 6 = 6", 6);
+    // Nothing practised yet, so all three slips count: expanding is the most fundamental of monic, non-monic and expanding.
+    expect(s.prompt).toEqual({ leaf: "algebra.expand-factor.expand", reason: "detected" });
+    expect(promptSentence(s)).toBe("This is your third mistake on factorising.");
+  });
+
+  it("the first offer says second mistake", () => {
+    let s = sessionAt("working");
+    s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 3);
+    s = reveal(s, "q2", "(2x + 4)(x - 1) = 0", 3);
+    expect(promptSentence(s)).toBe("This is your second mistake on factorising.");
+  });
+
+  it("a slip on another topic after 'Not now' offers nothing", () => {
+    let s = sessionAt("working");
+    s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 3);
+    s = reveal(s, "q2", "(2x + 4)(x - 1) = 0", 3);
+    s = sessionReducer(s, { type: "prompt/decline", problem: "q2" });
+    s = reveal(s, "q3", "(x - 3)(x + 2) = 6", 3);
+    s = reveal(s, "q3", "x - 3 = 6 \\;\\text{or}\\; x + 2 = 6", 6);
+    expect(s.prompt).toBeNull();
+  });
+
+  it("after taking the practice, the next slip on that topic is a first mistake again", () => {
+    let s = sessionAt("working");
+    s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 3);
+    s = reveal(s, "q2", "(2x + 4)(x - 1) = 0", 3);
+    s = sessionReducer(s, { type: "prompt/accept", problem: "q2" });
+    s = sessionReducer(s, { type: "overlay/done" });
+    s = reveal(s, "q3", "(x - 3)(x + 2) = 6", 3);
+    s = reveal(s, "q3", "x^2 + x - 6 = 6", 6);
+    expect(s.prompt).toBeNull();
   });
 
   it("'I need help' after a detected practice raises the caution flag", () => {

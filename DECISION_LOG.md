@@ -4983,3 +4983,19 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Date strings without a year (`dueOrder`) are the whole calendar, so the model only works inside one term (already assumed). A homework whose covered sets are all Missing has no cell. The demo's day is a constant, not the clock. The Classroom's content column widens from 860 to 1066 px, so the heading, the section labels and To do / Missing move 103 px left; the cards keep 780 px and their vertical positions.
 
 **Defense.** One pure rule decides coverage and status for every later ticket (291's Homework 3, 292's opening, 293's list, 294's carry-over), tested on the story's real dates; demo data stays separate from the rule; the layout aligns by construction and the triangle is literally the Class View's component.
+
+## 2026-09-15 · A declined practice offer stays armed; the count resets only when practice is taken (ticket 297)
+
+**Decision.** The escalation counter no longer resets a topic's mistake count when practice is offered. It resets when practice is taken: the student presses Yes on the offer, or asks for help (which goes straight to practice). After "Not now" every further mistake on that topic offers practice again. "Same mistake" stays the taxonomy group (topic). Entries, and the caution flag at the second, still count offers, declined or not.
+
+**Context.** A simulated student reviewing individual working said nothing stopped a sign error being carried through the set and asked for a tripwire. Reproduced in the browser: the offer did fire on Sam's second factorising slip (Q2), but a student who declined it would pass the next factorising slip in silence and need a fourth. The user chose: same topic, and after Not now the offer returns on the very next same-topic mistake. Supersedes the "2nd = trigger + reset" reading in the 2026-09-08 caution entry for declined offers.
+
+**Alternatives considered.**
+- *Count by kind of error (a sign error in factorising, then a sign lost solving a linear factor)*: what the simulated student described; it needs an error-kind tag on every wrong line in every set's evaluation table and a second sign slip in Sam's script. The user kept topic (FUTURE_FEATURES).
+- *Keep the reset on offer, re-arm on decline (`declinePractice` setting the count back to one)*: the same behaviour, but it rebuilds the slipped leaves the offer threw away and puts the rule in two places; resetting on the event that actually ends the episode (practice taken) keeps one rule.
+- *A declined offer does not count as an entry*: then declining and slipping again would never caution the teacher, and a student could decline indefinitely unseen. The existing behaviour already counted declined offers (help after Not now cautions); kept.
+- *Offer at most once more after a decline, then stay quiet*: less nagging, but it reopens the unguarded silence the review complained about.
+
+**Tradeoffs.** A student who declines and keeps slipping on the same topic is asked after every slip, and the teacher's caution goes up on the second offer, sooner than before for a decliner. The practice the re-offer points to can move to a more fundamental leaf than the first offer named (all slips since practice was last taken count). Sam's scripted demo has no third factorising slip, so the re-offer is proven in the reducer, not on screen. The offer's sentence now counts ("third mistake"), read from the escalation state, so the counter's reset timing is visible to the student.
+
+**Defense.** The policy the user stated ("on second same mistake, gets offered subskill practice") now holds at every point of a run, including after a decline, with one reset rule on one event, tested at the reducer and in the browser.

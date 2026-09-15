@@ -1422,6 +1422,15 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **Homework records for the other nineteen.** Only Sam has a homework history (`SAM_HOMEWORK_STORY`) because only Sam has a Classroom; the teacher's view of every student's homework status is ticket 291's future feature.
 - **Pressing a completed or missed cell.** Cells are not pressable; reading back a finished homework (ticket 293's future feature) could open from the completed cell, and a missed cell could show which problems carried over.
 
+## Practice offer tripwire (ticket 297, 2026-09-15)
+
+- **"Same mistake" by kind of error, across topics.** The simulated student's tripwire was "same error class three times": a sign error in factorising, then a sign lost solving a factor, then a sign in a turning point. The counter keys on the taxonomy group, so those are three different topics and never trip. Needs an error-kind tag on every wrong line of every evaluation table (ticket 299's misconception ids could be it) and a rule for which practice a cross-topic kind points to. Deferred: the user kept same topic.
+- **A third factorising slip in Sam's script.** The re-offer after "Not now" can't be shown on the iPad demo: Sam's pad has two factorising slips (Q1, Q2) and none after. A demo run that declines and slips again (or a presenter toggle) would show it, but every teacher screen reads Sam's scripted lines, so it ripples through the story data. Deferred: proven in the reducer.
+- **Undo, then write a different wrong line.** A wrong line is counted once per `problem#line index`, so undoing it and writing another wrong line at the same position is not counted. The scripted pad always reads the same line, so it can't happen in the demo; real recognition would need the key to include the line itself.
+- **How insistent a re-offer should be.** After "Not now" the offer returns on every same-topic slip, reading "third mistake", "fourth mistake"… Whether a second decline should quiet it for a while, or say something different from the first offer, was not discussed.
+- **The offer's title and body name different things.** "2 minutes on expansion?" names the leaf the practice is on, "This is your third mistake on factorising" the topic (expanding is inside expanding & factorising, whose student word is "factorising"). Pre-existing; reads oddly when the practice leaf is not factorising itself.
+- **Offering the prerequisite rather than the topic.** The review asked to "offer the prerequisite"; the offer goes to the most fundamental leaf slipped within the topic, not a prerequisite from another topic (expanding under factorising is within it). A prerequisite graph across groups would be needed.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

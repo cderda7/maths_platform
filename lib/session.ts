@@ -1,6 +1,6 @@
 import { BEFORE_HAND_IN_STAGES, type ChatMessage, type Confidence, type Pathway, type PracticeProblem, type Stage, type Stroke } from "@/data/types";
 import { pickHint, stalledHint } from "./hint";
-import { groupOf, resolveLeaf, type LeafId } from "@/data/taxonomy";
+import { groupOf, groupWord, resolveLeaf, type LeafId } from "@/data/taxonomy";
 import { PRACTICES } from "@/data/practice";
 import { byEase, concernsAnswered, focusLeaves, practiceFor, warmupSequence, type WarmupMessage } from "./warmup";
 import type { DebriefNote } from "./debrief";
@@ -10,7 +10,7 @@ import { guardFor, trippedProblems } from "./guard";
 import { feedbackSummary } from "./feedback";
 import { afterUndo, type RevealedLine } from "./recognition";
 import { evaluateLine } from "./evaluate";
-import { INITIAL_ESCALATION, recordMistake, requestHelp, type EscalationState } from "./escalation";
+import { INITIAL_ESCALATION, practiceTaken, recordMistake, requestHelp, type EscalationState } from "./escalation";
 import { RECOGNITION, RECOGNITION_REWORK } from "@/data/recognition";
 import { ASSIGNMENT } from "@/data/assignment";
 
@@ -20,7 +20,7 @@ import { ASSIGNMENT } from "@/data/assignment";
  */
 export interface PracticePrompt {
   leaf: LeafId;
-  /** detected: a second mistake on a group. help: the student asked. */
+  /** detected: a second (or, after "Not now", later) mistake on a group. help: the student asked. */
   reason: "detected" | "help";
 }
 
@@ -449,7 +449,7 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     }
     case "prompt/accept":
       if (!s.prompt) return s;
-      return { ...s, prompt: null, overlay: s.prompt.leaf, overlayRun: INITIAL_RUN, practices: [...s.practices, { ...s.prompt, accepted: true, problem: a.problem }] };
+      return { ...s, escalation: practiceTaken(s.escalation, groupOf(s.prompt.leaf)), prompt: null, overlay: s.prompt.leaf, overlayRun: INITIAL_RUN, practices: [...s.practices, { ...s.prompt, accepted: true, problem: a.problem }] };
     case "prompt/decline":
       if (!s.prompt) return s;
       return { ...s, prompt: null, practices: [...s.practices, { ...s.prompt, accepted: false, problem: a.problem }] };
@@ -538,6 +538,18 @@ export function fundamentalLeaf(slipped: LeafId[]): LeafId | null {
     if (p) return p;
   }
   return null;
+}
+
+const ORDINALS = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth"];
+
+/** The practice offer's line: which mistake on the topic this is. A declined offer stays armed, so a re-offer reads third, fourth… (ticket 297). */
+export function promptSentence(s: StudentSession): string | null {
+  if (!s.prompt) return null;
+  const group = groupOf(s.prompt.leaf);
+  // A session saved before ticket 297 reset the count on the offer: read it as the second.
+  const n = Math.max(2, s.escalation.counts[group] ?? 0);
+  const nth = ORDINALS[n - 1];
+  return nth ? `This is your ${nth} mistake on ${groupWord(group)}.` : `This is another mistake on ${groupWord(group)}.`;
 }
 
 export const FORCED_HAND_IN_TEXT = "Your teacher handed in the class's work.";
