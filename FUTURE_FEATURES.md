@@ -1731,6 +1731,17 @@ Raised in a project checkpoint review; Carson asked for these on the list. Space
 - **Which screen the board is on.** In Chrome and Edge the header could say "Board on projector" rather than "Board open". Deferred: the fallback window cannot tell, so one word for both.
 - **A pulse when the teacher reloads with a moment live and no board open.** The pill pulses only at the moment itself (Project, group review starting, a diagnostic going out), never on a reload. Deferred: Carson agreed a pulse on every reload would be noise.
 
+## After-practice marker on the report (ticket 317, 2026-09-15)
+
+- **A student-side marker.** Sam's own report (iPad) shows nothing about practice before a question. Deferred: the ticket keeps the student's report unchanged; whether a student should see "after practice" beside their own result is a product call.
+- **The skill in the tile's dot.** The dot says only that practice came first; the skill is in the tooltip and the working. A colour per skill or a short label would say more at a glance. Deferred: the card has no room, and a colour code needs a key.
+- **Practice on the class view and Mistakes.** The roster, the Set column and the Mistakes pills do not say a question was answered after practice. Deferred: the ticket scoped the student report.
+- **How far into practice the student got.** The marker is the same for help left from Q*'s worked example and for all three steps. The steps and their times are recorded (ticket 312) and could read "after a worked example" versus "after finishing one". Deferred: the brief says mark it either way.
+- **Hints as a marker.** Noah's two hints on Q3 mark nothing. Deferred: the ticket names practice only.
+- **Finished sets' practice.** Problem Sets 1–5 have no practice records, so no markers. Deferred: no data; ticket 314's story is Problem Set 6's.
+- **A warm-up skill's steps on the report.** "Warmed up on fractions" does not say whether the student reached step 3. Deferred: one set-level note is what the user asked for.
+- **Offers declined as a marker.** A declined practice offer stays a note on What happened's line, not on its question. Deferred: not in the ticket; kept as before.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

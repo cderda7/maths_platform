@@ -6,7 +6,7 @@ import { assignmentHref, assignmentStages, setClassReview, studentRecord } from 
 import TeacherChrome, { TEACHER_ZOOM } from "../TeacherChrome";
 import { WorkLines, WorkPanel } from "@/components/HierarchyDrill";
 import ProblemQuestion from "@/components/ProblemQuestion";
-import OutcomeTiles from "@/components/OutcomeTiles";
+import OutcomeTiles, { PRACTICE_DOT } from "@/components/OutcomeTiles";
 import ClassReviewExamples from "@/components/ClassReviewExamples";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
 import SkillColumns from "@/components/SkillColumns";
@@ -17,6 +17,7 @@ import { groupName } from "@/data/taxonomy";
 import { useClassroom } from "@/lib/classroom-store";
 import { commentaryFor } from "@/lib/commentary";
 import { columnsOf, labelSentence, OUTCOME_LABEL, outcomeOf, recordReviews, reportFacts, reportPathway, reviewStagesOver, sessionReviews, shownVersions, type OutcomeColumn, type Reviews, type ShownVersion } from "@/lib/report";
+import { afterPracticeText, reportPracticeMarks, warmUpText } from "@/lib/practiceMarks";
 import { pressWork, type ReportWork } from "@/lib/reportWork";
 import { classmateEvidence, hierarchyFor, leavesBehind, restrictTo, sessionEvidence, type Evidence } from "@/lib/hierarchy";
 import { useBatchedSession, useNow } from "@/lib/store";
@@ -84,8 +85,13 @@ export function ReportBody({ student, back, work: initialWork = null, from = nul
   const reviews: Reviews = classmate ? recordReviews(classmate, problems, over, classReview) : session ? sessionReviews(session, classroom.group, problems, classReview) : {};
   const columns = columnsOf(reviews, pathway, problems);
   const openProblem = work?.kind === "problem" ? problems.find((p) => p.id === work.id) : undefined;
-  // The line under the tiles: how sure they were before starting, and on the live set what practice and caution the run brought.
-  const notes = nothing ? [] : [classmate ? labelSentence(classmate.confidence) : facts!.confidence, ...(facts?.practices ?? [])];
+  // Practice the student took on the live set (ticket 317): a marker on each question it came before, and the warm-up named once.
+  const marks = reportPracticeMarks(assignment, classmate ?? null, session, now);
+  const markers = Object.fromEntries(problems.flatMap((p) => { const text = afterPracticeText(marks.questions[p.id]); return text ? [[p.id, text]] : []; }));
+  const markedLabels = problems.filter((p) => markers[p.id]).map((p) => p.label);
+  const warmUp = warmUpText(marks.warmUp);
+  // The line beside What happened: how sure they were before starting, the warm-up that followed, and on the live set any offer declined and caution.
+  const notes = nothing ? [] : [classmate ? labelSentence(classmate.confidence) : facts!.confidence, ...(warmUp ? [warmUp] : []), ...(facts?.practices ?? [])];
   const caution = facts?.caution ?? [];
 
   // The page fills the laptop's height (ticket 244): the skills card takes whatever height the page leaves, so the
@@ -191,7 +197,15 @@ export function ReportBody({ student, back, work: initialWork = null, from = nul
                     <div className="flex items-start justify-between gap-4">
                       {openProblem ? (
                         <div className="min-w-0">
-                          <Eyebrow>{OUTCOME_LABEL[outcomeOf(openProblem.id, reviews[openProblem.id], pathway)]}</Eyebrow>
+                          {/* The result, and beside it on its line the practice the question came after (ticket 317). */}
+                          <div className="flex items-baseline gap-2.5 whitespace-nowrap">
+                            <Eyebrow>{OUTCOME_LABEL[outcomeOf(openProblem.id, reviews[openProblem.id], pathway)]}</Eyebrow>
+                            {markers[openProblem.id] && (
+                              <span className="text-[12.5px] leading-none text-ink-muted" data-after-practice={openProblem.id}>
+                                {markers[openProblem.id]}
+                              </span>
+                            )}
+                          </div>
                           <div className="mt-2 flex min-w-0 items-baseline gap-2.5">
                             <span className="shrink-0 font-display text-[18px] text-ink">{openProblem.label}</span>
                             <span className="shrink-0 self-center">
@@ -232,6 +246,13 @@ export function ReportBody({ student, back, work: initialWork = null, from = nul
                   {notes.map((n, i) => (
                     <span key={i}>{n}</span>
                   ))}
+                  {/* The tiles' dot, read once (ticket 317): which questions came after practice; the working names the skill. */}
+                  {markedLabels.length > 0 && (
+                    <span className="inline-flex items-baseline gap-1.5 whitespace-nowrap" data-practice-legend>
+                      <span className={`${PRACTICE_DOT} self-center`} aria-hidden />
+                      {markedLabels.join(", ")} after practice
+                    </span>
+                  )}
                   {caution.length > 0 && (
                     <span className="text-gap" data-caution>
                       Caution · {caution.map((id) => groupName(id).name.toLowerCase()).join(", ")} · practice twice
@@ -249,6 +270,7 @@ export function ReportBody({ student, back, work: initialWork = null, from = nul
                 onPress={(id) => setWork((w) => pressWork(w, { kind: "problem", id }))}
                 describe={() => "see their working"}
                 starred={live && session ? session.stars : []}
+                marked={markers}
                 lit={chosen ? chosen.problems : null}
                 noteFloor={teacherNoteFloor}
                 noteInLabel

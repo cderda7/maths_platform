@@ -357,10 +357,17 @@ describe("report facts", () => {
     expect(f.slipped).toBe(5);
     expect(f.total).toBe(10);
     expect(f.reworked).toEqual(["Q1", "Q2", "Q3", "Q7", "Q10"]);
-    expect(f.practices).toEqual(["Practice · non-monic factorising · Q2 · taken"]);
+    // The Q2 practice taken is marked on Q2 (ticket 317), not a note.
+    expect(f.practices).toEqual([]);
     expect(f.caution).toEqual([]);
     expect(f.confidence).toBe("Confidence low when monic factorising comes up");
     expect(f.stars).toEqual(["Q4"]);
+  });
+
+  it("note an offer declined, never practice taken (ticket 317)", () => {
+    const s = sessionAt("report");
+    const declined = { ...s, practices: [...s.practices, { leaf: "functions.zeros.nfl" as const, reason: "detected" as const, accepted: false, problem: "q3" }] };
+    expect(reportFacts(declined).practices).toEqual(["Practice · null factor law · Q3 · declined"]);
   });
 });
 

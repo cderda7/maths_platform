@@ -15,6 +15,9 @@ const TILE: Record<Outcome, string> = {
   wrong: "border-wrong-line bg-wrong-soft",
 };
 
+/** The mark on a tile the student answered after practice (ticket 317), and on the note that reads it: a small muted dot. */
+export const PRACTICE_DOT = "inline-block h-2 w-2 shrink-0 rounded-full bg-ink-muted";
+
 /** Between columns, px: the template's room for them (`outcomeTemplate`). */
 const GAP = 16;
 
@@ -45,6 +48,7 @@ export default function OutcomeTiles({
   lit = null,
   noteFloor,
   noteInLabel = false,
+  marked = {},
 }: {
   columns: OutcomeColumn[];
   open: string | null;
@@ -57,6 +61,12 @@ export default function OutcomeTiles({
   noteFloor?: (column: OutcomeColumn) => number;
   /** The note as the column label's second line, kept on one line, instead of under the tiles. */
   noteInLabel?: boolean;
+  /**
+   * The teacher's report (ticket 317): per problem id, the practice it came after ("after practice on monic factorising"). A
+   * marked tile carries a small muted dot on its corner, drawn over the border so the tile keeps its size, and the words in
+   * its name and tooltip; the working it opens says them beside the result.
+   */
+  marked?: Readonly<Record<string, string>>;
 }) {
   // A column's floor is its label's (and its note's); its tiles' one row it keeps while the card has room (`outcomeTemplate`).
   const floors = columns.map((c) => Math.max(FLOOR[c.id], noteFloor && c.notAttempted.length > 0 ? noteFloor(c) : 0));
@@ -89,18 +99,22 @@ export default function OutcomeTiles({
                   const pressed = open === p.id;
                   const star = starred.includes(p.id);
                   const faded = lit !== null && !lit.includes(p.id);
+                  const after = marked[p.id];
                   return (
                     <li key={p.id}>
                       <button
                         type="button"
                         onClick={() => onPress(p.id)}
                         aria-pressed={pressed}
-                        aria-label={`${p.label}${star ? ", starred" : ""}: ${describe(p.label)}`}
-                        className={`inline-flex h-9 min-w-9 items-center justify-center gap-1 rounded-lg border px-2 text-[13px] font-medium text-ink transition-[box-shadow,opacity] hover:shadow-card ${TILE[c.id]} ${pressed ? "ring-2 ring-ink ring-offset-1 ring-offset-paper" : ""} ${faded ? "opacity-35" : ""}`}
+                        aria-label={`${p.label}${star ? ", starred" : ""}${after ? `, ${after}` : ""}: ${describe(p.label)}`}
+                        title={after ? `${p.label} ${after}` : undefined}
+                        className={`relative inline-flex h-9 min-w-9 items-center justify-center gap-1 rounded-lg border px-2 text-[13px] font-medium text-ink transition-[box-shadow,opacity] hover:shadow-card ${TILE[c.id]} ${pressed ? "ring-2 ring-ink ring-offset-1 ring-offset-paper" : ""} ${faded ? "opacity-35" : ""}`}
                         data-work-tile={p.id}
                         data-starred={star || undefined}
                         data-faded={faded || undefined}
+                        data-after-practice-tile={after ? true : undefined}
                       >
+                        {after && <span className={`${PRACTICE_DOT} pointer-events-none absolute -top-[3px] -right-[3px] ring-2 ring-paper`} aria-hidden data-practice-dot />}
                         {star && (
                           <span className="text-[11px] leading-none" aria-hidden>
                             ★

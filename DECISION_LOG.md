@@ -5560,3 +5560,21 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** A thin title bar on the projector unless someone presses Fullscreen (or the school sets the policy). A board opened from its URL in another browser or on another computer is invisible to the laptop (same-browser channel, like all demo state). The heartbeat costs one message a second per board. "Board open" cannot say which screen. The pulse also fires for a moment reached through the demo's skips, which is the same moment on the board.
 
 **Defense.** The press does the most any browser allows today, degrades to the drag story 60 already assumed, and never blocks an action. Presence that can only be as stale as its heartbeat, and cues that are a pure reading of the class state, keep the header right on every path into a moment without a stored flag to fall out of step.
+
+## 2026-09-15 · A question answered after practice is marked on the teacher's report, the score unchanged (ticket 317)
+
+**Decision.** The teacher's report reads what practice a student took from one pure module, `lib/practiceMarks.ts`: per question the skills practised on it, and the warm-up's skills. Sam's comes from his session (every accepted practice entry, Q* reached or the older isolated practice, and each warm-up skill whose steps began or that he moved past once he took the warm-up); a classmate's from ticket 314's story through `classmateTimeline`, read at the stream's clock on the live set (the whole story before the set goes live and once the class has handed in); a finished set has none. On screen: a small muted dot on the marked tile's corner (absolute, no layout change) with the words in its name and tooltip, one note on What happened's line naming the questions ("● Q2 after practice"), the warm-up named once after the confidence answer, and "after practice on <skill>" beside the result in the question's working. `lib/setScore.ts` is untouched, and a test holds that practice never changes a score. Practice taken left the notes line (`reportFacts.practices` keeps offers declined).
+
+**Context.** Since tickets 312 and 313, help runs a worked example of a question like Q just before the student answers Q, so right first time on Q means something different. Carson (2026-09-15) chose a marker on the report and no change to the score; warm-ups as one set-level note. The What happened card has no room beside a 36 px tile, and the report must fit 1280×800 with nothing moving.
+
+**Alternatives considered.**
+- *The words beside each tile*: what the ticket literally asks, but a tile column has no width for "after practice on non-monic factorising"; widening the column moves every tile.
+- *The words on the column label's second line* (as "Q10 not attempted"): the narrow Incorrect column would have to widen, moving the others.
+- *All the words on What happened's line* ("Q2 after practice on non-monic factorising"): with the confidence answer and a warm-up, Sam's line wraps at 1280 and the card grows.
+- *Only in the opened working*: moves nothing, but a teacher scanning the tiles would never know to open Q2.
+- *Lowering or annotating the score*: Carson chose not to.
+- *A student-side marker*: out of scope, in FUTURE_FEATURES.
+
+**Tradeoffs.** The dot means nothing until read against the line's "● Q2 after practice" or hovered; the skill is only in the tooltip and the working. A classmate's marker appears when the stream reaches the practice, while their tile already shows the result from the record (as the report did before). Sam's warm-up skills are the sequence's, so an older snapshot with no recorded steps names no warm-up.
+
+**Defense.** Every piece of the report stays where it was for every student (measured against the report before the change for all twenty at both sizes), the words are there at a glance and in full one press away, and one pure module answers "what practice came before this" for both the session and the story, tested without a screen.

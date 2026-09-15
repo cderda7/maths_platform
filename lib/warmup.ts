@@ -16,8 +16,9 @@ export type WarmupMessage = ChatMessage;
 
 /** A skill as the chat says it: the student-facing name, lowercase, as the confidence list shows it. */
 const skillWord = (l: LeafId) => studentLeafName(l).name.toLowerCase();
-/** "a", "a & b", "a, b, & c". */
-const amp = (xs: string[]) => (xs.length <= 1 ? xs.join("") : xs.length === 2 ? `${xs[0]} & ${xs[1]}` : `${xs.slice(0, -1).join(", ")}, & ${xs[xs.length - 1]}`);
+/** "a", "a & b", "a, b, & c": how the chat joins skill names (the teacher's report joins them the same way, ticket 317). */
+export const joinSkills = (xs: readonly string[]): string => (xs.length <= 1 ? xs.join("") : xs.length === 2 ? `${xs[0]} & ${xs[1]}` : `${xs.slice(0, -1).join(", ")}, & ${xs[xs.length - 1]}`);
+const amp = joinSkills;
 
 /** A skill's name as the chat marks it: `**word**`, which the chat bubble renders in a light blue box (`skillRuns`). */
 const named = (word: string) => `**${word}**`;

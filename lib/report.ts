@@ -100,10 +100,8 @@ export function reportFacts(session: StudentSession): ReportFacts {
     slipped: fb.filter((p) => p.slips.length > 0).length,
     total: fb.length,
     reworked: Object.keys(session.rework).filter((id) => (session.rework[id]?.length ?? 0) > 0).map((id) => PROBLEM_MAP[id].label),
-    practices: session.practices.map(
-      (p) =>
-        `${p.reason === "help" ? "Help" : "Practice"} · ${leafName(p.leaf).short} · ${PROBLEM_MAP[p.problem]?.label ?? p.problem} · ${p.accepted ? "taken" : "declined"}`,
-    ),
+    // Practice taken is marked on its question since ticket 317 (`lib/practiceMarks.ts`); only an offer declined is a note.
+    practices: session.practices.filter((p) => !p.accepted).map((p) => `Practice · ${leafName(p.leaf).short} · ${PROBLEM_MAP[p.problem]?.label ?? p.problem} · declined`),
     caution: session.escalation.caution,
     confidence: confidenceSentence(session.confidence),
     stars: session.stars.map((id) => PROBLEM_MAP[id].label),
