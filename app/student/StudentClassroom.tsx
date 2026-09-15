@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import StudentChrome from "./StudentChrome";
 import { useLessonPull } from "./useLessonPull";
@@ -10,6 +10,7 @@ import { ASSIGNMENT } from "@/data/assignment";
 import { CLASS_SUBJECT } from "@/lib/classroomCards";
 import { useClassroom } from "@/lib/classroom-store";
 import { classHomeworks, futureHomeworks, homeworkColumn, type FutureHomework } from "@/lib/homeworks";
+import { flasher, HW_INSIGHT_MESSAGE, studentCellShowsInsight } from "@/lib/hwInsight";
 import type { ClassroomState } from "@/lib/classroom";
 import { useNow, useStudentSession } from "@/lib/store";
 import { STUDENT_SECTION_EMPTY, STUDENT_SECTION_LABEL, STUDENT_SECTIONS, studentClassroom, studentHomeworkHref, studentSetHref, type StudentSection, type StudentSetCard } from "@/lib/studentClassroom";
@@ -22,7 +23,8 @@ const noSubscribe = () => () => {};
  * once sent); a press anywhere on a Completed card opens his read-only report on the set (ticket 287); Missing cards open
  * nothing. Beside Completed sits the homework column (ticket 290): each homework's cell spans the sets it covers. A homework
  * the teacher has sent waits greyed in the Future panel at the top right, not pressable (ticket 292), until the last lesson
- * among its sets ends; then it is the first card in To do and its cell opens it too.
+ * among its sets ends; then it is the first card in To do and its cell opens it too. Every other cell (completed, missed, still in
+ * the Future) shows the demo's "HW insight scoped in FUTURE_FEATURES" placeholder over itself for a moment when pressed (ticket 326).
  * Live in every tab: the teacher's Create puts Problem Set 6 in
  * To do without a reload. When class review freezes the class, the iPad goes to the set, as every student screen does; so
  * does a presenter's jump from another tab that moves the lesson with a set out (the teacher's "students done" and
@@ -107,13 +109,24 @@ function Section({ section, cards, classroom, onOpen }: { section: StudentSectio
 
 /**
  * The homework column beside Completed (ticket 290, `homeworkColumn`): a homework's cell spans the rows of the sets it
- * covers; a set no homework covers yet keeps an empty space the column's width. Completed and missed cells are not pressable,
- * nor is a homework's cell while it waits in the Future panel; once it has opened the cell opens it, as its To do card does (ticket 292).
+ * covers; a set no homework covers yet keeps an empty space the column's width. Once a homework has opened its cell opens it,
+ * as its To do card does (ticket 292).
+ * Every other cell, completed, missed, or waiting in the Future panel, is a button that goes nowhere (ticket 326, the teacher's
+ * ticket 324 placeholder on Sam's side): a press lays "HW insight scoped in FUTURE_FEATURES" over the cell, white on dark grey,
+ * for `HW_INSIGHT_MS`, one cell at a time. The message is an overlay in the cell's own box, so nothing moves; a polite live
+ * region beside the cells announces it.
  */
 function HomeworkColumn({ cards, classroom, onOpen }: { cards: StudentSetCard[]; classroom: ClassroomState; onOpen: (href: string) => void }) {
+  const [shown, setShown] = useState<string | null>(null);
+  // Lazy state: one flasher for the column's life; its timer is set from the press and cleared on unmount.
+  const [flash] = useState(() => flasher<string>(setShown));
+  useEffect(() => () => flash.dispose(), [flash]);
+  const pieces = homeworkColumn(cards, classHomeworks(classroom));
+  // A cell that opened while its message showed goes to the homework screen and never carries the message.
+  const live = pieces.some((p) => p.kind === "homework" && p.id === shown && studentCellShowsInsight(p));
   return (
     <div className="contents" data-hw-column>
-      {homeworkColumn(cards, classHomeworks(classroom)).map((p) => {
+      {pieces.map((p) => {
         const gridRow = `${p.row + 1} / span ${p.span}`;
         const rows = p.setIds.join(" ");
         if (p.kind === "empty") return <div key={`empty-${rows}`} className="col-start-2" style={{ gridRow }} data-hw-empty={rows} aria-hidden />;
@@ -126,37 +139,63 @@ function HomeworkColumn({ cards, classroom, onOpen }: { cards: StudentSetCard[];
             {p.submitted && <span data-hw-submitted>submitted {p.submitted}</span>}
           </span>
         );
-        if (p.status === "completed")
+        // A cell that goes nowhere (ticket 326): its state's ground and line at rest (a focus ring shows the 1px border under
+        // it in the line's own colour), all of it ink-soft while the message shows.
+        const insightCell = (rest: { ground: string; line: string; border: string }, body: ReactNode) => {
+          const insight = shown === p.id;
           return (
-            <div key={p.id} className={`${shape} bg-secure-soft/70 outline-secure-line`} style={{ gridRow }} data-hw-cell={p.id} data-hw-status={p.status} data-hw-rows={rows}>
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => flash.press(p.id)}
+              className={`${shape} relative text-left transition-[outline-color,background-color,box-shadow] hover:shadow-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent active:shadow-none ${insight ? "bg-ink-soft outline-ink-soft focus-visible:border-ink-soft" : `${rest.ground} ${rest.line} ${rest.border}`}`}
+              style={{ gridRow }}
+              data-hw-cell={p.id}
+              data-hw-status={p.status}
+              data-hw-opened={p.status === "open" ? "false" : undefined}
+              data-hw-rows={rows}
+              data-hw-insight={insight || undefined}
+            >
+              {body}
+              {/* The tile's own line and ground turn ink-soft too, so the whole tile is dark grey with no sliver of line at its edge. */}
+              <span
+                aria-hidden
+                className={`pointer-events-none absolute inset-0 grid place-items-center rounded-2xl px-3 text-center text-[15px] leading-[21px] font-medium ${insight ? "bg-ink-soft text-white" : "opacity-0"}`}
+                data-hw-insight-message
+              >
+                {insight ? HW_INSIGHT_MESSAGE : ""}
+              </span>
+            </button>
+          );
+        };
+        if (p.status === "completed")
+          return insightCell(
+            { ground: "bg-secure-soft/70", line: "outline-secure-line", border: "focus-visible:border-secure-line" },
+            <>
               <span className="flex items-center gap-2.5">
                 <CompletedMark />
                 <span className="whitespace-nowrap text-[15px] font-medium text-ink">HW{p.n} completed</span>
               </span>
               {dates}
-            </div>
+            </>,
           );
         if (p.status === "missed")
-          return (
-            <div key={p.id} className={`${shape} bg-paper/70 outline-wrong-deep`} style={{ gridRow }} data-hw-cell={p.id} data-hw-status={p.status} data-hw-rows={rows}>
+          return insightCell(
+            { ground: "bg-paper/70", line: "outline-wrong-deep", border: "focus-visible:border-wrong-deep" },
+            <>
               <span className="flex items-center gap-2.5">
                 <CautionTriangle />
                 <span className="whitespace-nowrap text-[15px] font-medium text-ink">HW{p.n} missing</span>
               </span>
               {dates}
-            </div>
+            </>,
           );
         const label = (
           <span className={`whitespace-nowrap text-[14px] ${p.opened ? "text-ink" : "text-ink-muted"}`}>
             HW{p.n} · due {p.due}
           </span>
         );
-        if (!p.opened)
-          return (
-            <div key={p.id} className={`${shape} bg-paper/40 outline-hw-border`} style={{ gridRow }} data-hw-cell={p.id} data-hw-status={p.status} data-hw-opened="false" data-hw-rows={rows}>
-              {label}
-            </div>
-          );
+        if (!p.opened) return insightCell({ ground: "bg-paper/40", line: "outline-hw-border", border: "focus-visible:border-hw-border" }, label);
         // Open: the whole cell is one press target, lifting and settling as a Completed card does, to the homework's screen.
         return (
           <button
@@ -175,6 +214,10 @@ function HomeworkColumn({ cards, classroom, onOpen }: { cards: StudentSetCard[];
           </button>
         );
       })}
+      {/* The announcement: a button's children are presentational to assistive tech, so the live region sits beside the cells, absolutely positioned (sr-only) so it takes no grid cell. */}
+      <span role="status" aria-live="polite" className="sr-only" data-hw-insight-live>
+        {live ? HW_INSIGHT_MESSAGE : ""}
+      </span>
     </div>
   );
 }

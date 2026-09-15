@@ -5424,3 +5424,20 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** A classmate on the check-in reads "—" in the panel while the Class view already shows their record's answer. The panel reads `classmatesAt` for the whole class on every tick while it is open (twenty records, cheap). The capped height is measured against the page as it lies, so on a page scrolled down the panel's foot can sit below the window until scrolled back. The overlay store now names two kinds of thing.
 
 **Defense.** The panel is the pill's own place made readable: it cannot disagree with the row, it updates as the student moves, and it reuses the report's lines, the roster's pill and the Class view's words, so the teacher meets nothing new. Nothing on the screen moves when it opens, updates or closes, and the diagnostic keeps its behaviour.
+
+## 2026-09-15 · Sam's homework cells that open nothing take the teacher's placeholder; the open homework's cell keeps its link (ticket 326)
+
+**Decision.** On Sam's iPad Classroom, every homework cell that goes nowhere (completed, missed, or sent and waiting in the Future) is a button showing ticket 324's placeholder: `ink-soft` over the whole tile, white "HW insight scoped in FUTURE_FEATURES" centred in its own box for 2.5 s, one cell at a time, a second press restarting. The open homework's cell keeps opening the homework screen with no message, and the Future panel's card stays unpressable. The same `flasher` and message as the teacher's; which cells take it is one function, `studentCellShowsInsight`.
+
+**Context.** The user (2026-09-15), right after ticket 324: "also add to student, if they go to click on their HW tile". Sam's completed and missed cells were plain divs (tickets 290, 307); HW3's cell was inert in the Future and a link once open (ticket 292).
+
+**Alternatives considered.**
+- *Every cell, the open one included*: would replace a working link to the homework screen with a placeholder; a demo would lose the way into Homework 3 from its cell.
+- *Completed and missed only, leaving the waiting HW3 cell inert*: it is the same tile, and a presenter pressing it would get nothing, which ticket 324 exists to avoid.
+- *The Future panel card too*: it is a notice of what is coming, not a homework tile, and ticket 292 made it deliberately unpressable to read as off his list.
+- *A lift on hover as the open cell has (paper ground, strong line)*: would repaint the completed cell's green and the missed cell's dark red line under the pointer; the shadow alone signals pressable without changing what the state colours say.
+- *324's 17 px type*: "FUTURE_FEATURES" at 17 px nearly fills the 190 px cell; 15 px medium (the cell title's size) keeps both lines with room and fits HW3's one-row cell.
+
+**Tradeoffs.** Internal demo copy now shows on a student screen too; it must go when either insight view is built. Sam's cells become focusable, adding up to three tab stops on his Classroom. For 2.5 s a cell's dates are hidden under the message.
+
+**Defense.** The press, focus and announcement are what his real insight view needs, the rule for which cells take it is a tested pure function, the working link is untouched, and nothing on the page moves: at rest every element sits exactly where it did before the change (compared with a build of main), and during and after each press.

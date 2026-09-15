@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { flasher, HW_INSIGHT_MESSAGE, HW_INSIGHT_MS } from "./hwInsight";
+import { classroomReducer, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
+import { homeworkSkip } from "./demo";
+import { classHomeworks, homeworkColumn, openHomeworks } from "./homeworks";
+import { flasher, HW_INSIGHT_MESSAGE, HW_INSIGHT_MS, studentCellShowsInsight } from "./hwInsight";
+import { INITIAL_SESSION } from "./session";
+import { studentClassroom } from "./studentClassroom";
 
 describe("homework cell insight placeholder (ticket 324)", () => {
   beforeEach(() => vi.useFakeTimers());
@@ -50,5 +55,34 @@ describe("homework cell insight placeholder (ticket 324)", () => {
     f.dispose();
     vi.advanceTimersByTime(HW_INSIGHT_MS * 2);
     expect(show).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("which of Sam's homework cells show the placeholder (ticket 326)", () => {
+  const now = 1_700_000_000_000;
+  const fresh = classroomReducer(INITIAL_CLASSROOM, { type: "homework/start", at: now - 60_000 });
+  const jump = (t: "send homework" | "homework open", c: ClassroomState) => openHomeworks(homeworkSkip(t, c, INITIAL_SESSION, now).classroom);
+  const cells = (c: ClassroomState) =>
+    Object.fromEntries(
+      homeworkColumn(studentClassroom(c, INITIAL_SESSION, now).completed, classHomeworks(c)).flatMap((p) => (p.kind === "homework" ? [[p.id, studentCellShowsInsight(p)]] : [])),
+    );
+
+  it("fresh: HW1 completed and HW2 missed both show it", () => {
+    expect(cells(fresh)).toEqual({ "hw-1": true, "hw-2": true });
+  });
+
+  it("Homework 3 sent and waiting in the Future panel: its cell shows it too", () => {
+    expect(cells(jump("send homework", fresh))).toEqual({ "hw-3": true, "hw-2": true, "hw-1": true });
+  });
+
+  it("Homework 3 open: its cell opens the homework instead, the others still show it", () => {
+    expect(cells(jump("homework open", fresh))).toEqual({ "hw-3": false, "hw-2": true, "hw-1": true });
+  });
+
+  it("the rule by state: only an open homework's opened cell goes somewhere", () => {
+    expect(studentCellShowsInsight({ status: "completed", opened: true })).toBe(true);
+    expect(studentCellShowsInsight({ status: "missed", opened: true })).toBe(true);
+    expect(studentCellShowsInsight({ status: "open", opened: false })).toBe(true);
+    expect(studentCellShowsInsight({ status: "open", opened: true })).toBe(false);
   });
 });
