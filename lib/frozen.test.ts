@@ -77,6 +77,18 @@ describe("the pad beside the examples", () => {
     const v = frozenView(sessionAt("frozen"), c)!;
     expect(v.mode).toBe("write-with-me");
     expect(v.teacherInk).toEqual([[{ x: 3, y: 4 }]]);
+    expect(v.markup).toEqual([]);
     expect(v.examples).toEqual([]);
+  });
+
+  it("carries the teacher's marks over the slide in both modes (ticket 330)", () => {
+    const mark = { anchor: "B/0", points: [{ x: 1, y: 1 }] };
+    let c = classroomReducer(INITIAL_CLASSROOM, { type: "wc/setup", problems: ["q2"], examples: { q2: [] }, mode: "frozen" });
+    c = classroomReducer(c, { type: "wc/project", at: 0 });
+    c = classroomReducer(c, { type: "wc/stroke", problem: "q2", stroke: mark });
+    expect(frozenView(sessionAt("frozen"), c)!.markup).toEqual([mark]);
+    expect(frozenView(sessionAt("frozen"), c)!.teacherInk).toEqual([]);
+    c = classroomReducer(c, { type: "wc/mode", problem: "q2", mode: "write-with-me" });
+    expect(frozenView(sessionAt("frozen"), c)!.markup).toEqual([mark]);
   });
 });

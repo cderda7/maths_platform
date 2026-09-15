@@ -5458,3 +5458,21 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Under a minute every pill reads the same "<1 min", so the order within a row carries who arrived first. At the demo's pace (a set in about seven minutes) few students reach three minutes in one row; Jordan, stuck on Q8, does. Dark purple on the accent-tinted warm-up pill is less contrasty than on white.
 
 **Defense.** A time that changes once a minute is readable at a glance, and one colour at one threshold turns the column from a clock into a to-do list the teacher can act on, with the threshold in one place to tune.
+
+## 2026-09-15 · Class review markup is pinned to the maths it was drawn on (ticket 330)
+
+**Decision.** The teacher's strokes over the class review slide are stored against the piece of the slide under them (an anchor: an example line's maths, an example letter, the problem label, expression or stem), as points in ems of that anchor's font size from its top left, and drawn on each surface at that anchor's position there. They share the pad's ink list per problem, in drawing order, so one Undo takes the last stroke wherever it was. Every student sees them, in screens frozen and write with me.
+
+**Context.** Carson, 2026-09-15: the teacher should be able to draw anywhere, above all to mark up the A/B/C examples, with the pad kept, and the marks projected to the students. Settled the same day: the board and the laptop both take the pen, students see marks in both modes, one Undo / Clear, the pad's navy ink. The board (1440, 21 px maths), the laptop (0.72 zoom) and the iPad (1180 scaled, 16 px maths) set the same slide at different sizes, each fitting its columns (ticket 161).
+
+**Alternatives considered.**
+- *One canvas over the whole slide in screen or percentage coordinates*: simplest, but the columns, the header and the pad have different proportions on each surface, so a circle round a term on the board would land beside it on the iPad, and drift further as a window resizes.
+- *Show the student a scaled picture of the board's slide while frozen*: coordinates would match exactly, but it throws away ticket 161's per-surface fit and the "your approach" tag, and write with me needs the student's own layout anyway.
+- *Pin to the example column (fractions of its width and height)*: survives resizing, but a column's height is set by the screen, not the maths, so a mark on a line slides up or down between surfaces.
+- *Pin to the line's box (`li`) instead of its maths*: the box's padding differs by surface (12 px vs 8 px) and does not scale with the font; the maths' own box does, exactly as the glyphs do.
+- *A separate list for marks with its own Undo / Clear*: Carson chose one set; a single ordered list makes "the last stroke" unambiguous without a second order to keep in step.
+
+**Tradeoffs.** A stroke belongs to one anchor: a long arrow from A to C is pinned where its middle is and drawn relative to that piece only, so on a surface whose gaps are proportionally wider its far end lands a little off. Letters and stems scale slightly differently from the maths across surfaces (44/30 vs 21/16), so a circle round a letter sits a few pixels off-centre on the iPad. On the board and the laptop the slide takes the pen outright, so a finger can no longer scroll an overflowing example column there (the mouse wheel still does). The ink list now holds two shapes, told apart by `Array.isArray`, so ink stored before this ticket needs no migration.
+
+**Defense.** The marks exist to point at maths, and pinning to the maths is the one reference that means the same on all three screens. It holds through zoom, iPad scaling, the columns' font fit, resizes and marks view (verified in the browser at 1440×900 and 1280×800 on each), the geometry is a pure tested module, and the rendering is one component every surface wraps its slide in.
+

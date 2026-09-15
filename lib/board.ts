@@ -7,6 +7,7 @@ import { liveDiagnostic, questionFor, tally, type Tally } from "./diagnostic";
 import { chainPosition, currentIndex, isLastStep, type DiagnosticRun } from "./diagnosticChain";
 import { liveAbsent } from "./absence";
 import { boardExamples, type BoardExample } from "./examples";
+import type { Markup } from "./markup";
 import { nextStage } from "./pathway";
 import type { StudentSession } from "./session";
 import { leaderboardAt, type RankedStanding } from "./standings";
@@ -66,6 +67,9 @@ export type BoardContent =
       view: BoardView;
       examples: BoardExample[];
       teacherInk: Stroke[];
+      /** The teacher's marks over the slide (ticket 330), and how many strokes the problem has in all (pad and slide) for Undo / Clear. */
+      markup: Markup[];
+      inkCount: number;
       /** What the students' screens are doing: mirroring `teacherInk`, or writing along. */
       mode: FollowMode;
     } & Lesson);
@@ -92,7 +96,7 @@ export function boardContent(c: ClassroomState | null | undefined, session: Stud
   if (slide) {
     const problem = PROBLEM_MAP[slide.problemId];
     const refs = c?.wholeClass?.examples[slide.problemId] ?? [];
-    return { kind: "whole-class", ...lesson, problem, index: slide.index, total: slide.total, view: slide.view, examples: boardExamples(refs, slide.problemId, session), teacherInk: slide.teacherInk, mode: slide.mode };
+    return { kind: "whole-class", ...lesson, problem, index: slide.index, total: slide.total, view: slide.view, examples: boardExamples(refs, slide.problemId, session), teacherInk: slide.teacherInk, markup: slide.markup, inkCount: slide.inkCount, mode: slide.mode };
   }
   if (lessonOver(c)) return { kind: "blank", ...lesson };
   if (c?.group && !c.group.done) return { kind: "group", ...lesson, standings: leaderboardAt(c, session, now) };

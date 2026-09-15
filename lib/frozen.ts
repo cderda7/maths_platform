@@ -1,6 +1,7 @@
 import { PROBLEM_MAP } from "@/data/assignment";
 import type { Problem, Stroke } from "@/data/types";
 import { currentSlide, type BoardView, type ClassroomState, type FollowMode } from "./classroom";
+import type { Markup } from "./markup";
 import { boardExamples, lineMarks, mistakeOf, type LineMark } from "./examples";
 import type { StudentSession } from "./session";
 
@@ -29,6 +30,8 @@ export interface FrozenView {
   /** frozen: the pad mirrors `teacherInk` and takes no input. write-with-me: the pad is the student's own. */
   mode: FollowMode;
   teacherInk: Stroke[];
+  /** The teacher's marks over the slide (ticket 330), shown in both modes. */
+  markup: Markup[];
 }
 
 export function frozenView(session: StudentSession, classroom: ClassroomState | null | undefined): FrozenView | null {
@@ -45,5 +48,5 @@ export function frozenView(session: StudentSession, classroom: ClassroomState | 
     const marks = marked ? lineMarks(problem.id, e.lines) : e.lines.map(() => null);
     return { letter: e.letter, lines: e.lines.map((tex, i) => ({ tex, mark: marks[i] })), mine: own !== null && mistakeOf(problem.id, e.lines) === own };
   });
-  return { problem, view: slide.view, index: slide.index, total: slide.total, examples, mode: slide.mode, teacherInk: slide.teacherInk };
+  return { problem, view: slide.view, index: slide.index, total: slide.total, examples, mode: slide.mode, teacherInk: slide.teacherInk, markup: slide.markup };
 }

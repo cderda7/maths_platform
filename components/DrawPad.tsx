@@ -124,7 +124,9 @@ export default function DrawPad({
   );
 }
 
-const INK = "#1f1c4d";
+/** The pen's colour and width, shared with the slide markup over class review (ticket 330). */
+export const INK = "#1f1c4d";
+export const INK_WIDTH = 2.6;
 
 function drawRuled(ctx: CanvasRenderingContext2D, w: number, h: number) {
   ctx.save();
@@ -142,7 +144,7 @@ function drawRuled(ctx: CanvasRenderingContext2D, w: number, h: number) {
 function inkStyle(ctx: CanvasRenderingContext2D) {
   ctx.strokeStyle = INK;
   ctx.fillStyle = INK;
-  ctx.lineWidth = 2.6;
+  ctx.lineWidth = INK_WIDTH;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
 }

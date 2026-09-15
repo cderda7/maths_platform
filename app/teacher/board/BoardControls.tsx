@@ -5,24 +5,32 @@ import { assignmentHref, LIVE_ASSIGNMENT_ID } from "@/lib/assignments";
 import { useRouter } from "next/navigation";
 import TeacherChrome from "../TeacherChrome";
 import ProblemQuestion from "@/components/ProblemQuestion";
+import ExampleColumns from "@/components/ExampleColumns";
 import PadSection from "@/components/PadSection";
+import SlideInk from "@/components/SlideInk";
 import { Card, Eyebrow, H1 } from "@/components/ui";
 import { PROBLEM_MAP } from "@/data/assignment";
 import type { Stroke } from "@/data/types";
 import { currentSlide, FOLLOW_MODE_WORD, type FollowMode } from "@/lib/classroom";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
+import { boardExamples, lineMarks } from "@/lib/examples";
+import { ANCHOR } from "@/lib/markup";
+import { useLiveSession } from "@/lib/store";
 import { useAssignmentBundle } from "../AssignmentContext";
 
 /**
  * The teacher's side of whole-class review, on the laptop: the controls and the pad, nothing
- * projected. The examples are on the smartboard (`/board`); this page says which problem is up,
- * takes the teacher's writing (mirrored to frozen students and to the board, and the board's own
- * writing shows here), and steps the session: previous · screens frozen / write with me · marks ·
- * End · next.
+ * projected. This page says which problem is up, shows its examples as the board does, takes the
+ * teacher's writing (mirrored to frozen students and to the board, and the board's own writing
+ * shows here), and steps the session: previous · screens frozen / write with me · marks · End · next.
+ * The pen works over the question and the examples too (ticket 330): a mark is pinned to the maths
+ * under it and shows over the same maths on the board and every student's screen.
  */
 export default function BoardControls() {
   const router = useRouter();
   const classroom = useClassroom();
+  // Live, as the board reads it: the examples here are the board's, line for line, so a mark lands on the same line.
+  const session = useLiveSession();
   const { title, className } = useAssignmentBundle();
   const slide = currentSlide(classroom);
 
@@ -55,6 +63,7 @@ export default function BoardControls() {
   const pid = slide.problemId;
   const addStroke = (next: Stroke[]) => dispatchClassroom({ type: "wc/stroke", problem: pid, stroke: next[next.length - 1] });
   const setMode = (mode: FollowMode) => dispatchClassroom({ type: "wc/mode", problem: pid, mode });
+  const examples = boardExamples(classroom?.wholeClass?.examples[pid] ?? [], pid, session);
   const end = () => {
     dispatchClassroom({ type: "wc/end" });
     router.push(assignmentHref(LIVE_ASSIGNMENT_ID, "class"));
@@ -64,17 +73,31 @@ export default function BoardControls() {
     <TeacherChrome>
       {heading}
       <div className="mt-8 space-y-5" data-board-controls="active" data-slide={slide.index} data-view={slide.view}>
-        <Card className="flex items-center gap-5 px-6 py-4" data-controls-problem>
-          <span className="shrink-0 font-display text-[26px] text-ink">{p.label}</span>
-          {/* The whole question, stem then expression, as it reads on the board (ticket 271); it wraps rather than truncating. */}
-          <p className="min-w-0 flex-1 text-[15px] leading-snug text-ink" data-controls-question>
-            <ProblemQuestion problem={p} mathClass="math-lg text-[20px]" figureWidth={96} />
-          </p>
-        </Card>
+        <SlideInk marks={slide.markup} onMark={(mark) => dispatchClassroom({ type: "wc/stroke", problem: pid, stroke: mark })} className="space-y-5">
+          <Card className="flex items-center gap-5 px-6 py-4" data-controls-problem>
+            <span className="shrink-0 font-display text-[26px] text-ink" data-ink-anchor={ANCHOR.label}>
+              {p.label}
+            </span>
+            {/* The whole question, stem then expression, as it reads on the board (ticket 271); it wraps rather than truncating. */}
+            <p className="min-w-0 flex-1 text-[15px] leading-snug text-ink" data-controls-question>
+              <ProblemQuestion problem={p} mathClass="math-lg text-[20px]" figureWidth={96} inkAnchors />
+            </p>
+          </Card>
 
-        <Card className="flex h-[560px] min-h-0 flex-col" data-teacher-pad>
-          <PadSection title="Your working" strokes={slide.teacherInk} onStrokesChange={addStroke} onBurstEnd={() => undefined} onPenDown={() => undefined} onUndo={() => dispatchClassroom({ type: "wc/ink-undo", problem: pid })} onClear={() => dispatchClassroom({ type: "wc/ink-clear", problem: pid })} />
-        </Card>
+          {/* The board's row: its columns at the board's size beside the pad, 380 wide as on the board (ticket 330). */}
+          <div className="grid h-[560px] min-h-0 grid-cols-[1fr_380px] gap-4" data-controls-slide>
+            <ExampleColumns
+              size="board"
+              examples={examples.map((e) => {
+                const marks = slide.view === "marked" ? lineMarks(pid, e.lines) : [];
+                return { letter: e.letter, lines: e.lines.map((tex, i) => ({ tex, mark: marks[i] ?? null })) };
+              })}
+            />
+            <Card className="flex min-h-0 flex-col" data-teacher-pad>
+              <PadSection title="Your working" strokes={slide.teacherInk} inkCount={slide.inkCount} onStrokesChange={addStroke} onBurstEnd={() => undefined} onPenDown={() => undefined} onUndo={() => dispatchClassroom({ type: "wc/ink-undo", problem: pid })} onClear={() => dispatchClassroom({ type: "wc/ink-clear", problem: pid })} />
+            </Card>
+          </div>
+        </SlideInk>
 
         <div className="flex items-center justify-between" data-controls>
           <button type="button" className="rounded-full border border-line bg-paper px-5 py-2.5 text-[15px] text-ink hover:border-ink-muted disabled:opacity-30" onClick={() => dispatchClassroom({ type: "wc/prev" })} disabled={slide.index === 0 && slide.view === "unmarked"} data-prev>

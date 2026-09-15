@@ -1,6 +1,7 @@
 import Figure from "@/components/Figure";
 import M from "@/components/Math";
 import type { FigureId } from "@/data/types";
+import { ANCHOR } from "@/lib/markup";
 import { unbrokenHyphens } from "@/lib/stem";
 
 /** A question as `ProblemQuestion` shows it: a problem's, or a typed one's (a stem with inline `$…$` maths, maybe no expression, maybe an uploaded diagram). */
@@ -23,16 +24,29 @@ export interface QuestionLike {
  * A typed question (ticket 293, the homework screen's teacher's ten) may carry inline maths in its stem between `$` signs:
  * each piece is set in KaTeX at the words' size in ink, unbroken, holding the punctuation right after it so a wrap never starts a line with a comma.
  */
-export default function ProblemQuestion({ problem: p, stemClass = "text-ink-soft", mathClass = "", figureWidth = 64 }: { problem: QuestionLike; stemClass?: string; mathClass?: string; figureWidth?: number }) {
+export default function ProblemQuestion({
+  problem: p,
+  stemClass = "text-ink-soft",
+  mathClass = "",
+  figureWidth = 64,
+  inkAnchors = false,
+}: {
+  problem: QuestionLike;
+  stemClass?: string;
+  mathClass?: string;
+  figureWidth?: number;
+  /** The stem and the expression are anchors for the teacher's marks over a class review slide (ticket 330). */
+  inkAnchors?: boolean;
+}) {
   return (
     <>
-      <span className={stemClass} data-question-stem>
+      <span className={stemClass} data-question-stem data-ink-anchor={inkAnchors ? ANCHOR.stem : undefined}>
         <StemWords stem={p.stem} />
       </span>
       {p.tex && (
         <>
           {" "}
-          <span className={`whitespace-nowrap ${mathClass}`} data-question-tex>
+          <span className={`whitespace-nowrap ${mathClass}`} data-question-tex data-ink-anchor={inkAnchors ? ANCHOR.tex : undefined}>
             <M tex={p.tex} />
           </span>
         </>

@@ -152,7 +152,8 @@ START opens a set; the Edexia mark returns:
    examples in the same columns, beside a mirror of the teacher's pad (or the student's own pad in
    "write with me"). No counts on the iPad: a light blue "your approach" tag sits on the
    example that was the student's own first hand-in. When the teacher shows marks on the board,
-   the same lines show red and blue on the iPad. End releases everyone to the report.
+   the same lines show red and blue on the iPad, and whatever the teacher draws over the problem or
+   the examples shows over the same maths, in both modes. End releases everyone to the report.
 7. **Report** in the teacher's colours (each category's pill carrying its name in white on its
    status colour, the groups beneath), a 2–3 sentence reflection in a 320 px panel, send.
 
@@ -226,9 +227,10 @@ for hints. Sam's place comes from his session.
   header lists the problem's mistakes with counts to swap the working; **Student screens** (screens frozen / write with me) starts with neither chosen and
   **Project** sits faded until you pick one (press it anyway and it reads **select one** while the
   two options flash light blue). **Project** opens the board and starts the grace.
-- **Board controls** (`/teacher/board`): which problem is up, what the board is showing, the
-  teacher's pad (mirrored to frozen students and to the board); Previous · screens frozen /
-  write with me · Show marks · End · Next.
+- **Board controls** (`/teacher/board`): which problem is up, the board's A/B/C examples beside the
+  teacher's pad (mirrored to frozen students and to the board); the pen works anywhere over the
+  question and the examples too, and each mark shows over the same maths on the board and every
+  iPad; Previous · screens frozen / write with me · Show marks · End · Next.
 
 Smartboard (`/board`, left on the projector, nothing to press): blank (class and title) through
 submission and individual review; during group review the race, five rows of four first names
@@ -237,7 +239,10 @@ for the first three groups home (the other four groups run a scripted ten-minute
 student's is live); the final standings held once group review is over; during whole-class
 review one slide per problem, examples A/B/C with "n/m students" (the same columns the students
 see, drawn by one component; lines never wrap, they shrink together in a narrow window), no names,
-no marks until the teacher shows them, and the teacher's working pad.
+no marks until the teacher shows them, and the teacher's working pad. In class review the board takes
+the pen anywhere on the slide (a circle round a line, a cross beside an example), with Undo and
+Clear beside the mode toggle; a mark is pinned to the maths under it, so it lands on the same maths
+on the laptop and every student's screen.
 - **Mistakes** (`/teacher/a/pset-6/mistakes`; the old `/teacher/mistakes` redirects there): While the live set is on individual working the tab splits in two (ticket 315): **Where students are** on the left, a row per place in lesson order (Starting, Warm-up, Q1 … Q10, Handed in), each student a pill with their detail (the warm-up's skill, a hint, practice, back on the question), the step bar for warm-up and practice and the time in the row in whole minutes ("<1 min here", "2 min here"; dark purple from "3 min here", a student who could use a check-in, ticket 328), or once handed in the time the set took from the check-in ("took 7 min"), an empty row blank (ticket 327); pressing a pill opens that student's work so far over the column (ticket 316: their confidence answer, every question they have moved past with their marked lines, the question they are on "in progress"; Escape or a press outside closes it); **Where students went wrong** on the right, the cards below at half width with the counts in the header and the Live diagnostic at its top left, whose steps open over the left column. After working: the stage, its count and **force submit** after the title (the same control as on the Pathway card); problems first, the students who slipped on each under
   one pill per slip, expand for their working; inside a pill the students on the exact same
   wrong line sit together and, open, one box in the pill's red surrounds their working (a

@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef, type ReactNode } from "react";
 import M from "@/components/Math";
 import type { LineMark } from "@/lib/examples";
+import { ANCHOR } from "@/lib/markup";
 
 /**
  * The examples of whole-class review, drawn the same way on the smartboard and on the student's
@@ -59,15 +60,20 @@ export default function ExampleColumns({ examples, size, className = "" }: { exa
   return (
     <div ref={ref} className={`grid min-h-0 grid-rows-[minmax(0,1fr)] ${examples.length === 3 ? "grid-cols-3" : "grid-cols-2"} ${s.grid} ${className}`} style={{ fontSize: s.max }} data-examples data-size={size}>
       {examples.map((e) => (
-        <section key={e.letter} className={`flex min-h-0 flex-col overflow-y-auto border border-line bg-paper ${s.card}`} data-example={e.letter}>
+        <section key={e.letter} className={`flex min-h-0 flex-col overflow-y-auto border border-line bg-paper ${s.card}`} data-example={e.letter} data-ink-clip>
           <div className="flex shrink-0 items-baseline justify-between gap-3">
-            <span className={`font-display leading-none text-ink ${s.letter}`}>{e.letter}</span>
+            <span className={`font-display leading-none text-ink ${s.letter}`} data-ink-anchor={ANCHOR.letter(e.letter)}>
+              {e.letter}
+            </span>
             {e.corner}
           </div>
           <ol className={s.list}>
             {e.lines.map((l, i) => (
               <li key={i} data-mark={l.mark ?? undefined} className={`border whitespace-nowrap text-ink ${s.line} ${l.mark ? TONE[l.mark] : "border-line bg-cream/50"}`}>
-                <M tex={l.tex} />
+                {/* The maths is the anchor a mark over this line is pinned to (ticket 330): its box scales with the fitted font size exactly as the glyphs do. */}
+                <span data-ink-anchor={ANCHOR.line(e.letter, i)}>
+                  <M tex={l.tex} />
+                </span>
               </li>
             ))}
           </ol>

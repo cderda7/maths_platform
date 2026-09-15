@@ -5,6 +5,7 @@ import { DEFAULT_GROUPS, type GroupColour, type SeatingGroups } from "@/data/gro
 import { assignmentGroupsOf, moveStudent, seatingOf } from "./seating";
 import { attemptsOn, beginRun, checkBoard, currentVisit, isClosed, leaving, visitsOf, type GroupRun, type TurnEvent } from "./groupReview";
 import type { ExampleRef } from "./examples";
+import { isMarkup, type Markup, type WholeClassInk } from "./markup";
 import { DEFAULT_PATHWAY } from "./pathway";
 import type { ReviewedQuestion, ReviewState } from "./review";
 import { currentSetId, currentSetTitle } from "./renamedSets";
@@ -114,8 +115,8 @@ export interface WholeClassSession {
   status: "setup" | "active" | "ended";
   /** The mode per projected problem, seeded from the setup choice; the board can change one at a time. */
   modes: Record<string, FollowMode>;
-  /** The teacher's writing per problem, mirrored onto frozen students' pads. */
-  ink: Record<string, Stroke[]>;
+  /** The teacher's writing per problem in drawing order: pad strokes, mirrored onto frozen students' pads, and marks pinned over the slide (ticket 330), shown on every student's. */
+  ink: Record<string, WholeClassInk[]>;
   /**
    * The furthest slide the board has shown (ticket 282): 0 once projected, raised by every Next. Absent until the session is
    * projected (and in sessions stored before it). What class review covered is `problems` up to it (`boardCovered`).
@@ -284,7 +285,7 @@ export type ClassroomAction =
   /** Switch one projected problem's mode from the board. */
   | { type: "wc/mode"; problem: string; mode: FollowMode }
   /** The teacher's pad on the board. */
-  | { type: "wc/stroke"; problem: string; stroke: Stroke }
+  | { type: "wc/stroke"; problem: string; stroke: WholeClassInk }
   | { type: "wc/ink-undo"; problem: string }
   | { type: "wc/ink-clear"; problem: string }
   /** Activates the session and starts the whole-class-start grace in one step, so no tab can see one without the other. */
@@ -545,12 +546,27 @@ export function boardCovered(c: ClassroomState | null | undefined): string[] | n
 }
 
 /** The problem id on the board right now, if projecting. */
-export function currentSlide(c: ClassroomState | null | undefined): { problemId: string; view: BoardView; index: number; total: number; mode: FollowMode; teacherInk: Stroke[] } | null {
+export function currentSlide(c: ClassroomState | null | undefined): { problemId: string; view: BoardView; index: number; total: number; mode: FollowMode; teacherInk: Stroke[]; markup: Markup[]; inkCount: number } | null {
   const w = c?.wholeClass;
   if (!w || w.status !== "active") return null;
   const problemId = w.problems[w.slide];
+  if (!problemId) return null;
   // Older stored sessions have no modes or ink: frozen, nothing written.
-  return problemId ? { problemId, view: w.view, index: w.slide, total: w.problems.length, mode: w.modes?.[problemId] ?? "frozen", teacherInk: w.ink?.[problemId] ?? [] } : null;
+  const { pad, marks, count } = splitInk(w.ink?.[problemId] ?? NO_INK);
+  return { problemId, view: w.view, index: w.slide, total: w.problems.length, mode: w.modes?.[problemId] ?? "frozen", teacherInk: pad, markup: marks, inkCount: count };
+}
+
+const NO_INK: WholeClassInk[] = [];
+const SPLIT = new WeakMap<WholeClassInk[], { pad: Stroke[]; marks: Markup[]; count: number }>();
+
+/** One problem's ink as the pad's strokes and the slide's marks; the same arrays for the same ink, so a pad or overlay that redraws on a new array only redraws on new ink. */
+function splitInk(ink: WholeClassInk[]): { pad: Stroke[]; marks: Markup[]; count: number } {
+  let split = SPLIT.get(ink);
+  if (!split) {
+    split = { pad: ink.filter((i): i is Stroke => !isMarkup(i)), marks: ink.filter(isMarkup), count: ink.length };
+    SPLIT.set(ink, split);
+  }
+  return split;
 }
 
 /** True while an advance is counting down. */

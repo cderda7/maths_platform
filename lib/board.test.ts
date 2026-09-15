@@ -68,6 +68,13 @@ describe("what the board shows per stage", () => {
     if (marked.kind !== "whole-class") throw new Error("expected the board");
     expect(marked.view).toBe("marked");
     expect(marked.teacherInk).toEqual([[{ x: 1, y: 2 }]]);
+    // A mark over an example (ticket 330) is on the board's slide, not its pad, and Undo / Clear count it.
+    classroom = classroomReducer(classroom, { type: "wc/stroke", problem: first.problem.id, stroke: { anchor: "A/0", points: [{ x: 1, y: 0.5 }] } });
+    const withMark = boardContent(classroom, session);
+    if (withMark.kind !== "whole-class") throw new Error("expected the board");
+    expect(withMark.teacherInk).toEqual([[{ x: 1, y: 2 }]]);
+    expect(withMark.markup).toEqual([{ anchor: "A/0", points: [{ x: 1, y: 0.5 }] }]);
+    expect(withMark.inkCount).toBe(2);
 
     // The board's toggle: the same action the laptop sends, per problem.
     classroom = classroomReducer(classroom, { type: "wc/mode", problem: first.problem.id, mode: "write-with-me" });
@@ -83,6 +90,7 @@ describe("what the board shows per stage", () => {
     expect(second.problem.id).toBe(classroom.wholeClass!.problems[1]);
     expect(second.view).toBe("unmarked");
     expect(second.teacherInk).toEqual([]);
+    expect(second.markup).toEqual([]);
   });
 
   it("goes blank when the teacher ends the session, whatever the student is doing", () => {

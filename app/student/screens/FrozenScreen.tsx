@@ -3,11 +3,13 @@
 import ExampleColumns from "@/components/ExampleColumns";
 import M from "@/components/Math";
 import PadSection from "@/components/PadSection";
+import SlideInk from "@/components/SlideInk";
 import { ASSIGNMENT } from "@/data/assignment";
 import type { Stroke } from "@/data/types";
 import { FOLLOW_MODE_WORD } from "@/lib/classroom";
 import { useClassroom } from "@/lib/classroom-store";
 import { frozenView } from "@/lib/frozen";
+import { ANCHOR } from "@/lib/markup";
 import type { SessionAction, StudentSession } from "@/lib/session";
 
 /**
@@ -17,7 +19,7 @@ import type { SessionAction, StudentSession } from "@/lib/session";
  * corner: no count here, only a tag on the example that was this student's own first hand-in.
  * In "screens frozen" the pad mirrors the teacher's writing and takes no input; in "write with
  * me" it is the student's own, to copy the teacher's working. Marks appear only while the board
- * shows them.
+ * shows them. The teacher's marks over the slide (ticket 330) lie over the same maths here, in both modes, and take no input.
  */
 export default function FrozenScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
   const v = frozenView(session, useClassroom());
@@ -37,14 +39,18 @@ export default function FrozenScreen({ session, dispatch }: { session: StudentSe
         )}
       </div>
       {v ? (
-        <div className="mt-4 flex min-h-0 flex-1 flex-col">
+        <SlideInk marks={v.markup} className="mt-4 flex min-h-0 flex-1 flex-col">
           <div className="flex items-center gap-4">
-            <span className="font-display text-[30px] text-ink">{v.problem.label}</span>
-            <span className="math-lg text-ink">
+            <span className="font-display text-[30px] text-ink" data-ink-anchor={ANCHOR.label}>
+              {v.problem.label}
+            </span>
+            <span className="math-lg text-ink" data-ink-anchor={ANCHOR.tex}>
               <M tex={v.problem.tex} />
             </span>
           </div>
-          <p className="mt-1 text-[15px] text-ink-soft">{v.problem.stem}</p>
+          <p className="mt-1 text-[15px] text-ink-soft">
+            <span data-ink-anchor={ANCHOR.stem}>{v.problem.stem}</span>
+          </p>
           {/* The pad is 310 wide, enough for "Write with me" and Undo / Clear on one line; the example columns are fitted to the rest (ticket 161). */}
           <div className="mt-3 grid min-h-0 flex-1 grid-cols-[1fr_310px] gap-4">
             <ExampleColumns
@@ -68,7 +74,7 @@ export default function FrozenScreen({ session, dispatch }: { session: StudentSe
               )}
             </div>
           </div>
-        </div>
+        </SlideInk>
       ) : (
         <p className="mt-10 text-center text-[15px] text-ink-muted">Waiting for the board</p>
       )}

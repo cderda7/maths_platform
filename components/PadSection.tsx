@@ -23,6 +23,7 @@ export default function PadSection({
   readOnly = false,
   padded = true,
   answer,
+  inkCount,
 }: {
   title?: string;
   strokes: Stroke[];
@@ -37,7 +38,10 @@ export default function PadSection({
   padded?: boolean;
   /** A text field at the foot of the pad, inside its border, that takes the cursor as it appears: the final answer in a sentence once a worded problem's working is read (tickets 111, 114). */
   answer?: AnswerField;
+  /** Strokes Undo / Clear act on when they reach beyond the pad (class review's marks over the slide, ticket 330); the pad's own strokes otherwise. */
+  inkCount?: number;
 }) {
+  const undoable = (inkCount ?? strokes.length) > 0;
   return (
     <section className={`flex h-full min-h-0 flex-1 flex-col ${padded ? "px-6 py-6" : ""}`}>
       {/* The eyebrow marks the top of the row and the taller buttons are pulled up to centre on it, so the title lines up with a neighbouring column's eyebrow. */}
@@ -45,10 +49,10 @@ export default function PadSection({
         <Eyebrow>{title}</Eyebrow>
         {!readOnly && (
           <div className="-mt-2.5 flex gap-1.5">
-            <Button variant="ghost" onClick={onUndo} disabled={strokes.length === 0}>
+            <Button variant="ghost" onClick={onUndo} disabled={!undoable}>
               Undo
             </Button>
-            <Button variant="ghost" onClick={onClear} disabled={strokes.length === 0}>
+            <Button variant="ghost" onClick={onClear} disabled={!undoable}>
               Clear
             </Button>
           </div>

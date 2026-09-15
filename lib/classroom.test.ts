@@ -121,7 +121,7 @@ describe("whole-class session", () => {
     expect(currentSlide(c)).toBeNull();
     c = classroomReducer(c, { type: "wc/project", at: 500 });
     expect(isProjecting(c)).toBe(true);
-    expect(currentSlide(c)).toEqual({ problemId: "q3", view: "unmarked", index: 0, total: 3, mode: "frozen", teacherInk: [] });
+    expect(currentSlide(c)).toEqual({ problemId: "q3", view: "unmarked", index: 0, total: 3, mode: "frozen", teacherInk: [], markup: [], inkCount: 0 });
     // projecting and the grace start in the same state, so no tab can freeze before the countdown
     expect(c.advance).toMatchObject({ kind: "whole-class-start", deadline: 500 + 60_000 });
   });
@@ -206,10 +206,40 @@ describe("whole-class follow modes and the teacher's pad", () => {
     c = classroomReducer(c, { type: "wc/ink-clear", problem: "q1" });
     expect(currentSlide(c)?.teacherInk).toEqual([]);
   });
+  it("marks over the slide share the pad's ink in drawing order: one undo takes the last of either, clear takes both (ticket 330)", async () => {
+    const { currentSlide } = await import("./classroom");
+    const mark = { anchor: "A/1", points: [{ x: 0.5, y: 0.2 }] };
+    let c = classroomReducer(setup(), { type: "wc/stroke", problem: "q1", stroke: [{ x: 1, y: 1 }] });
+    c = classroomReducer(c, { type: "wc/stroke", problem: "q1", stroke: mark });
+    expect(currentSlide(c)?.teacherInk).toEqual([[{ x: 1, y: 1 }]]);
+    expect(currentSlide(c)?.markup).toEqual([mark]);
+    expect(currentSlide(c)?.inkCount).toBe(2);
+    // The same arrays for the same ink, so the pad and the overlay redraw only on new ink.
+    expect(currentSlide(c)?.teacherInk).toBe(currentSlide(c)?.teacherInk);
+    expect(currentSlide(c)?.markup).toBe(currentSlide(c)?.markup);
+    c = classroomReducer(c, { type: "wc/ink-undo", problem: "q1" });
+    expect(currentSlide(c)?.markup).toEqual([]);
+    expect(currentSlide(c)?.teacherInk).toHaveLength(1);
+    c = classroomReducer(c, { type: "wc/stroke", problem: "q1", stroke: mark });
+    c = classroomReducer(c, { type: "wc/stroke", problem: "q1", stroke: [{ x: 2, y: 2 }] });
+    c = classroomReducer(c, { type: "wc/ink-undo", problem: "q1" });
+    expect(currentSlide(c)?.markup).toEqual([mark]);
+    expect(currentSlide(c)?.teacherInk).toHaveLength(1);
+    // Each problem keeps its own.
+    c = classroomReducer(c, { type: "wc/next" });
+    expect(currentSlide(c)?.markup).toEqual([]);
+    expect(currentSlide(c)?.inkCount).toBe(0);
+    c = classroomReducer(c, { type: "wc/prev" });
+    expect(currentSlide(c)?.markup).toEqual([mark]);
+    c = classroomReducer(c, { type: "wc/ink-clear", problem: "q1" });
+    expect(currentSlide(c)?.inkCount).toBe(0);
+    expect(currentSlide(c)?.teacherInk).toEqual([]);
+  });
   it("a stored session from before modes existed reads as frozen with nothing written", async () => {
     const { currentSlide } = await import("./classroom");
     const old = { ...setup(), wholeClass: { problems: ["q1"], examples: { q1: [] }, slide: 0, view: "unmarked" as const, status: "active" as const } } as unknown as Parameters<typeof currentSlide>[0];
     expect(currentSlide(old)?.mode).toBe("frozen");
     expect(currentSlide(old)?.teacherInk).toEqual([]);
+    expect(currentSlide(old)?.markup).toEqual([]);
   });
 });
