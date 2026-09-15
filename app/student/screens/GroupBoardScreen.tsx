@@ -12,7 +12,7 @@ import { GROUP_HEX } from "@/data/groups";
 import type { Stroke } from "@/data/types";
 import { branchesOf } from "@/lib/branches";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
-import { attemptsOn, boardHint, closedCurrent, comingBack, currentVisit, HINT_RING_MS, hintRingAt, lastAttempt, leaving, markFirstMistake, ownAttemptScript, TRY_AGAIN_MS, tryAgainAt, tryAgainShowing, type MarkedLine } from "@/lib/groupReview";
+import { attemptsOn, boardHint, closedCurrent, comingBack, currentVisit, HINT_RING_MS, hintRingAt, lastAttempt, leaving, markFirstMistake, ownAttemptScript, runAttempts, TRY_AGAIN_MS, tryAgainAt, tryAgainShowing, type MarkedLine } from "@/lib/groupReview";
 import { nextLine, type RevealedLine } from "@/lib/recognition";
 import { assignmentGroupsOf, groupOfStudent } from "@/lib/seating";
 import type { SessionAction, StudentSession } from "@/lib/session";
@@ -77,7 +77,7 @@ export default function GroupBoardScreen({ session, dispatch }: { session: Stude
   const addStroke = (next: Stroke[]) => dispatchClassroom({ type: "group/stroke", stroke: next[next.length - 1] });
   const onBurstEnd = (strokeCount: number) => {
     setRecognising(false);
-    const line = nextLine(ownAttemptScript(pid, attemptNo), revealed, strokeCount);
+    const line = nextLine(ownAttemptScript(pid, attemptNo, runAttempts(run, pid)), revealed, strokeCount);
     if (line) dispatchClassroom({ type: "group/line", tex: line.tex });
   };
   const undo = () => {

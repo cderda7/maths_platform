@@ -146,8 +146,12 @@ START opens a set; the Edexia mark returns:
    correct.", with Restore; hand-in waits until it's restored or cleared. After hand-in the same
    sentence reports what still contains a mistake: the scripted rework fixes Q1–Q3 and Q10 but
    slips on Q7 a second way (every term scaled by 3, the third never put back).
-5. **Group review** with three mock groupmates: quick pass over the all-correct problem, then the
-   union of wrongs with a shared count. The board takes the left two thirds and a "Read as" column
+5. **Group review** with three mock groupmates, once the whole class has handed in its corrections (the
+   demo's arrivals take about a minute): the group works only the questions a member still has wrong,
+   unfinished or not attempted after individual review, and a member who fixed a question there can
+   explain it (ticket 332). A question nobody at the table can explain is left for now after three wrong
+   checks and comes back once; sky leaves Q7 unsolved and gets Q9 on its return. A group with nothing
+   left sits out: its iPads say "Your group has nothing left to review." and it is in no group count. The board takes the left two thirds and a "Read as" column
    the right third, filling in one line per burst on every member's iPad. On Liam's Q7 the group
    gets it wrong first, the attempt shown at the top of the column up to the first mistake, and the
    debrief after the group's rework asks Sam to describe his own mistake.
@@ -242,8 +246,8 @@ school's Chrome policy allows it.
 Smartboard (`/board`, opened once from the laptop and left on the projector, nothing to press): blank (class and title) through
 submission and individual review; during group review the race, five rows of four first names
 with a colour, a large bar and the percentage, re-ordered as bars move, gold, silver and bronze
-for the first three groups home (the other four groups run a scripted ten-minute race; the demo
-student's is live); the final standings held once group review is over; during whole-class
+for the first three groups home (the other four groups play simulated boards, every try, hint and
+return, on the same clock; the demo student's is live; a group sitting out has no row); the final standings held once group review is over; during whole-class
 review one slide per problem, examples A/B/C with "n/m students" (the same columns the students
 see, drawn by one component; lines never wrap, they shrink together in a narrow window), no names,
 no marks until the teacher shows them, and the teacher's working pad. In class review the board takes

@@ -10,7 +10,7 @@ The contract for the six sets in the Classroom (ticket 210). For every student a
 - **One step**: in each category, a student's neighbouring results (skipping *—*, *not seen* and *absent*) differ by at most one step, gap ↔ developing ↔ solid ↔ secure. Variation, never a jump.
 - **How a status comes out** (`lib/hierarchy.ts`): a leaf is held lines ÷ attempted lines tagged with it (1 secure, ≥ 0.8 solid, ≥ 0.6 developing, else gap); a group and a category take their worst leaf. So one slip on a leaf the student wrote on five or more times reads solid, on three or four times developing, on one or two a gap. Communication is the share of lines that skip no step. A set's New skills count under New skills on that set, not under their home.
 - **Priya** is secure in every category on every set. **Sam** is the demo student.
-- **Review** (tickets 244, 278, 281; settled with the user 2026-09-14): a student brings to their seating group every problem they did not get right first time (a mistake, a problem left incomplete, one not attempted; a student away brings nothing). A *one-off* slip (that mistake on one problem of the set, the pattern naming only it, no gap in its category) is fixed on the student's own rework. Everything else is the group's: a *repeated* slip, a *pattern* (a gap in the slip's category on the set), a problem left incomplete or not attempted. The group solves it when a member at the table had it right first time, a pattern included; a problem nobody at the table had right stays unsolved, and the group's last try is its own working, still wrong, never a member's first submission. At most once a set, the *exception*: a problem nobody had right that the group solves because one member's first submission went wrong on a single line and the hint after the second wrong check named it. On every set one or two groups meet the set's hardest problem with nobody at the table able to do it. The demo group's Set 6 versions are its scripted run (`data/group-scripts.ts`). `lib/reviewRule.ts` applies the rules; each set's review below lists every case with its reasoning.
+- **Review** (tickets 244, 278, 281; settled with the user 2026-09-14): a student brings to their seating group every problem they did not get right first time (a mistake, a problem left incomplete, one not attempted; a student away brings nothing). A *one-off* slip (that mistake on one problem of the set, the pattern naming only it, no gap in its category) is fixed on the student's own rework. Everything else is the group's: a *repeated* slip, a *pattern* (a gap in the slip's category on the set), a problem left incomplete or not attempted. The group solves it when a member at the table had it right first time, a pattern included; a problem nobody at the table had right stays unsolved, and the group's last try is its own working, still wrong, never a member's first submission. At most once a set, the *exception*: a problem nobody had right that the group solves because one member's first submission went wrong on a single line and the hint after the second wrong check named it. On every set one or two groups meet the set's hardest problem with nobody at the table able to do it. The demo group's Set 6 versions are its scripted run (`data/group-scripts.ts`). **Set 6 since ticket 332** (Sets 1–5 follow in ticket 338): a group works only the questions a present member still has wrong, incomplete or not attempted once individual review is over; a member who fixed a question there can explain it like one who had it right first time; a one-off slip is rewritten in individual review and goes to the group only if the rewrite slipped again; a question nobody can explain is left for now after three wrong checks and closes unsolved on its return (the exception is solved there); a group with nothing left sits out. `lib/reviewRule.ts` applies the rules; each set's review below lists every case with its reasoning.
 - **Class review** (ticket 281): on Sets 1, 3 and 6 only. It covers every problem a group left unsolved, each with one or two examples of the class's real wrong working, shown unnamed: the most common slip first, from a table that left it unsolved when one made it.
 
 ## The sets
@@ -640,60 +640,60 @@ The set's rows (each student's patterns are under their name below):
 | finn | 10/10 | gap | secure | solid | secure | secure | secure |
 | sofia | 10/10 | gap | secure | secure | secure | secure | secure |
 
-The set's review (individual → group → whole-class): 23 fixed on the student's own rework, 40 solved in group review, 9 still wrong (each closed unsolved by the group).
+The set's review (individual → group → whole-class): 16 fixed on the student's own rework, 41 solved in group review, 15 still wrong (each closed unsolved by the group).
 
 | Student | Own rework | Group review | Still wrong |
 | --- | --- | --- | --- |
 | sam | live | live | live |
-| jordan | Q2, Q7 | Q8, Q9, Q10 | — |
+| jordan | Q2 | Q8, Q9, Q10 | Q7 |
 | amelia | Q6, Q7 | Q10 | — |
 | tomas | Q3 | Q4, Q5, Q7, Q8, Q9, Q10 | — |
-| zara | Q3, Q7, Q9 | — | — |
+| zara | Q3 | Q9 | Q7 |
 | liam | — | Q1, Q2, Q3, Q5, Q6, Q8, Q9, Q10 | Q7 |
 | aiden | Q7 | — | — |
 | mia | — | Q2, Q7, Q9 | — |
 | noah | Q3 | Q10 | — |
 | ethan | Q1, Q4, Q7, Q9 | Q10 | — |
-| isla | Q4, Q7 | — | Q10 |
-| lucas | Q7 | — | Q10 |
+| isla | Q4 | — | Q7, Q10 |
+| lucas | — | — | Q7, Q10 |
 | grace | — | Q5, Q6, Q8, Q9 | Q7, Q10 |
 | harper | — | Q3, Q5, Q8, Q9 | Q7, Q10 |
-| oliver | Q3, Q7 | Q1, Q2, Q8, Q9, Q10 | — |
-| ruby | Q5, Q7, Q9 | — | — |
+| oliver | Q3 | Q1, Q2, Q8, Q9, Q10 | Q7 |
+| ruby | Q5, Q9 | — | Q7 |
 | finn | Q5 | Q2, Q4 | Q7 |
 | sofia | — | Q2, Q4 | Q7 |
 
 - jordan Q2 · own rework: One-off: non-monic brackets wrong, on Q2 alone. Found on the second submission.
-- jordan Q7 · own rework: One-off: a pair that multiplies to 8 but adds to 9, on Q7 alone. Found on the second submission.
-- jordan Q8 · group review: Not attempted. Zara had Q8 right, and the group's rework holds (the demo group's scripted run).
-- jordan Q9 · group review: Not attempted. Nobody at the table had Q9 right; Zara's first submission went wrong on one line, the hint after the group's second wrong check named it, and the third try holds (the one exception on the set).
-- jordan Q10 · group review: Not attempted. Zara had Q10 right, and the group's rework holds (the demo group's scripted run).
+- jordan Q7 · still wrong: One-off: a pair that multiplies to 8 but adds to 9, on Q7 alone. The second submission slipped again (tripled, the third never put back). Nobody at the table could explain Q7 after individual review, so the group left it for now and its last try on the return is still wrong (the demo group's scripted run).
+- jordan Q8 · group review: Not attempted. Sam and Zara had Q8 right, and the group's rework holds (the demo group's scripted run).
+- jordan Q9 · group review: Not attempted. Nobody at the table could explain Q9 after individual review; Zara's first submission went wrong on one line, the hint after the group's second wrong check named it, the group left it for now and its try on the return holds (the one exception on the set).
+- jordan Q10 · group review: Not attempted. Zara had Q10 right and Sam fixed it in individual review, and the group's rework holds (the demo group's scripted run).
 - amelia Q6 · own rework: One-off: read “touches once” as discriminant > 0, on Q6 alone. Found on the second submission.
 - amelia Q7 · own rework: One-off: multiplied through by 3 and never took it back out, on Q7 alone. Found on the second submission.
 - amelia Q10 · group review: Pattern: Reasoning is a gap on the set (said the graph crosses twice). Priya and Aiden had Q10 right, and the group's rework holds.
 - tomas Q3 · own rework: One-off: null factor law on a product that isn't 0, on Q3 alone. Found on the second submission.
 - tomas Q4 · group review: Pattern: Algebra is a gap on the set (divided by a, not 2a). Priya, Amelia and Aiden had Q4 right, and the group's rework holds.
 - tomas Q5 · group review: Pattern: Algebra is a gap on the set (roots read off the factors with the signs flipped). Priya, Amelia and Aiden had Q5 right, and the group's rework holds.
-- tomas Q7 · group review: Pattern: Algebra is a gap on the set (scaled two of three terms). Priya had Q7 right, and the group's rework holds.
+- tomas Q7 · group review: Pattern: Algebra is a gap on the set (scaled two of three terms). Priya had Q7 right and Amelia and Aiden fixed it in individual review, and the group's rework holds.
 - tomas Q8 · group review: Not attempted. Priya, Amelia and Aiden had Q8 right, and the group's rework holds.
 - tomas Q9 · group review: Not attempted. Priya, Amelia and Aiden had Q9 right, and the group's rework holds.
 - tomas Q10 · group review: Not attempted. Priya and Aiden had Q10 right, and the group's rework holds.
 - zara Q3 · own rework: One-off: null factor law on a product that isn't 0, on Q3 alone. Found on the second submission.
-- zara Q7 · own rework: One-off: multiplied through by 3 and never took it back out, on Q7 alone. Found on the second submission.
-- zara Q9 · own rework: One-off: axis given as the height, on Q9 alone. Found on the second submission.
-- liam Q1 · group review: Pattern: Algebra is a gap on the set (factor brackets wrong). Jordan and Zara had Q1 right, and the group's rework holds (the demo group's scripted run).
-- liam Q2 · group review: Pattern: Algebra is a gap on the set (factor brackets wrong). Zara had Q2 right, and the group's rework holds (the demo group's scripted run).
-- liam Q3 · group review: Pattern: New skills is a gap on the set (null factor law on a product that isn't 0). Jordan had Q3 right, and the group's rework holds (the demo group's scripted run).
-- liam Q5 · group review: Pattern: Algebra is a gap on the set (roots read off the factors with the signs flipped). Jordan and Zara had Q5 right, and the group's rework holds (the demo group's scripted run).
-- liam Q6 · group review: Not attempted. Jordan and Zara had Q6 right, and the group's rework holds (the demo group's scripted run).
-- liam Q7 · still wrong: Not attempted. Nobody at the table had Q7 right, so the group's last try is still wrong (the demo group's scripted run).
-- liam Q8 · group review: Not attempted. Zara had Q8 right, and the group's rework holds (the demo group's scripted run).
-- liam Q9 · group review: Not attempted. Nobody at the table had Q9 right; Zara's first submission went wrong on one line, the hint after the group's second wrong check named it, and the third try holds (the one exception on the set).
-- liam Q10 · group review: Not attempted. Zara had Q10 right, and the group's rework holds (the demo group's scripted run).
+- zara Q7 · still wrong: One-off: multiplied through by 3 and never took it back out, on Q7 alone. The second submission slipped again (a pair that multiplies to 8 but adds to 9). Nobody at the table could explain Q7 after individual review, so the group left it for now and its last try on the return is still wrong (the demo group's scripted run).
+- zara Q9 · group review: One-off: axis given as the height, on Q9 alone. The second submission gave the axis as the height again. Nobody at the table could explain Q9; her slip was one line, the hint after the group's second wrong check named it, the group left it for now and its try on the return holds (the one exception on the set).
+- liam Q1 · group review: Pattern: Algebra is a gap on the set (factor brackets wrong). Jordan and Zara had Q1 right and Sam fixed it in individual review, and the group's rework holds (the demo group's scripted run).
+- liam Q2 · group review: Pattern: Algebra is a gap on the set (factor brackets wrong). Zara had Q2 right and Sam and Jordan fixed it in individual review, and the group's rework holds (the demo group's scripted run).
+- liam Q3 · group review: Pattern: New skills is a gap on the set (null factor law on a product that isn't 0). Jordan had Q3 right and Sam and Zara fixed it in individual review, and the group's rework holds (the demo group's scripted run).
+- liam Q5 · group review: Pattern: Algebra is a gap on the set (roots read off the factors with the signs flipped). Sam, Jordan and Zara had Q5 right, and the group's rework holds (the demo group's scripted run).
+- liam Q6 · group review: Not attempted. Sam, Jordan and Zara had Q6 right, and the group's rework holds (the demo group's scripted run).
+- liam Q7 · still wrong: Not attempted. Nobody at the table could explain Q7 after individual review (Sam's, Jordan's and Zara's rewrites all slipped again), so the group left it for now and its last try on the return is still wrong (the demo group's scripted run).
+- liam Q8 · group review: Not attempted. Sam and Zara had Q8 right, and the group's rework holds (the demo group's scripted run).
+- liam Q9 · group review: Not attempted. Nobody at the table could explain Q9 after individual review; Zara's first submission went wrong on one line, the hint after the group's second wrong check named it, the group left it for now and its try on the return holds (the one exception on the set).
+- liam Q10 · group review: Not attempted. Zara had Q10 right and Sam fixed it in individual review, and the group's rework holds (the demo group's scripted run).
 - aiden Q7 · own rework: One-off: scaled two of three terms, on Q7 alone. Found on the second submission.
 - mia Q2 · group review: Pattern: Algebra is a gap on the set (factor brackets wrong). Noah and Ethan had Q2 right, and the group's rework holds.
-- mia Q7 · group review: Pattern: Algebra is a gap on the set (the third off by a third). Noah had Q7 right, and the group's rework holds.
-- mia Q9 · group review: Pattern: Algebra is a gap on the set (took −x out and left the sign behind). Noah had Q9 right, and the group's rework holds.
+- mia Q7 · group review: Pattern: Algebra is a gap on the set (the third off by a third). Noah had Q7 right and Ethan fixed it in individual review, and the group's rework holds.
+- mia Q9 · group review: Pattern: Algebra is a gap on the set (took −x out and left the sign behind). Noah had Q9 right and Ethan fixed it in individual review, and the group's rework holds.
 - noah Q3 · own rework: One-off: null factor law on a product that isn't 0, on Q3 alone. Found on the second submission.
 - noah Q10 · group review: Not attempted. Mia had Q10 right, and the group's rework holds.
 - ethan Q1 · own rework: One-off: signs flipped in the pair, on Q1 alone. Found on the second submission.
@@ -702,39 +702,39 @@ The set's review (individual → group → whole-class): 23 fixed on the student
 - ethan Q9 · own rework: One-off: axis given as the height, a step skipped, on Q9 alone. Found on the second submission.
 - ethan Q10 · group review: Not attempted. Mia had Q10 right, and the group's rework holds.
 - isla Q4 · own rework: One-off: −b written as −5, on Q4 alone. Found on the second submission.
-- isla Q7 · own rework: One-off: scaled two of three terms, on Q7 alone. Found on the second submission.
-- isla Q10 · still wrong: Pattern: Reasoning is a gap on the set (said the graph crosses twice). Nobody at the table had Q10 right, so the group's last try is still wrong.
-- lucas Q7 · own rework: One-off: a pair that multiplies to 8 but adds to 9, on Q7 alone. Found on the second submission.
-- lucas Q10 · still wrong: Pattern: Reasoning is a gap on the set (negative discriminant, two solutions). Nobody at the table had Q10 right, so the group's last try is still wrong.
+- isla Q7 · still wrong: One-off: scaled two of three terms, on Q7 alone. The second submission slipped again (a pair that multiplies to 8 but adds to 9). Nobody at the table could explain Q7 after individual review, so the group left it for now and its last try on the return is still wrong.
+- isla Q10 · still wrong: Pattern: Reasoning is a gap on the set (said the graph crosses twice). Nobody at the table had Q10 right, so the group left it for now and its last try on the return is still wrong.
+- lucas Q7 · still wrong: One-off: a pair that multiplies to 8 but adds to 9, on Q7 alone. The second submission slipped again (scaled two of three terms). Nobody at the table could explain Q7 after individual review, so the group left it for now and its last try on the return is still wrong.
+- lucas Q10 · still wrong: Pattern: Reasoning is a gap on the set (negative discriminant, two solutions). Nobody at the table had Q10 right, so the group left it for now and its last try on the return is still wrong.
 - grace Q5 · group review: Not attempted. Isla and Lucas had Q5 right, and the group's rework holds.
 - grace Q6 · group review: Not attempted. Isla, Lucas and Harper had Q6 right, and the group's rework holds.
-- grace Q7 · still wrong: Not attempted. Nobody at the table had Q7 right, so the group's last try is still wrong.
+- grace Q7 · still wrong: Not attempted. Nobody at the table could explain Q7 after individual review (Isla's and Lucas's rewrites slipped again), so the group left it for now and its last try on the return is still wrong.
 - grace Q8 · group review: Not attempted. Isla and Lucas had Q8 right, and the group's rework holds.
 - grace Q9 · group review: Not attempted. Isla and Lucas had Q9 right, and the group's rework holds.
-- grace Q10 · still wrong: Not attempted. Nobody at the table had Q10 right, so the group's last try is still wrong.
+- grace Q10 · still wrong: Not attempted. Nobody at the table had Q10 right, so the group left it for now and its last try on the return is still wrong.
 - harper Q3 · group review: Pattern: Algebra is a gap on the set (a sign lost in the expansion). Isla, Lucas and Grace had Q3 right, and the group's rework holds.
 - harper Q5 · group review: Pattern: Graphing is a gap on the set (turning point's height from the wrong line). Isla and Lucas had Q5 right, and the group's rework holds.
-- harper Q7 · still wrong: Not attempted. Nobody at the table had Q7 right, so the group's last try is still wrong.
+- harper Q7 · still wrong: Not attempted. Nobody at the table could explain Q7 after individual review (Isla's and Lucas's rewrites slipped again), so the group left it for now and its last try on the return is still wrong.
 - harper Q8 · group review: Not attempted. Isla and Lucas had Q8 right, and the group's rework holds.
 - harper Q9 · group review: Pattern: Graphing is a gap on the set (axis given as the height, the working not shown). Isla and Lucas had Q9 right, and the group's rework holds.
-- harper Q10 · still wrong: Not attempted. Nobody at the table had Q10 right, so the group's last try is still wrong.
+- harper Q10 · still wrong: Not attempted. Nobody at the table had Q10 right, so the group left it for now and its last try on the return is still wrong.
 - oliver Q1 · group review: Repeated: factor brackets wrong (Q1, Q2). Ruby, Finn and Sofia had Q1 right, and the group's rework holds.
 - oliver Q2 · group review: Repeated: factor brackets wrong (Q1, Q2). Ruby had Q2 right, and the group's rework holds.
 - oliver Q3 · own rework: One-off: null factor law on a product that isn't 0, on Q3 alone. Found on the second submission.
-- oliver Q7 · own rework: One-off: scaled two of three terms, on Q7 alone. Found on the second submission.
+- oliver Q7 · still wrong: One-off: scaled two of three terms, on Q7 alone. The second submission slipped again (a pair that multiplies to 8 but adds to 9). Nobody at the table could explain Q7 after individual review, so the group left it for now and its last try on the return is still wrong.
 - oliver Q8 · group review: Not attempted. Ruby, Finn and Sofia had Q8 right, and the group's rework holds.
-- oliver Q9 · group review: Not attempted. Finn and Sofia had Q9 right, and the group's rework holds.
+- oliver Q9 · group review: Not attempted. Finn and Sofia had Q9 right and Ruby fixed it in individual review, and the group's rework holds.
 - oliver Q10 · group review: Not attempted. Ruby, Finn and Sofia had Q10 right, and the group's rework holds.
 - ruby Q5 · own rework: One-off: turning point's height from the wrong line, on Q5 alone. Found on the second submission.
-- ruby Q7 · own rework: One-off: a pair that multiplies to 8 but adds to 9, on Q7 alone. Found on the second submission.
+- ruby Q7 · still wrong: One-off: a pair that multiplies to 8 but adds to 9, on Q7 alone. The second submission slipped again (tripled, the third never put back). Nobody at the table could explain Q7 after individual review, so the group left it for now and its last try on the return is still wrong.
 - ruby Q9 · own rework: One-off: axis given as the height, on Q9 alone. Found on the second submission.
 - finn Q2 · group review: Pattern: Algebra is a gap on the set (sign lost solving 2x − 1 = 0). Ruby had Q2 right, and the group's rework holds.
 - finn Q4 · group review: Pattern: Algebra is a gap on the set (divided by a, not 2a). Oliver and Ruby had Q4 right, and the group's rework holds.
 - finn Q5 · own rework: One-off: turning point's height from the wrong line, on Q5 alone. Found on the second submission.
-- finn Q7 · still wrong: Pattern: Algebra is a gap on the set (multiplied through by 3 and never took it back out). Nobody at the table had Q7 right, so the group's last try is still wrong.
+- finn Q7 · still wrong: Pattern: Algebra is a gap on the set (multiplied through by 3 and never took it back out). Nobody at the table could explain Q7 after individual review, so the group left it for now and its last try on the return is still wrong.
 - sofia Q2 · group review: Pattern: Algebra is a gap on the set (factor brackets wrong). Ruby had Q2 right, and the group's rework holds.
 - sofia Q4 · group review: Pattern: Algebra is a gap on the set (denominator a, not 2a). Oliver and Ruby had Q4 right, and the group's rework holds.
-- sofia Q7 · still wrong: Pattern: Algebra is a gap on the set (scaled two of three terms). Nobody at the table had Q7 right, so the group's last try is still wrong.
+- sofia Q7 · still wrong: Pattern: Algebra is a gap on the set (scaled two of three terms). Nobody at the table could explain Q7 after individual review, so the group left it for now and its last try on the return is still wrong.
 
 Class review covered Q7, Q10:
 

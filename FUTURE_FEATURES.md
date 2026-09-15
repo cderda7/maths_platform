@@ -1793,6 +1793,16 @@ Raised in a project checkpoint review; Carson asked for these on the list. Space
 - **Code names that say "guessed".** Constants such as `Q5_GUESSED`, `Q8_GUESSED` (PS3, PS5), `Q4_GUESSED` and `GUESSED_PAIR` (PS4, PS5) name the student's supposed process. Renaming is code-only and touches the files ticket 342 is rewriting; deferred.
 - **Holistic summaries.** Jordan's, Liam's, Chloe's, Oliver's and Sofia's summary lines still describe the brackets broadly ("Factor brackets wrong…"). They still hold; a pass that names PS5's swapped signs for Jordan and Oliver, now a signature on their pages, is deferred for Carson to word.
 
+## Group review after corrections (ticket 332, 2026-09-15)
+
+- **Coral and amber with a question nobody can explain.** Carson asked for one per group. Coral cannot have one (Priya had all ten right) and neither can amber (Noah and Mia had every question right between them) without changing first submissions and so set scores. Deferred: would need new Problem Set 6 records for those students, which ticket 332 kept fixed.
+- **The group intro's copy after individual review.** "Each problem you're about to go through, at least one of you made a mistake on or didn't finish" is still true, but after corrections "still has wrong" is the rule. Deferred: copy is Carson's; the sentence is not wrong.
+- **Live group membership from seating.** The live board's members are Sam and `GROUPMATE_IDS`, not his seated group, so a teacher who moves Jordan out of sky still sees Jordan on Sam's board while the card lists the seated group. Deferred: predates this ticket; the simulated groups already read seating.
+- **Memoising the simulated boards.** Every standings call replays four boards from their start. Deferred: cheap at ten questions a group.
+- **A presenter control for sitting out.** The demo only shows a group sitting out when the absences or a strong run make it so (Sam strong with his three groupmates away). A skip target could show it in one press. Deferred: not asked for.
+- **Which one-offs may slip again.** The story rule no longer says which rewritten one-offs must hold. A realism cap (for example at most a few a set, only on the set's hardest questions) could return as a check. Deferred: ticket 338 regenerates the past sets and can settle it there.
+- **Simulated tries for a teacher's regrouping.** When the teacher moves students, a table without authored tries writes the rule's own shape (a real slip then the model working, or the same slips four times). Deferred: authored boards exist only for Problem Set 6's frozen seating.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

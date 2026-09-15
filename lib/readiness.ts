@@ -1,4 +1,5 @@
 import { DEMO_STUDENT } from "@/data/assignment";
+import { DEMO_ARRIVAL_OFFSETS_MS } from "@/data/arrivals";
 import { CLASSMATES } from "@/data/classmates";
 import type { ClassroomState } from "./classroom";
 import { liveAbsent, presentCount } from "./absence";
@@ -15,8 +16,8 @@ import { liveAbsent, presentCount } from "./absence";
 /** The class on the roster: the demo student and the classmates. What a set counts is this less its absent students (`presentCount`). */
 export const CLASS_SIZE = 1 + CLASSMATES.length;
 
-/** Milliseconds after the demo student's arrival at which each classmate hands in, in fixture order: a spread of about twenty seconds. */
-export const ARRIVAL_OFFSETS_MS: Record<string, number> = Object.fromEntries(CLASSMATES.map((c, i) => [c.id, 1500 + i * 1100 + (i % 3) * 250]));
+/** Milliseconds after the demo student's arrival at which each classmate hands in: the demo's named timing, about a minute in all (`data/arrivals.ts`, ticket 332). */
+export const ARRIVAL_OFFSETS_MS: Readonly<Record<string, number>> = DEMO_ARRIVAL_OFFSETS_MS;
 export const LAST_ARRIVAL_MS = Math.max(...Object.values(ARRIVAL_OFFSETS_MS));
 
 export interface Readiness {

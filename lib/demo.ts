@@ -12,8 +12,9 @@ import { DEMO_REFLECTION, INITIAL_SESSION, reworkedSession, scriptedSession, ses
 import { LAST_ARRIVAL_MS } from "./readiness";
 import { groupPlan } from "./group";
 import { liveAbsent } from "./absence";
-import { DEMO_PENS, GROUP_SCRIPTS } from "@/data/group-scripts";
-import { beginRun, checkBoard, type GroupRun } from "./groupReview";
+import { DEMO_PENS } from "@/data/group-scripts";
+import { DEMO_SEED, LEAVE_PAUSE_MS, type GroupRun } from "./groupReview";
+import { playBoard, simulatedRunAt, type SimulatedBoard } from "./groupSim";
 import { boardOpensAt } from "./groupIntro";
 
 /**
@@ -46,43 +47,25 @@ function suggestedSetup(session: StudentSession, absent: readonly string[]): Cla
 }
 
 /**
- * The report jump's group review, already run: begun twelve minutes ago, the problems closing evenly,
- * finished seven minutes in (ticket 278: a ten-problem board, and every scripted group home by eleven minutes). Each problem's attempts are its script; a problem whose script never
- * checks correct (Q7, ticket 222) was left for now and closed unsolved on its return, last.
+ * The report jump's group review, already run: begun fifteen minutes ago and finished seven minutes in, every other group
+ * home well before now on any pathway (the slowest, violet without individual review, takes about fourteen and a half). The demo group's board plays as the simulated groups' do (`playBoard`, ticket 332), at the pace that
+ * closes its last question at the finish: each question's scripted tries, Q7 left for now and closed unsolved on its
+ * return (ticket 222), Q9 left for now and solved on its return (the set's exception).
  */
-export const REPORT_RUN_STARTED_AGO_MS = 12 * 60_000;
-export const REPORT_RUN_FINISHED_AGO_MS = 5 * 60_000;
-function finishedRun(session: StudentSession, now: number, absent: readonly string[]): GroupRun {
-  const plan = groupPlan(session, absent);
-  const problems = plan.discussion.problems.map((p) => p.id);
+export const REPORT_RUN_STARTED_AGO_MS = 15 * 60_000;
+export const REPORT_RUN_FINISHED_AGO_MS = 8 * 60_000;
+function finishedRun(session: StudentSession, now: number, absent: readonly string[], afterIndividual: boolean): GroupRun {
+  const plan = groupPlan(session, absent, afterIndividual);
+  const board: SimulatedBoard = { members: plan.members.map((m) => m.id), problems: plan.discussion.problems.map((p) => p.id), scripts: plan.scripts, seed: DEMO_SEED, pens: DEMO_PENS };
   const startedAt = now - REPORT_RUN_STARTED_AGO_MS;
   const finishedAt = now - REPORT_RUN_FINISHED_AGO_MS;
-  const step = problems.length > 1 ? (finishedAt - startedAt) / problems.length : 0;
-  const run = beginRun(
-    plan.members.map((m) => m.id),
-    problems,
-    startedAt,
-    undefined,
-    DEMO_PENS,
-  );
-  const attempts = Object.fromEntries(problems.map((p) => [p, (GROUP_SCRIPTS[p]?.attempts ?? []).map((lines) => ({ lines, correct: checkBoard(p, lines).correct }))]));
-  const unsolved = problems.filter((p) => (attempts[p]?.length ?? 0) > 0 && !attempts[p].some((a) => a.correct));
-  const closing = [...problems.filter((p) => !unsolved.includes(p)), ...unsolved];
-  const at = (i: number) => (i === closing.length - 1 ? finishedAt : Math.round(startedAt + step * (i + 1)));
-  const moments = Object.fromEntries(closing.map((p, i) => [p, at(i)]));
-  const resolved = closing.filter((p) => !unsolved.includes(p));
-  return {
-    ...run,
-    attempts,
-    index: Math.max(0, problems.length + unsolved.length - 1),
-    resolved,
-    resolvedAt: Object.fromEntries(resolved.map((p) => [p, moments[p]])),
-    left: unsolved,
-    unsolved,
-    unsolvedAt: Object.fromEntries(unsolved.map((p) => [p, moments[p]])),
-    turnStartedAt: finishedAt,
-    done: true,
-  };
+  // One pass at a unit pace measures the board; the real pace stretches it to end on the finish.
+  const unit = playBoard(board, { tryS: 1, nextS: 1 }, 0);
+  const checks = unit.filter((e) => e.action.type === "group/check").length;
+  const moves = unit.filter((e) => e.action.type === "group/next").length;
+  const leaves = unit.filter((e) => e.action.type === "group/leave").length;
+  const tryS = (finishedAt - startedAt - leaves * LEAVE_PAUSE_MS) / 1000 / (checks + (moves - 1) / 2);
+  return simulatedRunAt(board, { tryS, nextS: tryS / 2 }, startedAt, now);
 }
 
 /**
@@ -135,18 +118,18 @@ export function skipFixture(target: SkipTarget, now: number): { session: Student
       // The class has just gone in: the intro is read first, then the board opens (ticket 220).
       const session = sessionAt("group");
       const c = everyoneIn(classroom, now);
-      const plan = groupPlan(session, liveAbsent(c));
-      return { session, classroom: classroomReducer(c, { type: "group/begin", members: plan.members.map((m) => m.id), problems: plan.discussion.problems.map((p) => p.id), at: boardOpensAt(now), pens: DEMO_PENS }) };
+      const plan = groupPlan(session, liveAbsent(c), pathwayOf(c).includes("individual"));
+      return { session, classroom: classroomReducer(c, { type: "group/begin", members: plan.members.map((m) => m.id), problems: plan.discussion.problems.map((p) => p.id), at: boardOpensAt(now), pens: DEMO_PENS, scripts: plan.scripts }) };
     }
     case "report": {
       // Group review is behind the class: the standings hold on the board with the demo group's run finished.
       const session = sessionAt("report");
-      return { session, classroom: { ...everyoneIn(classroom, now), group: finishedRun(session, now, liveAbsent(classroom)) } };
+      return { session, classroom: { ...everyoneIn(classroom, now), group: finishedRun(session, now, liveAbsent(classroom), true) } };
     }
     case "homework": {
       // The report's moment with the reflection just sent: the homework sequence plays from the jump (ticket 256).
       const session = { ...sessionAt("homework"), homeworkAt: now };
-      return { session, classroom: { ...everyoneIn(classroom, now), group: finishedRun(session, now, liveAbsent(classroom)) } };
+      return { session, classroom: { ...everyoneIn(classroom, now), group: finishedRun(session, now, liveAbsent(classroom), true) } };
     }
     case "class review": {
       // The teacher's setup, as it would be done from the reworked run: the most-struggled problems, suggested examples, projected with the grace already over.
@@ -231,7 +214,7 @@ function throughGate(c: ClassroomState, now: number): ClassroomState {
 }
 
 /** Group review behind the class: a run the class finished stands, anything else is the scripted run, finished. */
-const groupOver = (c: ClassroomState, session: StudentSession, now: number): GroupRun => (c.group?.done ? c.group : finishedRun(session, now, liveAbsent(c)));
+const groupOver = (c: ClassroomState, session: StudentSession, now: number): GroupRun => (c.group?.done ? c.group : finishedRun(session, now, liveAbsent(c), pathwayOf(c).includes("individual")));
 
 /** The class's stages in order: the working, then the pathway's review stages. */
 const stagesOf = (c: ClassroomState): ClassStageId[] => ["working", ...pathwayOf(c)];
@@ -248,8 +231,8 @@ function enter(stage: ReviewStage, c: ClassroomState, now: number): DemoState {
       // Everyone through the gate and the class just gone in: the intro is read first, then the board opens (ticket 220).
       const session = { ...handedInWork(pathway), stage: "group" as const };
       const c2 = throughGate(before, now);
-      const plan = groupPlan(session, liveAbsent(c2));
-      return { session, classroom: classroomReducer({ ...c2, group: null }, { type: "group/begin", members: plan.members.map((m) => m.id), problems: plan.discussion.problems.map((p) => p.id), at: boardOpensAt(now), pens: DEMO_PENS }) };
+      const plan = groupPlan(session, liveAbsent(c2), pathway.includes("individual"));
+      return { session, classroom: classroomReducer({ ...c2, group: null }, { type: "group/begin", members: plan.members.map((m) => m.id), problems: plan.discussion.problems.map((p) => p.id), at: boardOpensAt(now), pens: DEMO_PENS, scripts: plan.scripts }) };
     }
     case "whole-class": {
       // Projected with the grace over: the teacher's own setup when there is one, else the suggested one.

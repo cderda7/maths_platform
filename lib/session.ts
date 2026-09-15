@@ -245,10 +245,11 @@ export type SessionAction =
   | { type: "freeze" }
   | { type: "release" }
   /** The gate opened: everyone is in, or the teacher started group review. */
-  | { type: "group/start" }
+  /** Through the gate into group review; `nothingToReview`: the student's group has nothing left after corrections and sits out (ticket 332). */
+  | { type: "group/start"; nothingToReview?: boolean }
   /** The debrief: moving on once the marks' hold is over. */
   | { type: "debrief/done"; problem: string }
-  | { type: "group/done" }
+  | { type: "group/done"; nothingToReview?: boolean }
   | { type: "reflection/set"; text: string }
   /** Send on the report: with a reflection written, the report goes and the homework screen opens (ticket 256). */
   | { type: "report/send"; at?: number }
@@ -575,11 +576,12 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     case "release":
       return s.stage === "frozen" ? { ...s, stage: "report" } : s;
     case "group/start":
-      return s.stage === "class-wait" ? { ...s, stage: "group" } : s;
+      if (s.stage !== "class-wait") return s;
+      return a.nothingToReview ? { ...s, stage: nextStage(env.pathway, "group-done"), notice: NOTHING_TO_REVIEW_TEXT } : { ...s, stage: "group" };
     case "debrief/done":
       return s.debrief[a.problem]?.done ? s : { ...s, debrief: { ...s.debrief, [a.problem]: { done: true } } };
     case "group/done":
-      return { ...s, stage: nextStage(env.pathway, "group-done") };
+      return { ...s, stage: nextStage(env.pathway, "group-done"), ...(a.nothingToReview ? { notice: NOTHING_TO_REVIEW_TEXT } : {}) };
     case "reflection/set":
       return { ...s, reflection: a.text };
     case "report/send":
@@ -638,6 +640,8 @@ export function promptSentence(s: StudentSession): string | null {
   return nth ? `This is your ${nth} mistake on ${groupWord(group)}.` : `This is another mistake on ${groupWord(group)}.`;
 }
 
+/** The notice when the student's group sits out group review (ticket 332): every question is right once corrections are in. */
+export const NOTHING_TO_REVIEW_TEXT = "Your group has nothing left to review.";
 export const FORCED_HAND_IN_TEXT = "Your teacher handed in the class's work.";
 /** The notice over the report when the teacher's "end lesson" lands a student there (ticket 273). */
 export const ENDED_LESSON_TEXT = "Your teacher ended the lesson.";

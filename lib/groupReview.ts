@@ -50,6 +50,11 @@ export interface GroupRun {
    * equitable and random, nobody writing twice before everyone has once. A real run never sets this.
    */
   pens?: Record<string, string>;
+  /**
+   * Simulation only (ticket 332): what each problem's scripted tries write, chosen when the run began by the group rule for
+   * the table in the room (`boardScripts`, `lib/groupSim.ts`). A run stored without it reads the demo's `GROUP_SCRIPTS`.
+   */
+  scripts?: Record<string, string[][]>;
   /** When each resolved problem checked correct (ms since epoch): the standings' tie-break. */
   resolvedAt?: Record<string, number>;
   /** When group review began for this group (ms since epoch); the other groups' race runs from here. */
@@ -98,11 +103,11 @@ export function penOrder(problems: string[], members: string[], seed: number): R
 /** The seed that deals the demo's agreed order (Sam, Zara, Jordan, Liam, then Sam, Zara, and Jordan for a return). */
 export const DEMO_SEED = 1368;
 
-export function beginRun(members: string[], problems: string[], at: number, seed = DEMO_SEED, pens?: Record<string, string>): GroupRun {
+export function beginRun(members: string[], problems: string[], at: number, seed = DEMO_SEED, pens?: Record<string, string>, scripts?: Record<string, string[][]>): GroupRun {
   // The simulation's fixed pens, only for problems on the board and members of the group.
   const pinned = pens ? Object.fromEntries(Object.entries(pens).filter(([p, m]) => problems.includes(p) && members.includes(m))) : undefined;
   const dealt = penOrder(problems, members, seed);
-  return { members, problems, pen: { ...dealt, ...pinned }, index: 0, strokes: [], lines: [], attempts: {}, resolved: [], resolvedAt: {}, startedAt: at, turnStartedAt: at, scriptDone: 0, done: false, seed, ...(pinned ? { pens: pinned } : {}) };
+  return { members, problems, pen: { ...dealt, ...pinned }, index: 0, strokes: [], lines: [], attempts: {}, resolved: [], resolvedAt: {}, startedAt: at, turnStartedAt: at, scriptDone: 0, done: false, seed, ...(pinned ? { pens: pinned } : {}), ...(scripts ? { scripts } : {}) };
 }
 
 /** When the run began; a run stored before `startedAt` existed began with its first turn. */
@@ -260,14 +265,13 @@ export type TurnEvent = { at: number; kind: "stroke"; stroke: Stroke } | { at: n
  * visit: a correct one, the one that leaves the problem for now, or any on a return. The demo
  * student's own turns have no script.
  */
-export function turnScript(problem: string, from = 0, returning = false): TurnEvent[] {
-  const script = GROUP_SCRIPTS[problem];
-  if (!script) return [];
+export function turnScript(problem: string, from = 0, returning = false, attempts: readonly (readonly string[])[] | undefined = GROUP_SCRIPTS[problem]?.attempts): TurnEvent[] {
+  if (!attempts) return [];
   const events: TurnEvent[] = [];
   let t = 1200;
-  let wrong = script.attempts.slice(0, from).filter((lines) => !checkBoard(problem, lines).correct).length;
-  for (let a = from; a < script.attempts.length; a++) {
-    const lines = script.attempts[a];
+  let wrong = attempts.slice(0, from).filter((lines) => !checkBoard(problem, [...lines]).correct).length;
+  for (let a = from; a < attempts.length; a++) {
+    const lines = attempts[a];
     if (a > from) events.push({ at: t, kind: "clear" });
     lines.forEach((tex, row) => {
       const strokes = scribble(tex, row);
@@ -281,7 +285,7 @@ export function turnScript(problem: string, from = 0, returning = false): TurnEv
     });
     t += 1500;
     events.push({ at: t, kind: "check" });
-    const correct = checkBoard(problem, lines).correct;
+    const correct = checkBoard(problem, [...lines]).correct;
     if (!correct) wrong++;
     if (correct || returning || wrong >= LEAVE_AFTER_WRONG) break;
     t += 3500;
@@ -289,7 +293,70 @@ export function turnScript(problem: string, from = 0, returning = false): TurnEv
   return events;
 }
 
-/** The pad's recognition script for the demo student's own turn: the lines of attempt `n`. */
-export function ownAttemptScript(problem: string, n: number): string[] {
-  return GROUP_SCRIPTS[problem]?.attempts[Math.min(n, (GROUP_SCRIPTS[problem]?.attempts.length ?? 1) - 1)] ?? [];
+/** The pad's recognition script for the demo student's own turn: the lines of attempt `n` (the run's chosen tries, or the demo's). */
+export function ownAttemptScript(problem: string, n: number, attempts: readonly (readonly string[])[] | undefined = GROUP_SCRIPTS[problem]?.attempts): string[] {
+  return attempts ? [...(attempts[Math.min(n, attempts.length - 1)] ?? [])] : [];
+}
+
+/** The tries a run plays for a problem: the ones chosen when it began, or the demo's scripts for a run stored before. */
+export const runAttempts = (run: GroupRun, problem: string): readonly (readonly string[])[] | undefined => run.scripts?.[problem] ?? GROUP_SCRIPTS[problem]?.attempts;
+
+/** What can happen on a board (the classroom's `group/*` actions that act on a run already begun). */
+export type BoardAction =
+  | { type: "group/stroke"; stroke: Stroke }
+  | { type: "group/undo" }
+  | { type: "group/clear" }
+  /** A line read from the board (kept hidden until the check). */
+  | { type: "group/line"; tex: string }
+  /** The pen-holder's check; `at` is the moment the standings count from (the store stamps it). */
+  | { type: "group/check"; at?: number }
+  /** After a problem closes (a correct check, or unsolved on its return): the next visit, or done after the last. */
+  | { type: "group/next"; at: number }
+  /** After a third wrong check and its pause: leave the problem for now, guarded by the visit's index so two tabs leave once (ticket 222). */
+  | { type: "group/leave"; index: number; at: number };
+
+/** The board's own rules, one problem at a time. Returns the same run when nothing changes. */
+/** One action on the board, by the rules above. Pure: the classroom store applies it, and the simulated groups replay it (`lib/groupSim.ts`). */
+export function groupReducer(g: GroupRun, a: BoardAction): GroupRun {
+  const visit = currentVisit(g);
+  if (!visit) return g;
+  const problem = visit.problem;
+  const closed = isClosed(g, problem);
+  // Closed, or holding a third wrong check before leaving: the board takes nothing more on this visit.
+  const shut = closed || leaving(g);
+  // The next visit's turn: a clean board, and the attempts it starts from.
+  const turn = (run: GroupRun, at: number): GroupRun => ({ ...run, index: g.index + 1, strokes: [], lines: [], turnStartedAt: at, scriptDone: 0, turnFrom: attemptsOn(run, visitsOf(run)[g.index + 1]?.problem ?? "").length });
+  switch (a.type) {
+    case "group/stroke":
+      return shut ? g : { ...g, strokes: [...g.strokes, a.stroke] };
+    case "group/undo":
+      return shut || g.strokes.length === 0 ? g : { ...g, strokes: g.strokes.slice(0, -1), lines: g.lines.slice(0, Math.min(g.lines.length, g.strokes.length - 1)) };
+    case "group/clear":
+      return shut ? g : { ...g, strokes: [], lines: [] };
+    case "group/line":
+      return shut ? g : { ...g, lines: [...g.lines, a.tex] };
+    case "group/check": {
+      if (shut || g.lines.length === 0) return g;
+      const { correct } = checkBoard(problem, g.lines);
+      const at = a.at ?? g.turnStartedAt;
+      const attempt = { lines: g.lines, correct, at };
+      const attempts = { ...g.attempts, [problem]: [...(g.attempts[problem] ?? []), attempt] };
+      // Wrong on the return: the problem closes unsolved (ticket 222).
+      if (!correct && visit.returning) return { ...g, attempts, strokes: [], lines: [], unsolved: [...(g.unsolved ?? []), problem], unsolvedAt: { ...(g.unsolvedAt ?? {}), [problem]: at } };
+      // A wrong check wipes the board (ticket 235): the Not yet card holds the attempt, the next one starts on a clean board.
+      if (!correct) return { ...g, attempts, strokes: [], lines: [] };
+      return { ...g, attempts, resolved: [...g.resolved, problem], resolvedAt: { ...(g.resolvedAt ?? {}), [problem]: at } };
+    }
+    case "group/next": {
+      if (!closed) return g;
+      const last = g.index >= visitsOf(g).length - 1;
+      return last ? { ...g, done: true } : turn(g, a.at);
+    }
+    case "group/leave": {
+      if (a.index !== g.index || !leaving(g)) return g;
+      return turn({ ...g, left: [...(g.left ?? []), problem] }, a.at);
+    }
+    default:
+      return g;
+  }
 }

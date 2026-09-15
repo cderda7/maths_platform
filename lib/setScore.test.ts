@@ -38,7 +38,7 @@ describe("a student's score on a set (ticket 285)", () => {
   it("the live student: the problems he finished with no wrong line, the same rule as group review's union", () => {
     for (const run of ["weak", "strong"] as const) {
       const s = sessionAt("feedback", run);
-      expect(sessionScore(s, ASSIGNMENT.problems), run).toBe(ASSIGNMENT.problems.length - reviewProblemsOf(s).length);
+      expect(sessionScore(s, ASSIGNMENT.problems), run).toBe(ASSIGNMENT.problems.length - reviewProblemsOf(s, false).length);
     }
   });
 

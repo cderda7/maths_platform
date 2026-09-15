@@ -7,7 +7,7 @@ import { classReadiness } from "./readiness";
 import { reviewDoneCount, reviewPlaces } from "./reviewPlaces";
 import { liveAbsent, presentCount } from "./absence";
 import type { StudentSession } from "./session";
-import { standingsAt } from "./standings";
+import { sittingOut, standingsAt } from "./standings";
 import { classmatesAt, type StreamSet } from "./stream";
 
 /**
@@ -118,11 +118,12 @@ export function stageDone(id: ClassStageId, c: ClassroomState | null | undefined
       // The students done with their corrections, as Where students are counts them (ticket 318): at the gate, or from the start with nothing to fix.
       return reviewDoneCount(reviewPlaces({ ...set, absent: liveAbsent(c) }, c, session, now));
     case "group":
+      // Done: every member of a group home, and every member of a group with nothing to review, which sits out (ticket 332).
       return Math.min(
         presentCount(set.classmates, liveAbsent(c)),
         standingsAt(c, session, now)
           .filter((s) => s.percent >= 100)
-          .reduce((n, s) => n + s.members.length, 0),
+          .reduce((n, s) => n + s.members.length, 0) + sittingOut(c, session).reduce((n, g) => n + g.members.length, 0),
       );
     case "whole-class":
       return null;

@@ -68,7 +68,7 @@ export function reviewGroups(session: StudentSession | null): ReviewGroup[] {
 
   // The demo student's group, from the session.
   const mates = GROUPMATE_IDS.map((id) => CLASSMATE_MAP[id]);
-  const discussion = session ? groupPlan(session).discussion.problems.map((p) => p.id) : computePhases(ids, mates.map((m) => m.wrong)).discussion;
+  const discussion = session ? groupPlan(session, [], true).discussion.problems.map((p) => p.id) : computePhases(ids, mates.map((m) => m.wrong)).discussion;
   groups.push({
     id: "g1",
     members: [

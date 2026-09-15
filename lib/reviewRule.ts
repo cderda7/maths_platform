@@ -4,6 +4,17 @@ import { STORY, type ReviewOutcome, type StoryCategory, type StoryStatus } from 
 import type { MisconceptionId } from "@/data/misconceptions";
 import { evaluateLine } from "./evaluate";
 import { classmateLines, columnOf, type SetScope } from "./hierarchy";
+import { canExplain, fixedInIndividualReview, recordWork, stillToReview } from "./reviewUnion";
+
+/**
+ * The sets whose review records follow ticket 332's group rule: a group works only what a present member still has wrong
+ * after individual review, a member who fixed a question there can explain it, and a one-off slip is rewritten in
+ * individual review but may slip again (then it goes to the group). Problem Sets 1–5 keep their authored outcomes under
+ * ticket 278's first-submission rule until ticket 338 regenerates them; ticket 338 removes this list and its one reader,
+ * `afterReviewRule`, so every set runs the one rule.
+ */
+export const AFTER_REVIEW_RULE_SETS: readonly number[] = [6];
+export const afterReviewRule = (n: number): boolean => AFTER_REVIEW_RULE_SETS.includes(n);
 
 /**
  * The agreed rules for what review made of a set record's problems (tickets 244 and 281), applied literally so a test
@@ -43,7 +54,7 @@ export interface RuleCase {
   basis: ReviewBasis;
   /** The slip that decided the basis (the strictest of the problem's wrong lines); null for a problem with none. */
   slip: ReviewSlip | null;
-  /** The present groupmates who had the problem right first time. */
+  /** The present groupmates who can explain it: right first time (and, under ticket 332's rule, fixed in individual review). */
   helpers: string[];
 }
 
@@ -127,17 +138,22 @@ export function reviewByRule(set: SetScope, n: number, everyone: readonly Classm
         brought.push({ r, pid, basis: pick!.basis, slip: pick!.slip });
       }
     }
+    const after = afterReviewRule(n);
     for (const p of set.problems) {
       const here = brought.filter((c) => c.pid === p.id);
       if (here.length === 0) continue;
       const q = index(p.id) + 1;
-      const helpers = members.filter((m) => rightFirstTime(m, set, p.id)).map((m) => m.id);
+      const work = (m: Classmate) => recordWork(m, set.problems, p.id);
+      const helpers = members.filter((m) => (after ? canExplain(p.id, work(m), true) : rightFirstTime(m, set, p.id))).map((m) => m.id);
+      // Ticket 332: the group takes the question only when a present member still has it after individual review.
+      const inUnion = !after || members.some((m) => stillToReview(p.id, work(m), true));
       const scripted = fixed[colour]?.[p.id] !== undefined;
-      const excepted = !scripted && helpers.length === 0 && exception?.colour === colour && exception.problem === p.id ? exception.member : null;
+      const excepted = inUnion && !scripted && helpers.length === 0 && exception?.colour === colour && exception.problem === p.id ? exception.member : null;
       const solved = scripted ? fixed[colour]![p.id] : helpers.length > 0 || excepted !== null;
-      groups.push({ colour, q, solved, helpers, excepted, scripted });
+      if (inUnion) groups.push({ colour, q, solved, helpers, excepted, scripted });
       for (const c of here) {
-        const outcome: ReviewOutcome = c.basis === "one-off" ? "individual" : solved ? "group" : "wrong";
+        const own = after ? fixedInIndividualReview(p.id, work(c.r)) : c.basis === "one-off";
+        const outcome: ReviewOutcome = own ? "individual" : solved ? "group" : "wrong";
         cases.push({ student: c.r.id, colour, q, outcome, basis: c.basis, slip: c.slip, helpers });
       }
     }

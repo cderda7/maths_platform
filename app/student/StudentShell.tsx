@@ -6,7 +6,7 @@ import SkipTo from "@/components/SkipTo";
 import DiagnosticModal from "./screens/DiagnosticModal";
 import { useLessonLanding } from "./useLessonLanding";
 import { groupPlan } from "@/lib/group";
-import { closedMoment, currentProblem, currentVisit, isClosed, leaveAt, leaving, penHolder, turnScript, visitsOf } from "@/lib/groupReview";
+import { closedMoment, currentProblem, currentVisit, isClosed, leaveAt, leaving, penHolder, runAttempts, turnScript, visitsOf } from "@/lib/groupReview";
 import { debriefEndsAt, PEER_DEBRIEF_MS, pendingDebrief } from "@/lib/debrief";
 import { DEMO_PENS } from "@/data/group-scripts";
 import { dispatch, useLiveSession, useNow } from "@/lib/store";
@@ -56,7 +56,16 @@ export default function StudentShell({ children }: { children: ReactNode }) {
     // Not before the clock's first tick: the hydration render reads 0, which would date the arrival to 1970 (ticket 226).
     if (now === 0) return;
     if (atGate && !arrived) dispatchClassroom({ type: "class/arrive", student: DEMO_STUDENT.id, at: now });
-    if (atGate && arrived && started) dispatch({ type: "group/start" });
+    if (atGate && arrived && started) {
+      // A group with nothing left to review after corrections sits out (ticket 332): its board begins empty, so the race keeps
+      // its clock and leaves the group out, and the student goes straight on to the stage after group review, told why.
+      const plan = session ? groupPlan(session, liveAbsent(classroom), pathwayOf(classroom).includes("individual")) : null;
+      if (plan && plan.discussion.problems.length === 0) {
+        dispatchClassroom({ type: "group/begin", members: plan.members.map((m) => m.id), problems: [], at: boardOpensFor(readiness.startedAt, now) });
+        dispatch({ type: "group/start", nothingToReview: true });
+      } else dispatch({ type: "group/start" });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [atGate, arrived, started, now]);
   // The shared whiteboard: begin the run on arrival; while a peer holds the pen, play their scripted turn (each event once, by index).
   const onBoard = session?.stage === "group";
@@ -65,10 +74,17 @@ export default function StudentShell({ children }: { children: ReactNode }) {
     // Not before the clock's first tick (a run begun at 0 would have opened its board in 1970, skipping the intro), and not on a
     // render older than the store (a restart on mount has already dropped this run) (ticket 226).
     if (!session || !onBoard || now === 0 || (getClassroom().group ?? null) !== board) return;
-    if (!board) {
-      const plan = groupPlan(session, liveAbsent(classroom));
+    if (!board || board.problems.length === 0) {
+      const plan = groupPlan(session, liveAbsent(classroom), pathwayOf(classroom).includes("individual"));
+      if (plan.discussion.problems.length === 0) {
+        // Onto the board with nothing to review (a teacher's force moved the student past the gate): sit out, as at the gate.
+        if (!board) dispatchClassroom({ type: "group/begin", members: plan.members.map((m) => m.id), problems: [], at: boardOpensFor(readiness.startedAt, now) });
+        dispatch({ type: "group/done", nothingToReview: true });
+        return;
+      }
+      if (board) return;
       // The board opens once the intro has been read, counted from when the class went in, not from this tab (ticket 220).
-      dispatchClassroom({ type: "group/begin", members: plan.members.map((m) => m.id), problems: plan.discussion.problems.map((p) => p.id), at: boardOpensFor(readiness.startedAt, now), pens: DEMO_PENS });
+      dispatchClassroom({ type: "group/begin", members: plan.members.map((m) => m.id), problems: plan.discussion.problems.map((p) => p.id), at: boardOpensFor(readiness.startedAt, now), pens: DEMO_PENS, scripts: plan.scripts });
       return;
     }
     // The debrief moves on by itself once its hold is over (ticket 228): the student is done with it, and the group moves on if it is still there.
@@ -101,7 +117,7 @@ export default function StudentShell({ children }: { children: ReactNode }) {
     }
     const holder = penHolder(board);
     if (!holder || holder === DEMO_STUDENT.id) return;
-    const events = turnScript(problem, board.turnFrom ?? 0, currentVisit(board)?.returning ?? false);
+    const events = turnScript(problem, board.turnFrom ?? 0, currentVisit(board)?.returning ?? false, runAttempts(board, problem));
     const next = events[board.scriptDone];
     if (next && now >= board.turnStartedAt + next.at) dispatchClassroom({ type: "group/scripted", index: board.scriptDone, event: next, at: board.turnStartedAt + next.at });
     // eslint-disable-next-line react-hooks/exhaustive-deps

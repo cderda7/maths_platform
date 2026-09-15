@@ -19,7 +19,10 @@ describe("the gate into group review", () => {
     expect(classReadiness(arrived, t0 + LAST_ARRIVAL_MS)).toEqual({ handedIn: 19, total: 19, started: true, reason: "everyone", startedAt: t0 + LAST_ARRIVAL_MS });
     // Read later, it still started at the last hand-in, not when it was read (the group intro counts from here, ticket 220).
     expect(classReadiness(arrived, t0 + LAST_ARRIVAL_MS + 60_000).startedAt).toBe(t0 + LAST_ARRIVAL_MS);
-    expect(LAST_ARRIVAL_MS).toBeLessThan(30_000);
+    // The demo's arrivals take about a minute (ticket 332, named simulation timing in data/arrivals.ts), the gaps even.
+    expect(LAST_ARRIVAL_MS).toBeGreaterThanOrEqual(55_000);
+    expect(LAST_ARRIVAL_MS).toBeLessThanOrEqual(65_000);
+    for (let i = 1; i < offsets.length; i++) expect(offsets[i] - offsets[i - 1]).toBeLessThanOrEqual(4_000);
   });
 
   it("with Chloe marked present the class is twenty again, and her arrival counts (ticket 250)", () => {

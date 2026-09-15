@@ -153,15 +153,15 @@ describe("a group with an absent member", () => {
     const amber = (c: ClassroomState) => standingsAt(c, session, now).find((s) => s.colour === "amber")!;
     expect(amber(classroom).members).toEqual(["mia", "noah", "ethan"]);
     expect(amber(mark(classroom, "chloe", false)).members).toEqual(["mia", "noah", "chloe", "ethan"]);
-    // A member away takes every problem they bring (ticket 278: wrong, incomplete or not attempted) out of the union and the total.
+    // A member away takes every problem they bring (ticket 332: still wrong, incomplete or not attempted after individual review) out of the union and the total.
     const withoutNoah = amber(mark(classroom, "noah", true));
     expect(withoutNoah.members).toEqual(["mia", "ethan"]);
-    expect(withoutNoah.total).toBe(amber(classroom).total - recordReviewProblems(CLASSMATES.find((m) => m.id === "noah")!).length);
+    expect(withoutNoah.total).toBe(amber(classroom).total - recordReviewProblems(CLASSMATES.find((m) => m.id === "noah")!, true).length);
   });
 
   it("the demo student's group begins without an absent groupmate", () => {
     const session = sessionAt("group");
-    expect(groupPlan(session, ["jordan"]).members.map((m) => m.id)).toEqual(["sam", "zara", "liam"]);
-    expect(groupPlan(session, ["chloe"]).members.map((m) => m.id)).toEqual(["sam", "jordan", "zara", "liam"]);
+    expect(groupPlan(session, ["jordan"], true).members.map((m) => m.id)).toEqual(["sam", "zara", "liam"]);
+    expect(groupPlan(session, ["chloe"], true).members.map((m) => m.id)).toEqual(["sam", "jordan", "zara", "liam"]);
   });
 });

@@ -10,8 +10,9 @@ import { firstName, standingsAt } from "@/lib/standings";
 import { useNow } from "@/lib/store";
 
 /**
- * Group review on the teacher's laptop: every group's bar, in seating order, and who has the pen
- * in the demo student's group. Never the leaderboard's order and never a medal: the race is for
+ * Group review on the teacher's laptop: every group's bar, in seating order (a group sitting out, with nothing left to
+ * review after corrections, is not listed: ticket 332), who has the pen in the demo student's group, and what each group
+ * has left for now or closed unsolved (every group's board plays in full since ticket 332). Never the leaderboard's order and never a medal: the race is for
  * the wall, the detail is for the teacher. Shown from the moment a run begins until the
  * lesson is over (class review ended, or the lesson ended outright, ticket 263).
  */
@@ -19,7 +20,9 @@ export default function GroupProgressCard({ session }: { session: StudentSession
   const classroom = useClassroom();
   const now = useNow();
   if (!classroom.group || lessonOver(classroom)) return null;
+  // Every group in group review (ticket 332): a group with nothing left after corrections sits out and is not listed.
   const rows = standingsAt(classroom, session, now);
+  if (rows.length === 0) return null;
   return (
     <Card className="p-6" data-group-progress>
       <Eyebrow>Group review</Eyebrow>

@@ -4,7 +4,7 @@
 
 **Blocked by:** none (can start immediately).
 
-**Status:** open
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -40,10 +40,10 @@ This ticket blocks the 318/319 grid, which reads these runs.
 
 ## Acceptance
 
-- [ ] Unit: the union after individual review for right first time, fixed in rework, wrong again, incomplete, not attempted and absent; first submissions on a pathway without individual review; the helper rule with a right-first-time helper, a fixer, and nobody; an empty union leaves the group out of the group list, the race, the standings and the stage's group count
-- [ ] Unit: every Problem Set 6 group's union and outcomes follow the rules, each group has a question nobody at the table can do, sky's Q9 is left for now then solved, and one question somewhere is left for now then unsolved
-- [ ] Set scores on every set unchanged (the tests say so)
-- [ ] Click-through against a production build at 1280×800 and 1440×900, with Sam's iPad and the teacher tab: Sam's group board visits exactly the new union with its pens and scripts, sky's Q9 goes left for now then solved on the return, the progress card and race show the right number of groups with the right fractions, bars only climb, the gate's arrivals take about a minute; if a group sits out, its members' iPads say so and it is missing from every group count. Screenshots checked
-- [ ] vitest, eslint, tsc, next build, check:laptop
-- [ ] Ticket docs: `architecture/332.md`, ARCHITECTURE, DECISION_LOG, FUTURE_FEATURES, README
-- [ ] Tell the 318/319 session (or Carson) the final outcome list per group
+- [x] Unit: the union after individual review for right first time, fixed in rework, wrong again, incomplete, not attempted and absent; first submissions on a pathway without individual review; the helper rule with a right-first-time helper, a fixer, and nobody; an empty union leaves the group out of the group list, the race, the standings and the stage's group count
+- [x] Unit: every Problem Set 6 group's union and outcomes follow the rules, each group has a question nobody at the table can do, sky's Q9 is left for now then solved, and one question somewhere is left for now then unsolved
+- [x] Set scores on every set unchanged (the tests say so)
+- [x] Click-through against a production build at 1280×800 and 1440×900, with Sam's iPad and the teacher tab: Sam's group board visits exactly the new union with its pens and scripts, sky's Q9 goes left for now then solved on the return, the progress card and race show the right number of groups with the right fractions, bars only climb, the gate's arrivals take about a minute; if a group sits out, its members' iPads say so and it is missing from every group count. Screenshots checked
+- [x] vitest, eslint, tsc, next build, check:laptop
+- [x] Ticket docs: `architecture/332.md`, ARCHITECTURE, DECISION_LOG, FUTURE_FEATURES, README
+- [x] Tell the 318/319 session (or Carson) the final outcome list per group

@@ -8,7 +8,7 @@ import type { Status } from "@/data/types";
 import { evaluateLine } from "./evaluate";
 import { classmateHierarchy, classmateLines, columnOf, type SetScope } from "./hierarchy";
 import { outcomeOf, recordReviews } from "./report";
-import { groupProblemsOf, reviewByRule, wrongOnOneLine, type RuleOptions } from "./reviewRule";
+import { afterReviewRule, groupProblemsOf, reviewByRule, wrongOnOneLine, type RuleOptions } from "./reviewRule";
 
 /**
  * Reading real records against the class story sheet (ticket 210), and writing the sheet out as markdown.
@@ -70,6 +70,7 @@ export function reviewMismatches(everyone: readonly Classmate[], set: SetScope, 
   const absent = options.absent ?? [];
   const pidOf = (q: number) => set.problems[q - 1].id;
   const { cases, groups } = reviewByRule(set, n, everyone, seating, options);
+  const after = afterReviewRule(n);
   for (const id of Object.keys(sheet)) if (!everyone.some((r) => r.id === id && !absent.includes(id))) out.push(`the sheet has ${id}, who has no record in the room on the set`);
   if (options.exception) {
     const { colour, problem, member } = options.exception;
@@ -98,9 +99,23 @@ export function reviewMismatches(everyone: readonly Classmate[], set: SetScope, 
       if (row.why.length < 30) out.push(`${where}: no reasoning`);
       const later = r.review?.[pid];
       const second = later?.second ?? [];
-      if ((row.outcome === "individual") !== second.length > 0) out.push(`${where}: ${second.length > 0 ? "a second submission" : "no second submission"} for ${row.outcome}`);
-      if (second.length > 0 && !holdsAll(pid, second)) out.push(`${where}: the second submission does not hold line by line`);
+      const call = groups.find((c) => c.colour === colour && c.q === row.q);
+      if (after) {
+        // Ticket 332: a one-off is rewritten in individual review and holds there (individual) or slipped again (the group's);
+        // anything else is never fixed alone. The group has a version exactly where the question is in its union.
+        if (row.outcome === "individual" && !holdsAll(pid, second)) out.push(`${where}: ${second.length > 0 ? "the second submission does not hold line by line" : "no second submission"} for individual`);
+        if (row.outcome !== "individual" && second.length > 0 && !hasWrong(pid, second)) out.push(`${where}: a second submission that holds for ${row.outcome}`);
+        if (rule && rule.basis === "one-off" && second.length === 0) out.push(`${where}: a one-off slip with no second submission`);
+        if (rule && rule.basis !== "one-off" && second.length > 0) out.push(`${where}: a second submission on a ${rule.basis} problem`);
+      } else {
+        if ((row.outcome === "individual") !== second.length > 0) out.push(`${where}: ${second.length > 0 ? "a second submission" : "no second submission"} for ${row.outcome}`);
+        if (second.length > 0 && !holdsAll(pid, second)) out.push(`${where}: the second submission does not hold line by line`);
+      }
       const g = later?.group;
+      if (after && !call) {
+        if (g) out.push(`${where}: a group version on a question outside the ${colour} group's union`);
+        continue;
+      }
       if (!g) {
         out.push(`${where}: no group version`);
         continue;
@@ -109,7 +124,6 @@ export function reviewMismatches(everyone: readonly Classmate[], set: SetScope, 
       if (row.outcome === "group" && !g.solved) out.push(`${where}: solved in group review, the group's version unsolved`);
       if (row.outcome === "wrong" && g.solved) out.push(`${where}: still wrong, the group's version solved`);
       if (g.solved && !holdsAll(pid, g.lines)) out.push(`${where}: the group's rework does not hold line by line`);
-      const call = groups.find((c) => c.colour === colour && c.q === row.q);
       if (call && call.solved !== g.solved) out.push(`${where}: the rules say the ${colour} group ${call.solved ? "solved" : "did not solve"} it`);
       if (!g.solved) {
         if (!hasWrong(pid, g.lines)) out.push(`${where}: the group's last try has no wrong line`);
@@ -195,7 +209,7 @@ export function renderClassStory(sets: readonly StorySet[]): string {
   out.push("- **One step**: in each category, a student's neighbouring results (skipping *—*, *not seen* and *absent*) differ by at most one step, gap ↔ developing ↔ solid ↔ secure. Variation, never a jump.");
   out.push("- **How a status comes out** (`lib/hierarchy.ts`): a leaf is held lines ÷ attempted lines tagged with it (1 secure, ≥ 0.8 solid, ≥ 0.6 developing, else gap); a group and a category take their worst leaf. So one slip on a leaf the student wrote on five or more times reads solid, on three or four times developing, on one or two a gap. Communication is the share of lines that skip no step. A set's New skills count under New skills on that set, not under their home.");
   out.push("- **Priya** is secure in every category on every set. **Sam** is the demo student.");
-  out.push("- **Review** (tickets 244, 278, 281; settled with the user 2026-09-14): a student brings to their seating group every problem they did not get right first time (a mistake, a problem left incomplete, one not attempted; a student away brings nothing). A *one-off* slip (that mistake on one problem of the set, the pattern naming only it, no gap in its category) is fixed on the student's own rework. Everything else is the group's: a *repeated* slip, a *pattern* (a gap in the slip's category on the set), a problem left incomplete or not attempted. The group solves it when a member at the table had it right first time, a pattern included; a problem nobody at the table had right stays unsolved, and the group's last try is its own working, still wrong, never a member's first submission. At most once a set, the *exception*: a problem nobody had right that the group solves because one member's first submission went wrong on a single line and the hint after the second wrong check named it. On every set one or two groups meet the set's hardest problem with nobody at the table able to do it. The demo group's Set 6 versions are its scripted run (`data/group-scripts.ts`). `lib/reviewRule.ts` applies the rules; each set's review below lists every case with its reasoning.");
+  out.push("- **Review** (tickets 244, 278, 281; settled with the user 2026-09-14): a student brings to their seating group every problem they did not get right first time (a mistake, a problem left incomplete, one not attempted; a student away brings nothing). A *one-off* slip (that mistake on one problem of the set, the pattern naming only it, no gap in its category) is fixed on the student's own rework. Everything else is the group's: a *repeated* slip, a *pattern* (a gap in the slip's category on the set), a problem left incomplete or not attempted. The group solves it when a member at the table had it right first time, a pattern included; a problem nobody at the table had right stays unsolved, and the group's last try is its own working, still wrong, never a member's first submission. At most once a set, the *exception*: a problem nobody had right that the group solves because one member's first submission went wrong on a single line and the hint after the second wrong check named it. On every set one or two groups meet the set's hardest problem with nobody at the table able to do it. The demo group's Set 6 versions are its scripted run (`data/group-scripts.ts`). **Set 6 since ticket 332** (Sets 1–5 follow in ticket 338): a group works only the questions a present member still has wrong, incomplete or not attempted once individual review is over; a member who fixed a question there can explain it like one who had it right first time; a one-off slip is rewritten in individual review and goes to the group only if the rewrite slipped again; a question nobody can explain is left for now after three wrong checks and closes unsolved on its return (the exception is solved there); a group with nothing left sits out. `lib/reviewRule.ts` applies the rules; each set's review below lists every case with its reasoning.");
   out.push("- **Class review** (ticket 281): on Sets 1, 3 and 6 only. It covers every problem a group left unsolved, each with one or two examples of the class's real wrong working, shown unnamed: the most common slip first, from a table that left it unsolved when one made it.");
   out.push("");
   out.push("## The sets");

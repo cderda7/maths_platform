@@ -3,7 +3,7 @@ import type { LeafId } from "@/data/taxonomy";
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { DEFAULT_GROUPS, type GroupColour, type SeatingGroups } from "@/data/groups";
 import { assignmentGroupsOf, moveStudent, seatingOf } from "./seating";
-import { attemptsOn, beginRun, checkBoard, currentVisit, isClosed, leaving, visitsOf, type GroupRun, type TurnEvent } from "./groupReview";
+import { beginRun, groupReducer, type BoardAction, type GroupRun, type TurnEvent } from "./groupReview";
 import type { ExampleRef } from "./examples";
 import { isMarkup, type Markup, type WholeClassInk } from "./markup";
 import { DEFAULT_PATHWAY } from "./pathway";
@@ -258,18 +258,8 @@ export type ClassroomAction =
   /** A link that names the gate or the board starts group review over (ticket 226): no run, and this student not yet arrived, so the intro is read again. */
   | { type: "group/restart"; student: string }
   /** The shared whiteboard. `group/begin` is idempotent: a run already begun is kept. */
-  | { type: "group/begin"; members: string[]; problems: string[]; at: number; /** Simulation only: fixed pens by problem (ticket 228). */ pens?: Record<string, string> }
-  | { type: "group/stroke"; stroke: Stroke }
-  | { type: "group/undo" }
-  | { type: "group/clear" }
-  /** A line read from the board (kept hidden until the check). */
-  | { type: "group/line"; tex: string }
-  /** The pen-holder's check; `at` is the moment the standings count from (the store stamps it). */
-  | { type: "group/check"; at?: number }
-  /** After a problem closes (a correct check, or unsolved on its return): the next visit, or done after the last. */
-  | { type: "group/next"; at: number }
-  /** After a third wrong check and its pause: leave the problem for now, guarded by the visit's index so two tabs leave once (ticket 222). */
-  | { type: "group/leave"; index: number; at: number }
+  | { type: "group/begin"; members: string[]; problems: string[]; at: number; /** Simulation only: fixed pens by problem (ticket 228). */ pens?: Record<string, string>; /** Simulation only: each problem's scripted tries, chosen for the table by the rule (ticket 332). */ scripts?: Record<string, string[][]> }
+  | BoardAction
   /** A peer's scripted event, applied once by index. */
   | { type: "group/scripted"; index: number; event: TurnEvent; at?: number }
   /** The teacher ended group review (ticket 145): the run is done where it stands and the race holds at `at`. Idempotent. */
@@ -385,7 +375,7 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
       return { ...c, group: null, arrivals };
     }
     case "group/begin":
-      return c.group ? c : { ...c, group: beginRun(a.members, a.problems, a.at, undefined, a.pens) };
+      return c.group ? c : { ...c, group: beginRun(a.members, a.problems, a.at, undefined, a.pens, a.scripts) };
     case "group/stroke":
     case "group/undo":
     case "group/clear":
@@ -481,53 +471,6 @@ export const latestDiagnostic = (c: ClassroomState | null | undefined): Diagnost
 
 /** The diagnostic chain that is out (ticket 241), if one is: sent and neither done nor withdrawn. */
 export const liveDiagnostic = (c: ClassroomState | null | undefined): DiagnosticRun | null => liveRun(c?.diagnostics);
-
-type GroupAction = Extract<ClassroomAction, { type: `group/${string}` }>;
-
-/** The board's own rules, one problem at a time. Returns the same run when nothing changes. */
-function groupReducer(g: GroupRun, a: GroupAction): GroupRun {
-  const visit = currentVisit(g);
-  if (!visit) return g;
-  const problem = visit.problem;
-  const closed = isClosed(g, problem);
-  // Closed, or holding a third wrong check before leaving: the board takes nothing more on this visit.
-  const shut = closed || leaving(g);
-  // The next visit's turn: a clean board, and the attempts it starts from.
-  const turn = (run: GroupRun, at: number): GroupRun => ({ ...run, index: g.index + 1, strokes: [], lines: [], turnStartedAt: at, scriptDone: 0, turnFrom: attemptsOn(run, visitsOf(run)[g.index + 1]?.problem ?? "").length });
-  switch (a.type) {
-    case "group/stroke":
-      return shut ? g : { ...g, strokes: [...g.strokes, a.stroke] };
-    case "group/undo":
-      return shut || g.strokes.length === 0 ? g : { ...g, strokes: g.strokes.slice(0, -1), lines: g.lines.slice(0, Math.min(g.lines.length, g.strokes.length - 1)) };
-    case "group/clear":
-      return shut ? g : { ...g, strokes: [], lines: [] };
-    case "group/line":
-      return shut ? g : { ...g, lines: [...g.lines, a.tex] };
-    case "group/check": {
-      if (shut || g.lines.length === 0) return g;
-      const { correct } = checkBoard(problem, g.lines);
-      const at = a.at ?? g.turnStartedAt;
-      const attempt = { lines: g.lines, correct, at };
-      const attempts = { ...g.attempts, [problem]: [...(g.attempts[problem] ?? []), attempt] };
-      // Wrong on the return: the problem closes unsolved (ticket 222).
-      if (!correct && visit.returning) return { ...g, attempts, strokes: [], lines: [], unsolved: [...(g.unsolved ?? []), problem], unsolvedAt: { ...(g.unsolvedAt ?? {}), [problem]: at } };
-      // A wrong check wipes the board (ticket 235): the Not yet card holds the attempt, the next one starts on a clean board.
-      if (!correct) return { ...g, attempts, strokes: [], lines: [] };
-      return { ...g, attempts, resolved: [...g.resolved, problem], resolvedAt: { ...(g.resolvedAt ?? {}), [problem]: at } };
-    }
-    case "group/next": {
-      if (!closed) return g;
-      const last = g.index >= visitsOf(g).length - 1;
-      return last ? { ...g, done: true } : turn(g, a.at);
-    }
-    case "group/leave": {
-      if (a.index !== g.index || !leaving(g)) return g;
-      return turn({ ...g, left: [...(g.left ?? []), problem] }, a.at);
-    }
-    default:
-      return g;
-  }
-}
 
 export const isProjecting = (c: ClassroomState | null | undefined) => c?.wholeClass?.status === "active";
 

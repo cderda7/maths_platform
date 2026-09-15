@@ -233,8 +233,13 @@ describe("the class story sheet (ticket 210)", () => {
     expect(reviewMismatches(CLASSMATES, ASSIGNMENT, 6, FROZEN_GROUPS[ASSIGNMENT.id], options)).toEqual([]);
     // The check bites: a second submission taken away, a solved group version made wrong for one member, a last try that is a member's first submission.
     const tamper = (id: string, pid: string, review: NonNullable<(typeof CLASSMATES)[number]["review"]>[string]) => CLASSMATES.map((c) => (c.id === id ? { ...c, review: { ...c.review, [pid]: review } } : c));
-    const ethan = CLASSMATES.find((c) => c.id === "ethan")!;
-    expect(reviewMismatches(tamper("ethan", "q1", { group: ethan.review!.q1.group }), ASSIGNMENT, 6, FROZEN_GROUPS[ASSIGNMENT.id], options)).toEqual(["ethan Q1: the record reads group, the sheet says individual", "ethan Q1: no second submission for individual"]);
+    expect(reviewMismatches(tamper("ethan", "q1", {}), ASSIGNMENT, 6, FROZEN_GROUPS[ASSIGNMENT.id], options)).toEqual(["ethan Q1: the record reads wrong, the sheet says individual", "ethan Q1: the rules say group (one-off), the sheet says individual", "ethan Q1: no second submission for individual", "ethan Q1: a one-off slip with no second submission", "ethan Q1: no group version"]);
+    // Ticket 332: a fix that holds for a question the sheet sends on, and a group version on a question outside the group's union.
+    const zara = CLASSMATES.find((c) => c.id === "zara")!;
+    expect(reviewMismatches(tamper("zara", "q9", { second: ASSIGNMENT.problems[8].solution.map((st) => st.tex), group: zara.review!.q9.group }), ASSIGNMENT, 6, FROZEN_GROUPS[ASSIGNMENT.id], options)).toEqual(["the exception on sky q9 is not a solved problem nobody at the table had right", "zara Q9: the record reads individual, the sheet says group", "zara Q9: the rules say individual (one-off), the sheet says group", "zara Q9: a second submission that holds for group"]);
+    const aiden = CLASSMATES.find((c) => c.id === "aiden")!;
+    expect(reviewMismatches(tamper("aiden", "q3", { group: { lines: ASSIGNMENT.problems[2].solution.map((st) => st.tex), solved: true } }), ASSIGNMENT, 6, FROZEN_GROUPS[ASSIGNMENT.id], options)).toEqual(["aiden: review on q3, which they had right first time"]);
+    expect(aiden.review?.q7?.group).toEqual(SET6_REVIEW.groups.coral!.q7);
     const mia = CLASSMATES.find((c) => c.id === "mia")!;
     const unsolved = { lines: mia.attempts.q2, solved: false };
     expect(reviewMismatches(tamper("mia", "q2", { group: unsolved }), ASSIGNMENT, 6, FROZEN_GROUPS[ASSIGNMENT.id], options)).toEqual(["mia Q2: the record reads wrong, the sheet says group", "mia Q2: solved in group review, the group's version unsolved", "mia Q2: the rules say the amber group solved it", "mia Q2: the group's last try is jordan's first submission"]);
@@ -246,7 +251,7 @@ describe("the class story sheet (ticket 210)", () => {
     const sams = sessionReviews(session, classroom.group);
     for (const id of FROZEN_GROUPS[ASSIGNMENT.id].sky.filter((m) => m !== DEMO_STUDENT.id)) {
       const record = CLASSMATES.find((c) => c.id === id)!;
-      for (const pid of recordReviewProblems(record)) {
+      for (const pid of recordReviewProblems(record, true)) {
         expect(record.review?.[pid]?.group, `${id} ${pid}`).toEqual(sams[pid].group);
         expect(record.review?.[pid]?.group?.lines, `${id} ${pid}`).toEqual(GROUP_SCRIPTS[pid].attempts.at(-1));
       }

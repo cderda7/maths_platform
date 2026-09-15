@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { beginRun, boardHint, checkBoard, closedInOrder, comingBack, currentProblem, dealPens, DEMO_SEED, groupProgress, HINT_AFTER_WRONG, LEAVE_AFTER_WRONG, LEAVE_PAUSE_MS, leaveAt, hintRingAt, leaving, markFirstMistake, ownAttemptScript, TRY_AGAIN_MS, tryAgainAt, tryAgainShowing, penHolder, penOrder, shuffle, stuckProblems, turnScript, visitsOf, writerOf, wrongChecks, type GroupRun } from "./groupReview";
+import { beginRun, boardHint, checkBoard, closedInOrder, comingBack, currentProblem, dealPens, DEMO_SEED, groupProgress, HINT_AFTER_WRONG, LEAVE_AFTER_WRONG, LEAVE_PAUSE_MS, leaveAt, hintRingAt, leaving, markFirstMistake, ownAttemptScript, runAttempts, TRY_AGAIN_MS, tryAgainAt, tryAgainShowing, penHolder, penOrder, shuffle, stuckProblems, turnScript, visitsOf, writerOf, wrongChecks, type GroupRun } from "./groupReview";
 import { classroomReducer, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
 import { PROBLEM_MAP } from "@/data/assignment";
 import { DEMO_PENS, GROUP_SCRIPTS } from "@/data/group-scripts";
@@ -42,7 +42,7 @@ describe("check and the first-mistake cut", () => {
     expect(clean.map((l) => l.tex)).toEqual(RECOGNITION_REWORK.q1);
     expect(clean.every((l) => l.mark === null)).toBe(true);
   });
-  it("every attempt of every scripted problem is readable line by line, wrong attempts before right ones; Q7 is never right", () => {
+  it("every attempt of every scripted problem is readable line by line, wrong attempts before right ones; Q7 is never right, Q9 holds only on its return (ticket 332)", () => {
     for (const pid of Object.keys(GROUP_SCRIPTS)) {
       const s = GROUP_SCRIPTS[pid];
       expect(s, pid).toBeDefined();
@@ -53,7 +53,12 @@ describe("check and the first-mistake cut", () => {
     }
     expect(ownAttemptScript("q9", 0)).toEqual(GROUP_SCRIPTS.q9.attempts[0]);
     expect(ownAttemptScript("q9", 1)).toEqual(GROUP_SCRIPTS.q9.attempts[1]);
-    expect(ownAttemptScript("q9", 5)).toEqual(GROUP_SCRIPTS.q9.attempts[2]);
+    expect(ownAttemptScript("q9", 5)).toEqual(GROUP_SCRIPTS.q9.attempts[3]);
+    // A run carries the tries chosen for its table; the pad and a peer's turn read those.
+    const chosen = [["x = 1"], ["x = 2"]];
+    expect(ownAttemptScript("q9", 1, chosen)).toEqual(["x = 2"]);
+    expect(runAttempts({ ...beginRun(MEMBERS, UNION, 0), scripts: { q9: chosen } }, "q9")).toEqual(chosen);
+    expect(runAttempts(beginRun(MEMBERS, UNION, 0), "q9")).toEqual(GROUP_SCRIPTS.q9.attempts);
   });
   it("a peer's turn scribbles each line, reads it, checks, and on Q3 checks twice", () => {
     const q2 = turnScript("q2");
