@@ -276,8 +276,8 @@ on the laptop and every student's screen.
   factorise, find the zeros), stacked and all expanded, each headed by its step name and how many students slipped
   there on the original, every wrong option the analogue of a slip a student really made. A click on a step's card
   selects it (accent border, a tick), a second click clears it, and **send N to class** under the stack sends the
-  selection as a chain in solution order; the flyout grows down with the page and collapses as soon as the pointer
-  leaves it (new mistakes arriving never close it, and what is selected survives the page being drawn again). Sending
+  selection as a chain in solution order; the flyout grows down with the page and collapses on the × in its top-right
+  corner (on the split's box too, ticket 340) or as soon as the pointer leaves it (new mistakes arriving never close it, and what is selected survives the page being drawn again). Sending
   turns the Mistakes page into the chain's focused view under the same bar and tabs: `Q1 x² − 5x + 6 = 0 · Live
   diagnostic`, then every step of the chain side by side in solution order, the row centred (a step already asked keeps
   its counts, misconceptions and who picked what; the step being asked has the accent border; a step still to come shows

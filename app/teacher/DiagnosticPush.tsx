@@ -35,6 +35,25 @@ function ChipLabel({ open }: { open: boolean }) {
   );
 }
 
+/**
+ * The open flyout's × (ticket 340): a press on it closes the flyout, beside Escape, a press outside and the pointer leaving.
+ * Absolute in the card's top-right corner, its centre on the header row's (`top` given), so nothing in the card moves.
+ */
+function FlyoutClose({ problemId, top }: { problemId: string; top: number }) {
+  return (
+    <button
+      type="button"
+      onClick={() => setFlyoutOpen(problemId, false)}
+      aria-label="Close the live diagnostic"
+      className="absolute right-4 grid h-8 w-8 place-items-center rounded-full text-[20px] leading-none text-ink-muted transition-colors hover:bg-cream-deep hover:text-ink"
+      style={{ top }}
+      data-diag-close={problemId}
+    >
+      ×
+    </button>
+  );
+}
+
 /** The chip's footprint, unseen: holds the chip's place while its flyout is open, and the diagnostic column's width in the mistake view's title row (ticket 195). */
 export function DiagnosticFootprint({ className = "", ...rest }: React.HTMLAttributes<HTMLSpanElement>) {
   return (
@@ -109,7 +128,11 @@ export default function DiagnosticPush({ problemId, rows, className = "" }: { pr
       </div>
       {open && (
         <div ref={clampToViewport} className="absolute" style={{ top: CHIP_TOP - FRAME, left: -FRAME }} data-diag-flyout>
-          <Card className="w-[460px] p-6 shadow-lift">{body}</Card>
+          <Card className="relative w-[460px] p-6 shadow-lift">
+            {body}
+            {/* Centred on the 25 px chip under the 24 px padding. */}
+            <FlyoutClose problemId={problemId} top={24 + (25 - 32) / 2} />
+          </Card>
           {/* Room under a tall flyout, so the page scrolls its last send button clear of the demo's corner controls; unhoverable, so the pointer over it has left. */}
           <div className="pointer-events-none h-16" aria-hidden />
         </div>
@@ -210,7 +233,7 @@ export function DiagnosticChip({ problemId, className = "" }: { problemId: strin
 /**
  * The open flyout over the split's left column, below the headers (ticket 315): the problem named as its card names it
  * ("Live diagnostic", the label, the whole question), then its steps and the send (`DiagnosticSteps`). Nothing while no
- * flyout is open. It covers the rows, never the mistakes. Escape, a press anywhere outside it (other than a Live diagnostic
+ * flyout is open. It covers the rows, never the mistakes. Its ×, Escape, a press anywhere outside it (other than a Live diagnostic
  * button, whose own press opens or closes) and sending close it; the pointer leaving does not, since it has to cross from
  * the card's button to reach it.
  */
@@ -229,8 +252,10 @@ export function DiagnosticOverlay({ problem, rows }: { problem: Pick<Problem, "i
   }, [problem.id]);
   return (
     <div ref={ref} data-diag-flyout={problem.id} data-diag-overlay>
-      <Card className="p-6 shadow-lift">
-        <div className="flex items-baseline gap-3">
+      <Card className="relative p-6 shadow-lift">
+        {/* Centred on the header row: its ~44 px line box under the 24 px padding, the × 32 tall. */}
+        <FlyoutClose problemId={problem.id} top={22} />
+        <div className="flex items-baseline gap-3 pr-10">
           <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.12em] text-accent-deep">Live diagnostic</span>
           <span className="shrink-0 font-display text-[24px] leading-none text-ink">{problem.label}</span>
           <p className="min-w-0 text-[15px] leading-snug text-ink" data-overlay-question>
