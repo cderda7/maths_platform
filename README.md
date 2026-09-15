@@ -102,7 +102,8 @@ Teacher, before the lesson (Edexia Classroom at `/teacher`, New assignment → `
    the sentence under the map reads the pathway back. Create.
 
 Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the pen). It opens on Sam's Edexia
-Classroom (ticket 264): To do, Missing, Completed. Problem Set 1–5 are Completed; Problem Set 6 shows in To do once
+Classroom (ticket 264): To do, Missing, Completed. Problem Set 1–5 are Completed, with a homework column to their right (ticket 290):
+"HW1 completed" beside Sets 1–2, a caution "HW2" (missed, its problems added to the next homework) beside Sets 3–4; Problem Set 6 shows in To do once
 the teacher has pressed Create (or a SKIP TO or deep link sent it). START opens it; the Edexia mark returns:
 
 2. Overview (CONTINUE pulses until pressed), the teacher's goal in a speech bubble ("Before you get started, Ms

@@ -1412,6 +1412,16 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **Trait words in hint and practice copy and in internal names.** Hint text ("a guessed pair can look right") and identifiers (`Q8_RUSHED`, `Q4_GUESSED`) and the "Detective stage for weak students" section title are not shown in any profile; left as they are.
 - **Extend the trait-word test to every student-facing and parent-facing string.** Today it covers only the story sheet.
 
+## Homework column (ticket 290, 2026-09-15)
+
+- **Overlapping homework.** The model assumes a homework is due before the next is created (ASSUMPTIONS.md, HOMEWORKS NEVER OVERLAP), so every set belongs to one homework and the column has one cell per row. Two homeworks open at once (a long project homework beside a weekly one, a teacher setting next week's early) would need a set to belong to more than one homework and the column to show more than one cell a row. Deferred by the agreed model.
+- **Homework cells beside To do and Missing.** The column exists only beside Completed. A set that is Missing still has its homework (its problems were never done, so nothing is "ever wrong" from it, but the teacher's 10 are); where that homework's cell goes when none of its sets is Completed is undecided: today it has no cell at all.
+- **A homework finished late.** Missed is final and the caution stays for good; whether a student who finishes a missed homework later sees any acknowledgement (a "done late" note under the triangle) was not discussed.
+- **The due date's time of day.** A homework is on time if finished on its due day and missed from the next day; a real school would set a time (start of the lesson, 9 am) and a time zone.
+- **A real calendar.** The demo's day is fixed (`DEMO_TODAY`, Thu 10 Sep, ticket 289) and dates carry no year (`dueOrder`); homework status on a real product reads the clock and full dates.
+- **Homework records for the other nineteen.** Only Sam has a homework history (`SAM_HOMEWORK_STORY`) because only Sam has a Classroom; the teacher's view of every student's homework status is ticket 291's future feature.
+- **Pressing a completed or missed cell.** Cells are not pressable; reading back a finished homework (ticket 293's future feature) could open from the completed cell, and a missed cell could show which problems carried over.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

@@ -9,6 +9,7 @@ import EndLesson from "./EndLesson";
 import ForceSubmit from "./ForceSubmit";
 import GroupProgressCard from "./GroupProgressCard";
 import WholeClassCard from "./WholeClassCard";
+import CautionTriangle from "@/components/CautionTriangle";
 import { RowDrill, type ColumnBox, type RowMode } from "@/components/HierarchyDrill";
 import StatusKey from "@/components/StatusKey";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
@@ -942,16 +943,11 @@ function HolisticNote() {
   );
 }
 
-/** A student with nothing handed in: a light blue caution triangle over a small grey MISSING. */
+/** A student with nothing handed in: the light blue caution triangle (shared with a missed homework's cell, ticket 290) over a small grey MISSING. */
 function Missing() {
   return (
     <div className="flex flex-col items-center gap-0.5" data-missing-mark role="img" aria-label="Nothing submitted">
-      <svg viewBox="0 0 24 22" className="h-[26px] w-[28px]" aria-hidden>
-        <path d="M10.3 2.1a2 2 0 0 1 3.4 0l9 15.6a2 2 0 0 1-1.7 3H3a2 2 0 0 1-1.7-3z" fill="var(--color-standout-line)" stroke="var(--color-standout)" strokeOpacity="0.45" strokeWidth="0.8" strokeLinejoin="round" />
-        <text x="12" y="17.5" textAnchor="middle" fontSize="13" fontWeight="800" fill="#000" fontFamily="inherit">
-          !
-        </text>
-      </svg>
+      <CautionTriangle />
       <span className="text-[9.5px] font-semibold uppercase tracking-[0.08em] text-ink-muted">missing</span>
     </div>
   );

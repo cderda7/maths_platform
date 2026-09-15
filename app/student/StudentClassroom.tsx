@@ -4,10 +4,12 @@ import { useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import StudentChrome from "./StudentChrome";
 import { useLessonPull } from "./useLessonPull";
+import CautionTriangle from "@/components/CautionTriangle";
 import { Button, Eyebrow } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
 import { CLASS_SUBJECT } from "@/lib/classroomCards";
 import { useClassroom } from "@/lib/classroom-store";
+import { homeworkColumn, MISSED_NOTE } from "@/lib/homeworks";
 import { useNow, useStudentSession } from "@/lib/store";
 import { STUDENT_SECTION_EMPTY, STUDENT_SECTION_LABEL, STUDENT_SECTIONS, studentClassroom, studentSetHref, type StudentSection, type StudentSetCard } from "@/lib/studentClassroom";
 
@@ -17,7 +19,8 @@ const noSubscribe = () => () => {};
  * Sam's Classroom on the iPad (ticket 264), his landing: every set in his Classroom under To do, Missing and Completed
  * (`lib/studentClassroom`), each newest due first. A To do card's one action opens the set where his run is (its start
  * once sent); a press anywhere on a Completed card opens his read-only report on the set (ticket 287); Missing cards open
- * nothing. Live in every tab: the teacher's Create puts Problem Set 6 in
+ * nothing. Beside Completed sits the homework column (ticket 290): each homework's cell spans the sets it covers, not pressable.
+ * Live in every tab: the teacher's Create puts Problem Set 6 in
  * To do without a reload. When class review freezes the class, the iPad goes to the set, as every student screen does; so
  * does a presenter's jump from another tab that moves the lesson with a set out (the teacher's "students done" and
  * "activity completed", ticket 272), landing where the jump put Sam (`useLessonPull`). A jump that leaves nothing out
@@ -35,7 +38,7 @@ export default function StudentClassroom() {
   useLessonPull(!!classroom.assignment, session.stage === "frozen");
   return (
     <StudentChrome>
-      <div className="mx-auto flex max-w-[860px] flex-col px-10 pt-8 pb-6" data-student-classroom>
+      <div className="mx-auto flex max-w-[1066px] flex-col px-10 pt-8 pb-6" data-student-classroom>
         <Eyebrow>
           {ASSIGNMENT.classCode} · {CLASS_SUBJECT} · {ASSIGNMENT.teacher}
         </Eyebrow>
@@ -55,13 +58,74 @@ function Section({ section, cards, onOpen }: { section: StudentSection; cards: S
           {STUDENT_SECTION_EMPTY[section]}
         </p>
       ) : (
-        <ul className="mt-2.5 space-y-2">
-          {cards.map((card) => (
-            <SetCard key={card.id} card={card} onOpen={onOpen} />
-          ))}
-        </ul>
+        // Every section's cards sit in the grid's first column, so they are one width down the page; only Completed fills
+        // the second, the homework column (ticket 290), each cell running from its first covered card's top to its last's bottom.
+        <div className="mt-2.5 grid grid-cols-[minmax(0,1fr)_190px] gap-x-4 gap-y-2" data-card-grid>
+          <ul className="contents">
+            {cards.map((card, i) => (
+              <SetCard key={card.id} card={card} row={i + 1} onOpen={onOpen} />
+            ))}
+          </ul>
+          {section === "completed" && <HomeworkColumn cards={cards} />}
+        </div>
       )}
     </section>
+  );
+}
+
+/**
+ * The homework column beside Completed (ticket 290, `homeworkColumn`): a homework's cell spans the rows of the sets it
+ * covers; a set no homework covers yet keeps an empty space the column's width. Nothing in it is pressable.
+ */
+function HomeworkColumn({ cards }: { cards: StudentSetCard[] }) {
+  return (
+    <div className="contents" data-hw-column>
+      {homeworkColumn(cards).map((p) => {
+        const gridRow = `${p.row + 1} / span ${p.span}`;
+        const rows = p.setIds.join(" ");
+        if (p.kind === "empty") return <div key={`empty-${rows}`} className="col-start-2" style={{ gridRow }} data-hw-empty={rows} aria-hidden />;
+        const shape = "col-start-2 flex flex-col justify-center rounded-2xl border px-4 py-2 select-none";
+        if (p.status === "completed")
+          return (
+            <div key={p.id} className={`${shape} border-secure-line bg-secure-soft/70`} style={{ gridRow }} data-hw-cell={p.id} data-hw-status={p.status} data-hw-rows={rows}>
+              <span className="flex items-center gap-2.5">
+                <CompletedMark />
+                <span className="whitespace-nowrap text-[15px] font-medium text-ink">HW{p.n} completed</span>
+              </span>
+            </div>
+          );
+        if (p.status === "missed")
+          return (
+            <div key={p.id} className={`${shape} border-line bg-paper/70`} style={{ gridRow }} data-hw-cell={p.id} data-hw-status={p.status} data-hw-rows={rows}>
+              <span className="flex items-center gap-2.5">
+                <CautionTriangle />
+                <span className="text-[15px] font-medium text-ink">HW{p.n}</span>
+              </span>
+              {/* Balanced over two lines, so no word is left alone on the second (ticket 292's "current HW" is longer still). */}
+              <span className="mt-1.5 text-[12px] leading-[16px] text-balance text-ink-muted" data-hw-note>
+                {MISSED_NOTE}
+              </span>
+            </div>
+          );
+        return (
+          <div key={p.id} className={`${shape} border-line bg-paper/40`} style={{ gridRow }} data-hw-cell={p.id} data-hw-status={p.status} data-hw-rows={rows}>
+            <span className="whitespace-nowrap text-[14px] text-ink-muted">
+              HW{p.n} · due {p.due}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** A green check in a round, the caution triangle's size, so both cells' words start at one x. */
+function CompletedMark() {
+  return (
+    <svg viewBox="0 0 24 22" className="h-[26px] w-[28px]" aria-hidden data-hw-check>
+      <circle cx="12" cy="11" r="10.2" fill="var(--color-secure)" />
+      <path d="M7.4 11.3l3.1 3.1 6.1-6.3" fill="none" stroke="#fff" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 
@@ -69,7 +133,7 @@ function Section({ section, cards, onOpen }: { section: StudentSection; cards: S
  * One set: its name, its due date, and on a To do card the one action. A Completed card is one press target (ticket 287),
  * the whole card, with no button of its own: it lifts on hover and settles on press, and opens his report on the set.
  */
-function SetCard({ card, onOpen }: { card: StudentSetCard; onOpen: (href: string) => void }) {
+function SetCard({ card, row, onOpen }: { card: StudentSetCard; /** Its row in the section's grid, first column. */ row: number; onOpen: (href: string) => void }) {
   const todo = card.section === "todo";
   const body = (
     <>
@@ -85,7 +149,7 @@ function SetCard({ card, onOpen }: { card: StudentSetCard; onOpen: (href: string
   const { href } = card;
   if (href)
     return (
-      <li data-student-set={card.id} data-section={card.section}>
+      <li className="col-start-1" style={{ gridRow: row }} data-student-set={card.id} data-section={card.section}>
         <button
           type="button"
           onClick={() => onOpen(href)}
@@ -98,7 +162,7 @@ function SetCard({ card, onOpen }: { card: StudentSetCard; onOpen: (href: string
       </li>
     );
   return (
-    <li className={`${shape} ${todo ? "border-accent-line bg-paper shadow-card" : "border-line bg-paper/70"}`} data-student-set={card.id} data-section={card.section}>
+    <li style={{ gridRow: row }} className={`col-start-1 ${shape} ${todo ? "border-accent-line bg-paper shadow-card" : "border-line bg-paper/70"}`} data-student-set={card.id} data-section={card.section}>
       {body}
       {card.action && (
         <Button variant="accent" hit className="uppercase tracking-[0.08em]" onClick={() => onOpen(studentSetHref(card.id))} data-open-set={card.id}>

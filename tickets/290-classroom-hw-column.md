@@ -4,7 +4,7 @@
 
 **Blocked by:** 287 (both change the Completed cards).
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -39,10 +39,10 @@ Sam's history (demo data, separate named story data): **HW1 done on time, HW2 mi
 
 ## Acceptance
 
-- [ ] Unit tests: coverage by date rule, HW1/HW2 statuses for Sam, missed is final
-- [ ] Classroom shows HW1 cell spanning exactly PS1–PS2 rows, HW2 caution spanning PS3–PS4, empty space beside PS5 (and PS6 when completed); cards still open their reports (ticket 287)
-- [ ] The caution triangle is the same drawing as the Class View's Missing mark
-- [ ] Cells ignore presses; nothing on the page scrolls horizontally on the iPad
-- [ ] No difficulty tags
-- [ ] vitest, eslint, tsc, next build, check:laptop; click-through measuring cell spans against row rects
-- [ ] ASSUMPTIONS.md entry; ticket docs, architecture note, ARCHITECTURE, decision log, future features
+- [x] Unit tests: coverage by date rule, HW1/HW2 statuses for Sam, missed is final
+- [x] Classroom shows HW1 cell spanning exactly PS1–PS2 rows, HW2 caution spanning PS3–PS4, empty space beside PS5 (and PS6 when completed); cards still open their reports (ticket 287)
+- [x] The caution triangle is the same drawing as the Class View's Missing mark
+- [x] Cells ignore presses; nothing on the page scrolls horizontally on the iPad
+- [x] No difficulty tags
+- [x] vitest, eslint, tsc, next build, check:laptop; click-through measuring cell spans against row rects
+- [x] ASSUMPTIONS.md entry; ticket docs, architecture note, ARCHITECTURE, decision log, future features
