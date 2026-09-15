@@ -1,4 +1,4 @@
-import M from "@/components/Math";
+import MathProse from "@/components/MathProse";
 import type { Diagnostic } from "@/data/diagnostic";
 import { stemParts } from "@/lib/stem";
 
@@ -8,18 +8,5 @@ import { stemParts } from "@/lib/stem";
  * wrap never leaves a mark alone at the start of a line; the maths itself never breaks (`.katex` is nowrap).
  */
 export default function DiagnosticStem({ question: q }: { question: Pick<Diagnostic, "stem" | "tex"> }) {
-  return (
-    <>
-      {stemParts(q.stem, q.tex).map((p, i) =>
-        p.kind === "text" ? (
-          <span key={i}>{p.text}</span>
-        ) : (
-          <span key={i} className="whitespace-nowrap">
-            <M tex={p.tex} />
-            {p.after}
-          </span>
-        ),
-      )}
-    </>
-  );
+  return <MathProse parts={stemParts(q.stem, q.tex)} />;
 }

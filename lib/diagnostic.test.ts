@@ -1,3 +1,4 @@
+import katex from "katex";
 import { describe, expect, it } from "vitest";
 import { DEMO_STUDENT, PROBLEMS } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
@@ -65,6 +66,32 @@ describe("step questions per problem (ticket 240)", () => {
       }
   });
 
+  it("every distractor says what picking it means (ticket 304): one short clause after \"you\", its maths typesetting, never a name nor a guess at why; the right option none", () => {
+    const names = [...CLASSMATES.flatMap((c) => c.name.split(" ")), "Sam"].map((n) => n.toLowerCase());
+    let lines = 0;
+    for (const s of [...ALL_STEPS, FALLBACK_STEP])
+      for (const o of s.options) {
+        const at = `${s.id} ${o.id}: ${o.ifChosen}`;
+        if (o.id === s.correct) {
+          expect(o.ifChosen, at).toBeUndefined();
+          continue;
+        }
+        lines++;
+        const line = o.ifChosen!;
+        expect(line, at).toBeTruthy();
+        // It follows "If you chose A, you" and "You chose A, meaning you": a lower-case verb, no full stop of its own.
+        expect(line, at).toMatch(/^[a-z]/);
+        expect(line, at).not.toMatch(/[.!?]$/);
+        expect(line.split("$").length % 2, `${at}: unbalanced $`).toBe(1);
+        for (const [i, piece] of line.split("$").entries()) if (i % 2 === 1) expect(() => katex.renderToString(piece, { throwOnError: true }), at).not.toThrow();
+        // Short enough that "You chose A, meaning you …" sits on one line of the iPad at 14 px or more.
+        const shown = line.replace(/\$([^$]*)\$/g, (_, tex: string) => tex.replace(/\\tfrac\{(\w+)\}\{(\w+)\}/g, "$1/$2").replace(/\\Delta/g, "Δ").replace(/[{}\\^]/g, ""));
+        expect(`You chose A, meaning you ${shown}`.length, at).toBeLessThanOrEqual(72);
+        for (const w of line.toLowerCase().split(/[\s,$]+/)) expect(names, at).not.toContain(w);
+        expect(line, at).not.toMatch(/guess|rush|slip|careless|forg[eo]t|tried|trying|copied|misread|confus|mixed up|read .* as|meant to/i);
+      }
+    expect(lines).toBe(105);
+  });
 
   it("every distractor points at the misconception taxonomy (ticket 302), and one mirroring a real slip at that line's own misconception", () => {
     for (const s of [...ALL_STEPS, FALLBACK_STEP])

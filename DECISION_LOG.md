@@ -5172,3 +5172,20 @@ rule for pens is untouched and the exception is visible and named.
 
 **Defense.** The dedupe does exactly what the user asked (no double penalty, own problems only, newer kept) as one small pure step between the lists ticket 293 built, tested on the demo, the strong run, the nothing-handed-in run and synthetic cases; the one-skill rule reuses the story sheet's authored outline rather than inventing a second vocabulary; and the story change is a slip Sam already makes, held to the ink by the existing sheet tests.
 
+## 2026-09-15 · A distractor's student-facing meaning lives on the option, and shows only at the reveal (ticket 304)
+
+**Decision.** Each distractor carries `ifChosen`, a student-facing clause that completes "If you chose A, you…". It sits beside the teacher-facing `detail` and `misconception` in `data/diagnostic.ts`. The board shows every wrong option's line once the step is revealed. Each iPad shows only the student's own ("You chose A, meaning you…", or "You chose C, correct."), at the same moment and never straight after the tap. Before the reveal the board's lines are laid out invisibly, so the cells already have their revealed height.
+
+**Context.** An outside review, endorsed by the user: "No explanation attached to any distractor… At the moment the teacher supplies all the meaning." The user asked for all lines on the board and each student's own on the iPad, with the right answer's green fill. Asked, they chose to show the line at the reveal, "correct" for a right pick, and no mark on a wrong pick beyond the line.
+
+**Alternatives considered.**
+- *Reuse `detail`*: one text to keep. But it is the teacher's shorthand ("product right, sum wrong", five words), and it doesn't complete "you…" for a student. Two audiences, two texts.
+- *A separate map of lines keyed by step and option*: it would have avoided editing the same lines as ticket 302 while that was in flight. But an author would have to change an option in two places, and a map can drift from the options it names. The test would catch drift, but co-location avoids it.
+- *Show the iPad line straight after the tap*: immediate feedback, but the right answer would leak to neighbours while the class is still answering, and the board and iPads would disagree.
+- *Board lines appear on the reveal with no reserved space*: simpler, but the cells would grow and the centred question would jump up at the moment the class is looking.
+- *Let a board line wrap as prose*: most lines run a word or two past one row of a cell, so "not −7" or "means none" was left alone on the second row (`text-balance` halved short lines instead, and `text-pretty` did not help). Two set lines, "If you chose A," then the clause scaled to its row, give every wrong cell the same shape; no clause needed scaling below 21 px at 1280×800.
+- *Wrap the iPad line*: the status row would need two lines' height from the push. Instead each line is kept to one iPad line (tested at 72 characters with the prefix), with `FitText` as a guard.
+
+**Tradeoffs.** 105 more strings to author and keep in step with their options: a line is not checked mathematically against its option the way `detail` is, only for coverage, typesetting, length and wording. Board cells are one or two lines taller from the push, even on a step never revealed. A set made through Create still falls back to the one fixed question, which has its lines. Generated steps will need lines generated too.
+
+**Defense.** The meaning travels with the option it explains, the student sees only what concerns them and only when everyone else does, and the board reads itself. The teacher talks through the lines, not writes them.

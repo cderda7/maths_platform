@@ -3,6 +3,7 @@
 import DiagnosticStem from "@/components/DiagnosticStem";
 import FitText from "@/components/FitText";
 import M from "@/components/Math";
+import MathProse from "@/components/MathProse";
 import { Eyebrow } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
 import { questionFor } from "@/lib/diagnostic";
@@ -13,7 +14,9 @@ import { chainPosition, currentIndex, isRevealed, type DiagnosticRun } from "@/l
  * A live diagnostic chain from the teacher, over whatever the student was doing (ticket 241): the current step, "1st of 3"
  * on a longer chain. The first tap is the answer and cannot be changed: that option holds a neutral highlight with
  * "Waiting for the class…". Once the step is revealed (everyone in, or force submit) the right option turns green and the
- * student's own highlight goes; nothing marks a pick wrong. There is no way back to the work: the modal stays until the
+ * student's own highlight goes; nothing marks a pick wrong. The line under the options then says what their own pick means
+ * (ticket 304): "You chose A, meaning you…" from the distractor's `ifChosen`, or "You chose C, correct."; a student who
+ * never answered sees neither. There is no way back to the work: the modal stays until the
  * teacher's done ends the chain, and the next question replaces this one. Everything comes from the stored run, so a
  * reload lands on the same state.
  */
@@ -27,6 +30,7 @@ export default function DiagnosticModal({ run, now, absent, onAnswer }: { run: D
   const revealed = isRevealed(run, index, now, absent);
   const position = chainPosition(run, index);
   const open = mine === null && !revealed;
+  const chosen = d.options.find((o) => o.id === mine);
   return (
     <div className="absolute inset-0 z-30 grid place-items-center bg-ink/40 p-10 backdrop-blur-[2px]" role="dialog" aria-modal data-diagnostic={d.id} data-revealed={revealed || undefined}>
       <div className="w-[600px] rounded-3xl bg-paper p-8 shadow-lift">
@@ -71,14 +75,29 @@ export default function DiagnosticModal({ run, now, absent, onAnswer }: { run: D
           })}
         </ul>
         {/* One line under the options, its height held so nothing moves when the words come and go. */}
-        <p className="mt-5 flex h-6 items-center justify-end gap-2 text-[15px] text-ink-soft" data-chain-status>
+        <div className="mt-5 flex h-7 items-center justify-end gap-2 text-[15px] text-ink-soft" data-chain-status>
           {mine !== null && !revealed && (
             <>
               <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
               Waiting for the class…
             </>
           )}
-        </p>
+          {chosen && revealed && (
+            // What their own pick means (ticket 304), once the class has seen the answer: one line, scaled down rather than wrapped.
+            <span className="min-w-0 flex-1 text-ink" data-if-chosen={chosen.id}>
+              <FitText max={17} fitKey={`${d.id}:${chosen.id}:chosen`}>
+                You chose {chosen.id.toUpperCase()}
+                {chosen.id === d.correct ? (
+                  ", correct."
+                ) : (
+                  <>
+                    , meaning you <MathProse text={chosen.ifChosen ?? ""} />
+                  </>
+                )}
+              </FitText>
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

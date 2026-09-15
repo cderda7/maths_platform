@@ -6,8 +6,27 @@ export type StemPart = { kind: "text"; text: string } | { kind: "math"; tex: str
  * and any punctuation right after a piece of maths join that piece, so they never start a line of their own.
  */
 export function stemParts(stem: string, tex = ""): StemPart[] {
+  const parts = proseParts(stem);
+  if (tex) {
+    const last = parts[parts.length - 1];
+    if (last?.kind === "text" && !last.text.endsWith(" ")) last.text += " ";
+    parts.push({ kind: "math", tex, after: "?" });
+    return parts;
+  }
+  const last = parts[parts.length - 1];
+  if (last?.kind === "math") last.after += "?";
+  else if (last) last.text += "?";
+  else parts.push({ kind: "text", text: "?" });
+  return parts;
+}
+
+/**
+ * Splits words with inline `$…$` maths into pieces, each piece of maths taking the punctuation right after it, so a mark
+ * never starts a line of its own. A stem (`stemParts`) and a distractor's if-you-chose line (ticket 304) both read this.
+ */
+export function proseParts(prose: string): StemPart[] {
   const parts: StemPart[] = [];
-  const pieces = stem.split("$");
+  const pieces = prose.split("$");
   pieces.forEach((piece, i) => {
     if (i % 2 === 1) {
       parts.push({ kind: "math", tex: piece, after: "" });
@@ -22,16 +41,6 @@ export function stemParts(stem: string, tex = ""): StemPart[] {
     }
     if (text) parts.push({ kind: "text", text });
   });
-  if (tex) {
-    const last = parts[parts.length - 1];
-    if (last?.kind === "text" && !last.text.endsWith(" ")) last.text += " ";
-    parts.push({ kind: "math", tex, after: "?" });
-    return parts;
-  }
-  const last = parts[parts.length - 1];
-  if (last?.kind === "math") last.after += "?";
-  else if (last) last.text += "?";
-  else parts.push({ kind: "text", text: "?" });
   return parts;
 }
 

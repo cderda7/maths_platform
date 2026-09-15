@@ -4,6 +4,7 @@ import DiagnosticStem from "@/components/DiagnosticStem";
 import FitStem from "@/components/FitStem";
 import FitText from "@/components/FitText";
 import M from "@/components/Math";
+import MathProse from "@/components/MathProse";
 import type { Diagnostic } from "@/data/diagnostic";
 import { misconceptionName } from "@/data/misconceptions";
 import type { Tally } from "@/lib/diagnostic";
@@ -19,7 +20,8 @@ import type { Tally } from "@/lib/diagnostic";
  * The board (ticket 241) shows no count per option, before or after the reveal (a lone student on
  * a wrong option could be embarrassed), no misconceptions (the teacher's reasoning, not the
  * class's), and the right option green only once the step is revealed (`tally.revealed`). The
- * teacher's surfaces show everything live from the push.
+ * teacher's surfaces show everything live from the push. Once revealed, each wrong option's cell on the board says what
+ * picking it means, "If you chose A, you…" (ticket 304, the distractor's `ifChosen`), so the teacher need not supply it.
  *
  * In the mistake view's flyout only (`size="panel"` with `pickers`, ticket 242) each cell also shows who picked it: a row of
  * small initials avatars at the foot of the cell, under the count and its misconception, one per answer in the order they landed, wrapping inside the cell. A student whose
@@ -76,6 +78,22 @@ export default function DiagnosticResults({
                   </FitText>
                 </div>
               </div>
+              {board && o.id !== q.correct && (
+                // What picking it means (ticket 304), for the whole class once the step is revealed. Laid out, unseen, from the
+                // push, so the cells are already their revealed height and the reveal moves nothing on the board. Two set lines,
+                // "If you chose A," then the clause scaled to its row, so no word is ever left alone on a line.
+                <p
+                  className={`mt-2 text-[21px] leading-snug text-ink-soft ${tally.revealed ? "" : "invisible"}`}
+                  aria-hidden={!tally.revealed || undefined}
+                  data-if-chosen={o.id}
+                  data-shown={tally.revealed || undefined}
+                >
+                  <span className="block">If you chose {o.id.toUpperCase()},{" "}</span>
+                  <FitText max={21} fitKey={`${q.id}:${o.id}:if-chosen`}>
+                    you <MathProse text={o.ifChosen ?? ""} />
+                  </FitText>
+                </p>
+              )}
               {counts && (
                 <div className={`text-ink-soft ${panel ? "mt-1 text-[14px]" : "mt-0.5 text-[12px]"}`} data-students>
                   {n}/{tally.total} students

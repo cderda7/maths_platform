@@ -61,8 +61,8 @@ function Blank({ content }: { content: BoardContent }) {
 /**
  * A live diagnostic chain's current step (ticket 241): the question and its options, "1st of 3" on a longer chain and
  * "14/20 answered" in the header (a pulse while answers are still coming in), the right option green once the step is
- * revealed, and the teacher's one control at the bottom right (force submit, next question, done). Never a count per
- * option, a name or a misconception.
+ * revealed with each wrong option's "If you chose A, you…" (ticket 304), and the teacher's one control at the bottom right
+ * (force submit, next question, done). Never a count per option, a name or the teacher's misconception.
  */
 function DiagnosticSlide({ content }: { content: Extract<BoardContent, { kind: "diagnostic" }> }) {
   const { tally: t } = content;

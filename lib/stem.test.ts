@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { stemParts, unbrokenHyphens } from "./stem";
+import { proseParts, stemParts, unbrokenHyphens } from "./stem";
 import { assignmentBundle, assignmentIds } from "./assignments";
 import { PROBLEMS } from "@/data/assignment";
 
@@ -23,6 +23,18 @@ describe("a diagnostic's question in pieces (ticket 240)", () => {
   it("a stem of words alone ends in its question mark", () => {
     expect(stemParts("What does that show")).toEqual([{ kind: "text", text: "What does that show?" }]);
     expect(stemParts("")).toEqual([{ kind: "text", text: "?" }]);
+  });
+});
+
+describe("words with inline maths, no question mark (ticket 304)", () => {
+  it("splits an if-you-chose line into words and maths, the comma after maths kept beside it", () => {
+    expect(proseParts("found a pair that adds to $7$, not $-7$")).toEqual([
+      { kind: "text", text: "found a pair that adds to " },
+      { kind: "math", tex: "7", after: "," },
+      { kind: "text", text: " not " },
+      { kind: "math", tex: "-7", after: "" },
+    ]);
+    expect(proseParts("swapped the signs in both brackets")).toEqual([{ kind: "text", text: "swapped the signs in both brackets" }]);
   });
 });
 

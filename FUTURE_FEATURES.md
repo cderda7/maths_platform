@@ -1525,6 +1525,15 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **Dedupe by a finer type than the taxonomy leaf.** Completing the square to a turning point and completing the square alone share the binomial identity, so one drops the other; a problem-type level below the leaf would keep more variety. Deferred: the user defined duplicate as the same taxonomy skill.
 - **Teacher's view of a student's homework.** The teacher cannot see which leftovers carried into a student's homework; a preview on the report or the Class View would show it.
 
+## If-you-chose lines (ticket 304, 2026-09-15)
+
+- **Check each line against its option's maths.** `detail` is held to its option by maths checks in `lib/diagnostic.test.ts`; `ifChosen` only for coverage, typesetting, length and wording. A check that "adds to $7$" really is the pair's sum would catch a line left stale after an option is edited. Deferred: lines were checked by hand once; the numeric checks need a small grammar per line kind.
+- **A reason on the right option.** The board shows lines for the wrong options only and a right pick reads "correct" (the user's call, 2026-09-15). A one-line why ("−3 and −4 multiply to 12 and add to −7") could reinforce the rule for students who picked it. Deferred: not wanted now.
+- **Lines for generated diagnostics.** A set made through Create falls back to one fixed question; once its steps are generated from its own slips, each distractor needs its line generated with it. Deferred with generated steps.
+- **The student's line after the diagnostic.** The iPad line goes when the teacher presses next or done. It could stay in the student's report beside the problem the step checked ("In the quick check you chose A, meaning…"). Deferred: not asked for.
+- **Teacher-edited lines.** A teacher may word a line for their class, or turn the board lines off for a step they want to discuss first. Deferred: no editing surface for diagnostics yet.
+- **Change the diagnostic's flow.** The user raised it with this ticket and withdrew it the same day ("no longer a concern"). Recorded in case it returns.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
