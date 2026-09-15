@@ -130,7 +130,7 @@ export const SIMILAR_PROBLEMS: SimilarProblem[] = [
   },
   {
     problemId: "q10",
-    stem: "Show that the following has no real solutions, and say what that means for the graph.",
+    stem: "Show that the following has no real solutions, and say what that means for its graph.",
     tex: "x^2 + 3x + 4 = 0",
     type: "showing no real solutions with the discriminant",
     solution: [

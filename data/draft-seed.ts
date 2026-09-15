@@ -20,7 +20,7 @@ export const DEMO_PASTE_LINES: readonly string[] = [
   "Factorise fully. 1/3x**2 + 2x + 8/3",
   "The graph of the following is shown. Read off its x-intercepts and check them. y = x**2 - 4x + 3",
   "Solve for x. (x+1)(x-4) = 6",
-  "Show that the following has no real solutions, and say what that means for the graph. x**2 + 4x + 5 = 0",
+  "Show that the following has no real solutions, and say what that means for its graph. x**2 + 4x + 5 = 0",
 ];
 
 /** The same ten, as one block for a paste. */

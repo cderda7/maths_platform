@@ -482,7 +482,7 @@ export const QUESTION_PAIRS: QuestionPair[] = [
       id: "q10-star",
       label: "Q10*",
       difficulty: "complex unfamiliar",
-      stem: "Show that the following has no real solutions, and say what that means for the graph.",
+      stem: "Show that the following has no real solutions, and say what that means for its graph.",
       tex: "x^2 + 6x + 10 = 0",
       answerAs: "sentence",
       solution: [
@@ -495,7 +495,7 @@ export const QUESTION_PAIRS: QuestionPair[] = [
       id: "q10-star-star",
       label: "Q10**",
       difficulty: "complex unfamiliar",
-      stem: "Show that the following has no real solutions, and say what that means for the graph.",
+      stem: "Show that the following has no real solutions, and say what that means for its graph.",
       tex: "x^2 + 4x + 7 = 0",
       answerAs: "sentence",
       solution: [

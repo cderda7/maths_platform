@@ -130,7 +130,7 @@ export const PROBLEMS: Problem[] = [
     id: "q10",
     label: "Q10",
     difficulty: "complex unfamiliar",
-    stem: "Show that the following has no real solutions, and say what that means for the graph.",
+    stem: "Show that the following has no real solutions, and say what that means for its graph.",
     tex: "x^2 + 4x + 5 = 0",
     answerAs: "sentence",
     solution: [

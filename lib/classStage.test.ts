@@ -29,17 +29,18 @@ describe("the class's stage on the pathway", () => {
     expect(words(classroom, session)).toEqual([`indiv working:current ${finished}/${PRESENT}`, "indiv review:ahead", "group review:ahead", "class review:ahead"]);
   });
 
-  it("moves to individual review when the live student hands in; the working is over", () => {
+  it("moves to individual review when the live student hands in; the working is over; Priya, with nothing to fix, is done at once", () => {
     const { classroom, session } = skipFixture("indiv review", now);
     expect(currentClassStage(classroom, session, now)).toBe("individual");
-    expect(words(classroom, session)).toEqual([`indiv working:over`, `indiv review:current 0/${PRESENT}`, "group review:ahead", "class review:ahead"]);
+    expect(words(classroom, session)).toEqual([`indiv working:over`, `indiv review:current 1/${PRESENT}`, "group review:ahead", "class review:ahead"]);
   });
 
   it("counts the class in at the gate while individual review is current", () => {
     const { classroom, session } = skipFixture("class wait", now);
-    expect(words(classroom, session)[1]).toBe(`indiv review:current 1/${PRESENT}`);
-    const first = Math.min(...Object.values(ARRIVAL_OFFSETS_MS));
-    expect(classStages(classroom, session, now + first)[1].done).toBe(2);
+    // Sam, and Priya, who had nothing to fix and was done from the start (ticket 318).
+    expect(words(classroom, session)[1]).toBe(`indiv review:current 2/${PRESENT}`);
+    const second = [...Object.values(ARRIVAL_OFFSETS_MS)].sort((a, b) => a - b)[1];
+    expect(classStages(classroom, session, now + second)[1].done).toBe(3);
     // Everyone in: the gate opens and group review is the stage, nothing done yet.
     const later = now + LAST_ARRIVAL_MS;
     expect(classStages(classroom, session, later).map((s) => s.state)).toEqual(["over", "over", "current", "ahead"]);

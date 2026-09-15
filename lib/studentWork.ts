@@ -2,6 +2,7 @@ import { DEMO_STUDENT } from "@/data/assignment";
 import type { Problem } from "@/data/types";
 import { classmateEvidence, sessionEvidence } from "./hierarchy";
 import type { Place } from "./place";
+import type { ReviewStudent } from "./reviewPlaces";
 import { confidenceLabel, NO_CONFIDENCE } from "./report";
 import type { StudentSession } from "./session";
 import { classmatesAt, type StreamSet } from "./stream";
@@ -31,6 +32,17 @@ export interface WorkSoFar<P> {
   moved: MovedPast<P>[];
   /** The question the student is on, or null (not started, on the check-in, in the warm-up, handed in). */
   on: P | null;
+  /** In individual review (ticket 318): every problem the student has to fix, in set order, with both versions. */
+  review?: ReviewedProblem<P>[];
+}
+
+/** A problem the student has to fix in individual review: their first submission, their correction so far, and whether it is open. */
+export interface ReviewedProblem<P> {
+  problem: P;
+  first: string[];
+  /** The correction's lines as far as they have come: Sam's as he writes, a classmate's once it has landed right. */
+  correction: string[];
+  open: boolean;
 }
 
 /** The questions moved past and the one the student is on, from their place. */
@@ -59,4 +71,27 @@ export function studentWorkAt(set: StreamSet, session: StudentSession | null, no
   if (!record) return workFromPlace({ kind: "not-started" }, problems, {}, NO_CONFIDENCE);
   const answered = place.kind !== "not-started" && place.kind !== "confidence" && place.kind !== "absent";
   return workFromPlace(place, problems, classmateEvidence(record, problems).lines, answered ? record.confidence : NO_CONFIDENCE);
+}
+
+/**
+ * One student's work in individual review at the moment `student` was read (ticket 318): their confidence answer, then every
+ * problem they have to fix with the first submission and the correction so far. Sam's correction is his rework as he writes
+ * it; a classmate's is their second submission once it has landed right (a correction that stays wrong has no lines of its
+ * own in the record, so only the first submission shows).
+ */
+export function reviewWorkAt(set: StreamSet, session: StudentSession | null, student: ReviewStudent): WorkSoFar<Problem> {
+  const problems = set.problems as Problem[];
+  const open = student.place.kind === "problem" ? student.place.problem : null;
+  const of = (first: Readonly<Record<string, readonly string[]>>, correction: (p: string) => readonly string[]) =>
+    student.toFix.flatMap((id) => {
+      const problem = problems.find((p) => p.id === id);
+      return problem ? [{ problem, first: [...(first[id] ?? [])], correction: [...correction(id)], open: id === open }] : [];
+    });
+  if (student.id === DEMO_STUDENT.id) {
+    const lines = session ? sessionEvidence(session).lines : {};
+    return { confidence: confidenceLabel(session?.confidence ?? null), moved: [], on: null, review: of(lines, (p) => (session?.rework[p] ?? []).map((l) => l.tex)) };
+  }
+  const record = set.classmates.find((m) => m.id === student.id);
+  if (!record) return { confidence: NO_CONFIDENCE, moved: [], on: null, review: [] };
+  return { confidence: record.confidence, moved: [], on: null, review: of(classmateEvidence(record, problems).lines, (p) => (student.fixed.includes(p) ? (record.review?.[p]?.second ?? []) : [])) };
 }

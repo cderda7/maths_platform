@@ -5642,3 +5642,50 @@ rule for pens is untouched and the exception is visible and named.
 - **Upright letters.** An upright `l` beside `1` (PS4 Q10's `l = 2w + 3`) is closer than the italic was.
 
 **Defense.** One place sets a stem, one test holds every stem, and the expression the whole product keys on is said once, in the face every other piece of maths is in.
+
+## 2026-09-15 · Where students are during individual review (ticket 318)
+
+**Decision.**
+- **The split in individual review.** The Mistakes tab keeps ticket 315's split during individual review, and the set lands there.
+- **Left column.** Not started, Q1–Q10 and Done reviewing. Each student appears once, at the problem they have open, with "fixed n of m" and the time open. Each question row has a count of everyone still to fix it (wrong, unfinished or not attempted, less corrections in and right), blank at none.
+- **Right column.** The mistake cards keep only the students still to fix, with "n fixed · m still to fix". A card everyone has fixed shrinks in place to a thin "everyone fixed" line.
+- **Fit.** When the column would not fit, the pills drop "fixed n of m", then the time, then the name. Rows never fold.
+- **"Fixed".** A correction counts as fixed once it has lines, none wrong, and an answer.
+- **What the model reads.** Sam's open problem is recorded in his session (`reworkOpenedAt`, `reworkIndex`). The classmates' review is named demo pacing (`data/classmates-rework.ts`) over what their records say they fix. Each is done at their gate arrival, or at once with nothing to fix. The stage's done count reads the same model.
+- **The panel.** A pressed pill opens that student's problems to fix, with the first submission and the correction stacked.
+
+**Context.** Carson, 2026-09-15, in the 318/319 grilling (mockup https://claude.ai/artifact/UX9eWozokBpAt3PUXn945x):
+- The first mockup put a pill in every row a student still had to fix. Carson: "all the avatars are overwhelming". The pills became where each student is now, plus a count column, since the teacher already sees the problem cards.
+- Individual review has no set order: a student picks any problem, so "the row they are on" means the one they have open.
+- Until now nothing recorded which problem Sam had open, and the classmates had no review timeline, only their gate arrivals and final second submissions.
+- The Q10 stem repeated its own equation in words; Carson asked for the words to go wherever that happens.
+
+**Alternatives considered.**
+- *A pill in every row still to fix (a checklist)*: shows everything, but twenty students missing several questions fill every row. Carson rejected it on the mockup.
+- *Fold empty rows as in working*: rows in review are rarely empty and the Q1–Q10 order is what the count column hangs on. Shrinking the pills keeps the order.
+- *"Fixed" when the rework holds (the report's `holds`)*: agrees with the report's "correct after individual review", but on the live screen a student's first right line would count before they reached an answer. The report reads the finished stage, where the two agree.
+- *Classmates done on their own script time*: truer to a class, but the gate into group review, the stage count and ticket 332's stretched arrivals all key off Sam's arrival. Anchoring done to the gate keeps one count everywhere. Only a student with nothing to fix is done from the start, as Carson asked for Priya.
+- *Classmates' corrections landing only at the gate*: simplest, but the counts would sit still for minutes and then collapse. A per-problem script lets them fall as the class works.
+- *First submission and correction side by side in the panel*: easier to compare, but at half width with the report's line size the maths would not fit. Stacked keeps each line whole.
+- *Keep the Live diagnostic on the cards in review*: nothing to push while students correct their own work, so the chip stays on working only.
+
+**Tradeoffs.**
+- **Demo timing.** The classmates' review is invented timing and could disagree with a real class. It is named demo data, derived from the records, so ticket 332's regenerated second submissions flow through it untouched.
+- **A small jump at the gate.** A classmate whose script has not finished when they reach the gate lands their remaining corrections at once.
+- **The count.** The stage's done count now counts a student with nothing to fix from the start, so the pill reads 1/19 before Sam hands in his corrections.
+- **Fitting.** Dropping words to fit hides "fixed n of m" at 1280×800 for most of the stage. The panel and the count column carry it.
+- **Deep links.** A deep link into `?stage=feedback` keeps its fixed 3:48 pm hand-in, so the classmates there read as far along as the clock says. The skips date the hand-in now.
+
+**Defense.** Carson's words set the screen, and the design follows them. One model feeds the rows, the counts, the cards, the panel and the stage count, so no two numbers on the page can disagree. Recording Sam's open problem in his session makes his pill truthful across tabs and reloads. Deriving the classmates from their records keeps the demo honest when the review data is regenerated.
+
+## 2026-09-15 · Q10 asks what that means for "its graph" (ticket 318)
+
+**Decision.** Q10's stem (and its Q\*, Q\*\*, homework twin and the draft seed) ends "…and say what that means for its graph."
+
+**Context.** Carson asked in ticket 318 for Q10's duplicated equation to go, in exactly those words. Ticket 342 (landed while 318 was in flight) had already removed every stem's text copy of its expression, ending Q10 "…for the graph." 318 keeps 342's rule and guard (`lib/stemMaths.test.ts`) and only sets Carson's wording.
+
+**Alternatives considered.** *Keep 342's "the graph"*: equally clear, but not what Carson wrote.
+
+**Tradeoffs.** None beyond one word in five stems.
+
+**Defense.** "its" ties the graph to the expression shown right after the words, which is what the duplicated equation used to do.

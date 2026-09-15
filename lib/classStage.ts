@@ -4,6 +4,7 @@ import { BEFORE_HAND_IN_STAGES, type ReviewStage } from "@/data/types";
 import { isPending, lessonOver, pathwayOf, type AdvanceKind, type ClassroomState } from "./classroom";
 import { STAGE_SHORT } from "./pathway";
 import { classReadiness } from "./readiness";
+import { reviewDoneCount, reviewPlaces } from "./reviewPlaces";
 import { liveAbsent, presentCount } from "./absence";
 import type { StudentSession } from "./session";
 import { standingsAt } from "./standings";
@@ -114,7 +115,8 @@ export function stageDone(id: ClassStageId, c: ClassroomState | null | undefined
       // The set handed in: the live student past working, a classmate in the room who submitted.
       return (liveHandedIn(session) ? 1 : 0) + classmatesAt(set, session, now).filter((m) => m.state.submitted && !liveAbsent(c).includes(m.record.id)).length;
     case "individual":
-      return classReadiness(c, now).handedIn;
+      // The students done with their corrections, as Where students are counts them (ticket 318): at the gate, or from the start with nothing to fix.
+      return reviewDoneCount(reviewPlaces({ ...set, absent: liveAbsent(c) }, c, session, now));
     case "group":
       return Math.min(
         presentCount(set.classmates, liveAbsent(c)),

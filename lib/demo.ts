@@ -113,6 +113,9 @@ export function deepLinkClassroom(c: ClassroomState, link: { explicit: boolean; 
   return c;
 }
 
+/** How long individual review ran before a skip to the gate (ticket 318): the classmates are partway through their corrections. */
+export const REVIEW_SKIPPED_MS = 6 * 60_000;
+
 export function skipFixture(target: SkipTarget, now: number): { session: StudentSession; classroom: ClassroomState } {
   let classroom = classroomReducer(INITIAL_CLASSROOM, demoSend(DEMO_PATHWAY, now));
   switch (target) {
@@ -123,10 +126,11 @@ export function skipFixture(target: SkipTarget, now: number): { session: Student
     case "working":
       return { session: sessionAt("working"), classroom };
     case "indiv review":
-      return { session: sessionAt("feedback"), classroom };
+      // Sam has just handed in: the class's individual review runs from now (ticket 318).
+      return { session: { ...sessionAt("feedback"), handedInAt: now }, classroom };
     case "class wait":
       // Sam has just handed in corrections: the classmates' scripted arrivals start now.
-      return { session: sessionAt("class-wait"), classroom: classroomReducer(classroom, { type: "class/arrive", student: DEMO_STUDENT.id, at: now }) };
+      return { session: { ...sessionAt("class-wait"), handedInAt: now - REVIEW_SKIPPED_MS }, classroom: classroomReducer(classroom, { type: "class/arrive", student: DEMO_STUDENT.id, at: now }) };
     case "group review": {
       // The class has just gone in: the intro is read first, then the board opens (ticket 220).
       const session = sessionAt("group");
@@ -239,7 +243,7 @@ function enter(stage: ReviewStage, c: ClassroomState, now: number): DemoState {
   switch (stage) {
     case "individual":
       // Sam's hand-in moves the class into individual review; the classmates' corrections arrive from it.
-      return { classroom: before, session: sessionAt("feedback") };
+      return { classroom: before, session: { ...sessionAt("feedback"), handedInAt: now } };
     case "group": {
       // Everyone through the gate and the class just gone in: the intro is read first, then the board opens (ticket 220).
       const session = { ...handedInWork(pathway), stage: "group" as const };

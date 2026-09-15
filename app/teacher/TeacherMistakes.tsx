@@ -21,8 +21,9 @@ import DiagnosticPush, { DiagnosticChip, DiagnosticFootprint, DiagnosticOverlay,
 import { setStudentOpen, useOpenFlyout, useOpenStudent } from "./diagnosticFlyout";
 import StageSplit from "./StageSplit";
 import StudentWorkPanel from "./StudentWorkPanel";
-import { studentWorkAt } from "@/lib/studentWork";
-import { PlaceTable, useWhereRows } from "./WhereStudentsAre";
+import { reviewWorkAt, studentWorkAt } from "@/lib/studentWork";
+import { reviewPlaces, reviewRows, stillToFix } from "@/lib/reviewPlaces";
+import { PlaceTable, ReviewTable, useWhereRows } from "./WhereStudentsAre";
 
 // The same button as the class view's row actions ("see dot skills" / "close").
 const ACTION = "w-[96px] rounded-md px-2 py-[3px] text-[11px] font-medium leading-snug transition-colors";
@@ -282,8 +283,15 @@ export default function TeacherMistakes() {
   const session = assignment.kind === "live" ? liveSession : null;
   const classroom = useClassroom();
   const now = useNow();
+  const stage = currentStageOf(assignmentStages(assignment, classroom, session, now));
+  /** Individual review on the live set (ticket 318): the split shows where each student is in their corrections, and the cards only what is still to fix. */
+  const review = assignment.kind === "live" && now > 0 && stage?.id === "individual";
+  const students = review ? reviewPlaces(assignment, classroom, session, now) : [];
   // The live set's classmates stream in from its start (ticket 189): nothing to show until the clock has its first tick.
-  const latest = assignment.kind === "live" && now === 0 ? [] : mistakesByProblem(session, assignment, now);
+  const found = assignment.kind === "live" && now === 0 ? [] : mistakesByProblem(session, assignment, now);
+  // In individual review a card keeps the students still to fix its problem; one everyone has fixed stays as a thin line (ticket 318).
+  const fixedOf = new Map(found.map((p) => [p.problem.id, review ? p.rows.filter((r) => !stillToFix(students, r.id, p.problem.id)).length : 0]));
+  const latest = review ? found.map((p) => ({ ...p, rows: p.rows.filter((r) => stillToFix(students, r.id, p.problem.id)) })) : found;
   const listRef = useRef<HTMLDivElement>(null);
   const guarded = usePointerGuard(listRef);
   const [hold, setHold] = useState(EMPTY_HOLD);
@@ -299,7 +307,6 @@ export default function TeacherMistakes() {
   const problems = shown.problems;
   /** The class the counts are over: twenty, less anyone marked absent on the set (ticket 250). */
   const size = classSize(assignment);
-  const stage = currentStageOf(assignmentStages(assignment, classroom, session, now));
   const [open, setOpen] = useState<string[]>([]);
   /** The problem just closed by hand: its button offers "close all" until the pointer leaves it. */
   const [armed, setArmed] = useState<string | null>(null);
@@ -316,8 +323,10 @@ export default function TeacherMistakes() {
   useScrollAroundFocus(focused, assignment.kind !== "live" || now > 0);
   const chainProblemId = chain ? questionFor(chain.steps[0])?.problemId : undefined;
   /** Individual working on the live set (ticket 315): the tab splits into Where students are and Where students went wrong. */
-  const split = assignment.kind === "live" && stage?.id === "working";
-  const places = useWhereRows(assignment, session, now);
+  const split = assignment.kind === "live" && (stage?.id === "working" || review);
+  const working = useWhereRows(assignment, session, now);
+  const inReview = review ? reviewRows(students, assignment.problems, assignment.classmates, now) : [];
+  const places = review ? inReview : working;
   const flyout = useOpenFlyout();
   const flyoutProblem = split ? problems.find((p) => p.problem.id === flyout) : undefined;
   /** The student whose work panel is open over the rows (ticket 316): their pill, for the place it stands for. */
@@ -331,6 +340,14 @@ export default function TeacherMistakes() {
         const othersOpen = open.some((id) => id !== problem.id);
         /** Neither correct, wrong nor still working on the set: stopped before the problem, or handed it in without an answer (tickets 143, 189). */
         const skipped = size - right - wrong - pending;
+        // Individual review (ticket 318): a problem everyone has fixed stays in its place as one thin line.
+        if (review && rows.length === 0)
+          return (
+            <div key={problem.id} className="flex items-center gap-3 rounded-xl border border-line px-6 py-2" data-problem-row={problem.id} data-problem-fixed={problem.id}>
+              <span className="font-display text-[20px] leading-none text-ink-soft">{problem.label}</span>
+              <span className="text-[14px] text-ink-muted">everyone fixed</span>
+            </div>
+          );
         const groups = groupBySlip(rows);
         // One grid column per identical working (ticket 138); boxes and pills span columns.
         const columns = groups.flatMap((g) => g.columns);
@@ -366,6 +383,12 @@ export default function TeacherMistakes() {
             </span>
           </>
         );
+        const fixed = fixedOf.get(problem.id) ?? 0;
+        const reviewCounts = (
+          <span className="text-[14px] whitespace-nowrap text-ink-muted tabular-nums" data-review-counts={`${problem.id}:${fixed}:${rows.length}`}>
+            <span className="font-semibold text-ink">{fixed}</span> fixed · <span className="font-semibold text-ink">{rows.length}</span> still to fix
+          </span>
+        );
         return (
           <div key={problem.id} className="flex items-start gap-4" data-problem-row={problem.id}>
           {/* Escape closes the problem opened last first (ticket 247), without arming "close all" the way a press of close does. */}
@@ -385,7 +408,7 @@ export default function TeacherMistakes() {
             <div className="flex items-center gap-4 border-b border-line px-6 py-4" onClick={() => toggle(problem.id)} data-problem-header={problem.id}>
               <div className={`flex min-w-0 items-center gap-4 ${split ? "flex-1" : ""}`}>
                 {/* On the split the live diagnostic is the card's own, at its top left (ticket 315). */}
-                {split && <DiagnosticChip problemId={problem.id} />}
+                {split && !review && <DiagnosticChip problemId={problem.id} />}
                 <span className="shrink-0 font-display text-[24px] text-ink">{problem.label}</span>
                 <p className="min-w-0 text-[17px] leading-snug text-ink" data-problem-question={problem.id}>
                   <ProblemQuestion problem={problem} mathClass="math-lg" />
@@ -407,9 +430,14 @@ export default function TeacherMistakes() {
                   {action.word}
                 </button>
               </div>
-              {split && (
+              {split && !review && (
                 <div className="flex shrink-0 flex-col items-stretch gap-1.5" style={{ width: COUNT_COLUMN }} data-header-counts>
                   {counts}
+                </div>
+              )}
+              {review && (
+                <div className="shrink-0" data-header-counts>
+                  {reviewCounts}
                 </div>
               )}
             </div>
@@ -562,14 +590,20 @@ export default function TeacherMistakes() {
         <StageSplit
           className="mt-4"
           leftTitle="Where students are"
-          left={<PlaceTable rows={places} now={now} onPress={pressPill} open={studentPill?.id ?? null} />}
+          left={review ? <ReviewTable rows={inReview} now={now} onPress={pressPill} open={studentPill?.id ?? null} /> : <PlaceTable rows={working} now={now} onPress={pressPill} open={studentPill?.id ?? null} />}
           rightTitle="Where students went wrong"
           right={list}
           overlay={
             flyoutProblem ? (
               <DiagnosticOverlay key={flyoutProblem.problem.id} problem={flyoutProblem.problem} rows={flyoutProblem.rows} />
             ) : (
-              studentPill && <StudentWorkPanel key={studentPill.id} pill={studentPill} work={studentWorkAt(assignment, session, now, studentPill.id, studentPill.place)} />
+              studentPill && (
+                <StudentWorkPanel
+                  key={studentPill.id}
+                  pill={studentPill}
+                  work={review ? reviewWorkAt(assignment, session, students.find((s) => s.id === studentPill.id)!) : studentWorkAt(assignment, session, now, studentPill.id, studentPill.place)}
+                />
+              )
             )
           }
         />

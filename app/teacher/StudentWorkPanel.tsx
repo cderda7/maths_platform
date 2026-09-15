@@ -36,6 +36,9 @@ const LINES_ZOOM = 1.25;
  * region as the page lies unscrolled (a style write before paint, again on a resize), and past that the questions scroll
  * inside it under the fixed head. It sits over the rows, never the mistakes, and moves nothing behind it. Escape (focus back
  * on the pill), a press anywhere outside it and opening a diagnostic close it; a press on another pill opens that student.
+ *
+ * In individual review (ticket 318) the questions are the ones the student has to fix, each with their first submission and
+ * under it their correction so far (`ReviewList`), the one they have open carrying the "in progress" pill.
  */
 export default function StudentWorkPanel({ pill, work }: { pill: Pick<WherePill, "id" | "name" | "initials">; work: WorkSoFar<Problem> }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -66,7 +69,8 @@ export default function StudentWorkPanel({ pill, work }: { pill: Pick<WherePill,
     return () => ro.disconnect();
   }, []);
 
-  const tag = work.on && progressTag({ kind: "working", label: work.on.label });
+  const openLabel = work.on?.label ?? work.review?.find((r) => r.open)?.problem.label;
+  const tag = openLabel ? progressTag({ kind: "working", label: openLabel }) : null;
   const questions = [...work.moved.map((m) => ({ problem: m.problem, lines: m.lines as string[] | null })), ...(work.on ? [{ problem: work.on, lines: null }] : [])];
   return (
     <div ref={ref} className="flex flex-col" role="dialog" aria-label={`${pill.name}'s work so far`} data-student-panel={pill.id}>
@@ -86,7 +90,9 @@ export default function StudentWorkPanel({ pill, work }: { pill: Pick<WherePill,
           </div>
         </div>
         <div className="min-h-0 overflow-y-auto px-6 pb-1" data-panel-scroll>
-          {questions.length === 0 ? (
+          {work.review ? (
+            <ReviewList review={work.review} tag={tag} />
+          ) : questions.length === 0 ? (
             <p className="py-5 text-[17px] text-ink-muted" data-panel-empty>
               No questions yet
             </p>
@@ -112,4 +118,43 @@ export default function StudentWorkPanel({ pill, work }: { pill: Pick<WherePill,
       </Card>
     </div>
   );
+}
+
+/** Individual review's questions in the panel (ticket 318): each problem to fix, its first submission, then its correction so far. */
+function ReviewList({ review, tag }: { review: NonNullable<WorkSoFar<Problem>["review"]>; tag: ReturnType<typeof progressTag> | null }) {
+  if (review.length === 0)
+    return (
+      <p className="py-5 text-[17px] text-ink-muted" data-panel-empty>
+        Nothing to fix
+      </p>
+    );
+  return review.map(({ problem, first, correction, open }) => (
+    <section key={problem.id} className="border-b border-line py-4 last:border-b-0" data-panel-question={problem.id} data-in-progress={open || undefined}>
+      <div className="flex items-baseline gap-3">
+        <span className="shrink-0 font-display text-[24px] leading-none text-ink">{problem.label}</span>
+        <p className="min-w-0 flex-1 text-[17px] leading-snug text-ink" data-panel-question-text>
+          <ProblemQuestion problem={problem} mathClass="math-lg" />
+        </p>
+        {open && tag && <ProgressPill tag={tag} className="self-center" style={{ zoom: LINES_ZOOM }} />}
+      </div>
+      <div className="mt-3" data-panel-version="first">
+        <Eyebrow>First submission</Eyebrow>
+        <div style={{ zoom: LINES_ZOOM }} data-panel-lines>
+          <WorkLines problem={problem.id} texs={first} />
+        </div>
+      </div>
+      <div className="mt-3" data-panel-version="correction">
+        <Eyebrow>Correction</Eyebrow>
+        {correction.length > 0 ? (
+          <div style={{ zoom: LINES_ZOOM }} data-panel-lines>
+            <WorkLines problem={problem.id} texs={correction} />
+          </div>
+        ) : (
+          <p className="mt-1.5 text-[15px] text-ink-muted" data-panel-no-correction>
+            Nothing yet
+          </p>
+        )}
+      </div>
+    </section>
+  ));
 }

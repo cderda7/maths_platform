@@ -62,8 +62,8 @@ describe("one typed question as the student's card", () => {
   });
 
   it("maths inside the prose stays inline; the last run ending the text is the expression", () => {
-    const q = parseQuestion("Show that the following has no real solutions, and say what that means for the graph of y = x**2 + 4x + 5. x**2 + 4x + 5 = 0");
-    expect(q.stem).toEqual([text("Show that the following has no real solutions, and say what that means for the graph of "), math("y = x^{2} + 4x + 5", "y = x**2 + 4x + 5"), text(".")]);
+    const q = parseQuestion("The graph of y = x**2 + 4x + 5 never meets the x-axis. Show it has no real solutions. x**2 + 4x + 5 = 0");
+    expect(q.stem).toEqual([text("The graph of "), math("y = x^{2} + 4x + 5", "y = x**2 + 4x + 5"), text(" never meets the x-axis. Show it has no real solutions.")]);
     expect(q.tex).toBe("x^{2} + 4x + 5 = 0");
   });
 

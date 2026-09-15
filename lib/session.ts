@@ -128,8 +128,13 @@ export interface StudentSession {
   rework: Record<string, RevealedLine[]>;
   /** The handwriting behind `rework`, per problem. */
   reworkInk: Record<string, Stroke[]>;
-  /** Index into the problems being reworked (those with a slip). */
+  /** The problem open on the individual review screen: an index into the set's problems (ticket 318). */
   reworkIndex: number;
+  /**
+   * When the student last opened a problem in individual review, by choosing it or by writing on the one showing (ms since
+   * epoch; 0 until they do): the teacher's Where students are reads it as their row entry (ticket 318).
+   */
+  reworkOpenedAt: number;
   /** The 2–3 sentence reflection on the final report. */
   reflection: string;
   /** True once the reflection has been sent to the teacher. */
@@ -224,9 +229,9 @@ export type SessionAction =
   | { type: "star/toggle"; problem: string }
   /** The sentence typed in the answer field under the pad, as typed (kept through undo and clear). */
   | { type: "answer/set"; problem: string; text: string }
-  | { type: "rework/goto"; index: number }
+  | { type: "rework/goto"; index: number; at?: number }
   | { type: "rework/reveal"; problem: string; line: RevealedLine }
-  | { type: "rework/stroke"; problem: string; stroke: Stroke }
+  | { type: "rework/stroke"; problem: string; stroke: Stroke; at?: number }
   | { type: "rework/undo"; problem: string; strokeCount?: number }
   | { type: "rework/clear"; problem: string }
   /** Refused while the guard is tripped on any problem, unless `force` (a teacher advance). */
@@ -281,6 +286,7 @@ export const INITIAL_SESSION: StudentSession = {
   rework: {},
   reworkInk: {},
   reworkIndex: 0,
+  reworkOpenedAt: 0,
   reflection: "",
   reportSent: false,
   homeworkAt: 0,
@@ -536,11 +542,11 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       if (s.overlay && (s.ladder?.step === "worked" || s.ladder?.step === "completion")) return { ...s, overlay: null, ladder: null, practices: stampStep(s.practices, s.ladder.problem, "back", a.at) };
       return { ...s, overlay: null, ladder: null };
     case "rework/goto":
-      return { ...s, reworkIndex: a.index };
+      return { ...s, reworkIndex: a.index, reworkOpenedAt: a.at ?? s.reworkOpenedAt };
     case "rework/reveal":
       return { ...s, rework: { ...s.rework, [a.problem]: [...(s.rework[a.problem] ?? []), a.line] } };
     case "rework/stroke":
-      return { ...s, reworkInk: { ...s.reworkInk, [a.problem]: [...(s.reworkInk[a.problem] ?? []), roundStroke(a.stroke)] } };
+      return { ...s, ...(s.reworkOpenedAt === 0 && a.at ? { reworkOpenedAt: a.at } : {}), reworkInk: { ...s.reworkInk, [a.problem]: [...(s.reworkInk[a.problem] ?? []), roundStroke(a.stroke)] } };
     case "rework/undo": {
       const strokes = s.reworkInk[a.problem] ?? [];
       const count = a.strokeCount ?? Math.max(0, strokes.length - 1);

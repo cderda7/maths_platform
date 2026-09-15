@@ -30,7 +30,8 @@ import StemWords from "@/components/StemWords";
 export default function FeedbackScreen({ session, dispatch }: { session: StudentSession; dispatch: (a: SessionAction) => void }) {
   const problems = useAssignment().problems;
   const summary = feedbackSummary(session, "original", problems);
-  const [sel, setSel] = useState(0);
+  // The problem open is the session's (ticket 318), so a reload keeps it and the teacher sees it.
+  const sel = session.reworkIndex;
   const cur = problems[Math.min(sel, problems.length - 1)];
   const lines = session.lines[cur.id] ?? [];
   const starred = session.stars.includes(cur.id);
@@ -55,7 +56,7 @@ export default function FeedbackScreen({ session, dispatch }: { session: Student
   };
   const choose = (i: number) => {
     setRecognising(false);
-    setSel(i);
+    dispatch({ type: "rework/goto", index: i });
   };
 
   return (

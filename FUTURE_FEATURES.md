@@ -1773,6 +1773,17 @@ Raised in a project checkpoint review; Carson asked for these on the list. Space
 - **The garden recommendation.** Refine's "A rectangular garden is 3 metres longer than it is wide, with an area of 40 square metres" keeps its words: its TeX `w(w + 3) = 40` leaves the length out, so the words are not a copy. Whether a recommendation should show an equation at all for a complex unfamiliar problem is open.
 - **Typed and uploaded stems.** The guard test reads `data/`. A stem typed on Create ("…the graph of y = x**2 + 4x + 5. x**2 + 4x + 5 = 0") or extracted from an upload can still repeat its expression; Refine could flag it, or the extraction prompt could ask for it once. Deferred: the rule was asked for the app's own sets.
 
+## Where students are during individual review (ticket 318, 2026-09-15)
+
+- **A group-grid cell opens that group's attempts.** In ticket 319's grid, pressing a cell would show the group's tries on that problem, the hint they saw and the pen-holders. Deferred by Carson in the 318/319 grilling: the grid ships first.
+- **Pressing a card's still-to-fix name opens the student's correction.** The review cards list who is still to fix a mistake; a press could open their panel at that problem. Deferred: the pills already open the panel, and nothing asked for it.
+- **Real rework timelines for the classmates.** Their individual review is named demo pacing (`data/classmates-rework.ts`) over their final second submissions. A real class would stream its corrections line by line, including corrections that go wrong and are rewritten. Deferred: the demo has no live classmates.
+- **"Changed, still wrong" on the screen.** The first mockup marked a correction that stays wrong with a red dot. Carson dropped it with the per-row pills. If teachers want to see who is going round in circles, it could come back on the open pill or as a second count ("2 still wrong"). Deferred: rejected for now.
+- **Classmates done on their own time.** Every classmate is done at their gate arrival, anchored to Sam's (only a student with nothing to fix is done at once). A class whose students finish before or long after Sam would need the gate, the stage count and ticket 332's arrivals to read each student's own time. Deferred: the demo's gate is anchored to Sam.
+- **Deep links date the hand-in.** `?stage=feedback` keeps its fixed 3:48 pm hand-in, so the review column reads by that clock. Dating deep-linked hand-ins at load would make it start fresh, but would change the report's fixed times. Deferred.
+- **The first submission and the correction side by side.** The panel stacks them because the maths would not fit at half width. A wider panel, or a compare view like "Original vs final", could put them next to each other. Deferred.
+- **Which fit step hides what.** At 1280×800 the review column usually drops "fixed n of m" to fit. A shorter pill (first names, or "1/3") could keep it. Deferred for Carson to judge on the screen.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
