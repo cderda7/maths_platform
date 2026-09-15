@@ -1557,6 +1557,18 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **Skill history in the student panel.** Pressing a name shows the confidence answer and marked work only; the Class view's category status pills and history pills were left out by the user for now.
 - **A chain of more than one completion step.** Fading one more line at a time (two completion problems before the problem alone) is the fuller faded-guidance sequence; one keeps practice short (see the five-item runs entry).
 
+## Where each student is (ticket 314, 2026-09-15)
+
+- **A slower demo stream.** The stream runs the set in about seven minutes, so a warm-up step lasts 5 to 40 seconds and a help step 4 to 9; ticket 315's minutes on a step mostly read 0. A presenter speed control (real time, or the stream at a quarter speed) would let the minutes mean something in a demo. Deferred: hand-in times and answered problems had to stay as they are.
+- **Step times for Sam from his session.** `since` is null for Sam until tickets 312 and 313 record when each step began; `carrySince` covers the gap by holding the first time a screen saw a place.
+- **Per-student step lengths.** Every classmate splits a warm-up skill 35/40/25 and a question's help at 20/45/75%; a student who reads the worked example slowly or finishes the steps quickly could have their own shares.
+- **Help that fixes the answer.** The classmates take help on questions they still get wrong, because the records fix their answers; a story where help on a question leads to it being right needs records that show that (and the after-practice marker, ticket 317, would then show it).
+- **Hints and help on the warm-up itself.** A student warming up can ask for a hint or chat on the warm-up pad; the place model shows only the step, not a hint within it.
+- **The repeated-slip offer as its own detail.** The model does not tell help asked for from the practice offer taken after a repeated slip (`PracticeEntry.reason`); the teacher might read those differently.
+- **More than one help per question, or help after a hint.** The script allows one of each per question and the timeline places them independently; a student who takes a hint and then help on the same question would need an order.
+- **The confidence check's words.** A classmate's check is a fixed six seconds; the check could show what they answered as it lands (the Class tab shows the answer only after).
+- **Where students are on a finished set.** A finished set's places are its records (handed in or not started) with no times; a replay of the lesson's places from recorded events is a later idea.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

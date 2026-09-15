@@ -167,7 +167,12 @@ lands about 8 s in (Ethan's Q1); Jordan, Tomas, Amelia, Mia and Oliver warm up f
 minutes in; Jordan answers Q1–Q7 and stays on Q8; Chloe never starts. The end state is 17/20 (Sam is the real
 student tab), still individual working. A reload continues from the stored start; Reset demo removes the set; a
 presenter skip starts it an hour back (the end state); once Sam hands in (himself or by force submit) the class is
-past working and every classmate who started has handed in.
+past working and every classmate who started has handed in. Inside those times the script also says where each
+student is (ticket 314, `lib/place.ts`, for ticket 315's Where students are): everyone opens on the confidence check;
+the five warm up after a chat on the skills they named, three steps each (Jordan non-monic; Mia fractions then
+non-monic; Oliver monic then non-monic; Tomas fractions; Amelia the discriminant); Liam (Q1), Sofia (Q2), Harper (Q3)
+and Finn (Q5) take help in three steps on a question they slipped on; Noah (two on Q3), Ethan (Q4) and Ruby (Q9) ask
+for hints. Sam's place comes from his session.
 
 - **Class** (`/teacher/a/pset-6/class`; every set has one, `/teacher/a/pset-1/class` … ): one column per skill category the set touches (Algebra, Functions, Graphing,
   Communication, Reasoning, New skills), each a pill in the worst status beneath it (groups and
