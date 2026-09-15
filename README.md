@@ -365,7 +365,9 @@ Useful starts: `/student?stage=working&pathway=wc` (hand in, wait for the board)
 - `lib/` pure logic with vitest: the student session reducer and store; the classroom reducer and
   store (assignment, advances, whole-class session); pathway rules; active assignment; detective
   summary and the guard; examples and marks for the board; the frozen view; recognition,
-  evaluation, escalation, statuses, groups, report facts, mistakes, peers, versions.
+  evaluation, escalation, statuses, groups, report facts, mistakes, peers, versions; the line
+  check for a blank step (`stepCheck.ts`: right, wrong with its misconception, or unreadable, on
+  the one TeX grammar in `texEval.ts`).
 - `specs/` the two specs; `tickets/` one file per ticket; `architecture/` one note per ticket;
   the running record is `../ARCHITECTURE.md`, decisions are in `../DECISION_LOG.md`, deferred
   ideas in `../FUTURE_FEATURES.md`. The copy rule every screen follows is in `specs/spec2.md`.

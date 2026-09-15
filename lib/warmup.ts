@@ -244,5 +244,21 @@ export function warmupSequence(focus: LeafId[]): PracticeProblem[] {
   return out.length > 0 ? out : [PRACTICE];
 }
 
-/** What the pad reads for a warm-up problem, one line per burst: its own model steps. */
-export const warmupScript = (p: PracticeProblem): string[] => p.steps.map((st) => st.tex);
+/**
+ * Wrong lines a demo run writes into steps before their right lines (ticket 311), keyed by the step's index in the
+ * problem's `steps` (0-based): `{ 2: ["(x - 3)(x - 4) = 0"] }` writes that line on the burst where step 2's line would
+ * come, then step 2's own line on the next burst, then carries on. More than one wrong line for a step are written in
+ * order. Simulation data, kept apart from the problem (a problem's steps are its maths; which slips a demo shows is a
+ * separate, named choice), so a run with no slips writes exactly the steps.
+ */
+export type ScriptSlips = Readonly<Record<number, readonly string[]>>;
+
+/**
+ * What the demo pad reads, one line per burst (`nextLine` in `lib/recognition.ts` takes them in order): each step's
+ * line, any slips for a step written just before it. Takes the steps alone, so any worked problem's steps (a warm-up
+ * problem's, a completion problem's) script the same way.
+ */
+export const padScript = (steps: readonly { tex: string }[], slips: ScriptSlips = {}): string[] => steps.flatMap((st, i) => [...(slips[i] ?? []), st.tex]);
+
+/** What the pad reads for a warm-up or practice problem (the warm-up screen and the practice overlay both draw `PracticePad`, which reads this): its own model steps, with any slips before their steps. */
+export const warmupScript = (p: PracticeProblem, slips: ScriptSlips = {}): string[] => padScript(p.steps, slips);
