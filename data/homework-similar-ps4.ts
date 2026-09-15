@@ -47,7 +47,7 @@ export const PS4_SIMILAR_PROBLEMS: SimilarProblem[] = [
   },
   {
     problemId: "ps4-q8",
-    stem: "Write in the form a(x + h)² + k, and state the turning point.",
+    stem: "Write in the form $a(x + h)^2 + k$, and state the turning point.",
     tex: "3x^2 + 6x - 2",
     type: "turning-point form with a number in front of x²",
     solution: [
@@ -60,7 +60,7 @@ export const PS4_SIMILAR_PROBLEMS: SimilarProblem[] = [
   },
   {
     problemId: "ps4-q10",
-    stem: "A rectangle's length is 1 cm more than twice its width, and its area is 36 cm². Find its width.",
+    stem: "A rectangle's length $l$ cm and width $w$ cm satisfy the following. Find its width.",
     tex: "l = 2w + 1,\\quad lw = 36",
     type: "a rectangle's width from its area",
     solution: [

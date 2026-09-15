@@ -138,7 +138,7 @@ export const PS2_PROBLEMS: Problem[] = [
     id: "ps2-q10",
     label: "Q10",
     difficulty: "complex unfamiliar",
-    stem: "A rectangle is (3 + √2) cm long and (3 − √2) cm wide. Find its area and the length of its diagonal, exactly.",
+    stem: "A rectangle's length $\\ell$ cm and width $w$ cm are given below. Find its area and the length of its diagonal, exactly.",
     tex: "\\ell = 3 + \\sqrt{2},\\quad w = 3 - \\sqrt{2}",
     answerAs: "sentence",
     solution: [

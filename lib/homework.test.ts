@@ -4,7 +4,7 @@ import { PROBLEMS } from "@/data/assignment";
 import { PROBLEM_DIAGNOSTICS } from "@/data/diagnostic";
 import { SIMILAR_PROBLEMS, SIMILAR_MAP } from "@/data/homework";
 import * as homework from "./homework";
-import { everWrong, glueRuns, glueStem, HOMEWORK_LEAD_MS, homeworkDone, homeworkProblems, lastLanded, MOTION, perTile, REDUCED_MOTION, sameTypeLine, texDiff, texShape, tileLands, tileMoment, tileStart, wordDiff } from "./homework";
+import { everWrong, HOMEWORK_LEAD_MS, homeworkDone, homeworkProblems, lastLanded, MOTION, perTile, REDUCED_MOTION, sameTypeLine, stemWords, texDiff, texShape, tileLands, tileMoment, tileStart, wordDiff } from "./homework";
 import { INITIAL_SESSION, sessionAt, sessionReducer, type StudentSession } from "./session";
 import { skipFixture } from "./demo";
 import { evalTex, namedValues, sameFunction, sameValues, sides } from "./texEval";
@@ -155,10 +155,10 @@ describe("the similar problems (ticket 256)", () => {
     expect(S("q9").solution[3].label).toMatch(/4 m/);
   });
 
-  it("Q10: x² + 3x + 4 = 0 has discriminant 9 − 16 = −7, and the stem names the same graph", () => {
+  it("Q10: x² + 3x + 4 = 0 has discriminant 9 − 16 = −7, and the stem is the bank's (the graph is the expression's, said once)", () => {
     expect(evalTex("3^2 - 4(1)(4)")).toBe(-7);
     expect(evalTex("9 - 16")).toBe(-7);
-    expect(S("q10").stem).toContain("y = x² + 3x + 4.");
+    expect(S("q10").stem).toBe(PROBLEMS[9].stem);
   });
 });
 
@@ -177,10 +177,10 @@ describe("changing a question into its similar one", () => {
       { from: "ball's", to: "stone's" },
       { from: "height after", to: "height after" },
     ]);
-    const q10 = wordDiff(PROBLEMS[9].stem, SIMILAR_MAP.q10.stem);
-    expect(q10.filter((r) => r.from !== r.to)).toEqual([
-      { from: "4x", to: "3x" },
-      { from: "5.", to: "4." },
+    expect(wordDiff("For $f(x) = x^2 - 3x + 1$, find", "For $f(x) = 2x^2 + x - 5$, find")).toEqual([
+      { from: "For", to: "For" },
+      { from: "$f(x) = x^2 - 3x + 1$,", to: "$f(x) = 2x^2 + x - 5$," },
+      { from: "find", to: "find" },
     ]);
     for (const s of SIMILAR_PROBLEMS) {
       const runs = wordDiff(PROBLEMS.find((p) => p.id === s.problemId)!.stem, s.stem);
@@ -189,14 +189,9 @@ describe("changing a question into its similar one", () => {
     }
   });
 
-  it("keeps the maths written in a stem's words on one line", () => {
-    const nb = "\u00a0";
-    expect(glueStem(PROBLEMS[9].stem)).toBe(`Show that the following has no real solutions, and say what that means for the graph of y${nb}=${nb}x²${nb}+${nb}4x${nb}+${nb}5.`);
-    expect(glueStem("Solve for x.")).toBe("Solve for x.");
-    const g = glueRuns(wordDiff(PROBLEMS[9].stem, SIMILAR_MAP.q10.stem));
-    const joined = g.runs.map((r, i) => g.joins[i] + r.to).join("");
-    expect(joined).toBe(glueStem(SIMILAR_MAP.q10.stem));
-    expect(g.runs.map((r, i) => g.joins[i] + r.from).join("")).toBe(glueStem(PROBLEMS[9].stem));
+  it("reads a stem's inline maths as one word, so a diff never cuts into it (ticket 342)", () => {
+    expect(stemWords("Solve for x.")).toEqual(["Solve", "for", "x."]);
+    expect(stemWords("Write in the form $a(x + h)^2 + k$, and state the turning point.")).toEqual(["Write", "in", "the", "form", "$a(x + h)^2 + k$,", "and", "state", "the", "turning", "point."]);
   });
 
   it("the line names the type and whether the numbers or the set-up changed", () => {

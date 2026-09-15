@@ -82,10 +82,26 @@ export interface WordRun {
   to: string;
 }
 
+/** A stem's words, split at spaces; a piece of `$…$` maths is one word with its spaces, so a diff never cuts into it (ticket 342). */
+export function stemWords(stem: string): string[] {
+  const words: string[] = [];
+  let inMath = false;
+  let word = "";
+  for (const ch of stem) {
+    if (ch === "$") inMath = !inMath;
+    if (ch === " " && !inMath) {
+      words.push(word);
+      word = "";
+    } else word += ch;
+  }
+  words.push(word);
+  return words;
+}
+
 /** Two stems as runs of words, the words they share kept in order (longest common subsequence), the rest paired up as changes. */
 export function wordDiff(from: string, to: string): WordRun[] {
-  const a = from.split(" ");
-  const b = to.split(" ");
+  const a = stemWords(from);
+  const b = stemWords(to);
   const lcs = Array.from({ length: a.length + 1 }, () => new Array<number>(b.length + 1).fill(0));
   for (let i = a.length - 1; i >= 0; i--) for (let j = b.length - 1; j >= 0; j--) lcs[i][j] = a[i] === b[j] ? lcs[i + 1][j + 1] + 1 : Math.max(lcs[i + 1][j], lcs[i][j + 1]);
   const runs: WordRun[] = [];
@@ -115,40 +131,12 @@ export function wordDiff(from: string, to: string): WordRun[] {
   return runs;
 }
 
-const NBSP = "\u00a0";
-
-/**
- * A stem's runs with the maths written in its words kept on one line (the maths-never-splits rule): from a lone letter
- * followed by "=" ("y = x² + 4x + 5.") to the end, every space inside a run and every join between runs is a no-break
- * space. `joins[i]` goes before run `i` (empty before the first).
- */
-export function glueRuns(runs: WordRun[]): { runs: WordRun[]; joins: string[] } {
-  const words = runs.flatMap((r) => r.from.split(" "));
-  const start = words.findIndex((w, i) => /^[a-z]$/i.test(w) && words[i + 1] === "=");
-  let k = 0;
-  const joins: string[] = [];
-  const out = runs.map((r, i) => {
-    const glued = start >= 0 && k > start;
-    joins.push(i === 0 ? "" : glued ? NBSP : " ");
-    const n = r.from.split(" ").length;
-    const inner = (text: string) => text.split(" ").map((w, j) => (j === 0 ? w : `${start >= 0 && k + j > start ? NBSP : " "}${w}`)).join("");
-    const next = { from: inner(r.from), to: r.from === r.to ? inner(r.from) : r.to.split(" ").join(start >= 0 && k >= start ? NBSP : " ") };
-    k += n;
-    return next;
-  });
-  return { runs: out, joins };
-}
-
-/** One stem with its maths kept on one line. */
-export const glueStem = (stem: string): string => {
-  const g = glueRuns([{ from: stem, to: stem }]);
-  return g.runs[0].from;
-};
-
 /** The line under the changed question: what stays the same, and what changed. */
 export function sameTypeLine(problem: Pick<Problem, "stem">, similar: SimilarProblem): string {
   const words = wordDiff(problem.stem, similar.stem).filter((r) => r.from !== r.to);
-  const setUp = words.some((r) => /[a-z]{2,}/i.test(r.from.replace(/x²/g, "")) || /[a-z]{2,}/i.test(r.to.replace(/x²/g, "")));
+  // A change inside a stem's `$…$` maths is a number, not the set-up.
+  const prose = (text: string) => text.replace(/\$[^$]*\$/g, "");
+  const setUp = words.some((r) => /[a-z]{2,}/i.test(prose(r.from)) || /[a-z]{2,}/i.test(prose(r.to)));
   return `Same type, new ${setUp ? "set-up" : "numbers"}: ${similar.type}`;
 }
 

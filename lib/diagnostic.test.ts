@@ -107,7 +107,7 @@ describe("step questions per problem (ticket 240)", () => {
         }
       }
   });
-  it("each step's 'given that' stem states the correct result of the step before it", () => {
+  it("each step's 'given that' question states the correct result of the step before it, in its words or its expression", () => {
     // Words and maths alike, with spacing, brackets and TeX spacing commands set aside.
     const norm = (tex: string) => tex.replace(/\$/g, "").replace(/\\text\{([^}]*)\}/g, "$1").replace(/\\Rightarrow|\\quad|\\[;,]/g, "").replace(/[\s(),{}]/g, "");
     for (const p of PROBLEM_DIAGNOSTICS)
@@ -117,7 +117,9 @@ describe("step questions per problem (ticket 240)", () => {
         const prev = p.steps[i - 1];
         const result = prev.options.find((o) => o.id === prev.correct)!.tex;
         const parts = result.split(/\\;\\text\{(?:or|and)\}\\;|,\\quad|\\Rightarrow/).map(norm);
-        for (const part of parts) expect([part, part.replace(/=0$/, "")].some((x) => norm(s.stem).includes(x)), `${s.id} states ${part}`).toBe(true);
+        // The expression may carry it (ticket 342: a stem never repeats the expression shown after it).
+        const question = norm(s.stem + s.tex);
+        for (const part of parts) expect([part, part.replace(/=0$/, "")].some((x) => question.includes(x)), `${s.id} states ${part}`).toBe(true);
       });
   });
 

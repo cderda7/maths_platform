@@ -18,6 +18,7 @@ import { warmupScript } from "@/lib/warmup";
 import HelpMenu, { StallNotice } from "@/components/HelpMenu";
 import { useEscape } from "@/components/useEscape";
 import { ExamplePeek } from "@/app/student/screens/PracticeSteps";
+import StemWords from "@/components/StemWords";
 
 /**
  * Practice on the pad, for the warm-up and the mid-set isolated practice alike: the working
@@ -142,7 +143,7 @@ export default function PracticePad({
           <span className="text-[12px] uppercase tracking-wide text-ink-muted">not marked</span>
         </div>
         {!second && header}
-        <p className="mt-3 text-[14px] text-ink-soft">{p.stem}</p>
+        <p className="mt-3 text-[14px] text-ink-soft"><StemWords stem={p.stem} /></p>
         <div className="math-lg mt-3 text-ink">
           <M tex={termTex(p.tex, termsAt(0), litAt(0))} display />
         </div>

@@ -183,7 +183,7 @@ export const PROBLEM_DIAGNOSTICS: ProblemDiagnostic[] = [
     {
       key: "factorise",
       name: "Factorise",
-      stem: "Given that $3x^2 + 5x - 2 = 3x(x + 2) - 1(x + 2)$, which is the factorised form of",
+      stem: "Given the grouping $3x(x + 2) - 1(x + 2)$, which is the factorised form of",
       tex: "3x^2 + 5x - 2",
       options: [
         { id: "a", tex: "(3x + 1)(x - 2)", detail: "signs swapped in the pair", misconception: "pair-signs-swapped", ifChosen: "swapped the signs in both brackets" },
@@ -196,8 +196,8 @@ export const PROBLEM_DIAGNOSTICS: ProblemDiagnostic[] = [
     {
       key: "solve",
       name: "Null factor law",
-      stem: "Given that $3x^2 + 5x - 2 = (3x - 1)(x + 2)$, what are the solutions of",
-      tex: "3x^2 + 5x - 2 = 0",
+      stem: "Given the factorised form, what are the solutions of",
+      tex: "(3x - 1)(x + 2) = 0",
       options: [
         { id: "a", tex: `x = -\\tfrac{1}{3}${OR}x = -2`, detail: "sign lost solving a factor", misconception: "solving-sign", ifChosen: "solved $3x - 1 = 0$ as $x = -\\tfrac{1}{3}$", slip: Q2_SIGN },
         { id: "b", tex: `x = \\tfrac{1}{3}${OR}x = -2` },
@@ -238,7 +238,7 @@ export const PROBLEM_DIAGNOSTICS: ProblemDiagnostic[] = [
     {
       key: "factorise",
       name: "Factorise",
-      stem: "Given that the standard form is $x^2 + 2x - 15 = 0$, which is the factorised form of",
+      stem: "Given the standard form, which is the factorised form of",
       tex: "x^2 + 2x - 15",
       options: [
         { id: "a", tex: "(x - 5)(x + 3)", detail: "signs flipped in the pair", misconception: "pair-signs-swapped", ifChosen: "used a pair that adds to $-2$, not $2$" },
@@ -323,8 +323,8 @@ export const PROBLEM_DIAGNOSTICS: ProblemDiagnostic[] = [
     {
       key: "intercepts",
       name: "x-intercepts",
-      stem: "Given that $x^2 - 6x - 7 = (x - 7)(x + 1)$, which are the x-intercepts of the graph of",
-      tex: "y = x^2 - 6x - 7",
+      stem: "Given the factorised form, which are the x-intercepts of the graph of",
+      tex: "y = (x - 7)(x + 1)",
       options: [
         { id: "a", tex: `x = 7${OR}x = 1`, detail: "one sign flipped", misconception: "root-vertex-sign", ifChosen: "got the sign of one intercept wrong" },
         { id: "b", tex: "x = -7", detail: "constant read as intercept", misconception: "wrong-feature", ifChosen: "gave the constant as an intercept" },
@@ -566,7 +566,7 @@ export const PROBLEM_DIAGNOSTICS: ProblemDiagnostic[] = [
     {
       key: "context",
       name: "In context",
-      stem: "Given that $x^2 + 2x + 3 = 0$ has $\\Delta < 0$, so no real solutions, what does that mean for the graph of",
+      stem: "Given that $\\Delta < 0$, so no real solutions, what does that mean for the graph of",
       tex: "y = x^2 + 2x + 3",
       options: [
         { id: "a", tex: "\\text{crosses the x-axis twice}", detail: "negative read as two roots", misconception: "context-not-checked", ifChosen: "said twice, but $\\Delta < 0$ means never", slip: Q10_TWICE },

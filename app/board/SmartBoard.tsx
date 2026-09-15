@@ -19,6 +19,7 @@ import { useLiveSession, useNow } from "@/lib/store";
 import { useBoardBeat } from "@/lib/boardPresence-store";
 import FullscreenButton from "./FullscreenButton";
 import Leaderboard from "./Leaderboard";
+import StemWords from "@/components/StemWords";
 
 /**
  * The smartboard: opened once at the start of the lesson from the laptop's Present board (ticket 333) and left on the projector. Display
@@ -182,7 +183,9 @@ function Slide({ content }: { content: Extract<BoardContent, { kind: "whole-clas
         </div>
       </header>
       <p className="px-10 text-[20px] text-ink-soft">
-        <span data-ink-anchor={ANCHOR.stem}>{p.stem}</span>
+        <span data-ink-anchor={ANCHOR.stem}>
+          <StemWords stem={p.stem} />
+        </span>
       </p>
 
       {/* The pad is 380 wide (its title and toolbar on one line) and the example cards fitted (ticket 161) so the widest line of any example stands on one line at the board's 1440 width. */}

@@ -333,7 +333,8 @@ describe("Problem Sets 4 and 3's similar problems (ticket 294)", () => {
       expect(texDiff(p.tex, s.tex).aligned, s.problemId).toBe(true);
       expect(texShape(s.stem), s.problemId).toBe(texShape(p.stem));
     }
-    expect(PS4_SIMILAR_PROBLEMS.filter((s) => s.stem !== original(s.problemId).stem).map((s) => s.problemId)).toEqual(["ps4-q10"]);
+    // Every stem's numbers live in its TeX (ticket 342), so a similar problem's stem is its original's word for word.
+    expect(PS4_SIMILAR_PROBLEMS.filter((s) => s.stem !== original(s.problemId).stem).map((s) => s.problemId)).toEqual([]);
   });
 
   it("carries exactly its original's skills, step for step, and a named type", () => {

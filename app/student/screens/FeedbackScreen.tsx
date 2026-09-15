@@ -15,6 +15,7 @@ import { feedbackSummary, progressOf } from "@/lib/feedback";
 import { GUARD_TEXT, guardFor, trippedProblems } from "@/lib/guard";
 import { nextLine } from "@/lib/recognition";
 import type { SessionAction, StudentSession } from "@/lib/session";
+import StemWords from "@/components/StemWords";
 
 /**
  * Individual review: detective feedback after handing in, and the place to correct it. Two soft
@@ -133,7 +134,7 @@ export default function FeedbackScreen({ session, dispatch }: { session: Student
                 <M tex={cur.tex} />
               </span>
             </div>
-            <p className="mt-1 text-[13.5px] text-ink-soft">{cur.stem}</p>
+            <p className="mt-1 text-[13.5px] text-ink-soft"><StemWords stem={cur.stem} /></p>
           </div>
           <StarButton on={starred} onToggle={() => dispatch({ type: "star/toggle", problem: cur.id })} />
         </div>

@@ -154,10 +154,9 @@ describe("the demo draft against the bank", () => {
       const q = parseQuestion(line);
       const bank = PROBLEMS[i];
       expect(norm(q.tex ?? ""), bank.label).toBe(norm(bank.tex));
-      if (i !== 9) expect(stemText(q.stem), bank.label).toBe(bank.stem);
+      expect(stemText(q.stem), bank.label).toBe(bank.stem);
     }
     expect(parseQuestion(DEMO_PASTE_LINES[0]).tex).toBe("x^{2} + 5x + 6 = 0");
     expect(parseQuestion(DEMO_PASTE_LINES[8]).tex).toBe("(x+1)(x-4) = 6");
-    expect(stemText(parseQuestion(DEMO_PASTE_LINES[9]).stem)).toBe("Show that the following has no real solutions, and say what that means for the graph of $y = x^{2} + 4x + 5$.");
   });
 });

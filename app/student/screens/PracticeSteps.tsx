@@ -17,6 +17,7 @@ import { pickHint, stalledHint, termTex } from "@/lib/hint";
 import { completionScript, completionState, completionWorking, type BlankState, type LineMark } from "@/lib/ladder";
 import { nextLine } from "@/lib/recognition";
 import type { PracticeRun, RunKey, SessionAction } from "@/lib/session";
+import StemWords from "@/components/StemWords";
 
 /**
  * The three steps' screens, shared by help on a set question (ticket 312: Q*, Q**, back on Q) and the warm-up (ticket 313:
@@ -107,7 +108,7 @@ export function WorkedStep({
     <div className="grid h-full min-h-0 grid-cols-[300px_1fr_320px]" data-run={runKey} data-ladder-worked>
       <aside className="flex min-h-0 flex-col overflow-y-auto border-r border-line px-7 py-6">
         {head}
-        <p className="mt-3 text-[14px] text-ink-soft">{question.stem}</p>
+        <p className="mt-3 text-[14px] text-ink-soft"><StemWords stem={question.stem} /></p>
         <div className="math-lg mt-3 text-ink">
           <M tex={question.tex} display />
         </div>
@@ -210,7 +211,7 @@ export function CompletionStep({
     <div className="grid h-full min-h-0 grid-cols-[300px_1fr_320px]" data-run={runKey} data-ladder-completion>
       <aside className="flex min-h-0 flex-col overflow-y-auto border-r border-line px-7 py-6">
         {head}
-        <p className="mt-3 text-[14px] text-ink-soft">{question.stem}</p>
+        <p className="mt-3 text-[14px] text-ink-soft"><StemWords stem={question.stem} /></p>
         <div className="math-lg mt-3 text-ink">
           <M tex={termTex(question.tex, h.termsAt(0), h.litAt(0))} display />
         </div>

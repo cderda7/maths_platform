@@ -1744,7 +1744,6 @@ Raised in a project checkpoint review; Carson asked for these on the list. Space
 
 ## Upright maths (ticket 339, 2026-09-15)
 
-- **Maths written as text in stems.** Several stems carry their maths as plain text in the sans face ("the graph of y = x² + 4x + 5" on PS6 Q10 and its homework and pair versions; "For f(x) = x² − 3x + 1", "h = 20t − 5t²" and the discriminant stems in `data/practice.ts` and `data/pairs.ts`; PS4's "a(x + h)² + k" and the "cm²" areas), beside upright serif KaTeX, so the same expression reads in two faces on one card. The inline `$…$` delimiter exists (ticket 293, `ProblemQuestion`, `DiagnosticStem`), but the student screens and Create render stems as plain words. Deferred: it touches every stem renderer, the pair tests that hold stems to their questions, and the hint phrases that name stem words; noticed while checking 339's screenshots, not asked for.
 - **Italic correction on upright letters.** KaTeX keeps a small right margin after glyphs that lean (f 0.11em, y 0.04em). Removing it is a change to KaTeX's spacing, which the maths rule forbids; revisit only if an `f(x)` in TeX looks loose.
 - **Lowercase Greek.** KaTeX_Main has no lowercase Greek, so `\pi` or `\theta` typed on Create would fall back to Times New Roman. No stored TeX uses one; a rule for `.mathnormal` Greek (keep KaTeX_Math, upright) would be needed first.
 
@@ -1756,6 +1755,13 @@ Raised in a project checkpoint review; Carson asked for these on the list. Space
 - **The fourth state on Sam's iPad.** The student's strip has no counts, so it never shows "finished but still current". Deferred: Carson confirmed the iPad looks as it does today.
 - **Create's pathway line through the shared pill.** Create's stops (`PathwayMap`) are on/off toggles with their own look, not lesson states, so they do not use `StagePill`. Deferred: a different object; unifying the looks is a design call.
 - **The pathway strip on narrow windows.** It fits 1280 and 1440 with room to spare (four stages and a countdown); below about 1000 px it would meet the back button. Deferred: the laptop is 1280 and up.
+
+## Stem maths as TeX (ticket 342, 2026-09-15)
+
+- **Single letters in prose.** "Solve for x.", "the value of k", "after t seconds" keep their letter as text beside upright KaTeX. Setting them as `$x$` is textbook style but touches about fifty stems, and the Create shorthand parser reads a lone letter as prose, so a typed set and the bank would differ. Deferred: not asked for.
+- **An upright `l` beside `1`.** PS4 Q10 and its similar name the length `l` (their TeX is `l = 2w + 3`); upright, it sits close to a one. `\ell` (as PS2 Q10 uses) would need the TeX, its steps, the evaluation table and the classmates' lines changed together. Deferred: a data change across a finished set.
+- **The garden recommendation.** Refine's "A rectangular garden is 3 metres longer than it is wide, with an area of 40 square metres" keeps its words: its TeX `w(w + 3) = 40` leaves the length out, so the words are not a copy. Whether a recommendation should show an equation at all for a complex unfamiliar problem is open.
+- **Typed and uploaded stems.** The guard test reads `data/`. A stem typed on Create ("…the graph of y = x**2 + 4x + 5. x**2 + 4x + 5 = 0") or extracted from an upload can still repeat its expression; Refine could flag it, or the extraction prompt could ask for it once. Deferred: the rule was asked for the app's own sets.
 
 ## Carson's notes
 

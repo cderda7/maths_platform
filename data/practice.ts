@@ -826,7 +826,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
   "reasoning.justify.conclusions": {
     id: "w-conclusions",
     leaf: "reasoning.justify.conclusions",
-    stem: "The discriminant of y = x² + x + 3 is −11. What does the graph do?",
+    stem: "The discriminant of $y = x^2 + x + 3$ is given below. What does the graph do?",
     tex: "\\Delta = -11",
     steps: [
       { tex: "\\Delta < 0 \\Rightarrow \\text{no real roots}", label: "Justified", tags: [tag("reasoning.justify.formal")] },
@@ -840,7 +840,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     followUp: {
       id: "w-conclusions-2",
       leaf: "reasoning.justify.conclusions",
-      stem: "The discriminant of y = x² − 4x + 1 is 12. What does the graph do?",
+      stem: "The discriminant of $y = x^2 - 4x + 1$ is given below. What does the graph do?",
       tex: "\\Delta = 12",
       steps: [
         { tex: "\\Delta > 0 \\Rightarrow \\text{two real roots}", label: "Justified", tags: [tag("reasoning.justify.formal")] },
@@ -914,7 +914,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
   "functions.notation.evaluate": {
     id: "w-evaluate",
     leaf: "functions.notation.evaluate",
-    stem: "For f(x) = x² − 3x + 1, find",
+    stem: "For $f(x) = x^2 - 3x + 1$, find",
     tex: "f(-2)",
     steps: [
       { tex: "f(-2) = (-2)^2 - 3(-2) + 1", label: "Substituted, brackets kept", tags: [tag("functions.notation.evaluate")] },
@@ -935,7 +935,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     followUp: {
       id: "w-evaluate-2",
       leaf: "functions.notation.evaluate",
-      stem: "For f(x) = 2x² + x − 5, find",
+      stem: "For $f(x) = 2x^2 + x - 5$, find",
       tex: "f(-3)",
       steps: [
         { tex: "f(-3) = 2(-3)^2 + (-3) - 5", label: "Substituted, brackets kept", tags: [tag("functions.notation.evaluate")] },
@@ -958,7 +958,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
   "reasoning.interpret.worded": {
     id: "w-worded",
     leaf: "reasoning.interpret.worded",
-    stem: "A ball's height after t seconds is h = 20t − 5t². When does it land?",
+    stem: "A ball's height after t seconds is given below. When does it land?",
     tex: "h = 20t - 5t^2",
     steps: [
       { tex: "20t - 5t^2 = 0", label: "Landing means height zero", tags: [tag("reasoning.interpret.worded")] },
@@ -980,7 +980,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
     followUp: {
       id: "w-worded-2",
       leaf: "reasoning.interpret.worded",
-      stem: "A stone's height after t seconds is h = 30t − 5t². When does it land?",
+      stem: "A stone's height after t seconds is given below. When does it land?",
       tex: "h = 30t - 5t^2",
       steps: [
         { tex: "30t - 5t^2 = 0", label: "Landing means height zero", tags: [tag("reasoning.interpret.worded")] },

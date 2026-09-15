@@ -61,7 +61,6 @@ const linearRoot = (tex: string) => {
   return -f0 / slope;
 };
 /** "x² + 4x + 7" from "x^2 + 4x + 7", as a stem writes it. */
-const pretty = (tex: string) => tex.replace(/\^2/g, "²").replace(/ - /g, " − ");
 
 const everyCompletionQuestion = () => QUESTION_PAIRS.map((p) => p.completion);
 const everyCompletionProblem = () => Object.values(COMPLETIONS) as PracticeProblem[];
@@ -87,12 +86,10 @@ describe("Q* and Q** for every Problem Set 6 question", () => {
     expect(pairFor("nope")).toBeNull();
   });
 
-  it("each is a whole question like Q: its stem (Q10's quadratic changed with the expression), difficulty, answer form and kind of figure", () => {
+  it("each is a whole question like Q: its stem word for word (its numbers live in the TeX, ticket 342), difficulty, answer form and kind of figure", () => {
     for (const q of PROBLEMS) {
       for (const x of [star(q.id), starStar(q.id)]) {
-        const stem = q.id === "q10" ? q.stem.replace(pretty(q.tex.replace(/ = 0$/, "")), pretty(x.tex.replace(/ = 0$/, ""))) : q.stem;
-        if (q.id === "q10") expect(stem, x.id).not.toBe(q.stem);
-        expect(x.stem, x.id).toBe(stem);
+        expect(x.stem, x.id).toBe(q.stem);
         expect(x.difficulty, x.id).toBe(q.difficulty);
         expect(x.answerAs, x.id).toBe(q.answerAs);
         expect(!!x.figure, x.id).toBe(!!q.figure);
@@ -416,7 +413,6 @@ describe("Q10* and Q10**: no real solutions, and what that means for the graph",
     expect(evalTex(sides(x.tex).left, { x: -b / (2 * a) })).toBeGreaterThan(0);
     expect(x.solution[1].tex).toBe(Q("q10").solution[1].tex);
     expect(x.solution[2].tex).toBe(Q("q10").solution[2].tex);
-    expect(x.stem).toContain(`y = ${pretty(sides(x.tex).left.trim())}.`);
   };
 
   it("Q10*: x² + 6x + 10 = 0 has discriminant 36 − 40 = −4", () => none(star("q10"), [1, 6, 10], "36 - 40 = -4"));
@@ -571,7 +567,8 @@ describe("the completion problems' maths, hand-checked", () => {
 
   it("conclusions: the discriminant of y = x² + x + 5 is 1 − 20 = −19, so the graph never meets the x-axis", () => {
     const c = C("reasoning.justify.conclusions");
-    expect(c.stem).toBe("The discriminant of y = x² + x + 5 is −19. What does the graph do?");
+    expect(c.stem).toBe("The discriminant of $y = x^2 + x + 5$ is given below. What does the graph do?");
+    expect(sameFunction(c.stem.split("$")[1].replace(/^y = /, ""), "x^2 + x + 5")).toBe(true);
     expect(1 * 1 - 4 * 1 * 5).toBe(-19);
     expect(evalTex(sides(c.tex).right)).toBe(-19);
     expect(c.steps[0].tex).toContain("\\Delta < 0");
@@ -608,7 +605,8 @@ describe("the completion problems' maths, hand-checked", () => {
   it("worded: h = 25t − 5t² is zero at t = 0 and t = 5; it lands at 5 s", () => {
     const c = C("reasoning.interpret.worded");
     const f = rule(c.tex);
-    expect(c.stem).toContain("h = 25t − 5t²");
+    expect(c.stem).toBe("A ball's height after t seconds is given below. When does it land?");
+    expect(c.tex).toBe("h = 25t - 5t^2");
     expect(sameFunction(sides(c.steps[0].tex).left, f, "t")).toBe(true);
     expect(sameFunction(sides(c.steps[1].tex).left, f, "t")).toBe(true);
     for (const t of [0, 5]) expect(evalTex(f, { t })).toBeCloseTo(0, 9);

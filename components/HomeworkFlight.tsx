@@ -5,7 +5,8 @@ import M from "@/components/Math";
 import Figure from "@/components/Figure";
 import { Eyebrow } from "@/components/ui";
 import type { Problem } from "@/data/types";
-import { glueRuns, glueStem, REDUCED_MOTION, sameTypeLine, similarFor, texDiff, wordDiff, type TilePhase, type WordRun } from "@/lib/homework";
+import { REDUCED_MOTION, sameTypeLine, similarFor, texDiff, wordDiff, type TilePhase, type WordRun } from "@/lib/homework";
+import StemWords from "@/components/StemWords";
 
 /** A rectangle in the homework screen's own layout px. */
 export interface Box {
@@ -153,14 +154,14 @@ function Stacked({ problem, m, line }: { problem: Problem; m: number; line: numb
 /** Reduced motion: the question and its similar one side by side, the similar one's changes in the accent. */
 function SideBySide({ problem }: { problem: Problem }) {
   const similar = similarFor(problem.id)!;
-  const { runs, joins } = glueRuns(wordDiff(problem.stem, similar.stem));
+  const runs = wordDiff(problem.stem, similar.stem);
   const d = texDiff(problem.tex, similar.tex);
   return (
     <div data-hw-side>
       <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-5">
         <div className="min-w-0" data-hw-side-original>
           <Eyebrow>{problem.label}</Eyebrow>
-          <p className="mt-2 text-[15px] leading-snug text-ink-soft">{glueStem(problem.stem)}</p>
+          <p className="mt-2 text-[15px] leading-snug text-ink-soft"><StemWords stem={problem.stem} /></p>
           <div className="mt-3 text-[22px]">
             <M tex={problem.tex} />
           </div>
@@ -174,8 +175,8 @@ function SideBySide({ problem }: { problem: Problem }) {
           <p className="mt-2 text-[15px] leading-snug text-ink-soft">
             {runs.map((r, i) => (
               <Fragment key={i}>
-                {joins[i]}
-                {r.from === r.to ? r.to : <span className="text-accent-deep">{r.to}</span>}
+                {i > 0 && " "}
+                {r.from === r.to ? <StemWords stem={r.to} /> : <span className="text-accent-deep"><StemWords stem={r.to} /></span>}
               </Fragment>
             ))}
           </p>
@@ -210,14 +211,13 @@ function MorphTex({ from, to, m }: { from: string; to: string; m: number }) {
 }
 
 /** A stem's words, the changed runs rolling from the original's to the similar's, each run's width easing between the two. */
-function StemSwap({ runs: raw, m }: { runs: WordRun[]; m: number }) {
-  const { runs, joins } = glueRuns(raw);
+function StemSwap({ runs, m }: { runs: WordRun[]; m: number }) {
   return (
     <>
       {runs.map((r, i) => (
         <Fragment key={i}>
-          {joins[i]}
-          {r.from === r.to ? r.from : <WordSwap from={r.from} to={r.to} m={m} />}
+          {i > 0 && " "}
+          {r.from === r.to ? <StemWords stem={r.from} /> : <WordSwap from={r.from} to={r.to} m={m} />}
         </Fragment>
       ))}
     </>
@@ -243,10 +243,10 @@ function WordSwap({ from, to, m }: { from: string; to: string; m: number }) {
     <span className="relative inline-block whitespace-nowrap" style={{ width }} data-hw-swap>
       {"​"}
       <span ref={a} className="absolute left-0" style={{ top: `${-0.4 * m}em`, opacity: 1 - m }}>
-        {from}
+        <StemWords stem={from} />
       </span>
       <span ref={b} className="absolute left-0 text-accent-deep" style={{ top: `${0.4 * (1 - m)}em`, opacity: m }}>
-        {to}
+        <StemWords stem={to} />
       </span>
     </span>
   );

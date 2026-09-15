@@ -130,7 +130,7 @@ export const PS1_PROBLEMS: Problem[] = [
     id: "ps1-q10",
     label: "Q10",
     difficulty: "complex unfamiliar",
-    stem: "A square tile has an area of 72 cm². Find the length of its side and of its diagonal, leaving both exact.",
+    stem: "A square tile's area is given below. Find the length of its side and of its diagonal, leaving both exact.",
     tex: "\\text{Area} = 72\\text{ cm}^2",
     answerAs: "sentence",
     solution: [

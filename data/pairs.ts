@@ -482,7 +482,7 @@ export const QUESTION_PAIRS: QuestionPair[] = [
       id: "q10-star",
       label: "Q10*",
       difficulty: "complex unfamiliar",
-      stem: "Show that the following has no real solutions, and say what that means for the graph of y = x² + 6x + 10.",
+      stem: "Show that the following has no real solutions, and say what that means for the graph.",
       tex: "x^2 + 6x + 10 = 0",
       answerAs: "sentence",
       solution: [
@@ -495,7 +495,7 @@ export const QUESTION_PAIRS: QuestionPair[] = [
       id: "q10-star-star",
       label: "Q10**",
       difficulty: "complex unfamiliar",
-      stem: "Show that the following has no real solutions, and say what that means for the graph of y = x² + 4x + 7.",
+      stem: "Show that the following has no real solutions, and say what that means for the graph.",
       tex: "x^2 + 4x + 7 = 0",
       answerAs: "sentence",
       solution: [
@@ -900,7 +900,7 @@ export const COMPLETIONS: Partial<Record<LeafId, PracticeProblem>> = {
   "reasoning.justify.conclusions": {
     id: "w-conclusions-completion",
     leaf: "reasoning.justify.conclusions",
-    stem: "The discriminant of y = x² + x + 5 is −19. What does the graph do?",
+    stem: "The discriminant of $y = x^2 + x + 5$ is given below. What does the graph do?",
     tex: "\\Delta = -19",
     steps: [
       { tex: "\\Delta < 0 \\Rightarrow \\text{no real roots}", label: "Justified", tags: [tag("reasoning.justify.formal")] },
@@ -944,7 +944,7 @@ export const COMPLETIONS: Partial<Record<LeafId, PracticeProblem>> = {
   "functions.notation.evaluate": {
     id: "w-evaluate-completion",
     leaf: "functions.notation.evaluate",
-    stem: "For f(x) = x² − 3x + 1, find",
+    stem: "For $f(x) = x^2 - 3x + 1$, find",
     tex: "f(-4)",
     steps: [
       { tex: "f(-4) = (-4)^2 - 3(-4) + 1", label: "Substituted, brackets kept", tags: [tag("functions.notation.evaluate")] },
@@ -966,7 +966,7 @@ export const COMPLETIONS: Partial<Record<LeafId, PracticeProblem>> = {
   "reasoning.interpret.worded": {
     id: "w-worded-completion",
     leaf: "reasoning.interpret.worded",
-    stem: "A ball's height after t seconds is h = 25t − 5t². When does it land?",
+    stem: "A ball's height after t seconds is given below. When does it land?",
     tex: "h = 25t - 5t^2",
     steps: [
       { tex: "25t - 5t^2 = 0", label: "Landing means height zero", tags: [tag("reasoning.interpret.worded")] },

@@ -5619,3 +5619,26 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** While a countdown runs the pills left of it move left. The pills are small on screen (13.5 × 0.72 ≈ 9.7 px), as the back button is. The strip exists only on Class View and Mistakes of the live set.
 
 **Defense.** One component and one pure state function mean the pathway looks and reads the same wherever it appears, and 318/319 and 335 build on a stage id plus a state rather than new pills. Rendering the same line component first on both tabs is what makes the rects identical by construction, which the click-through then measures.
+
+## 2026-09-15 · A stem's maths is TeX, said once, and one component sets it everywhere (ticket 342)
+
+**Decision.** A question stem never writes maths as text and never repeats the expression shown after it. A text copy of the expression is removed; maths the stem needs of its own is inline `$…$` TeX. Every screen that shows a stem sets it through `components/StemWords.tsx`, and a test reads every `stem:` under `data/` to hold the rule.
+
+**Context.** After ticket 339 made maths upright, stems like PS6 Q10's "…the graph of y = x² + 4x + 5." read in the sans face above the same polynomial in serif KaTeX. Carson: "remove duplicates; keep TeX", and inline TeX for maths a stem needs of its own.
+
+**Alternatives considered.**
+- *Keep the words, drop the TeX*: the stem reads as a sentence, but the expression is what the pad, hints, evaluation and teacher screens key on; it stays.
+- *Inline TeX for the duplicate instead of removing it*: one face, but still said twice.
+- *Leave text maths where the TeX lacks it*: no renderer changes, but two faces on one card; Carson chose inline TeX.
+- *`$…$` support per screen*: each screen parsing on its own drifts; one component already existed privately in `ProblemQuestion`.
+- *Also every single letter in prose ("Solve for $x$.")*: textbook style, but ~50 stems and the Create shorthand parser reads "Solve for x." as prose; not asked.
+- *A worded problem keeps its words and drops its TeX*: keeps the translation for the student to do, but the TeX is what the set shows and marks against; where the TeX already holds every relation, the words name the letters instead. The garden recommendation, whose TeX leaves the length out, keeps its words.
+
+**Tradeoffs.**
+- **Wording.** "given below" and "satisfy the following" in place of numbers in words; the three rectangle and tile problems read less like prose.
+- **Glue removed.** `glueRuns`/`glueStem` kept text maths on one line in the homework change; with no text maths left they go, and a stem typed with text maths on a future path would wrap like prose (the guard test covers `data/`, not typed sets).
+- **Hyphens.** Sam's screens now keep "x-intercepts" whole, as teacher screens already did.
+- **Diagnostic chains.** Four "Given that …" steps carry the step before's result in their expression rather than their words; the chain test reads the whole question.
+- **Upright letters.** An upright `l` beside `1` (PS4 Q10's `l = 2w + 3`) is closer than the italic was.
+
+**Defense.** One place sets a stem, one test holds every stem, and the expression the whole product keys on is said once, in the face every other piece of maths is in.

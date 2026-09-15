@@ -6,6 +6,7 @@ import Figure from "@/components/Figure";
 import { LeafChip } from "@/components/Tag";
 import type { Problem } from "@/data/types";
 import { problemLeaves } from "@/lib/hierarchy";
+import StemWords from "@/components/StemWords";
 
 /**
  * One problem as the student sees it before the set: label, stem, expression, figure, and (unless
@@ -18,7 +19,7 @@ export default function ProblemCard({ problem: p, chips = true, compact = false 
       <div className="flex items-center justify-between">
         <span className={`font-display text-ink ${compact ? "text-[18px]" : "text-[20px]"}`}>{p.label}</span>
       </div>
-      <p className={`text-ink-soft ${compact ? "mt-2 text-[12.5px] leading-snug" : "mt-2.5 text-[13.5px]"}`}>{p.stem}</p>
+      <p className={`text-ink-soft ${compact ? "mt-2 text-[12.5px] leading-snug" : "mt-2.5 text-[13.5px]"}`}><StemWords stem={p.stem} /></p>
       <div className={`text-ink ${compact ? "mt-2" : "math-lg mt-2.5"}`}>
         <M tex={p.tex} display />
       </div>

@@ -112,7 +112,7 @@ export const PS4_PROBLEMS: Problem[] = [
     id: "ps4-q8",
     label: "Q8",
     difficulty: "complex familiar",
-    stem: "Write in the form a(x + h)² + k, and state the turning point.",
+    stem: "Write in the form $a(x + h)^2 + k$, and state the turning point.",
     tex: "2x^2 + 8x - 3",
     solution: [
       { tex: "2(x^2 + 4x) - 3", label: "Took the 2 out of the x terms", tags: [tag("algebra.expand-factor.expand")] },
@@ -139,7 +139,7 @@ export const PS4_PROBLEMS: Problem[] = [
     id: "ps4-q10",
     label: "Q10",
     difficulty: "complex unfamiliar",
-    stem: "A rectangle's length is 3 cm more than twice its width, and its area is 35 cm². Find its width.",
+    stem: "A rectangle's length $l$ cm and width $w$ cm satisfy the following. Find its width.",
     tex: "l = 2w + 3,\\quad lw = 35",
     answerAs: "sentence",
     solution: [

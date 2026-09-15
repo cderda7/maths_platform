@@ -1,8 +1,8 @@
 import Figure from "@/components/Figure";
 import M from "@/components/Math";
+import StemWords from "@/components/StemWords";
 import type { FigureId } from "@/data/types";
 import { ANCHOR } from "@/lib/markup";
-import { unbrokenHyphens } from "@/lib/stem";
 
 /** A question as `ProblemQuestion` shows it: a problem's, or a typed one's (a stem with inline `$…$` maths, maybe no expression, maybe an uploaded diagram). */
 export interface QuestionLike {
@@ -60,29 +60,6 @@ export default function ProblemQuestion({
           </span>
         </>
       )}
-    </>
-  );
-}
-
-/** A stem's words; any `$…$` piece set as maths with the punctuation after it. A stem without `$` is its words as before. */
-function StemWords({ stem }: { stem: string }) {
-  if (!stem.includes("$")) return <>{unbrokenHyphens(stem)}</>;
-  const pieces = stem.split("$");
-  return (
-    <>
-      {pieces.map((piece, i) => {
-        if (i % 2 === 1) {
-          const after = /^[,.;:?!]+/.exec(pieces[i + 1] ?? "")?.[0] ?? "";
-          return (
-            <span key={i} className="whitespace-nowrap" data-question-inline-tex>
-              <M tex={piece} className="text-ink" />
-              {after}
-            </span>
-          );
-        }
-        const lead = i > 0 ? (/^[,.;:?!]+/.exec(piece)?.[0] ?? "") : "";
-        return <span key={i}>{unbrokenHyphens(piece.slice(lead.length))}</span>;
-      })}
     </>
   );
 }

@@ -22,6 +22,7 @@ import { HelpPicker, PracticeOverlay, PromptModal } from "./PracticePrompt";
 import HandInCheck from "./HandInCheck";
 import HelpLadder from "./HelpLadder";
 import { blankProblems, ladderEntry, promptSentence, type SessionAction, type StudentSession } from "@/lib/session";
+import StemWords from "@/components/StemWords";
 
 /** The back-on-the-question help pills (ticket 312), the pad's help menu's pills at the column's size. */
 const PILL = "block w-full whitespace-nowrap rounded-full border border-accent-deep bg-paper px-4 py-2 text-center text-[14px] font-medium text-ink transition-colors enabled:hover:bg-accent-soft disabled:opacity-40";
@@ -102,7 +103,7 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
           <span className="font-display text-[26px] text-ink">{p.label}</span>
           <StarButton on={session.stars.includes(p.id)} onToggle={() => dispatch({ type: "star/toggle", problem: p.id })} />
         </div>
-        <p className="mt-3 text-[14px] text-ink-soft">{p.stem}</p>
+        <p className="mt-3 text-[14px] text-ink-soft"><StemWords stem={p.stem} /></p>
         <div className="math-lg mt-3 text-ink">
           <M tex={termTex(p.tex, h.termsAt(0), h.litAt(0))} display />
         </div>

@@ -6,6 +6,7 @@ import { Button, Card } from "@/components/ui";
 import { LeafChip } from "@/components/Tag";
 import { branchesOf } from "@/lib/branches";
 import type { PracticeProblem } from "@/data/types";
+import StemWords from "@/components/StemWords";
 
 /**
  * One isolated practice problem: the stem, then the worked steps revealed one at a time so the
@@ -50,7 +51,7 @@ export default function PracticeCard({
   return (
     <Card className={`math-left ${compact ? "p-5" : "p-7"}`}>
       <div className={`flex items-center gap-3 ${question ? "justify-between" : "justify-end"}`}>
-        {question && <span className="text-[14px] text-ink-soft">{practice.stem}</span>}
+        {question && <span className="text-[14px] text-ink-soft"><StemWords stem={practice.stem} /></span>}
         <LeafChip student id={practice.leaf} />
       </div>
       {question && (

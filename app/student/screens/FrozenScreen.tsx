@@ -11,6 +11,7 @@ import { useClassroom } from "@/lib/classroom-store";
 import { frozenView } from "@/lib/frozen";
 import { ANCHOR } from "@/lib/markup";
 import type { SessionAction, StudentSession } from "@/lib/session";
+import StemWords from "@/components/StemWords";
 
 /**
  * Whole-class review on the student's screen: the board's slide, as the board shows it (ticket
@@ -49,7 +50,7 @@ export default function FrozenScreen({ session, dispatch }: { session: StudentSe
             </span>
           </div>
           <p className="mt-1 text-[15px] text-ink-soft">
-            <span data-ink-anchor={ANCHOR.stem}>{v.problem.stem}</span>
+            <span data-ink-anchor={ANCHOR.stem}><StemWords stem={v.problem.stem} /></span>
           </p>
           {/* The pad is 310 wide, enough for "Write with me" and Undo / Clear on one line; the example columns are fitted to the rest (ticket 161). */}
           <div className="mt-3 grid min-h-0 flex-1 grid-cols-[1fr_310px] gap-4">
