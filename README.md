@@ -214,7 +214,7 @@ for hints. Sam's place comes from his session.
   indigo text and border; it opens the create screen and is no longer in the bar), and the
   right column, level with the roster: the
   **Class review** card (Set up → / Students frozen · End session; first in the column while a
-  session runs), the assignment status
+  session runs; once the lesson is over it reads "Over · went through Q2 and Q7", ticket 335), the assignment status
   (in class review · complete), the **Live diagnostic** card: a white box linking to Mistakes
   until a chain is out, then the current step only (`1st of 3` above the question, `n/20 answered`,
   each option with `n/20 students` and the misconception it reveals, the right one green, live),
@@ -264,6 +264,17 @@ on the laptop and every student's screen.
   the corrections handed in and group review begun, or group review over), `n/19 done`, and **end lesson** on a last
   stage that is not class review (its countdown, `● ending lesson · 4 not done · 0:59 · Cancel`, takes the place of all
   three). Class review has no button or count. A finished set shows no strip.
+- **The decision card** (ticket 335, Edexia Classroom and the live set's Class View and Mistakes): once more than half of
+  the students in the room (Sam included, the absent out) have submitted the question 70% of the way through the set
+  (Q7 of 10), a card slides in once from the bottom-right corner, wherever the teacher is: "Most students are close to
+  finishing. Let's discuss what's next.", "15 of 19 here have submitted Q7", the planned pathway as the strip's pills with
+  what each stage does, and **Later** and **Keep**. It has no backdrop and moves nothing: every press beside it lands, and
+  it never covers the strip or the split's diagnostic flyout or student panel (its own presses leave those open).
+  **Keep** records the answer and the card goes for good. **Later** tucks it into a small purple dot on the strip's
+  current pill and on the live set's Classroom card; the dot opens it again (from the Classroom, on the set's Mistakes
+  tab). Ignored until the class leaves individual working (force submit, everyone handing in), it lapses and the plan runs
+  as it was. A reload keeps it where it was. Sam's iPad shows nothing of it. Change (ticket 336) and the group/class split
+  (ticket 337) build on it.
 - **Mistakes** (`/teacher/a/pset-6/mistakes`; the old `/teacher/mistakes` redirects there): While the live set is on individual working the tab splits in two (ticket 315): **Where students are** on the left, a row per place in lesson order (Starting, Warm-up, Q1 … Q10, Handed in), each student a pill with their detail (the warm-up's skill, a hint, practice, back on the question), the step bar for warm-up and practice and the time in the row in whole minutes ("<1 min here", "2 min here"; dark purple from "3 min here", a student who could use a check-in, ticket 328), or once handed in the time the set took from the check-in ("took 7 min"), an empty row blank (ticket 327); pressing a pill opens that student's work so far over the column (ticket 316: their confidence answer, every question they have moved past with their marked lines, the question they are on "in progress"; Escape or a press outside closes it); **Where students went wrong** on the right, the cards below at half width with the counts in the header and the Live diagnostic at its top left, whose steps open over the left column. During individual review the tab keeps the split, and opening the set lands there (ticket 318): **Where students are** becomes Not started, Q1 … Q10 and Done reviewing, each question with a count of everyone still to fix it ("12 need to fix", blank at none) and each student once, at the problem they have open ("fixed 1 of 3", "2 min here"), Priya (nothing to fix) done from the start and the class joining Done reviewing as they reach the gate; when the column would not fit the pills drop their words, then their names; a pill opens the student's problems to fix with the first submission and the correction so far; the cards name only the students still to fix ("2 fixed · 3 still to fix"), and a card everyone has fixed shrinks to a thin "Q6 · everyone fixed" line. After individual review the title stands alone; problems first, the students who slipped on each under
   one pill per slip, expand for their working; inside a pill the students on the exact same
   wrong line sit together and, open, one box in the pill's red surrounds their working (a

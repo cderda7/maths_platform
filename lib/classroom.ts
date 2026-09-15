@@ -13,6 +13,7 @@ import { chainReducer, latestRun, liveRun, migrateRun, type ChainAction, type Di
 import { absentOf, liveAbsent, withAbsence } from "./absence";
 import type { IsoDay } from "./dueDate";
 import type { CreateKind } from "./createPipeline";
+import { decisionsReducer, type DecisionAction, type LessonDecision } from "./decisionState";
 
 export type { DiagnosticRun } from "./diagnosticChain";
 
@@ -215,10 +216,16 @@ export interface ClassroomState {
    * demo, kept by everything else (a new lesson, "send assignment", Sam's skips).
    */
   homeworkStartedAt?: number;
+  /**
+   * What the teacher did about the lesson's decisions (ticket 335, `lib/decisionState.ts`), in the order they came due: the
+   * decision card kept, tucked into its dot, or answered. Which decision is due is derived (`lessonDecision` in `lib/decision.ts`).
+   * Absent until the first comes due; a new lesson starts without them.
+   */
+  decisions?: readonly LessonDecision[];
 }
 
-/** The lesson's own state, which a newly sent set starts without (ticket 263): the gate, the whiteboard, the chains, class review, the end. */
-const LESSON_KEYS = ["arrivals", "group", "diagnostics", "lessonEndedAt"] as const;
+/** The lesson's own state, which a newly sent set starts without (ticket 263): the gate, the whiteboard, the chains, class review, the end, the decisions (ticket 335). */
+const LESSON_KEYS = ["arrivals", "group", "diagnostics", "lessonEndedAt", "decisions"] as const;
 
 /** The classroom as a new lesson starts it: the lesson's own state gone, the class's (seating, absences, the draft) kept. */
 function newLesson(c: ClassroomState): ClassroomState {
@@ -288,6 +295,8 @@ export type ClassroomAction =
   | { type: "absence/set"; assignment: string; student: string; absent: boolean }
   /** The live diagnostic chain (ticket 241): push, answer, force submit and cancel, next question, done, withdraw. */
   | ChainAction
+  /** The decision card (ticket 335): raised, tucked into its dot, opened again, answered. */
+  | DecisionAction
   | { type: "reset" };
 
 export const INITIAL_CLASSROOM: ClassroomState = { assignment: null, advance: null, wholeClass: null, groups: DEFAULT_GROUPS, assignmentGroups: {} };
@@ -454,6 +463,13 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
       const runs = c.diagnostics ?? [];
       const next = chainReducer(runs, a, liveAbsent(c));
       return next === runs ? c : { ...c, diagnostics: next };
+    }
+    case "decision/raise":
+    case "decision/tuck":
+    case "decision/reopen":
+    case "decision/answer": {
+      const next = decisionsReducer(c.decisions, a);
+      return next === c.decisions ? c : { ...c, decisions: next };
     }
     case "reset":
       return INITIAL_CLASSROOM;

@@ -47,8 +47,8 @@ export default function StudentWorkPanel({ pill, work }: { pill: Pick<WherePill,
   useEffect(() => {
     const press = (e: PointerEvent) => {
       const target = e.target instanceof Element ? e.target : null;
-      // A pill's own press opens its student (or closes this one's panel); the panel's own presses keep it.
-      if (!target || ref.current?.contains(target) || target.closest("[data-place-pill]")) return;
+      // A pill's own press opens its student (or closes this one's panel); the panel's own presses keep it, and so do the decision card's and its dot's (ticket 335).
+      if (!target || ref.current?.contains(target) || target.closest("[data-place-pill], [data-decision-card], [data-decision-dot]")) return;
       setStudentOpen(null);
     };
     document.addEventListener("pointerdown", press, true);

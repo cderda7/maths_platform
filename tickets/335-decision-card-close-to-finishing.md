@@ -4,7 +4,7 @@
 
 **Blocked by:** 334 (the strip the card tucks into).
 
-**Status:** open
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -41,8 +41,8 @@ Agreed:
 
 ## Acceptance
 
-- [ ] Unit: the trigger at the 70% question for sets of 6, 10 and 12, over the present class, just under and just over half; the decision's open / tucked / answered states; a reload keeps them; a stage ending with the card open leaves the pathway unchanged
-- [ ] Click-through against a production build at 1280×800 and 1440×900 with Sam's iPad and the teacher tab:
+- [x] Unit: the trigger at the 70% question for sets of 6, 10 and 12, over the present class, just under and just over half; the decision's open / tucked / answered states; a reload keeps them; a stage ending with the card open leaves the pathway unchanged
+- [x] Click-through against a production build at 1280×800 and 1440×900 with Sam's iPad and the teacher tab:
   - **Where it appears:** the card slides in once on Class View, on Mistakes (the split, with a diagnostic flyout open too) and on the Classroom, and covers neither the strip nor the flyout
   - **Nothing blocked:** presses elsewhere still work
   - **Later:** tucks it into the dot on the strip, and on the Classroom's live card
@@ -51,5 +51,5 @@ Agreed:
   - **Unanswered at the end of the stage:** force submit runs without another question
   - **Nothing moves:** no card or row moves when the card appears or goes
   - **Layout:** no sideways scroll; screenshots checked
-- [ ] vitest, eslint, tsc, next build, check:laptop
-- [ ] Ticket docs: `architecture/335.md`, ARCHITECTURE, DECISION_LOG, FUTURE_FEATURES, README
+- [x] vitest, eslint, tsc, next build, check:laptop
+- [x] Ticket docs: `architecture/335-decision-card.md`, ARCHITECTURE, DECISION_LOG, FUTURE_FEATURES, README

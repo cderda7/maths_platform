@@ -9,8 +9,10 @@ import ResetDemo from "@/components/ResetDemo";
 import TeacherSkipTo from "./TeacherSkipTo";
 import { LessonEnds } from "./EndLesson";
 import PresentBoard from "./PresentBoard";
+import DecisionHost from "./DecisionCard";
 import { ASSIGNMENT } from "@/data/assignment";
 import { assignmentTabs, CLASS_GROUPS_HREF } from "@/lib/assignments";
+import { decisionScreen } from "@/lib/decision";
 import { useOptionalAssignment } from "./AssignmentContext";
 
 /**
@@ -39,6 +41,9 @@ import { useOptionalAssignment } from "./AssignmentContext";
  * the presenter's, not the page's. A page that fills the frame to the strip (`fill`, the student report) keeps a short
  * bottom padding instead of the frame's 48 px: the strip under it already separates it from the window's edge, and the
  * report fits 1280 x 800 with nothing to scroll (ticket 243's rule, broken by the strip's height).
+ * The lesson's decision card (ticket 335, `DecisionHost`) is mounted here once, on Edexia Classroom and the live set's Class View
+ * and Mistakes (`decisionScreen`), laid over the bottom-right corner of the scroll region: the region sits in a positioned box of
+ * its own size, so the card rides above the page and the presenter's strip, and nothing in the page moves when it comes or goes.
  */
 export const TEACHER_ZOOM = 0.72;
 
@@ -78,9 +83,12 @@ export default function TeacherChrome({ children, zoom = TEACHER_ZOOM, fill = fa
           </div>
         </div>
       </header>
-      <main className="min-h-0 flex-1 overflow-y-auto" data-teacher-scroll>
-        <div className={`mx-auto max-w-[1640px] px-6 pt-12 ${fill ? "pb-4" : "pb-12"}`}>{children}</div>
-      </main>
+      <div className="relative flex min-h-0 flex-1 flex-col" data-teacher-body>
+        <main className="min-h-0 flex-1 overflow-y-auto" data-teacher-scroll>
+          <div className={`mx-auto max-w-[1640px] px-6 pt-12 ${fill ? "pb-4" : "pb-12"}`}>{children}</div>
+        </main>
+        {decisionScreen(path, ASSIGNMENT.id) && <DecisionHost />}
+      </div>
       {/* The presenter's strip (ticket 263): its own row under the scroll region, so no teacher control ever sits beneath SKIP TO or Reset demo. */}
       <footer className="flex shrink-0 items-center justify-between gap-4 px-4 py-2.5" style={{ zoom: TEACHER_ZOOM / zoom }} data-presenter-strip>
         <TeacherSkipTo />

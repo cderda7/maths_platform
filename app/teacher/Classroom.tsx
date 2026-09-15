@@ -2,12 +2,14 @@
 
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import TeacherChrome from "./TeacherChrome";
+import { DecisionDot, useLessonDecision } from "./DecisionCard";
 import { Eyebrow, H1 } from "@/components/ui";
 import { CategoryChip } from "@/components/Tag";
 import { ASSIGNMENT } from "@/data/assignment";
 import { forgetTilesScroll } from "./students/tilesScroll";
-import { HOLISTIC_HREF } from "@/lib/assignments";
+import { assignmentHref, HOLISTIC_HREF } from "@/lib/assignments";
 import { CLASS_SUBJECT, classroomCards, gapGroups, teacherHomeworkColumn, type AssignmentCard, type TeacherHomeworkPiece } from "@/lib/classroomCards";
 import { CREATE_ROUTES } from "@/lib/createPipeline";
 import { flasher, HW_INSIGHT_MESSAGE } from "@/lib/hwInsight";
@@ -28,6 +30,8 @@ import { useBatchedSession, useNow } from "@/lib/store";
  * spans the rows of the Past sets it covers and reads the class's count; a press shows the demo's "HW insight scoped in
  * FUTURE_FEATURES" placeholder over the cell for a moment (ticket 324) and opens nothing. Every section's cards sit in
  * the grid's first column, so Live and Past cards are one width.
+ * While the lesson's decision is tucked away (ticket 335, Later on the decision card) its dot sits on the live set's card's top
+ * right corner, over the card without taking room; a press opens the set's Mistakes tab with the card open.
  *
  * The page takes the chrome's full container, as the header and Class View do: "+In-Class PSet"
  * ends where the header's avatar ends, and the cards span the same width.
@@ -40,6 +44,19 @@ export default function Classroom() {
   const ready = updatedAt !== null && now > 0;
   const { live, past } = classroomCards(classroom, session, now);
   const hasLive = ready && live.length > 0;
+  const router = useRouter();
+  const decision = useLessonDecision(session, ready);
+  const dot =
+    decision?.shown === "dot" ? (
+      <DecisionDot
+        view={decision}
+        size={16}
+        onPress={() => {
+          dispatchClassroom({ type: "decision/reopen", due: decision.due });
+          router.push(assignmentHref(ASSIGNMENT.id, "mistakes"));
+        }}
+      />
+    ) : null;
   const rootRef = useRef<HTMLDivElement>(null);
   const pinnedRef = useRef<HTMLDivElement>(null);
   // The pinned region's height, as a CSS variable the past cards' scroll margin reads: a card the
@@ -95,7 +112,7 @@ export default function Classroom() {
           {hasLive && (
             <Section label="Live" id="live" className="mt-12">
               {live.map((card, i) => (
-                <Card key={card.id} card={card} row={i + 1} />
+                <Card key={card.id} card={card} row={i + 1} dot={card.id === ASSIGNMENT.id ? dot : null} />
               ))}
             </Section>
           )}
@@ -153,9 +170,9 @@ const Dot = () => (
 );
 
 /** One assignment: the whole card is the link, its title and status on the left, the due date and an arrow on the right. */
-function Card({ card, row }: { card: AssignmentCard; /** Its row in the section's grid, first column. */ row: number }) {
+function Card({ card, row, dot = null }: { card: AssignmentCard; /** Its row in the section's grid, first column. */ row: number; /** The tucked decision's dot on its corner (ticket 335), a sibling of the link so its press is its own. */ dot?: ReactNode }) {
   return (
-    <li className="col-start-1 min-w-0" style={{ gridRow: row }}>
+    <li className="relative col-start-1 min-w-0" style={{ gridRow: row }}>
       <Link
         href={card.href}
         className="group flex scroll-mt-(--classroom-pinned) items-center gap-8 rounded-2xl set-card-edge bg-paper px-9 py-7 shadow-card outline-set-border transition-[outline-color,box-shadow] duration-150 hover:shadow-lift hover:outline-accent-line focus-visible:ring-4 focus-visible:ring-accent/20 focus-visible:outline-accent"
@@ -182,6 +199,11 @@ function Card({ card, row }: { card: AssignmentCard; /** Its row in the section'
           →
         </span>
       </Link>
+      {dot && (
+        <span className="absolute -top-1.5 -right-1.5" data-decision-dot-corner>
+          {dot}
+        </span>
+      )}
     </li>
   );
 }

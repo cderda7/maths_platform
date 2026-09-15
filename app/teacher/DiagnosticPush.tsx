@@ -233,7 +233,7 @@ export function DiagnosticChip({ problemId, className = "" }: { problemId: strin
 /**
  * The open flyout over the split's left column, below the headers (ticket 315): the problem named as its card names it
  * ("Live diagnostic", the label, the whole question), then its steps and the send (`DiagnosticSteps`). Nothing while no
- * flyout is open. It covers the rows, never the mistakes. Its ×, Escape, a press anywhere outside it (other than a Live diagnostic
+ * flyout is open. It covers the rows, never the mistakes. Its ×, Escape, a press anywhere outside it (other than the decision card and its dot, ticket 335, or a Live diagnostic
  * button, whose own press opens or closes) and sending close it; the pointer leaving does not, since it has to cross from
  * the card's button to reach it.
  */
@@ -244,7 +244,7 @@ export function DiagnosticOverlay({ problem, rows }: { problem: Pick<Problem, "i
   useEffect(() => {
     const press = (e: PointerEvent) => {
       const target = e.target instanceof Element ? e.target : null;
-      if (!target || ref.current?.contains(target) || target.closest("[data-diag-toggle]")) return;
+      if (!target || ref.current?.contains(target) || target.closest("[data-diag-toggle], [data-decision-card], [data-decision-dot]")) return;
       setFlyoutOpen(problem.id, false);
     };
     document.addEventListener("pointerdown", press, true);

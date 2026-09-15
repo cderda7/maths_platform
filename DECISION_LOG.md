@@ -5734,3 +5734,31 @@ rule for pens is untouched and the exception is visible and named.
 - **The progress card grows.** Mint and violet show left-for-now lines mid-race.
 
 **Defense.** Both rules live in one pure module, so every screen that counts groups or questions agrees by construction, and ticket 338 removes the scoping in one line. Replaying the real board reducer makes the simulated groups obey the same ladder as the live one. The demo keeps Carson's rehearsed moment (Sam writes Q7 through its ladder and it stays unsolved), gains the Q9 return, and gets as close to the requested outcome list as first submissions and set scores allow.
+
+## 2026-09-15 · The decision card: derived when due, stored as the teacher's answer, laid over the bottom-right corner (ticket 335)
+
+**Decision.**
+- **Two halves.** Which decision is due is a pure function of the class's progress (`lessonDecision` in `lib/decision.ts`: Sam's session, the classmates' stream at `now`, the absent out, the class stage). What the teacher did about it is the only thing stored: `ClassroomState.decisions`, a list of `LessonDecision { kind, stage, dueAt, status: open | tucked | answered, answer?, answeredAt? }` reduced by `decisionsReducer` (`lib/decisionState.ts`). The first teacher tab that sees a decision due stores it open (`decision/raise`, idempotent), so `dueAt` is fixed; every other action carries the same `due`, so a press on a decision no tab has stored yet stores it as it acts.
+- **Lapsing is derived.** A decision whose class stage is over has lapsed: no card, no dot, the plan as it was. Nothing is written when the stage ends, so force submit, everyone handing in and the presenter's jumps need no hook.
+- **The trigger.** More than half of the present students (strictly) have submitted question `ceil(0.7 × n)`. A classmate has submitted it once the stream has them past it; Sam once he has written on it and moved to another question, or handed in with work on it.
+- **One mount.** `DecisionHost` sits in `TeacherChrome` over the scroll region, on Edexia Classroom and the live set's Class View and Mistakes only (`decisionScreen`). The scroll region moved into a positioned box of its own size, so the card is laid over the page, never in its flow.
+- **The corner.** Bottom-right of the scroll region, 16 layout px in (its right edge on Reset demo's), 400 layout px wide. The pathway strip is on the top line; the split's diagnostic flyout and student panel open over the left column; at 1280 px and wider Class View's roster ends 437 layout px from the window's edge, so the card lies over the side column (the Key) and never a roster row. On the Classroom it lies over the lower Past cards' right ends and the homework column.
+- **The dot** is a `StagePill` badge on the strip and a sibling of the live card's link on the Classroom. The card's and the dot's presses are exempt from the split overlays' press-outside-to-close.
+- **Slides in once** per lesson per tab: a module-level set, marked after paint, so moving between the three screens shows it in place.
+- **Nearby fix.** Class View's Class review card reads "Over · went through Q2 and Q7" once the lesson is over, instead of "Set up →".
+
+**Context.** Ticket 335 from the review-control grilling (2026-09-15, the entry above): "a pop up no matter where they are", Keep and Later now, Change in 336, and 337's split decision replacing this one while carrying an unanswered pathway choice. The ticket asks that every teacher screen and a reload agree, and that the card cover neither the strip nor an open diagnostic flyout, block no press and move nothing.
+
+**Alternatives considered.**
+- *Store the whole decision when it comes due, from an effect*: one source of truth, but a decision would only exist once a teacher tab had been open at the moment, and lapsing would need writes at every way a stage can end. Deriving due and lapse keeps the store to the teacher's own answers.
+- *Derive everything, store nothing until Later or Keep*: simplest, but `dueAt` would drift with the clock and 337 would have no record to replace.
+- *A fixed card at the window's corner*: simpler CSS, but it would sit over the presenter's strip and ride outside the teacher frame's zoom.
+- *Bottom-left*: covers the roster on Class View and the diagnostic flyout on the split. *Top-right*: covers the strip.
+- *Aligned to the page column's right edge*: tidier at 1440, but at 1280 a readable card would lie over the roster's Set column; the side column alone (320 px) would stack the pathway to twice the height.
+- *Per-screen mounts (a prop on Classroom, TeacherLive and TeacherMistakes)*: explicit, but three places to keep in step; the path rule in one pure function is tested.
+- *A spacer so the page can scroll clear of the card*: removing it when the card goes would clamp a page scrolled to its end, which moves everything.
+- *A slide-in on every appearance*: moving between tabs would replay it; "slides in once" is the ticket's.
+
+**Tradeoffs.** The card covers what is under it (Class View's Key, the lower mistake cards' right columns, the Classroom's homework column) until Later or Keep. The trigger's "submitted" for Sam is an approximation (the session has no per-question submit). Other teacher pages (Groups, reports, Holistic Assessment, Create) show neither the card nor the dot. A reload replays the slide once.
+
+**Defense.** Deriving the decision from the same inputs as the strip's counts means the card, the strip and a reload can never disagree, and a stage ending needs no code of its own to honour "the plan runs as it was". Storing only the teacher's answers gives 336 an `answer` to extend and 337 a record to replace. The corner and the zero-layout mount are measured in the click-through (every rect of the frame identical before, during and after), which is what "nothing moves" asks.

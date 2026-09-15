@@ -1803,6 +1803,17 @@ Raised in a project checkpoint review; Carson asked for these on the list. Space
 - **Which one-offs may slip again.** The story rule no longer says which rewritten one-offs must hold. A realism cap (for example at most a few a set, only on the set's hardest questions) could return as a check. Deferred: ticket 338 regenerates the past sets and can settle it there.
 - **Simulated tries for a teacher's regrouping.** When the teacher moves students, a table without authored tries writes the rule's own shape (a real slip then the model working, or the same slips four times). Deferred: authored boards exist only for Problem Set 6's frozen seating.
 
+## The decision card (ticket 335, 2026-09-15)
+
+- **The card and the dot on every teacher page.** They show on Edexia Classroom and the live set's Class View and Mistakes only; Groups, a student's report, Holistic Assessment and Create show neither. Deferred: the ticket names the three screens, and the dot has no home on the other pages.
+- **Room to scroll clear of the card.** The card lies over the bottom-right of the page until Later or Keep, so the last mistake card's right column (or Class View's Key) cannot be reached without tucking it. A spacer while it is up would clamp a page scrolled to its end when it goes. Deferred: Later is one press.
+- **Narrow windows.** Below 1280 px the card would lie over Class View's roster Set column. Deferred: the laptop is 1280 and up.
+- **Sam's per-question submit.** Sam counts as past the question once he has written on it and moved off it; the session has no per-question hand-in time. Deferred: the demo's classmates alone cross the line first (10 of 19 at 3:34).
+- **The slide-in replayed on a reload.** A reload plays the slide again for an open card. Deferred: harmless, and a per-tab record is all it would take.
+- **Escape to tuck the card.** Later is a button only; Escape belongs to the flyouts and the drill rows under it. Deferred: which layer Escape closes first needs a rule.
+- **A decision history for the lesson.** The stored decisions (kind, when due, answer, when answered) could list what the teacher decided on the report or the Classroom. Deferred: nothing reads them yet (FUTURE_FEATURES' queued-decisions entry above).
+- **The Class review card after a lesson ended outright.** It reads "Over" with no problems named when class review was never projected. Deferred: rare in the demo; naming why it ended is a copy call.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
