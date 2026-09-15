@@ -73,7 +73,8 @@ describe("tokens in globals.css", () => {
     const diff = a.flatMap((line, i) => (line === b[i] ? [] : [[line, b[i]]]));
     expect(diff).toEqual([
       ["  --color-gap: #c4453c;", "  --color-gap: #a53931;"],
-      [expect.stringContaining("--marker-half-angle: 90deg;"), expect.stringContaining("--marker-half-angle: 45deg;")],
+      // The angle's value in the file is tuned by hand, so only its name is pinned on the old side.
+      [expect.stringContaining(`--marker-half-angle: ${value("--marker-half-angle")};`), expect.stringContaining("--marker-half-angle: 45deg;")],
     ]);
   });
 
