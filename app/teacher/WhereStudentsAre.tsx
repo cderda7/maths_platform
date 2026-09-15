@@ -6,7 +6,7 @@ import { arriving } from "@/lib/arrivals";
 import type { AssignmentBundle } from "@/lib/assignments";
 import { classPlaces } from "@/lib/place";
 import type { StudentSession } from "@/lib/session";
-import { carryPlaces, classmatesEntered, emptyQuestionRuns, whereRows, type SeenPlace, type WherePill, type WhereRow } from "@/lib/whereStudents";
+import { carryPlaces, checkIns, classmatesEntered, emptyQuestionRuns, whereRows, type SeenPlace, type WherePill, type WhereRow } from "@/lib/whereStudents";
 
 /** The row label's fixed cell, layout px: wide enough for "Handed in" and a range ("Q7–Q10") at the label's size. */
 const LABEL_CELL = 132;
@@ -30,7 +30,7 @@ export function useWhereRows(assignment: AssignmentBundle, session: StudentSessi
   const places = now === 0 ? [] : classPlaces(assignment, session, now, assignment.absent);
   const next = carryPlaces(seen, places, now, now === 0 ? {} : classmatesEntered(assignment, session, now));
   if (next !== seen) setSeen(next);
-  return whereRows(next, assignment.problems, assignment.classmates, now);
+  return whereRows(next, assignment.problems, assignment.classmates, now, now === 0 ? {} : checkIns(assignment, session, now));
 }
 
 /** A step of three as three short bars, the steps reached filled in the pill's tone. */
@@ -45,10 +45,11 @@ function StepBar({ step, tone }: { step: 1 | 2 | 3; tone: WherePill["tone"] }) {
 }
 
 /**
- * One student in a row: avatar, name, the detail in muted words, the step bar for warm-up and practice, and the time on the
- * step in plain muted figures (never coloured: whether it changes colour past a limit is still Carson's call). One line,
- * never wrapping. The time keeps a fixed slot, so a tick from "9 s" to "10 s" or "59 s" to "1 min" never changes the
- * pill's width and never re-wraps its row. A student who has just come into the row glows faintly and fades, as a name
+ * One student in a row: avatar, name, the detail in muted words, the step bar for warm-up and practice, and the time in
+ * plain muted words (never coloured: whether it changes colour past a limit is still Carson's call). One line, never
+ * wrapping. The time says which it is (ticket 327): "3 min here" in the row, ticking, its figures in a fixed slot so a tick
+ * from "9 s" to "10 s" or "59 s" to "1 min" never changes the pill's width and never re-wraps its row; "took 7 min" once
+ * handed in, fixed, so it needs no slot. A student who has just come into the row glows faintly and fades, as a name
  * landing in a mistake card does (`.arrive-ring`, a ring on a wrapper so the pill keeps its own tint).
  *
  * `onPress` makes the pill a button (ticket 316 opens the student's work from it); without one it is plain text.
@@ -67,9 +68,15 @@ export function StudentPill({ pill, now, onPress }: { pill: WherePill; now: numb
         </span>
       )}
       {pill.step && <StepBar step={pill.step} tone={pill.tone} />}
-      {pill.time && (
-        <span className="w-[46px] shrink-0 text-right text-[13px] tabular-nums text-ink-muted" data-pill-time>
-          {pill.time}
+      {pill.time?.kind === "here" && (
+        <span className="flex shrink-0 gap-1 text-[13px] text-ink-muted" data-pill-time="here">
+          <span className="w-[46px] text-right tabular-nums">{pill.time.span}</span>
+          here
+        </span>
+      )}
+      {pill.time?.kind === "took" && (
+        <span className="shrink-0 text-[13px] tabular-nums text-ink-muted" data-pill-time="took">
+          took {pill.time.span}
         </span>
       )}
     </>
@@ -101,11 +108,11 @@ function RowLabel({ label, sub }: { label: string; sub: string | null }) {
 
 /**
  * The rows as a table (ticket 315): a row per place, its label in a fixed left cell, its students' pills flowing and
- * wrapping beside it; a row with nobody in it stays, reading a muted "nobody yet"; the absent named in muted text in the
- * Handed in row. Rows never reorder: a student's pill leaves one row and joins the end of the next.
+ * wrapping beside it; a row with nobody in it stays, blank beside its label (ticket 327: no "nobody yet"); the absent named
+ * in muted text in the Handed in row. Rows never reorder: a student's pill leaves one row and joins the end of the next.
  *
  * When the whole column would not fit the scroll region (1280 x 800 with all twenty in play: everyone in Starting at the
- * first seconds), each run of empty question rows folds into one range row ("Q2–Q10", nobody yet). The fold is decided
+ * first seconds), each run of empty question rows folds into one range row ("Q2–Q10", blank). The fold is decided
  * before paint on the unfolded rows every render (and on a resize), written straight to the rows' `hidden`, so it holds no
  * state and cannot flip back and forth: only rows with nobody in them fold, so no pill ever leaves its question's row.
  */
@@ -140,14 +147,13 @@ export function PlaceTable({ rows, now, onPress }: { rows: readonly WhereRow[]; 
     <div ref={ref} className="overflow-hidden rounded-2xl border border-line bg-paper shadow-card" data-place-table>
       {rows.map((row, i) => {
         const run = runOf(row.key);
-        const empty = row.pills.length === 0;
         const border = i === 0 ? "" : "border-t border-line";
         return (
           <div key={row.key} className="contents">
             {run && run.from === row.key && (
               <div hidden className={`flex min-h-[44px] ${border}`} data-place-range={`${run.from}-${run.to}`}>
                 <RowLabel label={run.label} sub={null} />
-                <div className="flex flex-1 items-center px-3 py-1.5 text-[13px] text-ink-muted">nobody yet</div>
+                <div className="flex-1" />
               </div>
             )}
             <div className={`flex min-h-[44px] ${border}`} data-place-row={row.key} data-in-run={run ? `${run.from}-${run.to}` : undefined} data-count={row.pills.length}>
@@ -156,9 +162,9 @@ export function PlaceTable({ rows, now, onPress }: { rows: readonly WhereRow[]; 
                 {row.pills.map((p) => (
                   <StudentPill key={p.id} pill={p} now={now} onPress={onPress} />
                 ))}
-                {(empty || row.absent.length > 0) && (
+                {row.absent.length > 0 && (
                   <span className="text-[13px] text-ink-muted" data-place-note>
-                    {[empty ? "nobody yet" : null, ...row.absent.map((a) => `${a.name} absent`)].filter(Boolean).join(" · ")}
+                    {row.absent.map((a) => `${a.name} absent`).join(" · ")}
                   </span>
                 )}
               </div>

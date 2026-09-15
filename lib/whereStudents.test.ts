@@ -5,8 +5,8 @@ import { assignmentBundle } from "./assignments";
 import { classroomReducer, INITIAL_CLASSROOM } from "./classroom";
 import { classmateTimeline, classPlaces, rowKey, type Place, type StudentPlace } from "./place";
 import { sessionAt } from "./session";
-import { streamEndMs } from "./stream";
-import { carryPlaces, classmatesEntered, emptyQuestionRuns, placeDetail, placeTone, stepTime, whereRows, type SeenPlace } from "./whereStudents";
+import { scheduleFor, streamEndMs } from "./stream";
+import { carryPlaces, checkIns, classmatesEntered, duration, emptyQuestionRuns, placeDetail, placeTone, whereRows, type SeenPlace } from "./whereStudents";
 
 const P = ASSIGNMENT.problems;
 const T0 = 1_700_000_000_000;
@@ -22,18 +22,18 @@ const rowsAt = (ms: number) => {
   const now = T0 + ms;
   const places = classPlaces(LIVE, null, now, LIVE.absent);
   const entered = classmatesEntered(LIVE, null, now);
-  return whereRows(carryPlaces([], places, now, entered), P, LIVE.classmates, now);
+  return whereRows(carryPlaces([], places, now, entered), P, LIVE.classmates, now, checkIns(LIVE, null, now));
 };
 
-describe("the time on a step (ticket 315)", () => {
+describe("a span of time (ticket 315)", () => {
   it("reads seconds under a minute and whole minutes from a minute, never negative", () => {
-    expect(stepTime(0)).toBe("0 s");
-    expect(stepTime(999)).toBe("0 s");
-    expect(stepTime(40 * S)).toBe("40 s");
-    expect(stepTime(59_999)).toBe("59 s");
-    expect(stepTime(60 * S)).toBe("1 min");
-    expect(stepTime(6 * 60 * S + 59 * S)).toBe("6 min");
-    expect(stepTime(-5 * S)).toBe("0 s");
+    expect(duration(0)).toBe("0 s");
+    expect(duration(999)).toBe("0 s");
+    expect(duration(40 * S)).toBe("40 s");
+    expect(duration(59_999)).toBe("59 s");
+    expect(duration(60 * S)).toBe("1 min");
+    expect(duration(6 * 60 * S + 59 * S)).toBe("6 min");
+    expect(duration(-5 * S)).toBe("0 s");
   });
 });
 
@@ -72,24 +72,62 @@ describe("the rows", () => {
     }
   });
 
-  it("labels Starting and Warm-up with a second line; the step bar only on warm-up and practice; a time on every classmate", () => {
+  it("labels Starting and Warm-up with a second line; the step bar only on warm-up and practice; a time here on every classmate", () => {
     const rows = rowsAt(40 * S);
     expect(rows[0].sub).toBe("check-in");
     expect(rows[1].sub).toBe("3 steps each");
     expect(rows.slice(2).every((r) => r.sub === null)).toBe(true);
     for (const pill of rows.flatMap((r) => r.pills)) {
       expect(pill.step !== null, pill.id).toBe(pill.tone !== "plain" && pill.detail !== "chat");
-      if (pill.id !== DEMO_STUDENT.id) expect(pill.time, pill.id).toMatch(/^\d+ (s|min)$/);
+      if (pill.id !== DEMO_STUDENT.id) {
+        expect(pill.time?.kind, pill.id).toBe("here");
+        expect(pill.time?.span, pill.id).toMatch(/^\d+ (s|min)$/);
+      }
     }
   });
 
-  it("Jordan's pill 40 s in: warm-up, non-monic factorising, its step, the seconds since that step began", () => {
-    const now = T0 + 40 * S;
-    const jordan = rowsAt(40 * S)[1].pills.find((p) => p.id === "jordan")!;
-    const seg = [...classmateTimeline(LIVE.classmates.find((m) => m.id === "jordan")!, P)].reverse().find((s) => s.at <= 40 * S)!;
+  it("Jordan's pill 40 s in: warm-up, non-monic factorising, its step, the seconds since he came into the warm-up row (ticket 327)", () => {
+    const timeline = classmateTimeline(LIVE.classmates.find((m) => m.id === "jordan")!, P);
+    const seg = [...timeline].reverse().find((s) => s.at <= 40 * S)!;
+    const row = timeline.find((s) => rowKey(s.place) === "warm-up")!.at;
     expect(seg.place.kind).toBe("warmup");
+    expect(seg.at).toBeGreaterThan(row);
+    const jordan = rowsAt(40 * S)[1].pills.find((p) => p.id === "jordan")!;
     expect(jordan).toMatchObject({ name: "Jordan Whitlock", initials: "JW", tone: "warmup", detail: "non-monic factorising" });
-    expect(jordan.time).toBe(`${Math.floor((now - T0 - seg.at) / S)} s`);
+    expect(jordan.time).toEqual({ kind: "here", span: `${Math.floor((40 * S - row) / S)} s` });
+  });
+
+  it("the time here runs from the row entry through a hint and practice steps, and a new row starts it again (ticket 327)", () => {
+    const liam = classmateTimeline(LIVE.classmates.find((m) => m.id === "liam")!, P);
+    const q1 = liam.find((s) => rowKey(s.place) === "q1")!.at;
+    for (const seg of liam.filter((s) => rowKey(s.place) === "q1")) {
+      const ms = seg.at + 2 * S;
+      const pill = rowsAt(ms).find((r) => r.key === "q1")!.pills.find((p) => p.id === "liam")!;
+      expect(pill.time, `${ms}`).toEqual({ kind: "here", span: duration(ms - q1) });
+    }
+    const q2 = liam.find((s) => rowKey(s.place) === "q2")!.at;
+    expect(rowsAt(q2 + 3 * S).find((r) => r.key === "q2")!.pills.find((p) => p.id === "liam")!.time).toEqual({ kind: "here", span: "3 s" });
+  });
+
+  it("a handed-in pill says how long the set took, check-in to hand-in, and holds as the clock runs on (ticket 327)", () => {
+    for (const ms of [END, END + 5 * S, END + 90 * 60 * S]) {
+      const done = rowsAt(ms).find((r) => r.key === "handed-in")!.pills;
+      expect(done.length, `${ms}`).toBeGreaterThan(0);
+      for (const pill of done) {
+        const s = scheduleFor(LIVE.classmates.find((m) => m.id === pill.id)!, P);
+        expect(pill.time, `${pill.id} at ${ms}`).toEqual({ kind: "took", span: duration(s.submitAt!) });
+      }
+    }
+  });
+
+  it("Sam's hand-in took from his session's check-in, and none when the check-in is unknown", () => {
+    const now = T0 + 3 * 60 * S;
+    const handed = { ...sessionAt("feedback"), checkInAt: T0 + 20 * S, handedInAt: T0 + 2 * 60 * S };
+    const rows = (session: typeof handed) => whereRows(carryPlaces([], classPlaces(LIVE, session, now, LIVE.absent), now), P, LIVE.classmates, now, checkIns(LIVE, session, now));
+    const sam = (session: typeof handed) => rows(session).find((r) => r.key === "handed-in")!.pills.find((p) => p.id === DEMO_STUDENT.id)!;
+    expect(sam(handed).time).toEqual({ kind: "took", span: "1 min" });
+    expect(sam({ ...handed, checkInAt: 0 }).time).toBeNull();
+    expect(checkIns(LIVE, handed, now)[DEMO_STUDENT.id]).toBe(T0 + 20 * S);
   });
 
   it("inside a row the pills stand in the order the students came in: a later arrival is after everyone already there", () => {

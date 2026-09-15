@@ -10,8 +10,8 @@ import { streamElapsed, streamOver, wallAt, type StreamSet } from "./stream";
  * The Mistakes tab's "Where students are" column during individual working (ticket 315), as data the screen draws: a row
  * per place in lesson order (`placeRows`, ticket 314), each row a label and its students' pills, and the absent named
  * under Handed in. A pill is a student's avatar and name, the detail in muted words (the warm-up's skill, a hint, practice
- * on a skill, back on the question), the step of three for warm-up and practice, the time on that step, and a tone (warm-up
- * accent, practice standout blue, the rest plain). Inside a row the pills stand in the order the students came into it, so
+ * on a skill, back on the question), the step of three for warm-up and practice, a time (how long the student has been in
+ * the row, or once handed in how long the set took them), and a tone (warm-up accent, practice standout blue, the rest plain). Inside a row the pills stand in the order the students came into it, so
  * a student arriving joins the end and nobody already there moves. No React.
  *
  * The rows are the frame's left content (`StageSplit`), so a later stage (tickets 318–320, the review modes) supplies its
@@ -19,6 +19,16 @@ import { streamElapsed, streamOver, wallAt, type StreamSet } from "./stream";
  */
 
 export type PillTone = "warmup" | "practice" | "plain";
+
+/**
+ * A pill's time, named so it cannot be read as the other (ticket 327): "here", how long the student has been in their row
+ * (a hint or practice step inside a question does not restart it), ticking; "took", from the check-in to the hand-in, fixed.
+ */
+export interface PillTime {
+  kind: "here" | "took";
+  /** "40 s", "6 min" (`duration`). */
+  span: string;
+}
 
 export interface WherePill {
   id: string;
@@ -29,8 +39,8 @@ export interface WherePill {
   tone: PillTone;
   /** The step of three for warm-up and practice, else null. */
   step: PlaceStep | null;
-  /** The time on this step ("40 s", "6 min"), or null when not known. */
-  time: string | null;
+  /** How long in the row, or how long the set took once handed in; null when not known. */
+  time: PillTime | null;
   /** When the student came into this row (absolute ms), or null when not known: the pill's landing glow counts from it. */
   arrivedAt: number | null;
 }
@@ -51,11 +61,11 @@ export interface SeenPlace extends StudentPlace {
 }
 
 /**
- * The time on a step, one formatter for every pill: seconds under a minute ("40 s"), whole minutes from one minute
- * ("6 min"). A step a whole set runs through in about seven minutes mostly lasts seconds, so minutes alone would read 0.
- * Never negative (a clock a tab behind another's).
+ * A span of time, one formatter for every pill: seconds under a minute ("40 s"), whole minutes from one minute ("6 min").
+ * A row a whole set runs through in about seven minutes mostly lasts seconds, so minutes alone would read 0. Never negative
+ * (a clock a tab behind another's).
  */
-export function stepTime(ms: number): string {
+export function duration(ms: number): string {
   const s = Math.max(0, Math.floor(ms / 1000));
   return s < 60 ? `${s} s` : `${Math.floor(s / 60)} min`;
 }
@@ -115,6 +125,20 @@ export function classmatesEntered(set: StreamSet, session: StudentSession | null
 }
 
 /**
+ * When each student came to the check-in (absolute ms), where it is known: a classmate who starts at the stream's start
+ * (their timeline opens on the check-in), Sam when his session recorded it. Empty for a set with no stream. A hand-in's
+ * "took" counts from it, so it includes any time the stream stood still for a diagnostic: the time the lesson really took.
+ */
+export function checkIns(set: StreamSet, session: StudentSession | null, now: number): Record<string, number> {
+  const start = set.startedAt;
+  if (start === null || start === undefined) return {};
+  const out: Record<string, number> = {};
+  if (session?.checkInAt) out[DEMO_STUDENT.id] = session.checkInAt;
+  for (const m of set.classmates) if (classmateTimeline(m, set.problems)[0].place.kind !== "not-started") out[m.id] = wallAt(start, set.pauses ?? [], 0, now);
+  return out;
+}
+
+/**
  * The class's places as the column holds them, carried from the previous read: a place with no time of its own (Sam's
  * today) keeps the moment it was first seen (`carrySince`), and a student's row entry is the classmate's own (`entered`),
  * else carried while the row is the same, else the step's time. Returns `prev` itself when nothing changed, so a screen
@@ -164,14 +188,19 @@ export function emptyQuestionRuns(rows: readonly WhereRow[]): EmptyRun[] {
 /**
  * The rows to draw at `now`: every row of `placeRows` in lesson order (none ever dropped or reordered), each row's students
  * as pills in the order they came into it (ties and unknowns in the order given: Sam, then the roster), the absent named in
- * the Handed in row. A name comes from the roster (Sam from the demo student); the time on a step is `now − since`, none
- * when `since` is unknown.
+ * the Handed in row. A name comes from the roster (Sam from the demo student). A pill's time is "here", `now` less the row
+ * entry (else `since`), or on a hand-in "took", `since` less the student's check-in (`checkIns`); none when either is unknown.
  */
-export function whereRows(places: readonly (StudentPlace & { entered?: number | null })[], problems: readonly Pick<Problem, "id" | "label">[], classmates: readonly Pick<Classmate, "id" | "name" | "initials">[], now: number): WhereRow[] {
+export function whereRows(places: readonly (StudentPlace & { entered?: number | null })[], problems: readonly Pick<Problem, "id" | "label">[], classmates: readonly Pick<Classmate, "id" | "name" | "initials">[], now: number, checkedIn: Readonly<Record<string, number>> = {}): WhereRow[] {
   const person = (id: string) => (id === DEMO_STUDENT.id ? DEMO_STUDENT : (classmates.find((m) => m.id === id) ?? { id, name: id, initials: id.slice(0, 2).toUpperCase() }));
   const order = new Map(places.map((p, i) => [p.id, i]));
   const { rows, absent } = placeRows(places, problems);
   const enteredOf = (sp: StudentPlace & { entered?: number | null }) => sp.entered ?? sp.since;
+  const timeOf = (sp: StudentPlace & { entered?: number | null }): PillTime | null => {
+    if (sp.place.kind === "handed-in") return sp.since === null || checkedIn[sp.id] === undefined ? null : { kind: "took", span: duration(sp.since - checkedIn[sp.id]) };
+    const entered = enteredOf(sp);
+    return entered === null ? null : { kind: "here", span: duration(now - entered) };
+  };
   return rows.map((r) => ({
     key: r.key,
     label: r.label,
@@ -180,7 +209,7 @@ export function whereRows(places: readonly (StudentPlace & { entered?: number | 
       .sort((a, b) => (enteredOf(a) ?? Infinity) - (enteredOf(b) ?? Infinity) || order.get(a.id)! - order.get(b.id)!)
       .map((sp): WherePill => {
         const { name, initials } = person(sp.id);
-        return { id: sp.id, name, initials, detail: placeDetail(sp.place), tone: placeTone(sp.place), step: placeStep(sp.place), time: sp.since === null ? null : stepTime(now - sp.since), arrivedAt: enteredOf(sp) };
+        return { id: sp.id, name, initials, detail: placeDetail(sp.place), tone: placeTone(sp.place), step: placeStep(sp.place), time: timeOf(sp), arrivedAt: enteredOf(sp) };
       }),
     absent: r.key === "handed-in" ? absent.map((a) => ({ id: a.id, name: person(a.id).name })) : [],
   }));

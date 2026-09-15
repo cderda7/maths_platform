@@ -22,6 +22,14 @@ describe("student session flow", () => {
     expect(sessionAt("goal")).toEqual({ ...INITIAL_SESSION, stage: "goal" });
   });
 
+  it("the check-in's time is recorded as the student comes to it, from the goal or straight from the overview (ticket 327)", () => {
+    const goal = sessionReducer(INITIAL_SESSION, { type: "overview/start", at: 5 });
+    expect(goal.checkInAt).toBe(0);
+    expect(sessionReducer(goal, { type: "goal/continue", at: 9 }).checkInAt).toBe(9);
+    expect(sessionReducer(INITIAL_SESSION, { type: "overview/start", at: 7 }, { ...DEFAULT_ENV, goal: "" }).checkInAt).toBe(7);
+    expect(sessionReducer(goal, { type: "goal/continue" }).checkInAt).toBe(0);
+  });
+
   it("START goes to the confidence question, and \"confident\" opens Q1 with no warm-up offered", () => {
     let s = sessionReducer(INITIAL_SESSION, { type: "overview/start" }, { ...DEFAULT_ENV, goal: "" });
     expect(s.stage).toBe("confidence");

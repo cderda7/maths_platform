@@ -1615,7 +1615,7 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 
 ## Where students are beside the mistakes (ticket 315, 2026-09-15)
 
-- **Does the time on a step change colour past a limit?** The pills show the time on a step in plain muted figures ("40 s", "6 min"). Whether it turns amber or red after some limit, and what the limit is (fixed, per step, or against the class), is Carson's call; the mockup coloured long times amber, the ticket left it plain.
+- **Does the time on a step change colour past a limit?** The pills show the time in plain muted figures (since ticket 327 "40 s here", the time in the row; "took 6 min" once handed in). Whether it turns amber or red after some limit, and what the limit is (fixed, per step, or against the class), is Carson's call; the mockup coloured long times amber, the ticket left it plain.
 - **Time on a step without the diagnostic pause.** A pill's time is `now − since`, so a step that spanned a diagnostic chain reads the chain's minutes too; the stream's own clock (`streamElapsed`) could give working time instead.
 - **Sam's step times from his session.** Sam's time counts from when the teacher's tab first saw his place and restarts on a reload, until tickets 312 and 313 record step start times in the session.
 - **Pills that hold their slot when a student leaves a row.** The pills after a departed student shift left; a row that leaves a gap until the next arrival (or animates the close) would move even less.
@@ -1634,6 +1634,13 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **Mixed numbers.** `1\tfrac{1}{2}` reads as a product of 1 and ½, so it is neither 1½ nor ½. Deferred: no Year 10 blank has a mixed number, and the reading is ambiguous without context.
 - **Ticket 311's "Equivalent statements in another form" entry.** `0.5` for `\tfrac{1}{2}`, `\tfrac{6}{2}` for 3 and `(2 - x)` for `-(x - 2)` inside a product are now right (this ticket); the "right, written differently" third result was not chosen, and both sides multiplied by −1 is above.
 - **Sentences by meaning.** Still exact wording in this ticket (see "Judging a sentence" under ticket 311 and "Sentence blanks judged by meaning" under ticket 310).
+
+## Where students are: pill times (ticket 327, 2026-09-15)
+
+- **Each question's time for a handed-in student.** A hand-in reads one total ("took 7 min", check-in to hand-in). How long each question took (and which ran long against the class) would show where the time went; deferred: the column is for where students are now, and a per-question breakdown belongs on the student's work panel (ticket 316) or the report.
+- **Sam's time in a row survives a reload of the teacher's tab.** His "here" counts from when the teacher's tab first saw him in the row, so a reload restarts it; recording the row entry in his session (as tickets 312 and 313 do for practice and warm-up steps) would fix it. Deferred as it needs those tickets' step records.
+- **A check-in time for deep-linked and scripted runs.** `sessionAt` and the scripted sessions carry no `checkInAt`, so a hand-in reached that way shows no time. Deferred: the live path records it; the presets would need a plausible story time.
+- **"Here" wording for the Starting row.** A student who has not opened the set reads "not started 16 min here", the time since the teacher's tab first saw them; "waiting" or the time since the set went live may read better. Not raised by Carson; noted while checking the screen.
 
 ## Carson's notes
 

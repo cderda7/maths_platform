@@ -76,8 +76,8 @@ export default function StudentApp({ initStage, explicit, run = "weak", pathway 
   if (!sent && !explicit && !pathway) return <StudentChrome frozen={frozen}>{null}</StudentChrome>;
   return (
     <StudentChrome crumb={crumb} frozen={frozen} stages={stages}>
-      {session.stage === "overview" && <OverviewScreen onStart={() => dispatch({ type: "overview/start" })} />}
-      {session.stage === "goal" && <GoalScreen goal={goal} onContinue={() => dispatch({ type: "goal/continue" })} />}
+      {session.stage === "overview" && <OverviewScreen onStart={() => dispatch({ type: "overview/start", at: Date.now() })} />}
+      {session.stage === "goal" && <GoalScreen goal={goal} onContinue={() => dispatch({ type: "goal/continue", at: Date.now() })} />}
       {session.stage === "warmup-chat" && <WarmupChatScreen session={session} dispatch={dispatch} />}
       {session.stage === "practice" && <PracticeScreen session={session} dispatch={dispatch} />}
       {session.stage === "confidence" && (

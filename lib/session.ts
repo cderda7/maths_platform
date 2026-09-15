@@ -113,6 +113,8 @@ export interface StudentSession {
   reportSent: boolean;
   /** When the report was sent (ms since epoch; 0 = unknown, read as long ago): the homework screen's sequence runs from it (ticket 256). */
   homeworkAt: number;
+  /** When the student came to the check-in, the set's first screen of work (ms since epoch; 0 = unknown): a hand-in's "took" counts from it (ticket 327). */
+  checkInAt: number;
   /** When the set was handed in and when the rework finished (ms since epoch; 0 = unknown). */
   handedInAt: number;
   reworkedAt: number;
@@ -145,9 +147,9 @@ export type SessionAction =
   /** A teacher advance whose grace has run out. Idempotent by id. */
   | { type: "advance/apply"; id: string; kind: AdvanceKind; at?: number }
   /** CONTINUE on the overview: on to the teacher's goal when there is one, else the confidence question. */
-  | { type: "overview/start" }
+  | { type: "overview/start"; at?: number }
   /** CONTINUE on the goal screen: on to the confidence question. */
-  | { type: "goal/continue" }
+  | { type: "goal/continue"; at?: number }
   /** The confidence answer. "confident" opens Q1; either not-confident answer stays on the screen with the warm-up offered. */
   | { type: "confidence/set"; confidence: Confidence }
   /** The offer after a not-confident answer: "Warm up" opens the concerns chat, "Start the set" opens Q1. */
@@ -247,6 +249,7 @@ export const INITIAL_SESSION: StudentSession = {
   reflection: "",
   reportSent: false,
   homeworkAt: 0,
+  checkInAt: 0,
   handedInAt: 0,
   reworkedAt: 0,
   notice: null,
@@ -360,9 +363,10 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       return applied;
     }
     case "overview/start":
-      return s.stage === "overview" ? { ...s, stage: env.goal.trim() ? "goal" : "confidence" } : s;
+      if (s.stage !== "overview") return s;
+      return env.goal.trim() ? { ...s, stage: "goal" } : { ...s, stage: "confidence", checkInAt: a.at ?? s.checkInAt };
     case "goal/continue":
-      return s.stage === "goal" ? { ...s, stage: "confidence" } : s;
+      return s.stage === "goal" ? { ...s, stage: "confidence", checkInAt: a.at ?? s.checkInAt } : s;
     case "confidence/set":
       if (s.stage !== "confidence" || s.confidence) return s;
       return a.confidence.level === "confident" ? { ...s, confidence: a.confidence, practice: "declined", stage: "working" } : { ...s, confidence: a.confidence };

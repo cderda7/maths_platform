@@ -5385,3 +5385,22 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** A fraction the step writes not in lowest terms also holds wherever the same fraction appears in the written line, and an equal fraction written with other numbers there (`\dfrac{12}{4}` for `\dfrac{6}{2}`) is wrong. Shapes that are equal but written differently still read wrong: `\tfrac{x}{2}` for `\tfrac{1}{2}x`, an equation with both sides turned by −1. A number too long to hold exactly equals only itself.
 
 **Defense.** It does what the user chose with the rule they gave (same shape, numbers by value) and keeps every one of ticket 311's "a different step" cases wrong: every existing test and every evaluation-table verdict stands, with one test changed that asserted the old strictness. Every blank a student can be asked to write is tested both ways, right in other numbers and not right as its neighbouring step.
+
+## 2026-09-15 · A pill's time names itself: "here" in a row, "took" once handed in (ticket 327)
+
+**Decision.** On Where students are, a pill for a student still working reads "N here", the time since they came into the row (a hint or practice step inside a question does not restart it); a handed-in pill reads "took N", from the student's check-in to their hand-in. "Nobody yet" goes. The check-in time is a new session field (`checkInAt`) recorded by the two actions that reach the check-in; a classmate's check-in is the stream's start, where their timeline opens. The span includes any time the stream stood still for a diagnostic.
+
+**Context.** Carson, 2026-09-15, looking at the column long after the set went live: every hand-in read ~90 min (the time since the hand-in, as the step time counted on), which read as time since the set was released. He chose check-in to hand-in for a finished student, time on the current question for the rest, and asked how to make the two unmistakable; of words naming the question ("3 min on Q8"), short words ("3 min here") and a clock icon with a key, he chose short words.
+
+**Alternatives considered.**
+- *Keep the time on the step (ticket 315)*: a practice step or a hint restarted the clock, so a student stuck on a question for minutes read seconds; the row entry is what "on the current question" means, and it is already held for the pills' order.
+- *"3 min on Q8"*: self-explanatory, but repeats the row's label on every pill and widens a pill by the question name; Carson preferred the shorter word.
+- *A clock icon with a key under the header*: narrowest, but needs a legend (the design keeps screens legend-free).
+- *Time on the whole set so far for a student still working*: comparable with "took", but not what Carson chose and hides a student stuck on one question.
+- *"Took" from Q1*: excludes the warm-up; Carson chose from the check-in.
+- *Sam's check-in carried from the teacher's first sight of him*: no session change, but lost on a reload of the teacher tab and wrong when the tab opens late; the session is where the rest of his times live.
+- *The stream's clock (pauses taken out) for a classmate's "took"*: matches their script, but Sam's is wall time and the teacher watched the wall clock; one rule for both.
+
+**Tradeoffs.** A new session field (hydrated as 0 for older snapshots, so an older run's hand-in shows no time). Deep-linked student stages (`sessionAt`) have no check-in, so Sam's hand-in there shows no time. The "here" figures keep a fixed slot, so a short time leaves a gap before it. Sam's "here" still restarts when the teacher's tab reloads (his session keeps no row entry yet).
+
+**Defense.** The two times differ in kind (one ticks, one is a result), and each pill now says which it is in a word a teacher reads at a glance, without a key. Both come from times the model already has or records at the moment it happens, so every tab and reload agree on them.
