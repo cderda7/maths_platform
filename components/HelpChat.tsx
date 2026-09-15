@@ -84,7 +84,7 @@ export default function HelpChat({
       const res = await fetch("/api/help-chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ problem: problem.id, lines, messages: [...messages, said], hinted, ...(example ? { shown: exampleShown } : {}) }),
+        body: JSON.stringify({ problem: problem.id, leaf: problem.leaf, lines, messages: [...messages, said], hinted, ...(example ? { shown: exampleShown } : {}) }),
         signal: ctl.signal,
       });
       if (!res.ok || !res.body) {

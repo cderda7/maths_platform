@@ -13,9 +13,10 @@ import { useEscape } from "@/components/useEscape";
  * "Hint" when the problem has one, "Hint 1", "Hint 2" when several stack. A hint the student has
  * moved past is `collapsed`: one muted line, no linked words, and the whole card is a button that
  * opens it (`onToggle`); the latest hint is never collapsed. The latest hint carries a "Talk it
- * through" pill (`onTalk`) that opens the help chat on this hint. Practice problems (the warm-up and
- * the mid-set "one move"), and the group whiteboard after a second wrong check (ticket 221, no linked
- * words): a problem the student works alone in the set never shows one.
+ * through" pill (`onTalk`) that opens the help chat on this hint. Practice problems (the warm-up, Q**
+ * and the older mid-set practice), a set question once the student is back on it after practice on it
+ * (ticket 312; never before), and the group whiteboard after a second wrong check (ticket 221, no linked
+ * words).
  */
 export default function HintCard({
   hint,

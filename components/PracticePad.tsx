@@ -15,13 +15,13 @@ import { hintAnchor, pickHint, stalledHint, termTex } from "@/lib/hint";
 import { nextLine } from "@/lib/recognition";
 import type { PracticeRun, RunKey, SessionAction } from "@/lib/session";
 import { warmupScript } from "@/lib/warmup";
-import { Scrim } from "@/app/student/screens/PracticePrompt";
+import HelpMenu, { StallNotice } from "@/components/HelpMenu";
 import { useEscape } from "@/components/useEscape";
 
 /**
  * Practice on the pad, for the warm-up and the mid-set isolated practice alike: the working
- * screen's own layout with one unmarked problem. "I need help" offers a hint, a worked example, a
- * video or a chat. The worked example plays where the pad was; once it is complete a follow-up opens
+ * screen's own layout with one unmarked problem. "I need help" offers a hint, a worked example or a
+ * chat (no video since ticket 312). The worked example plays where the pad was; once it is complete a follow-up opens
  * beside it, the example staying in view on the left. The chat takes the right column in place of
  * the read-back until closed; while the example plays the column is the chat, headed "Question
  * about a step?", since there is no read-back. `header` sits above the problem (the warm-up's chip
@@ -166,7 +166,7 @@ export default function PracticePad({
         <section className="flex min-h-0 flex-col overflow-y-auto px-6 py-6" data-example>
           <Eyebrow>Worked example</Eyebrow>
           <div className="mt-3">
-            <PracticeCard practice={p} shown={run.exampleShown} onReveal={() => dispatch({ type: "run/example-step", run: runKey })} />
+            <PracticeCard practice={p} shown={run.exampleShown} question={false} onReveal={() => dispatch({ type: "run/example-step", run: runKey })} />
           </div>
           {exampled && (
             <div className="mt-6 flex justify-end">
@@ -220,101 +220,43 @@ export default function PracticePad({
 
       {help === "menu" && (
         <HelpMenu
-          hints={{ next: nextHint, stalled }}
-          exampled={exampled}
-          onChat={() => {
-            setHelpOpen(false);
-            openChat();
-          }}
-          onHint={() => {
-            // "hint" while the previous one is still to be acted on: the notice, which leads into the chat on it.
-            if (stalled) return setHelp("stall");
-            setHelpOpen(false);
-            dispatch({ type: "run/hint", run: runKey });
-          }}
-          onExample={() => {
-            setHelpOpen(false);
-            dispatch({ type: "run/example", run: runKey });
-          }}
+          options={[
+            {
+              key: "hint",
+              title: "hint",
+              // "hint" while the previous one is still to be acted on: the notice, which leads into the chat on it.
+              onPick:
+                nextHint || stalled
+                  ? () => {
+                      if (stalled) return setHelp("stall");
+                      setHelpOpen(false);
+                      dispatch({ type: "run/hint", run: runKey });
+                    }
+                  : undefined,
+            },
+            {
+              key: "example",
+              title: "worked example",
+              onPick: exampled
+                ? undefined
+                : () => {
+                    setHelpOpen(false);
+                    dispatch({ type: "run/example", run: runKey });
+                  },
+            },
+            {
+              key: "chat",
+              title: "chat",
+              onPick: () => {
+                setHelpOpen(false);
+                openChat();
+              },
+            },
+          ]}
           onClose={() => setHelpOpen(false)}
         />
       )}
       {help === "stall" && <StallNotice onTalk={() => talkHint(hintOpener(hints.length))} onClose={() => setHelpOpen(false)} />}
     </div>
-  );
-}
-
-/** A second way out of a help card beside the scrim and Escape (tickets 229, 231): a small × in the card's top-right corner. The card must be `relative`. */
-function CardClose({ onClose }: { onClose: () => void }) {
-  return (
-    <button type="button" onClick={onClose} aria-label="Close" className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full text-[20px] leading-none text-ink-muted transition-colors hover:bg-cream-deep hover:text-ink" data-card-close>
-      ×
-    </button>
-  );
-}
-
-/** "hint" pressed while the previous hint is still to be acted on (ticket 86's stall): one sentence and the one way on, the same chat the hint card's "Talk it through" opens. */
-function StallNotice({ onTalk, onClose }: { onTalk: () => void; onClose: () => void }) {
-  return (
-    <Scrim onDismiss={onClose}>
-      <div className="relative w-[300px] rounded-3xl bg-paper p-7 shadow-lift" data-stall-notice>
-        <CardClose onClose={onClose} />
-        <p className="font-display text-[22px] leading-snug text-ink">Let&rsquo;s talk through the previous hint before giving you another.</p>
-        <button type="button" onClick={onTalk} className="mt-5 inline-flex items-center rounded-full border border-accent-deep bg-paper px-6 py-2.5 text-[15px] font-medium text-ink transition-colors hover:bg-accent-soft" data-stall-talk>
-          Talk it through
-        </button>
-      </div>
-    </Scrim>
-  );
-}
-
-/** "I need help" on the pad: pick how much help. Four bare pills, one word each, no side notes. Hints come one per ask, each picked for where the student's lines have got (`next` says one is available), the row always reading "hint"; while the latest hint is `stalled` (the lines have not moved past what it asks for) the row stays live and the caller shows the stall notice instead of a hint. A seen worked example greys its row. The video is listed so the shape is visible; it goes nowhere yet. The chat can always be reopened. */
-function HelpMenu({
-  hints,
-  exampled,
-  onHint,
-  onExample,
-  onChat,
-  onClose,
-}: {
-  hints: { next: boolean; stalled: boolean };
-  exampled: boolean;
-  onHint: () => void;
-  onExample: () => void;
-  onChat: () => void;
-  onClose: () => void;
-}) {
-  const options: { key: string; title: string; onPick?: () => void }[] = [
-    { key: "hint", title: "hint", onPick: hints.next || hints.stalled ? onHint : undefined },
-    { key: "example", title: "worked example", onPick: exampled ? undefined : onExample },
-    { key: "video", title: "video" },
-    { key: "chat", title: "chat", onPick: onChat },
-  ];
-  const pill = "block w-full rounded-full border border-accent-deep bg-paper px-6 py-2.5 text-center text-[15px] font-medium text-ink";
-  return (
-    <Scrim onDismiss={onClose}>
-      <div className="relative w-fit min-w-[248px] rounded-3xl bg-paper p-7 shadow-lift" data-help-menu>
-        <CardClose onClose={onClose} />
-        <h2 className="font-display text-[28px] leading-tight text-ink">I&rsquo;d like a…</h2>
-        {/* A fit-width grid: every pill is the width of the widest one ("worked example"), no wider. */}
-        <ul className="mt-5 grid w-fit gap-2">
-          {options.map((o) =>
-            o.key === "video" ? (
-              <li key={o.key}>
-                <a href="#" aria-disabled onClick={(e) => e.preventDefault()} className={`${pill} opacity-40`} data-help-option={o.key}>
-                  {o.title}
-                </a>
-              </li>
-            ) : (
-              <li key={o.key}>
-                <button type="button" onClick={o.onPick} disabled={!o.onPick} className={`${pill} transition-colors enabled:hover:bg-accent-soft disabled:opacity-40`} data-help-option={o.key}>
-                  {o.title}
-                </button>
-              </li>
-            ),
-          )}
-        </ul>
-      </div>
-    </Scrim>
   );
 }

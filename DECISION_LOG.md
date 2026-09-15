@@ -5476,3 +5476,20 @@ rule for pens is untouched and the exception is visible and named.
 
 **Defense.** The marks exist to point at maths, and pinning to the maths is the one reference that means the same on all three screens. It holds through zoom, iPad scaling, the columns' font fit, resizes and marks view (verified in the browser at 1440×900 and 1280×800 on each), the geometry is a pure tested module, and the rendering is one component every surface wraps its slide in.
 
+## 2026-09-15 · Help on a question: the step in the session, Q** derived from its lines, one table per mark (ticket 312)
+
+**Decision.** The three steps of help on a set question live in the student session beside the overlay that was already there: `ladder: { problem, step }` (Q* worked, Q** being finished, or Q* opened again from back on the question) and, on the practice entry, `steps: { worked, completion, back }`, the time each step began. Nothing about Q**'s progress is stored: `completionState(steps, blanks, lines)` in `lib/ladder.ts` re-reads the lines the pad has read, in order, against the blank being written (right fills it, wrong counts, two wrong lines fill it in, unreadable counts for nothing), and says how much of the working is on screen: the given lines up to that blank and the blank itself, never a later line. Every check result becomes a mark in one function (`markLine`), what a mark does is one table (`MARK_RULES`), how it looks is one table (`MARK_LOOK` in the screen). Back on the question, the set question gets its own hints (`data/questionHelp.ts`, written from Q**'s) and a hint-and-chat run of its own (`questionRun`) that reads the set's lines and writes none. On a question with Q* and Q**, the repeated-slip offer is on the skill of the slip itself.
+
+**Context.** Ticket 312 turns I need help into Q* → Q** → back on Q with a reload landing on the same step and the teacher's place model showing the step and its time (ticket 314's `sessionPlace`). Ticket 311's check has three results today; ticket 325 (landing beside this one) makes numbers written another way right, and a further result ("right, written differently", shown with the step's own form) may still come. Ticket 313 will run the same completion step in the warm-up. Set questions had no hints and the chat served practice problems only.
+
+**Alternatives considered.**
+- *A new stage for the three steps*: clean on the stage machine, but the teacher's force submit, freeze and end lesson already close the overlay, and a stage would have to reproduce every one of those paths.
+- *Storing each blank's status and tries in the session*: quicker to read, but undo would have to rewind it, and two writers (the reducer and the pad) could disagree; derived from the lines, undo and reload need nothing.
+- *Q**'s given lines all on screen from the start*: simpler, but Q2**'s null factor law line shows the factors the student is asked to write.
+- *Marks as booleans on the line (`right: boolean`)*: fewer types, but a "right, written differently" result would then touch every place that reads the boolean.
+- *Hint and chat back on Q from Q**'s own hints*: no new data, but Q**'s hints name Q**'s numbers and fragments, which are not on Q.
+- *The offer on the most fundamental skill slipped on (as before)*: Sam's Q2 offer would read monic while Q2's Q* and Q** are non-monic, so the skill named would not be the skill practised.
+
+**Tradeoffs.** `completionState` runs the line check on every render of Q** (a handful of short lines; cheap). Hints for the ten set questions are more data to keep true (held by the same tests as Q**'s and swept). The back-on-question hint and chat exist only after practice on that question, so a student who never asks sees none. Sam's demo offer changes from monic to non-monic.
+
+**Defense.** The session holds only what the student did (the step, when, the lines); everything shown is a pure reading of it, testable without a screen and identical on a reload and in the teacher's tab. The one-place mark and rule tables are what let a later decision about other forms land without reshaping the screen.

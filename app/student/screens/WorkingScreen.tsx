@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import HelpChat from "@/components/HelpChat";
+import { StallNotice } from "@/components/HelpMenu";
+import { HintCards, useHints } from "@/components/HintCards";
 import M from "@/components/Math";
+import { useEscape } from "@/components/useEscape";
 import type { Stroke } from "@/data/types";
 import PadSection from "@/components/PadSection";
 import ReadAs from "@/components/ReadAs";
@@ -11,9 +15,16 @@ import Figure from "@/components/Figure";
 import { RECOGNITION } from "@/data/recognition";
 import { useAssignment } from "@/lib/classroom-store";
 import { nextLine, scriptDone } from "@/lib/recognition";
+import { hintOpener, TALK_OPENER } from "@/lib/helpChat";
+import { pickHint, stalledHint, termTex } from "@/lib/hint";
+import { questionPractice } from "@/lib/ladder";
 import { HelpPicker, PracticeOverlay, PromptModal } from "./PracticePrompt";
 import HandInCheck from "./HandInCheck";
-import { blankProblems, promptSentence, type SessionAction, type StudentSession } from "@/lib/session";
+import HelpLadder from "./HelpLadder";
+import { blankProblems, ladderEntry, promptSentence, type SessionAction, type StudentSession } from "@/lib/session";
+
+/** The back-on-the-question help pills (ticket 312), the pad's help menu's pills at the column's size. */
+const PILL = "block w-full whitespace-nowrap rounded-full border border-accent-deep bg-paper px-4 py-2 text-center text-[14px] font-medium text-ink transition-colors enabled:hover:bg-accent-soft disabled:opacity-40";
 
 /**
  * The working screen: problem on the left, the drawpad in the middle, and the transcription
@@ -30,6 +41,31 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
   // A worded problem, every line of the working read: a field under the working asks for the answer in a sentence (tickets 111, 114). Undo below the last line takes it away again; what was typed is kept.
   const askSentence = p.answerAs === "sentence" && scriptDone(RECOGNITION[p.id] ?? [], lines);
   const addStroke = (next: Stroke[]) => dispatch({ type: "ink/stroke", problem: p.id, stroke: next[next.length - 1] });
+
+  // Back on the question after practice on it (ticket 312): "see the example again" beside a hint and a chat on the question itself.
+  const entry = ladderEntry(session, p.id);
+  const qp = entry ? questionPractice(p, entry.leaf) : null;
+  const texs = lines.map((l) => l.tex);
+  const shownHints = session.questionRun.hinted[p.id] ?? [];
+  const h = useHints(qp ?? { hints: [] }, qp ? shownHints : [], lines.length);
+  const nextHint = qp ? pickHint(qp, texs, shownHints) !== null : false;
+  const stalled = qp ? stalledHint(qp, texs, shownHints) !== null : false;
+  const [stall, setStall] = useState(false);
+  const [chatOpen, setChatOpen] = useState<string | null>(null);
+  const [chatAsks, setChatAsks] = useState(0);
+  const chatOn = qp !== null && chatOpen === p.id;
+  const chat = session.questionRun.chat[p.id] ?? [];
+  useEscape(chatOn, () => setChatOpen(null));
+  const openChat = () => {
+    setChatOpen(p.id);
+    setChatAsks((n) => n + 1);
+  };
+  const talkHint = (text: string) => {
+    setStall(false);
+    const last = chat[chat.length - 1];
+    if (!(last?.from === "tutor" && last.text === text)) dispatch({ type: "run/chat", run: "question", problem: p.id, message: { from: "tutor", text } });
+    openChat();
+  };
 
   const onBurstEnd = (strokeCount: number) => {
     setRecognising(false);
@@ -60,7 +96,7 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
   const jump = returning ? problems.map((_, k) => (session.problemIndex + 1 + k) % problems.length).find((i) => i !== session.problemIndex && blank.some((b) => b.index === i)) : undefined;
 
   return (
-    <div className="grid h-full min-h-0 grid-cols-[300px_1fr_320px]">
+    <div className="grid h-full min-h-0 grid-cols-[300px_1fr_320px]" data-working-screen>
       <aside className="flex min-h-0 flex-col overflow-y-auto border-r border-line px-7 py-6">
         <div className="flex items-center justify-between">
           <span className="font-display text-[26px] text-ink">{p.label}</span>
@@ -68,14 +104,28 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
         </div>
         <p className="mt-3 text-[14px] text-ink-soft">{p.stem}</p>
         <div className="math-lg mt-3 text-ink">
-          <M tex={p.tex} display />
+          <M tex={termTex(p.tex, h.termsAt(0), h.litAt(0))} display />
         </div>
         {p.figure && (
           <div className="mt-3">
             <Figure id={p.figure} />
           </div>
         )}
+        {qp && <HintCards p={qp} h={h} onTalk={() => talkHint(TALK_OPENER)} />}
         <div className="mt-auto pt-6">
+          {qp && (
+            <div className="mb-2 grid grid-cols-2 gap-2" data-back-on-question>
+              <button type="button" className={`${PILL} col-span-2`} onClick={() => dispatch({ type: "ladder/again", problem: p.id })} data-help-option="example-again">
+                see the example again
+              </button>
+              <button type="button" className={PILL} disabled={!nextHint && !stalled} onClick={() => (stalled ? setStall(true) : dispatch({ type: "question/hint", problem: p.id }))} data-help-option="hint">
+                hint
+              </button>
+              <button type="button" className={PILL} onClick={openChat} data-help-option="chat">
+                chat
+              </button>
+            </div>
+          )}
           <Button variant="deep" className="mb-6 w-full" onClick={() => setHelpOpen(true)}>
             I need help
           </Button>
@@ -122,7 +172,17 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
       />
 
       <aside className="flex min-h-0 flex-col border-l border-line px-6 py-6">
-        <ReadAs lines={lines} recognising={recognising} empty="Lines appear here as you write." className="flex-1" />
+        <ReadAs
+          lines={lines}
+          recognising={recognising}
+          empty="Lines appear here as you write."
+          decorate={qp ? (tex, i) => termTex(tex, h.termsAt(i + 1), h.litAt(i + 1)) : undefined}
+          highlight={h.litAnchor > 0 ? h.litAnchor - 1 : undefined}
+          className="flex-1"
+        />
+        {chatOn && qp && (
+          <HelpChat key={p.id} problem={qp} lines={texs} messages={chat} hinted={shownHints} runKey="question" dispatch={dispatch} asked={chatAsks} onClose={() => setChatOpen(null)} className="mt-5 max-h-[42%] shrink-0 border-t border-line pt-4" />
+        )}
         <div className={`mt-4 flex items-center justify-between border-t border-line pt-4 ${jump !== undefined ? "gap-1.5" : "gap-2"}`}>
           {/* Three buttons in a 320px column while a jump shows: the back button loses 4px of padding a side (inline, as the Button's own px-4 outranks a utility on it) and the gaps tighten, so nothing wraps or spills. */}
           <Button variant="ghost" onClick={() => go(session.problemIndex - 1)} className={`whitespace-nowrap ${session.problemIndex === 0 ? "invisible" : ""}`} style={jump !== undefined ? { paddingInline: 12 } : undefined}>
@@ -155,7 +215,7 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
           onClose={() => setHelpOpen(false)}
           onPick={(subskill) => {
             setHelpOpen(false);
-            dispatch({ type: "help/request", leaf: subskill, problem: p.id });
+            dispatch({ type: "help/request", leaf: subskill, problem: p.id, at: Date.now() });
           }}
         />
       )}
@@ -164,11 +224,12 @@ export default function WorkingScreen({ session, dispatch }: { session: StudentS
           prompt={session.prompt}
           sentence={promptSentence(session) ?? ""}
           problem={p}
-          onAccept={() => dispatch({ type: "prompt/accept", problem: p.id })}
+          onAccept={() => dispatch({ type: "prompt/accept", problem: p.id, at: Date.now() })}
           onDecline={() => dispatch({ type: "prompt/decline", problem: p.id })}
         />
       )}
-      {session.overlay && <PracticeOverlay session={session} problem={p} dispatch={dispatch} />}
+      {session.overlay && (session.ladder ? <HelpLadder session={session} problem={p} dispatch={dispatch} /> : <PracticeOverlay session={session} problem={p} dispatch={dispatch} />)}
+      {stall && <StallNotice onTalk={() => talkHint(hintOpener(h.hints.length))} onClose={() => setStall(false)} />}
     </div>
   );
 }

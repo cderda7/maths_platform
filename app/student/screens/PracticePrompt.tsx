@@ -6,6 +6,7 @@ import { Button, Eyebrow } from "@/components/ui";
 import { studentLeafName, type LeafId } from "@/data/taxonomy";
 import type { Problem } from "@/data/types";
 import { problemLeaves } from "@/lib/hierarchy";
+import { ladderFor } from "@/lib/ladder";
 import { runFirst, type PracticePrompt as Prompt, type SessionAction, type StudentSession } from "@/lib/session";
 import { practiceFor } from "@/lib/warmup";
 
@@ -25,7 +26,7 @@ export function Scrim({ children, onDismiss }: { children: React.ReactNode; onDi
 }
 
 /** The isolated-practice prompt, for a second mistake on a group and every one after a "Not now" (asking for help goes straight to the pad). */
-export function PromptModal({ prompt, sentence, onAccept, onDecline }: { prompt: Prompt; sentence: string; problem: Problem; onAccept: () => void; onDecline: () => void }) {
+export function PromptModal({ prompt, sentence, problem, onAccept, onDecline }: { prompt: Prompt; sentence: string; problem: Problem; onAccept: () => void; onDecline: () => void }) {
   const s = studentLeafName(prompt.leaf);
   // No tap on the dim closes it, but Escape is "Not now" (ticket 247).
   useEscape(true, onDecline);
@@ -36,7 +37,8 @@ export function PromptModal({ prompt, sentence, onAccept, onDecline }: { prompt:
         <p className="mt-3 text-[14px] text-ink-soft">
           {sentence}
           <br />
-          Let&rsquo;s do a short problem to review.
+          {/* Ticket 312: on a question with Q* and Q**, "Yes" opens a question like this one worked, then one to finish. */}
+          {ladderFor(problem.id, prompt.leaf) ? "Let’s look at a question like this one worked, then you finish one." : "Let’s do a short problem to review."}
         </p>
         <div className="mt-6 flex justify-end gap-2">
           <Button variant="secondary" size="lg" onClick={onDecline}>
@@ -51,10 +53,10 @@ export function PromptModal({ prompt, sentence, onAccept, onDecline }: { prompt:
   );
 }
 
-/** The isolated practice itself, over the working screen: the same pad as the warm-up, the skill as its header, "Back to Qn" to return. */
+/** The isolated practice itself, over the working screen, on a question without Q* and Q** (ticket 312 runs those in `HelpLadder`): the same pad as the warm-up, the skill as its header, "Back to Qn" to return. */
 export function PracticeOverlay({ session, problem, dispatch }: { session: StudentSession; problem: Problem; dispatch: (a: SessionAction) => void }) {
   const first = runFirst(session, "overlay");
-  const back = () => dispatch({ type: "overlay/done" });
+  const back = () => dispatch({ type: "overlay/done", at: Date.now() });
   // Escape is "Back to Qn" (ticket 247); a help card open over the pad closes first.
   useEscape(!!first, back);
   if (!first) return null;
@@ -88,7 +90,7 @@ export function PracticeOverlay({ session, problem, dispatch }: { session: Stude
   );
 }
 
-/** "I need help": pick which of this problem's skills is getting in the way. Only moves with a practice are listed. Runs the identical flow a detected trigger would. */
+/** "I need help": pick which of this problem's skills is getting in the way. Only moves with a practice are listed. Runs the identical flow a detected trigger would: Q* worked, Q** to finish, then back on the question (ticket 312). */
 export function HelpPicker({ problem, onPick, onClose }: { problem: Problem; onPick: (s: LeafId) => void; onClose: () => void }) {
   const own = problemLeaves(problem).filter((l) => practiceFor(l) !== null);
   return (

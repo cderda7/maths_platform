@@ -125,9 +125,13 @@ START opens a set; the Edexia mark returns:
 2. Overview (CONTINUE pulses until pressed), the teacher's goal in a speech bubble ("Before you get started, Ms
    Okafor wants you to know…"; skipped when blank), then the check-in: confidence (a not-confident answer is offered the warm-up). Work Q1–Q10 on the pad; each burst of strokes is read as
    one line and the ink is kept. Q1 slips on monic factorising and Q2 on non-monic (a two-minute
-   practice is offered on the second), Q3 misuses the null factor law, Q4–Q6 and Q8 hold, Q7
+   practice on non-monic is offered on the second), Q3 misuses the null factor law, Q4–Q6 and Q8 hold, Q7
    multiplies only two of three terms by 3, Q9 skips the height (a compounded step, not a
-   mistake), and Q10 misreads a negative discriminant. "I need help" runs the same practice flow.
+   mistake), and Q10 misreads a negative discriminant. "I need help" (pick the skill) and the offer run the same
+   three steps (ticket 312): Q*, a question like it worked step by step with a chat beside it; Q**, another with the
+   skill's lines blank, each line written on the pad marked right or red with its misconception chip (the demo writes
+   Q2**'s factors with the signs in the wrong brackets, then right) and a blank filled in after two wrong lines; then
+   back on the question with "see the example again", a hint and a chat. "Back to Qn" at every step; no video.
 3. **Hand in** → the pathway decides what comes next. The Edexia header on every student screen
    up to class review carries the pathway horizontally beside the student's name (indiv working →
    indiv review → group review → class review, only the stages the assignment has): the stage

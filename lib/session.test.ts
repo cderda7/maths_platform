@@ -362,14 +362,15 @@ describe("the warm-up on the pad", () => {
   });
 });
 
-describe("the isolated practice on the pad", () => {
+describe("the isolated practice on the pad, on a question without Q* and Q**", () => {
   it("starts a fresh run when a prompt is accepted, keeps its own lines and help, and clears when done", () => {
     let s = sessionAt("working");
     expect(sessionReducer(s, { type: "run/hint", run: "overlay" })).toBe(s);
-    s = sessionReducer(s, { type: "help/request", leaf: "algebra.expand-factor.monic", problem: "q1" });
+    s = sessionReducer(s, { type: "help/request", leaf: "algebra.expand-factor.monic", problem: "q-unpaired" });
     expect(s.prompt).toBeNull();
     expect(s.overlay).toBe("algebra.expand-factor.monic");
-    expect(s.practices).toEqual([{ leaf: "algebra.expand-factor.monic", reason: "help", accepted: true, problem: "q1" }]);
+    expect(s.ladder).toBeNull();
+    expect(s.practices).toEqual([{ leaf: "algebra.expand-factor.monic", reason: "help", accepted: true, problem: "q-unpaired" }]);
     expect(runProblem(s, "overlay")?.id).toBe("w-monic");
     s = sessionReducer(s, { type: "run/reveal", run: "overlay", problem: "w-monic", line: { tex: "a", strokeCount: 1 } });
     s = sessionReducer(s, { type: "run/hint", run: "overlay" });
@@ -384,7 +385,7 @@ describe("the isolated practice on the pad", () => {
     expect(runProblem(s, "overlay")?.id).toBe("w-monic-2");
     s = sessionReducer(s, { type: "overlay/done" });
     expect(s.overlay).toBeNull();
-    s = sessionReducer(s, { type: "help/request", leaf: "algebra.expand-factor.monic", problem: "q1" });
+    s = sessionReducer(s, { type: "help/request", leaf: "algebra.expand-factor.monic", problem: "q-unpaired" });
     expect(s.overlayRun).toEqual(INITIAL_RUN);
   });
 });
@@ -402,8 +403,8 @@ describe("escalation inside the session", () => {
     s = sessionReducer(s, { type: "problem/goto", index: 1 });
     s = reveal(s, "q2", "2x^2 + 7x - 4 = 0", 6);
     s = reveal(s, "q2", "(2x + 4)(x - 1) = 0", 14);
-    // Monic first, then non-monic: the practice goes to monic, the more fundamental of the two.
-    expect(s.prompt).toEqual({ leaf: "algebra.expand-factor.monic", reason: "detected" });
+    // Monic first, then non-monic on Q2: Q2's three steps practise the skill of this slip, non-monic (ticket 312).
+    expect(s.prompt).toEqual({ leaf: "algebra.expand-factor.nonmonic", reason: "detected" });
     expect(s.escalation.caution).toEqual([]);
   });
 
@@ -432,13 +433,15 @@ describe("escalation inside the session", () => {
     s = reveal(s, "q1", "(x + 2)(x + 3) = 0", 3);
     s = sessionReducer(s, { type: "problem/goto", index: 1 });
     s = reveal(s, "q2", "(2x + 4)(x - 1) = 0", 3);
-    s = sessionReducer(s, { type: "prompt/accept", problem: "q2" });
+    s = sessionReducer(s, { type: "prompt/accept", problem: "q2", at: 1000 });
     expect(s.prompt).toBeNull();
-    expect(s.overlay).toBe("algebra.expand-factor.monic");
-    s = sessionReducer(s, { type: "overlay/done" });
+    expect(s.overlay).toBe("algebra.expand-factor.nonmonic");
+    expect(s.ladder).toEqual({ problem: "q2", step: "worked" });
+    s = sessionReducer(s, { type: "overlay/done", at: 2000 });
     expect(s.overlay).toBeNull();
+    expect(s.ladder).toBeNull();
     expect(s.problemIndex).toBe(1);
-    expect(s.practices).toEqual([{ leaf: "algebra.expand-factor.monic", reason: "detected", accepted: true, problem: "q2" }]);
+    expect(s.practices).toEqual([{ leaf: "algebra.expand-factor.nonmonic", reason: "detected", accepted: true, problem: "q2", steps: { worked: 1000, back: 2000 } }]);
   });
 
   it("after 'Not now' the very next slip on the same topic offers practice again (ticket 297)", () => {

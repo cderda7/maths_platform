@@ -12,7 +12,8 @@ import { afterUndo, type RevealedLine } from "./recognition";
 import { evaluateLine } from "./evaluate";
 import { INITIAL_ESCALATION, practiceTaken, recordMistake, requestHelp, type EscalationState } from "./escalation";
 import { RECOGNITION, RECOGNITION_REWORK } from "@/data/recognition";
-import { ASSIGNMENT } from "@/data/assignment";
+import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
+import { asPractice, completionState, completionWorking, ladderFor, questionPractice, type LadderStep } from "./ladder";
 
 /**
  * The student's session: everything the closed loop needs to remember about one run. Pure data
@@ -28,6 +29,18 @@ export interface PracticeEntry extends PracticePrompt {
   accepted: boolean;
   /** Problem the student was on. */
   problem: string;
+  /**
+   * Help from a question in three steps (ticket 312): when each step the student reached began (ms since epoch; 0 =
+   * unknown), Q* worked, Q** finished, back on the question. How far they got is which are set: "Back to Qn" from Q* has
+   * `worked` and `back`. Absent on a declined offer and on the older isolated practice (a question with no Q* and Q**).
+   */
+  steps?: Partial<Record<LadderStep, number>>;
+}
+
+/** Help from a question open over the working screen (ticket 312): Q* worked, Q** being finished, or Q*'s worked example opened again from back on the question. */
+export interface LadderView {
+  problem: string;
+  step: "worked" | "completion" | "again";
 }
 
 /**
@@ -56,8 +69,8 @@ export interface PracticeRun {
 
 export const INITIAL_RUN: PracticeRun = { problem: "first", example: false, exampleShown: 0, hinted: {}, exampled: [], lines: {}, ink: {}, chat: {} };
 
-/** Which run an action is about: the warm-up before the set, or the isolated practice over it. */
-export type RunKey = "warmup" | "overlay";
+/** Which run an action is about: the warm-up before the set, the practice over it (Q* and Q** since ticket 312), or the hints and chat on a set question once back on it after practice. */
+export type RunKey = "warmup" | "overlay" | "question";
 
 /** The warm-up's slice: a run plus the concerns chat's answers and the sequence position. */
 export interface WarmupState extends PracticeRun {
@@ -90,8 +103,12 @@ export interface StudentSession {
   prompt: PracticePrompt | null;
   /** The isolated practice the student is in, if any. */
   overlay: LeafId | null;
-  /** That practice on the pad: fresh each time a prompt is accepted. */
+  /** That practice on the pad: fresh each time a prompt is accepted. Q*'s worked example and Q**'s lines, hints and chat live here (ticket 312). */
   overlayRun: PracticeRun;
+  /** While `overlay` is open on a question with Q* and Q** (ticket 312): which step shows. null with the older isolated practice. */
+  ladder: LadderView | null;
+  /** Hints and chat on a set question once the student is back on it after practice (ticket 312), per problem id. The lines it reads are the set's own `lines`. */
+  questionRun: PracticeRun;
   /** Every prompt and how it was answered, oldest first. */
   practices: PracticeEntry[];
   /** Problems the student got right but wasn't sure about. */
@@ -167,6 +184,12 @@ export type SessionAction =
   | { type: "run/clear"; run: RunKey; problem: string }
   /** The help menu's "hint": the current problem's hint stays under the problem. */
   | { type: "run/hint"; run: RunKey }
+  /** Back on a set question after practice (ticket 312): its next hint, picked by the set's own lines. */
+  | { type: "question/hint"; problem: string }
+  /** Q*'s worked example seen in full: on to Q** (ticket 312). */
+  | { type: "ladder/next"; at?: number }
+  /** "see the example again" back on a question: Q*'s worked example opens over it (ticket 312). */
+  | { type: "ladder/again"; problem: string }
   /** The help menu's "worked example": plays in place of the pad. */
   | { type: "run/example"; run: RunKey }
   | { type: "run/example-step"; run: RunKey }
@@ -184,10 +207,12 @@ export type SessionAction =
   /** Pops the last stroke and withdraws any line revealed after the survivors. `strokeCount` forces the count instead. */
   | { type: "lines/undo"; problem: string; strokeCount?: number }
   | { type: "lines/clear"; problem: string }
-  | { type: "help/request"; leaf: LeafId; problem: string }
-  | { type: "prompt/accept"; problem: string }
+  /** "I need help", the skill picked. `at` is when (ticket 312 records each step's start). */
+  | { type: "help/request"; leaf: LeafId; problem: string; at?: number }
+  | { type: "prompt/accept"; problem: string; at?: number }
   | { type: "prompt/decline"; problem: string }
-  | { type: "overlay/done" }
+  /** "Back to Qn" from any step of the practice. */
+  | { type: "overlay/done"; at?: number }
   | { type: "star/toggle"; problem: string }
   /** The sentence typed in the answer field under the pad, as typed (kept through undo and clear). */
   | { type: "answer/set"; problem: string; text: string }
@@ -240,6 +265,8 @@ export const INITIAL_SESSION: StudentSession = {
   prompt: null,
   overlay: null,
   overlayRun: INITIAL_RUN,
+  ladder: null,
+  questionRun: INITIAL_RUN,
   practices: [],
   stars: [],
   answers: {},
@@ -269,6 +296,7 @@ export function hydrateSession(raw: unknown): StudentSession {
   const snap = (raw && typeof raw === "object" ? raw : {}) as Partial<StudentSession>;
   const warmup = snap.warmup && typeof snap.warmup === "object" ? snap.warmup : {};
   const overlayRun = snap.overlayRun && typeof snap.overlayRun === "object" ? snap.overlayRun : {};
+  const questionRun = snap.questionRun && typeof snap.questionRun === "object" ? snap.questionRun : {};
   // A "low-when" answer saved as a category (before skills were listed) keeps its level with no skills named.
   const c = snap.confidence as ({ level: string; leaves?: unknown } | null | undefined);
   const stored: Confidence | null = c && c.level === "low-when" && !Array.isArray(c.leaves) ? { level: "low-when", leaves: [] } : ((c ?? null) as Confidence | null);
@@ -285,6 +313,7 @@ export function hydrateSession(raw: unknown): StudentSession {
     ...(Array.isArray(snap.practices) ? { practices: snap.practices.flatMap((p) => { const l = resolveLeaf(p.leaf); return l ? [{ ...p, leaf: l }] : []; }) } : {}),
     warmup: { ...INITIAL_WARMUP, ...warmup, hinted: hydrateHinted(warmup) },
     overlayRun: { ...INITIAL_RUN, ...overlayRun, hinted: hydrateHinted(overlayRun) },
+    questionRun: { ...INITIAL_RUN, ...questionRun, hinted: hydrateHinted(questionRun) },
   };
 }
 
@@ -326,7 +355,7 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     case "advance/apply": {
       if (s.appliedAdvances.includes(a.id)) return s;
       const applied = { ...s, appliedAdvances: [...s.appliedAdvances, a.id] };
-      if (a.kind === "whole-class-start") return applied.stage === "frozen" ? applied : { ...applied, stage: "frozen", prompt: null, overlay: null };
+      if (a.kind === "whole-class-start") return applied.stage === "frozen" ? applied : { ...applied, stage: "frozen", prompt: null, overlay: null, ladder: null };
       if (a.kind === "force-review") {
         // The teacher ended individual review (ticket 145): a student waiting at the gate goes into group review (the gate opens
         // at the same deadline); one still correcting hands in as it stands and moves on, straight onto the board when the gate is next.
@@ -345,7 +374,7 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
         if (!IN_LESSON.includes(s.stage)) return applied;
         const handIn = BEFORE_HAND_IN.includes(s.stage) ? { handedInAt: a.at ?? s.handedInAt, notAttempted: blankProblems(s) } : {};
         const rework = s.stage === "feedback" ? { reworkedAt: a.at ?? s.reworkedAt } : {};
-        return { ...applied, ...handIn, ...rework, stage: "report", handInCheck: null, prompt: null, overlay: null, notice: ENDED_LESSON_TEXT };
+        return { ...applied, ...handIn, ...rework, stage: "report", handInCheck: null, prompt: null, overlay: null, ladder: null, notice: ENDED_LESSON_TEXT };
       }
       if (a.kind === "force-submit") {
         if (!BEFORE_HAND_IN.includes(s.stage)) return applied;
@@ -357,6 +386,7 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
           handInCheck: null,
           prompt: null,
           overlay: null,
+          ladder: null,
           notice: FORCED_HAND_IN_TEXT,
         };
       }
@@ -395,8 +425,28 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       const run = runOf(s, a.run);
       const first = runFirst(s, a.run);
       if (!first) return s;
-      const next = runReducer(run, a, first);
-      return next === run ? s : a.run === "warmup" ? { ...s, warmup: { ...s.warmup, ...next } } : { ...s, overlayRun: next };
+      // Q**'s hints are picked by the working on screen (the given lines and the blanks done), not by the lines written into it.
+      const working = a.run === "overlay" && s.ladder?.step === "completion" ? ladderWorking(s) : undefined;
+      const next = runReducer(run, a, first, working);
+      return next === run ? s : a.run === "warmup" ? { ...s, warmup: { ...s.warmup, ...next } } : a.run === "overlay" ? { ...s, overlayRun: next } : { ...s, questionRun: next };
+    }
+    case "question/hint": {
+      const entry = ladderEntry(s, a.problem);
+      const q = PROBLEM_MAP[a.problem];
+      const p = entry && q ? questionPractice(q, entry.leaf) : null;
+      if (!p) return s;
+      const next = runReducer(s.questionRun, { type: "run/hint", run: "question" }, p, (s.lines[q.id] ?? []).map((l) => l.tex));
+      return next === s.questionRun ? s : { ...s, questionRun: next };
+    }
+    case "ladder/next": {
+      const first = runFirst(s, "overlay");
+      if (s.ladder?.step !== "worked" || !first || !s.overlayRun.exampled.includes(first.id)) return s;
+      return { ...s, ladder: { ...s.ladder, step: "completion" }, overlayRun: { ...s.overlayRun, example: false, exampleShown: 0 }, practices: stampStep(s.practices, s.ladder.problem, "completion", a.at) };
+    }
+    case "ladder/again": {
+      const entry = ladderEntry(s, a.problem);
+      if (s.overlay || !entry) return s;
+      return { ...s, overlay: entry.leaf, ladder: { problem: a.problem, step: "again" } };
     }
     case "warmup/skill-done": {
       if (s.stage !== "practice") return s;
@@ -422,7 +472,8 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       if (v.verdict !== "wrong" || s.counted.includes(key)) return next;
       const slipped = v.tags[0].leaf;
       const r = recordMistake(s.escalation, groupOf(slipped), slipped);
-      const leaf = r.trigger ? fundamentalLeaf(r.slipped) : null;
+      // On a question with Q* and Q** the offer is on the skill of this slip, the one its three steps practise (ticket 312); elsewhere the most fundamental slipped on.
+      const leaf = r.trigger ? (ladderFor(a.problem, slipped) && practiceFor(slipped) ? slipped : fundamentalLeaf(r.slipped)) : null;
       return {
         ...next,
         escalation: r.state,
@@ -445,20 +496,22 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     case "lines/clear":
       return { ...s, ink: { ...s.ink, [a.problem]: [] }, lines: { ...s.lines, [a.problem]: [] } };
     case "help/request": {
-      // The student asked and chose the skill: straight onto the pad, no prompt in between.
+      // The student asked and chose the skill: straight onto Q* (or the older isolated practice), no prompt in between.
       const r = requestHelp(s.escalation, groupOf(a.leaf));
-      const leaf = practiceLeaf(a.leaf);
+      const leaf = ladderFor(a.problem, a.leaf) ? a.leaf : practiceLeaf(a.leaf);
       if (!leaf) return { ...s, escalation: r.state };
-      return { ...s, escalation: r.state, prompt: null, overlay: leaf, overlayRun: INITIAL_RUN, practices: [...s.practices, { leaf, reason: "help", accepted: true, problem: a.problem }] };
+      return { ...s, escalation: r.state, ...openHelp(s, { leaf, reason: "help", problem: a.problem }, a.at) };
     }
     case "prompt/accept":
       if (!s.prompt) return s;
-      return { ...s, escalation: practiceTaken(s.escalation, groupOf(s.prompt.leaf)), prompt: null, overlay: s.prompt.leaf, overlayRun: INITIAL_RUN, practices: [...s.practices, { ...s.prompt, accepted: true, problem: a.problem }] };
+      return { ...s, escalation: practiceTaken(s.escalation, groupOf(s.prompt.leaf)), ...openHelp(s, { ...s.prompt, problem: a.problem }, a.at) };
     case "prompt/decline":
       if (!s.prompt) return s;
       return { ...s, prompt: null, practices: [...s.practices, { ...s.prompt, accepted: false, problem: a.problem }] };
     case "overlay/done":
-      return { ...s, overlay: null };
+      // Back on the question from Q* or Q** is the third step; closing the example opened again from there records nothing new.
+      if (s.overlay && (s.ladder?.step === "worked" || s.ladder?.step === "completion")) return { ...s, overlay: null, ladder: null, practices: stampStep(s.practices, s.ladder.problem, "back", a.at) };
+      return { ...s, overlay: null, ladder: null };
     case "rework/goto":
       return { ...s, reworkIndex: a.index };
     case "rework/reveal":
@@ -489,7 +542,7 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     case "follow/clear":
       return { ...s, followInk: { ...s.followInk, [a.problem]: [] } };
     case "freeze":
-      return s.stage === "frozen" ? s : { ...s, stage: "frozen", prompt: null, overlay: null };
+      return s.stage === "frozen" ? s : { ...s, stage: "frozen", prompt: null, overlay: null, ladder: null };
     case "release":
       return s.stage === "frozen" ? { ...s, stage: "report" } : s;
     case "group/start":
@@ -581,10 +634,62 @@ const leaveSkill = (s: StudentSession): string[] => {
 /** The run an action is about. */
 export const runOf = (s: StudentSession, key: RunKey): PracticeRun => (key === "warmup" ? s.warmup : s.overlayRun);
 
-/** A run's first problem: the warm-up's current step, or the overlay's leaf's practice (null when no overlay is open). */
-export function runFirst(s: StudentSession, key: RunKey) {
+/**
+ * A run's first problem: the warm-up's current step; over a question, Q* (its worked example, first or again) or Q** as
+ * the pad reads them, or the overlay's leaf's practice on a question without them (null when no overlay is open); back on a
+ * question after practice, that question with its own hints (null before any).
+ */
+export function runFirst(s: StudentSession, key: RunKey): PracticeProblem | null {
   if (key === "warmup") return warmupStep(s);
-  return s.overlay ? (PRACTICES[s.overlay] ?? null) : null;
+  if (key === "question") {
+    const entry = [...s.practices].reverse().find((p) => p.accepted && p.steps);
+    const q = entry ? PROBLEM_MAP[entry.problem] : undefined;
+    return entry && q ? questionPractice(q, entry.leaf) : null;
+  }
+  if (!s.overlay) return null;
+  const ladder = s.ladder ? ladderFor(s.ladder.problem, s.overlay) : null;
+  if (s.ladder && ladder) return asPractice(s.ladder.step === "completion" ? ladder.completion : ladder.worked, s.overlay);
+  return PRACTICES[s.overlay] ?? null;
+}
+
+/** The latest practice taken on `problem` as three steps (ticket 312), or undefined. */
+export const ladderEntry = (s: Pick<StudentSession, "practices">, problem: string): PracticeEntry | undefined => [...s.practices].reverse().find((p) => p.accepted && p.problem === problem && p.steps);
+
+/** Q** as it stands in the open practice (ticket 312), with its blanks: null unless Q** is showing. */
+export function ladderCompletion(s: StudentSession) {
+  if (!s.overlay || s.ladder?.step !== "completion") return null;
+  const ladder = ladderFor(s.ladder.problem, s.overlay);
+  if (!ladder) return null;
+  return { ...ladder, state: completionState(ladder.completion.solution, ladder.blanks, s.overlayRun.lines[ladder.completion.id] ?? []) };
+}
+
+/** Q**'s working as far as the blank being written, for the hint picker. */
+const ladderWorking = (s: StudentSession): string[] | undefined => {
+  const c = ladderCompletion(s);
+  return c ? completionWorking(c.completion.solution, c.state) : undefined;
+};
+
+/** Opens practice on a question for an accepted offer or a help request: Q* when the question has Q* and Q** (its start recorded), else the older isolated practice. */
+function openHelp(s: StudentSession, p: PracticePrompt & { problem: string }, at: number | undefined): Partial<StudentSession> {
+  const ladder = ladderFor(p.problem, p.leaf) !== null;
+  return {
+    prompt: null,
+    overlay: p.leaf,
+    ladder: ladder ? { problem: p.problem, step: "worked" } : null,
+    // Q*'s worked example plays from the start, where the older practice opens on its pad.
+    overlayRun: ladder ? { ...INITIAL_RUN, example: true } : INITIAL_RUN,
+    practices: [...s.practices, { ...p, accepted: true, ...(ladder ? { steps: { worked: at ?? 0 } } : {}) }],
+  };
+}
+
+/** The latest three-step practice on `problem` with `step`'s start recorded, once: a step already reached keeps its first time. */
+function stampStep(practices: PracticeEntry[], problem: string, step: LadderStep, at: number | undefined): PracticeEntry[] {
+  let i = -1;
+  practices.forEach((p, k) => {
+    if (p.accepted && p.problem === problem && p.steps) i = k;
+  });
+  if (i < 0 || practices[i].steps![step] !== undefined) return practices;
+  return practices.map((p, k) => (k === i ? { ...p, steps: { ...p.steps, [step]: at ?? 0 } } : p));
 }
 
 /** The problem a run is on: its first, or the follow-up. */
@@ -597,7 +702,7 @@ export function runProblem(s: StudentSession, key: RunKey) {
 type RunAction = Extract<SessionAction, { run: RunKey }>;
 
 /** The pad rules for one run, the same for the warm-up and the overlay. Returns the same object when nothing changes. */
-function runReducer(r: PracticeRun, a: RunAction, first: PracticeProblem): PracticeRun {
+function runReducer(r: PracticeRun, a: RunAction, first: PracticeProblem, working?: string[]): PracticeRun {
   const cur = r.problem === "second" && first.followUp ? first.followUp : first;
   switch (a.type) {
     case "run/reveal":
@@ -613,7 +718,7 @@ function runReducer(r: PracticeRun, a: RunAction, first: PracticeProblem): Pract
       return { ...r, ink: { ...r.ink, [a.problem]: [] }, lines: { ...r.lines, [a.problem]: [] } };
     case "run/hint": {
       const shown = r.hinted[cur.id] ?? [];
-      const lines = (r.lines[cur.id] ?? []).map((l) => l.tex);
+      const lines = working ?? (r.lines[cur.id] ?? []).map((l) => l.tex);
       // A hint the lines have not moved past blocks the next one: the pad opens the chat on it instead (stalledHint).
       if (stalledHint(cur, lines, shown) !== null) return r;
       const next = pickHint(cur, lines, shown);

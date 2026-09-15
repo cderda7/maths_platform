@@ -1,6 +1,11 @@
 /**
  * Lit hint box sweep for the student's practice pad (ticket 104; the check behind tickets 96–100).
  *
+ * Since ticket 312 it also sweeps help on a set question: for every Problem Set 6 question and every skill its "I need help"
+ * picker offers, Q** (the question the student finishes: each blank line written in turn, the hint at each point opened,
+ * every linked word hovered, in the question and in the working column), and the question itself back on it after
+ * practice (its own hints, with its working written up to each point).
+ *
  * For every warm-up in the bank and its follow-up (every leaf in scripts/warmup-leaves.json with both line counts, which a unit test
  * holds to data/practice.ts, ticked on the confidence screen so the warm-up strip offers them all): opens it, writes each line of the working
  * in turn (a scribble on the pad reveals the next scripted line), opens the hint offered at each
@@ -23,7 +28,8 @@
  * when set, a 3× clip of every lit box is saved there as <warm-up>-<lines>-<word>.png), CDP_PORT
  * (default 9382; the script refuses to run if something already answers there), CDP_PROFILE (the
  * throwaway profile dir; default a fresh dir under the OS temp dir), CHROME (the binary; default the
- * macOS Google Chrome path).
+ * macOS Google Chrome path), HINT_SWEEP_ONLY ("warm-ups" or "questions": one half of the sweep, while working on it; a
+ * change is done only when the whole sweep passes).
  *
  * The browser is ended for real whatever happens: Browser.close over CDP, then SIGKILL, then the
  * profile dir is deleted. Needs Node 22+ (global WebSocket and fetch); no dependencies.
@@ -35,6 +41,7 @@ import { join } from "node:path";
 
 const BASE = (process.env.HINT_SWEEP_URL ?? "http://localhost:3121").replace(/\/$/, "");
 const SHOTS = process.env.HINT_SWEEP_SHOTS ?? null;
+const ONLY = process.env.HINT_SWEEP_ONLY ?? null;
 const CDP_PORT = Number(process.env.CDP_PORT ?? 9382);
 const CHROME = process.env.CHROME ?? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const PROFILE = process.env.CDP_PROFILE ?? mkdtempSync(join(tmpdir(), "edexia-cdp-hint-sweep-"));
@@ -42,6 +49,8 @@ const CANVAS = "[data-run] canvas";
 /** Every warm-up in the bank, leaf → [lines in its working, lines in its follow-up's]; a unit test holds it to data/practice.ts. */
 const LINES = JSON.parse(readFileSync(new URL("./warmup-leaves.json", import.meta.url), "utf8"));
 const LEAVES = Object.keys(LINES);
+/** Problem Set 6's own working, question → its solution lines (ticket 312): written onto the pad back on the question up to each point. A unit test holds it to data/assignment.ts. */
+const WORKING = JSON.parse(readFileSync(new URL("./question-working.json", import.meta.url), "utf8"));
 const SESSION_KEY = "edexia-maths-demo/session/v1";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -53,8 +62,8 @@ const glyphsIn = (root) => `(() => {
 })()`;
 
 /** Runs in the page: every outermost lit box on the pad against every glyph and fraction bar of its own expression outside it. */
-const OVERLAPS = `(() => {
-  const all = [...document.querySelectorAll("[data-run] .hint-term-lit")];
+const overlaps = (root) => `(() => {
+  const all = [...document.querySelectorAll(${JSON.stringify(root)} + " .hint-term-lit")];
   const lits = all.filter((l) => !all.some((o) => o !== l && o.contains(l)));
   const out = [];
   for (const lit of lits) {
@@ -186,14 +195,19 @@ async function openTab(browser) {
       await sleep(500);
       if (!(await evaluate(`!!document.querySelector('[data-warmup="second"]')`))) throw new Error(`${short}: the follow-up did not open`);
     },
-    async goto(url) {
+    async goto(url, ready = "[data-run]") {
       await send("Page.navigate", { url });
       const started = Date.now();
       while (Date.now() - started < 20000) {
-        if (await evaluate(`document.readyState === "complete" && !!document.querySelector("[data-run]")`)) break;
+        if (await evaluate(`document.readyState === "complete" && !!document.querySelector(${JSON.stringify(ready)})`)) break;
         await sleep(150);
       }
       await sleep(600);
+    },
+    /** The stored session rewritten by `edit` (a function body over `s`), then the set's page loaded again on it. */
+    async withSession(edit, ready) {
+      await evaluate(`(() => { const s = JSON.parse(localStorage.getItem(${JSON.stringify(SESSION_KEY)})); ${edit}; localStorage.setItem(${JSON.stringify(SESSION_KEY)}, JSON.stringify(s)); })()`);
+      await tab.goto(BASE + "/student/a/pset-6", ready);
     },
     async click(selector) {
       const ok = await evaluate(`(() => { const e = document.querySelector(${JSON.stringify(selector)}); if (!e) return false; e.click(); return true; })()`);
@@ -212,6 +226,7 @@ async function openTab(browser) {
     /** One scribbled stroke across the pad: the burst that reveals the next scripted line. */
     async scribble(k) {
       const r = await evaluate(`(() => { const b = document.querySelector(${JSON.stringify(CANVAS)}).getBoundingClientRect(); return { x: b.left, y: b.top, w: b.width, h: b.height }; })()`);
+      if (k > 12) k = (k % 12) + 1;
       const pts = [
         [0.2, 0.12 + k * 0.08],
         [0.4, 0.13 + k * 0.08],
@@ -234,6 +249,67 @@ async function openTab(browser) {
   return tab;
 }
 
+/**
+ * Help on a set question (ticket 312). For each Problem Set 6 question, the skills its "I need help" picker offers; for each
+ * skill, Q** from its first blank: at each point the hint is opened and swept, then the pad writes the next line (the demo
+ * script, a slip included where one is authored), until the working column says every line is in. Then the question back
+ * on itself after practice on that skill, its working written up to each point in turn, its own hints swept.
+ */
+async function sweepQuestions(browser, checkPoint) {
+  const setup = await openTab(browser);
+  await setup.goto(BASE + "/student/a/pset-6?stage=working", "[data-working-screen]");
+  const questions = await setup.evaluate(`[...document.querySelectorAll("ol li button[aria-label], ol li button")].map((b) => b.textContent.trim()).filter((t) => /^Q\\d+$/.test(t))`);
+  const plan = [];
+  for (let i = 0; i < questions.length; i++) {
+    await setup.withSession(`s.problemIndex = ${i}`, "[data-working-screen]");
+    await setup.clickButton("I need help");
+    const picks = await setup.evaluate(`[...document.querySelectorAll("[data-pick]")].map((b) => b.dataset.pick)`);
+    await setup.evaluate(`document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }))`);
+    plan.push({ index: i, label: questions[i], id: `q${i + 1}`, picks });
+  }
+  await setup.close();
+  if (plan.length !== 10) throw new Error(`expected Problem Set 6's ten questions, found ${plan.length}`);
+  for (const q of plan) {
+    for (const leaf of q.picks) {
+      const short = `${q.label}** ${leaf.split(".").pop()}`;
+      const tab = await openTab(browser);
+      await tab.goto(BASE + "/student/a/pset-6?stage=working", "[data-working-screen]");
+      await tab.withSession(`s.problemIndex = ${q.index}; s.overlay = ${JSON.stringify(leaf)}; s.ladder = { problem: ${JSON.stringify(q.id)}, step: "completion" }; s.overlayRun = { problem: "first", example: false, exampleShown: 0, hinted: {}, exampled: [], lines: {}, ink: {}, chat: {} }`, "[data-ladder-completion]");
+      for (let k = 0; k < 20; k++) {
+        if (await tab.evaluate(`!!document.querySelector("[data-working-done]")`)) break;
+        // Q**'s own "I need help" (the working screen's is underneath the practice).
+        await tab.click("[data-ladder-completion] [data-need-help]");
+        await sleep(200);
+        const offered = await tab.evaluate(`!!document.querySelector('[data-help-option="hint"]:not([disabled])')`);
+        if (offered) await checkPoint(tab, `${short} · ${k} written`, "[data-run]", () => tab.click('[data-help-option="hint"]'));
+        else await tab.evaluate(`document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }))`);
+        const before = await tab.evaluate(`document.querySelectorAll("[data-working] [data-mark]").length`);
+        await tab.scribble(k + 1);
+        const after = await tab.evaluate(`document.querySelectorAll("[data-working] [data-mark]").length`);
+        if (after === before) throw new Error(`${short}: the pad read no line ${k + 1}`);
+      }
+      if (!(await tab.evaluate(`!!document.querySelector("[data-working-done]")`))) throw new Error(`${short}: the working never finished`);
+      await tab.close();
+    }
+    // Back on the question after practice on its first skill: its own hints, with its working written up to each point.
+    const working = WORKING[q.id];
+    if (!working) throw new Error(`${q.label}: not in scripts/question-working.json`);
+    const leaf = q.picks[0];
+    const tab = await openTab(browser);
+    await tab.goto(BASE + "/student/a/pset-6?stage=working", "[data-working-screen]");
+    for (let k = 0; k < working.length; k++) {
+      const lines = working.slice(0, k).map((tex, n) => ({ tex, strokeCount: (n + 1) * 5 }));
+      await tab.withSession(
+        `s.problemIndex = ${q.index}; s.overlay = null; s.ladder = null; s.prompt = null; s.practices = [{ leaf: ${JSON.stringify(leaf)}, reason: "help", accepted: true, problem: ${JSON.stringify(q.id)}, steps: { worked: 1, back: 1 } }]; s.questionRun = { problem: "first", example: false, exampleShown: 0, hinted: {}, exampled: [], lines: {}, ink: {}, chat: {} }; s.lines = { ...s.lines, ${JSON.stringify(q.id)}: ${JSON.stringify(lines)} }`,
+        "[data-back-on-question]",
+      );
+      if (!(await tab.evaluate(`!!document.querySelector('[data-back-on-question] [data-help-option="hint"]:not([disabled])')`))) throw new Error(`${q.label} · ${k} lines: no hint offered back on the question`);
+      await checkPoint(tab, `${q.label} back · ${k} line${k === 1 ? "" : "s"}`, "[data-working-screen]", () => tab.click('[data-back-on-question] [data-help-option="hint"]'));
+    }
+    await tab.close();
+  }
+}
+
 const moved = (a, b) => a.length !== b.length || a.some((g, i) => g.ch !== b[i].ch || Math.abs(g.l - b[i].l) > 0.5 || Math.abs(g.t - b[i].t) > 0.5);
 
 async function main() {
@@ -246,14 +322,61 @@ async function main() {
   process.on("SIGTERM", onSignal);
   let checks = 0;
   const failures = [];
+  /**
+   * One point of a working: the hint offered there opened (`openHint`), then every linked word hovered. With each word lit,
+   * in the question and every line of working under `root`: no lit box covers a glyph outside it, and nothing has moved
+   * from before the hint opened. A stalled hint (the stall notice) is closed and skipped.
+   */
+  const checkPoint = async (tab, where, root, openHint) => {
+    const problemSel = `${root} .katex-display`;
+    const linesSel = `${root} aside`;
+    const plainProblem = await tab.evaluate(glyphsIn(problemSel));
+    const plainLines = await tab.evaluate(glyphsIn(linesSel));
+    await openHint();
+    await sleep(500);
+    // The latest hint is still to be used: "hint" shows the stall notice, not a new hint. Close it and write the next line.
+    if (await tab.evaluate(`!!document.querySelector("[data-stall-notice]")`)) {
+      await tab.evaluate(`document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }))`);
+      await sleep(300);
+      if (await tab.evaluate(`!!document.querySelector("[data-stall-notice]")`)) throw new Error(`${where}: the stall notice did not close`);
+      return;
+    }
+    const label = (word) => `${where} · "${word}"`;
+    const wrappedMoved = moved(plainProblem, await tab.evaluate(glyphsIn(problemSel))) || moved(plainLines, await tab.evaluate(glyphsIn(linesSel)));
+    checks++;
+    if (wrappedMoved) {
+      failures.push(`${where}: opening the hint moved a glyph`);
+      console.log(`FAIL  ${where}: opening the hint moved a glyph`);
+    }
+    const words = [...new Set(await tab.evaluate(`[...document.querySelectorAll("[data-hint-term]")].map((e) => e.dataset.hintTerm)`))];
+    for (const word of words) {
+      const sel = `[data-hint-term="${word}"]`;
+      await tab.hover(sel, true);
+      const r = await tab.evaluate(overlaps(root));
+      const litMoved = moved(plainProblem, await tab.evaluate(glyphsIn(problemSel))) || moved(plainLines, await tab.evaluate(glyphsIn(linesSel)));
+      checks++;
+      const problems = r.overlaps.map((o) => `box "${o.box}" covers ${o.glyph === "fraction bar" ? "a fraction bar" : `"${o.glyph}"`} by ${o.ox}×${o.oy}px`);
+      if (litMoved) problems.push("lighting moved a glyph");
+      if (!r.boxes.length) problems.push("nothing lit");
+      if (problems.length) {
+        failures.push(`${label(word)}: ${problems.join("; ")}`);
+        console.log(`FAIL  ${label(word)}`);
+        for (const p of problems) console.log(`      ${p}`);
+      } else {
+        console.log(`ok    ${label(word)}  boxes ${r.boxes.map((b) => `[${b}]`).join(" ")}`);
+      }
+      if (SHOTS && r.clip) await tab.shot(join(SHOTS, `${where.replace(/\W+/g, "_")}-${word.replace(/\W+/g, "_")}.png`), r.clip);
+      await tab.hover(sel, false);
+    }
+  };
   try {
     const first = await openTab(browser);
-    await first.gotoEveryWarmup();
-    const leaves = await first.evaluate(`[...document.querySelectorAll("[data-sequence] button[data-leaf]")].map((b) => b.dataset.leaf)`);
+    if (ONLY !== "questions") await first.gotoEveryWarmup();
+    const leaves = ONLY === "questions" ? LEAVES : await first.evaluate(`[...document.querySelectorAll("[data-sequence] button[data-leaf]")].map((b) => b.dataset.leaf)`);
     await first.close();
     if (leaves.length !== LEAVES.length) throw new Error(`the warm-up strip offers ${leaves.length} of the bank's ${LEAVES.length} warm-ups`);
     console.log(`warm-ups: ${leaves.join(", ")}`);
-    for (const leaf of leaves) {
+    for (const leaf of ONLY === "questions" ? [] : leaves) {
       const tab = await openTab(browser);
       await tab.gotoEveryWarmup();
       await tab.click(`[data-sequence] button[data-leaf="${leaf}"]`);
@@ -277,48 +400,12 @@ async function main() {
             await tab.evaluate(`document.body.click()`);
             continue;
           }
-          const plainProblem = await tab.evaluate(glyphsIn("[data-run] .katex-display"));
-          const plainLines = await tab.evaluate(glyphsIn("[data-run] aside"));
-          await tab.click('[data-help-option="hint"]');
-          await sleep(500);
-          // The latest hint is still to be used: "hint" shows the stall notice, not a new hint. Close it and write the next line.
-          if (await tab.evaluate(`!!document.querySelector("[data-stall-notice]")`)) {
-            await tab.evaluate(`document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }))`);
-            await sleep(300);
-            if (await tab.evaluate(`!!document.querySelector("[data-stall-notice]")`)) throw new Error(`${short} · ${k} lines: the stall notice did not close`);
-            continue;
-          }
-          const label = (word) => `${short} · ${k} line${k === 1 ? "" : "s"} · "${word}"`;
-          const wrappedMoved = moved(plainProblem, await tab.evaluate(glyphsIn("[data-run] .katex-display"))) || moved(plainLines, await tab.evaluate(glyphsIn("[data-run] aside")));
-          checks++;
-          if (wrappedMoved) {
-            failures.push(`${short} · ${k} lines: opening the hint moved a glyph`);
-            console.log(`FAIL  ${short} · ${k} lines: opening the hint moved a glyph`);
-          }
-          const words = [...new Set(await tab.evaluate(`[...document.querySelectorAll("[data-hint-term]")].map((e) => e.dataset.hintTerm)`))];
-          for (const word of words) {
-            const sel = `[data-hint-term="${word}"]`;
-            await tab.hover(sel, true);
-            const r = await tab.evaluate(OVERLAPS);
-            const litMoved = moved(plainProblem, await tab.evaluate(glyphsIn("[data-run] .katex-display"))) || moved(plainLines, await tab.evaluate(glyphsIn("[data-run] aside")));
-            checks++;
-            const problems = r.overlaps.map((o) => `box "${o.box}" covers ${o.glyph === "fraction bar" ? "a fraction bar" : `"${o.glyph}"`} by ${o.ox}×${o.oy}px`);
-            if (litMoved) problems.push("lighting moved a glyph");
-            if (!r.boxes.length) problems.push("nothing lit");
-            if (problems.length) {
-              failures.push(`${label(word)}: ${problems.join("; ")}`);
-              console.log(`FAIL  ${label(word)}`);
-              for (const p of problems) console.log(`      ${p}`);
-            } else {
-              console.log(`ok    ${label(word)}  boxes ${r.boxes.map((b) => `[${b}]`).join(" ")}`);
-            }
-            if (SHOTS && r.clip) await tab.shot(join(SHOTS, `${short}-${k}-${word.replace(/\W+/g, "_")}.png`), r.clip);
-            await tab.hover(sel, false);
-          }
+          await checkPoint(tab, `${short} · ${k} line${k === 1 ? "" : "s"}`, "[data-run]", () => tab.click('[data-help-option="hint"]'));
         }
       }
       await tab.close();
     }
+    if (ONLY !== "warm-ups") await sweepQuestions(browser, checkPoint);
   } finally {
     await browser.close();
   }

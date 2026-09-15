@@ -10,6 +10,7 @@ import { PS4_SIMILAR_PROBLEMS } from "@/data/homework-similar-ps4";
 import { PS5_SIMILAR_PROBLEMS } from "@/data/homework-similar-ps5";
 import { COMPLETIONS, PAIR_MAP, QUESTION_PAIRS } from "@/data/pairs";
 import { PRACTICES } from "@/data/practice";
+import { QUESTION_HELP } from "@/data/questionHelp";
 import { PS3_PROBLEMS } from "@/data/pset3/assignment";
 import { PS4_PROBLEMS } from "@/data/pset4/assignment";
 import { PS5_PROBLEMS } from "@/data/pset5/assignment";
@@ -64,9 +65,10 @@ const pretty = (tex: string) => tex.replace(/\^2/g, "²").replace(/ - /g, " − 
 
 const everyCompletionQuestion = () => QUESTION_PAIRS.map((p) => p.completion);
 const everyCompletionProblem = () => Object.values(COMPLETIONS) as PracticeProblem[];
-/** Q** and the warm-up completions as the hint helpers read them. */
+/** Q**, the warm-up completions and the set's own questions back on themselves after practice (ticket 312) as the hint helpers read them. */
 const hinted = (): { id: string; tex: string; steps: SolutionStep[]; hints: Hint[] }[] => [
   ...everyCompletionQuestion().map((q) => ({ id: q.id, tex: q.tex, steps: q.solution, hints: q.hints })),
+  ...PROBLEMS.map((q) => ({ id: q.id, tex: q.tex, steps: q.solution, hints: QUESTION_HELP[q.id].hints })),
   ...everyCompletionProblem().map((p) => ({ id: p.id, tex: p.tex, steps: p.steps, hints: p.hints })),
 ];
 

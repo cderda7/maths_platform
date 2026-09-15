@@ -1,6 +1,9 @@
 import type Anthropic from "@anthropic-ai/sdk";
+import { PROBLEM_MAP } from "@/data/assignment";
+import { QUESTION_PAIRS } from "@/data/pairs";
 import { PRACTICES } from "@/data/practice";
-import { studentLeafName } from "@/data/taxonomy";
+import { resolveLeaf, studentLeafName, type LeafId } from "@/data/taxonomy";
+import { asPractice, questionPractice } from "./ladder";
 import type { ChatMessage, Hint, PracticeProblem } from "@/data/types";
 
 /**
@@ -41,14 +44,31 @@ export const chatOpener = (messages: ChatMessage[], example = false): string => 
 /** What the tutor says when the model declines the turn, so the student is never left with an empty bubble. */
 export const CHAT_DECLINED = "Let's stay with the problem. Tell me the last line you're sure about.";
 
-/** The pad's practice problem with this id: a first problem or its follow-up. */
-export function findPractice(id: string): PracticeProblem | null {
+/**
+ * The problem the chat is on, by id: a practice problem or its follow-up; with the skill the student named (ticket 312), Q*
+ * or Q** of a set question, or the set question itself back on it after practice.
+ */
+export function findPractice(id: string, leaf?: LeafId): PracticeProblem | null {
   for (const p of Object.values(PRACTICES)) {
     if (!p) continue;
     if (p.id === id) return p;
     if (p.followUp?.id === id) return p.followUp;
   }
-  return null;
+  if (!leaf) return null;
+  for (const pair of QUESTION_PAIRS) {
+    if (pair.worked.id === id) return asPractice(pair.worked, leaf);
+    if (pair.completion.id === id) return asPractice(pair.completion, leaf);
+  }
+  const q = PROBLEM_MAP[id];
+  return q ? questionPractice(q, leaf) : null;
+}
+
+/** What the chat's problem is to the student (ticket 312): a practice problem, Q* (a question like theirs, worked), Q** (one like it they finish), or the set question itself. */
+export type ChatOn = "practice" | "worked" | "completion" | "question";
+export function chatOn(id: string): ChatOn {
+  if (QUESTION_PAIRS.some((p) => p.worked.id === id)) return "worked";
+  if (QUESTION_PAIRS.some((p) => p.completion.id === id)) return "completion";
+  return PROBLEM_MAP[id] ? "question" : "practice";
 }
 
 /** What the pad sends for one turn: the problem, the lines read so far, and the chat so far, the student's newest message last. `hinted` is the pad's hint cards, in the order they were given (indices into the problem's hints), so "hint 2" and "the hint" mean the card the student sees. `shown` is sent while the worked example is playing beside the chat: how many of its steps are on the student's screen. */
@@ -58,6 +78,8 @@ export interface HelpChatRequest {
   messages: ChatMessage[];
   hinted?: number[];
   shown?: number;
+  /** The skill the student named, for a chat on Q*, Q** or a set question (ticket 312). */
+  leaf?: LeafId;
 }
 
 const isMessage = (m: unknown): m is ChatMessage =>
@@ -66,12 +88,13 @@ const isMessage = (m: unknown): m is ChatMessage =>
 /** A request body checked field by field, or null. The transcript must end with the student. */
 export function parseHelpChatRequest(raw: unknown): HelpChatRequest | null {
   if (!raw || typeof raw !== "object") return null;
-  const { problem, lines, messages, hinted, shown } = raw as Record<string, unknown>;
+  const { problem, lines, messages, hinted, shown, leaf } = raw as Record<string, unknown>;
   if (typeof problem !== "string") return null;
   if (!Array.isArray(lines) || !lines.every((l) => typeof l === "string")) return null;
   if (!Array.isArray(messages) || !messages.every(isMessage)) return null;
   if (shown !== undefined && (typeof shown !== "number" || !Number.isInteger(shown) || shown < 0)) return null;
   if (hinted !== undefined && (!Array.isArray(hinted) || !hinted.every((i) => Number.isInteger(i) && i >= 0))) return null;
+  if (leaf !== undefined && (typeof leaf !== "string" || !resolveLeaf(leaf))) return null;
   const last = messages[messages.length - 1];
   if (!last || last.from !== "student" || last.text.trim() === "") return null;
   return {
@@ -80,6 +103,7 @@ export function parseHelpChatRequest(raw: unknown): HelpChatRequest | null {
     messages: messages as ChatMessage[],
     ...(hinted === undefined ? {} : { hinted: hinted as number[] }),
     ...(shown === undefined ? {} : { shown }),
+    ...(typeof leaf === "string" ? { leaf: resolveLeaf(leaf)! } : {}),
   };
 }
 
@@ -91,7 +115,7 @@ export function parseHelpChatRequest(raw: unknown): HelpChatRequest | null {
  * are open to talk about, the rest stay the tutor's alone. `hinted` is the pad's hint cards in the
  * order given, so the brief can say which hint "hint 2" and "the hint" are.
  */
-export function helpChatSystem(p: PracticeProblem, lines: string[], messages: ChatMessage[] = [], shown?: number, hinted: number[] = []): string {
+export function helpChatSystem(p: PracticeProblem, lines: string[], messages: ChatMessage[] = [], shown?: number, hinted: number[] = [], on: ChatOn = "practice"): string {
   const skill = studentLeafName(p.leaf).name;
   const example = shown !== undefined;
   const opener = chatOpener(messages, example);
@@ -106,10 +130,17 @@ export function helpChatSystem(p: PracticeProblem, lines: string[], messages: Ch
   const situation = example
     ? `is watching the worked example for it, one step at a time in place of the pad, and has a chat beside it headed "Question about a step?". You are talking to one student in a narrow chat panel.`
     : "writing by hand on the pad, and has opened a chat beside it because they are stuck. You are talking to one student in a narrow chat panel.";
+  // Ticket 312: help on a set question runs a question like it worked (Q*), another they finish (Q**), then the question itself.
+  const task = {
+    practice: "is doing one short practice problem on one skill",
+    worked: "asked for help on a question in their problem set and is being shown a whole question like it, worked. Talk about this worked question only, never the question from their set",
+    completion: "asked for help on a question in their problem set, has seen a question like it worked, and is now finishing another question like it: some lines of its working are already written on screen and the student writes the missing ones, each marked right or wrong as they go. Talk about this question only, never the question from their set. \"What the student has written so far\" below is the working on their screen, the given lines and theirs",
+    question: "is back on a question from their problem set after practising a skill on questions like it, and is working it out on the pad; their lines on it are marked when they hand the set in, so never say whether a line of theirs is right",
+  }[on];
   const working = example
     ? `The reference working, which the worked example shows one step at a time. ${shown === 0 ? "No step is on screen yet" : shown === 1 ? "Step 1 is on screen" : `Steps 1 to ${Math.min(shown, p.steps.length)} are on screen`}; the rest are for your eyes only. Talk about a step on screen as freely as the student needs (what the move is, why it is the move, what it does to the line before it, each written as maths where that helps). Never show, paste or paraphrase a step not yet shown, and never confirm or deny a final answer against one; if they ask what comes next, tell them to show the next step and ask about it.`
     : "The reference working, for your eyes only. Never show it, never paste a step from it, never confirm or deny a final answer against it.";
-  return `You are the tutor inside Edexia's maths practice pad. A Year 11 Mathematical Methods student (QCE Unit 1) is doing one short practice problem on one skill, ${situation}
+  return `You are the tutor inside Edexia's maths practice pad. A Year 11 Mathematical Methods student (QCE Unit 1) ${task}, ${situation}
 
 The problem
 Skill: ${skill}

@@ -289,19 +289,33 @@ describe("Sam's place, from his session", () => {
     expect(sessionPlace({ ...pad, warmup: { ...INITIAL_WARMUP, messages: pad.warmup.messages, step: 1 } }, P).place).toMatchObject({ kind: "warmup", step: 1 });
   });
 
-  it("the question on screen; practice from it at step 1, its follow-up step 2, back on the question until he moves on", () => {
+  it("the question on screen; practice from it at Q* (step 1), Q** (step 2) and back on the question (step 3), each since the session's time for it, until he moves on", () => {
     expect(sessionPlace(W, P).place).toEqual(q("q1"));
     const onQ2 = sessionReducer(W, { type: "problem/goto", index: 1 });
     expect(sessionPlace(onQ2, P).place).toEqual(q("q2"));
-    const help = sessionReducer(onQ2, { type: "help/request", leaf: NONMONIC, problem: "q2" });
-    expect(sessionPlace(help, P).place).toEqual(q("q2", { kind: "practice", leaf: NONMONIC, step: 1 }));
-    expect(sessionPlace({ ...help, overlayRun: { ...help.overlayRun, problem: "second" } }, P).place).toEqual(q("q2", { kind: "practice", leaf: NONMONIC, step: 2 }));
-    const back = sessionReducer(help, { type: "overlay/done" });
-    expect(sessionPlace(back, P).place).toEqual(q("q2", { kind: "practice", leaf: NONMONIC, step: 3 }));
+    const help = sessionReducer(onQ2, { type: "help/request", leaf: NONMONIC, problem: "q2", at: T0 });
+    expect(sessionPlace(help, P)).toEqual({ place: q("q2", { kind: "practice", leaf: NONMONIC, step: 1 }), since: T0 });
+    let seen = help;
+    for (let i = 0; i < 6; i++) seen = sessionReducer(seen, { type: "run/example-step", run: "overlay" });
+    const q2Star = sessionReducer(seen, { type: "ladder/next", at: T0 + 40 * S });
+    expect(sessionPlace(q2Star, P)).toEqual({ place: q("q2", { kind: "practice", leaf: NONMONIC, step: 2 }), since: T0 + 40 * S });
+    const back = sessionReducer(q2Star, { type: "overlay/done", at: T0 + 90 * S });
+    expect(sessionPlace(back, P)).toEqual({ place: q("q2", { kind: "practice", leaf: NONMONIC, step: 3 }), since: T0 + 90 * S });
+    // The worked example opened again from back on the question is a look: still step 3, since the same time.
+    const again = sessionReducer(back, { type: "ladder/again", problem: "q2" });
+    expect(again.overlay).toBe(NONMONIC);
+    expect(sessionPlace(again, P)).toEqual({ place: q("q2", { kind: "practice", leaf: NONMONIC, step: 3 }), since: T0 + 90 * S });
+    // Back to Q2 straight from Q*: step 3.
+    const early = sessionReducer(help, { type: "overlay/done", at: T0 + 5 * S });
+    expect(sessionPlace(early, P)).toEqual({ place: q("q2", { kind: "practice", leaf: NONMONIC, step: 3 }), since: T0 + 5 * S });
     expect(sessionPlace(sessionReducer(back, { type: "problem/goto", index: 2 }), P).place).toEqual(q("q3"));
     // A declined offer is no practice.
     const declined = { ...onQ2, practices: [{ leaf: MONIC, reason: "detected" as const, accepted: false, problem: "q2" }] };
     expect(sessionPlace(declined, P).place).toEqual(q("q2"));
+    // The older isolated practice (a session saved open on it): its first problem step 1, its follow-up step 2, no time.
+    const older = { ...onQ2, overlay: MONIC, ladder: null };
+    expect(sessionPlace(older, P)).toEqual({ place: q("q2", { kind: "practice", leaf: MONIC, step: 1 }), since: null });
+    expect(sessionPlace({ ...older, overlayRun: { ...older.overlayRun, problem: "second" as const } }, P).place).toEqual(q("q2", { kind: "practice", leaf: MONIC, step: 2 }));
   });
 
   it("handed in once past working, since his hand-in", () => {

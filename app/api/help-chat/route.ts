@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { CHAT_DECLINED, findPractice, HELP_CHAT_MAX_TOKENS, HELP_CHAT_MODEL, helpChatMessages, helpChatSystem, parseHelpChatRequest } from "@/lib/helpChat";
+import { CHAT_DECLINED, chatOn, findPractice, HELP_CHAT_MAX_TOKENS, HELP_CHAT_MODEL, helpChatMessages, helpChatSystem, parseHelpChatRequest } from "@/lib/helpChat";
 
 /**
  * One turn of the help chat: the pad posts the problem id, the lines read so far and the chat
@@ -18,14 +18,14 @@ const fail = (error: Failure, status: number) => Response.json({ error }, { stat
 export async function POST(req: Request): Promise<Response> {
   const body = parseHelpChatRequest(await req.json().catch(() => null));
   if (!body) return fail("bad-request", 400);
-  const problem = findPractice(body.problem);
+  const problem = findPractice(body.problem, body.leaf);
   if (!problem) return fail("unknown-problem", 404);
 
   const client = new Anthropic();
   const stream = client.beta.messages.stream({
     model: HELP_CHAT_MODEL,
     max_tokens: HELP_CHAT_MAX_TOKENS,
-    system: helpChatSystem(problem, body.lines, body.messages, body.shown, body.hinted),
+    system: helpChatSystem(problem, body.lines, body.messages, body.shown, body.hinted, chatOn(body.problem)),
     messages: helpChatMessages(body.messages),
     // A declined turn re-runs on a fallback model server-side rather than leaving the student with nothing.
     betas: ["server-side-fallback-2026-07-01"],

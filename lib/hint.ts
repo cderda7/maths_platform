@@ -185,8 +185,8 @@ interface Span {
   lit: boolean;
 }
 
-/** Whether the TeX after a fragment, spaces skipped, begins with something typeset flush against it: a letter, digit or bracket, or a superscript or subscript. An operator, relation or brace has spacing (or nothing to paint) of its own. */
-const flushAfter = (side: string) => /^\s*[a-z0-9()[\]^_]/i.test(side);
+/** Whether the TeX after a fragment, spaces skipped, begins with something typeset flush against it: a letter, digit or bracket, a superscript or subscript, or a comma (its space comes after it, so "-5," sets the comma right against the 5; ticket 312's "b = -5, c = -1"). An operator, relation or brace has spacing (or nothing to paint) of its own. */
+const flushAfter = (side: string) => /^\s*[a-z0-9()[\],^_]/i.test(side);
 /** The same for the TeX before a fragment: its last glyph, unless that letter is the end of a command name (`\dfrac`), which paints something else entirely. */
 const flushBefore = (side: string) => {
   const m = side.match(/(\\?[a-z]+|[0-9()[\]])\s*$/i);

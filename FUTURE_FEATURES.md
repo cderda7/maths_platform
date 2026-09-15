@@ -1682,6 +1682,20 @@ Raised in a project checkpoint review; Carson asked for these on the list. Space
 - **Students marking their own copy in write with me.** In write with me only the pad is the student's; marking the examples on their own iPad (circle the line where they would have gone wrong) would reuse `SlideInk` on the session instead of the classroom. Deferred: not asked for.
 - **Keeping the marks after class review.** Marks live on the class review session and go with it; the report's "Covered in class review" could show the problem with the teacher's marks as they were at the end. Deferred: the report shows no board content today.
 
+## Help on a question in three steps (ticket 312, 2026-09-15)
+
+- **Hint and chat on every set question, before any practice.** Back on a question after practice, Sam has a hint and a chat on it; before practice the working screen offers only "I need help" (the skill picker). The classmates' story already has students taking hints on questions without practice (Noah on Q3). Deferred: the ticket put hint and chat back on Q only, and help inside marked work before any practice is a product call.
+- **"Right, written differently" as its own mark.** Since ticket 325 a line with its numbers written another way (0.5 for ½) is simply right on Q**. A mark that accepts it and shows the step's own form beside it goes in three places: `markLine`, `MARK_RULES` and the screen's `MARK_LOOK`. Deferred: no one has asked for the step's form to be shown.
+- **The example opened from Q** saved in the session.** "see the example again" on Q** shows Q* in the pad's place in screen state only; a reload returns to the pad. Deferred: a look, not a step.
+- **The teacher seeing a look at the example.** Sam opening Q*'s worked example again from back on Q2 reads "back on Q2" on the teacher's laptop. A "looking at the example" detail could show it. Deferred: not a step of the three.
+- **The tutor told which Q** lines were marked.** The chat on Q** gets the working on screen as TeX, the student's wrong lines among them, but not which were marked wrong or filled in. Deferred: the tutor reads the lines against the reference working already.
+- **More authored slips on Q** blanks.** The demo writes one wrong line (Q2**'s factors, Sam's signs in the wrong brackets). Every Q** blank could carry a realistic slip per classmate story, so any route in the demo shows a mark. Deferred: the click-through route is Q2 non-monic.
+- **A nudge after a filled blank.** Two wrong lines fill the blank in and the student carries on; nothing points at what went wrong beyond the chips. Deferred with the tutor-speaking-up entry (tickets 310–320): the user chose chat on the student's press.
+- **Keyboard focus kept inside the practice.** The working screen stays mounted under the overlay, so Tab can reach its hidden buttons (as with the older overlay). A focus trap on the overlay would keep keyboard users inside. Deferred: the iPad demo is touch.
+- **Back-on-question help after practice on another question.** A student who took practice on Q2 and moves to Q3 has no hint or chat on Q3 until practice there. Deferred with the first entry.
+- **The step line when the example is opened again.** The three-step line still marks "1 Example" while Sam looks at Q* again from back on Q2; it could mark 3 with the example as a look. Deferred: small, and the title says Example.
+- **Q* and Q** for a question in a set made through Create.** Such a question still opens the older isolated practice (`PracticeOverlay`); it needs generated pairs (ticket 310's entry) before it runs the three steps.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

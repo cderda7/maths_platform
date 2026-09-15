@@ -3,7 +3,7 @@ import type { Classmate } from "@/data/classmates";
 import { CHAT_TURN_MS, CONFIDENCE_CHECK_MS, CONFIDENCE_SHARE, HELP_STEP_AT, HINT_AT, STREAM_PACES, WARM_UP_STEP_SHARES, type StreamPace } from "@/data/stream";
 import type { LeafId } from "@/data/taxonomy";
 import { BEFORE_HAND_IN_STAGES, type Problem } from "@/data/types";
-import { warmupStep, type StudentSession } from "./session";
+import { ladderEntry, warmupStep, type StudentSession } from "./session";
 import { scheduleFor, streamElapsed, streamOver, wallAt, type StreamSet } from "./stream";
 
 /**
@@ -38,7 +38,7 @@ export type Place =
 export interface StudentPlace {
   id: string;
   place: Place;
-  /** When the student reached this place and step (absolute ms), or null when it is not known (Sam's, until tickets 312 and 313 record step times). */
+  /** When the student reached this place and step (absolute ms), or null when it is not known (Sam's warm-up and plain question, until ticket 313; his practice steps are recorded since ticket 312). */
   since: number | null;
 }
 
@@ -70,12 +70,12 @@ export function placeKey(p: Place): string {
 /**
  * Sam's place from his session, as the session stands today: before the set (overview, goal) not started; the confidence
  * check (with the warm-up offer); the warm-up chat; the warm-up pad on the current skill; the question on screen, with the
- * practice overlay's skill while it is open and "back on the question" after it until he moves to another question; handed
- * in once past working. The steps today: the warm-up's first problem is step 1 and its follow-up step 3; the overlay's first
- * problem step 1, its follow-up step 2. `since` is null except on the hand-in (the session keeps no step times yet).
- *
- * Tickets 312 (help from a question: Q*, Q**, back on Q) and 313 (the warm-up: example, completion, alone) change this
- * function: they record each step and when it began in the session and read them here.
+ * practice's skill while it is open and "back on the question" after it until he moves to another question; handed in once
+ * past working. The warm-up's first problem is step 1 and its follow-up step 3 (ticket 313 changes this). Practice from a
+ * question (ticket 312) is Q* worked (step 1), Q** being finished (step 2) and back on the question (step 3), each `since`
+ * the time the session recorded for it; Q*'s worked example opened again from back on the question is a look, not a step,
+ * so he stays at step 3. The older isolated practice (a question without Q* and Q**) reads its first problem as step 1 and
+ * its follow-up as step 2, with no time. `since` is otherwise null except on the hand-in.
  */
 export function sessionPlace(session: StudentSession | null, problems: readonly Problem[]): { place: Place; since: number | null } {
   if (!session) return { place: { kind: "not-started" }, since: null };
@@ -94,10 +94,16 @@ export function sessionPlace(session: StudentSession | null, problems: readonly 
   const index = Math.max(0, Math.min(session.problemIndex, problems.length - 1));
   const problem = problems[index];
   if (!problem) return { place: { kind: "not-started" }, since: null };
-  const on = (detail: QuestionDetail): { place: Place; since: null } => ({ place: { kind: "question", problem: problem.id, label: problem.label, detail }, since: null });
+  const on = (detail: QuestionDetail, since: number | null = null): { place: Place; since: number | null } => ({ place: { kind: "question", problem: problem.id, label: problem.label, detail }, since });
+  if (session.overlay && session.ladder) {
+    const entry = ladderEntry(session, session.ladder.problem);
+    const step: PlaceStep = session.ladder.step === "worked" ? 1 : session.ladder.step === "completion" ? 2 : 3;
+    const at = entry?.steps?.[step === 1 ? "worked" : step === 2 ? "completion" : "back"];
+    return on({ kind: "practice", leaf: session.overlay, step }, at || null);
+  }
   if (session.overlay) return on({ kind: "practice", leaf: session.overlay, step: session.overlayRun.problem === "second" ? 2 : 1 });
   const last = [...session.practices].reverse().find((p) => p.accepted);
-  if (last && last.problem === problem.id) return on({ kind: "practice", leaf: last.leaf, step: 3 });
+  if (last && last.problem === problem.id) return on({ kind: "practice", leaf: last.leaf, step: 3 }, last.steps?.back || null);
   return on(null);
 }
 
