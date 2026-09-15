@@ -31,6 +31,16 @@ describe("interpreting the student's words", () => {
     expect(interpret("hello there")).toEqual({ leaves: [], problems: [] });
     expect(interpret("q99").problems).toEqual([]);
   });
+  it("reads non-monic said without the word: a number in front of the x², the leading coefficient, a that isn't 1; factorising said alongside it stays non-monic (ticket 300)", () => {
+    const non = ["algebra.expand-factor.nonmonic"];
+    expect(interpret("the coefficient in front of the x² throws me").leaves).toEqual(non);
+    expect(interpret("when there's a number in front of x^2").leaves).toEqual(non);
+    expect(interpret("factorising with a coefficient on the x squared").leaves).toEqual(non);
+    expect(interpret("the leading coefficient").leaves).toEqual(non);
+    expect(interpret("factorising when a isn't 1").leaves).toEqual(non);
+    // The middle coefficient is monic's own word, not non-monic.
+    expect(interpret("finding the middle coefficient when i factorise").leaves).toEqual(["algebra.expand-factor.monic", "algebra.expand-factor.nonmonic"]);
+  });
 });
 
 describe("the focus", () => {
@@ -42,6 +52,28 @@ describe("the focus", () => {
   });
   it("is empty with nothing ticked and nothing said", () => {
     expect(focusLeaves([], [])).toEqual([]);
+  });
+  describe("factorising ticked as both kinds narrows to the kind the answers name (ticket 300)", () => {
+    const both = ["algebra.expand-factor.monic", "algebra.expand-factor.nonmonic"] as const;
+    const say = (...texts: string[]) => texts.map((text) => ({ from: "student" as const, text }));
+    it("a student who names non-monic practises non-monic only, and it opens the warm-up", () => {
+      expect(focusLeaves([...both], say("the coefficient in front of the x² throws me", "same thing"))).toEqual(["algebra.expand-factor.nonmonic"]);
+      expect(warmupSequence(focusLeaves([...both, "algebra.number.fractions"], say("non-monic ones", "fractions are fine")))[0].leaf).toBe("algebra.number.fractions");
+      expect(warmupSequence(focusLeaves([...both], say("non-monic ones", "yeah"))).map((p) => p.leaf)).toEqual(["algebra.expand-factor.nonmonic"]);
+    });
+    it("and one who names monic practises monic only", () => {
+      expect(focusLeaves([...both], say("the monic ones actually"))).toEqual(["algebra.expand-factor.monic"]);
+    });
+    it("stays both when the answers name both, neither, or only a question", () => {
+      expect(focusLeaves([...both], say("i mix up the signs when i factorise"))).toEqual([...both]);
+      expect(focusLeaves([...both], say("no idea", "not sure"))).toEqual([...both]);
+      expect(focusLeaves([...both], say("monic is ok but non-monic isn't"))).toEqual([...both]);
+      expect(focusLeaves([...both], say("Q2 looks hard"))).toEqual([...both, "functions.zeros.nfl", "algebra.number.fractions"]);
+    });
+    it("never drops a kind the student ticked on its own, and a question can still add the other", () => {
+      expect(focusLeaves(["algebra.expand-factor.monic"], say("non-monic"))).toEqual([...both]);
+      expect(focusLeaves([...both], say("the leading coefficient, like Q1"))).toEqual(["algebra.expand-factor.nonmonic", "algebra.expand-factor.monic", "functions.zeros.nfl"]);
+    });
   });
 });
 
@@ -76,6 +108,20 @@ describe("the warm-up sequence", () => {
       expect(warmupScript(p)).toEqual(p.steps.map((s) => s.tex));
       if (p.followUp) expect(p.followUp.leaf).toBe(p.leaf);
     }
+  });
+  it("every practice behaves alike: exactly one follow-up, on the same leaf, a different problem with the same instruction, and a choice of ways in exactly when the first has one (ticket 300)", () => {
+    for (const p of WARMUP_BANK) {
+      const f = p.followUp;
+      expect(f, p.id).toBeDefined();
+      expect(f!.id, p.id).toBe(`${p.id}-2`);
+      expect(f!.leaf, p.id).toBe(p.leaf);
+      expect(f!.tex, p.id).not.toBe(p.tex);
+      expect(f!.followUp, `${f!.id} has no follow-up of its own`).toBeUndefined();
+      expect(!!f!.approaches, `${f!.id}: approaches like ${p.id}`).toBe(!!p.approaches);
+      expect(f!.hints.length, f!.id).toBeGreaterThan(0);
+      expect(warmupScript(f!)).toEqual(f!.steps.map((s) => s.tex));
+    }
+    expect(new Set(WARMUP_BANK.flatMap((p) => [p.id, p.followUp!.id])).size).toBe(WARMUP_BANK.length * 2);
   });
   it("every scripted line is one step: two cases always branch, and no line chains an implication or a second fact onto another step", () => {
     const all = WARMUP_BANK.flatMap((p) => [p, ...(p.followUp ? [p.followUp] : [])]);

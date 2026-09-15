@@ -1,8 +1,8 @@
 /**
  * Lit hint box sweep for the student's practice pad (ticket 104; the check behind tickets 96–100).
  *
- * For every warm-up in the bank (every leaf in scripts/warmup-leaves.json with its line count, which a unit test holds to
- * data/practice.ts, ticked on the confidence screen so the warm-up strip offers them all): opens it, writes each line of the working
+ * For every warm-up in the bank and its follow-up (every leaf in scripts/warmup-leaves.json with both line counts, which a unit test
+ * holds to data/practice.ts, ticked on the confidence screen so the warm-up strip offers them all): opens it, writes each line of the working
  * in turn (a scribble on the pad reveals the next scripted line), opens the hint offered at each
  * point and hovers every linked word. With each word lit it checks, in the problem and in every
  * read-as line:
@@ -39,7 +39,7 @@ const CDP_PORT = Number(process.env.CDP_PORT ?? 9382);
 const CHROME = process.env.CHROME ?? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const PROFILE = process.env.CDP_PROFILE ?? mkdtempSync(join(tmpdir(), "edexia-cdp-hint-sweep-"));
 const CANVAS = "[data-run] canvas";
-/** Every warm-up in the bank, leaf → lines in its working; a unit test holds it to data/practice.ts. */
+/** Every warm-up in the bank, leaf → [lines in its working, lines in its follow-up's]; a unit test holds it to data/practice.ts. */
 const LINES = JSON.parse(readFileSync(new URL("./warmup-leaves.json", import.meta.url), "utf8"));
 const LEAVES = Object.keys(LINES);
 const SESSION_KEY = "edexia-maths-demo/session/v1";
@@ -177,6 +177,15 @@ async function openTab(browser) {
       await evaluate(`(() => { const s = JSON.parse(localStorage.getItem(${JSON.stringify(SESSION_KEY)})); s.confidence = { level: "low-when", leaves: ${JSON.stringify(LEAVES)} }; localStorage.setItem(${JSON.stringify(SESSION_KEY)}, JSON.stringify(s)); })()`);
       await tab.goto(BASE + "/student/a/pset-6");
     },
+    /** From anywhere on a warm-up: its worked example, every step shown, then "Try one more" onto the follow-up. */
+    async openFollowUp(short, steps) {
+      await tab.clickButton("I need help");
+      await tab.click('[data-help-option="example"]');
+      for (let i = 0; i < steps; i++) await tab.clickButton(i === 0 ? "First step" : "Next step");
+      await tab.clickButton("Try one more");
+      await sleep(500);
+      if (!(await evaluate(`!!document.querySelector('[data-warmup="second"]')`))) throw new Error(`${short}: the follow-up did not open`);
+    },
     async goto(url) {
       await send("Page.navigate", { url });
       const started = Date.now();
@@ -249,60 +258,63 @@ async function main() {
       await tab.gotoEveryWarmup();
       await tab.click(`[data-sequence] button[data-leaf="${leaf}"]`);
       await sleep(500);
-      const short = leaf.split(".").pop();
-      /** Lines in the warm-up's working: the sweep reads every one, and fails rather than silently stopping short. */
-      const steps = LINES[leaf];
-      for (let k = 0; k <= steps; k++) {
-        if (k > 0) {
-          const before = await tab.evaluate(`document.querySelectorAll("[data-run] aside ol > li:has(.katex)").length`);
-          await tab.scribble(k);
-          const after = await tab.evaluate(`document.querySelectorAll("[data-run] aside ol > li:has(.katex)").length`);
-          if (after === before) throw new Error(`${short}: the pad read no line ${k} of ${steps}`);
-        }
-        await tab.clickButton("I need help");
-        await sleep(200);
-        const offered = await tab.evaluate(`!!document.querySelector('[data-help-option="hint"]:not([disabled])')`);
-        if (!offered) {
-          await tab.evaluate(`document.body.click()`);
-          continue;
-        }
-        const plainProblem = await tab.evaluate(glyphsIn("[data-run] .katex-display"));
-        const plainLines = await tab.evaluate(glyphsIn("[data-run] aside"));
-        await tab.click('[data-help-option="hint"]');
-        await sleep(500);
-        // The latest hint is still to be used: "hint" shows the stall notice, not a new hint. Close it and write the next line.
-        if (await tab.evaluate(`!!document.querySelector("[data-stall-notice]")`)) {
-          await tab.evaluate(`document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }))`);
-          await sleep(300);
-          if (await tab.evaluate(`!!document.querySelector("[data-stall-notice]")`)) throw new Error(`${short} · ${k} lines: the stall notice did not close`);
-          continue;
-        }
-        const label = (word) => `${short} · ${k} line${k === 1 ? "" : "s"} · "${word}"`;
-        const wrappedMoved = moved(plainProblem, await tab.evaluate(glyphsIn("[data-run] .katex-display"))) || moved(plainLines, await tab.evaluate(glyphsIn("[data-run] aside")));
-        checks++;
-        if (wrappedMoved) {
-          failures.push(`${short} · ${k} lines: opening the hint moved a glyph`);
-          console.log(`FAIL  ${short} · ${k} lines: opening the hint moved a glyph`);
-        }
-        const words = [...new Set(await tab.evaluate(`[...document.querySelectorAll("[data-hint-term]")].map((e) => e.dataset.hintTerm)`))];
-        for (const word of words) {
-          const sel = `[data-hint-term="${word}"]`;
-          await tab.hover(sel, true);
-          const r = await tab.evaluate(OVERLAPS);
-          const litMoved = moved(plainProblem, await tab.evaluate(glyphsIn("[data-run] .katex-display"))) || moved(plainLines, await tab.evaluate(glyphsIn("[data-run] aside")));
-          checks++;
-          const problems = r.overlaps.map((o) => `box "${o.box}" covers ${o.glyph === "fraction bar" ? "a fraction bar" : `"${o.glyph}"`} by ${o.ox}×${o.oy}px`);
-          if (litMoved) problems.push("lighting moved a glyph");
-          if (!r.boxes.length) problems.push("nothing lit");
-          if (problems.length) {
-            failures.push(`${label(word)}: ${problems.join("; ")}`);
-            console.log(`FAIL  ${label(word)}`);
-            for (const p of problems) console.log(`      ${p}`);
-          } else {
-            console.log(`ok    ${label(word)}  boxes ${r.boxes.map((b) => `[${b}]`).join(" ")}`);
+      /** Lines in each working, the warm-up's then its follow-up's (ticket 300): the sweep reads every one of both, and fails rather than silently stopping short. */
+      const [firstSteps, followUpSteps] = LINES[leaf];
+      for (const [suffix, steps] of [["", firstSteps], ["-2", followUpSteps]]) {
+        const short = leaf.split(".").pop() + suffix;
+        if (suffix) await tab.openFollowUp(short, firstSteps);
+        for (let k = 0; k <= steps; k++) {
+          if (k > 0) {
+            const before = await tab.evaluate(`document.querySelectorAll("[data-run] aside ol > li:has(.katex)").length`);
+            await tab.scribble(k);
+            const after = await tab.evaluate(`document.querySelectorAll("[data-run] aside ol > li:has(.katex)").length`);
+            if (after === before) throw new Error(`${short}: the pad read no line ${k} of ${steps}`);
           }
-          if (SHOTS && r.clip) await tab.shot(join(SHOTS, `${short}-${k}-${word.replace(/\W+/g, "_")}.png`), r.clip);
-          await tab.hover(sel, false);
+          await tab.clickButton("I need help");
+          await sleep(200);
+          const offered = await tab.evaluate(`!!document.querySelector('[data-help-option="hint"]:not([disabled])')`);
+          if (!offered) {
+            await tab.evaluate(`document.body.click()`);
+            continue;
+          }
+          const plainProblem = await tab.evaluate(glyphsIn("[data-run] .katex-display"));
+          const plainLines = await tab.evaluate(glyphsIn("[data-run] aside"));
+          await tab.click('[data-help-option="hint"]');
+          await sleep(500);
+          // The latest hint is still to be used: "hint" shows the stall notice, not a new hint. Close it and write the next line.
+          if (await tab.evaluate(`!!document.querySelector("[data-stall-notice]")`)) {
+            await tab.evaluate(`document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }))`);
+            await sleep(300);
+            if (await tab.evaluate(`!!document.querySelector("[data-stall-notice]")`)) throw new Error(`${short} · ${k} lines: the stall notice did not close`);
+            continue;
+          }
+          const label = (word) => `${short} · ${k} line${k === 1 ? "" : "s"} · "${word}"`;
+          const wrappedMoved = moved(plainProblem, await tab.evaluate(glyphsIn("[data-run] .katex-display"))) || moved(plainLines, await tab.evaluate(glyphsIn("[data-run] aside")));
+          checks++;
+          if (wrappedMoved) {
+            failures.push(`${short} · ${k} lines: opening the hint moved a glyph`);
+            console.log(`FAIL  ${short} · ${k} lines: opening the hint moved a glyph`);
+          }
+          const words = [...new Set(await tab.evaluate(`[...document.querySelectorAll("[data-hint-term]")].map((e) => e.dataset.hintTerm)`))];
+          for (const word of words) {
+            const sel = `[data-hint-term="${word}"]`;
+            await tab.hover(sel, true);
+            const r = await tab.evaluate(OVERLAPS);
+            const litMoved = moved(plainProblem, await tab.evaluate(glyphsIn("[data-run] .katex-display"))) || moved(plainLines, await tab.evaluate(glyphsIn("[data-run] aside")));
+            checks++;
+            const problems = r.overlaps.map((o) => `box "${o.box}" covers ${o.glyph === "fraction bar" ? "a fraction bar" : `"${o.glyph}"`} by ${o.ox}×${o.oy}px`);
+            if (litMoved) problems.push("lighting moved a glyph");
+            if (!r.boxes.length) problems.push("nothing lit");
+            if (problems.length) {
+              failures.push(`${label(word)}: ${problems.join("; ")}`);
+              console.log(`FAIL  ${label(word)}`);
+              for (const p of problems) console.log(`      ${p}`);
+            } else {
+              console.log(`ok    ${label(word)}  boxes ${r.boxes.map((b) => `[${b}]`).join(" ")}`);
+            }
+            if (SHOTS && r.clip) await tab.shot(join(SHOTS, `${short}-${k}-${word.replace(/\W+/g, "_")}.png`), r.clip);
+            await tab.hover(sel, false);
+          }
         }
       }
       await tab.close();

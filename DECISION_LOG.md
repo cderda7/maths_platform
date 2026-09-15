@@ -5068,3 +5068,21 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Homework rules now read the assignments registry (`lib/homeworks.ts` imports `lib/assignments.ts`), and the store runs `openHomeworks` on every write (a quick check that returns the same object when no homework is waiting). A homework opened by class review's End (which carries no time) is stamped at its `sentAt`. Once open, a homework stays open: the presenter's "send assignment" no longer returns Homework 3 to the Future (Reset demo does). Counting a set that has not been sent assumes the week's in-class set is known ahead, which holds for the demo and is recorded as a future feature for real timetables.
 
 **Defense.** The rule lives in one pure, tested function; every change goes through one store write; and every tab computes the same stamp from the same lesson moment. Readers never need to know whether a state was stamped.
+
+## 2026-09-15 · The named kind of factorising is the kind practised, and every practice skill has exactly one follow-up (ticket 300)
+
+**Decision.** When the confidence ticks hold both factorising kinds and the warm-up chat's answers name exactly one in words, the warm-up practises that kind only. Non-monic said without the word ("the coefficient in front of the x²", "leading coefficient", "a isn't 1") counts. A question the student mentions never narrows it but can still add a kind, and a kind ticked on its own is never dropped. Every one of the 15 practice skills has exactly one follow-up on the same leaf, opened after its worked example as monic's already was: the same working with one thing changed, its own hint per point, and the same choice of ways in.
+
+**Context.** An outside review said "I need help" gave a monic example to someone whose trouble was the coefficient on x², and that one item teaches nothing, asking for five minimally different items. Reproduced: ticking factorising means both kinds, the chat could only add skills, and easiest-first put monic ahead; the coefficient wording read as nothing. The user kept the scope small ("subskill review has become its own mini lesson"): the named skill must be the skill practised, and every skill should behave alike. They chose one follow-up per skill after the worked example over none anywhere and over follow-ups with no gate.
+
+**Alternatives considered.**
+- *Five-item variation runs*: the reviewer's proposal. Deferred to FUTURE_FEATURES by the user; it lengthens a detour from the set.
+- *No follow-up anywhere* (remove monic's): the smallest consistent change, but it drops practice the user wanted kept.
+- *Follow-ups opening straight after the first problem, worked example or not*: more practice and more pressure to finish; the user kept the worked example as the gate.
+- *Narrow by a question's skills too* ("Q2 looks hard" → non-monic): a question carries several skills, so mentioning one isn't naming a kind; it adds skills, as before.
+- *Store "no kind picked" separately from "both picked"*: the rule is the same either way (a student who ticked both and then said which has told us), so the stored answer stays a list of leaves.
+- *Change the mid-set nudge's most-basic-slip rule too*: a detected slip isn't a named skill, and ticket 297 is reworking that nudge; recorded for Carson's call.
+
+**Tradeoffs.** Fourteen more hand-written problems to keep correct (the bank tests, the spacing and anchor tests and the pixel sweep cover them, and the sweep now takes about twice as long). Skill words stay a regex list, so other phrasings still read as nothing. The chat still asks about the kind the warm-up has dropped. A student who reads both kinds as trouble and names only one in the chat loses the other from the warm-up.
+
+**Defense.** "I told it my problem and it gave me a different one" breaks trust in the whole help route, and a rule that differs by skill reads as a bug. Both fixes are small, testable data and one pure function, and neither closes the door on sequences later: `followUp` is already the seam a run of items would extend.

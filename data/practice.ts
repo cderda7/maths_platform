@@ -4,6 +4,9 @@ import { tag, type PracticeProblem } from "./types";
 /**
  * One short, isolated practice problem per leaf that can be a detected mistake in this set
  * (a test enforces the coverage), plus a couple of extras the help picker can offer. Hand-checked.
+ * Every one has exactly one follow-up on the same leaf, offered once its worked example has been
+ * seen: the same working with one thing changed (a sign, a coefficient, the other case), its own
+ * hint for every point and, when the first offers a choice of ways in, the same choice (ticket 300).
  */
 export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
   "algebra.expand-factor.monic": {
@@ -167,6 +170,66 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { name: "split the middle term", hint: "Multiply $a$ by $c$, find the pair that multiplies to that and adds to $b$, then split $10x$ into those two parts and group." },
       { name: "the cross method", hint: "Write the factor pairs of $3x^2$ down one side and of $8$ down the other, and cross-multiply until the two products add to $10x$." },
     ],
+    followUp: {
+      id: "w-nonmonic-2",
+      leaf: "algebra.expand-factor.nonmonic",
+      stem: "Factorise.",
+      tex: "3x^2 - 10x + 8",
+      steps: [
+        { tex: "ac = 3 \\times 8 = 24", label: "Multiplied a by c", tags: [tag("algebra.expand-factor.nonmonic")] },
+        { tex: "(-6) \\times (-4) = 24", label: "Multiply to ac", tags: [tag("algebra.expand-factor.nonmonic")] },
+        { tex: "(-6) + (-4) = -10", label: "Add to b", tags: [tag("algebra.expand-factor.nonmonic")] },
+        { tex: "3x^2 - 6x - 4x + 8", label: "Split the middle term", tags: [tag("algebra.expand-factor.nonmonic")] },
+        { tex: "3x(x - 2) - 4(x - 2)", label: "Grouped", tags: [tag("algebra.expand-factor.nonmonic")] },
+        { tex: "(3x - 4)(x - 2)", label: "Factorised", tags: [tag("algebra.expand-factor.nonmonic")] },
+      ],
+      why: "Same split, negative pair: with ac positive and b negative, both numbers are negative.",
+      hints: [
+        {
+          text: "Multiply a by c, then split the middle term into two parts that add to b and multiply to ac.",
+          at: [0],
+          terms: [
+            { phrase: "a", tex: ["3"] },
+            { phrase: "b", tex: ["- 10"] },
+            { phrase: "c", tex: ["8"] },
+            { phrase: "ac", tex: ["3", "8"] },
+            { phrase: "middle term", tex: ["- 10x"] },
+          ],
+        },
+        {
+          text: "Look for a pair of numbers that multiplies to 24 and adds to b, the -10 in the middle term.",
+          at: [1],
+          terms: [{ phrase: "24", tex: ["24"] }],
+        },
+        {
+          text: "Once you have a pair that multiplies to 24, check it adds to -10 as well. Two negatives multiply to a positive and add to a negative.",
+          at: [2],
+          terms: [{ phrase: "pair", tex: ["(-6)", "(-4)"] }],
+        },
+        {
+          text: "The pair checks out. Split the middle term into two x terms using those two numbers; the first and last terms stay as they are.",
+          at: [3],
+          terms: [{ phrase: "two numbers", tex: ["(-6)", "(-4)"] }],
+        },
+        {
+          text: "Take a common factor out of the first two terms, then out of the last two. Take the minus out with the 4, so the brackets match.",
+          at: [4],
+          terms: [
+            { phrase: "first two terms", tex: ["3x^2 - 6x"] },
+            { phrase: "last two", tex: ["- 4x + 8"] },
+          ],
+        },
+        {
+          text: "Both parts share the same bracket. Take it out as a common factor, and what is left makes the other factor.",
+          at: [5],
+          terms: [{ phrase: "same bracket", tex: ["(x - 2)", { tex: "(x - 2)", within: "4(x - 2)" }] }],
+        },
+      ],
+      approaches: [
+        { name: "split the middle term", hint: "Multiply $a$ by $c$, find the pair that multiplies to that and adds to $b$, then split $-10x$ into those two parts and group." },
+        { name: "the cross method", hint: "Write the factor pairs of $3x^2$ down one side and of $8$ down the other, and cross-multiply until the two products add to $-10x$; with $b$ negative, try the negative factors of $8$." },
+      ],
+    },
   },
   "algebra.expand-factor.expand": {
     id: "w-expand",
@@ -197,6 +260,36 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { name: "four products", hint: "Every term in the first bracket meets every term in the second: write all four products, then collect." },
       { name: "the grid", hint: "Draw a two-by-two grid with one bracket's terms across the top and the other's down the side, fill each cell, then add the cells." },
     ],
+    followUp: {
+      id: "w-expand-2",
+      leaf: "algebra.expand-factor.expand",
+      stem: "Expand and simplify.",
+      tex: "(x + 3)(x - 5)",
+      steps: [
+        { tex: "x^2 - 5x + 3x - 15", label: "Four products", tags: [tag("algebra.expand-factor.expand")] },
+        { tex: "x^2 - 2x - 15", label: "Collected like terms", tags: [tag("algebra.equations.linear")] },
+      ],
+      why: "Same four products; this time the two x terms have opposite signs, so they partly cancel.",
+      hints: [
+        {
+          text: "Every term in the first bracket meets every term in the second: four products.",
+          at: [0],
+          terms: [
+            { phrase: "first bracket", tex: ["(x + 3)"] },
+            { phrase: "second", tex: ["(x - 5)"] },
+          ],
+        },
+        {
+          text: "Two of the four products are x terms. Collect them into one, minding their signs.",
+          at: [1],
+          terms: [{ phrase: "x terms", tex: ["- 5x", "3x"] }],
+        },
+      ],
+      approaches: [
+        { name: "four products", hint: "Every term in the first bracket meets every term in the second: write all four products, then collect." },
+        { name: "the grid", hint: "Draw a two-by-two grid with one bracket's terms across the top and the other's down the side, fill each cell, then add the cells." },
+      ],
+    },
   },
   "algebra.equations.linear": {
     id: "w-linear",
@@ -227,6 +320,36 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { name: "expand first", hint: "Multiply out the left side first, then bring the $10$ across so the right side is zero." },
       { name: "move first", hint: "Bring the $10$ across first so the right side is zero, then expand the bracket and tidy up." },
     ],
+    followUp: {
+      id: "w-linear-2",
+      leaf: "algebra.equations.linear",
+      stem: "Rearrange into standard form.",
+      tex: "x(x - 4) = 12",
+      steps: [
+        { tex: "x^2 - 4x = 12", label: "Expanded the left side", tags: [tag("algebra.expand-factor.expand")] },
+        { tex: "x^2 - 4x - 12 = 0", label: "Everything to one side", tags: [tag("algebra.equations.linear")] },
+      ],
+      why: "Same habit with a minus in the bracket: expand, then the 12 crosses and changes sign.",
+      hints: [
+        {
+          text: "Get everything onto one side first, so the other side is zero.",
+          at: [0],
+          terms: [
+            { phrase: "one side", tex: ["x(x - 4)"] },
+            { phrase: "other side", tex: ["12"] },
+          ],
+        },
+        {
+          text: "Now move the 12 across so the right side is zero. It changes sign as it goes.",
+          at: [1],
+          terms: [{ phrase: "12", tex: ["12"] }],
+        },
+      ],
+      approaches: [
+        { name: "expand first", hint: "Multiply out the left side first, then bring the $12$ across so the right side is zero." },
+        { name: "move first", hint: "Bring the $12$ across first so the right side is zero, then expand the bracket and tidy up." },
+      ],
+    },
   },
   "algebra.number.fractions": {
     id: "w-fractions",
@@ -333,6 +456,110 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
         terms: [{ phrase: "3", tex: ["3"] }],
       },
     ],
+    followUp: {
+      id: "w-fractions-2",
+      leaf: "algebra.number.fractions",
+      stem: "Solve.",
+      tex: "\\dfrac{x}{10} + \\dfrac{x}{5} - 4 = \\dfrac{1}{2}",
+      steps: [
+        { tex: "\\dfrac{x}{10} + \\dfrac{x}{5} = \\dfrac{1}{2} + 4", label: "Moved the 4 across, so the x terms are together", tags: [tag("algebra.equations.linear")] },
+        { tex: "\\dfrac{x}{10} + \\dfrac{x}{5} = \\dfrac{1}{2} + \\dfrac{8}{2}", label: "Wrote the 4 over 2, to match the other fraction", tags: [tag("algebra.number.fractions")] },
+        { tex: "\\dfrac{x}{10} + \\dfrac{x}{5} = \\dfrac{9}{2}", label: "Combined the numbers", tags: [tag("algebra.number.fractions")] },
+        { tex: "\\dfrac{x}{10} + \\dfrac{2x}{10} = \\dfrac{9}{2}", label: "A common denominator for the two x terms only", tags: [tag("algebra.number.fractions")] },
+        { tex: "\\dfrac{3x}{10} = \\dfrac{9}{2}", label: "Combined like terms", tags: [tag("algebra.number.fractions")] },
+        { tex: "3x = 45", label: "Multiplied both sides by 10", tags: [tag("algebra.number.fractions")] },
+        { tex: "x = 15", label: "Divided by 3", tags: [tag("algebra.equations.linear")] },
+      ],
+      why: "Same order as before: the number goes across first, and the x fractions only need a denominator the two of them share.",
+      hints: [
+        {
+          text: "Get the like terms together: move the 4 across to the other side, away from the x terms.",
+          at: [0],
+          terms: [
+            { phrase: "4", tex: ["4"] },
+            { phrase: "other side", tex: ["\\dfrac{1}{2}"] },
+            { phrase: "x terms", tex: ["\\dfrac{x}{10}", "\\dfrac{x}{5}"] },
+          ],
+        },
+        {
+          text: "Before adding the numbers, write the 4 as a fraction over 2, so it matches the other fraction.",
+          at: [1],
+          terms: [
+            { phrase: "4", tex: ["4"] },
+            { phrase: "other fraction", tex: ["\\dfrac{1}{2}"] },
+          ],
+        },
+        {
+          text: "The two numbers on the right have the same denominator now, so add them: the numerators add and the denominator stays.",
+          at: [2],
+          terms: [
+            { phrase: "two numbers", tex: ["\\dfrac{1}{2}", "\\dfrac{8}{2}"] },
+            {
+              phrase: "same denominator",
+              tex: [
+                { tex: "2", within: "\\dfrac{1}{2}" },
+                { tex: "2", within: "\\dfrac{8}{2}" },
+              ],
+            },
+            {
+              phrase: "numerators",
+              tex: [
+                { tex: "1", within: "\\dfrac{1}{2}" },
+                { tex: "8", within: "\\dfrac{8}{2}" },
+              ],
+            },
+          ],
+        },
+        {
+          text: "To combine the x terms they need a common denominator, but only one those two share. It doesn't have to work for the whole line.",
+          at: [3],
+          terms: [
+            { phrase: "x terms", tex: ["\\dfrac{x}{10}", "\\dfrac{x}{5}"] },
+            {
+              phrase: "common denominator",
+              tex: [
+                { tex: "10", within: "\\dfrac{x}{10}" },
+                { tex: "5", within: "\\dfrac{x}{5}" },
+              ],
+            },
+          ],
+        },
+        {
+          text: "The x terms have the same denominator now, so they can be one fraction: the numerators combine and the denominator stays.",
+          at: [4],
+          terms: [
+            { phrase: "x terms", tex: ["\\dfrac{x}{10}", "\\dfrac{2x}{10}"] },
+            {
+              phrase: "same denominator",
+              tex: [
+                { tex: "10", within: "\\dfrac{x}{10}" },
+                { tex: "10", within: "\\dfrac{2x}{10}" },
+              ],
+            },
+            {
+              phrase: "numerators",
+              tex: [
+                { tex: "x", within: "\\dfrac{x}{10}" },
+                { tex: "2x", within: "\\dfrac{2x}{10}" },
+              ],
+            },
+          ],
+        },
+        {
+          text: "One fraction on each side. Whatever you do to clear the 10 from under the x, the other side gets too.",
+          at: [5],
+          terms: [
+            { phrase: "10", tex: [{ tex: "10", within: "\\dfrac{3x}{10}" }] },
+            { phrase: "other side", tex: ["\\dfrac{9}{2}"] },
+          ],
+        },
+        {
+          text: "Only the 3 in front of x is left. Undo what it is doing to x.",
+          at: [6],
+          terms: [{ phrase: "3", tex: ["3"] }],
+        },
+      ],
+    },
   },
   "functions.zeros.nfl": {
     id: "w-nfl",
@@ -352,6 +579,25 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
         terms: [{ phrase: "both", tex: ["x - 2 = 0", "x + 5 = 0"] }],
       },
     ],
+    followUp: {
+      id: "w-nfl-2",
+      leaf: "functions.zeros.nfl",
+      stem: "Solve.",
+      tex: "(x + 4)(x - 7) = 0",
+      steps: [
+        { tex: "x + 4 = 0 \\;\\text{or}\\; x - 7 = 0", label: "Product is zero, so a factor is", tags: [tag("functions.zeros.nfl")] },
+        { tex: "x = -4 \\;\\text{or}\\; x = 7", label: "Solved each", tags: [tag("algebra.equations.linear")] },
+      ],
+      why: "Same rule, the signs the other way round: each answer has the opposite sign to the number in its bracket.",
+      hints: [
+        { text: "A product is zero only when one of its factors is zero.", at: [0], terms: [{ phrase: "factors", tex: ["(x + 4)", "(x - 7)"] }] },
+        {
+          text: "Each of those is its own small equation. Solve both, and mind the signs.",
+          at: [1],
+          terms: [{ phrase: "both", tex: ["x + 4 = 0", "x - 7 = 0"] }],
+        },
+      ],
+    },
   },
   "algebra.equations.discriminant": {
     id: "w-discriminant",
@@ -383,6 +629,37 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { name: "the discriminant", hint: "Work out $b^2 - 4ac$ and look only at its sign; no need to solve anything." },
       { name: "complete the square", hint: "Write the left side as a perfect square plus a number, and ask whether that sum can ever be zero." },
     ],
+    followUp: {
+      id: "w-discriminant-2",
+      leaf: "algebra.equations.discriminant",
+      stem: "How many real roots?",
+      tex: "x^2 + 6x + 5 = 0",
+      steps: [
+        { tex: "b^2 - 4ac = 36 - 20 = 16", label: "Discriminant", tags: [tag("algebra.equations.discriminant")] },
+        { tex: "\\Delta > 0 \\Rightarrow \\text{two}", label: "Positive: two real roots", tags: [tag("algebra.equations.discriminant")] },
+      ],
+      why: "Same test, the other sign: positive means two real roots.",
+      hints: [
+        {
+          text: "Work out b² − 4ac and look only at its sign.",
+          at: [0],
+          terms: [
+            { phrase: "b", tex: ["6"] },
+            { phrase: "a", within: "4ac", tex: [], insert: { before: "x^2", tex: "1" } },
+            { phrase: "c", within: "4ac", tex: ["5"] },
+          ],
+        },
+        {
+          text: "Only the sign of the discriminant matters now. Think about what the quadratic formula does with the square root of a positive number.",
+          at: [1],
+          terms: [{ phrase: "discriminant", tex: ["16"] }],
+        },
+      ],
+      approaches: [
+        { name: "the discriminant", hint: "Work out $b^2 - 4ac$ and look only at its sign; no need to solve anything." },
+        { name: "complete the square", hint: "Write the left side as a perfect square minus a number, and ask how many values of $x$ make that zero." },
+      ],
+    },
   },
   "graphing.quadratics.features": {
     id: "w-features",
@@ -433,6 +710,56 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { name: "halfway between the intercepts", hint: "Factorise to find where the graph crosses the $x$-axis; the axis of symmetry is halfway between, and the turning point sits on it." },
       { name: "the formula for the axis", hint: "The axis of symmetry is at $x = -\\frac{b}{2a}$; substitute that $x$ back in for the height." },
     ],
+    followUp: {
+      id: "w-features-2",
+      leaf: "graphing.quadratics.features",
+      stem: "Find the turning point of",
+      tex: "y = x^2 - 6x + 5",
+      steps: [
+        { tex: "x^2 - 6x + 5 = 0", label: "Intercepts: y is 0", tags: [tag("functions.zeros.zero-finding")] },
+        { tex: "(x - 1)(x - 5) = 0", label: "Factorised", tags: [tag("algebra.expand-factor.monic")] },
+        { tex: "x = 1 \\;\\text{or}\\; x = 5", label: "x-intercepts", tags: [tag("functions.zeros.nfl"), tag("functions.zeros.zero-finding")] },
+        { tex: "x = \\tfrac{1 + 5}{2} = 3", label: "Axis of symmetry", tags: [tag("graphing.quadratics.features")] },
+        { tex: "y = 9 - 18 + 5 = -4", label: "Height on the axis", tags: [tag("graphing.quadratics.features")] },
+        { tex: "(3, -4)", label: "Turning point", tags: [tag("graphing.quadratics.features")] },
+      ],
+      why: "Same route with a positive constant: both intercepts sit on the same side, and the turning point is halfway between them.",
+      hints: [
+        { text: "Start with where the graph crosses the x-axis: there, y is 0.", at: [0], terms: [{ phrase: "y", tex: ["y"] }] },
+        {
+          text: "Factorise: look for two numbers that multiply to 5 and add to -6.",
+          at: [1],
+          terms: [
+            { phrase: "5", tex: ["5"] },
+            { phrase: "-6", tex: ["- 6"] },
+          ],
+        },
+        {
+          text: "The product is zero, so one of the factors must be. Set each one to zero on its own.",
+          at: [2],
+          terms: [{ phrase: "factors", tex: ["(x - 1)", "(x - 5)"] }],
+        },
+        {
+          text: "The axis of symmetry sits halfway between the two intercepts.",
+          at: [3],
+          terms: [{ phrase: "two intercepts", tex: ["1", "5"] }],
+        },
+        {
+          text: "The turning point sits on the axis of symmetry, so its height is the value of y there. Substitute this x into the rule.",
+          at: [4],
+          terms: [{ phrase: "this x", tex: [{ tex: "3", within: "= 3" }] }],
+        },
+        {
+          text: "That height and the x on the axis are the turning point's two coordinates. Write it as a point, x first.",
+          at: [5],
+          terms: [{ phrase: "height", tex: [{ tex: "-4", within: "= -4" }] }],
+        },
+      ],
+      approaches: [
+        { name: "halfway between the intercepts", hint: "Factorise to find where the graph crosses the $x$-axis; the axis of symmetry is halfway between, and the turning point sits on it." },
+        { name: "the formula for the axis", hint: "The axis of symmetry is at $x = -\\frac{b}{2a}$; substitute that $x$ back in for the height." },
+      ],
+    },
   },
   "reasoning.justify.formal": {
     id: "w-formal",
@@ -464,6 +791,37 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { name: "the discriminant", hint: "Work out $b^2 - 4ac$; a particular value of it is exactly what \"one real solution\" means, so name that fact." },
       { name: "factorise", hint: "Try writing the left side as a perfect square; a squared bracket equal to zero has one solution, and say why." },
     ],
+    followUp: {
+      id: "w-formal-2",
+      leaf: "reasoning.justify.formal",
+      stem: "Show that this has exactly one real solution.",
+      tex: "x^2 + 10x + 25 = 0",
+      steps: [
+        { tex: "b^2 - 4ac = 100 - 100 = 0", label: "Discriminant", tags: [tag("algebra.equations.discriminant")] },
+        { tex: "\\Delta = 0 \\Rightarrow \\text{exactly one real solution}", label: "Justified", tags: [tag("reasoning.justify.formal")] },
+      ],
+      why: "Same fact to name, a positive middle term: the discriminant still decides it.",
+      hints: [
+        {
+          text: "How many real solutions there are comes from the discriminant. Work out b² − 4ac.",
+          at: [0],
+          terms: [
+            { phrase: "b", tex: ["10"] },
+            { phrase: "a", within: "4ac", tex: [], insert: { before: "x^2", tex: "1" } },
+            { phrase: "c", within: "4ac", tex: ["25"] },
+          ],
+        },
+        {
+          text: "The discriminant is 0. Name that fact, then say what it forces about the number of real solutions.",
+          at: [1],
+          terms: [{ phrase: "0", tex: ["0"] }],
+        },
+      ],
+      approaches: [
+        { name: "the discriminant", hint: "Work out $b^2 - 4ac$; a particular value of it is exactly what \"one real solution\" means, so name that fact." },
+        { name: "factorise", hint: "Try writing the left side as a perfect square; a squared bracket equal to zero has one solution, and say why." },
+      ],
+    },
   },
   "reasoning.justify.conclusions": {
     id: "w-conclusions",
@@ -479,6 +837,21 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { text: "Start with the sign of the number: what does a negative discriminant say about the real roots?", at: [0], terms: [{ phrase: "number", tex: ["-11"] }] },
       { text: "Now say what that means for the picture, in a sentence. Where on the graph would a real root show up?", at: [1] },
     ],
+    followUp: {
+      id: "w-conclusions-2",
+      leaf: "reasoning.justify.conclusions",
+      stem: "The discriminant of y = x² − 4x + 1 is 12. What does the graph do?",
+      tex: "\\Delta = 12",
+      steps: [
+        { tex: "\\Delta > 0 \\Rightarrow \\text{two real roots}", label: "Justified", tags: [tag("reasoning.justify.formal")] },
+        { tex: "\\text{The graph meets the x-axis twice}", label: "In context", tags: [tag("reasoning.justify.conclusions")] },
+      ],
+      why: "Same sentence to finish, the other sign: say what two roots look like on the graph.",
+      hints: [
+        { text: "Start with the sign of the number: what does a positive discriminant say about the real roots?", at: [0], terms: [{ phrase: "number", tex: ["12"] }] },
+        { text: "Now say what that means for the picture, in a sentence. Where on the graph would a real root show up?", at: [1] },
+      ],
+    },
   },
   "graphing.quadratics.sketch": {
     id: "w-sketch",
@@ -492,7 +865,7 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { tex: "x = \\tfrac{1 + 3}{2} = 2", label: "Axis of symmetry", tags: [tag("graphing.quadratics.features")] },
       { tex: "y = (1)(-1) = -1", label: "Height on the axis", tags: [tag("graphing.quadratics.features")] },
       { tex: "(2, -1)", label: "Turning point", tags: [tag("graphing.quadratics.features")] },
-      { tex: "\\text{opens up through } (1,0),\\ (3,0),\\ (0,3),\\ \\text{min } (2,-1)", label: "Sketched", tags: [tag("graphing.quadratics.sketch")] },
+      { tex: "\\text{opens up, min at } (2, -1)", label: "Sketched", tags: [tag("graphing.quadratics.sketch")] },
     ],
     why: "A sketch is four facts placed on the axes: two intercepts, the y-intercept and the turning point.",
     hints: [
@@ -508,6 +881,35 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { name: "from the factors", hint: "The factors give the $x$-intercepts straight away; the turning point is halfway between them, and $x = 0$ gives the $y$-intercept." },
       { name: "expand first", hint: "Expand to $y = x^2 - 4x + 3$, read the $y$-intercept from the constant, and find the axis from $x = -\\frac{b}{2a}$." },
     ],
+    followUp: {
+      id: "w-sketch-2",
+      leaf: "graphing.quadratics.sketch",
+      stem: "Sketch, marking every intercept and the turning point.",
+      tex: "y = (x + 1)(x - 3)",
+      steps: [
+        { tex: "x = -1 \\;\\text{or}\\; x = 3", label: "x-intercepts", tags: [tag("functions.zeros.zero-finding")] },
+        { tex: "y = (1)(-3) = -3", label: "Height at x = 0", tags: [tag("graphing.quadratics.features")] },
+        { tex: "(0, -3)", label: "y-intercept", tags: [tag("graphing.quadratics.features")] },
+        { tex: "x = \\tfrac{-1 + 3}{2} = 1", label: "Axis of symmetry", tags: [tag("graphing.quadratics.features")] },
+        { tex: "y = (2)(-2) = -4", label: "Height on the axis", tags: [tag("graphing.quadratics.features")] },
+        { tex: "(1, -4)", label: "Turning point", tags: [tag("graphing.quadratics.features")] },
+        { tex: "\\text{opens up, min at } (1, -4)", label: "Sketched", tags: [tag("graphing.quadratics.sketch")] },
+      ],
+      why: "Same four facts; one intercept is negative now, so the curve crosses the y-axis below the origin.",
+      hints: [
+        { text: "Intercepts first. The graph meets the x-axis where one of the factors is zero.", at: [0], terms: [{ phrase: "factors", tex: ["(x + 1)", "(x - 3)"] }] },
+        { text: "Now the y-intercept: the graph meets the y-axis where x is 0, so put 0 in for x.", at: [1] },
+        { text: "Write that height as a point on the y-axis, x first.", at: [2], terms: [{ phrase: "height", tex: [{ tex: "-3", within: "= -3" }] }] },
+        { text: "The turning point sits halfway between the two x-intercepts. Find that x first.", at: [3] },
+        { text: "Its height is the value of y at that x: put it into the rule.", at: [4], terms: [{ phrase: "that x", tex: [{ tex: "1", within: "= 1" }] }] },
+        { text: "That height and the x before it make the turning point. Write it as a point, x first.", at: [5], terms: [{ phrase: "height", tex: [{ tex: "-4", within: "= -4" }] }] },
+        { text: "Now draw it: mark the intercepts and the turning point, then join them with a smooth curve. Does it open up or down?", at: [6], terms: [{ phrase: "turning point", tex: ["(1, -4)"] }] },
+      ],
+      approaches: [
+        { name: "from the factors", hint: "The factors give the $x$-intercepts straight away; the turning point is halfway between them, and $x = 0$ gives the $y$-intercept." },
+        { name: "expand first", hint: "Expand to $y = x^2 - 2x - 3$, read the $y$-intercept from the constant, and find the axis from $x = -\\frac{b}{2a}$." },
+      ],
+    },
   },
   "functions.notation.evaluate": {
     id: "w-evaluate",
@@ -530,6 +932,28 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
         ],
       },
     ],
+    followUp: {
+      id: "w-evaluate-2",
+      leaf: "functions.notation.evaluate",
+      stem: "For f(x) = 2x² + x − 5, find",
+      tex: "f(-3)",
+      steps: [
+        { tex: "f(-3) = 2(-3)^2 + (-3) - 5", label: "Substituted, brackets kept", tags: [tag("functions.notation.evaluate")] },
+        { tex: "= 18 - 3 - 5 = 10", label: "Evaluated", tags: [tag("functions.notation.evaluate")] },
+      ],
+      why: "Same brackets, now with a number in front: square the negative first, then multiply.",
+      hints: [
+        { text: "Put brackets around the value before you substitute, especially a negative one.", at: [0], terms: [{ phrase: "value", tex: ["-3"] }] },
+        {
+          text: "Work out each term on its own first. Square first, then multiply by the 2; and plus a negative is minus.",
+          at: [1],
+          terms: [
+            { phrase: "Square first", tex: ["(-3)^2"] },
+            { phrase: "plus a negative", tex: ["+ (-3)"] },
+          ],
+        },
+      ],
+    },
   },
   "reasoning.interpret.worded": {
     id: "w-worded",
@@ -553,6 +977,29 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { name: "common factor", hint: "Landing means $h = 0$; then both terms share a factor of $5t$, so take it out and use the null factor law." },
       { name: "divide through", hint: "Landing means $h = 0$; divide every term by $-5$ to get a plain monic quadratic, then factorise that." },
     ],
+    followUp: {
+      id: "w-worded-2",
+      leaf: "reasoning.interpret.worded",
+      stem: "A stone's height after t seconds is h = 30t − 5t². When does it land?",
+      tex: "h = 30t - 5t^2",
+      steps: [
+        { tex: "30t - 5t^2 = 0", label: "Landing means height zero", tags: [tag("reasoning.interpret.worded")] },
+        { tex: "5t(6 - t) = 0", label: "Common factor", tags: [tag("algebra.expand-factor.monic")] },
+        { tex: "t = 0 \\;\\text{or}\\; t = 6", label: "Null factor law", tags: [tag("functions.zeros.nfl")] },
+        { tex: "\\text{lands at } t = 6 \\text{ s}", label: "In context", tags: [tag("reasoning.justify.conclusions")] },
+      ],
+      why: "Same three moves with a harder throw: find the equation, solve it, then answer the question asked.",
+      hints: [
+        { text: "Landing means the height is zero. Write that as an equation before anything else.", at: [0], terms: [{ phrase: "height", tex: ["h"] }] },
+        { text: "Both terms share a common factor. Take out the biggest one you can.", at: [1], terms: [{ phrase: "Both terms", tex: ["30t", "5t^2"] }] },
+        { text: "The product is zero, so one of its factors must be. Set each one to zero on its own.", at: [2], terms: [{ phrase: "factors", tex: ["5t", "(6 - t)"] }] },
+        { text: "Two times come out. Which one is the stone landing, and which is the moment it is thrown?", at: [3], terms: [{ phrase: "Two times", tex: ["0", "6"] }] },
+      ],
+      approaches: [
+        { name: "common factor", hint: "Landing means $h = 0$; then both terms share a factor of $5t$, so take it out and use the null factor law." },
+        { name: "divide through", hint: "Landing means $h = 0$; divide every term by $-5$ to get a plain monic quadratic, then factorise that." },
+      ],
+    },
   },
   "functions.zeros.zero-finding": {
     id: "w-zeros",
@@ -576,6 +1023,29 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { name: "difference of two squares", hint: "Set the rule equal to zero; $x^2 - 9$ is a difference of two squares, so it factorises straight away." },
       { name: "rearrange and square root", hint: "Set the rule equal to zero, move the $9$ across, and take the square root of both sides, keeping both signs." },
     ],
+    followUp: {
+      id: "w-zeros-2",
+      leaf: "functions.zeros.zero-finding",
+      stem: "Find the zeros of",
+      tex: "f(x) = x^2 - 25",
+      steps: [
+        { tex: "x^2 - 25 = 0", label: "A zero is where the output is 0", tags: [tag("functions.zeros.zero-finding")] },
+        { tex: "(x - 5)(x + 5) = 0", label: "Difference of two squares", tags: [tag("algebra.expand-factor.binomial")] },
+        { tex: "x = 5 \\;\\text{or}\\; x = -5", label: "Null factor law", tags: [tag("functions.zeros.nfl")] },
+        { tex: "\\text{the graph meets the x-axis at } \\pm 5", label: "What a zero means", tags: [tag("functions.zeros.zero-finding")] },
+      ],
+      why: "Same fact seen twice, with a bigger square: the zeros are where the graph meets the x-axis.",
+      hints: [
+        { text: "A zero is where the output is 0, so set the rule equal to zero.", at: [0], terms: [{ phrase: "rule", tex: ["x^2 - 25"] }] },
+        { text: "The 25 is a square number, so this is a difference of two squares. That factorises straight away.", at: [1], terms: [{ phrase: "difference of two squares", tex: ["x^2 - 25"] }] },
+        { text: "The product is zero, so one of the factors must be. Set each one to zero on its own.", at: [2], terms: [{ phrase: "factors", tex: ["(x - 5)", "(x + 5)"] }] },
+        { text: "Say what these answers mean for the graph: where does it meet the x-axis?", at: [3], terms: [{ phrase: "these answers", tex: ["5", "-5"] }] },
+      ],
+      approaches: [
+        { name: "difference of two squares", hint: "Set the rule equal to zero; $x^2 - 25$ is a difference of two squares, so it factorises straight away." },
+        { name: "rearrange and square root", hint: "Set the rule equal to zero, move the $25$ across, and take the square root of both sides, keeping both signs." },
+      ],
+    },
   },
   "algebra.expand-factor.binomial": {
     id: "w-binomial",
@@ -602,6 +1072,32 @@ export const PRACTICES: Partial<Record<LeafId, PracticeProblem>> = {
       { name: "the identity", hint: "Match $(x + 5)^2$ to $(a + b)^2 = a^2 + 2ab + b^2$: square the first, double the product, square the last." },
       { name: "write it out", hint: "Write it as $(x + 5)(x + 5)$ and expand the four products, then collect the two middle terms." },
     ],
+    followUp: {
+      id: "w-binomial-2",
+      leaf: "algebra.expand-factor.binomial",
+      stem: "Expand using the identity.",
+      tex: "(x - 3)^2",
+      steps: [
+        { tex: "(a - b)^2 = a^2 - 2ab + b^2", label: "The identity", tags: [tag("algebra.expand-factor.binomial")] },
+        { tex: "x^2 - 6x + 9", label: "Applied", tags: [tag("algebra.expand-factor.binomial"), tag("algebra.expand-factor.expand")] },
+      ],
+      why: "Same identity with a minus: only the middle term changes sign.",
+      hints: [
+        { text: "Start from the identity for a squared bracket, written with a and b.", at: [0], terms: [{ phrase: "squared bracket", tex: ["(x - 3)^2"] }] },
+        {
+          text: "Here a is x and b is 3. Square the first, double the product of the two, square the last; the middle term keeps the minus.",
+          at: [1],
+          terms: [
+            { phrase: "a", tex: [{ tex: "a", within: "(a - b)" }] },
+            { phrase: "b", tex: [{ tex: "b", within: "(a - b)" }] },
+          ],
+        },
+      ],
+      approaches: [
+        { name: "the identity", hint: "Match $(x - 3)^2$ to $(a - b)^2 = a^2 - 2ab + b^2$: square the first, double the product, square the last." },
+        { name: "write it out", hint: "Write it as $(x - 3)(x - 3)$ and expand the four products, then collect the two middle terms." },
+      ],
+    },
   },
 };
 

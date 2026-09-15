@@ -2,6 +2,7 @@ import type { ChatMessage, Confidence, PracticeProblem, Problem } from "@/data/t
 import { ASSIGNMENT } from "@/data/assignment";
 import { isolatable, PRACTICE, PRACTICES } from "@/data/practice";
 import { groupOf, studentLeafName, type LeafId } from "@/data/taxonomy";
+import { FACTORISING_KINDS, MONIC, NONMONIC } from "./confidence";
 import { problemLeaves } from "./hierarchy";
 
 /**
@@ -132,12 +133,15 @@ export function offerLines(confidence: Confidence): { question: string; size: st
   return { question: `Warm up on ${amp(w)} first?`, size: `${w.length} short problem${w.length === 1 ? "" : "s"}, then the set` };
 }
 
+/** How a student says non-monic without the word: a number in front of the x², the leading coefficient, a that isn't 1. */
+const NONMONIC_SAID = String.raw`non-?\s?monic|(coefficient|number)s? (in front of|on|before) (the )?x(\^?2|²| squared)|leading coefficient|\ba (isn'?t|is not|≠|not) 1\b`;
+
 /** A skill word or phrase a student might use, mapped to the leaves it means. First match wins per leaf. */
 const SKILL_WORDS: [RegExp, LeafId[]][] = [
-  [/non-?\s?monic/i, ["algebra.expand-factor.nonmonic"]],
-  [/(?<!non-?\s?)\bmonic\b/i, ["algebra.expand-factor.monic"]],
+  [new RegExp(NONMONIC_SAID, "i"), [NONMONIC]],
+  [/(?<!non-?\s?)\bmonic\b/i, [MONIC]],
   /** Plain "factorising" means both kinds, unless the message already said which. */
-  [/^(?![\s\S]*monic)[\s\S]*factor/i, ["algebra.expand-factor.monic", "algebra.expand-factor.nonmonic"]],
+  [new RegExp(String.raw`^(?![\s\S]*(monic|${NONMONIC_SAID}))[\s\S]*factor`, "i"), [MONIC, NONMONIC]],
   [/expan(d|sion)|brackets? out|multiply(ing)? out/i, ["algebra.expand-factor.expand"]],
   [/fraction|decimal|percent|denominator/i, ["algebra.number.fractions"]],
   [/null factor|zero product/i, ["functions.zeros.nfl"]],
@@ -166,17 +170,23 @@ export function interpret(text: string, problems: Problem[] = ASSIGNMENT.problem
   return { leaves, problems: refs };
 }
 
-/** Leaves the warm-up is about: the skills the student ticked, then anything the answers named (a skill word, or a question's skills), in first-mention order. Only moves (`isolatable`). */
+/**
+ * Leaves the warm-up is about: the skills the student ticked, then anything the answers named (a skill word, or a question's skills), in first-mention order. Only moves (`isolatable`).
+ * Factorising ticked as both kinds (the row with neither kind picked, or both) narrows to the one kind the answers name in words: a student
+ * who says "the coefficient in front of the x²" practises non-monic, not the easier monic first. A question's skills never narrow it.
+ * See DECISION_LOG.md, "The named kind of factorising is the kind practised".
+ */
 export function focusLeaves(seed: LeafId[], messages: WarmupMessage[], problems: Problem[] = ASSIGNMENT.problems): LeafId[] {
   const out: LeafId[] = [];
+  const said = messages.filter((m) => m.from === "student").map((m) => interpret(m.text, problems));
+  const saidKinds = FACTORISING_KINDS.filter((k) => said.some((s) => s.leaves.includes(k)));
+  const dropped = FACTORISING_KINDS.every((k) => seed.includes(k)) && saidKinds.length === 1 ? FACTORISING_KINDS.filter((k) => k !== saidKinds[0]) : [];
   const add = (l: LeafId) => {
     if (isolatable(l) && !out.includes(l)) out.push(l);
   };
   const byId = (id: string) => problems.find((p) => p.id === id);
-  for (const l of seed) add(l);
-  for (const m of messages) {
-    if (m.from !== "student") continue;
-    const { leaves, problems: refs } = interpret(m.text, problems);
+  for (const l of seed) if (!dropped.includes(l)) add(l);
+  for (const { leaves, problems: refs } of said) {
     for (const l of leaves) add(l);
     for (const id of refs) for (const l of problemLeaves(byId(id) ?? { solution: [] } as unknown as Problem)) add(l);
   }
