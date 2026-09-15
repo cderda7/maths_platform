@@ -1415,7 +1415,7 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **A homework finished late.** Missed is final and the caution stays for good; whether a student who finishes a missed homework later sees any acknowledgement (a "done late" note under the triangle) was not discussed.
 - **The due date's time of day.** A homework is on time if finished on its due day and missed from the next day; a real school would set a time (start of the lesson, 9 am) and a time zone.
 - **A real calendar.** The demo's day is fixed (`DEMO_TODAY`, Thu 10 Sep, ticket 289) and dates carry no year (`dueOrder`); homework status on a real product reads the clock and full dates.
-- **Homework records for the other nineteen.** Only Sam has a homework history (`SAM_HOMEWORK_STORY`) because only Sam has a Classroom; the teacher's view of every student's homework status is ticket 291's future feature.
+- **Homework records for the other nineteen.** Done for Homework 1 and 2 by ticket 305 (`CLASS_HOMEWORK_STORY`, finishing days only); the teacher's view of every student's homework is "Homework insight" under ticket 324.
 - **Pressing a completed or missed cell.** Cells are not pressable; reading back a finished homework (ticket 293's future feature) could open from the completed cell, and a missed cell could show which problems carried over.
 
 ## Practice offer tripwire (ticket 297, 2026-09-15)
@@ -1449,12 +1449,12 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 
 ## Homework create and send (ticket 291, 2026-09-15)
 
-- **A teacher view of homework results.** Homework cards on the teacher's Classroom open nothing: who finished, who missed, which own problems each student got, how the class did on the teacher's ten. Deferred by the ticket: the demo has only Sam's homework history.
+- **A teacher view of homework results.** Who finished, who missed, which own problems each student got, how the class did on the teacher's ten. Deferred by the ticket. Ticket 305 has since authored Homework 1 and 2 for all twenty and moved homework into a column of cells, and ticket 324 makes a cell press show a placeholder; the view itself is now scoped in full as "Homework insight" under ticket 324.
 - **An "opens" date for homework.** A homework opens when its last covered lesson ends (ticket 292); a teacher might want to set when it opens (Friday afternoon, after a test) beside its due date on Questions. Deferred by the ticket.
 - **Homework 4's own generated set.** +Homework after Homework 3 is sent starts Homework 4 (due Mon 21 Sep), but Generate fills in the same ten as Homework 3; a week's draft should follow that week's sets. Deferred: the demo stops at Homework 3.
 - **Blocking a new homework while one is open.** The no-overlap assumption (ASSUMPTIONS.md) says a teacher does not create the next homework before the current one is due; +Homework does not stop them. Whether to hide +Homework, warn, or allow overlapping homework is undecided.
 - **A goal message for homework.** Homework's Questions page has no goal box because nothing shows it to students; a note from the teacher at the top of the homework screen (ticket 293) could use one.
-- **Where homework sits on the teacher's Classroom.** Homework cards are in Past among the sets, so Homework 3 shows under Past while it is still to come ("sent"); a Scheduled or Homework section, or Live once it opens, may read better once homework has a results view.
+- **Where homework sits on the teacher's Classroom.** Settled by ticket 305: homework is a column beside Past, each cell spanning its sets. Left for "A column beside Live" (ticket 305) and "Homework insight" (ticket 324).
 - **Editing or unsending a sent homework.** Nothing takes a sent homework back or changes its ten or its due date.
 - **Homework's own assessment lines.** The assessing bar still reads "Checking coverage against Unit 1" for homework; homework's could name the week's sets and each student's own problems.
 - **Refine for homework that knows the own problems.** The scripted assessment is fixed; a real one would check the teacher's ten against what each student's own problems already cover (the removal's reason says so in words only).
@@ -1468,7 +1468,7 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **Several homeworks in the Future panel.** The panel lists every waiting homework, but under the no-overlap assumption there is at most one; a stack of them would push the panel past To do's first row, over the column beside it.
 - **Telling Sam when homework opens.** Homework 3 moves into To do silently; a toast or a pulse on OPEN when it arrives while he is on the Classroom could draw his eye.
 - **The homework screen.** `/student/homework/<id>` shows only its heading and the way back until ticket 293 lists his own problems and the teacher's ten.
-- **The teacher's Classroom's "opens after" line.** Sam's panel says what the homework waits on; the teacher's Homework 3 card still reads only "sent" until it opens.
+- **The teacher's Classroom's "opens after" line.** Done by ticket 305: the teacher's Homework 3 cell reads "sent · opens after Problem Set 6".
 
 ## Practice follow-ups and the named kind (ticket 300, 2026-09-15)
 
@@ -1537,7 +1537,7 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 ## Teacher homework column (ticket 305, 2026-09-15)
 
 - **Count late finishers.** The cell counts only students who finished by the due date ("14/20 done"); a student who finished Homework 2 a day late (Jordan, Grace) counts nowhere. The user asked for this to be recorded: a second figure ("2 late") or a split bar would show the teacher who is catching up. Deferred: the agreed cell reads done only.
-- **Press a cell for homework results.** Cells are not pressable; a teacher view of a homework's results (who did it, who missed, which problems carried) is already listed under ticket 291. The cell is the natural way in once it exists.
+- **Press a cell for homework results.** Ticket 305 left cells unpressable. Since ticket 324 a press shows the demo placeholder "HW insight scoped in FUTURE_FEATURES" for 2.5 s; the cell is the way into the results view once it exists ("Homework insight", ticket 324, which replaces the short entry under ticket 291).
 - **Live counts for an open homework.** Homework 3's count stays 0/20 because no student can answer homework yet; once answering exists, the count should rise live as students finish, as the Live card's submitted count does.
 - **Homework records from real submissions.** Homework 1 and 2 for the class are authored demo data (`CLASS_HOMEWORK_STORY`); a real class would record each student's finishing time from their homework screen.
 - **A column beside Live.** The column exists beside Past only; a Live set's upcoming homework shows nothing beside it. If teachers want to see what a live set feeds into, a muted cell beside Live could show it. Deferred: the agreed rule is Past only, matching Sam's side.
@@ -1606,6 +1606,12 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **Student counts on the gap pills.** The ranking is by students ("brackets don't expand back · 7"); the count was left off, since the user called the mistakes count useless and a count on a pill may read the same way.
 - **Pressing a gap.** A pill could open the set's Mistakes tab filtered to that misconception. Not built: the whole card is one link today.
 - **A fit rule for long names.** Three of the longest names beside "top gaps so far:" still clear the due date at 1280×800; a longer name or a fourth gap would need FitText or a second line.
+
+## Homework insight (ticket 324, 2026-09-15)
+
+- **Homework insight.** Pressing a homework cell on the teacher's Classroom opens what happened in that homework, for the class and for each student. (1) *Who*: the twenty in three groups, finished on time (with the day), finished late (with how late, the students "Count late finishers" under ticket 305 would count), missed; before the due date, done so far and not yet done. (2) *Each student's own problems*: the list their homework was built from (ticket 293), marking which were carried over from a missed homework and which leftovers were dropped as duplicates of a problem already in it, and by which problem (ticket 294's "Show the student what was dropped as covered" and "Teacher's view of a student's homework"). (3) *The teacher's ten*: once students can answer homework, right first time per problem across the class, the common wrong lines named by misconception (ticket 299), and who has not reached each one; for a missed homework, who never did which of the ten (ticket 294's "The gap from a missed homework's teacher problems"). (4) *Across homeworks*: students who miss or hand in late repeatedly, and patterns (the latest five sets rule, ticket 276) that recur between homework and in-class sets. Each name opens that student's report or holistic page. Deferred: students cannot answer homework yet ("Answering homework" and "Done and undone marks", ticket 293), so the demo holds only each student's finishing day (`CLASS_HOMEWORK_STORY`, ticket 305) and there is nothing to show beyond (1). For the demo, a press shows "HW insight scoped in FUTURE_FEATURES" over the cell, white on dark grey, for 2.5 s. Replaces the short "A teacher view of homework results" (ticket 291) and "Press a cell for homework results" (ticket 305).
+- **Whether the insight opens as a page or beside the column.** A full page per homework matches the set cards' links; a flyout down and right from the cell keeps the Classroom in view. Undecided until the view is designed.
+- **Sam's cells opening their own read-back.** Sam's completed and missed cells stay unpressable; "Reading back a finished homework" (ticket 293) and "Pressing a completed or missed cell" (ticket 290) cover his side.
 
 ## Carson's notes
 

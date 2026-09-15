@@ -5330,3 +5330,19 @@ rule for pens is untouched and the exception is visible and named.
 
 **Defense.** The teacher sees what went wrong and where it sits in the course in one glance, grouped the way the Class View's columns already teach, with a count that means something in place of one that doesn't.
 
+## 2026-09-15 · A demo placeholder on a real control: the teacher's homework cells press to a timed "HW insight scoped in FUTURE_FEATURES" (ticket 324)
+
+**Decision.** Every homework cell on the teacher's Classroom is a real button (focus ring, Enter and Space, a polite announcement) whose only effect is a 2.5 s placeholder: the cell turns `ink-soft` with white "HW insight scoped in FUTURE_FEATURES" in its own box, then reads normally. One cell at a time; a second press restarts the timer. The homework insight view it stands in for is scoped in full in FUTURE_FEATURES. The cursor stays the teacher side's arrow. Sam's iPad cells are untouched.
+
+**Context.** The user (2026-09-15): "just for the purpose of the demo, add functionality where clicking in HW tile leads to tile temp changing to dark grey background & white text that says 'HW insight scoped in FUTURE_FEATURES'. also read through F_F & ensure that it's actually scoped there". Ticket 305 had made the cells plain divs because no results view exists; in a demo, a presenter pressing a cell and getting nothing reads as broken.
+
+**Alternatives considered.**
+- *Leave cells inert*: honest, but the user asked for a visible answer to the press.
+- *A toast or tooltip elsewhere on the page*: the message is about this cell; a toast away from the pointer is easy to miss, and a tooltip needs hover, which a projector audience does not see.
+- *A permanent "coming soon" label on each cell*: clutters the count the cell exists for, and speaks to the teacher all the time rather than only when they reach for the feature.
+- *A stub results page*: a route with nothing true to show would have to be deleted or rewritten when the view is designed.
+- *A pointer cursor*: asked for in the brief, but the teacher side sets the arrow everywhere, unlayered (ticket 61), and the Classroom's own cards show the arrow; a hand on one cell would be the only one on the teacher's screens.
+
+**Tradeoffs.** A product control with demo copy ("FUTURE_FEATURES" is an internal file name) ships in the real screen; it must be replaced, not forgotten, when the insight view is built. The button semantics are the view's, so only the handler and the overlay change then. Overlaying keeps the cell's size fixed but hides its count for 2.5 s.
+
+**Defense.** The press, focus and keyboard are what the real feature needs, so the placeholder is a small, isolated handler (`lib/hwInsight.ts`) on the right control, and the message points the audience at a scoped plan instead of a dead end. Nothing on the page moves, and Sam's side, which the user said is not pressable, stays as it was.

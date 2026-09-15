@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useRef, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import TeacherChrome from "./TeacherChrome";
 import { Eyebrow, H1 } from "@/components/ui";
@@ -10,6 +10,7 @@ import { forgetTilesScroll } from "./students/tilesScroll";
 import { HOLISTIC_HREF } from "@/lib/assignments";
 import { CLASS_SUBJECT, classroomCards, gapGroups, teacherHomeworkColumn, type AssignmentCard, type TeacherHomeworkPiece } from "@/lib/classroomCards";
 import { CREATE_ROUTES } from "@/lib/createPipeline";
+import { flasher, HW_INSIGHT_MESSAGE } from "@/lib/hwInsight";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { CLASS_SIZE } from "@/lib/readiness";
 import { useBatchedSession, useNow } from "@/lib/store";
@@ -24,7 +25,8 @@ import { useBatchedSession, useNow } from "@/lib/store";
  * Sam's session in its 3 s batches and the clock, the inputs the assignment's own tabs read, so the
  * live card's counts move with the class. One class (ASSUMPTIONS.md, ONE CLASS).
  * Homework sits in a column to the right of Past (ticket 305, replacing ticket 291's homework cards): each homework's cell
- * spans the rows of the Past sets it covers and reads the class's count; a cell opens nothing. Every section's cards sit in
+ * spans the rows of the Past sets it covers and reads the class's count; a press shows the demo's "HW insight scoped in
+ * FUTURE_FEATURES" placeholder over the cell for a moment (ticket 324) and opens nothing. Every section's cards sit in
  * the grid's first column, so Live and Past cards are one width.
  *
  * The page takes the chrome's full container, as the header and Class View do: "+In-Class PSet"
@@ -187,11 +189,17 @@ function Card({ card, row }: { card: AssignmentCard; /** Its row in the section'
 /**
  * The homework column beside Past (ticket 305, `teacherHomeworkColumn`): a homework's cell runs from its first covered card's
  * top to its last's bottom and reads its name, its due date and the class's count ("14/20 done"), or, sent and not yet open,
- * "sent · opens after Problem Set 6" behind a dashed line. A Past set no homework covers keeps an empty space. Nothing in the
- * column is pressable: a plain div, no link, hover or focus. An open cell's line is the homework cell border tokens (ticket 321);
- * the sent cell's dashes are its own.
+ * "sent · opens after Problem Set 6" behind a dashed line. A Past set no homework covers keeps an empty space. An open cell's
+ * line is the homework cell border tokens (ticket 321); the sent cell's dashes are its own.
+ * Every cell is a button (ticket 324, a demo placeholder): a press lays "HW insight scoped in FUTURE_FEATURES" over the cell,
+ * white on dark grey, for `HW_INSIGHT_MS`, standing in for the homework insight view FUTURE_FEATURES scopes. The message is an
+ * overlay inside the cell's own box, so no cell or card moves; a polite live region beside the cells announces it.
  */
 function HomeworkColumn({ pieces }: { pieces: TeacherHomeworkPiece[] }) {
+  const [shown, setShown] = useState<string | null>(null);
+  // Lazy state: one flasher for the column's life; its timer is set from the press and cleared on unmount.
+  const [flash] = useState(() => flasher<string>(setShown));
+  useEffect(() => () => flash.dispose(), [flash]);
   return (
     <div className="contents" data-hw-column>
       {pieces.map((p) => {
@@ -199,14 +207,23 @@ function HomeworkColumn({ pieces }: { pieces: TeacherHomeworkPiece[] }) {
         const rows = p.setIds.join(" ");
         if (p.kind === "empty") return <div key={`empty-${rows}`} className="col-start-2" style={{ gridRow }} data-hw-empty={rows} aria-hidden />;
         const sent = p.state === "sent";
+        const insight = shown === p.id;
+        // An open cell's line is an outline (ticket 321's hw-card-edge), so focus shows as the ring and the outline stays; the sent
+        // cell has a real dashed border and no outline to keep. Pressed, the line and the ground turn ink-soft.
+        const edge = sent
+          ? `border border-dashed focus-visible:outline-none ${insight ? "border-ink-soft bg-ink-soft" : "border-line-strong hover:border-accent-line"}`
+          : `hw-card-edge ${insight ? "bg-ink-soft outline-ink-soft" : "bg-paper/70 outline-hw-border hover:outline-accent-line"}`;
         return (
-          <div
+          <button
+            type="button"
             key={p.id}
-            className={`col-start-2 flex flex-col justify-center rounded-2xl px-6 py-3 select-none ${sent ? "border border-dashed border-line-strong" : "hw-card-edge bg-paper/70 outline-hw-border"}`}
+            onClick={() => flash.press(p.id)}
+            className={`relative col-start-2 flex flex-col justify-center rounded-2xl px-6 py-3 text-left transition-colors select-none focus-visible:ring-4 focus-visible:ring-accent/30 ${edge}`}
             style={{ gridRow }}
             data-hw-cell={p.id}
             data-hw-state={p.state}
             data-hw-rows={rows}
+            data-hw-insight={insight || undefined}
           >
             <span className={`font-display text-[25px] leading-tight ${sent ? "text-ink-muted" : "text-ink"}`} data-hw-name>
               {p.name}
@@ -223,9 +240,21 @@ function HomeworkColumn({ pieces }: { pieces: TeacherHomeworkPiece[] }) {
                 <Count n={p.done} of={p.total} /> done
               </span>
             )}
-          </div>
+            {/* The tile's own border and ground turn ink-soft too, so the whole tile is dark grey with no sliver of line at its edge. */}
+            <span
+              aria-hidden
+              className={`pointer-events-none absolute inset-0 grid place-items-center rounded-2xl px-4 text-center text-[17px] leading-6 font-medium ${insight ? "bg-ink-soft text-white" : "opacity-0"}`}
+              data-hw-insight-message
+            >
+              {insight ? HW_INSIGHT_MESSAGE : ""}
+            </span>
+          </button>
         );
       })}
+      {/* The announcement: a button's children are presentational to assistive tech, so the live region sits beside the cells, absolutely positioned (sr-only) so it takes no grid cell. */}
+      <span role="status" aria-live="polite" className="sr-only" data-hw-insight-live>
+        {shown ? HW_INSIGHT_MESSAGE : ""}
+      </span>
     </div>
   );
 }
