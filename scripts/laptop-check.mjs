@@ -26,10 +26,10 @@ import { join } from "node:path";
 
 /**
  * Measured in order in one tab. Problem Set 6 only exists once it is created (ticket 188), so the
- * Classroom and the blank create screen come first, then `CREATE_SET` (the student's `?pathway=`
+ * Classroom and the blank create screens (an in-class set's, and +Homework's, ticket 291) come first, then `CREATE_SET` (the student's `?pathway=`
  * deep link, which creates the set as the teacher's Create would; not measured), then its pages.
  */
-const BEFORE_CREATE = ["/teacher", "/teacher/assignments/create"];
+const BEFORE_CREATE = ["/teacher", "/teacher/assignments/create", "/teacher/homework/create"];
 const CREATE_SET = "/student/a/pset-6?pathway=indiv,group,class";
 const CREATED = `!!JSON.parse(localStorage.getItem("edexia-maths-demo/classroom/v1") ?? "null")?.assignment`;
 /**

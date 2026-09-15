@@ -1,5 +1,6 @@
 import { PROBLEMS } from "@/data/assignment";
-import { DRAFT_LABELS, RECOMMENDATIONS, type ProposedQuestion, type Recommendation } from "@/data/review";
+import { DRAFT_LABELS, HOMEWORK_RECOMMENDATIONS, RECOMMENDATIONS, type ProposedQuestion, type Recommendation } from "@/data/review";
+import type { CreateKind } from "./createPipeline";
 import type { Difficulty, Pathway, Problem } from "@/data/types";
 import type { SeatingGroups } from "@/data/groups";
 import type { DraftQuestion } from "./classroom";
@@ -130,10 +131,13 @@ export interface ActiveRecommendation {
   targetId?: string;
 }
 
+/** Each kind's scripted assessment (ticket 291): an in-class set's, and homework's own, which never recommends the other's. */
+export const SCRIPTED_RECOMMENDATIONS: Record<CreateKind, readonly Recommendation[]> = { pset: RECOMMENDATIONS, homework: HOMEWORK_RECOMMENDATIONS };
+
 /** The recommendations that apply to these questions: a change or removal needs its target pasted; an addition always applies. */
-export function recommendationsFor(questions: DraftQuestion[]): ActiveRecommendation[] {
+export function recommendationsFor(questions: DraftQuestion[], kind: CreateKind = "pset"): ActiveRecommendation[] {
   const out: ActiveRecommendation[] = [];
-  for (const rec of RECOMMENDATIONS) {
+  for (const rec of SCRIPTED_RECOMMENDATIONS[kind]) {
     if (rec.kind === "add") {
       out.push({ rec });
       continue;
@@ -163,9 +167,9 @@ export interface ReviewedQuestion extends DraftQuestion {
  * and adds the worded problem in its place, so the set reads in the students' order, the ball problem at Q9); an addition
  * with no slot freed for it comes last.
  */
-export function applyReview(questions: DraftQuestion[], review: Pick<ReviewState, "labels" | "answers" | "addition">): ReviewedQuestion[] {
+export function applyReview(questions: DraftQuestion[], review: Pick<ReviewState, "labels" | "answers" | "addition">, kind: CreateKind = "pset"): ReviewedQuestion[] {
   const labels = labelsOf(questions, review.labels);
-  const active = recommendationsFor(questions);
+  const active = recommendationsFor(questions, kind);
   const accepted = active.filter((a) => review.answers[a.rec.id] === "accept");
   const additions: ReviewedQuestion[] = accepted.flatMap((a) => {
     if (a.rec.kind !== "add") return [];

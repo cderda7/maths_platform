@@ -10,8 +10,14 @@
 
 import type { ReviewStep } from "./review";
 
-/** A kind of set the create flow makes. Ticket 291 adds `"homework"`. */
-export type CreateKind = "pset";
+/**
+ * A kind of set the create flow makes: an in-class problem set ("+In-Class PSet", ticket 288) or a homework
+ * ("+Homework", ticket 291). Each has its own draft and review in the classroom (`draftFor`, `reviewStateFor`), its own
+ * routes (`CREATE_ROUTES`) and its own pipeline.
+ */
+export type CreateKind = "pset" | "homework";
+
+export const CREATE_KINDS: readonly CreateKind[] = ["pset", "homework"];
 
 export type StepName = "questions" | "difficulty" | "assessment" | "pathway" | "send";
 
@@ -25,7 +31,30 @@ const SEND: PipelineStep = { id: "send", label: "Send" };
 
 export const PIPELINES: Record<CreateKind, readonly PipelineStep[]> = {
   pset: [QUESTIONS, DIFFICULTY, REFINE, PATHWAY, SEND],
+  // Homework (ticket 291): the teacher's ten everyone does. No New skills, no pathway, no groups: Refine's last button creates.
+  homework: [QUESTIONS, DIFFICULTY, REFINE, SEND],
 };
+
+/**
+ * Each kind's two routes: Questions (blank until generated) and the review steps after it. Homework's are its own, so a
+ * PSet draft and a homework draft never share a page, and the same components serve both (`kind` from the route).
+ */
+export const CREATE_ROUTES: Record<CreateKind, { questions: string; review: string }> = {
+  pset: { questions: "/teacher/assignments/create", review: "/teacher/assignments/create/review" },
+  homework: { questions: "/teacher/homework/create", review: "/teacher/homework/create/review" },
+};
+
+/** The step after Refine's recommendations: the pathway for an in-class set; homework has none, so its Refine creates. */
+export const hasPathway = (kind: CreateKind): boolean => PIPELINES[kind].some((s) => s.id === "pathway");
+
+/**
+ * The assessing bar's length from the review route's `?assess=<ms>` (the browser sweeps pass 300): anything missing or
+ * invalid runs `fallback`, and never under 100 ms.
+ */
+export function assessMsFrom(raw: string | string[] | undefined, fallback: number): number {
+  const v = Array.isArray(raw) ? raw[0] : raw;
+  return v !== undefined && /^\d+$/.test(v) ? Math.max(100, Number(v)) : fallback;
+}
 
 /** How long Send stays lit after Create is pressed, before the set is sent and the page moves on. */
 export const SEND_LIGHT_MS = 600;

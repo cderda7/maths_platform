@@ -7,7 +7,8 @@ import { Button, Eyebrow } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
 import { GOAL_MAX } from "@/lib/classroom";
 import DuePicker from "@/components/DuePicker";
-import { DUE_DEFAULT } from "@/lib/dueDate";
+import type { CreateKind } from "@/lib/createPipeline";
+import type { IsoDay } from "@/lib/dueDate";
 
 const nothing = () => {};
 const INERT_HANDLERS: TileHandlers = { onChange: nothing, onFocus: nothing, onBlur: nothing, onNext: nothing, onBackspaceEmpty: nothing, onRemove: nothing, onPasteLines: nothing, onKeep: nothing, onUpload: nothing, onRead: nothing, onFix: nothing };
@@ -26,8 +27,10 @@ const refuse = (e: DragEvent<HTMLDivElement>) => {
  * a pulsing "Generate simulated assignment", which fills the screen with the demo teacher's set.
  * No Continue until then. The typing, upload and Fix paths (tickets 119, 171–173) stay in the editor,
  * which the generated screen still is; see FUTURE_FEATURES.
+ *
+ * +Homework's blank start (ticket 291) is the same with no goal box: `due` is the day its picker starts on (Mon 14 Sep for Homework 3).
  */
-export default function BlankStart({ onGenerate }: { onGenerate: () => void }) {
+export default function BlankStart({ kind, due, onGenerate }: { kind: CreateKind; due: IsoDay; onGenerate: () => void }) {
   return (
     <div className="pb-24" onDragOver={refuse} onDrop={refuse} data-blank-start>
       <BackToClassroom />
@@ -38,36 +41,38 @@ export default function BlankStart({ onGenerate }: { onGenerate: () => void }) {
             value=""
             readOnly
             tabIndex={-1}
-            placeholder="Untitled assignment"
+            placeholder={kind === "homework" ? "Untitled homework" : "Untitled assignment"}
             aria-label="Title"
             className="min-w-0 flex-1 bg-transparent font-display text-[40px] leading-[1.05] text-ink outline-none placeholder:text-ink-muted/35 md:text-[48px]"
             data-title
           />
           {/* The due date where the editor puts it (ticket 289), greyed like the goal, at the day the picker starts on. */}
           <div className="opacity-60">
-            <DuePicker value={DUE_DEFAULT.pset} onChange={nothing} />
+            <DuePicker value={due} onChange={nothing} />
           </div>
         </div>
 
-        <div className="mt-6 max-w-3xl opacity-60" data-goal>
-          <label htmlFor="goal" className="block text-[11px] font-semibold tracking-[0.12em] uppercase text-ink-muted">
-            Goal for the class
-          </label>
-          <p className="mt-1 text-[13.5px] text-ink-muted">Write a goal-oriented message for the class. This will be displayed on student screens before they start the assignment.</p>
-          <textarea
-            id="goal"
-            value=""
-            readOnly
-            tabIndex={-1}
-            rows={3}
-            placeholder="By the end of this set I want you to…"
-            className="mt-2 w-full resize-none rounded-xl border border-line bg-cream-deep/60 px-4 py-3 text-[15px] leading-[1.45] text-ink outline-none placeholder:text-ink-muted/50"
-            data-goal-input
-          />
-          <p className="mt-1 text-right text-[12px] tabular-nums text-ink-muted" data-goal-count>
-            0 / {GOAL_MAX}
-          </p>
-        </div>
+        {kind === "pset" && (
+          <div className="mt-6 max-w-3xl opacity-60" data-goal>
+            <label htmlFor="goal" className="block text-[11px] font-semibold tracking-[0.12em] uppercase text-ink-muted">
+              Goal for the class
+            </label>
+            <p className="mt-1 text-[13.5px] text-ink-muted">Write a goal-oriented message for the class. This will be displayed on student screens before they start the assignment.</p>
+            <textarea
+              id="goal"
+              value=""
+              readOnly
+              tabIndex={-1}
+              rows={3}
+              placeholder="By the end of this set I want you to…"
+              className="mt-2 w-full resize-none rounded-xl border border-line bg-cream-deep/60 px-4 py-3 text-[15px] leading-[1.45] text-ink outline-none placeholder:text-ink-muted/50"
+              data-goal-input
+            />
+            <p className="mt-1 text-right text-[12px] tabular-nums text-ink-muted" data-goal-count>
+              0 / {GOAL_MAX}
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="relative mt-6" data-blank-grid>

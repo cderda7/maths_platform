@@ -59,7 +59,7 @@ restarts everything in every tab; it is a presenter control, not part of the pro
 
 ## The demo, in order
 
-Teacher, before the lesson (Edexia Classroom at `/teacher`, New assignment → `/teacher/assignments/create`):
+Teacher, before the lesson (Edexia Classroom at `/teacher`, +In-Class PSet → `/teacher/assignments/create`, +Homework → `/teacher/homework/create`):
 
 0. **Create** (tickets 119, 121, 154): opens prefilled with the demo set (`data/draft-seed.ts`: the title,
    the goal for the class and ten typed questions, Q1 with +5x and a repeated Q9 for the review step); a title, then
@@ -100,6 +100,11 @@ Teacher, before the lesson (Edexia Classroom at `/teacher`, New assignment → `
    class review, in that order, each optional. Pick a column and its siblings fade; leave
    later columns empty to stop there; tap "student submission" to clear the map and start again;
    the sentence under the map reads the pathway back. Create.
+
+   **+Homework** (ticket 291) runs the same screens with no goal box and no pathway: Generate fills Homework 3 (ten
+   problems on features of a parabola and roots of a quadratic, `data/homework-draft-seed.ts`), the due date starts at
+   Mon 14 Sep and cannot fall on or before Homework 2's Mon 7 Sep, the strip reads QUESTIONS — DIFFICULTY — REFINE — SEND,
+   and Refine's Create sends it: it joins Homework 1 and 2 in the Classroom's Past (they open nothing), covering Problem Sets 5 and 6.
 
 Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the pen). It opens on Sam's Edexia
 Classroom (ticket 264): To do, Missing, Completed. Problem Set 1–5 are Completed, with a homework column to their right (ticket 290):

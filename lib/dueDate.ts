@@ -30,11 +30,12 @@ export type IsoDay = string;
 export const DEMO_TODAY: IsoDay = "2026-09-10";
 
 /**
- * Where the picker starts for each kind of set: the next lesson day, which for Problem Set 6 is today's lesson, so
- * the created set is due Thu 10 Sep as the fixture (and every presenter skip, which sends the fixture) has it.
- * Ticket 291 adds homework's Mon 14 Sep.
+ * Where the picker starts for each kind of set: for an in-class set the next lesson day, which for Problem Set 6 is
+ * today's lesson, so the created set is due Thu 10 Sep as the fixture (and every presenter skip, which sends the fixture)
+ * has it; for homework (ticket 291) the Monday after, Mon 14 Sep, a week after Homework 2 (`nextHomework` keeps a later
+ * homework a week after its previous one).
  */
-export const DUE_DEFAULT: Record<CreateKind, IsoDay> = { pset: DEMO_TODAY };
+export const DUE_DEFAULT: Record<CreateKind, IsoDay> = { pset: DEMO_TODAY, homework: "2026-09-14" };
 
 const ISO = /^(\d{4})-(\d{2})-(\d{2})$/;
 

@@ -11,6 +11,7 @@ import { currentSetId, currentSetTitle } from "./renamedSets";
 import { chainReducer, latestRun, liveRun, migrateRun, type ChainAction, type DiagnosticRun } from "./diagnosticChain";
 import { absentOf, liveAbsent, withAbsence } from "./absence";
 import type { IsoDay } from "./dueDate";
+import type { CreateKind } from "./createPipeline";
 
 export type { DiagnosticRun } from "./diagnosticChain";
 
@@ -51,6 +52,29 @@ export interface CreatedAssignment {
    * skip or a deep link sent the set (and in assignments stored before it): the fixture's day stands (`activeAssignment`).
    */
   due?: IsoDay;
+}
+
+/**
+ * A homework the teacher created and sent (ticket 291): the ten problems everyone does, as Refine left them, and its due
+ * date. It joins the class's homeworks after the fixtures' Homework 1 and 2 (`classHomeworks` in `lib/homeworks.ts`), so
+ * the sets it covers follow from its due date by the same rule. Sending it starts no lesson and touches no set's run.
+ */
+export interface SentHomework {
+  /** `hw-<n>`, as the fixtures' ids. */
+  id: string;
+  /** Its number in the class's run of homeworks: 3 for the first one sent after the fixtures'. */
+  n: number;
+  /** As the teacher titled it on Questions ("Homework 3"). */
+  name: string;
+  due: IsoDay;
+  /** The teacher's ten, as Refine left them. */
+  questions: ReviewedQuestion[];
+  sentAt: number;
+  /**
+   * When it opened to the students and its contents froze (ticket 292 stamps it when the last lesson among its sets ends).
+   * Absent while it waits in Sam's Future panel; a set due inside an open homework's window goes to the next one.
+   */
+  openedAt?: number;
 }
 
 /**
@@ -147,6 +171,11 @@ export interface ClassroomState {
   draft?: AssignmentDraft | null;
   /** The review step's decisions about the draft (ticket 120): labels, answers, pathway, the step reached. */
   review?: ReviewState | null;
+  /** +Homework's draft and its review (ticket 291), kept apart from the in-class set's so either can be under way while the other is. */
+  homeworkDraft?: AssignmentDraft | null;
+  homeworkReview?: ReviewState | null;
+  /** The homeworks the teacher has sent (ticket 291), oldest first; absent until the first. Reset demo clears them. */
+  homeworks?: SentHomework[];
   advance: PendingAdvance | null;
   wholeClass: WholeClassSession | null;
   /** The class's default seating groups, edited at `/teacher/groups`; absent in older stored state (read through `seatingOf`). */
@@ -202,10 +231,12 @@ export type ClassroomAction =
    * A set sent starts a new lesson (ticket 263): whatever an earlier lesson left (its gate, whiteboard, chains, class review, end) goes.
    */
   | { type: "assignment/create"; id?: string; groups?: SeatingGroups; title: string; problemIds: string[]; pathway: Pathway; newSkills?: LeafId[]; goal?: string; questions?: ReviewedQuestion[]; due?: IsoDay; at?: number; startedAt?: number }
-  /** The create screen's draft as typed; null clears it. */
-  | { type: "draft/set"; draft: AssignmentDraft | null }
-  /** The review step's decisions; null clears them. */
-  | { type: "review/set"; review: ReviewState | null }
+  /** The create screen's draft as typed; null clears it. `kind` names whose draft (an in-class set's when absent, ticket 291). */
+  | { type: "draft/set"; draft: AssignmentDraft | null; kind?: CreateKind }
+  /** The review step's decisions; null clears them. `kind` as for `draft/set`. */
+  | { type: "review/set"; review: ReviewState | null; kind?: CreateKind }
+  /** +Homework's Create (ticket 291): the homework joins the class's list. Idempotent by id; nothing else in the classroom changes. */
+  | { type: "homework/send"; homework: SentHomework }
   /** A Groups page: move one student to a colour, in an assignment's own groups when `assignment` is set, else in the class defaults. */
   | { type: "groups/move"; student: string; to: GroupColour; assignment?: string }
   /** Back to the fixture: the class defaults, or with `assignment` that assignment's frozen fixture copy. */
@@ -305,9 +336,11 @@ function renameSets(c: ClassroomState): ClassroomState {
 export function classroomReducer(c: ClassroomState, a: ClassroomAction): ClassroomState {
   switch (a.type) {
     case "draft/set":
-      return { ...c, draft: a.draft };
+      return a.kind === "homework" ? { ...c, homeworkDraft: a.draft } : { ...c, draft: a.draft };
     case "review/set":
-      return { ...c, review: a.review };
+      return a.kind === "homework" ? { ...c, homeworkReview: a.review } : { ...c, review: a.review };
+    case "homework/send":
+      return c.homeworks?.some((h) => h.id === a.homework.id) ? c : { ...c, homeworks: [...(c.homeworks ?? []), { ...a.homework, questions: a.homework.questions.map((q) => ({ ...q })) }] };
     case "assignment/create":
       return { ...newLesson(c), assignmentGroups: { ...(c.assignmentGroups ?? {}), [a.id ?? ASSIGNMENT.id]: a.groups ?? seatingOf(c.groups) }, assignment: { title: a.title, problemIds: [...a.problemIds], pathway: [...a.pathway], ...(a.newSkills ? { newSkills: [...a.newSkills] } : {}), createdAt: a.at ?? 0, startedAt: a.startedAt ?? a.at ?? 0, ...(a.goal !== undefined ? { goal: a.goal } : {}), ...(a.questions ? { questions: a.questions.map((q) => ({ ...q })) } : {}), ...(a.due !== undefined ? { due: a.due } : {}) } };
     case "advance/start": {
@@ -422,6 +455,12 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
       return INITIAL_CLASSROOM;
   }
 }
+
+/** A kind's draft on the create flow (ticket 291): an in-class set's is `draft`, a homework's `homeworkDraft`. */
+export const draftFor = (c: ClassroomState | null | undefined, kind: CreateKind): AssignmentDraft | null => (kind === "homework" ? c?.homeworkDraft : c?.draft) ?? null;
+
+/** A kind's review decisions, as stored (read them through `reviewFor` against the draft). */
+export const reviewStateFor = (c: ClassroomState | null | undefined, kind: CreateKind): ReviewState | null => (kind === "homework" ? c?.homeworkReview : c?.review) ?? null;
 
 /** The latest diagnostic chain, out or ended; null before the first push. */
 export const latestDiagnostic = (c: ClassroomState | null | undefined): DiagnosticRun | null => latestRun(c?.diagnostics);

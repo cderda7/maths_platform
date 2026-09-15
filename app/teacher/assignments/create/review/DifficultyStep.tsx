@@ -14,7 +14,7 @@ import { CREATE_BAR, CREATE_BAR_CLEARANCE } from "../createBar";
  * above the grid. A tap on a label rotates it to the next of the four. "Assess set" bottom right
  * runs the assessment.
  */
-export default function DifficultyStep({ questions, overrides, onLabel, onMove, onAssess }: { questions: DraftQuestion[]; overrides: Record<string, Difficulty>; onLabel: (id: string, d: Difficulty) => void; onMove: (from: number, to: number) => void; onAssess: () => void }) {
+export default function DifficultyStep({ backHref, questions, overrides, onLabel, onMove, onAssess }: { /** The kind's Questions page (ticket 291). */ backHref: string; questions: DraftQuestion[]; overrides: Record<string, Difficulty>; onLabel: (id: string, d: Difficulty) => void; onMove: (from: number, to: number) => void; onAssess: () => void }) {
   const labels = labelsOf(questions, overrides);
   const counts = countByDifficulty(Object.values(labels));
   return (
@@ -33,7 +33,7 @@ export default function DifficultyStep({ questions, overrides, onLabel, onMove, 
       <QuestionGrid items={questions.map((q) => ({ id: q.id, text: q.text, stem: q.stem, tex: q.tex, figureUrl: q.figureUrl, difficulty: labels[q.id] }))} onLabel={onLabel} onMove={onMove} animate />
       <div className={CREATE_BAR}>
         {/* Back is a paper pill like the create bar's secondary buttons, so it reads as a control over content scrolling beneath (ticket 188). */}
-        <Link href="/teacher/assignments/create" className="inline-flex items-center justify-center rounded-full border border-line-strong bg-paper px-6 py-3 text-[15px] font-medium text-ink shadow-lift transition-colors hover:border-ink-muted" data-back>
+        <Link href={backHref} className="inline-flex items-center justify-center rounded-full border border-line-strong bg-paper px-6 py-3 text-[15px] font-medium text-ink shadow-lift transition-colors hover:border-ink-muted" data-back>
           Back
         </Link>
         <Button size="lg" onClick={onAssess} className="shadow-lift" data-assess>

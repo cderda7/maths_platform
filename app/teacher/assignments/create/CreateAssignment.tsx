@@ -10,10 +10,11 @@ import { MessageTile, PendingTile } from "./UploadTiles";
 import { Button, Eyebrow } from "@/components/ui";
 import { useReorder } from "@/components/useReorder";
 import { ASSIGNMENT } from "@/data/assignment";
-import { REVIEW_ASSIGNMENT_HREF } from "@/lib/assignments";
-import { GOAL_MAX, type AssignmentDraft, type DraftQuestion } from "@/lib/classroom";
+import { draftFor, GOAL_MAX, type AssignmentDraft, type DraftQuestion } from "@/lib/classroom";
 import { dispatchClassroom, getClassroom, useClassroom } from "@/lib/classroom-store";
-import { generatedDraft, isGenerated } from "@/lib/draft";
+import { CREATE_ROUTES, type CreateKind } from "@/lib/createPipeline";
+import { dueRange, generatedDraftFor, isGenerated } from "@/lib/draft";
+import { psetDueNote } from "@/lib/homeworks";
 import { cropFigure, cropFromImage, type Figure } from "@/lib/crops";
 import type { Draft, FigureBox, Source } from "@/lib/extract";
 import { bytesToBase64, ExtractError, extractSource, fileToSource, fixDraft } from "@/lib/extractClient";
@@ -25,7 +26,7 @@ import { getSource, putSource, thumbOf } from "@/lib/sources";
 import { applyFix, applyRead, confirmAll, discardUnconfirmed, draftItem, dropNote, insertBefore, isPdfFile, isQuestion, messageItem, partitionDrop, pendingItem, removeItem, replaceItem, unconfirmedCount, updateQuestion, without, type FigureRef, type Item, type MessageItem, type PendingItem, type QuestionItem, type ReadFailure } from "@/lib/upload";
 import { CREATE_BAR, CREATE_BAR_CLEARANCE } from "./createBar";
 import DuePicker from "@/components/DuePicker";
-import { DEMO_TODAY, DUE_DEFAULT, dueOrDefault, type IsoDay } from "@/lib/dueDate";
+import { dueOrDefault, type IsoDay } from "@/lib/dueDate";
 
 /** The gap between one generated tile fading in and the next (ticket 188). */
 const TILE_IN_STEP_MS = 35;
@@ -90,13 +91,13 @@ export function draftOf(title: string, goal: string, qs: Item[], at: number): As
  * tile sends the stem, the TeX, the instruction and the source picture, and the answer becomes
  * the tile's text. A figure the model boxed is cut from the source and shown under the question.
  */
-export default function CreateAssignment() {
+export default function CreateAssignment({ kind }: { kind: CreateKind }) {
   // The draft lives in localStorage, so the editor mounts on the client only and reads it as its first state.
   const client = useSyncExternalStore(noSubscribe, isClient, isServer);
   return (
     <TeacherChrome>
       {client ? (
-        <Start />
+        <Start kind={kind} />
       ) : (
         <>
           <BackToClassroom />
@@ -113,19 +114,22 @@ export default function CreateAssignment() {
  * stays across reloads while the draft is flagged generated. Create and Reset demo clear the draft, so
  * the next visit is blank again. `fresh` is this mount's own Generate: the tiles fade in once.
  */
-function Start() {
-  const generated = isGenerated(useClassroom());
+function Start({ kind }: { kind: CreateKind }) {
+  const classroom = useClassroom();
+  const generated = isGenerated(classroom, kind);
   const [fresh, setFresh] = useState(false);
   if (!generated)
     return (
       <BlankStart
+        kind={kind}
+        due={dueRange(kind, classroom).fallback}
         onGenerate={() => {
           setFresh(true);
-          dispatchClassroom({ type: "draft/set", draft: generatedDraft(Date.now()) });
+          dispatchClassroom({ type: "draft/set", draft: generatedDraftFor(kind, getClassroom(), Date.now()), kind });
         }}
       />
     );
-  return <Editor fresh={fresh} />;
+  return <Editor kind={kind} fresh={fresh} />;
 }
 
 const noSubscribe = () => () => {};
@@ -135,9 +139,11 @@ const noSubscribe = () => () => {};
  * store seeded the set here, ticket 121). The editor only mounts over a generated draft, so the seed
  * fallback is for a draft cleared from another tab mid-render.
  */
-function storedOrSeed(): { title: string; goal: string; due: IsoDay; questions: QuestionItem[] } {
-  const d = getClassroom().draft ?? generatedDraft(0);
-  return { title: d.title, goal: d.goal ?? "", due: dueOrDefault(d.due, DEMO_TODAY, DUE_DEFAULT.pset), questions: d.questions.map(itemOf) };
+function storedOrSeed(kind: CreateKind): { title: string; goal: string; due: IsoDay; questions: QuestionItem[] } {
+  const c = getClassroom();
+  const d = draftFor(c, kind) ?? generatedDraftFor(kind, c, 0);
+  const { min, fallback } = dueRange(kind, c);
+  return { title: d.title, goal: d.goal ?? "", due: dueOrDefault(d.due, min, fallback), questions: d.questions.map(itemOf) };
 }
 
 /** A stored question back as a tile; an uploaded one keeps its provenance and its unconfirmed state across a reload. */
@@ -196,15 +202,19 @@ async function firstPageThumb(blob: Blob): Promise<string | undefined> {
   }
 }
 
-function Editor({ fresh }: { fresh: boolean }) {
+function Editor({ kind, fresh }: { kind: CreateKind; fresh: boolean }) {
   const router = useRouter();
-  const [title, setTitle] = useState(() => storedOrSeed().title);
-  const [goal, setGoal] = useState(() => storedOrSeed().goal);
-  /** The set's due date (ticket 289): the draft's, else the next lesson day; stored with the draft on every change. */
-  const [due, setDue] = useState(() => storedOrSeed().due);
-  const [qs, setQs] = useState<Item[]>(() => withGhost(storedOrSeed().questions));
-  // Opened by Generate, nothing takes the focus: focusing the ghost would scroll the grid under the pointer that just pressed.
-  const [focusId, setFocusId] = useState<string | null>(() => (fresh ? null : qs[qs.length - 1].id));
+  const classroom = useClassroom();
+  const homework = kind === "homework";
+  const [title, setTitle] = useState(() => storedOrSeed(kind).title);
+  const [goal, setGoal] = useState(() => storedOrSeed(kind).goal);
+  /** The set's due date (ticket 289): the draft's, else the kind's default (`dueRange`); stored with the draft on every change. */
+  const [due, setDue] = useState(() => storedOrSeed(kind).due);
+  const [qs, setQs] = useState<Item[]>(() => withGhost(storedOrSeed(kind).questions));
+  // Nothing takes the focus when the editor opens, by Generate or by a reload or a Back (ticket 291): focusing the ghost,
+  // the last tile, scrolled the page down to it (below the fold on a laptop), or under the pointer that just pressed Generate.
+  const [focusId, setFocusId] = useState<string | null>(null);
+  const range = dueRange(kind, classroom);
   /** The tiles Generate put on screen, which fade in one after another; a tile added later appears at once. */
   const [arrived] = useState<ReadonlySet<string> | null>(() => (fresh ? new Set(qs.map((q) => q.id)) : null));
   const [removed, setRemoved] = useState<{ q: QuestionItem; index: number } | null>(null);
@@ -215,8 +225,8 @@ function Editor({ fresh }: { fresh: boolean }) {
   const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    dispatchClassroom({ type: "draft/set", draft: { ...draftOf(title, goal, qs, Date.now()), generated: true, due } });
-  }, [title, goal, qs, due]);
+    dispatchClassroom({ type: "draft/set", draft: { ...draftOf(title, goal, qs, Date.now()), generated: true, due }, kind });
+  }, [title, goal, qs, due, kind]);
 
   /** A change by the teacher's hand: clears the undo line and the drop note. */
   const edit = (f: (qs: Item[]) => Item[]) => {
@@ -462,8 +472,8 @@ function Editor({ fresh }: { fresh: boolean }) {
   const proceed = () => {
     if (!any) return;
     const kept = confirmAll(qs);
-    dispatchClassroom({ type: "draft/set", draft: { ...draftOf(title, goal, kept, Date.now()), generated: true, due } });
-    router.push(REVIEW_ASSIGNMENT_HREF);
+    dispatchClassroom({ type: "draft/set", draft: { ...draftOf(title, goal, kept, Date.now()), generated: true, due }, kind });
+    router.push(CREATE_ROUTES[kind].review);
   };
 
   return (
@@ -478,14 +488,17 @@ function Editor({ fresh }: { fresh: boolean }) {
             setRemoved(null);
             setTitle(e.target.value);
           }}
-          placeholder="Untitled assignment"
+          placeholder={homework ? "Untitled homework" : "Untitled assignment"}
           aria-label="Title"
           className="min-w-0 flex-1 bg-transparent font-display text-[40px] leading-[1.05] text-ink outline-none placeholder:text-ink-muted/50 md:text-[48px]"
           data-title
         />
+        {/* A homework's earliest day is the day after the previous homework's due date (ticket 291); an in-class set's due
+            inside a homework already open says where its mistakes go instead. */}
         <DuePicker
           value={due}
-          min={DEMO_TODAY}
+          min={range.min}
+          note={homework ? undefined : psetDueNote(due, classroom)}
           onChange={(d) => {
             setRemoved(null);
             setDue(d);
@@ -493,28 +506,31 @@ function Editor({ fresh }: { fresh: boolean }) {
         />
       </div>
 
-      <div className="mt-6 max-w-3xl" data-goal>
-        <label htmlFor="goal" className="block text-[11px] font-semibold tracking-[0.12em] uppercase text-ink-muted">
-          Goal for the class
-        </label>
-        <p className="mt-1 text-[13.5px] text-ink-muted">Write a goal-oriented message for the class. This will be displayed on student screens before they start the assignment.</p>
-        <textarea
-          id="goal"
-          value={goal}
-          rows={3}
-          maxLength={GOAL_MAX}
-          onChange={(e) => {
-            setRemoved(null);
-            setGoal(e.target.value.slice(0, GOAL_MAX));
-          }}
-          placeholder="By the end of this set I want you to…"
-          className="mt-2 w-full resize-none rounded-xl border border-line bg-paper px-4 py-3 text-[15px] leading-[1.45] text-ink outline-none transition-colors placeholder:text-ink-muted/50 focus:border-accent"
-          data-goal-input
-        />
-        <p className="mt-1 text-right text-[12px] tabular-nums text-ink-muted" data-goal-count>
-          {goal.length} / {GOAL_MAX}
-        </p>
-      </div>
+      {/* No goal for a homework (ticket 291): nothing shows it to the students. */}
+      {!homework && (
+        <div className="mt-6 max-w-3xl" data-goal>
+          <label htmlFor="goal" className="block text-[11px] font-semibold tracking-[0.12em] uppercase text-ink-muted">
+            Goal for the class
+          </label>
+          <p className="mt-1 text-[13.5px] text-ink-muted">Write a goal-oriented message for the class. This will be displayed on student screens before they start the assignment.</p>
+          <textarea
+            id="goal"
+            value={goal}
+            rows={3}
+            maxLength={GOAL_MAX}
+            onChange={(e) => {
+              setRemoved(null);
+              setGoal(e.target.value.slice(0, GOAL_MAX));
+            }}
+            placeholder="By the end of this set I want you to…"
+            className="mt-2 w-full resize-none rounded-xl border border-line bg-paper px-4 py-3 text-[15px] leading-[1.45] text-ink outline-none transition-colors placeholder:text-ink-muted/50 focus:border-accent"
+            data-goal-input
+          />
+          <p className="mt-1 text-right text-[12px] tabular-nums text-ink-muted" data-goal-count>
+            {goal.length} / {GOAL_MAX}
+          </p>
+        </div>
+      )}
 
       <div className="relative mt-6" onDragEnter={dragEnter} onDragOver={dragOver} onDragLeave={dragLeave} onDrop={drop} onKeyDownCapture={gridKey} data-dropzone data-over={over > 0 || undefined}>
         <ol className="grid grid-cols-5 gap-4" data-questions data-dragging={reorder.drag ? reorder.drag.from + 1 : undefined}>

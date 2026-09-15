@@ -68,8 +68,9 @@ export default function DuePicker({ value, onChange, min = DEMO_TODAY, today = D
           <path d="M1.5 3.5 5 7l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
+      {/* Under the field's right edge and out of the flow (ticket 291), so a note appearing moves neither the title beside it nor what is below. */}
       {note && (
-        <p className="mt-1.5 max-w-[240px] text-[12.5px] leading-snug text-ink-muted" data-due-note>
+        <p className="pointer-events-none absolute top-full right-0 mt-1 text-right text-[12.5px] leading-[16px] whitespace-nowrap text-ink-muted" data-due-note>
           {note}
         </p>
       )}

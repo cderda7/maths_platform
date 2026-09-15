@@ -10,6 +10,7 @@ import type { ProposedQuestion, Recommendation } from "@/data/review";
 import type { DraftQuestion } from "@/lib/classroom";
 import { parseQuestion } from "@/lib/mathInput";
 import { additionOption, allAnswered, applyReview, recommendationsFor, type ActiveRecommendation, type Answer, type ReviewState } from "@/lib/review";
+import { hasPathway, type CreateKind } from "@/lib/createPipeline";
 import { CREATE_BAR, CREATE_BAR_CLEARANCE } from "../createBar";
 
 /**
@@ -17,9 +18,11 @@ import { CREATE_BAR, CREATE_BAR_CLEARANCE } from "../createBar";
  * and Keep as is; an answered card collapses to one line with Undo, and the grid beneath shows
  * the set as the answers leave it (a changed tile's maths swapped, a removed tile gone, an added tile in a removed
  * one's slot, else at the end, ticket 272). "Finalise set" is on once every card has an answer either way; a press while it
- * waits sends one ring out from each unanswered card instead (ticket 248).
+ * waits sends one ring out from each unanswered card instead (ticket 248). A homework (ticket 291) has no pathway after
+ * Refine, so the same button reads Create and sends it.
  */
 export default function RecommendationsStep({
+  kind,
   questions,
   review,
   onAnswer,
@@ -27,6 +30,7 @@ export default function RecommendationsStep({
   onBack,
   onFinalise,
 }: {
+  kind: CreateKind;
   questions: DraftQuestion[];
   review: ReviewState;
   onAnswer: (id: string, answer: Answer | null) => void;
@@ -34,8 +38,8 @@ export default function RecommendationsStep({
   onBack: () => void;
   onFinalise: () => void;
 }) {
-  const active = useMemo(() => recommendationsFor(questions), [questions]);
-  const final = useMemo(() => applyReview(questions, review), [questions, review]);
+  const active = useMemo(() => recommendationsFor(questions, kind), [questions, kind]);
+  const final = useMemo(() => applyReview(questions, review, kind), [questions, review, kind]);
   const ready = allAnswered(active, review.answers);
   const position = (id: string | undefined) => `Q${questions.findIndex((q) => q.id === id) + 1}`;
   /** Where an accepted addition sits in the set (ticket 272: in a removed question's slot, else last); null when it is last. */
@@ -71,7 +75,7 @@ export default function RecommendationsStep({
           Back
         </Button>
         <Button size="lg" onClick={finalise} aria-disabled={!ready || undefined} className={`shadow-lift ${ready ? "" : "opacity-40"}`} data-finalise>
-          Finalise set
+          {hasPathway(kind) ? "Finalise set" : "Create"}
         </Button>
       </div>
     </div>

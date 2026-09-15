@@ -1,5 +1,6 @@
 import { HOMEWORKS, SAM_HOMEWORK_STORY, type HomeworkDef, type HomeworkRecord } from "@/data/homeworks";
-import { dayLabel, DEMO_TODAY, dueOrder } from "./dueDate";
+import { addDays, dayLabel, DEMO_TODAY, DUE_DEFAULT, dueOrder, isIsoDay, laterOf, type IsoDay } from "./dueDate";
+import type { ClassroomState, SentHomework } from "./classroom";
 
 /**
  * Homework as a kind of assignment (ticket 290; DECISION_LOG.md 2026-09-15). A homework is weekly: the teacher's ten
@@ -73,3 +74,59 @@ export function homeworkColumn(
   });
   return pieces;
 }
+
+/** A sent homework (ticket 291) read as the fixtures' homeworks are. */
+export const homeworkDefOf = (h: SentHomework): HomeworkDef => ({ kind: "homework", id: h.id, n: h.n, name: h.name, due: dayLabel(h.due), day: h.due });
+
+/**
+ * The class's homeworks, oldest due first (ticket 291): the fixtures' Homework 1 and 2, then every homework the teacher has
+ * sent from +Homework (`ClassroomState.homeworks`). The one list every homework rule reads (`homeworkForDue`, `coveredSetIds`,
+ * `homeworkColumn`, `nextHomework`), so a sent Homework 3 covers Problem Sets 5 and 6 as the date rule says.
+ */
+export function classHomeworks(c: ClassroomState | null | undefined): HomeworkDef[] {
+  const sent = (c?.homeworks ?? []).filter((h) => isIsoDay(h.due)).map(homeworkDefOf);
+  return oldestFirst([...HOMEWORKS, ...sent]);
+}
+
+/**
+ * Whether a homework has opened to the students, its contents frozen (ticket 292 opens a sent one and stamps `openedAt`).
+ * The fixtures' Homework 1 and 2 opened long ago; a sent homework waits until it is stamped.
+ */
+export function homeworkOpened(homework: Pick<HomeworkDef, "id">, c: ClassroomState | null | undefined): boolean {
+  const sent = c?.homeworks?.find((h) => h.id === homework.id);
+  return sent ? sent.openedAt !== undefined : HOMEWORKS.some((h) => h.id === homework.id);
+}
+
+/** The homework +Homework creates next: its number, the earliest due date the picker offers, and where the picker starts. */
+export interface NextHomework {
+  n: number;
+  id: string;
+  /** The newest homework before it, whose due date its own must come after. */
+  previous: HomeworkDef | null;
+  /** The day after the previous homework's due date, and never before today. */
+  min: IsoDay;
+  /** A week after the previous homework's due date (Mon 14 Sep for Homework 3, `DUE_DEFAULT.homework`), never before `min`. */
+  due: IsoDay;
+}
+
+export function nextHomework(c: ClassroomState | null | undefined, today: IsoDay = DEMO_TODAY): NextHomework {
+  const list = classHomeworks(c);
+  const previous = list[list.length - 1] ?? null;
+  const n = (previous?.n ?? 0) + 1;
+  const min = previous ? laterOf(today, addDays(previous.day, 1)) : today;
+  const weekOn = previous ? laterOf(DUE_DEFAULT.homework, addDays(previous.day, 7)) : DUE_DEFAULT.homework;
+  return { n, id: `hw-${n}`, previous, min, due: laterOf(weekOn, min) };
+}
+
+/**
+ * The line under an in-class set's due date on Create (ticket 291): a set due inside a homework that has already opened
+ * cannot join it (its contents froze at opening, ticket 292), so its mistakes go into the next homework, "Homework N".
+ * Null when the date falls in a homework not yet open (the set simply joins it) or in none.
+ */
+export function psetDueNote(due: IsoDay, c: ClassroomState | null | undefined): string | null {
+  const hw = homeworkForDue(dayLabel(due), classHomeworks(c));
+  return hw && homeworkOpened(hw, c) ? `Mistakes from this set go into Homework ${hw.n + 1}` : null;
+}
+
+/** Sam's homework history (`SAM_HOMEWORK_STORY`), for a homework's card: his status on it on `today`. */
+export const samHomeworkStatus = (homework: HomeworkDef, today: string = dayLabel(DEMO_TODAY)): HomeworkStatus => homeworkStatus(homework, SAM_HOMEWORK_STORY[homework.id], today);

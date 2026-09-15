@@ -9,9 +9,9 @@ import { INITIAL_SESSION } from "./session";
 import { studentClassroom } from "./studentClassroom";
 
 const now = 1_700_000_000_000;
-const hw = (n: number, due: string): HomeworkDef => ({ kind: "homework", id: `hw-${n}`, n, name: `Homework ${n}`, due });
+const hw = (n: number, day: string): HomeworkDef => ({ kind: "homework", id: `hw-${n}`, n, name: `Homework ${n}`, due: dayLabel(day), day });
 const SETS = STORY_SETS.map((s) => ({ id: s.id, due: s.due }));
-const HW3 = hw(3, "Mon 14 Sep");
+const HW3 = hw(3, "2026-09-14");
 const DEMO_DAY = dayLabel(DEMO_TODAY);
 
 describe("homework coverage by date (ticket 290)", () => {

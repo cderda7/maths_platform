@@ -1378,7 +1378,6 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **A due time.** Only a day is picked; in-class sets are due at the end of the lesson and homework at a time the school sets.
 - **Changing a sent set's due date.** The picker is on Create only; editing the date on a live set (from its Class View or the Classroom card) was not asked for.
 - **Weekend days.** Saturdays and Sundays can be chosen; whether a school allows a weekend due date is a school setting.
-- **The Questions page scrolls on reload.** Unrelated to the picker: a reload of the Questions page focuses the ghost tile, which scrolls the grid up under the title. Seen during the click-through, left as it was (ticket 188's focus rule).
 
 ## No variation, no intelligent practice (raised 2026-09-15)
 
@@ -1449,6 +1448,18 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **A way back to the tagged skill from a red line.** The removed link took a teacher from a red line to the skill it was tagged to in one press; if that is missed, a quiet skill label beside the chip or in the line's tooltip could return it without naming the mistake by skill.
 - **Student-facing misconception names.** Sam's report shows the teacher's names ("perfect square sign wrong"). A student-worded variant per misconception (like `studentLeafName` for skills) was not asked for.
 - **The rework side of Compare.** A still-wrong rework line (Sam's Q7) is unmarked on the right by design, so it names no misconception; whether Compare should show that the rework repeated the same misconception is open.
+
+## Homework create and send (ticket 291, 2026-09-15)
+
+- **A teacher view of homework results.** Homework cards on the teacher's Classroom open nothing: who finished, who missed, which own problems each student got, how the class did on the teacher's ten. Deferred by the ticket: the demo has only Sam's homework history.
+- **An "opens" date for homework.** A homework opens when its last covered lesson ends (ticket 292); a teacher might want to set when it opens (Friday afternoon, after a test) beside its due date on Questions. Deferred by the ticket.
+- **Homework 4's own generated set.** +Homework after Homework 3 is sent starts Homework 4 (due Mon 21 Sep), but Generate fills in the same ten as Homework 3; a week's draft should follow that week's sets. Deferred: the demo stops at Homework 3.
+- **Blocking a new homework while one is open.** The no-overlap assumption (ASSUMPTIONS.md) says a teacher does not create the next homework before the current one is due; +Homework does not stop them. Whether to hide +Homework, warn, or allow overlapping homework is undecided.
+- **A goal message for homework.** Homework's Questions page has no goal box because nothing shows it to students; a note from the teacher at the top of the homework screen (ticket 293) could use one.
+- **Where homework sits on the teacher's Classroom.** Homework cards are in Past among the sets, so Homework 3 shows under Past while it is still to come ("sent"); a Scheduled or Homework section, or Live once it opens, may read better once homework has a results view.
+- **Editing or unsending a sent homework.** Nothing takes a sent homework back or changes its ten or its due date.
+- **Homework's own assessment lines.** The assessing bar still reads "Checking coverage against Unit 1" for homework; homework's could name the week's sets and each student's own problems.
+- **Refine for homework that knows the own problems.** The scripted assessment is fixed; a real one would check the teacher's ten against what each student's own problems already cover (the removal's reason says so in words only).
 
 ## Carson's notes
 

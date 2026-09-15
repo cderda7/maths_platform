@@ -14,6 +14,17 @@ import type { Difficulty } from "./types";
 export const DRAFT_LABELS: Record<string, Difficulty> = {
   "x^2+5x+6=0": "simple familiar",
   "(x+1)(x-4)=6": "simple unfamiliar",
+  // Homework 3's ten (ticket 291, `data/homework-draft-seed.ts`): none is in the bank.
+  "y=x^2-2x-15": "simple familiar",
+  "y=-(x+2)^2+5": "simple unfamiliar",
+  "x^2+3x-10=0": "simple familiar",
+  "2x^2-5x-3=0": "complex familiar",
+  "x^2-6x+4=0": "complex familiar",
+  "y=2x^2+12x+7": "simple unfamiliar",
+  "x^2+4x+k=0": "complex unfamiliar",
+  "y=(x-3)^2+4": "simple familiar",
+  "x^2+2x-8=0": "simple familiar",
+  "y=-x^2+4x+5": "complex familiar",
 };
 
 /** A question the review step can put into the set: the typed form, and its card shape. */
@@ -95,6 +106,56 @@ export const ADD_CONTEXT: AddRecommendation = {
 
 /** The scripted assessment, in the order the cards stack. */
 export const RECOMMENDATIONS: Recommendation[] = [CHANGE_SIGNS, REMOVE_REPEAT, ADD_CONTEXT];
+
+/**
+ * Homework 3's scripted assessment (ticket 291), matched to `data/homework-draft-seed.ts` the same way: Q8's parabola never
+ * meets the x-axis, Q9 repeats Q3, and nothing in the ten goes from a parabola's features back to its rule. Accepting all
+ * three leaves ten problems, the new one in Q9's slot.
+ */
+export const HOMEWORK_NO_INTERCEPTS: ChangeRecommendation = {
+  id: "hw-no-intercepts",
+  kind: "change",
+  target: "y=(x-3)^2+4",
+  to: { text: "Find the x-intercepts of the graph of y = (x-3)**2 - 4", stem: "Find the x-intercepts of the graph of", tex: "y = (x - 3)^{2} - 4", difficulty: "simple familiar" },
+  reason: "This parabola never meets the x-axis: it opens upward from a turning point above it, at (3, 4). A student working alone at home who finds no x-intercepts can't tell a right answer from a slip. Lowering it by 8 keeps the turning-point form and gives intercepts at 1 and 5.",
+};
+
+export const HOMEWORK_REMOVE_REPEAT: RemoveRecommendation = {
+  id: "hw-remove-repeat",
+  kind: "remove",
+  target: "x^2+2x-8=0",
+  reason: "This is Q3 again with the numbers changed. Each student's homework already starts with the problems they got wrong this week, so a second monic factorising here adds length, not practice.",
+};
+
+export const HOMEWORK_ADD_RULE: AddRecommendation = {
+  id: "hw-add-rule",
+  kind: "add",
+  reason: "Every problem goes from a rule to the graph's features; none goes back. Finding a rule from its intercepts or its turning point checks that students know what each form shows.",
+  evidence: "On Problem Set 5, five students got a root or vertex sign wrong.",
+  options: [
+    {
+      text: "A parabola crosses the x-axis at x = -2 and x = 4, and the y-axis at y = -16. Find its rule. y = a(x+2)(x-4)",
+      stem: "A parabola crosses the x-axis at $x = -2$ and $x = 4$, and the y-axis at $y = -16$. Find its rule.",
+      tex: "y = a(x + 2)(x - 4)",
+      difficulty: "complex unfamiliar",
+    },
+    {
+      text: "A parabola's turning point is at x = 1 with a least value of -8, and it crosses the x-axis at x = 3. Find its rule. y = a(x-1)**2 - 8",
+      stem: "A parabola's turning point is at $x = 1$ with a least value of $-8$, and it crosses the x-axis at $x = 3$. Find its rule.",
+      tex: "y = a(x - 1)^{2} - 8",
+      difficulty: "complex unfamiliar",
+    },
+    {
+      text: "A parabola crosses the x-axis at x = 1 and x = 7, and its greatest value is 18. Find its rule. y = a(x-1)(x-7)",
+      stem: "A parabola crosses the x-axis at $x = 1$ and $x = 7$, and its greatest value is $18$. Find its rule.",
+      tex: "y = a(x - 1)(x - 7)",
+      difficulty: "complex unfamiliar",
+    },
+  ],
+};
+
+/** Homework 3's assessment, in the order the cards stack. */
+export const HOMEWORK_RECOMMENDATIONS: Recommendation[] = [HOMEWORK_NO_INTERCEPTS, HOMEWORK_REMOVE_REPEAT, HOMEWORK_ADD_RULE];
 
 /** How long the assessing bar runs, and the three lines beneath it with when each takes over (a fraction of the run). */
 export const ASSESS_MS = 5000;
