@@ -31,7 +31,7 @@ function KeyRows({ rows, className = "", ...rest }: { rows: typeof ROWS; classNa
         <li key={r.status} className="contents">
           {r.status === "unseen" && (
             <>
-              <span className="inline-block h-[15px] w-[15px] shrink-0 rounded-full border border-line-strong" style={{ backgroundImage: "linear-gradient(90deg, var(--color-line-strong) 50%, transparent 50%)" }} aria-hidden data-half-key />
+              <span className="inline-block h-[15px] w-[15px] shrink-0 marker-half rounded-[var(--marker-dot-radius)] border border-line-strong" style={{ "--marker-color": "var(--color-line-strong)" } as React.CSSProperties} aria-hidden data-half-key />
               <span className="text-ink">half</span>
               <span className="text-ink-muted">incomplete</span>
             </>

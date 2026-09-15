@@ -11,11 +11,14 @@ export const metadata: Metadata = {
   description: "Demo of live, closed-loop maths feedback for QCE Mathematical Methods: student iPad and teacher view.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // The design tuner (ticket 296): ⌥C, under `next dev` only. Imported inside the branch so a production build drops it, chunk and all.
+  const DesignTuner = process.env.NODE_ENV === "development" ? (await import("@/components/DesignTuner")).default : null;
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable} h-full`}>
       <body className="min-h-full">
         {children}
+        {DesignTuner && <DesignTuner />}
       </body>
     </html>
   );

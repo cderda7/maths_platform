@@ -34,11 +34,11 @@ function CategoryPill({ category, status, half, names, label, size }: { category
     status === "unseen"
       ? {}
       : half
-        ? { backgroundImage: `linear-gradient(90deg, ${color} 50%, color-mix(in srgb, ${color} 45%, white) 50%)`, borderColor: color }
+        ? ({ "--marker-color": color, "--marker-rest": `color-mix(in srgb, ${color} 45%, white)`, borderColor: color } as React.CSSProperties)
         : { backgroundColor: color, borderColor: color };
   return (
     <span
-      className={`inline-grid rounded-md border py-1 font-semibold uppercase leading-tight tracking-[0.06em] ${status === "unseen" ? "border-line-strong text-ink-muted" : "text-white"}`}
+      className={`inline-grid rounded-md border ${half && status !== "unseen" ? "marker-half" : ""} py-1 font-semibold uppercase leading-tight tracking-[0.06em] ${status === "unseen" ? "border-line-strong text-ink-muted" : "text-white"}`}
       style={{ ...paint, fontSize: size, paddingLeft: pillPad(size), paddingRight: pillPad(size) }}
       data-fit={size}
       role="img"

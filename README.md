@@ -41,6 +41,12 @@ says the chat isn't connected on this device, and the create screen says the upl
 matched by the file's hash; typed text through the shorthand parser) so it runs without a key.
 Everything else in the demo still runs offline.
 
+**Design tuner** (ticket 296, `npm run dev` only): press ⌥C on any page for a panel that tunes the design tokens in
+`app/globals.css` on the live page. Colours by lightness, vividness and hue (red moves gap and wrong together until
+Split), the status markers' corners and incomplete fill (split, corner to corner, or hatched), and all corners. Hold
+Space to see the saved design, ⌘Z to undo, ⌥-click anything to find its colours; Save to globals.css writes the
+changed values. Unsaved changes stay in that browser across reloads (the small tag at the top says so).
+
 **/** opens the presenter's chooser (ticket 286; `/demo`, its address under ticket 265, redirects
 there): pick a side there. Use tabs of the same browser: the student iPad (`/student`, Sam's Classroom) in one,
 the teacher in another, the board (`/board`) in a third when projecting. Or open **/split** to see any one, two or all

@@ -4931,3 +4931,22 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Two representations of a due date exist (fixtures' labels, created sets' ISO days) until the fixtures move; `dueOrder` still sorts by month and day only, fine for one term. The calendar is taller than the blank space right of the goal and overlaps the top of Q5's tile while open (it is an overlay, so nothing moves). "Today" is fixed in code.
 
 **Defense.** The stored value is exact, the display path is the one every screen already used, the default keeps every existing flow and skip unchanged, and the shared component with `min`/`note` makes homework's picker a call site.
+
+## 2026-09-15 · A dev-only design tuner edits tokens, never components (ticket 296)
+
+**Decision.** Design experiments run through a panel inside the app under `next dev` (⌥C). Everything it can tune is a CSS custom property in `app/globals.css`; the panel lays one unlayered `:root:root` rule of proposed values over the page, holding Space disables that rule to show the saved design, and Save rewrites only the changed values in the file through a dev-only route. Colours are tuned in OKLCH. The status markers' corners and incomplete fill, which were Tailwind classes and inline gradients in `StatusDot`, became tokens (`--marker-*`) read by one `.marker-half` rule, and Tailwind's corner steps are declared in `@theme` so they can be written. The layout imports the tuner inside a development-only branch.
+
+**Context.** The user (2026-09-15) tried a deeper red in Chrome DevTools: the colour picker closed on every click because the Class View re-renders, and comparing old against new took checkboxes and a hand-made rule. "Creators need an immediate connection to what they create." They also wanted to try the incomplete marker as a diagonal (the split pill reads as a pharmaceutical capsule) and less rounded corners, and asked for the most useful design controls beyond those.
+
+**Alternatives considered.**
+- *DevTools with a workflow* (select `<html>`, Shift-click to HSL, arrow keys, a `.proposed` class toggle): no install, but four steps before the first change, no families, no link between gap and wrong, and the values still had to be copied by hand.
+- *A Storybook or a separate style-guide page*: tunes components out of context; the question is always how the real Class View or report reads.
+- *Tuning component props (a `diagonal` flag on `StatusDot`)*: each experiment becomes code, Save becomes a code edit, and a proposal cannot be compared by switching one stylesheet off.
+- *HSL sliders*: lightness in HSL shifts perceived hue and saturation; darkening the red in OKLCH keeps it the same red.
+- *A save that writes the proposal as a separate override file*: two sources of truth for the design; the file would diverge from what the tokens say.
+- *Rendering the tuner behind `NODE_ENV` at the JSX only*: tried first; the production bundle still carried the panel's chunk on every page. Importing inside the branch drops it (checked: no tuner code in `.next`, the route 404s, the same 14 prerendered routes as main).
+- *`process.cwd()` for the file path* (Next's documented way): a worktree's dev server started from the main checkout read the main checkout's stylesheet. The route resolves `app/globals.css` beside its own source instead.
+
+**Tradeoffs.** Only what is a token can be tuned: `rounded-full` chips, font choices and sizes, spacing and the SVG figures' literal colours are out of reach until they become tokens (listed in FUTURE_FEATURES). A shade follows its main by a fixed rule (hue shift and chroma ratio; `-deep`/`-dark` also take the lightness shift, `-soft`/`-line` keep theirs), which is a design opinion; editing a shade directly detaches it. The route writes a source file on a POST from the page, which is acceptable only because it answers under `next dev` alone and refuses non-JSON and cross-site requests. `StatusDot` now depends on a global class for half markers.
+
+**Defense.** One file stays the single source of truth for the design, the page and the file cannot disagree after Save, and the comparison is exact because it is the same page with one stylesheet on or off. Nothing reaches production, and at the defaults the markers render pixel-identical to before.

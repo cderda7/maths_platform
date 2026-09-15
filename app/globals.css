@@ -52,6 +52,30 @@
   --shadow-card: 0 1px 2px rgba(20, 18, 58, 0.04), 0 8px 24px -12px rgba(20, 18, 58, 0.12);
   --shadow-lift: 0 2px 4px rgba(20, 18, 58, 0.05), 0 18px 40px -16px rgba(20, 18, 58, 0.22);
   --shadow-device: 0 30px 80px -30px rgba(20, 18, 58, 0.45), 0 2px 6px rgba(20, 18, 58, 0.12);
+
+  /* Corners of cards, buttons and chips (`rounded-sm` … `rounded-3xl`): Tailwind's defaults, declared here so the design tuner can write them (ticket 296). `rounded-full` stays a stadium. */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+}
+
+/*
+ * Status markers (components/Tag.tsx StatusDot, components/SkillColumns.tsx): a category pill's corners, a dot's
+ * corners, and how an incomplete marker is filled. `.marker-half` paints stripes of --marker-half-stripe along
+ * --marker-half-angle: at 50% one stripe covers half the marker, a split (90deg: colour on the left); at a few px it
+ * is hatched. The marker sets --marker-color (and --marker-rest for the other half) inline (ticket 296).
+ */
+:root {
+  --marker-pill-radius: 4px;
+  --marker-dot-radius: 50%;
+  --marker-half-angle: 90deg;
+  --marker-half-stripe: 50%;
+}
+.marker-half {
+  background-image: repeating-linear-gradient(var(--marker-half-angle), var(--marker-color) 0 var(--marker-half-stripe), var(--marker-rest, transparent) 0 calc(2 * var(--marker-half-stripe)));
 }
 
 html {
@@ -223,8 +247,8 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes offer-pulse {
-  0% { box-shadow: 0 0 0 0 rgb(91 74 232 / 0.45); }
-  100% { box-shadow: 0 0 0 14px rgb(91 74 232 / 0); }
+  0% { box-shadow: 0 0 0 0 rgb(from var(--color-accent) r g b / 0.45); }
+  100% { box-shadow: 0 0 0 14px rgb(from var(--color-accent) r g b / 0); }
 }
 /* No `position` here: the utility on the element sets it (this rule is unlayered and would win over it). */
 .offer-in {
@@ -264,8 +288,8 @@ body {
 }
 /* Then the hint that second check brought in sends out one purple ring, starting as the pill fades. The element must be positioned. */
 @keyframes hint-ring {
-  0% { box-shadow: 0 0 0 0 rgb(91 74 232 / 0.55); }
-  100% { box-shadow: 0 0 0 22px rgb(91 74 232 / 0); }
+  0% { box-shadow: 0 0 0 0 rgb(from var(--color-accent) r g b / 0.55); }
+  100% { box-shadow: 0 0 0 22px rgb(from var(--color-accent) r g b / 0); }
 }
 .ring-out::after {
   content: "";
@@ -286,8 +310,8 @@ body {
 
 /* The pathway card when a press lands on the waiting Create (ticket 246): the hint ring's one purple ring, at once. Reduced motion shows a still accent edge that fades. */
 @keyframes ring-edge {
-  0% { box-shadow: 0 0 0 2px rgb(91 74 232 / 0.7); }
-  100% { box-shadow: 0 0 0 2px rgb(91 74 232 / 0); }
+  0% { box-shadow: 0 0 0 2px rgb(from var(--color-accent) r g b / 0.7); }
+  100% { box-shadow: 0 0 0 2px rgb(from var(--color-accent) r g b / 0); }
 }
 .ring-once {
   animation: hint-ring 900ms ease-out 1 both;
@@ -300,8 +324,8 @@ body {
 
 /* The overview's CONTINUE (ticket 154): the same accent ring, slow and without end, until the button is pressed; the tiles are not buttons and this is. Reduced motion holds a soft halo instead. The element must be positioned. */
 @keyframes pulse-loop {
-  0% { box-shadow: 0 0 0 0 rgb(91 74 232 / 0.45); }
-  70%, 100% { box-shadow: 0 0 0 16px rgb(91 74 232 / 0); }
+  0% { box-shadow: 0 0 0 0 rgb(from var(--color-accent) r g b / 0.45); }
+  70%, 100% { box-shadow: 0 0 0 16px rgb(from var(--color-accent) r g b / 0); }
 }
 .pulse-loop::after {
   content: "";
@@ -314,14 +338,14 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .pulse-loop::after {
     animation: none;
-    box-shadow: 0 0 0 6px rgb(91 74 232 / 0.22);
+    box-shadow: 0 0 0 6px rgb(from var(--color-accent) r g b / 0.22);
   }
 }
 
 /* The Classroom's live card (ticket 186): its green status dot breathes a soft ring, slowly and without end, on its own box-shadow so nothing moves. Reduced motion keeps the dot still. */
 @keyframes live-dot {
-  0% { box-shadow: 0 0 0 0 rgb(47 138 91 / 0.5); }
-  70%, 100% { box-shadow: 0 0 0 6px rgb(47 138 91 / 0); }
+  0% { box-shadow: 0 0 0 0 rgb(from var(--color-secure) r g b / 0.5); }
+  70%, 100% { box-shadow: 0 0 0 6px rgb(from var(--color-secure) r g b / 0); }
 }
 .live-dot {
   animation: live-dot 2000ms ease-out infinite;
@@ -335,7 +359,7 @@ body {
 /* A name that has just arrived in a Mistakes cluster while the class streams in (ticket 189): a faint light-blue glow behind the avatar and name that holds a moment and fades over ARRIVAL_FADE_MS (lib/arrivals.ts). Background and a ring on its own box-shadow only, so nothing moves; the delay is set inline so a reload picks the fade up where it was. Reduced motion keeps the fade (a colour change, no movement). */
 @keyframes arrive {
   0%, 25% { background-color: var(--color-standout-soft); box-shadow: 0 0 0 6px var(--color-standout-soft); }
-  100% { background-color: rgb(232 240 250 / 0); box-shadow: 0 0 0 6px rgb(232 240 250 / 0); }
+  100% { background-color: rgb(from var(--color-standout-soft) r g b / 0); box-shadow: 0 0 0 6px rgb(from var(--color-standout-soft) r g b / 0); }
 }
 .arrive {
   border-radius: 9999px;
