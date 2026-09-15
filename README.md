@@ -135,7 +135,8 @@ START opens a set; the Edexia mark returns:
    light blue, the same pill the teacher's Pathway card lights. The report and the screens it
    opens have no strip: the pathway is behind the student there.
 4. **Individual review** (detective feedback): one sentence, "3 of your problems contain a
-   mistake. Double-check factorising and algebra.", and the unmarked transcription. Rework any
+   mistake." with "Double-check" and the skills to check on the line below, then how many
+   problems are incomplete, and the unmarked transcription. Rework any
    problem. Rework Q4 (which was right) and the pad "reads" a classic slip: the one per-problem
    signal in the product appears, "This isn't where your mistake was made. Your original work was
    correct.", with Restore; hand-in waits until it's restored or cleared. After hand-in the same

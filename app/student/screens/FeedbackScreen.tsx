@@ -18,10 +18,10 @@ import type { SessionAction, StudentSession } from "@/lib/session";
 
 /**
  * Individual review: detective feedback after handing in, and the place to correct it. Two soft
- * boxes: how many problems are incomplete (reading the rework too, so it counts down as they are
- * finished and goes when none is), then the detective sentence (how many problems in the first
- * hand-in contain a mistake, which subskills to double-check; the first hand-in only, so finishing
- * a problem badly changes nothing here). For the chosen problem, what was submitted (no marks of
+ * boxes: the detective sentence (how many problems in the first hand-in contain a mistake, then
+ * "Double-check" with the subskills on the line below it; the first hand-in only, so finishing a
+ * problem badly changes nothing here), then how many problems are incomplete (reading the rework
+ * too, so it counts down as they are finished and goes when none is; ticket 329 put it second). For the chosen problem, what was submitted (no marks of
  * any kind), a pad, and the lines read from it. Corrections are the rework version. The one signal in the whole flow: a correction that
  * breaks a problem whose first attempt was correct gets a banner the moment the line is read, with
  * a way back, and hand-in waits until it is restored or cleared. The star is the student's own marker.
@@ -62,22 +62,24 @@ export default function FeedbackScreen({ session, dispatch }: { session: Student
       <aside className="flex min-h-0 flex-col border-r border-line px-7 py-7">
         <Eyebrow>Handed in</Eyebrow>
         <h1 className="font-display mt-2 text-[28px] leading-tight text-ink">How it held up</h1>
+        <Card tone="soft" className="mt-4 p-4" data-summary>
+          <p className="text-[15px] leading-relaxed text-ink">{summary.head}</p>
+          {summary.hint.length > 0 && (
+            <div className="mt-2 text-[15px] leading-relaxed text-ink" data-hint>
+              <p>Double-check</p>
+              <p className="mt-1.5 flex flex-wrap items-center gap-1.5" data-hint-skills>
+                {summary.hint.map((id) => (
+                  <LeafChip student key={id} id={id} className="!border-accent-deep !bg-accent-deep !text-white" />
+                ))}
+              </p>
+            </div>
+          )}
+        </Card>
         {summary.incompleteHead && (
-          <Card tone="soft" className="mt-4 p-4" data-incomplete>
+          <Card tone="soft" className="mt-2 p-4" data-incomplete>
             <p className="text-[15px] leading-relaxed text-ink">{summary.incompleteHead}</p>
           </Card>
         )}
-        <Card tone="soft" className={`${summary.incompleteHead ? "mt-2" : "mt-4"} p-4`} data-summary>
-          <p className="text-[15px] leading-relaxed text-ink">{summary.head}</p>
-          {summary.hint.length > 0 && (
-            <p className="mt-2 flex flex-wrap items-center gap-1.5 text-[15px] leading-relaxed text-ink" data-hint>
-              <span>Double-check</span>
-              {summary.hint.map((id) => (
-                <LeafChip student key={id} id={id} className="!border-accent-deep !bg-accent-deep !text-white" />
-              ))}
-            </p>
-          )}
-        </Card>
         <ol className="mt-5 min-h-0 flex-1 space-y-2 overflow-y-auto pb-1">
           {problems.map((p, i) => {
             const active = i === sel;
