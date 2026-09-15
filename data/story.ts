@@ -161,7 +161,7 @@ export const STORY_SETS: readonly StorySet[] = [
       q("Factorise 2x² + 7x + 3.", NONMONIC),
       q("Show that (x + 3)² − (x − 3)² = 12x.", FORMAL, BINOM, EXPAND),
     ],
-    topGaps: ["brackets don't expand back", "square and difference mixed", "minus not carried through"],
+    topGaps: ["product right, sum wrong", "square and difference mixed", "minus not carried through"],
     source: "ticket 213, data/pset3/",
   },
   {
@@ -198,7 +198,7 @@ export const STORY_SETS: readonly StorySet[] = [
     pathway: ["individual", "group"],
     categories: ALL,
     outline: null,
-    topGaps: ["brackets don't expand back", "root or vertex sign wrong", "x given where y asked"],
+    topGaps: ["brackets don't expand back", "root or vertex sign wrong", "signs swapped in the pair"],
     source: "data/pset5/ (ticket 187)",
   },
   {
@@ -265,7 +265,7 @@ export const STORY: Readonly<Record<string, StoryRow>> = {
     done: [10, 10, 9, 8, 8, 7],
     arc: "Factor brackets wrong: pairs that multiply to the constant but give the wrong middle term, from Set 3's pairs to a gap on the non-monic sets, lifting on Set 6. From Set 3 on he does not reach the worded problem.",
     cells: {
-      algebra: [sec, sol(h("a bracket's middle terms wrong expanding", "collecting-sign", 2)), dev(h("a factor pair that multiplies to the constant, the brackets wrong", "brackets-dont-expand", 8, 9)), gap(h("non-monic brackets wrong", "brackets-dont-expand", 1, 2, 4)), gap(h("non-monic brackets wrong", "brackets-dont-expand", 4, 8)), dev(h("non-monic brackets wrong", "brackets-dont-expand", 2), h("a pair that multiplies to 8 but adds to 9", "pair-sum-wrong", 7))],
+      algebra: [sec, sol(h("a bracket's middle terms wrong expanding", "collecting-sign", 2)), dev(h("a factor pair that multiplies to the constant, the brackets wrong", "brackets-dont-expand", 8, 9)), gap(h("non-monic brackets wrong", "brackets-dont-expand", 1, 2, 4)), gap(h("non-monic brackets wrong", "brackets-dont-expand", 4), h("the non-monic pair's signs swapped", "pair-signs-swapped", 8)), dev(h("non-monic brackets wrong", "brackets-dont-expand", 2), h("a pair that multiplies to 8 but adds to 9", "pair-sum-wrong", 7))],
       functions: LATE_SECURE,
       graphing: LATE_SECURE,
       communication: S6,
@@ -313,7 +313,7 @@ export const STORY: Readonly<Record<string, StoryRow>> = {
     done: [5, 5, 5, 5, 5, 4],
     arc: "Hands in about half and does not reach the last problems: five on every finished set, four on Set 6 with a fifth started. Factor brackets wrong on every set from Set 3, and brackets squared term by term.",
     cells: {
-      algebra: [un, dev(h("only two of the four terms expanded", "partial-distribution", 2)), gap(h("factor brackets wrong", "brackets-dont-expand", 5)), gap(h("non-monic brackets wrong", "brackets-dont-expand", 1, 2)), gap(h("non-monic brackets wrong", "brackets-dont-expand", 4)), gap(h("factor brackets wrong", "brackets-dont-expand", 1, 2))],
+      algebra: [un, dev(h("only two of the four terms expanded", "partial-distribution", 2)), gap(h("a pair that multiplies to −15 but adds to 14", "pair-sum-wrong", 5)), gap(h("non-monic brackets wrong", "brackets-dont-expand", 1, 2)), gap(h("non-monic brackets wrong", "brackets-dont-expand", 4)), gap(h("factor brackets wrong", "brackets-dont-expand", 1, 2))],
       functions: [na, na, na, un, sec, un],
       graphing: [na, na, na, un, sec, un],
       communication: [sec, sec, sec, sec, sec, sec],
@@ -361,7 +361,7 @@ export const STORY: Readonly<Record<string, StoryRow>> = {
     done: [10, 10, 10, 10, 10, 0],
     arc: "Factor brackets wrong, halves lost, and a negative's sign lost: a root rearranged, (−3)² taken as −9. Hands in every set she sits; away for Set 6, where she is the class's absent student.",
     cells: {
-      algebra: [sec, sol(h("a denominator dropped adding fractions", "denominator-dropped", 9)), sol(h("factor brackets wrong", "brackets-dont-expand", 8)), dev(h("non-monic brackets wrong", "brackets-dont-expand", 2), h("halves lost completing the square", "halving-wrong", 7)), dev(h("non-monic brackets wrong", "brackets-dont-expand", 4), h("sum of the intercepts never halved", "halving-wrong", 8)), ab],
+      algebra: [sec, sol(h("a denominator dropped adding fractions", "denominator-dropped", 9)), sol(h("a pair that multiplies to 24 but adds to −14", "pair-sum-wrong", 8)), dev(h("non-monic brackets wrong", "brackets-dont-expand", 2), h("halves lost completing the square", "halving-wrong", 7)), dev(h("non-monic brackets wrong", "brackets-dont-expand", 4), h("sum of the intercepts never halved", "halving-wrong", 8)), ab],
       functions: [na, na, na, sol(h("a root's sign lost rearranging", "root-vertex-sign", 5)), sol(h("(−3)² taken as −9", "product-sign", 5)), ab],
       graphing: [na, na, na, sec, sec, ab],
       communication: [sec, sec, sec, sec, sec, ab],
@@ -373,7 +373,7 @@ export const STORY: Readonly<Record<string, StoryRow>> = {
     done: [10, 10, 10, 10, 10, 8],
     arc: "Leaves steps unwritten, most on the last problems: the axis given as the height, working written in one line.",
     cells: {
-      algebra: [sec, sol(h("a term dropped expanding", "middle-not-doubled", 8)), sol(h("brackets with the wrong middle term", "brackets-dont-expand", 8)), dev(h("non-monic brackets wrong", "brackets-dont-expand", 2), h("factorised before making the equation equal zero", "root-missing", 5)), sol(h("non-monic brackets wrong", "brackets-dont-expand", 8)), dev(h("divided by a, not 2a", "formula-2a", 4), h("multiplied through by 3 and never took it back out", "factor-missing", 7))],
+      algebra: [sec, sol(h("a term dropped expanding", "middle-not-doubled", 8)), sol(h("a pair that multiplies to 24 but adds to −14", "pair-sum-wrong", 8)), dev(h("non-monic brackets wrong", "brackets-dont-expand", 2), h("factorised before making the equation equal zero", "root-missing", 5)), sol(h("the non-monic pair's signs swapped", "pair-signs-swapped", 8)), dev(h("divided by a, not 2a", "formula-2a", 4), h("multiplied through by 3 and never took it back out", "factor-missing", 7))],
       functions: [na, na, na, sol(h("a root's sign lost", "solving-sign", 4)), sol(h("(−3)² taken as −9, the axis not shown", "product-sign", 5)), sec],
       graphing: [na, na, na, dev(h("the minimum value given as the x, the working not shown", "x-for-y", 9)), sol(h("axis given as the height, the working not shown", "x-for-y", 10)), sol(h("axis given as the height, a step skipped", "x-for-y", 9))],
       communication: [sol(h("steps not shown on the exact answer", null, 9)), sol(h("the rationalising done in one line", null, 8)), sol(h("the square completed in one line", null, 6)), dev(h("steps not shown completing the square and in the worded problem", null, 8, 10)), sol(h("the landing written straight down, the working not shown", null, 10)), sol(h("the height given in one line", null, 9))],
@@ -433,7 +433,7 @@ export const STORY: Readonly<Record<string, StoryRow>> = {
     done: [10, 10, 9, 8, 9, 7],
     arc: "Factor brackets wrong, brackets squared term by term, and the null factor law used on a product that isn't zero from Set 4 on. Algebra is a gap on the factorising sets and lifts on Set 6.",
     cells: {
-      algebra: [sec, sol(h("the middle term wrong expanding", "collecting-sign", 2)), dev(h("factor brackets wrong", "brackets-dont-expand", 5, 8)), gap(h("non-monic brackets wrong", "brackets-dont-expand", 1, 2)), gap(h("non-monic brackets wrong", "brackets-dont-expand", 4, 8)), dev(h("factor brackets wrong", "brackets-dont-expand", 1, 2), h("scaled two of three terms", "partial-distribution", 7))],
+      algebra: [sec, sol(h("the middle term wrong expanding", "collecting-sign", 2)), dev(h("a pair that multiplies but doesn't add", "pair-sum-wrong", 5, 8)), gap(h("non-monic brackets wrong", "brackets-dont-expand", 1, 2)), gap(h("non-monic brackets wrong", "brackets-dont-expand", 4), h("the non-monic pair's signs swapped", "pair-signs-swapped", 8)), dev(h("factor brackets wrong", "brackets-dont-expand", 1, 2), h("scaled two of three terms", "partial-distribution", 7))],
       functions: LATE_SECURE,
       graphing: LATE_SECURE,
       communication: S6,
@@ -469,7 +469,7 @@ export const STORY: Readonly<Record<string, StoryRow>> = {
     done: [10, 10, 10, 10, 10, 10],
     arc: "Fractions turned over, halves wrong, and non-monic brackets wrong. Algebra developing on the surd sets, a gap from Set 4 on.",
     cells: {
-      algebra: [dev(h("the fraction left upside down dividing surds", "divided-wrong-way", 7)), dev(h("rationalised the top instead of the bottom", "rationalise-wrong-factor", 5, 6)), dev(h("non-monic brackets wrong", "brackets-dont-expand", 9)), gap(h("halves lost completing the square", "halving-wrong", 7), h("non-monic brackets wrong", "brackets-dont-expand", 2)), gap(h("non-monic brackets wrong", "brackets-dont-expand", 4, 8)), gap(h("denominator a, not 2a", "formula-2a", 4), h("scaled two of three terms", "partial-distribution", 7))],
+      algebra: [dev(h("the fraction left upside down dividing surds", "divided-wrong-way", 7)), dev(h("rationalised the top instead of the bottom", "rationalise-wrong-factor", 5, 6)), dev(h("non-monic brackets wrong", "brackets-dont-expand", 9)), gap(h("halves lost completing the square", "halving-wrong", 7), h("non-monic brackets wrong", "brackets-dont-expand", 2)), gap(h("non-monic brackets wrong", "brackets-dont-expand", 4), h("the non-monic pair's signs swapped", "pair-signs-swapped", 8)), gap(h("denominator a, not 2a", "formula-2a", 4), h("scaled two of three terms", "partial-distribution", 7))],
       functions: LATE_SECURE,
       graphing: LATE_SECURE,
       communication: S6,
@@ -686,7 +686,7 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     ],
     liam: [
       own(2, "One-off: (2x − 3)² squared term by term, on Q2 alone. Found on the second submission."),
-      grp(5, "Pattern: Algebra is a gap on the set (factor brackets wrong). Sam, Jordan and Zara had Q5 right, and the group's rework holds."),
+      grp(5, "Pattern: Algebra is a gap on the set (a pair that multiplies to −15 but adds to 14). Sam, Jordan and Zara had Q5 right, and the group's rework holds."),
       grp(6, "Not attempted. Sam and Zara had Q6 right, and the group's rework holds."),
       grp(7, "Not attempted. Sam, Jordan and Zara had Q7 right, and the group's rework holds."),
       grp(8, "Not attempted. Zara had Q8 right, and the group's rework holds."),
@@ -707,11 +707,11 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       grp(10, "Repeated: (2x − 3)² squared term by term (Q2, Q10). Mia, Chloe and Ethan had Q10 right, and the group's rework holds."),
     ],
     chloe: [
-      own(8, "One-off: factor brackets wrong, on Q8 alone. Found on the second submission."),
+      own(8, "One-off: a pair that multiplies to 24 but adds to −14, on Q8 alone. Found on the second submission."),
     ],
     ethan: [
       own(6, "One-off: a perfect square's middle term with the wrong sign, on Q6 alone. Found on the second submission."),
-      own(8, "One-off: brackets with the wrong middle term, on Q8 alone. Found on the second submission."),
+      own(8, "One-off: a pair that multiplies to 24 but adds to −14, on Q8 alone. Found on the second submission."),
     ],
     isla: [
       own(1, "One-off: the second bracket's signs wrong multiplying, on Q1 alone. Found on the second submission."),
@@ -733,9 +733,9 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     ],
     oliver: [
       own(2, "One-off: (2x − 3)² squared term by term, on Q2 alone. Found on the second submission."),
-      grp(5, "Repeated: factor brackets wrong (Q5, Q8). Sofia had Q5 right, and the group's rework holds."),
+      grp(5, "Repeated: a pair that multiplies but doesn't add (Q5, Q8). Sofia had Q5 right, and the group's rework holds."),
       own(6, "One-off: perfect square as difference, on Q6 alone. Found on the second submission."),
-      grp(8, "Repeated: factor brackets wrong (Q5, Q8). Sofia had Q8 right, and the group's rework holds."),
+      grp(8, "Repeated: a pair that multiplies but doesn't add (Q5, Q8). Sofia had Q8 right, and the group's rework holds."),
       grp(10, "Not attempted. Ruby, Finn and Sofia had Q10 right, and the group's rework holds."),
     ],
     ruby: [
@@ -873,7 +873,7 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     ],
     jordan: [
       kept(4, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Nobody at the table had Q4 right, so the group's last try is still wrong."),
-      grp(8, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Sam and Zara had Q8 right, and the group's rework holds."),
+      grp(8, "Pattern: Algebra is a gap on the set (the non-monic pair's signs swapped). Sam and Zara had Q8 right, and the group's rework holds."),
       grp(9, "Not attempted. Zara had Q9 right, and the group's rework holds."),
       grp(10, "Not attempted. Sam had Q10 right, and the group's rework holds."),
     ],
@@ -923,7 +923,7 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     ],
     ethan: [
       own(5, "One-off: (−3)² taken as −9, the axis not shown, on Q5 alone. Found on the second submission."),
-      own(8, "One-off: non-monic brackets wrong, on Q8 alone. Found on the second submission."),
+      own(8, "One-off: the non-monic pair's signs swapped, on Q8 alone. Found on the second submission."),
       own(10, "One-off: axis given as the height, the working not shown, on Q10 alone. Found on the second submission."),
     ],
     isla: [
@@ -950,7 +950,7 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     oliver: [
       grp(4, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Ruby had Q4 right, and the group's rework holds."),
       own(7, "One-off: (x − 3)² squared term by term, on Q7 alone. Found on the second submission."),
-      grp(8, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Ruby had Q8 right, and the group's rework holds."),
+      grp(8, "Pattern: Algebra is a gap on the set (the non-monic pair's signs swapped). Ruby had Q8 right, and the group's rework holds."),
       grp(10, "Not attempted. Finn and Sofia had Q10 right, and the group's rework holds."),
     ],
     ruby: [
@@ -965,7 +965,7 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     ],
     sofia: [
       grp(4, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Ruby had Q4 right, and the group's rework holds."),
-      grp(8, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Ruby had Q8 right, and the group's rework holds."),
+      grp(8, "Pattern: Algebra is a gap on the set (the non-monic pair's signs swapped). Ruby had Q8 right, and the group's rework holds."),
     ],
   },
   // Problem Set 6

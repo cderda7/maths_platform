@@ -1784,6 +1784,15 @@ Raised in a project checkpoint review; Carson asked for these on the list. Space
 - **The first submission and the correction side by side.** The panel stacks them because the maths would not fit at half width. A wider panel, or a compare view like "Original vs final", could put them next to each other. Deferred.
 - **Which fit step hides what.** At 1280×800 the review column usually drops "fixed n of m" to fit. A shorter pill (first names, or "1/3") could keep it. Deferred for Carson to judge on the screen.
 
+## Older slips, narrower misconceptions (ticket 343, 2026-09-16)
+
+- **PS4 Q4's (2x − 1)(x + 3) = 0.** Kept as brackets don't expand back (Carson, 2026-09-15). The line check names it signs swapped, because its slip reads any sign change in the pair. A misconception for "one sign in the pair wrong" would fit it exactly; deferred: one line, and a new id is permanent.
+- **The line check's signs-swapped slip.** `lib/stepCheck.ts` names `pair-signs-swapped` for a pair with one sign changed as well as both; a stricter slip (every sign swapped) would agree with PS4's table. Deferred: the check is only used on blanks today, where the demo's slips are true swaps.
+- **Jordan's PS3 pattern names one id for two misconceptions.** "a factor pair that multiplies to the constant, the brackets wrong" (Q8, Q9) carries brackets don't expand back while Q8's line is product right, sum wrong. A pattern could carry one id per problem, or the review rule could count a family as repeated; deferred: either changes the sheet's shape or the agreed review rules.
+- **Process words left in older table explanations.** Many older wrong lines' explanations and questions still say "Nothing here was expanded back" or "Expanding back shows…" (for example PS5 Q4's (3x − 4)(x + 2) = 0 and (3x − 2)(x + 4) = 0, PS3 Q9's (2x + 3)(x + 1), PS5 Q9). The rule from 2026-09-15 bans diagnosing process in names, not in these teacher explanations; a pass to state only what is wrong is deferred as out of scope.
+- **Code names that say "guessed".** Constants such as `Q5_GUESSED`, `Q8_GUESSED` (PS3, PS5), `Q4_GUESSED` and `GUESSED_PAIR` (PS4, PS5) name the student's supposed process. Renaming is code-only and touches the files ticket 342 is rewriting; deferred.
+- **Holistic summaries.** Jordan's, Liam's, Chloe's, Oliver's and Sofia's summary lines still describe the brackets broadly ("Factor brackets wrong…"). They still hold; a pass that names PS5's swapped signs for Jordan and Oliver, now a signature on their pages, is deferred for Carson to word.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

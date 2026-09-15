@@ -11,8 +11,9 @@ import { PS5_REVIEW } from "./review";
  * the platform's notes, what they wrote back, and a line from group review.
  *
  * The set came before Problem Set 6, and the patterns in it are the ones Problem Set 6 catches:
- * - Guessed non-monic pairs, never expanded back (Q4, Q8): Jordan, Mia, Oliver, Sofia, Chloe,
- *   Ethan. Mia and Jordan guess the pair again on Problem Set 6's Q2.
+ * - Non-monic brackets wrong (Q4, Q8): brackets that don't expand back on Q4 (Jordan, Liam, Mia, Oliver, Chloe, Sofia) and
+ *   Mia's Q8; (2x + 1)(x − 3) on Q8, the pair's signs swapped (Jordan, Ethan, Oliver, Sofia; ticket 343). Mia and
+ *   Jordan get the pair wrong again on Problem Set 6's Q2.
  * - A turning point's sign read off the bracket (Q2, Q3, Q6): Tomas, Lucas, Finn, and Sam.
  * - The axis given where the height was asked (Q10): Zara, Ethan, Ruby and Harper, as on Problem Set
  *   6's Q9. A graph feature, as there (ticket 210), so with the sign readers it is the set's top gap.
@@ -62,7 +63,7 @@ const Q6_TP_SIGN = ["y = (x^2 - 8x + 16) - 16 + 10", "y = (x - 4)^2 - 6", "\\tex
 const Q7_SQUARED_APART = ["y = 2(x^2 + 9) - 5", "y = 2x^2 + 18 - 5", "y = 2x^2 + 13", "y\\text{-intercept } (0, 13)"];
 /** Q7: the 2 on x² only. */
 const Q7_FIRST_TERM = ["y = 2(x^2 - 6x + 9) - 5", "y = 2x^2 - 6x + 9 - 5", "y = 2x^2 - 6x + 4", "y\\text{-intercept } (0, 4)"];
-/** Q8: two guessed pairs that multiply to −3. */
+/** Q8: two pairs that multiply to −3: (2x + 1)(x − 3), the right numbers with both signs swapped, and (2x + 3)(x − 1). */
 const Q8_GUESSED = ["y = (2x + 1)(x - 3)", "x = -\\tfrac{1}{2} \\;\\text{or}\\; x = 3", "x = \\dfrac{-\\tfrac{1}{2} + 3}{2} = \\tfrac{5}{4}"];
 const Q8_GUESSED_OTHER = ["y = (2x + 3)(x - 1)", "x = -\\tfrac{3}{2} \\;\\text{or}\\; x = 1", "x = \\dfrac{-\\tfrac{3}{2} + 1}{2} = -\\tfrac{1}{4}"];
 /** Q8: the right intercepts, their sum never halved. */
@@ -129,7 +130,7 @@ const CLASSMATES: Classmate[] = [
     confidence: "confident",
     done: 8,
     wrong: [q(4), q(8)],
-    notes: [{ text: "non-monic brackets wrong", problems: [q(4), q(8)] }],
+    notes: [{ text: "non-monic brackets wrong", problems: [q(4)] }, { text: "the non-monic pair's signs swapped", problems: [q(8)] }],
     attempts: { [q(4)]: Q4_GUESSED, [q(8)]: Q8_GUESSED },
     clarification: "I found numbers that multiplied to the end number and wrote the brackets. I didn't multiply them back out so I didn't see the middle was wrong. I ran out of time for Q9 and Q10.",
     groupStatus: "Group review done · expanded Q4 back",
@@ -264,7 +265,7 @@ const CLASSMATES: Classmate[] = [
     wrong: [q(5), q(8), q(10)],
     notes: [
       { text: "(−3)² taken as −9, the axis not shown", problems: [q(5)] },
-      { text: "non-monic brackets wrong", problems: [q(8)] },
+      { text: "the non-monic pair's signs swapped", problems: [q(8)] },
       { text: "axis given as the height, the working not shown", problems: [q(10)] },
     ],
     attempts: { [q(5)]: Q5_SQUARE_RUSHED, [q(8)]: Q8_GUESSED, [q(10)]: Q10_AXIS_HEIGHT_RUSHED },
@@ -339,7 +340,8 @@ const CLASSMATES: Classmate[] = [
     done: 9,
     wrong: [q(4), q(7), q(8)],
     notes: [
-      { text: "non-monic brackets wrong", problems: [q(4), q(8)] },
+      { text: "non-monic brackets wrong", problems: [q(4)] },
+      { text: "the non-monic pair's signs swapped", problems: [q(8)] },
       { text: "(x − 3)² squared term by term", problems: [q(7)] },
     ],
     attempts: { [q(4)]: Q4_GUESSED, [q(7)]: Q7_SQUARED_APART, [q(8)]: Q8_GUESSED },
@@ -385,7 +387,7 @@ const CLASSMATES: Classmate[] = [
     confidence: "low: fractions",
     done: 10,
     wrong: [q(4), q(8)],
-    notes: [{ text: "non-monic brackets wrong", problems: [q(4), q(8)] }],
+    notes: [{ text: "non-monic brackets wrong", problems: [q(4)] }, { text: "the non-monic pair's signs swapped", problems: [q(8)] }],
     attempts: { [q(4)]: Q4_GUESSED, [q(8)]: Q8_GUESSED },
     clarification: "I guessed the brackets in Q4 and Q8. The numbers in front of x squared made the halves messy, so I tried pairs until one looked right.",
     groupStatus: "Group review done · the split on Q4 and Q8",

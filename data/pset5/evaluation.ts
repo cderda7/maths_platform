@@ -5,8 +5,9 @@ import type { LeafId } from "../taxonomy";
  * Problem Set 5's scripted evaluation (ticket 187): every line any of the class wrote on the set,
  * with its verdict and tags, in the same shape as Problem Set 6's table (`data/evaluation.ts`) and
  * read through the same `evaluateLine`. A wrong line's `misconception` is its entry in the
- * misconception taxonomy (ticket 299); the same one on two problems is the same pattern (a guessed non-monic pair on Q4 and
- * Q8, a turning point's sign on Q2, Q3 and Q6).
+ * misconception taxonomy (ticket 299); the same one on two problems is the same pattern (non-monic brackets that don't expand
+ * back on Q4 and Q8, a turning point's sign on Q2, Q3 and Q6). Since ticket 343 Q8's (2x + 1)(x − 3) is the pair's signs
+ * swapped, the narrower misconception.
  */
 const QUAD: LeafId = "algebra.equations.quadratic";
 const LIN: LeafId = "algebra.equations.linear";
@@ -26,6 +27,7 @@ const CONCL: LeafId = "reasoning.justify.conclusions";
 /** The misconceptions shared across problems (`data/misconceptions.ts`). */
 const GUESSED_PAIR = "brackets-dont-expand";
 const TP_SIGN = "root-vertex-sign";
+const SIGNS_SWAPPED = "pair-signs-swapped";
 
 export const PS5_EVALUATION: Record<string, Record<string, LineVerdict>> = {
   "ps5-q1": {
@@ -174,12 +176,13 @@ export const PS5_EVALUATION: Record<string, Record<string, LineVerdict>> = {
     "y = (2x - 1)(x + 3)": ok(T(NONMONIC), "Factorised"),
     "x = \\tfrac{1}{2} \\;\\text{or}\\; x = -3": A(ok(T(NFL, ZERO, FRAC), "x-intercepts")),
     "x = \\dfrac{\\tfrac{1}{2} + (-3)}{2} = -\\tfrac{5}{4}": A(ok(T(FEAT, FRAC), "Axis of symmetry")),
+    // Ticket 343: the right numbers with both signs swapped, no longer the broader "brackets don't expand back".
     "y = (2x + 1)(x - 3)": wrong(
       T(NONMONIC),
       "Factorised",
-      "With a 2 in front of x², a pair that multiplies to the constant can still give the wrong middle term. Nothing here was expanded back.",
-      "Expand (2x + 1)(x − 3). Do you get +5x?",
-      GUESSED_PAIR,
+      "The brackets hold the right numbers, but both signs are swapped: (2x + 1)(x − 3) has a middle term of −5x, not +5x.",
+      "Expand (2x + 1)(x − 3). Is the x term −5x or +5x?",
+      SIGNS_SWAPPED,
     ),
     "x = -\\tfrac{1}{2} \\;\\text{or}\\; x = 3": A(ok(T(NFL, ZERO), "x-intercepts", true)),
     "x = \\dfrac{-\\tfrac{1}{2} + 3}{2} = \\tfrac{5}{4}": A(ok(T(FEAT, FRAC), "Axis of symmetry", true)),

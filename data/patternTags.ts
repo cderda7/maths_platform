@@ -57,7 +57,7 @@ export const PATTERN_TAGS: Readonly<Record<string, Partial<Record<StoryCategory,
     new: [tag("added to complete the square, never taken away", "added the square to complete it, never took it away", "added 16 to complete the square, never took it away")],
   },
   liam: {
-    algebra: [tag("factor brackets wrong", "non-monic brackets wrong", "factor brackets wrong")],
+    algebra: [tag("factor brackets wrong", "a pair that multiplies to −15 but adds to 14", "non-monic brackets wrong", "factor brackets wrong")],
     new: [tag("a bracket squared term by term", "(√7 + 2)² squared term by term", "(2x − 3)² squared term by term")],
   },
   aiden: {
@@ -81,13 +81,13 @@ export const PATTERN_TAGS: Readonly<Record<string, Partial<Record<StoryCategory,
   },
   chloe: {
     algebra: [
-      tag("factor brackets wrong", "factor brackets wrong", "non-monic brackets wrong"),
+      tag("factor brackets wrong", "a pair that multiplies to 24 but adds to −14", "non-monic brackets wrong"),
       tag("halves wrong", "halves lost completing the square", "sum of the intercepts never halved"),
     ],
     functions: [tag("a negative's sign lost", "a root's sign lost rearranging", "(−3)² taken as −9")],
   },
   ethan: {
-    algebra: [tag("factor brackets wrong", "brackets with the wrong middle term", "non-monic brackets wrong")],
+    algebra: [tag("factor brackets wrong", "a pair that multiplies to 24 but adds to −14", "non-monic brackets wrong")],
     functions: [tag("a negative's sign lost", "a root's sign lost", "(−3)² taken as −9, the axis not shown")],
     graphing: [tag("the axis given where the height is asked", "the minimum value given as the x, the working not shown", "axis given as the height, the working not shown", "axis given as the height, a step skipped")],
     communication: [
@@ -159,7 +159,7 @@ export const PATTERN_TAGS: Readonly<Record<string, Partial<Record<StoryCategory,
     communication: [tag("steps written in one line", "the perfect square written in one line", "the square completed in one line", "the landing written straight down", "the height given in one line")],
   },
   oliver: {
-    algebra: [tag("factor brackets wrong", "factor brackets wrong", "non-monic brackets wrong")],
+    algebra: [tag("factor brackets wrong", "a pair that multiplies but doesn't add", "non-monic brackets wrong", "factor brackets wrong")],
     new: [
       tag("a bracket squared term by term", "(2x − 3)² squared term by term", "(x − 3)² squared term by term"),
       tag("null factor law on a product that isn't 0", "null factor law on x(x − 3) = 10, a product that isn't 0", "null factor law on a product that isn't 0"),

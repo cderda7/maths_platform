@@ -114,8 +114,9 @@ describe("Holistic Assessment's tiles (ticket 252)", () => {
   it("tiles take the live set as the student's page does: mid-stream a tag counts only the sets seen so far", () => {
     const working = skipFixture("working", now);
     const justLive = { classroom: { ...working.classroom, assignment: { ...working.classroom.assignment!, startedAt: now } }, session: working.session, now };
-    expect(signatures("jordan", justLive)).toEqual([["Factor pairs wrong", "PS3 PS4 PS5"]]);
-    expect(tags("jordan", justLive).algebra).toEqual([["a bracket's middle terms wrong expanding", "PS2"]]);
+    // Ticket 343: PS5 Q8's pair with its signs swapped joins PS2's middle-term sign as a second signature, which covers both patterns.
+    expect(signatures("jordan", justLive)).toEqual([["Factor pairs wrong", "PS3 PS4 PS5"], ["Minus signs wrong", "PS2 PS5"]]);
+    expect(tags("jordan", justLive).algebra).toBeUndefined();
   });
 
   it("strengths: secure on every set that assessed the student in the category, and never beside a pattern of it", () => {

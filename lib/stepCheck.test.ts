@@ -199,15 +199,16 @@ describe("a wrong line that matches a known slip carries its misconception", () 
  * The evaluation tables are the teacher-facing verdicts on every line anyone wrote. Read against the step with the same
  * label (a label used once in its question, and never a line marked right only given a wrong line above), the check
  * agrees with them: right where the table says ok, wrong where it says wrong, and a wrong line's misconception is the
- * table's or none. A handful of older table entries use the broader "brackets don't expand back" where the line fits
- * a narrower misconception's own description; those are listed with the misconception the check names.
+ * table's or none. A table entry that keeps the broader "brackets don't expand back" where the check names a narrower
+ * misconception is listed with the misconception the check names. Ticket 343 relabelled three such entries in the tables
+ * (PS3 Q5 and Q8 to product right, sum wrong; PS5 Q8 to signs swapped in the pair); one stays.
  */
 describe("agrees with the evaluation tables", () => {
   const NARROWER: Record<string, string> = {
-    "ps3-q5 (x + 15)(x - 1)": "pair-sum-wrong",
-    "ps3-q8 (x - 2)(x - 12)": "pair-sum-wrong",
+    // Kept broad (ticket 343): (2x − 1)(x + 3) for 2x² − 7x + 3 differs from (2x − 1)(x − 3) in one sign only, not a
+    // swap of both, and it expands to 2x² + 5x − 3, with the constant's sign wrong as well as the middle term's. The
+    // check's signs-swapped slip reads any sign change in the pair; the table's broader name stays true to the line.
     "ps4-q4 (2x - 1)(x + 3) = 0": "pair-signs-swapped",
-    "ps5-q8 y = (2x + 1)(x - 3)": "pair-signs-swapped",
   };
   /** A right line the table accepts that takes another route to the step: a blank asks for the step's own line. */
   const OTHER_ROUTE = ["ps1-q10 d = \\sqrt{s^2 + s^2} = \\sqrt{72 + 72}"];

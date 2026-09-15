@@ -19,9 +19,9 @@ The contract for the six sets in the Classroom (ticket 210). For every student a
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Problem Set 1 — Surds | Tue 25 Aug | surds | individual → group → whole-class | Algebra, Communication, Reasoning, New skills | nobody | nobody | tomas 9, liam 5, grace 8 | square out, root not taken; roots added like numbers; divided the wrong way round | ticket 211, data/pset1/ |
 | Problem Set 2 — Rationalising and expanding with surds | Fri 28 Aug | surds, binomial identity | individual → group | Algebra, Communication, Reasoning, New skills | nobody | nobody | tomas 8, liam 5, grace 7 | not multiplied into every term; square and difference mixed; sign of a product wrong | ticket 212, data/pset2/ |
-| Problem Set 3 — Expanding and factorising | Tue 1 Sep | binomial identity | individual → group → whole-class | Algebra, Communication, Reasoning, New skills | nobody | nobody | jordan 9, liam 5, grace 9, oliver 9 | brackets don't expand back; square and difference mixed; minus not carried through | ticket 213, data/pset3/ |
+| Problem Set 3 — Expanding and factorising | Tue 1 Sep | binomial identity | individual → group → whole-class | Algebra, Communication, Reasoning, New skills | nobody | nobody | jordan 9, liam 5, grace 9, oliver 9 | product right, sum wrong; square and difference mixed; minus not carried through | ticket 213, data/pset3/ |
 | Problem Set 4 — Non-monic factorising and completing the square | Fri 4 Sep | binomial identity, null factor law | individual → group | Algebra, Functions, Graphing, Communication, Reasoning, New skills | nobody | nobody | jordan 8, tomas 9, liam 5, grace 6, oliver 8 | brackets don't expand back; root or vertex sign wrong; square added, not taken away | ticket 214, data/pset4/ |
-| Problem Set 5 — Features of a parabola | Mon 7 Sep | null factor law, binomial identity | individual → group | Algebra, Functions, Graphing, Communication, Reasoning, New skills | nobody | nobody | jordan 8, tomas 7, liam 5, grace 7, oliver 9 | brackets don't expand back; root or vertex sign wrong; x given where y asked | data/pset5/ (ticket 187) |
+| Problem Set 5 — Features of a parabola | Mon 7 Sep | null factor law, binomial identity | individual → group | Algebra, Functions, Graphing, Communication, Reasoning, New skills | nobody | nobody | jordan 8, tomas 7, liam 5, grace 7, oliver 9 | brackets don't expand back; root or vertex sign wrong; signs swapped in the pair | data/pset5/ (ticket 187) |
 | Problem Set 6 — Roots of a quadratic | Thu 10 Sep | discriminant, null factor law | individual → group → whole-class | Algebra, Functions, Graphing, Communication, Reasoning, New skills | chloe | nobody | jordan 7, tomas 7, liam 4, noah 9, ethan 8, grace 4, harper 6, oliver 7 | not multiplied into every term; product right, sum wrong; brackets don't expand back | data/assignment.ts, data/classmates.ts (the live set; rows are the classmates' end state) |
 
 ### Problem Set 1 — Surds
@@ -309,7 +309,7 @@ The set's review (individual → group → whole-class): 22 fixed on the student
 - tomas Q10 · group review: Repeated: a minus not carried through a bracket (Q7, Q10). Priya and Aiden had Q10 right, and the group's rework holds.
 - zara Q4 · own rework: One-off: x² − 49 factorised as (x − 7)², on Q4 alone. Found on the second submission.
 - liam Q2 · own rework: One-off: (2x − 3)² squared term by term, on Q2 alone. Found on the second submission.
-- liam Q5 · group review: Pattern: Algebra is a gap on the set (factor brackets wrong). Sam, Jordan and Zara had Q5 right, and the group's rework holds.
+- liam Q5 · group review: Pattern: Algebra is a gap on the set (a pair that multiplies to −15 but adds to 14). Sam, Jordan and Zara had Q5 right, and the group's rework holds.
 - liam Q6 · group review: Not attempted. Sam and Zara had Q6 right, and the group's rework holds.
 - liam Q7 · group review: Not attempted. Sam, Jordan and Zara had Q7 right, and the group's rework holds.
 - liam Q8 · group review: Not attempted. Zara had Q8 right, and the group's rework holds.
@@ -322,9 +322,9 @@ The set's review (individual → group → whole-class): 22 fixed on the student
 - mia Q9 · own rework: One-off: factor brackets wrong, on Q9 alone. Found on the second submission.
 - noah Q2 · group review: Repeated: (2x − 3)² squared term by term (Q2, Q10). Mia, Chloe and Ethan had Q2 right, and the group's rework holds.
 - noah Q10 · group review: Repeated: (2x − 3)² squared term by term (Q2, Q10). Mia, Chloe and Ethan had Q10 right, and the group's rework holds.
-- chloe Q8 · own rework: One-off: factor brackets wrong, on Q8 alone. Found on the second submission.
+- chloe Q8 · own rework: One-off: a pair that multiplies to 24 but adds to −14, on Q8 alone. Found on the second submission.
 - ethan Q6 · own rework: One-off: a perfect square's middle term with the wrong sign, on Q6 alone. Found on the second submission.
-- ethan Q8 · own rework: One-off: brackets with the wrong middle term, on Q8 alone. Found on the second submission.
+- ethan Q8 · own rework: One-off: a pair that multiplies to 24 but adds to −14, on Q8 alone. Found on the second submission.
 - isla Q1 · own rework: One-off: the second bracket's signs wrong multiplying, on Q1 alone. Found on the second submission.
 - isla Q7 · own rework: One-off: the common factor's sign left behind, on Q7 alone. Found on the second submission.
 - isla Q10 · own rework: One-off: the working shown, the last line doesn't say what it shows, on Q10 alone. Found on the second submission.
@@ -336,9 +336,9 @@ The set's review (individual → group → whole-class): 22 fixed on the student
 - harper Q7 · own rework: One-off: the common factor's sign lost, on Q7 alone. Found on the second submission.
 - harper Q10 · still wrong: Repeated: x² − x² collected as 2x² (Q1, Q10). Nobody at the table had Q10 right, so the group's last try is still wrong.
 - oliver Q2 · own rework: One-off: (2x − 3)² squared term by term, on Q2 alone. Found on the second submission.
-- oliver Q5 · group review: Repeated: factor brackets wrong (Q5, Q8). Sofia had Q5 right, and the group's rework holds.
+- oliver Q5 · group review: Repeated: a pair that multiplies but doesn't add (Q5, Q8). Sofia had Q5 right, and the group's rework holds.
 - oliver Q6 · own rework: One-off: perfect square as difference, on Q6 alone. Found on the second submission.
-- oliver Q8 · group review: Repeated: factor brackets wrong (Q5, Q8). Sofia had Q8 right, and the group's rework holds.
+- oliver Q8 · group review: Repeated: a pair that multiplies but doesn't add (Q5, Q8). Sofia had Q8 right, and the group's rework holds.
 - oliver Q10 · group review: Not attempted. Ruby, Finn and Sofia had Q10 right, and the group's rework holds.
 - ruby Q5 · group review: Repeated: a pair that multiplies to −15 but doesn't add to 2 (Q5, Q8). Sofia had Q5 right, and the group's rework holds.
 - ruby Q8 · group review: Repeated: a pair that multiplies to −15 but doesn't add to 2 (Q5, Q8). Sofia had Q8 right, and the group's rework holds.
@@ -549,7 +549,7 @@ The set's review (individual → group): 29 fixed on the student's own rework, 2
 - sam Q6 · own rework: One-off: turning point read with the sign flipped, on Q6 alone. Found on the second submission.
 - sam Q9 · own rework: One-off: negative a read as concave up, on Q9 alone. Found on the second submission.
 - jordan Q4 · still wrong: Pattern: Algebra is a gap on the set (non-monic brackets wrong). Nobody at the table had Q4 right, so the group's last try is still wrong.
-- jordan Q8 · group review: Pattern: Algebra is a gap on the set (non-monic brackets wrong). Sam and Zara had Q8 right, and the group's rework holds.
+- jordan Q8 · group review: Pattern: Algebra is a gap on the set (the non-monic pair's signs swapped). Sam and Zara had Q8 right, and the group's rework holds.
 - jordan Q9 · group review: Not attempted. Zara had Q9 right, and the group's rework holds.
 - jordan Q10 · group review: Not attempted. Sam had Q10 right, and the group's rework holds.
 - amelia Q6 · own rework: One-off: added 16 to complete the square, never took it away, on Q6 alone. Found on the second submission.
@@ -581,7 +581,7 @@ The set's review (individual → group): 29 fixed on the student's own rework, 2
 - chloe Q5 · own rework: One-off: (−3)² taken as −9, on Q5 alone. Found on the second submission.
 - chloe Q8 · own rework: One-off: sum of the intercepts never halved, on Q8 alone. Found on the second submission.
 - ethan Q5 · own rework: One-off: (−3)² taken as −9, the axis not shown, on Q5 alone. Found on the second submission.
-- ethan Q8 · own rework: One-off: non-monic brackets wrong, on Q8 alone. Found on the second submission.
+- ethan Q8 · own rework: One-off: the non-monic pair's signs swapped, on Q8 alone. Found on the second submission.
 - ethan Q10 · own rework: One-off: axis given as the height, the working not shown, on Q10 alone. Found on the second submission.
 - isla Q5 · own rework: One-off: axis of symmetry without the minus, on Q5 alone. Found on the second submission.
 - isla Q9 · own rework: One-off: took −1 out and left the signs inside behind, on Q9 alone. Found on the second submission.
@@ -598,7 +598,7 @@ The set's review (individual → group): 29 fixed on the student's own rework, 2
 - harper Q10 · own rework: One-off: axis given as the height, the working not shown, on Q10 alone. Found on the second submission.
 - oliver Q4 · group review: Pattern: Algebra is a gap on the set (non-monic brackets wrong). Ruby had Q4 right, and the group's rework holds.
 - oliver Q7 · own rework: One-off: (x − 3)² squared term by term, on Q7 alone. Found on the second submission.
-- oliver Q8 · group review: Pattern: Algebra is a gap on the set (non-monic brackets wrong). Ruby had Q8 right, and the group's rework holds.
+- oliver Q8 · group review: Pattern: Algebra is a gap on the set (the non-monic pair's signs swapped). Ruby had Q8 right, and the group's rework holds.
 - oliver Q10 · group review: Not attempted. Finn and Sofia had Q10 right, and the group's rework holds.
 - ruby Q5 · own rework: One-off: (−3)² taken as −9, on Q5 alone. Found on the second submission.
 - ruby Q9 · group review: Pattern: Algebra is a gap on the set (a pair that multiplies to −8 but doesn't add to −2). Oliver, Finn and Sofia had Q9 right, and the group's rework holds.
@@ -607,7 +607,7 @@ The set's review (individual → group): 29 fixed on the student's own rework, 2
 - finn Q6 · own rework: One-off: turning point read with the sign flipped, on Q6 alone. Found on the second submission.
 - finn Q8 · own rework: One-off: sum of the intercepts never halved, on Q8 alone. Found on the second submission.
 - sofia Q4 · group review: Pattern: Algebra is a gap on the set (non-monic brackets wrong). Ruby had Q4 right, and the group's rework holds.
-- sofia Q8 · group review: Pattern: Algebra is a gap on the set (non-monic brackets wrong). Ruby had Q8 right, and the group's rework holds.
+- sofia Q8 · group review: Pattern: Algebra is a gap on the set (the non-monic pair's signs swapped). Ruby had Q8 right, and the group's rework holds.
 
 ### Problem Set 6 — Roots of a quadratic
 
@@ -798,7 +798,8 @@ Factor brackets wrong: pairs that multiply to the constant but give the wrong mi
 - PS2 · Algebra · solid: a bracket's middle terms wrong expanding (Q2)
 - PS3 · Algebra · developing: a factor pair that multiplies to the constant, the brackets wrong (Q8, Q9)
 - PS4 · Algebra · gap: non-monic brackets wrong (Q1, Q2, Q4)
-- PS5 · Algebra · gap: non-monic brackets wrong (Q4, Q8)
+- PS5 · Algebra · gap: non-monic brackets wrong (Q4)
+- PS5 · Algebra · gap: the non-monic pair's signs swapped (Q8)
 - PS6 · Algebra · developing: non-monic brackets wrong (Q2)
 - PS6 · Algebra · developing: a pair that multiplies to 8 but adds to 9 (Q7)
 - PS3 · New skills · solid: a perfect square factorised as a difference of squares (Q6)
@@ -913,7 +914,7 @@ Hands in about half and does not reach the last problems: five on every finished
 | New skills | developing | gap | developing | not seen | gap | gap |
 
 - PS2 · Algebra · developing: only two of the four terms expanded (Q2)
-- PS3 · Algebra · gap: factor brackets wrong (Q5)
+- PS3 · Algebra · gap: a pair that multiplies to −15 but adds to 14 (Q5)
 - PS4 · Algebra · gap: non-monic brackets wrong (Q1, Q2)
 - PS5 · Algebra · gap: non-monic brackets wrong (Q4)
 - PS6 · Algebra · gap: factor brackets wrong (Q1, Q2)
@@ -1003,7 +1004,7 @@ Factor brackets wrong, halves lost, and a negative's sign lost: a root rearrange
 | New skills | solid | solid | secure | secure | secure | absent |
 
 - PS2 · Algebra · solid: a denominator dropped adding fractions (Q9)
-- PS3 · Algebra · solid: factor brackets wrong (Q8)
+- PS3 · Algebra · solid: a pair that multiplies to 24 but adds to −14 (Q8)
 - PS4 · Algebra · developing: non-monic brackets wrong (Q2)
 - PS4 · Algebra · developing: halves lost completing the square (Q7)
 - PS5 · Algebra · developing: non-monic brackets wrong (Q4)
@@ -1029,10 +1030,10 @@ Leaves steps unwritten, most on the last problems: the axis given as the height,
 | New skills | secure | secure | solid | solid | secure | secure |
 
 - PS2 · Algebra · solid: a term dropped expanding (Q8)
-- PS3 · Algebra · solid: brackets with the wrong middle term (Q8)
+- PS3 · Algebra · solid: a pair that multiplies to 24 but adds to −14 (Q8)
 - PS4 · Algebra · developing: non-monic brackets wrong (Q2)
 - PS4 · Algebra · developing: factorised before making the equation equal zero (Q5)
-- PS5 · Algebra · solid: non-monic brackets wrong (Q8)
+- PS5 · Algebra · solid: the non-monic pair's signs swapped (Q8)
 - PS6 · Algebra · developing: divided by a, not 2a (Q4)
 - PS6 · Algebra · developing: multiplied through by 3 and never took it back out (Q7)
 - PS4 · Functions · solid: a root's sign lost (Q4)
@@ -1174,9 +1175,10 @@ Factor brackets wrong, brackets squared term by term, and the null factor law us
 | New skills | solid | solid | developing | developing | developing | developing |
 
 - PS2 · Algebra · solid: the middle term wrong expanding (Q2)
-- PS3 · Algebra · developing: factor brackets wrong (Q5, Q8)
+- PS3 · Algebra · developing: a pair that multiplies but doesn't add (Q5, Q8)
 - PS4 · Algebra · gap: non-monic brackets wrong (Q1, Q2)
-- PS5 · Algebra · gap: non-monic brackets wrong (Q4, Q8)
+- PS5 · Algebra · gap: non-monic brackets wrong (Q4)
+- PS5 · Algebra · gap: the non-monic pair's signs swapped (Q8)
 - PS6 · Algebra · developing: factor brackets wrong (Q1, Q2)
 - PS6 · Algebra · developing: scaled two of three terms (Q7)
 - PS1 · New skills · solid: √8 simplified as 4√2 (Q4)
@@ -1258,7 +1260,8 @@ Fractions turned over, halves wrong, and non-monic brackets wrong. Algebra devel
 - PS3 · Algebra · developing: non-monic brackets wrong (Q9)
 - PS4 · Algebra · gap: halves lost completing the square (Q7)
 - PS4 · Algebra · gap: non-monic brackets wrong (Q2)
-- PS5 · Algebra · gap: non-monic brackets wrong (Q4, Q8)
+- PS5 · Algebra · gap: non-monic brackets wrong (Q4)
+- PS5 · Algebra · gap: the non-monic pair's signs swapped (Q8)
 - PS6 · Algebra · gap: denominator a, not 2a (Q4)
 - PS6 · Algebra · gap: scaled two of three terms (Q7)
 - PS2 · New skills · solid: the conjugate's fraction left unsimplified (Q7)

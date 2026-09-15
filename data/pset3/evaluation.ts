@@ -4,8 +4,9 @@ import type { LeafId } from "../taxonomy";
 /**
  * Problem Set 3's scripted evaluation (ticket 213): every line any of the class wrote on the set, with its
  * verdict and tags, read through the same `evaluateLine` as every other set. A wrong line's `misconception` is its
- * entry in the misconception taxonomy (ticket 299); the same one on two problems is the same pattern (a pair guessed and not
- * expanded back on Q5 and Q8, a pair that multiplies but does not add on Q5 and Q8, x² − 49 as (x − 7)² on Q4).
+ * entry in the misconception taxonomy (ticket 299); the same one on two problems is the same pattern (a pair that
+ * multiplies but does not add on Q5 and Q8, both ways round since ticket 343; brackets that don't expand back on Q9;
+ * x² − 49 as (x − 7)² on Q4).
  */
 const EXPAND: LeafId = "algebra.expand-factor.expand";
 const MONIC: LeafId = "algebra.expand-factor.monic";
@@ -14,7 +15,6 @@ const BINOM: LeafId = "algebra.expand-factor.binomial";
 const FORMAL: LeafId = "reasoning.justify.formal";
 
 /** The misconceptions shared across problems (`data/misconceptions.ts`). */
-const GUESSED_PAIR = "brackets-dont-expand";
 const PAIR_NOT_ADDING = "pair-sum-wrong";
 const SIGN_FLIPPED = "pair-signs-swapped";
 const CHECK_COPIED = "check-wrong";
@@ -119,12 +119,13 @@ export const PS3_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "What do −15 and 1 add to? Which pair adds to 2?",
       PAIR_NOT_ADDING,
     )),
+    // Ticket 343: product right, sum wrong (15 and −1 add to 14), no longer the broader "brackets don't expand back".
     "(x + 15)(x - 1)": A(wrong(
       T(MONIC),
       "Factorised",
-      "A pair that multiplies to the constant can still give the wrong middle term. Nothing here was expanded back.",
-      "Expand (x + 15)(x − 1). What x term do you get?",
-      GUESSED_PAIR,
+      "The pair has to multiply to −15 and add to 2. 15 and −1 multiply to −15 but add to 14.",
+      "What do 15 and −1 add to? Which pair adds to 2?",
+      PAIR_NOT_ADDING,
     )),
     "(x - 5)(x + 3)": A(wrong(
       T(MONIC),
@@ -219,12 +220,13 @@ export const PS3_EVALUATION: Record<string, Record<string, LineVerdict>> = {
     ),
     "(x + 3)(x + 8)": A(ok(T(MONIC), "Factorised", true)),
     "2 \\times 12 = 24": ok(T(MONIC), "A pair for 24"),
+    // Ticket 343: product right, sum wrong (−2 and −12 add to −14), no longer the broader "brackets don't expand back".
     "(x - 2)(x - 12)": A(wrong(
       T(MONIC),
       "Factorised",
-      "A pair that multiplies to the constant can still give the wrong middle term. The question asked for the expansion back, and it would have shown it.",
-      "Expand (x − 2)(x − 12). Is the x term −11x?",
-      GUESSED_PAIR,
+      "The pair has to multiply to 24 and add to −11. −2 and −12 multiply to 24 but add to −14.",
+      "What do −2 and −12 add to? Which pair adds to −11?",
+      PAIR_NOT_ADDING,
     )),
     "-4 \\times (-6) = 24": ok(T(MONIC), "A pair for 24"),
     "(x - 4)(x - 6)": A(wrong(

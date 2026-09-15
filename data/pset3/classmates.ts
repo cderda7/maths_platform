@@ -15,9 +15,10 @@ import { PS3_REVIEW } from "./review";
  *   Noah again on Q10 until the show-that would not come out), taken as a² − b² (Amelia), its middle term's
  *   sign lost (Tomas, Harper); x² − 49 written as (x − 7)² (Zara, Mia, Amelia); x² − 10x + 25 taken for a
  *   difference of squares and not checked (Jordan, Oliver), or its square's sign flipped (Tomas, Ethan in one line).
- * - Monic pairs not expanded back (Q5, Q8): Jordan's unchecked pairs start here (Q8, and the non-monic Q9),
- *   with Chloe, Ethan and Oliver; Lucas and Ruby take a pair that multiplies but does not add; Sam swaps the
- *   pair's signs; Finn flips a sign writing the pair and "checks" by copying the question back.
+ * - Monic pairs (Q5, Q8): a pair that multiplies but does not add, Jordan's factor brackets going wrong from here (Q8,
+ *   and the non-monic Q9), with Liam, Chloe, Ethan, Oliver, Lucas and Ruby (ticket 343: (x + 15)(x − 1) and
+ *   (x − 2)(x − 12) are product right, sum wrong); Sam swaps the pair's signs; Finn flips a sign writing the pair and
+ *   "checks" by copying the question back.
  * - Mia tries brackets until one looks close (Q9); Sofia guesses the non-monic pair (Q9).
  * - Expansion and the common factor (Q1, Q7): Aiden multiplies or squares part and leaves the rest (Q1, Q3, Q7), Tomas and Isla copy a
  *   sign instead of multiplying and take out −3 with the signs inside kept, Harper loses a sign, Amelia takes the
@@ -54,7 +55,7 @@ const Q2_PLUS_IDENTITY = ["(2x)^2 + 2(2x)(3) + 3^2", "4x^2 + 12x + 9"];
 const Q4_SQUARE = ["x^2 - 7^2", "(x - 7)^2"];
 /** Q5: −15 × 1, never added. */
 const Q5_NOT_ADDING = ["-15 \\times 1 = -15", "(x - 15)(x + 1)"];
-/** Q5: a pair written straight down. */
+/** Q5: a pair written straight down that multiplies to −15 and adds to 14. */
 const Q5_GUESSED = ["(x + 15)(x - 1)"];
 /** Q5: the right pair, the signs swapped into the brackets, the check copied from the question. */
 const Q5_FLIPPED = ["5 \\times (-3) = -15,\\; 5 + (-3) = 2", "(x - 5)(x + 3)", "(x - 5)(x + 3) = x^2 + 2x - 15"];
@@ -74,7 +75,7 @@ const Q7_LEFT_OFF = ["3(x^2 - 4x - 12)", "(-6) \\times 2 = -12,\\; -6 + 2 = -4",
 const Q7_TWO_TERMS = ["3(x^2 - 4x) - 36"];
 /** Q8: 3 and 8 for −11. */
 const Q8_SIGNS_SWAPPED = ["3 \\times 8 = 24,\\; 3 + 8 = 11", "(x + 3)(x + 8)"];
-/** Q8: 2 × 12, never expanded back. */
+/** Q8: 2 × 12, the brackets (x − 2)(x − 12) adding to −14. */
 const Q8_GUESSED = ["2 \\times 12 = 24", "(x - 2)(x - 12)"];
 /** Q8: −4 and −6, which add to −10. */
 const Q8_NOT_ADDING = ["-4 \\times (-6) = 24", "(x - 4)(x - 6)"];
@@ -211,7 +212,7 @@ const CLASSMATES: Classmate[] = [
     wrong: [q(2), q(5)],
     notes: [
       { text: "(2x − 3)² squared term by term", problems: [q(2)] },
-      { text: "factor brackets wrong", problems: [q(5)] },
+      { text: "a pair that multiplies to −15 but adds to 14", problems: [q(5)] },
     ],
     attempts: { [q(2)]: Q2_TERM_BY_TERM, [q(5)]: Q5_GUESSED },
     clarification: "I squared the 2x and the 3 and forgot the middle. In Q5 I wrote down two numbers that make 15 and didn't check them. I got to Q5 and stopped.",
@@ -267,7 +268,7 @@ const CLASSMATES: Classmate[] = [
     confidence: "confident",
     done: 10,
     wrong: [q(8)],
-    notes: [{ text: "factor brackets wrong", problems: [q(8)] }],
+    notes: [{ text: "a pair that multiplies to 24 but adds to −14", problems: [q(8)] }],
     attempts: { [q(8)]: Q8_GUESSED },
     clarification: "2 and 12 was the first pair I thought of. I didn't add them and I skipped the checking part.",
     groupStatus: "Group review done · Q8 add as well as multiply",
@@ -281,7 +282,7 @@ const CLASSMATES: Classmate[] = [
     wrong: [q(6), q(8)],
     notes: [
       { text: "a perfect square's middle term with the wrong sign, written in one line", problems: [q(6)] },
-      { text: "brackets with the wrong middle term", problems: [q(8)] },
+      { text: "a pair that multiplies to 24 but adds to −14", problems: [q(8)] },
     ],
     attempts: { [q(6)]: Q6_RUSHED, [q(8)]: Q8_GUESSED },
     clarification: "I could see Q6 was a square so I wrote it straight down and got the sign wrong. In Q8 I rushed the pair and didn't do the check.",
@@ -356,7 +357,7 @@ const CLASSMATES: Classmate[] = [
     done: 9,
     wrong: [q(2), q(5), q(6), q(8)],
     notes: [
-      { text: "factor brackets wrong", problems: [q(5), q(8)] },
+      { text: "a pair that multiplies but doesn't add", problems: [q(5), q(8)] },
       { text: "(2x − 3)² squared term by term", problems: [q(2)] },
       { text: "a perfect square taken for a difference of squares", problems: [q(6)] },
     ],

@@ -30,10 +30,24 @@ describe("Problem Set 3's data (ticket 213)", () => {
     expect(everyone.filter((c) => c.done === 9).map((c) => c.id)).toEqual(["jordan", "grace", "oliver"]);
   });
 
-  it("Jordan's unchecked pairs begin here (Q8, Q9); Mia stops at a close try; Noah squares term by term on Q2 and Q10", () => {
-    expect(names("jordan")).toEqual(["square-vs-difference", "brackets-dont-expand", "brackets-dont-expand"]);
+  it("Jordan's factor brackets go wrong from here (Q8, Q9); Mia's brackets don't expand back on Q9; Noah squares term by term on Q2 and Q10", () => {
+    // Ticket 343: Q8's (x − 2)(x − 12) multiplies to 24 and adds to −14, product right and sum wrong.
+    expect(names("jordan")).toEqual(["square-vs-difference", "pair-sum-wrong", "brackets-dont-expand"]);
     expect(names("mia")).toContain("brackets-dont-expand");
     expect(names("noah")).toEqual(["squared-termwise", "squared-termwise"]);
+  });
+
+  it("names Q5's (x + 15)(x − 1) and Q8's (x − 2)(x − 12) product right, sum wrong, and every writer's commentary and pattern say so (ticket 343)", () => {
+    expect(evaluateLine("ps3-q5", "(x + 15)(x - 1)")).toMatchObject({ verdict: "wrong", misconception: "pair-sum-wrong" });
+    expect(evaluateLine("ps3-q8", "(x - 2)(x - 12)")).toMatchObject({ verdict: "wrong", misconception: "pair-sum-wrong" });
+    const note = (id: string, pid: string) => byId[id].notes.filter((n) => n.problems.includes(pid)).map((n) => n.text);
+    expect(note("liam", "ps3-q5")).toEqual(["a pair that multiplies to −15 but adds to 14"]);
+    expect(note("oliver", "ps3-q5")).toEqual(["a pair that multiplies but doesn't add"]);
+    expect(note("oliver", "ps3-q8")).toEqual(["a pair that multiplies but doesn't add"]);
+    expect(note("chloe", "ps3-q8")).toEqual(["a pair that multiplies to 24 but adds to −14"]);
+    expect(note("ethan", "ps3-q8")).toEqual(["a pair that multiplies to 24 but adds to −14"]);
+    // Jordan's Q8 and Q9 stay one pattern (a pair product right on Q8, brackets that don't expand back on Q9), so review still reads it as repeated.
+    expect(note("jordan", "ps3-q8")).toEqual(["a factor pair that multiplies to the constant, the brackets wrong"]);
   });
 });
 
@@ -44,11 +58,11 @@ describe("Problem Set 3's Mistakes tab and card (ticket 213)", () => {
     for (const m of ms) expect(groupBySlip(m.rows).flatMap((g) => g.columns).length, m.problem.id).toBeLessThanOrEqual(m.problem.id === "ps3-q10" ? 5 : 4);
   });
 
-  it("has clear top gaps: a pair guessed and not expanded back on seven students, a square and a difference of squares mixed next on five (tickets 299, 323)", () => {
+  it("has clear top gaps: a pair whose product is right and sum wrong on seven students, a square and a difference of squares mixed next on five (tickets 299, 323, 343)", () => {
     const card = assignmentCard(b, INITIAL_CLASSROOM, null, now);
     expect(card).toMatchObject({ submitted: 20, total: 20 });
     expect(card.topGaps).toEqual([
-      { misconception: "brackets-dont-expand", name: "brackets don't expand back", students: 7, skill: "Algebra" },
+      { misconception: "pair-sum-wrong", name: "product right, sum wrong", students: 7, skill: "Algebra" },
       { misconception: "square-vs-difference", name: "square and difference mixed", students: 5, skill: "binomial identity" },
       { misconception: "minus-not-distributed", name: "minus not carried through", students: 4, skill: "Algebra" },
     ]);

@@ -5689,3 +5689,19 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** None beyond one word in five stems.
 
 **Defense.** "its" ties the graph to the expression shown right after the words, which is what the duplicated equation used to do.
+
+## 2026-09-16 · Three older wrong lines relabelled to the narrower misconception, the story sheet following (ticket 343)
+
+**Decision.** PS3 Q5's (x + 15)(x − 1) and Q8's (x − 2)(x − 12) take `pair-sum-wrong`, and PS5 Q8's y = (2x + 1)(x − 3) takes `pair-signs-swapped`, in place of `brackets-dont-expand`. PS4 Q4's (2x − 1)(x + 3) = 0 keeps the broad id. The class story sheet's patterns on those problems name the new misconception in what-is-wrong words, except Jordan's PS3 pattern over Q8 and Q9, which stays one pattern.
+
+**Context.** Ticket 311's line check names the narrower id for four table lines. Carson (2026-09-15) said to relabel if helpful and accepted relabelling the three clear ones. Misconception ids feed the Mistakes pills, top gaps, counts, the review rule, holistic patterns and cross-set signatures, and the story sheet is tested against every student's real lines, so the sheet has to move with the table.
+
+**Alternatives considered.**
+- *Relabel all four*: PS4 Q4's line differs from the answer in one sign, and expands with both the middle term and the constant wrong; "signs swapped in the pair" would overstate it. Carson agreed to keep it.
+- *Relabel none, keep `NARROWER`*: the teacher would keep reading a broad name where a precise one is true, and cross-class counts would file the lines under the wrong id for good (ids are permanent).
+- *Split Jordan's PS3 pattern in two* (Q8 product right, sum wrong; Q9 brackets don't expand back): each would become a single-problem pattern, so the review rule would read both as one-offs and send them to his own rework, rewriting PS3's review record. Both lines are one family, and the pattern's words fit both.
+- *Keep the story patterns' old words and only change their ids*: "non-monic brackets wrong" over PS5 Q4 and Q8 would name two families at once, which the sheet's test rejects, and "factor brackets wrong" would hide what the new name says.
+
+**Tradeoffs.** Jordan and Oliver gain a Minus signs wrong signature (PS2's middle-term sign with PS5's swapped pair) and Ethan's Factor pairs wrong drops from 3 sets to 2; a teacher who had read those pages sees them change. PS5's Classroom card swaps "x given where y asked" for "signs swapped in the pair". Jordan's PS3 pattern still carries the broad id for a Q8 whose line is now the narrower one.
+
+**Defense.** The names now say exactly what is wrong on each line, as the check does, and every consumer reads one id path, so the change is carried everywhere by data alone. Statuses come from right and wrong, not names, so no history pill moves, and the review part still equals the rules on every set.

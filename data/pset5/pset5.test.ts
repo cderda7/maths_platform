@@ -39,11 +39,21 @@ describe("Problem Set 5's data (ticket 187)", () => {
     expect(PS5_SAM.wrong).toEqual(["ps5-q4", "ps5-q6", "ps5-q9"]);
   });
 
-  it("the patterns Problem Set 6 catches start here: Mia and Jordan guess non-monic pairs, Tomas flips signs and fractions", () => {
+  it("the patterns Problem Set 6 catches start here: Mia's and Jordan's non-monic brackets don't expand back, Tomas flips signs and fractions", () => {
     const names = (id: string) => byId[id].wrong.flatMap((pid) => byId[id].attempts[pid].map((tex) => evaluateLine(pid, tex)).flatMap((v) => (v.verdict === "wrong" ? [v.misconception] : [])));
     expect(names("mia")).toContain("brackets-dont-expand");
-    expect(names("jordan")).toEqual(["brackets-dont-expand", "brackets-dont-expand"]);
+    // Ticket 343: Jordan's Q8 (2x + 1)(x − 3) is the right numbers with both signs swapped, the narrower misconception.
+    expect(names("jordan")).toEqual(["brackets-dont-expand", "pair-signs-swapped"]);
     expect(names("tomas")).toEqual(["root-vertex-sign", "root-vertex-sign", "divided-wrong-way", "minus-b-dropped"]);
+  });
+
+  it("names Q8's (2x + 1)(x − 3) signs swapped in the pair, and every writer's commentary says so beside Q4's brackets (ticket 343)", () => {
+    expect(evaluateLine("ps5-q8", "y = (2x + 1)(x - 3)")).toMatchObject({ verdict: "wrong", misconception: "pair-signs-swapped" });
+    expect(evaluateLine("ps5-q8", "y = (2x + 3)(x - 1)")).toMatchObject({ verdict: "wrong", misconception: "brackets-dont-expand" });
+    const note = (id: string, pid: string) => byId[id].notes.filter((n) => n.problems.includes(pid)).map((n) => n.text);
+    for (const id of ["jordan", "ethan", "oliver", "sofia"]) expect(note(id, "ps5-q8"), id).toEqual(["the non-monic pair's signs swapped"]);
+    for (const id of ["jordan", "oliver", "sofia"]) expect(note(id, "ps5-q4"), id).toEqual(["non-monic brackets wrong"]);
+    expect(note("mia", "ps5-q8")).toEqual(["non-monic brackets wrong"]);
   });
 });
 
@@ -86,7 +96,7 @@ describe("Problem Set 5 in the registry (ticket 187)", () => {
     expect(ms[0].right).toBe(18);
   });
 
-  it("has a clear top gap: the guessed non-monic pair, on more students than any other mistake", () => {
+  it("has a clear top gap: non-monic brackets that don't expand back, on more students than any other mistake", () => {
     const byName = new Map<string, Set<string>>();
     const byCluster: { key: string; students: number }[] = [];
     for (const m of mistakesByProblem(null, b)) {
@@ -94,21 +104,22 @@ describe("Problem Set 5 in the registry (ticket 187)", () => {
       for (const r of m.rows) for (const l of r.lines) if (l.verdict.verdict === "wrong") byName.set(l.verdict.misconception!, (byName.get(l.verdict.misconception!) ?? new Set()).add(r.id));
     }
     const names = [...byName.entries()].map(([n, s]) => [n, s.size] as const).sort((x, y) => y[1] - x[1]);
-    expect(names[0]).toEqual(["brackets-dont-expand", 7]);
-    expect(names[1][1]).toBeLessThan(7);
+    // Ticket 343: Q8's (2x + 1)(x − 3) moved to signs swapped in the pair, so Ethan (Q8 alone) leaves the count.
+    expect(names[0]).toEqual(["brackets-dont-expand", 6]);
+    expect(names[1][1]).toBeLessThan(6);
     const clusters = byCluster.sort((x, y) => y.students - x.students);
     expect(clusters[0]).toEqual({ key: "Q4 (3x - 4)(x + 2) = 0", students: 6 });
     expect(clusters[1].students).toBeLessThan(6);
   });
 
-  it("the Classroom's PAST card: done, 20/20 submitted, top gaps brackets not expanding back on seven students, then a root or vertex sign wrong on five and an x given where y was asked on four, the last two under Graphing (tickets 299, 323)", () => {
+  it("the Classroom's PAST card: done, 20/20 submitted, top gaps brackets not expanding back on six students, then a root or vertex sign wrong under Graphing and signs swapped in the pair under Algebra on five each (tickets 299, 323, 343)", () => {
     const card = assignmentCard(b, INITIAL_CLASSROOM, null, now);
     expect(card).toMatchObject({ id: "pset-5", name: "Problem Set 5 — Features of a parabola", due: "Mon 7 Sep", section: "past", status: "done", submitted: 20, total: 20, mistakes: 49 });
     // Ticket 299: the turning points' signs and the intercepts' signs read off the brackets are one misconception, and the heights given as x another (both under Graphing, ticket 323).
     expect(card.topGaps).toEqual([
-      { misconception: "brackets-dont-expand", name: "brackets don't expand back", students: 7, skill: "Algebra" },
+      { misconception: "brackets-dont-expand", name: "brackets don't expand back", students: 6, skill: "Algebra" },
       { misconception: "root-vertex-sign", name: "root or vertex sign wrong", students: 5, skill: "Graphing" },
-      { misconception: "x-for-y", name: "x given where y asked", students: 4, skill: "Graphing" },
+      { misconception: "pair-signs-swapped", name: "signs swapped in the pair", students: 5, skill: "Algebra" },
     ]);
   });
 

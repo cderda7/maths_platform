@@ -141,7 +141,8 @@ describe("the holistic view (ticket 251)", () => {
     const guessed = jordan.patterns.find((h) => h.text === "non-monic brackets wrong")!;
     expect(guessed.refs.map((r) => [r.label, r.status, r.problems.map((p) => p.label)])).toEqual([
       ["PS4", "gap", ["Q1", "Q2", "Q4"]],
-      ["PS5", "gap", ["Q4", "Q8"]],
+      // Ticket 343: PS5 Q8's (2x + 1)(x − 3) is its own pattern now, the non-monic pair's signs swapped.
+      ["PS5", "gap", ["Q4"]],
       ["PS6", "developing", ["Q2"]],
     ]);
   });
