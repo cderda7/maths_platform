@@ -136,7 +136,7 @@ START opens a set; the Edexia mark returns:
    up to class review carries the pathway horizontally beside the student's name (indiv working →
    indiv review → group review → class review, only the stages the assignment has): the stage
    the class is on ringed in purple, stages over in the lit skill button's blue, stages ahead
-   light blue, the same pill the teacher's Pathway card lights. The report and the screens it
+   light blue, drawn by the same stage pill as the teacher's pathway strip (`components/StagePill.tsx`, ticket 334). The report and the screens it
    opens have no strip: the pathway is behind the student there.
 4. **Individual review** (detective feedback): one sentence, "3 of your problems contain a
    mistake." with "Double-check" and the skills to check on the line below, then how many
@@ -209,12 +209,6 @@ for hints. Sam's place comes from his session.
   indigo **New assignment** pill on its own row above the cards over the right column (deep
   indigo text and border; it opens the create screen and is no longer in the bar), and the
   right column, level with the roster: the
-  **Pathway** card (indiv working → indiv review → group review → class review: the stage the
-  class is on ringed in purple with **force submit** beside it and `N/20 done` right under; one
-  press starts a one-minute grace on every student's screen, `● handing in · 1:00 · Cancel` in
-  its place, then the stage ends for everyone as it stands: the set handed in, the corrections
-  handed in and group review begun, or group review over; class review has no button; stages over
-  are the lit skill button's blue; stages ahead light blue), the
   **Class review** card (Set up → / Students frozen · End session; first in the column while a
   session runs), the assignment status
   (in class review · complete), the **Live diagnostic** card: a white box linking to Mistakes
@@ -256,7 +250,17 @@ no marks until the teacher shows them, and the teacher's working pad. In class r
 the pen anywhere on the slide (a circle round a line, a cross beside an example), with Undo and
 Clear beside the mode toggle; a mark is pinned to the maths under it, so it lands on the same maths
 on the laptop and every student's screen.
-- **Mistakes** (`/teacher/a/pset-6/mistakes`; the old `/teacher/mistakes` redirects there): While the live set is on individual working the tab splits in two (ticket 315): **Where students are** on the left, a row per place in lesson order (Starting, Warm-up, Q1 … Q10, Handed in), each student a pill with their detail (the warm-up's skill, a hint, practice, back on the question), the step bar for warm-up and practice and the time in the row in whole minutes ("<1 min here", "2 min here"; dark purple from "3 min here", a student who could use a check-in, ticket 328), or once handed in the time the set took from the check-in ("took 7 min"), an empty row blank (ticket 327); pressing a pill opens that student's work so far over the column (ticket 316: their confidence answer, every question they have moved past with their marked lines, the question they are on "in progress"; Escape or a press outside closes it); **Where students went wrong** on the right, the cards below at half width with the counts in the header and the Live diagnostic at its top left, whose steps open over the left column. After working: the stage, its count and **force submit** after the title (the same control as on the Pathway card); problems first, the students who slipped on each under
+- **The pathway strip** (ticket 334, Class View and Mistakes of the live set): on the "← Edexia Classroom" line, right-aligned
+  on the column's edge, in the same place on both tabs: the stages as pills with thin arrows between (indiv working →
+  indiv review → group review → class review, only the set's), at the back button's 13.5 px. Stages over are the lit
+  skill button's blue with white text, the current one light blue ringed in purple, stages ahead light blue, and a
+  current stage everyone in the room is done with (every group finished before class review, say) blue ringed in
+  purple. Beside the current stage: **force submit** (a size up; one press starts a one-minute grace on every student's
+  screen, `● handing in 0:59 · Cancel` in its place, then the stage ends for everyone as it stands: the set handed in,
+  the corrections handed in and group review begun, or group review over), `n/19 done`, and **end lesson** on a last
+  stage that is not class review (its countdown, `● ending lesson · 4 not done · 0:59 · Cancel`, takes the place of all
+  three). Class review has no button or count. A finished set shows no strip.
+- **Mistakes** (`/teacher/a/pset-6/mistakes`; the old `/teacher/mistakes` redirects there): While the live set is on individual working the tab splits in two (ticket 315): **Where students are** on the left, a row per place in lesson order (Starting, Warm-up, Q1 … Q10, Handed in), each student a pill with their detail (the warm-up's skill, a hint, practice, back on the question), the step bar for warm-up and practice and the time in the row in whole minutes ("<1 min here", "2 min here"; dark purple from "3 min here", a student who could use a check-in, ticket 328), or once handed in the time the set took from the check-in ("took 7 min"), an empty row blank (ticket 327); pressing a pill opens that student's work so far over the column (ticket 316: their confidence answer, every question they have moved past with their marked lines, the question they are on "in progress"; Escape or a press outside closes it); **Where students went wrong** on the right, the cards below at half width with the counts in the header and the Live diagnostic at its top left, whose steps open over the left column. After working the title stands alone; problems first, the students who slipped on each under
   one pill per slip, expand for their working; inside a pill the students on the exact same
   wrong line sit together and, open, one box in the pill's red surrounds their working (a
   student alone on theirs boxed alone). Students whose working is identical line for line

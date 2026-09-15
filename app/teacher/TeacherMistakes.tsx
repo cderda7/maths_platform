@@ -3,8 +3,8 @@
 import { useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode, type RefObject } from "react";
 import Link from "next/link";
 import TeacherChrome from "./TeacherChrome";
-import { BackToClassroom, useAssignmentBundle } from "./AssignmentContext";
-import ForceSubmit from "./ForceSubmit";
+import { useAssignmentBundle } from "./AssignmentContext";
+import BackLine from "./BackLine";
 import M from "@/components/Math";
 import ProblemQuestion from "@/components/ProblemQuestion";
 import { Avatar, Card, Eyebrow, H1 } from "@/components/ui";
@@ -324,19 +324,6 @@ export default function TeacherMistakes() {
   const openStudent = useOpenStudent();
   const studentPill = split && !focused && openStudent ? places.flatMap((r) => r.pills).find((p) => p.id === openStudent) : undefined;
   const pressPill = (id: string) => setStudentOpen(openStudent === id ? null : id);
-  const stagePills = stage && stage.done !== null && assignment.kind === "live" && (
-    <div className="flex items-center gap-3 text-[12.5px] leading-snug text-ink-muted" data-mistakes-stage={stage.id}>
-      <span className="rounded-lg bg-standout-soft px-3 py-1 font-display text-[16px] text-ink">{stage.word}</span>
-      <span data-stage-count>
-        <span className="tabular-nums">
-          {stage.done}/{stage.total}
-        </span>{" "}
-        done
-      </span>
-      <ForceSubmit stage={stage.id} session={session} inline />
-    </div>
-  );
-
   const list = (
     <div ref={listRef} className={`${split ? "" : "mt-10"} space-y-6`} data-problem-list>
       {problems.map(({ problem, rows, right, wrong, pending }) => {
@@ -545,13 +532,12 @@ export default function TeacherMistakes() {
 
   return (
     <TeacherChrome>
-      <BackToClassroom />
-      {/* On the split (ticket 315) the stage pills share the eyebrow's line, at its right. */}
-      <div className={`mt-3 flex items-center justify-between gap-6 ${split ? "min-h-[30px]" : ""}`} data-eyebrow-row>
+      {/* The pathway strip on the back button's line (ticket 334), where Class View has it; the eyebrow's line and the title row no longer carry a stage pill. */}
+      <BackLine session={session} />
+      <div className="mt-3" data-eyebrow-row>
         <Eyebrow>
           {assignment.className} · {assignment.title}
         </Eyebrow>
-        {split && !focused && stagePills}
       </div>
       {chain && (
         <DiagnosticFocus
@@ -562,12 +548,11 @@ export default function TeacherMistakes() {
         />
       )}
       <div hidden={focused} data-mistakes-page>
-      {/* Force submit for the stage the class is on (ticket 185), the same control as beside the Class view's current pathway pill. The stage group ends on the problem cards' right edge (ticket 195): the row mirrors a problem row, its diagnostic column held by the chip's unseen footprint. The countdown that replaces the button grows leftward, pushing the pill and count for its minute, rather than a reserved gap before the button the rest of the time. */}
+      {/* The title row mirrors a problem row (ticket 195), its diagnostic column held by the chip's unseen footprint; its stage pill and force submit moved to the pathway strip (ticket 334). */}
       {!split && (
       <div className="mt-3 flex items-center gap-4">
         <div className="flex min-w-0 flex-1 items-center justify-between gap-10">
           <H1>Where students went wrong</H1>
-          {stagePills}
         </div>
         {assignment.kind === "live" && <DiagnosticFootprint className="ml-5 shrink-0" />}
       </div>

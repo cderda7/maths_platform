@@ -3,10 +3,9 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import TeacherChrome from "./TeacherChrome";
-import { BackToClassroom, useAssignmentBundle } from "./AssignmentContext";
+import { useAssignmentBundle } from "./AssignmentContext";
+import BackLine from "./BackLine";
 import DiagnosticCard from "./DiagnosticCard";
-import EndLesson from "./EndLesson";
-import ForceSubmit from "./ForceSubmit";
 import ProgressPill from "./ProgressPill";
 import GroupProgressCard from "./GroupProgressCard";
 import WholeClassCard from "./WholeClassCard";
@@ -21,8 +20,8 @@ import type { Classmate } from "@/data/classmates";
 import { categoryName, isFlat, type CategoryId, type LeafId } from "@/data/taxonomy";
 import { confidenceForms, confidenceLabel, confidenceTone, type ConfidenceForm } from "@/lib/report";
 import type { Confidence } from "@/data/types";
-import { assignmentReportHref, assignmentStages, holisticHref, rosterEvidence, rosterProgress, type AssignmentBundle } from "@/lib/assignments";
-import { currentSlide, isEnding, lessonOver } from "@/lib/classroom";
+import { assignmentReportHref, holisticHref, rosterEvidence, rosterProgress, type AssignmentBundle } from "@/lib/assignments";
+import { currentSlide, lessonOver } from "@/lib/classroom";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { absenceLocked, canMarkAbsent } from "@/lib/absence";
 import { liveStudentTag, progressTag } from "@/lib/progress";
@@ -438,7 +437,6 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
   const results = rows.map((r) => hierarchyFor(r.evidence, assignment));
   const columns = results[0]?.columns ?? [];
   const caution = live?.escalation.caution ?? [];
-  const stages = assignmentStages(assignment, classroom, live, now);
   const wcInUse = !!currentSlide(classroom);
   /** The history student's pills over each shown category: only earlier sets that assessed it, so a category may have none (ticket 237). */
   const stacks = history ? columns.map((c) => ({ category: c, points: categoryHistory(assignment.id, history.student, c) })) : [];
@@ -451,7 +449,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
 
   return (
     <TeacherChrome>
-      <BackToClassroom />
+      <BackLine session={live} />
       <Eyebrow className="mt-3">
         {assignment.className} · {unitLabel(assignment.unit)}
       </Eyebrow>
@@ -723,41 +721,6 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
           <div ref={sideTopRef} className="sticky top-12 z-10 flex flex-col gap-6" data-side-top>
           {/* Class review in use: its card leads the column (ticket 129). */}
           {wcInUse && <WholeClassCard />}
-          <Card className="p-6" data-pathway-card>
-            <Eyebrow className="inline-block rounded-md bg-accent px-2 py-1 text-white">Pathway</Eyebrow>
-            {/* At the card's left (not centred as before ticket 129) so the note beside the current pill has the rest of the card's width. */}
-            <ol className="mt-3 flex w-fit flex-col items-center font-display text-[22px] leading-snug text-ink" data-pathway-chip>
-              {stages.map((stage, i) => (
-                <li key={stage.id} className="flex flex-col items-center text-center" data-stage={stage.id} data-stage-state={stage.state}>
-                  {i > 0 && (
-                    <svg viewBox="0 0 12 18" className="my-0.5 h-[18px] w-3 text-ink-muted/70" aria-hidden>
-                      <path d="M6 1v15M2.5 12.5 6 16l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
-                  <span className="relative inline-block">
-                    {/* Over: the blue of a lit skill button on the student's warm-up (ticket 134). Current: a purple ring (a shadow, so nothing moves). */}
-                    <span className={`inline-block rounded-xl px-5 py-1.5 ${stage.state === "over" ? "bg-standout text-white" : "bg-standout-soft"} ${stage.state === "current" ? "ring-2 ring-accent" : ""}`}>{stage.word}</span>
-                    {/* Beside the current pill (ticket 145): force submit for the stage, the count right under it; on a last stage that is not class review, end lesson over the blank room above them (ticket 273). */}
-                    {stage.state === "current" && stage.done !== null && (
-                      <span className="absolute left-full top-1/2 ml-3 flex -translate-y-1/2 flex-col items-start whitespace-nowrap text-left text-[12.5px] leading-snug text-ink-muted" style={{ fontFamily: "var(--font-sans)" }} data-stage-note>
-                        <EndLesson stage={stage.id} session={live} notDone={Math.max(0, stage.total - stage.done)} />
-                        {/* While end lesson's minute runs its countdown lies over these two, which keep their room (ticket 273). */}
-                        <span className={`flex flex-col items-start ${isEnding(classroom, now) ? "invisible" : ""}`} data-stage-note-rows>
-                        <ForceSubmit stage={stage.id} session={live} />
-                        <span data-stage-count>
-                          <span className="tabular-nums">
-                            {stage.done}/{stage.total}
-                          </span>{" "}
-                          done
-                        </span>
-                        </span>
-                      </span>
-                    )}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </Card>
           <GroupProgressCard session={live} />
           {!wcInUse && <WholeClassCard />}
           <DiagnosticCard />
@@ -787,7 +750,7 @@ const PIN_GAP = 24;
 /**
  * Keeps the side column's two pinned groups from overlapping (ticket 196). The cards above the key stick
  * to the top of the teacher frame's scroll region and the key to its bottom; when the region is too short
- * for both (a short window, or class review and group progress cards joining the pathway), the cards above
+ * for both (a short window, or the class review, group progress and diagnostic cards together), the cards above
  * scroll away with the roster and only the key stays pinned, if it fits on its own. Styles are set on the nodes from a ResizeObserver (on the
  * region and both groups, so a card appearing re-checks), not through state. Heights are offsetHeight /
  * clientHeight: layout px under the chrome's zoom.

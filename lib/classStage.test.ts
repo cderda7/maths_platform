@@ -1,14 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { ASSIGNMENT } from "@/data/assignment";
+import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
+import type { Pathway } from "@/data/types";
 import { classroomReducer, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
-import { canForce, classStages, currentClassStage, FORCE_KIND, pathwayStages } from "./classStage";
-import { DEMO_PATHWAY, skipFixture } from "./demo";
+import { canForce, classStages, currentClassStage, FORCE_KIND, pathwayStages, stagePillState, type ClassStageId } from "./classStage";
+import { DEMO_PATHWAY, demoSend, skipFixture, teacherSkip } from "./demo";
+import { allPathways, nextStage } from "./pathway";
 import { ARRIVAL_OFFSETS_MS, CLASS_SIZE, LAST_ARRIVAL_MS } from "./readiness";
 
 /** The class the counts are over: twenty, less Chloe, absent on Problem Set 6 (ticket 250). */
 const PRESENT = CLASS_SIZE - 1;
-import { sessionAt } from "./session";
+import { INITIAL_SESSION, sessionAt, type StudentSession } from "./session";
 
 const now = 1_700_000_000_000;
 const words = (c: ClassroomState, s: Parameters<typeof classStages>[1]) => classStages(c, s, now).map((x) => `${x.word}:${x.state}${x.done === null ? "" : ` ${x.done}/${x.total}`}`);
@@ -105,5 +107,65 @@ describe("the class's stage on the pathway", () => {
     c = classroomReducer(c, { type: "wc/project", at: now });
     expect(classStages(c, sessionAt("frozen"), now).map((s) => `${s.id}:${s.state}`)).toEqual(["working:over", "whole-class:current"]);
     expect(DEMO_PATHWAY).toEqual(["individual", "group", "whole-class"]);
+  });
+});
+
+describe("the stage pill's four states (ticket 334)", () => {
+  type Point = { label: string; classroom: ClassroomState; session: StudentSession; at?: number };
+  const pills = ({ classroom, session, at = now }: Point) => classStages(classroom, session, at).map((s) => `${s.id}:${stagePillState(s)}`);
+  /** What the strip should read with the class on `current` (null: the lesson over), `finished` when everyone in the room is done with it. */
+  const expected = (pathway: Pathway, current: ClassStageId | null, finished = false) => {
+    const ids: ClassStageId[] = ["working", ...pathway];
+    const at = current === null ? ids.length : ids.indexOf(current);
+    return ids.map((id, i) => `${id}:${i < at ? "over" : i > at ? "ahead" : finished ? "finished" : "current"}`);
+  };
+
+  it("reads the state off the stage and its count: finished only when current and everyone in the room is done", () => {
+    expect(stagePillState({ state: "over", done: null, total: 19 })).toBe("over");
+    expect(stagePillState({ state: "ahead", done: null, total: 19 })).toBe("ahead");
+    expect(stagePillState({ state: "current", done: 18, total: 19 })).toBe("current");
+    expect(stagePillState({ state: "current", done: 19, total: 19 })).toBe("finished");
+    // Class review has no per-student count, and an empty room finishes nothing.
+    expect(stagePillState({ state: "current", done: null, total: 19 })).toBe("current");
+    expect(stagePillState({ state: "current", done: 0, total: 0 })).toBe("current");
+  });
+
+  it("gives every stage its state at every point of the lesson, on every pathway", () => {
+    const groupDone = skipFixture("report", now).classroom.group;
+    expect(groupDone?.done).toBeTruthy();
+    for (const pathway of allPathways()) {
+      const name = pathway.join(",") || "no review";
+      const sent = classroomReducer(INITIAL_CLASSROOM, demoSend(pathway, now));
+      const handedIn = sessionAt(nextStage(pathway, "handed-in"));
+      const points: { point: Point; strip: string[] }[] = [
+        { point: { label: "fresh", classroom: sent, session: INITIAL_SESSION }, strip: expected(pathway, "working") },
+        { point: { label: "working", classroom: sent, session: sessionAt("working") }, strip: expected(pathway, "working") },
+      ];
+      // Everyone handed in: individual review starts on the hand-in; any other next stage waits for the gate, the projection or the teacher.
+      points.push({ point: { label: "everyone handed in", classroom: sent, session: handedIn }, strip: pathway.includes("individual") ? expected(pathway, "individual") : expected(pathway, "working", true) });
+      if (pathway.includes("individual")) {
+        const arrived = classroomReducer(sent, { type: "class/arrive", student: DEMO_STUDENT.id, at: now });
+        const gate = sessionAt("class-wait");
+        points.push({ point: { label: "individual review", classroom: arrived, session: gate }, strip: expected(pathway, "individual") });
+        // Every correction in: group review's gate opens at once; without group review the class stays on individual review, finished.
+        points.push({ point: { label: "every correction in", classroom: arrived, session: gate, at: now + LAST_ARRIVAL_MS + 10 }, strip: pathway.includes("group") ? expected(pathway, "group") : expected(pathway, "individual", true) });
+      }
+      // The teacher moves the class on stage by stage from the working (the presenter's "students done with current stage").
+      let lesson = { classroom: sent, session: sessionAt("working") };
+      for (const stage of pathway) {
+        lesson = teacherSkip("done", lesson.classroom, lesson.session, now);
+        points.push({ point: { label: stage, ...lesson }, strip: expected(pathway, stage) });
+        if (stage === "group") points.push({ point: { label: "every group finished", classroom: { ...lesson.classroom, group: groupDone! }, session: lesson.session }, strip: expected(pathway, "group", true) });
+      }
+      const over = teacherSkip("completed", lesson.classroom, lesson.session, now);
+      points.push({ point: { label: "lesson over", ...over }, strip: expected(pathway, null) });
+      for (const { point, strip } of points) expect(pills(point), `${name}: ${point.label}`).toEqual(strip);
+    }
+  });
+
+  it("never shows finished on the student's strip, which has no counts", () => {
+    const { classroom } = skipFixture("report", now);
+    expect(classStages(classroom, sessionAt("report"), now).map(stagePillState)).toContain("finished");
+    expect(pathwayStages(classroom, sessionAt("report"), now).map((s) => s.state)).not.toContain("finished");
   });
 });

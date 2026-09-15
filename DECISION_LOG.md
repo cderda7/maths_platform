@@ -5597,3 +5597,25 @@ rule for pens is untouched and the exception is visible and named.
 - **Text maths.** Stems written as text ("y = x² + 4x + 5") stay in the sans face beside upright serif maths (FUTURE_FEATURES).
 
 **Defense.** One rule, one face, on every screen that shows the same object. The TeX, and so every evaluation key, hint fragment and measurement, is untouched; the hint-box sweep and the laptop fit check pass as before.
+
+## 2026-09-15 · The pathway strip: one stage pill, a fourth state derived from the count, one line on both tabs (ticket 334)
+
+**Decision.**
+- **One pill.** `components/StagePill.tsx` draws every lesson stage pill: `StagePill` takes a stage id, a state and a size (`ipad` 15 px, `laptop` 13.5 px) and an optional `badge`; `PathwayPills` lays a pathway out with arrows and a `beside` slot after the current pill. Sam's header strip and the teacher's strip both render through it.
+- **The fourth state is derived.** `stagePillState(stage)` in `lib/classStage.ts` reads `finished` off the current stage whose count has reached the class in the room. `ClassStage.state` keeps its three values.
+- **One line component.** `app/teacher/BackLine.tsx` is the first child of both tabs: the back button and, on the live set, the strip right-aligned on the column's edge, with force submit, the count and end lesson after the current pill. `ForceSubmit` and `EndLesson` lose their card variants and keep one one-line form each.
+- **Geometry.** The row is `items-start` so the back button's top stays at ticket 268's 81.6 px, and the strip stretches to the row less the button's bottom margin so it is centred on the button. Pills at `leading-normal` are the button's 32 layout px.
+
+**Context.** Carson, 2026-09-15: the pathway visible on Class View and Mistakes, "in line with the <- back button, right justified", at the back button's font size, today's colours, force submit "bigger text than the pathway text". The 318/319 design session asked for one shared pill with a fourth state (finished but still current), and Carson confirmed Sam's strip renders through it looking as today. Ticket 335 will put a dot on the current pill.
+
+**Alternatives considered.**
+- *A stored fourth state on `ClassStage`*: every consumer of `state === "current"` (the Classroom's cards, the landing rule, `currentStageOf`) would need to learn it; a derived look keeps the lesson model at three states.
+- *Showing finished on Sam's strip too*: the student side would have to compute the classmates' counts, and Carson wants his strip unchanged.
+- *The strip absolutely positioned over the back button's line*: nothing in flow changes, but the strip could slide under the button on a narrow window without the layout knowing; a flex row keeps them apart.
+- *Force submit and the count to the left of the whole strip*: the pills would never move when a countdown starts, but the controls would sit away from the stage they act on; "beside the current stage" wins, with the pills left of it moving for the minute as Mistakes' stage group did.
+- *Keeping the card variants of `ForceSubmit` and `EndLesson`*: nothing renders them any more.
+- *A shared pill for Create's pathway line*: its stops are toggles, a different object with its own look.
+
+**Tradeoffs.** While a countdown runs the pills left of it move left. The pills are small on screen (13.5 × 0.72 ≈ 9.7 px), as the back button is. The strip exists only on Class View and Mistakes of the live set.
+
+**Defense.** One component and one pure state function mean the pathway looks and reads the same wherever it appears, and 318/319 and 335 build on a stage id plus a state rather than new pills. Rendering the same line component first on both tabs is what makes the rects identical by construction, which the click-through then measures.

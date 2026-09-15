@@ -4,7 +4,7 @@
 
 **Blocked by:** none (can start immediately).
 
-**Status:** open
+**Status:** done
 
 **Triage:** `ready-for-agent`
 

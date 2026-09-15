@@ -6,19 +6,16 @@ import { canEndLesson, endsLesson, type ClassStageId } from "@/lib/classStage";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import type { StudentSession } from "@/lib/session";
 import { useNow } from "@/lib/store";
-import { FORCE_PILL, mmss } from "./ForceSubmit";
+import { FORCE_PILL, FORCE_PILL_SIZE, mmss, PENDING_LINE } from "./ForceSubmit";
 
 /**
- * "end lesson" on the Pathway card (ticket 273): on the pathway's last stage when it is not class review, in force submit's
- * pill, laid over the blank room above force submit (`absolute bottom-full` of the stage note), so force submit, the count and
- * the stage pills stay exactly where they were when it appears. One press starts the one-minute grace every student sees ("Your
- * teacher is ending the lesson in"). While it runs the pill's room is left blank and "ending lesson", how many of the class are
- * not done with the stage, and the countdown with Cancel are laid over force submit and its count from force submit's top
- * (`absolute top-0`; the stage note hides those two, `isEnding`, keeping their room), so the block never rises beside the stage
- * above (on a two-stage pathway "indiv working" ends a few px left of the note). When the minute is out every student still in
- * the lesson lands on their report and the lesson ends (`lesson/end`): the set moves to Past. No confirmation step, as force
- * submit (ticket 145): the minute with Cancel is the undo, and the count says who it cuts short. Disabled while force submit's
- * own minute runs.
+ * "end lesson" on the pathway strip (ticket 273; on the Pathway card until ticket 334): on the pathway's last stage when it is
+ * not class review, in force submit's pill, after the count. One press starts the one-minute grace every student sees ("Your
+ * teacher is ending the lesson in"). While it runs the strip shows, in place of force submit, the count and this pill, one
+ * line: "ending lesson", how many of the class are not done with the stage, and the countdown with Cancel (the strip leaves
+ * out force submit and its count meanwhile, `isEnding`). When the minute is out every student still in the lesson lands on
+ * their report and the lesson ends (`lesson/end`): the set moves to Past. No confirmation step, as force submit (ticket 145):
+ * the minute with Cancel is the undo, and the count says who it cuts short. Disabled while force submit's own minute runs.
  */
 export default function EndLesson({ stage, session, notDone }: { stage: ClassStageId; session: StudentSession | null; notDone: number }) {
   const classroom = useClassroom();
@@ -26,29 +23,25 @@ export default function EndLesson({ stage, session, notDone }: { stage: ClassSta
   if (!endsLesson(stage, classroom)) return null;
   const advance = classroom.advance;
   return isEnding(classroom, now) && advance ? (
-    <span className="absolute left-0 top-0 flex flex-col items-start text-ink" data-end-lesson-pending>
-      <span className="flex items-center gap-1.5">
-        <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-accent" aria-hidden />
-        ending lesson
-      </span>
+    <span className={PENDING_LINE} data-end-lesson-pending>
+      <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-accent" aria-hidden />
+      ending lesson
+      <span aria-hidden>·</span>
       <span className="text-ink-muted" data-end-lesson-left>
         {notDone === 0 ? "everyone done" : <><span className="tabular-nums">{notDone}</span> not done</>}
       </span>
-      <span className="flex items-center gap-1.5">
-        {/* The clock ticks once a second, so a fresh countdown never claims more than the grace. */}
-        <span className="tabular-nums">{mmss(Math.min(GRACE_MS, advance.deadline - now))}</span>
-        <span aria-hidden>·</span>
-        <button type="button" className="text-accent-deep hover:underline" onClick={() => dispatchClassroom({ type: "advance/clear" })} data-end-lesson-cancel>
-          Cancel
-        </button>
-      </span>
-    </span>
-  ) : (
-    <span className="absolute bottom-full left-0 pb-1" data-end-lesson-slot>
-      <button type="button" className={`${FORCE_PILL} block px-2.5 py-1 text-[12px]`} disabled={!canEndLesson(stage, classroom, session, now)} onClick={() => dispatchClassroom({ type: "advance/start", kind: "end-lesson" })} data-end-lesson={stage}>
-        end lesson
+      <span aria-hidden>·</span>
+      {/* The clock ticks once a second, so a fresh countdown never claims more than the grace. */}
+      <span className="tabular-nums">{mmss(Math.min(GRACE_MS, advance.deadline - now))}</span>
+      <span aria-hidden>·</span>
+      <button type="button" className="text-accent-deep hover:underline" onClick={() => dispatchClassroom({ type: "advance/clear" })} data-end-lesson-cancel>
+        Cancel
       </button>
     </span>
+  ) : (
+    <button type="button" className={`${FORCE_PILL_SIZE} ${FORCE_PILL}`} disabled={!canEndLesson(stage, classroom, session, now)} onClick={() => dispatchClassroom({ type: "advance/start", kind: "end-lesson" })} data-end-lesson={stage}>
+      end lesson
+    </button>
   );
 }
 

@@ -4,7 +4,7 @@ import type { StudentSession } from "./session";
 
 /**
  * Where one student is on one assignment (ticket 185): the one meaning of "submitted" for the
- * class view's rows, the Pathway card's working count and the landing rule. A student who has not
+ * class view's rows, the pathway strip's working count and the landing rule. A student who has not
  * begun is `not-started`; one on the check-in or the warm-up is `warming-up`; one on the set is
  * `working` on the first problem they have not answered (named by its label, "Q4"); one who has
  * handed the set in (whole or in part) is `submitted`. Pure.

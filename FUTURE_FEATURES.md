@@ -1748,6 +1748,15 @@ Raised in a project checkpoint review; Carson asked for these on the list. Space
 - **Italic correction on upright letters.** KaTeX keeps a small right margin after glyphs that lean (f 0.11em, y 0.04em). Removing it is a change to KaTeX's spacing, which the maths rule forbids; revisit only if an `f(x)` in TeX looks loose.
 - **Lowercase Greek.** KaTeX_Main has no lowercase Greek, so `\pi` or `\theta` typed on Create would fall back to Times New Roman. No stored TeX uses one; a rule for `.mathnormal` Greek (keep KaTeX_Math, upright) would be needed first.
 
+## The pathway strip on the back button's line (ticket 334, 2026-09-15)
+
+- **The strip on the other set pages.** Groups, the student report and the individual view keep the plain back button. Deferred: Carson asked for Class View and Mistakes; the report runs at its own zoom, so the strip would need its own same-spot check there.
+- **A strip on a finished set.** A finished set's Class View and Mistakes show no strip (every stage would read over), as the Pathway card was hidden on one (ticket 191). Deferred: nothing to act on; a past set's pathway could still be worth seeing.
+- **Nothing shifting while a countdown runs.** The strip is right-aligned, so when force submit gives way to its wider countdown (or end lesson's) the pills left of it move left for the minute, as Mistakes' old stage group did. Reserving the countdown's width would hold them still at the cost of a gap the rest of the time. Deferred: kept the precedent.
+- **The fourth state on Sam's iPad.** The student's strip has no counts, so it never shows "finished but still current". Deferred: Carson confirmed the iPad looks as it does today.
+- **Create's pathway line through the shared pill.** Create's stops (`PathwayMap`) are on/off toggles with their own look, not lesson states, so they do not use `StagePill`. Deferred: a different object; unifying the looks is a design call.
+- **The pathway strip on narrow windows.** It fits 1280 and 1440 with room to spare (four stages and a countdown); below about 1000 px it would meet the back button. Deferred: the laptop is 1280 and up.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

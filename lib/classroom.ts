@@ -83,7 +83,7 @@ export interface SentHomework {
 
 /**
  * A teacher-driven move of the whole class, applied by every student tab when the deadline passes.
- * The three `force-*` kinds are the Pathway card's "force submit" for the stage the class is on
+ * The three `force-*` kinds are the pathway strip's "force submit" (ticket 334) for the stage the class is on
  * (ticket 145): the set handed in as it stands, the corrections handed in as they stand (which
  * opens the gate into group review when one is ahead), group review ended where it stands.
  * `end-lesson` is the card's "end lesson" on a last stage that is not class review (ticket 273): every student still in

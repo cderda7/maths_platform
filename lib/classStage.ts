@@ -10,7 +10,7 @@ import { standingsAt } from "./standings";
 import { classmatesAt, type StreamSet } from "./stream";
 
 /**
- * Where the class is on its pathway, for the class view's Pathway card (ticket 129): every stage
+ * Where the class is on its pathway, for the pathway strip on Class View and Mistakes (ticket 334; the Pathway card from ticket 129): every stage
  * of the pathway (the individual working first, then the review stages) as over, current or
  * ahead, with how many of the class are done with the current one. Pure: derived from the
  * classroom, the live student's session and the clock, so every tab agrees.
@@ -28,7 +28,7 @@ import { classmatesAt, type StreamSet } from "./stream";
  * through: `FORCE_KIND` names the advance each starts, `canForce` says whether there is still
  * anything to force (the live student is still on the stage, and the teacher is not projecting).
  *
- * "End lesson" (ticket 273) sits above it on the pathway's last stage when that stage is not class review (class review ends
+ * "End lesson" (ticket 273) sits after them on the pathway's last stage when that stage is not class review (class review ends
  * from its own card): `endsLesson` names that stage, `canEndLesson` says whether the press can start its grace now.
  */
 export type ClassStageId = "working" | ReviewStage;
@@ -141,6 +141,19 @@ export function pathwayStages(c: ClassroomState | null | undefined, session: Stu
   const current = currentClassStage(c, session, now);
   const at = current === null ? ids.length : ids.indexOf(current);
   return ids.map((id, i) => ({ id, word: CLASS_STAGE_WORD[id], state: i < at ? "over" : i === at ? "current" : "ahead" }));
+}
+
+/**
+ * A stage pill's look (ticket 334): over, current and ahead as `StageState`, plus "finished", the current stage when every
+ * student in the room is done with it but the class has not moved on (the working with everyone handed in on a pathway whose
+ * next stage waits for the teacher, individual review with every correction in and no group review to open, every group
+ * finished before class review is projected). Class review has no per-student count, so it is never finished. The student's
+ * strip has no counts and shows the three stage states only.
+ */
+export type StagePillState = StageState | "finished";
+
+export function stagePillState(stage: Pick<ClassStage, "state" | "done" | "total">): StagePillState {
+  return stage.state === "current" && stage.done !== null && stage.total > 0 && stage.done >= stage.total ? "finished" : stage.state;
 }
 
 export function classStages(c: ClassroomState | null | undefined, session: StudentSession | null, now: number, set: StreamSet = FIXTURE_SET): ClassStage[] {
