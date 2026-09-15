@@ -7,6 +7,7 @@ import { BackToClassroom, useAssignmentBundle } from "./AssignmentContext";
 import DiagnosticCard from "./DiagnosticCard";
 import EndLesson from "./EndLesson";
 import ForceSubmit from "./ForceSubmit";
+import ProgressPill from "./ProgressPill";
 import GroupProgressCard from "./GroupProgressCard";
 import WholeClassCard from "./WholeClassCard";
 import CautionTriangle from "@/components/CautionTriangle";
@@ -18,7 +19,7 @@ import { CategoryChip, StatusDot, STATUS_WORD } from "@/components/Tag";
 import { DEMO_STUDENT, unitLabel } from "@/data/assignment";
 import type { Classmate } from "@/data/classmates";
 import { categoryName, isFlat, type CategoryId, type LeafId } from "@/data/taxonomy";
-import { confidenceForms, confidenceLabel, type ConfidenceForm } from "@/lib/report";
+import { confidenceForms, confidenceLabel, confidenceTone, type ConfidenceForm } from "@/lib/report";
 import type { Confidence } from "@/data/types";
 import { assignmentReportHref, assignmentStages, holisticHref, rosterEvidence, rosterProgress, type AssignmentBundle } from "@/lib/assignments";
 import { currentSlide, isEnding, lessonOver } from "@/lib/classroom";
@@ -146,7 +147,7 @@ function rosterMinWidth(columns: CategoryId[]): number {
 
 function confidenceWord(c: Confidence | null): { text: string; tone: string } {
   const text = confidenceLabel(c);
-  return { text, tone: !c ? "text-ink-muted" : text === "confident" ? "text-secure" : "text-accent-deep" };
+  return { text, tone: confidenceTone(text) };
 }
 
 function ago(ms: number | null, now: number): string {
@@ -411,7 +412,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
     missing: progress[c.id].kind === "not-started",
     evidence: evidence[c.id],
     sub: "",
-    confidence: progress[c.id].kind === "not-started" ? confidenceWord(null) : { text: c.confidence, tone: c.confidence === "confident" ? "text-secure" : "text-accent-deep" },
+    confidence: progress[c.id].kind === "not-started" ? confidenceWord(null) : { text: c.confidence, tone: confidenceTone(c.confidence) },
     set: setScoreText(progress[c.id], recordScore(c, problems), problems.length),
     tag: progressTag(progress[c.id]),
     absent: assignment.absent.includes(c.id),
@@ -585,10 +586,7 @@ export default function TeacherLive({ init }: { init?: ClassViewInit }) {
                                   absent
                                 </span>
                               ) : r.tag && (
-                                <span className="inline-flex shrink-0 items-center gap-[3px] whitespace-nowrap rounded-full border border-accent-line bg-paper px-[5px] py-0.5 text-[11px] font-medium text-accent-deep" data-live-pill={r.live || undefined} data-progress-tag={r.tag}>
-                                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" aria-hidden />
-                                  {r.tag}
-                                </span>
+                                <ProgressPill tag={r.tag} data-live-pill={r.live || undefined} />
                               )}
                             </div>
                             {/* Mark absent / mark present (ticket 250): one of the row's buttons (same width, so the word changing moves nothing), under the name, laid over the row's padding so the row never grows; shown with the stack. The live student on the live set is on his iPad, so has none. */}

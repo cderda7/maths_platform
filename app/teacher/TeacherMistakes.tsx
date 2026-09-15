@@ -18,8 +18,10 @@ import { useClassroom } from "@/lib/classroom-store";
 import { liveDiagnostic, questionFor } from "@/lib/diagnostic";
 import DiagnosticFocus from "./DiagnosticFocus";
 import DiagnosticPush, { DiagnosticChip, DiagnosticFootprint, DiagnosticOverlay, PROBLEM_HEADER } from "./DiagnosticPush";
-import { useOpenFlyout } from "./diagnosticFlyout";
+import { setStudentOpen, useOpenFlyout, useOpenStudent } from "./diagnosticFlyout";
 import StageSplit from "./StageSplit";
+import StudentWorkPanel from "./StudentWorkPanel";
+import { studentWorkAt } from "@/lib/studentWork";
 import { PlaceTable, useWhereRows } from "./WhereStudentsAre";
 
 // The same button as the class view's row actions ("see dot skills" / "close").
@@ -318,6 +320,10 @@ export default function TeacherMistakes() {
   const places = useWhereRows(assignment, session, now);
   const flyout = useOpenFlyout();
   const flyoutProblem = split ? problems.find((p) => p.problem.id === flyout) : undefined;
+  /** The student whose work panel is open over the rows (ticket 316): their pill, for the place it stands for. */
+  const openStudent = useOpenStudent();
+  const studentPill = split && !focused && openStudent ? places.flatMap((r) => r.pills).find((p) => p.id === openStudent) : undefined;
+  const pressPill = (id: string) => setStudentOpen(openStudent === id ? null : id);
   const stagePills = stage && stage.done !== null && assignment.kind === "live" && (
     <div className="flex items-center gap-3 text-[12.5px] leading-snug text-ink-muted" data-mistakes-stage={stage.id}>
       <span className="rounded-lg bg-standout-soft px-3 py-1 font-display text-[16px] text-ink">{stage.word}</span>
@@ -407,7 +413,7 @@ export default function TeacherMistakes() {
                     if (e.detail) e.currentTarget.blur();
                     act();
                   }}
-                  className={`${action.cls} ${action.visible ? "" : "invisible group-hover/q:visible group-focus-within/q:visible"}`}
+                  className={`${action.cls} ${split ? "ml-auto shrink-0" : ""} ${action.visible ? "" : "invisible group-hover/q:visible group-has-[:focus-visible]/q:visible"}`}
                   aria-expanded={isOpen}
                   data-problem-action={problem.id}
                 >
@@ -571,10 +577,16 @@ export default function TeacherMistakes() {
         <StageSplit
           className="mt-4"
           leftTitle="Where students are"
-          left={<PlaceTable rows={places} now={now} />}
+          left={<PlaceTable rows={places} now={now} onPress={pressPill} open={studentPill?.id ?? null} />}
           rightTitle="Where students went wrong"
           right={list}
-          overlay={flyoutProblem && <DiagnosticOverlay key={flyoutProblem.problem.id} problem={flyoutProblem.problem} rows={flyoutProblem.rows} />}
+          overlay={
+            flyoutProblem ? (
+              <DiagnosticOverlay key={flyoutProblem.problem.id} problem={flyoutProblem.problem} rows={flyoutProblem.rows} />
+            ) : (
+              studentPill && <StudentWorkPanel key={studentPill.id} pill={studentPill} work={studentWorkAt(assignment, session, now, studentPill.id, studentPill.place)} />
+            )
+          }
         />
       ) : (
         list

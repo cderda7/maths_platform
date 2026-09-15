@@ -37,12 +37,20 @@ export function namedSkills(c: Confidence | null): string[] | null {
   return names.length === 0 || names.length > NAMED_CAP ? null : names;
 }
 
+/** The Confidence column's label before an answer. */
+export const NO_CONFIDENCE = "—";
+
 /** The short label on the live grid: "confident", "low", or "low: fractions, discriminant". */
 export function confidenceLabel(c: Confidence | null): string {
-  if (!c) return "—";
+  if (!c) return NO_CONFIDENCE;
   if (c.level === "confident") return "confident";
   const named = namedSkills(c);
   return named ? `low: ${named.join(", ")}` : "low";
+}
+
+/** A confidence label's colour, the Class view's and the student panel's (ticket 316): confident green, a low answer accent, no answer muted. */
+export function confidenceTone(label: string): string {
+  return label === NO_CONFIDENCE ? "text-ink-muted" : label === "confident" ? "text-secure" : "text-accent-deep";
 }
 
 /**

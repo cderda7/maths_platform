@@ -43,6 +43,8 @@ export interface WherePill {
   time: PillTime | null;
   /** When the student came into this row (absolute ms), or null when not known: the pill's landing glow counts from it. */
   arrivedAt: number | null;
+  /** The place the pill stands for: the student panel reads what the student has moved past from it (ticket 316). */
+  place: Place;
 }
 
 export interface WhereRow {
@@ -209,7 +211,7 @@ export function whereRows(places: readonly (StudentPlace & { entered?: number | 
       .sort((a, b) => (enteredOf(a) ?? Infinity) - (enteredOf(b) ?? Infinity) || order.get(a.id)! - order.get(b.id)!)
       .map((sp): WherePill => {
         const { name, initials } = person(sp.id);
-        return { id: sp.id, name, initials, detail: placeDetail(sp.place), tone: placeTone(sp.place), step: placeStep(sp.place), time: timeOf(sp), arrivedAt: enteredOf(sp) };
+        return { id: sp.id, name, initials, detail: placeDetail(sp.place), tone: placeTone(sp.place), step: placeStep(sp.place), time: timeOf(sp), arrivedAt: enteredOf(sp), place: sp.place };
       }),
     absent: r.key === "handed-in" ? absent.map((a) => ({ id: a.id, name: person(a.id).name })) : [],
   }));

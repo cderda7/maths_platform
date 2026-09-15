@@ -1642,6 +1642,18 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **A check-in time for deep-linked and scripted runs.** `sessionAt` and the scripted sessions carry no `checkInAt`, so a hand-in reached that way shows no time. Deferred: the live path records it; the presets would need a plausible story time.
 - **"Here" wording for the Starting row.** A student who has not opened the set reads "not started 16 min here", the time since the teacher's tab first saw them; "waiting" or the time since the set went live may read better. Not raised by Carson; noted while checking the screen.
 
+## A student's work from their pill (ticket 316, 2026-09-15)
+
+- **Skill history in the student panel.** Still deferred by the user: the Class view's category status pills and green/orange/red history pills could head the panel (the earlier entry of the same name still stands).
+- **Jump to the question in progress.** The panel opens at Q1 and keeps its scroll while it updates; for a student on Q9, scrolling to their current question on open (or a "now" link in the head) would save the teacher a scroll.
+- **Live lines on the question in progress.** The ticket shows only the "in progress" tag; showing what the student has written so far on it, unmarked or faded, is the natural next step once the teacher wants to intervene mid-question.
+- **Practice and hints inside the panel.** Help, hints and practice taken on a question moved past (and the Q*/Q** pair from ticket 312) are not shown; a small note per question ("hint 2", "practice · monic factorising") would tell the story of how they got there.
+- **The confidence answer before the check-in ends.** The panel shows "—" for a classmate still on the check-in; the Class view shows their record's answer from the start. The two could agree (both wait, or both show).
+- **The arrival rings at go-live.** Every pill rings at once in the first 8 s of the set, because every student comes into Starting when the set goes live; skipping the ring for arrivals at the set's start (and for Sam's carried entry on a teacher reload, which rings again) would keep the ring for real moves.
+- **The panel on a scrolled page.** The panel's height is measured to the scroll region's foot as the page lies unscrolled; if the teacher scrolls the mistakes column down, the panel scrolls up with the table. A sticky panel would stay in view.
+- **Open the report from the panel.** A link in the head to the student's report would join this to it once the student has handed in.
+- **Keyboard between students.** Arrow keys to the next pill in the row, or the next row, with the panel following.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

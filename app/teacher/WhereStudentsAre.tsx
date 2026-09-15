@@ -52,9 +52,12 @@ function StepBar({ step, tone }: { step: 1 | 2 | 3; tone: WherePill["tone"] }) {
  * handed in, fixed, so it needs no slot. A student who has just come into the row glows faintly and fades, as a name
  * landing in a mistake card does (`.arrive-ring`, a ring on a wrapper so the pill keeps its own tint).
  *
- * `onPress` makes the pill a button (ticket 316 opens the student's work from it); without one it is plain text.
+ * `onPress` makes the pill a button (ticket 316 opens the student's work panel from it): it lifts a pixel with a soft shadow
+ * on hover (a transform and a shadow, so nothing around it moves), shows a ring on keyboard focus, and while its panel is
+ * open (`open`) carries the accent ring the diagnostic's card does. The cursor stays the teacher side's arrow (ticket 61).
+ * Without `onPress` it is plain text.
  */
-export function StudentPill({ pill, now, onPress }: { pill: WherePill; now: number; onPress?: (id: string) => void }) {
+export function StudentPill({ pill, now, onPress, open = false }: { pill: WherePill; now: number; onPress?: (id: string) => void; open?: boolean }) {
   const [since] = useState(() => (pill.arrivedAt === null ? null : Math.max(0, now - pill.arrivedAt)));
   const glow = since !== null && pill.arrivedAt !== null && arriving(pill.arrivedAt, now);
   const tone = TONE[pill.tone];
@@ -85,7 +88,16 @@ export function StudentPill({ pill, now, onPress }: { pill: WherePill; now: numb
   return (
     <span className={`inline-flex rounded-full ${glow ? "arrive-ring" : ""}`} style={glow ? { animationDelay: `-${since}ms` } : undefined} data-arriving={glow || undefined}>
       {onPress ? (
-        <button type="button" className={`${cls} text-left transition-colors hover:border-ink-muted`} onClick={() => onPress(pill.id)} data-place-pill={pill.id} data-tone={pill.tone}>
+        <button
+          type="button"
+          className={`${cls} text-left transition-[translate,box-shadow,border-color] duration-150 outline-none hover:-translate-y-px hover:border-ink-muted hover:shadow-card focus-visible:ring-2 focus-visible:ring-accent ${open ? "ring-2 ring-accent" : ""}`}
+          onClick={() => onPress(pill.id)}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          data-place-pill={pill.id}
+          data-tone={pill.tone}
+          data-open={open || undefined}
+        >
           {inner}
         </button>
       ) : (
@@ -116,7 +128,7 @@ function RowLabel({ label, sub }: { label: string; sub: string | null }) {
  * before paint on the unfolded rows every render (and on a resize), written straight to the rows' `hidden`, so it holds no
  * state and cannot flip back and forth: only rows with nobody in them fold, so no pill ever leaves its question's row.
  */
-export function PlaceTable({ rows, now, onPress }: { rows: readonly WhereRow[]; now: number; onPress?: (id: string) => void }) {
+export function PlaceTable({ rows, now, onPress, open = null }: { rows: readonly WhereRow[]; now: number; onPress?: (id: string) => void; /** The student whose panel is open (ticket 316). */ open?: string | null }) {
   const ref = useRef<HTMLDivElement>(null);
   const runs = emptyQuestionRuns(rows);
   useLayoutEffect(() => {
@@ -160,7 +172,7 @@ export function PlaceTable({ rows, now, onPress }: { rows: readonly WhereRow[]; 
               <RowLabel label={row.label} sub={row.sub} />
               <div className="flex min-w-0 flex-1 flex-wrap content-center items-center gap-x-2 gap-y-1.5 px-3 py-1.5">
                 {row.pills.map((p) => (
-                  <StudentPill key={p.id} pill={p} now={now} onPress={onPress} />
+                  <StudentPill key={p.id} pill={p} now={now} onPress={onPress} open={open === p.id} />
                 ))}
                 {row.absent.length > 0 && (
                   <span className="text-[13px] text-ink-muted" data-place-note>

@@ -13,17 +13,23 @@ import { useSyncExternalStore } from "react";
  *
  * One flyout is open at a time: it opens on its chip and closes when the pointer leaves it, on Escape, or on sending.
  * The selection stays with its problem while the flyout is closed, as it did in state.
+ *
+ * On the split (ticket 316) the same slot over Where students are also holds a student's work panel, opened from their
+ * pill, so the store holds that too: one overlay at a time, opening a diagnostic closes the panel and opening a panel
+ * closes the diagnostic.
  */
 
 interface FlyoutState {
   open: string | null;
+  /** The student whose work panel is open over Where students are (ticket 316), or null. Never at the same time as `open`. */
+  student: string | null;
   selected: Readonly<Record<string, readonly string[]>>;
 }
 
-let state: FlyoutState = { open: null, selected: {} };
+let state: FlyoutState = { open: null, student: null, selected: {} };
 const listeners = new Set<() => void>();
 const NONE: readonly string[] = [];
-const SERVER: FlyoutState = { open: null, selected: {} };
+const SERVER: FlyoutState = { open: null, student: null, selected: {} };
 
 function set(next: FlyoutState) {
   state = next;
@@ -39,7 +45,13 @@ function subscribe(cb: () => void) {
 
 export function setFlyoutOpen(problemId: string, open: boolean) {
   if (open ? state.open === problemId : state.open !== problemId) return;
-  set({ ...state, open: open ? problemId : null });
+  set({ ...state, open: open ? problemId : null, student: open ? null : state.student });
+}
+
+/** Opens a student's work panel (closing any diagnostic flyout), or with null closes the panel. */
+export function setStudentOpen(student: string | null) {
+  if (state.student === student) return;
+  set({ ...state, student, open: student === null ? state.open : null });
 }
 
 export function toggleStep(problemId: string, stepId: string) {
@@ -49,12 +61,12 @@ export function toggleStep(problemId: string, stepId: string) {
 
 /** After a send: the flyout closes and its selection clears. */
 export function sentFrom(problemId: string) {
-  set({ open: state.open === problemId ? null : state.open, selected: { ...state.selected, [problemId]: NONE } });
+  set({ ...state, open: state.open === problemId ? null : state.open, selected: { ...state.selected, [problemId]: NONE } });
 }
 
 /** Test and demo reset. */
 export function resetFlyout() {
-  set({ open: null, selected: {} });
+  set({ open: null, student: null, selected: {} });
 }
 
 export function getFlyout(): FlyoutState {
@@ -64,6 +76,11 @@ export function getFlyout(): FlyoutState {
 /** The problem whose flyout is open, or null: the split's left column draws that one flyout over its rows (ticket 315). */
 export function useOpenFlyout(): string | null {
   return useSyncExternalStore(subscribe, getFlyout, () => SERVER).open;
+}
+
+/** The student whose work panel is open on the split, or null (ticket 316). */
+export function useOpenStudent(): string | null {
+  return useSyncExternalStore(subscribe, getFlyout, () => SERVER).student;
 }
 
 /** One problem's flyout: open or not, and its selected step ids in the order they were clicked. */
