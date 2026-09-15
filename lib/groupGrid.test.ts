@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import { classroomReducer, type ClassroomState } from "./classroom";
 import { skipFixture } from "./demo";
-import { countParts, everyGroupSolved, gridAt, gridOf, groupCounts, groupsNotSolved, toneOf, type GridColumn } from "./groupGrid";
+import { AVATAR_MAX, AVATAR_MIN, AVATAR_RING, cellAvatars, countParts, everyGroupSolved, gridAt, gridOf, groupCounts, groupsNotSolved, toneOf, type GridColumn } from "./groupGrid";
 import { runStartedAt } from "./groupReview";
 import { sessionAt } from "./session";
 import { groupsAt, pensAt, timelinesAt } from "./standings";
@@ -120,6 +120,57 @@ describe("the group grid during group review (ticket 319)", () => {
     expect(everyGroupSolved(q4)).toBe(true);
     // No group had it at all: nothing left to solve, the thin line.
     expect(everyGroupSolved({ problem: "x", groups: [], solved: 0, left: 0, unsolved: 0, toGo: 0 })).toBe(true);
+  });
+});
+
+describe("the table in the cell it is working on (ticket 348)", () => {
+  const { classroom, session } = skipFixture("group review", now);
+  const opens = runStartedAt(classroom.group!);
+  /** Every 10 s over the first hour of the boards. */
+  const moments = Array.from({ length: 361 }, (_, i) => opens + i * 10_000);
+
+  it("a column carries its present members in seating order, the pen among them: amber is three with Chloe absent", () => {
+    const grid = gridAt(classroom, session, opens + 2 * MIN, P);
+    expect(col(grid, "coral").members).toEqual(["priya", "amelia", "tomas", "aiden"]);
+    expect(col(grid, "amber").members).toEqual(["mia", "noah", "ethan"]);
+    expect(col(grid, "amber").members).not.toContain("chloe");
+    expect(col(grid, "sky").members).toContain(DEMO_STUDENT.id);
+    for (const g of grid) {
+      expect(g.members.length, g.colour).toBeGreaterThanOrEqual(3);
+      if (g.pen) expect(g.members, g.colour).toContain(g.pen);
+    }
+  });
+
+  it("the pen stays one of the group's own members as the turns move", () => {
+    const grid = gridAt(classroom, session, opens, P);
+    const members = Object.fromEntries(grid.map((g) => [g.colour, g.members]));
+    for (const at of moments) for (const g of gridAt(classroom, session, at, P)) if (g.pen) expect(members[g.colour], `${g.colour} at ${at - opens}`).toContain(g.pen);
+  });
+
+  it("four avatars, the pen-holder's ring included, fit the cell they are measured against", () => {
+    const four = cellAvatars(137, 4);
+    expect(four.size * 4 + four.gap * 3 + 2 * AVATAR_RING).toBeLessThanOrEqual(137);
+    expect(four.size).toBeGreaterThanOrEqual(AVATAR_MIN);
+    // A cell with room to spare stops at the size ticket 319 drew.
+    expect(cellAvatars(400, 4).size).toBe(AVATAR_MAX);
+    // Three members take the same room in a wider share, so a table of three is never drawn larger than a table of four.
+    expect(cellAvatars(137, 3).size).toBeGreaterThanOrEqual(four.size);
+    expect(cellAvatars(137, 3).size).toBeLessThanOrEqual(AVATAR_MAX);
+  });
+
+  it("the avatars shrink with the cell, down to a floor, and their initials with them", () => {
+    const sizes = [90, 110, 137, 160, 200].map((w) => cellAvatars(w, 4).size);
+    expect(sizes).toEqual([...sizes].sort((a, b) => a - b));
+    expect(cellAvatars(40, 4).size).toBe(AVATAR_MIN);
+    expect(cellAvatars(0, 4).size).toBe(AVATAR_MIN);
+    for (const w of [40, 90, 137, 400]) {
+      const { size, text } = cellAvatars(w, 4);
+      expect(text).toBeGreaterThanOrEqual(8);
+      expect(text).toBeLessThan(size);
+    }
+    // The gap tightens with the avatars, never wider than the roomy one, and always clears the pen-holder's ring on both sides.
+    expect(cellAvatars(400, 4).gap).toBeGreaterThanOrEqual(cellAvatars(90, 4).gap);
+    for (const w of [40, 90, 137, 400]) expect(cellAvatars(w, 4).gap, `${w}`).toBeGreaterThanOrEqual(2 * AVATAR_RING - 1);
   });
 });
 

@@ -74,6 +74,37 @@ export function gridOf(groups: readonly GroupInReview[], problems: readonly Pick
 /** The grid at `now`: every group in group review, in seating order. */
 export const gridAt = (c: ClassroomState | null | undefined, session: StudentSession | null, now: number, problems: readonly Pick<Problem, "id">[], movedToClass: readonly string[] = []): GridColumn[] => gridOf(groupsAt(c, session, now), problems, movedToClass);
 
+/** The avatars ticket 319 drew, and the smallest the initials stay readable at, layout px. */
+export const AVATAR_MAX = 28;
+export const AVATAR_MIN = 16;
+/** The ring in the group's colour around the pen-holder's avatar: drawn outside it, so the row of avatars needs it at each end. */
+export const AVATAR_RING = 2;
+/** Between avatars: the wider gap while they are near full size, tighter once they shrink. It clears the pen-holder's ring, which is drawn outside their avatar. */
+const GAP_WIDE = 4;
+const GAP_TIGHT = 3;
+/** Below this the gap tightens. */
+const GAP_STEP = 22;
+
+/**
+ * The whole table in the cell it is working on (ticket 348): the avatar size, the gap between them and their initials'
+ * size that put `members` avatars, with the pen-holder's ring at the ends, inside `avail` layout px of cell. Four
+ * avatars share a cell of about 137 px at 1280 × 800 with five groups, so they shrink from the 28 px ticket 319 drew;
+ * below 16 px initials stop being readable, so that is the floor and the fit measurement never asks for less.
+ */
+export function cellAvatars(avail: number, members: number): { size: number; gap: number; text: number } {
+  const n = Math.max(1, members);
+  const fits = (gap: number) => Math.floor((avail - 2 * AVATAR_RING - (n - 1) * gap) / n);
+  let gap = GAP_WIDE;
+  let size = fits(gap);
+  if (size < GAP_STEP) {
+    gap = GAP_TIGHT;
+    size = fits(gap);
+  }
+  size = Math.min(AVATAR_MAX, Math.max(AVATAR_MIN, size));
+  if (size >= GAP_STEP) gap = GAP_WIDE;
+  return { size, gap, text: Math.max(8, Math.round(size * 0.36)) };
+}
+
 /** Where one group stands on one question, for a card: `to-go` is not reached, or on the board and not yet left. */
 export type CardGroupTone = "solved" | "left" | "unsolved" | "to-go";
 

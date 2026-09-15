@@ -1850,6 +1850,13 @@ Raised in a project checkpoint review; Carson asked for these on the list. Space
 - **The five-second countdown's length.** Matched to force submit's countdown; whether class review wants longer is open.
 - **Writing on the board during the worked example.** The teacher reveals Q*'s authored lines; writing their own line mid-example, or annotating a revealed line, is not built.
 
+## The table in the cell it is working on (ticket 348, 2026-09-16)
+
+- **Names under the avatars.** The cell draws initials only; at 1280 × 800 four avatars already fill the cell, so a name beside each is out of the question there. A wider laptop could afford first names. Deferred: the teacher knows the table, and the initials carry the seating order.
+- **Who is writing, beyond the pen.** The ring says whose turn it is, not who is at the board or who has gone quiet. Group review records the pen and the checks, nothing per student. Deferred: nothing to draw it from.
+- **A member who leaves the table mid-review.** The cell draws the group's present members as ticket 332 gives them, fixed for the stage; a student moving group or leaving the room mid-review is not modelled. Deferred: the demo's seating does not change mid-review.
+- **The avatars at the floor.** Below about 90 px of cell the avatars stop at 16 px and a sixth member would be cut off; group sizes are four in the demo, and five columns of four fit. A cell that cannot hold its table (a class in six or seven groups) would need the table stacked, or the pen alone. Deferred until a class is seated that way.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

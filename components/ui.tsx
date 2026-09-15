@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 export function Card({
   children,
@@ -67,9 +67,9 @@ export function Button({
   );
 }
 
-export function Avatar({ initials, size = "h-8 w-8 text-[11px]", className = "" }: { initials: string; size?: string; className?: string }) {
+export function Avatar({ initials, size = "h-8 w-8 text-[11px]", className = "", style }: { initials: string; size?: string; className?: string; /** A measured size, in place of the `size` classes: the group grid's cells size their avatars to the cell (ticket 348). */ style?: CSSProperties }) {
   return (
-    <span className={`grid shrink-0 place-items-center rounded-full border border-accent-line bg-accent-soft font-semibold text-accent-deep ${size} ${className}`}>
+    <span className={`grid shrink-0 place-items-center rounded-full border border-accent-line bg-accent-soft font-semibold text-accent-deep ${size} ${className}`} style={style}>
       {initials}
     </span>
   );
