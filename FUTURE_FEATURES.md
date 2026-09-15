@@ -1268,6 +1268,16 @@ uploaded problems) settled the following as later, each on purpose.
 - **Retire `LEAF_ALIASES`.** The map exists for browsers holding pre-209 sessions and created sets.
   Remove it with its tests once no demo machine carries that state (see the ticket 208 note on
   `lib/renamedSets.ts`).
+- **Click-throughs in the repo and in CI (checkpoint review, 2026-09-15).** Every ticket's browser
+  click-through (`click315.mjs`, `upright339.mjs`, `stems342.mjs` …) lives in a session scratchpad and
+  is lost when the session ends; only `check:laptop` and `sweep:hint-boxes` are in `scripts/`. Keeping
+  the durable ones in the repo, on one shared CDP harness, and running them with vitest, eslint, tsc and
+  the build on every merge would catch a regression on a screen no current ticket is looking at.
+  Deferred: each script is tied to demo timing and state, so they would need a common fixture setup first.
+- **A summary layer over the running docs (checkpoint review, 2026-09-15).** `DECISION_LOG.md` is past
+  5,000 lines and `FUTURE_FEATURES.md` past 1,700; a new reader cannot find the decisions that still
+  hold or the ideas that matter most. A short index per area (the decisions in force, the top future
+  features by value) above the full logs, kept up to date as tickets land. Deferred: not asked for.
 
 ## Teacher "send assignment" opens Create (ticket 272, 2026-09-14)
 
