@@ -1821,6 +1821,17 @@ Raised in a project checkpoint review; Carson asked for these on the list. Space
 - **Who explained, on the report.** A group-review tile's working shows the group's version but not who at the table could explain it (right first time, or fixed in individual review). The story sheet says so; the report does not.
 - **A question with four versions and class review, on the teacher's report at 1280x800.** Oliver's Set 1 Q10 and Lucas's Set 3 Q10 (first submission, second submission, the group's last try, class review's two examples) reach the working pane's 0.6 zoom floor and still overflow by 21–30 px, so the pane scrolls and the class review box's bottom edge sits under the card's edge until scrolled. The same shape was on main before ticket 338. Seen in the ticket 338 click-through; not changed here, because a lower floor makes the maths hard to read and the layout belongs to the report tickets.
 
+## Changing the pathway live (ticket 336, 2026-09-16)
+
+- **Change outside the decision card.** The pathway changes only from the card while it is up (individual working); there is no Change on the strip, and nothing after the card is answered or has lapsed. Deferred: the review-control design puts the change on the card, and 337 adds class review through its own card.
+- **A per-student route record.** When a review is added after some students have passed its place, they skip it and the rest go through it; their reports read the pathway as it is now. Deferred: from the card only a student already handed in can be past a review's place, and the report's pathway line is a separate design.
+- **Say why a stop is locked on the card.** A locked stop is ink with a hover title ("Students have started group review"), with no words on the card itself. Deferred: the ticket's look is ink, and the hint line covers it.
+- **Warn when a change splits the class.** Adding individual review after some students have handed in sends only the rest through it, and the gate into group review waits for both. Deferred: the rule is the ticket's, and the demo's card comes before anyone hands in.
+- **A longer window to remove individual review in the demo.** The card comes due 37 seconds before Priya's hand-in locks individual review on a fresh lesson. Deferred: pacing the stream is demo data, and the presenter can use Change as soon as the card slides in.
+- **Undo a change.** Done answers the decision for good; there is no way back to the plan from the card. Deferred: the card is one decision, and 337's card offers its own pathway line.
+- **Re-freezing groups on a changed seating.** Group review switched on mid-lesson uses the set's groups as Create froze them; a seating edit on the class defaults after Create is not picked up. Deferred: the set's Groups tab edits its copy.
+- **The Live diagnostic card moving down when class review is added.** Class View's side column gains the Class review card above it. Deferred: the card belongs to the stage, as on a set planned with class review.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

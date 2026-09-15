@@ -5,7 +5,7 @@ import IpadStage from "@/components/IpadStage";
 import SkipTo from "@/components/SkipTo";
 import DiagnosticModal from "./screens/DiagnosticModal";
 import { useLessonLanding } from "./useLessonLanding";
-import { groupPlan } from "@/lib/group";
+import { liveGroupPlan } from "@/lib/group";
 import { closedMoment, currentProblem, currentVisit, isClosed, leaveAt, leaving, penHolder, runAttempts, turnScript, visitsOf } from "@/lib/groupReview";
 import { debriefEndsAt, PEER_DEBRIEF_MS, pendingDebrief } from "@/lib/debrief";
 import { DEMO_PENS } from "@/data/group-scripts";
@@ -59,7 +59,7 @@ export default function StudentShell({ children }: { children: ReactNode }) {
     if (atGate && arrived && started) {
       // A group with nothing left to review after corrections sits out (ticket 332): its board begins empty, so the race keeps
       // its clock and leaves the group out, and the student goes straight on to the stage after group review, told why.
-      const plan = session ? groupPlan(session, liveAbsent(classroom), pathwayOf(classroom).includes("individual")) : null;
+      const plan = session ? liveGroupPlan(classroom, session) : null;
       if (plan && plan.discussion.problems.length === 0) {
         dispatchClassroom({ type: "group/begin", members: plan.members.map((m) => m.id), problems: [], at: boardOpensFor(readiness.startedAt, now) });
         dispatch({ type: "group/start", nothingToReview: true });
@@ -75,7 +75,7 @@ export default function StudentShell({ children }: { children: ReactNode }) {
     // render older than the store (a restart on mount has already dropped this run) (ticket 226).
     if (!session || !onBoard || now === 0 || (getClassroom().group ?? null) !== board) return;
     if (!board || board.problems.length === 0) {
-      const plan = groupPlan(session, liveAbsent(classroom), pathwayOf(classroom).includes("individual"));
+      const plan = liveGroupPlan(classroom, session);
       if (plan.discussion.problems.length === 0) {
         // Onto the board with nothing to review (a teacher's force moved the student past the gate): sit out, as at the gate.
         if (!board) dispatchClassroom({ type: "group/begin", members: plan.members.map((m) => m.id), problems: [], at: boardOpensFor(readiness.startedAt, now) });

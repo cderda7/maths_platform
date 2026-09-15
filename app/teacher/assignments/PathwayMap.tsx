@@ -1,6 +1,7 @@
 "use client";
 
 import type { Pathway } from "@/data/types";
+import { PathwayCheck, PathwayStop } from "@/components/PathwayStop";
 import { REVIEW_ORDER, STAGE_DESCRIPTION, STAGE_WORD, togglePathway } from "@/lib/pathway";
 
 /** Every pill is one fixed height so the track runs through their centres by geometry alone. */
@@ -85,53 +86,9 @@ function Column({ pill, arrow, children }: { pill: React.ReactNode; arrow?: bool
   );
 }
 
-function Pill({
-  children,
-  ink,
-  muted,
-  on,
-  off,
-  onClick,
-  ...rest
-}: {
-  children: React.ReactNode;
-  /** A fixed end in ink: working always, done once the pathway is decided. */
-  ink?: boolean;
-  /** Done while undecided. */
-  muted?: boolean;
-  on?: boolean;
-  off?: boolean;
-  onClick?: () => void;
-} & { "aria-pressed"?: boolean } & { [data: `data-${string}`]: string | boolean | undefined }) {
-  const tone = ink
-    ? "border-ink bg-ink text-white"
-    : muted
-      ? "border-line bg-paper text-ink-muted"
-      : on
-        ? "border-accent bg-accent text-white hover:bg-accent-deep"
-        : off
-          ? "border-dashed border-line-strong bg-paper text-ink-muted hover:border-ink-muted hover:text-ink"
-          : "border-line-strong bg-paper text-ink hover:border-ink-muted";
-  const cls = `inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full border px-4 text-[14px] font-medium transition-colors ${tone}`;
-  const style = { height: PILL_H, width: PILL_W };
-  if (!onClick)
-    return (
-      <span className={cls} style={style} {...rest}>
-        {children}
-      </span>
-    );
-  return (
-    <button type="button" onClick={onClick} className={cls} style={style} {...rest}>
-      {on && <Check />}
-      {children}
-    </button>
-  );
+/** A stop on the line: Create's size (`components/PathwayStop.tsx`, shared with the decision card's Change, ticket 336). */
+function Pill(props: Omit<React.ComponentProps<typeof PathwayStop>, "width" | "height" | "size">) {
+  return <PathwayStop {...props} size="line" width={PILL_W} height={PILL_H} />;
 }
 
-function Check() {
-  return (
-    <svg viewBox="0 0 12 12" className="h-3 w-3 shrink-0" aria-hidden>
-      <path d="M2.5 6.2 5 8.6l4.5-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+const Check = PathwayCheck;

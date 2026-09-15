@@ -1,16 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { PathwayStop } from "@/components/PathwayStop";
 import { StagePill } from "@/components/StagePill";
 import { Button, Eyebrow } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
+import type { Pathway, ReviewStage } from "@/data/types";
 import { assignmentBundle, assignmentStages } from "@/lib/assignments";
-import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
-import { stagePillState, type ClassStageId } from "@/lib/classStage";
+import { pathwayOf } from "@/lib/classroom";
+import { dispatchClassroom, getClassroom, useClassroom } from "@/lib/classroom-store";
+import { CLASS_STAGE_WORD, stagePillState, type ClassStageId } from "@/lib/classStage";
 import { lessonDecision, type DecisionView } from "@/lib/decision";
-import { STAGE_DESCRIPTION } from "@/lib/pathway";
+import { REVIEW_ORDER, STAGE_DESCRIPTION, STAGE_WORD } from "@/lib/pathway";
+import { changedPathway, liveLocks, samePathway, switchStage, type PathwayLocks } from "@/lib/pathwayChange";
 import type { StudentSession } from "@/lib/session";
-import { useBatchedSession, useNow } from "@/lib/store";
+import { getSnapshot, useBatchedSession, useNow } from "@/lib/store";
 
 /**
  * The lesson's decision on the teacher's screens (ticket 335): one card, mounted once in `TeacherChrome`, so it follows the
@@ -30,7 +34,13 @@ import { useBatchedSession, useNow } from "@/lib/store";
  *   (`Classroom`); pressing the dot opens it again (from the Classroom, on the set's Mistakes tab).
  * - **Ignored**: when the class leaves individual working with it unanswered (force submit, everyone handing in) the plan
  *   runs as it was and nothing asks again.
- * - Ticket 336's **Change** goes between Later and Keep (`data-decision-change-slot`).
+ * - **Change** (ticket 336), between Later and Keep, turns the card's pathway into the pathway line's toggles in place: the
+ *   working and every review a student in the room has entered in ink (locked, `liveLocks` in `lib/pathwayChange.ts`), every
+ *   other review a toggle in Create's look (on in accent with a ✓, off dashed with its description faded), each stage's
+ *   description beside it; Later and Done. **Done** resolves the choice against the locks at that moment (a review a student
+ *   entered while the teacher was choosing stays as it was) and answers the decision: `change` with the pathway, which the
+ *   classroom writes to the assignment in the same step, or `keep` when it is the pathway as planned. Both strips follow at
+ *   once, and every student reads it at their next transition. See DECISION_LOG.md, 2026-09-16 (changing the pathway live).
  */
 
 /** Which decisions this tab has slid in, by lesson and kind: a card seen once appears in place when the teacher moves between screens or opens it from the dot. */
@@ -94,8 +104,23 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
   useEffect(() => {
     slid.add(key);
   }, [key]);
+  // Change's choice while it is open (ticket 336): the pathway as the toggles have it; null while the card shows the plan.
+  const [choice, setChoice] = useState<Pathway | null>(null);
   const set = assignmentBundle(ASSIGNMENT.id, classroom);
   const stages = set ? assignmentStages(set, classroom, session, now) : [];
+  const current = pathwayOf(classroom);
+  const locks: PathwayLocks = set ? liveLocks(classroom, set, session, now) : { individual: true, group: true, "whole-class": true };
+  // What the toggles show: a locked stage as the pathway has it now, every other as chosen.
+  const shown = choice ? changedPathway(current, choice, locks) : current;
+  const done = () => {
+    // Resolved against the class as it is at the press, not the last 3-second batch: a review someone entered since stays as it was.
+    const c = getClassroom();
+    const at = Date.now();
+    const b = assignmentBundle(ASSIGNMENT.id, c);
+    const planned = pathwayOf(c);
+    const pathway = b ? changedPathway(planned, choice ?? planned, liveLocks(c, b, getSnapshot(), at)) : planned;
+    dispatchClassroom({ type: "decision/answer", due: view.due, answer: samePathway(pathway, planned) ? { kind: "keep" } : { kind: "change", pathway }, at });
+  };
   const { submitted, present, question } = view.evidence;
   return (
     <section
@@ -117,26 +142,90 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
         here have submitted {question}
       </p>
       <Eyebrow className="mt-5">Your pathway</Eyebrow>
-      <ol className="mt-3 grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-4 gap-y-2" aria-label="Your pathway" data-decision-pathway>
-        {stages.map((s) => (
-          <li key={s.id} className="col-span-2 grid grid-cols-subgrid items-center" data-decision-stage={s.id}>
-            <span>
-              <StagePill stage={s.id} state={stagePillState(s)} size="laptop" />
-            </span>
-            <span className="text-[13.5px] leading-snug text-balance text-ink-soft">{WHAT_HAPPENS[s.id]}</span>
-          </li>
-        ))}
-      </ol>
+      {choice ? (
+        <ChangePathway pathway={shown} locks={locks} onSwitch={(stage) => setChoice(switchStage(shown, stage, locks))} />
+      ) : (
+        <ol className="mt-3 grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-4 gap-y-2" aria-label="Your pathway" data-decision-pathway>
+          {stages.map((s) => (
+            <li key={s.id} className="col-span-2 grid grid-cols-subgrid items-center" data-decision-stage={s.id}>
+              <span>
+                <StagePill stage={s.id} state={stagePillState(s)} size="laptop" />
+              </span>
+              <span className="text-[13.5px] leading-snug text-balance text-ink-soft">{WHAT_HAPPENS[s.id]}</span>
+            </li>
+          ))}
+        </ol>
+      )}
       <div className="mt-6 flex items-center justify-end gap-3">
         <Button variant="secondary" onClick={() => dispatchClassroom({ type: "decision/tuck", due: view.due })} data-decision-later>
           Later
         </Button>
-        {/* Ticket 336's Change goes here, between Later and Keep. */}
-        <span className="contents" data-decision-change-slot />
-        <Button onClick={() => dispatchClassroom({ type: "decision/answer", due: view.due, answer: { kind: "keep" }, at: Date.now() })} data-decision-keep>
-          Keep
-        </Button>
+        {choice ? (
+          <Button onClick={done} data-decision-done>
+            Done
+          </Button>
+        ) : (
+          <>
+            <Button variant="secondary" onClick={() => setChoice([...current])} data-decision-change>
+              Change
+            </Button>
+            <Button onClick={() => dispatchClassroom({ type: "decision/answer", due: view.due, answer: { kind: "keep" }, at: Date.now() })} data-decision-keep>
+              Keep
+            </Button>
+          </>
+        )}
       </div>
     </section>
+  );
+}
+
+/** A stop's fixed size on the card: the widest word with its ✓ ("✓ indiv review") and the strip's pill height. */
+const STOP_W = 136;
+const STOP_H = 32;
+
+/**
+ * Change's pathway line (ticket 336): the working and the three reviews top to bottom, joined by the line's ink track with
+ * an arrowhead into each stop, each stage's description beside it. Every review is always in its place, on or off, so a
+ * switch changes only colours and borders.
+ */
+function ChangePathway({ pathway, locks, onSwitch }: { pathway: Pathway; locks: PathwayLocks; onSwitch: (stage: ReviewStage) => void }) {
+  const ids: ClassStageId[] = ["working", ...REVIEW_ORDER];
+  return (
+    <>
+      <p className="mt-2 text-[13px] leading-snug text-ink-muted">Switch any review students haven&rsquo;t started.</p>
+      <ol className="mt-3 grid grid-cols-[max-content_minmax(0,1fr)] gap-x-4 gap-y-3" aria-label="Change your pathway" data-decision-change-line>
+        {ids.map((id, i) => {
+          const stage = id === "working" ? null : id;
+          const on = !stage || pathway.includes(stage);
+          const locked = !stage || locks[stage];
+          const last = i === ids.length - 1;
+          return (
+            <li key={id} className="relative col-span-2 grid grid-cols-subgrid items-start" data-decision-change-stage={id} data-on={on || undefined} data-locked={locked || undefined}>
+              {/* The track from this stop's middle to the next one's, behind the stops, and the arrowhead into this stop. */}
+              {!last && <span className="absolute w-0.5 bg-ink" style={{ left: STOP_W / 2 - 1, top: STOP_H / 2, height: "calc(100% + 12px)" }} aria-hidden data-track />}
+              {i > 0 && (
+                <svg width={10} height={7} viewBox="0 0 10 7" className="absolute text-ink" style={{ left: STOP_W / 2 - 5, top: -9 }} aria-hidden data-arrowhead>
+                  <path d="M1 1 L5 6 L9 1" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+              <span className="relative">
+                {locked ? (
+                  <PathwayStop ink size="card" width={STOP_W} height={STOP_H} title={stage ? `Students have started ${STAGE_WORD[stage]}` : undefined} data-stop={id}>
+                    {CLASS_STAGE_WORD[id]}
+                  </PathwayStop>
+                ) : (
+                  <PathwayStop on={on} off={!on} size="card" width={STOP_W} height={STOP_H} onClick={() => onSwitch(stage!)} aria-pressed={on} data-stop={id}>
+                    {CLASS_STAGE_WORD[id]}
+                  </PathwayStop>
+                )}
+              </span>
+              <span className={`pt-[6px] text-[13.5px] leading-snug text-balance text-ink-soft transition-opacity ${on ? "" : "opacity-45"}`} data-stage-description={id}>
+                {WHAT_HAPPENS[id]}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+    </>
   );
 }

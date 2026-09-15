@@ -1,3 +1,4 @@
+import type { Pathway } from "@/data/types";
 import type { ClassStageId } from "./classStage";
 
 /**
@@ -13,13 +14,21 @@ import type { ClassStageId } from "./classStage";
  * - `dueAt` is when the first teacher tab saw it due.
  * - `status` is `open` (the card is up), `tucked` ("Later": a dot on the pathway strip's current pill and on the live set's
  *   Classroom card) or `answered` (the card and the dot are gone). Answered is final; open and tucked go back and forth.
- * - `answer` is what the teacher chose: `keep` today. Ticket 336 adds `change` with the pathway chosen; ticket 337 its moved
- *   questions. `answeredAt` stamps it.
+ * - `answer` is what the teacher chose: `keep`, or `change` with the pathway chosen on the card (ticket 336); ticket 337 its
+ *   moved questions. An answer that carries a `pathway` is written to the assignment by the classroom reducer in the same
+ *   step (`answerPathway`), so the strips and every student's next transition follow it. `answeredAt` stamps it.
  */
 export type DecisionKind = "close-to-finishing";
 export type DecisionStatus = "open" | "tucked" | "answered";
-/** The card's answers. Ticket 336 adds `{ kind: "change"; pathway }` beside keep. */
-export type DecisionAnswer = { kind: "keep" };
+/**
+ * The card's answers: keep the pathway as planned, or change it (ticket 336) to `pathway`, already resolved against the
+ * stages students have entered (`changedPathway`, `lib/pathwayChange.ts`). Ticket 337's answer adds its moved questions and,
+ * when class review has to be added, a `pathway` of its own: any answer with a `pathway` changes the assignment's.
+ */
+export type DecisionAnswer = { kind: "keep" } | { kind: "change"; pathway: Pathway };
+
+/** The pathway an answer writes to the assignment, if it writes one. */
+export const answerPathway = (answer: DecisionAnswer): Pathway | null => ("pathway" in answer ? answer.pathway : null);
 
 export interface LessonDecision {
   kind: DecisionKind;
@@ -44,7 +53,7 @@ export type DecisionAction =
   | { type: "decision/tuck"; due: DecisionDue }
   /** The dot pressed: the card opens again. Nothing once answered. */
   | { type: "decision/reopen"; due: DecisionDue }
-  /** "Keep" (and, from ticket 336, "Change"): the decision is answered for good. The first answer stands. */
+  /** "Keep", or "Done" after Change (ticket 336): the decision is answered for good. The first answer stands. */
   | { type: "decision/answer"; due: DecisionDue; answer: DecisionAnswer; at: number };
 
 const NONE: readonly LessonDecision[] = [];

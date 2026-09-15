@@ -6,14 +6,14 @@ import { assignmentGroupsOf, moveStudent, seatingOf } from "./seating";
 import { beginRun, groupReducer, type BoardAction, type GroupRun, type TurnEvent } from "./groupReview";
 import type { ExampleRef } from "./examples";
 import { isMarkup, type Markup, type WholeClassInk } from "./markup";
-import { DEFAULT_PATHWAY } from "./pathway";
+import { DEFAULT_PATHWAY, isValidPathway } from "./pathway";
 import type { ReviewedQuestion, ReviewState } from "./review";
 import { currentSetId, currentSetTitle } from "./renamedSets";
 import { chainReducer, latestRun, liveRun, migrateRun, type ChainAction, type DiagnosticRun } from "./diagnosticChain";
 import { absentOf, liveAbsent, withAbsence } from "./absence";
 import type { IsoDay } from "./dueDate";
 import type { CreateKind } from "./createPipeline";
-import { decisionsReducer, type DecisionAction, type LessonDecision } from "./decisionState";
+import { answerPathway, decisionsReducer, type DecisionAction, type LessonDecision } from "./decisionState";
 
 export type { DiagnosticRun } from "./diagnosticChain";
 
@@ -27,6 +27,7 @@ export interface CreatedAssignment {
   title: string;
   /** Ordered ids from the problem bank. */
   problemIds: string[];
+  /** The review pathway: chosen at Create, and changed from the decision card during the lesson (ticket 336), which rewrites it here. */
   pathway: Pathway;
   /**
    * The skills new on this set (ticket 209), as Create stored them: inferred from the class's last two
@@ -295,7 +296,7 @@ export type ClassroomAction =
   | { type: "absence/set"; assignment: string; student: string; absent: boolean }
   /** The live diagnostic chain (ticket 241): push, answer, force submit and cancel, next question, done, withdraw. */
   | ChainAction
-  /** The decision card (ticket 335): raised, tucked into its dot, opened again, answered. */
+  /** The decision card (ticket 335): raised, tucked into its dot, opened again, answered; an answer with a pathway changes the assignment's (ticket 336). */
   | DecisionAction
   | { type: "reset" };
 
@@ -469,7 +470,12 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
     case "decision/reopen":
     case "decision/answer": {
       const next = decisionsReducer(c.decisions, a);
-      return next === c.decisions ? c : { ...c, decisions: next };
+      if (next === c.decisions) return c;
+      // The answer that settles the decision writes its pathway in the same step (ticket 336): the strips, the cards and every
+      // student's next transition read `pathwayOf`. A later answer to a decision already answered changed nothing above.
+      const pathway = a.type === "decision/answer" ? answerPathway(a.answer) : null;
+      if (!pathway || !c.assignment || !isValidPathway(pathway)) return { ...c, decisions: next };
+      return { ...c, decisions: next, assignment: { ...c.assignment, pathway: [...pathway] } };
     }
     case "reset":
       return INITIAL_CLASSROOM;

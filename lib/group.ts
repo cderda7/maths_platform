@@ -1,6 +1,10 @@
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
-import { CLASSMATE_MAP, GROUPMATE_IDS, type Classmate } from "@/data/classmates";
+import { CLASSMATE_MAP, type Classmate } from "@/data/classmates";
+import { DEFAULT_GROUPS, type SeatingGroups } from "@/data/groups";
 import type { Problem } from "@/data/types";
+import { liveAbsent } from "./absence";
+import { pathwayOf, type ClassroomState } from "./classroom";
+import { assignmentGroupsOf, groupOfStudent } from "./seating";
 import { SET6_REVIEW } from "@/data/classmates-review";
 import { GROUP_SCRIPTS } from "@/data/group-scripts";
 import { boardScripts } from "./groupSim";
@@ -91,12 +95,14 @@ export function tableSlips(members: readonly string[], session: StudentSession |
 export const exceptionAt = (members: readonly string[]): string | null => (SET6_REVIEW.exception && members.includes(SET6_REVIEW.exception.member) ? SET6_REVIEW.exception.problem : null);
 
 /**
- * The demo student's review group: him and his groupmates, less any marked absent on the live set (`liveAbsent`, ticket 250).
- * `afterIndividual`: the pathway has individual review, so the union is taken once corrections are in (ticket 332).
+ * The demo student's review group: him and the students seated with him in `seating` (the live set's own groups, as Create
+ * froze them, ticket 185; the default seating when not given), less any marked absent on the live set (`liveAbsent`, ticket
+ * 250). `afterIndividual`: the pathway has individual review, so the union is taken once corrections are in (ticket 332).
  */
-export function groupPlan(session: StudentSession, absent: readonly string[], afterIndividual: boolean): GroupPlan {
+export function groupPlan(session: StudentSession, absent: readonly string[], afterIndividual: boolean, seating: SeatingGroups = DEFAULT_GROUPS): GroupPlan {
   const mine = reviewProblemsOf(session, afterIndividual);
-  const mates = GROUPMATE_IDS.filter((id) => !absent.includes(id)).map((id) => CLASSMATE_MAP[id]);
+  const colour = groupOfStudent(seating, DEMO_STUDENT.id);
+  const mates = (colour ? seating[colour] : []).filter((id) => id !== DEMO_STUDENT.id && !absent.includes(id) && CLASSMATE_MAP[id]).map((id) => CLASSMATE_MAP[id]);
   const wrongSets = [mine, ...mates.map((m) => recordReviewProblems(m, afterIndividual))];
   const ids = ASSIGNMENT.problems.map((p) => p.id);
   const { quickPass, discussion, totalWrong } = computePhases(ids, wrongSets);
@@ -110,3 +116,10 @@ export function groupPlan(session: StudentSession, absent: readonly string[], af
     scripts: boardScripts(discussion, Object.fromEntries(Object.entries(GROUP_SCRIPTS).map(([p, sc]) => [p, sc.attempts])), (p) => explainableAt(tableIds, session, afterIndividual, p), (p) => tableSlips(tableIds, session, p), exceptionAt(tableIds)),
   };
 }
+
+/**
+ * The demo student's group on the live set as the classroom has it now: the set's own seating, its absences, and the rule for
+ * its pathway as it is (ticket 336: group review switched on during the lesson makes its groups from the seating, the absent
+ * left out, on the same rule as a planned one).
+ */
+export const liveGroupPlan = (c: ClassroomState | null | undefined, session: StudentSession): GroupPlan => groupPlan(session, liveAbsent(c), pathwayOf(c).includes("individual"), assignmentGroupsOf(c, ASSIGNMENT.id));

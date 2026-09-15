@@ -10,8 +10,10 @@ import { DEFAULT_PATHWAY } from "./pathway";
 import { candidatesFor, problemsByStruggle, suggestExamples } from "./examples";
 import { DEMO_REFLECTION, INITIAL_SESSION, reworkedSession, scriptedSession, sessionAt, type StudentSession } from "./session";
 import { LAST_ARRIVAL_MS } from "./readiness";
-import { groupPlan } from "./group";
+import { groupPlan, liveGroupPlan } from "./group";
 import { liveAbsent } from "./absence";
+import { assignmentGroupsOf } from "./seating";
+import type { SeatingGroups } from "@/data/groups";
 import { DEMO_PENS } from "@/data/group-scripts";
 import { DEMO_SEED, LEAVE_PAUSE_MS, type GroupRun } from "./groupReview";
 import { playBoard, simulatedRunAt, type SimulatedBoard } from "./groupSim";
@@ -54,8 +56,8 @@ function suggestedSetup(session: StudentSession, absent: readonly string[]): Cla
  */
 export const REPORT_RUN_STARTED_AGO_MS = 15 * 60_000;
 export const REPORT_RUN_FINISHED_AGO_MS = 8 * 60_000;
-function finishedRun(session: StudentSession, now: number, absent: readonly string[], afterIndividual: boolean): GroupRun {
-  const plan = groupPlan(session, absent, afterIndividual);
+function finishedRun(session: StudentSession, now: number, absent: readonly string[], afterIndividual: boolean, seating?: SeatingGroups): GroupRun {
+  const plan = groupPlan(session, absent, afterIndividual, seating);
   const board: SimulatedBoard = { members: plan.members.map((m) => m.id), problems: plan.discussion.problems.map((p) => p.id), scripts: plan.scripts, seed: DEMO_SEED, pens: DEMO_PENS };
   const startedAt = now - REPORT_RUN_STARTED_AGO_MS;
   const finishedAt = now - REPORT_RUN_FINISHED_AGO_MS;
@@ -118,7 +120,7 @@ export function skipFixture(target: SkipTarget, now: number): { session: Student
       // The class has just gone in: the intro is read first, then the board opens (ticket 220).
       const session = sessionAt("group");
       const c = everyoneIn(classroom, now);
-      const plan = groupPlan(session, liveAbsent(c), pathwayOf(c).includes("individual"));
+      const plan = liveGroupPlan(c, session);
       return { session, classroom: classroomReducer(c, { type: "group/begin", members: plan.members.map((m) => m.id), problems: plan.discussion.problems.map((p) => p.id), at: boardOpensAt(now), pens: DEMO_PENS, scripts: plan.scripts }) };
     }
     case "report": {
@@ -214,7 +216,7 @@ function throughGate(c: ClassroomState, now: number): ClassroomState {
 }
 
 /** Group review behind the class: a run the class finished stands, anything else is the scripted run, finished. */
-const groupOver = (c: ClassroomState, session: StudentSession, now: number): GroupRun => (c.group?.done ? c.group : finishedRun(session, now, liveAbsent(c), pathwayOf(c).includes("individual")));
+const groupOver = (c: ClassroomState, session: StudentSession, now: number): GroupRun => (c.group?.done ? c.group : finishedRun(session, now, liveAbsent(c), pathwayOf(c).includes("individual"), assignmentGroupsOf(c, ASSIGNMENT.id)));
 
 /** The class's stages in order: the working, then the pathway's review stages. */
 const stagesOf = (c: ClassroomState): ClassStageId[] => ["working", ...pathwayOf(c)];
@@ -231,7 +233,7 @@ function enter(stage: ReviewStage, c: ClassroomState, now: number): DemoState {
       // Everyone through the gate and the class just gone in: the intro is read first, then the board opens (ticket 220).
       const session = { ...handedInWork(pathway), stage: "group" as const };
       const c2 = throughGate(before, now);
-      const plan = groupPlan(session, liveAbsent(c2), pathway.includes("individual"));
+      const plan = liveGroupPlan(c2, session);
       return { session, classroom: classroomReducer({ ...c2, group: null }, { type: "group/begin", members: plan.members.map((m) => m.id), problems: plan.discussion.problems.map((p) => p.id), at: boardOpensAt(now), pens: DEMO_PENS, scripts: plan.scripts }) };
     }
     case "whole-class": {

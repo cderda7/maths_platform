@@ -4,7 +4,7 @@
 
 **Blocked by:** 335.
 
-**Status:** open
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -24,12 +24,12 @@ Carried over from ticket 254 (deleted), planning conversation 2026-09-14: the pa
 
 ## Acceptance
 
-- [ ] Unit: the change rule for each stage against students at every stage; routing after each change (group review added, class review added, individual review removed before anyone reached it, a locked stage refused); groups from seating with an absence
-- [ ] Click-through against a production build at 1280×800 and 1440×900 with Sam's iPad and the teacher tab:
+- [x] Unit: the change rule for each stage against students at every stage; routing after each change (group review added, class review added, individual review removed before anyone reached it, a locked stage refused); groups from seating with an absence
+- [x] Click-through against a production build at 1280×800 and 1440×900 with Sam's iPad and the teacher tab:
   - from the card, add class review on a set without it: both strips show it, and Sam lands on class review's wait after group review
   - remove individual review before Sam hands in: Sam goes straight to group review
   - a stage Sam has entered is locked in the card
   - a reload keeps the pathway
   - no row moves; screenshots checked
-- [ ] vitest, eslint, tsc, next build, check:laptop
-- [ ] Ticket docs: `architecture/336.md`, ARCHITECTURE, DECISION_LOG, FUTURE_FEATURES, README
+- [x] vitest, eslint, tsc, next build, check:laptop
+- [x] Ticket docs: `architecture/336-change-pathway-live.md`, ARCHITECTURE, DECISION_LOG, FUTURE_FEATURES, README
