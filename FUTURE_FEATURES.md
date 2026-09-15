@@ -1720,6 +1720,17 @@ Raised in a project checkpoint review; Carson asked for these on the list. Space
 - **"correct" on the split card as right first time.** The card counts corrections (337); a toggle could show first-time counts. Deferred: Carson chose after corrections.
 - **A group that sits out doing something.** A group with nothing left goes straight to the stage after group review (332). It could extend a problem, help another group, or practise. Deferred: needs its own design; FUTURE_FEATURES already lists sending a student who got it right to a stuck group.
 
+## The board launched from the teacher's laptop (ticket 333, 2026-09-15)
+
+- **Present with no projector found.** Where the browser can see the screens (Chrome, Edge) and only one is there, Present opens the ordinary window on the laptop's own screen. It could instead say "No projector found: plug it in and press again". Deferred by Carson in the grilling: the demo assumes the laptop and the board stay connected (ASSUMPTIONS.md).
+- **A projector that disconnects mid-lesson.** When the cable is pulled the operating system moves the board window onto the laptop's screen, over the teacher's controls. The board could notice (Window Management's `screenschange`, or its window landing on the laptop's screen), close itself, and the header read "Projector disconnected"; Present on reconnect restores it exactly, since all state is on the laptop. The freeze already survives (story 73). Deferred by Carson: same assumption.
+- **The board fullscreen by itself on school Chromebooks.** Chrome's enterprise policy `AutomaticFullscreenAllowedForUrls` lets an allowlisted site go fullscreen with no press; the board already tries on load, so a school admin setting it is all that is needed. Deferred: a deployment note for schools, nothing to build.
+- **A "tap to fill the screen" layer on the board.** Present leaves a thin title bar (no browser lets a page open another window straight into fullscreen); a full-page layer on first open would get a smartboard tap to fill it. Deferred: Carson chose the title bar and the Fullscreen button over a layer the class sees first.
+- **Asking for the window permission ahead of time.** Chrome's "manage windows on all your displays" prompt comes on the first Present press, and the pill then reads "Press again to present". A one-time setup step could ask before class. Deferred: Carson chose asking at the press.
+- **The board on its own computer.** A smartboard with its own PC opening `/board` by URL works, but it cannot share the laptop's classroom state (same-browser storage only) and the laptop would not know it is open. Needs a real backend. Deferred with every cross-device feature.
+- **Which screen the board is on.** In Chrome and Edge the header could say "Board on projector" rather than "Board open". Deferred: the fallback window cannot tell, so one word for both.
+- **A pulse when the teacher reloads with a moment live and no board open.** The pill pulses only at the moment itself (Project, group review starting, a diagnostic going out), never on a reload. Deferred: Carson agreed a pulse on every reload would be noise.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

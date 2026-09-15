@@ -2,11 +2,13 @@
 
 **What to build:** To be designed. Today the demo treats the smartboard as a third device with its own link; in a classroom the board is the laptop's second display, launched from the teacher side.
 
+**Built as ticket 333** (2026-09-15): grilled and built under the next free number so the tickets read in order. The design and acceptance are in `tickets/333-board-from-laptop.md`.
+
 **Blocked by:** none.
 
-**Status:** open
+**Status:** done
 
-**Triage:** `needs-grilling`
+**Triage:** `ready-for-agent`
 
 ---
 

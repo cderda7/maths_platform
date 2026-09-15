@@ -50,7 +50,7 @@ changed values. Unsaved changes stay in that browser across reloads (the small t
 
 **/** opens the presenter's chooser (ticket 286; `/demo`, its address under ticket 265, redirects
 there): pick a side there. Use tabs of the same browser: the student iPad (`/student`, Sam's Classroom) in one,
-the teacher in another, the board (`/board`) in a third when projecting. Or open **/split** to see any one, two or all
+the teacher in another, the board (`/board`) in a third when projecting: in class it opens from the teacher header's **Present board**, and the chooser's board card is a shortcut to it. Or open **/split** to see any one, two or all
 three of them in one tab, fitted to the window (toggles in the dashed toolbar; stacked, the
 student over the teacher with the board down the right, or side by side; drag the handle on any
 boundary to resize, double-click it to reset); the panes are the real routes and stay in step
@@ -230,13 +230,22 @@ for hints. Sam's place comes from his session.
   **fixed in group review** badges, the names under the working (private); a menu on the
   header lists the problem's mistakes with counts to swap the working; **Student screens** (screens frozen / write with me) starts with neither chosen and
   **Project** sits faded until you pick one (press it anyway and it reads **select one** while the
-  two options flash light blue). **Project** opens the board and starts the grace.
+  two options flash light blue). **Project** puts the first problem on the board and starts the grace (the header's Present board pulses if no board is open).
 - **Board controls** (`/teacher/board`): which problem is up, the board's A/B/C examples beside the
   teacher's pad (mirrored to frozen students and to the board); the pen works anywhere over the
   question and the examples too, and each mark shows over the same maths on the board and every
   iPad; Previous · screens frozen / write with me · Show marks · End · Next.
 
-Smartboard (`/board`, left on the projector, nothing to press): blank (class and title) through
+Present board (ticket 333): the teacher header, just before the teacher's name on every teacher page, carries
+**Present board**. In Chrome and Edge a press (the first asks to manage windows; if that prompt used up the press
+it reads **Press again to present**) opens the board sized to the projector, the laptop's second display, with a
+thin title bar; elsewhere, or with the permission refused, an ordinary window to drag there. While a board is open
+the pill reads **● Board open** (a press brings it forward, never a second board). With no board open it pulses
+three times when class review projects, group review starts or a diagnostic goes out. The board header has a
+**Fullscreen** button while not fullscreen (never in `/split`'s pane), and the board tries fullscreen on load where a
+school's Chrome policy allows it.
+
+Smartboard (`/board`, opened once from the laptop and left on the projector, nothing to press): blank (class and title) through
 submission and individual review; during group review the race, five rows of four first names
 with a colour, a large bar and the percentage, re-ordered as bars move, gold, silver and bronze
 for the first three groups home (the other four groups run a scripted ten-minute race; the demo

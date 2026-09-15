@@ -5543,3 +5543,20 @@ rule for pens is untouched and the exception is visible and named.
 - **Where the pathway changes.** Only from the card, not at any time from the strip.
 
 **Defense.** Each decision appears once, at the moment the evidence exists, with the suggestion already made. The teacher keeps every choice and loses no work by ignoring it. One strip and one pill component mean the pathway looks and behaves the same everywhere it appears. Taking group review's list after corrections is what gives individual review its purpose.
+
+## 2026-09-15 · The board launched from the laptop: sized to the projector, a heartbeat, cues from the class state (ticket 333)
+
+**Decision.** The teacher header's Present board pill opens `/board` with `window.open`: in Chrome and Edge, after the Window Management permission, as a popup sized to the other screen's available area (a thin title bar stays); elsewhere, or refused, as an ordinary window to drag. The board tries `requestFullscreen` on load and offers a Fullscreen button. Whether a board is open comes from a heartbeat each open `/board` posts on its own BroadcastChannel, never stored in the classroom state. The pill's pulse is derived from the classroom state: a board moment (class review projecting, group review running, a diagnostic push) that appears while the laptop's page is watching, with no board open, pulses it; module state carries the last look across client navigation, and a page's first look never pulses.
+
+**Context.** Ticket 259, grilled with Carson as ticket 333: the board is the laptop's second display, opened once at the start of the lesson; one press is the aim. Browser research (September 2026): Window Management places a popup on another screen with one press; nothing on the open web makes that popup fullscreen without a press inside it (Chrome's fullscreen popups origin trial ended unpursued; Automatic Fullscreen is Isolated Web Apps or the `AutomaticFullscreenAllowedForUrls` enterprise policy only); `requestFullscreen({screen})` moves the calling document only. Group review has no single teacher press (it starts when individual review's grace ends and the students arrive).
+
+**Alternatives considered.**
+- *A "tap to fill the screen" layer on the board*: true fullscreen with one more tap, but it is the first thing the class sees and needs someone at the board. Carson chose the title bar.
+- *The laptop page itself fullscreen on the projector (`requestFullscreen({screen})`)*: one press, true fullscreen, but it moves the teacher's page off the laptop; the board must be a separate window.
+- *Board-open state in the classroom store*: every tab would read it, but a closed or crashed window would leave it true, and a reload could claim a board that is gone. A heartbeat can only be stale for 2.5 s.
+- *Calling a cue from each button (Project, force review, send diagnostic)*: explicit, but group review has no button, the student tab or a skip can start a moment, and every future entry point would need remembering. Deriving from the state covers all of them.
+- *Asking for the permission ahead of time*: no "Press again", but a prompt out of nowhere on the Classroom. Carson chose the press.
+
+**Tradeoffs.** A thin title bar on the projector unless someone presses Fullscreen (or the school sets the policy). A board opened from its URL in another browser or on another computer is invisible to the laptop (same-browser channel, like all demo state). The heartbeat costs one message a second per board. "Board open" cannot say which screen. The pulse also fires for a moment reached through the demo's skips, which is the same moment on the board.
+
+**Defense.** The press does the most any browser allows today, degrades to the drag story 60 already assumed, and never blocks an action. Presence that can only be as stale as its heartbeat, and cues that are a pure reading of the class state, keep the header right on every path into a moment without a stored flag to fall out of step.

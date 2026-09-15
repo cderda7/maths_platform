@@ -183,7 +183,7 @@ Applies to every screen, both sides, existing and new. It is the first ticket.
 58a. As a teacher, I want next from the marked view to open the next problem unmarked, and previous to step back one view, so that the two-beat rhythm repeats per problem.
 58b. As a teacher, I want a small "problem 2 of 3" indicator in a name-free control strip, so that I can drive it by touch.
 59. As a teacher, I want an "End session" control on the board, so that I release the class from the same window.
-60. As a teacher, I want the board to be its own route so that I can drag it to the projector display.
+60. As a teacher, I want the board to be its own route so that I can drag it to the projector display. (Ticket 333: Present board in the teacher header now places it on the projector; dragging is the fallback.)
 61. As a student in the class, I want to see the board's examples in transcription only, so that nobody is identified by handwriting.
 62. As the owner of an example, I want *not* to be told which letter is mine, so that no one looks at me when I react.
 

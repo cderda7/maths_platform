@@ -16,10 +16,12 @@ import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { lineMarks } from "@/lib/examples";
 import { ANCHOR } from "@/lib/markup";
 import { useLiveSession, useNow } from "@/lib/store";
+import { useBoardBeat } from "@/lib/boardPresence-store";
+import FullscreenButton from "./FullscreenButton";
 import Leaderboard from "./Leaderboard";
 
 /**
- * The smartboard: opened once at the start of the lesson and left on the projector. Display
+ * The smartboard: opened once at the start of the lesson from the laptop's Present board (ticket 333) and left on the projector. Display
  * only, except in whole-class review, where the teacher stands at the board: the working pad
  * takes the pen there (mirrored to frozen students and to the laptop) and a toggle switches the
  * students' screens between frozen and write with me. What it shows per stage is `boardContent`;
@@ -33,11 +35,14 @@ export default function SmartBoard() {
   // The clock drives the other groups' scripted race; a tick a second is plenty for a bar that eases.
   const now = useNow();
   const content = boardContent(classroom, session, now);
+  // The laptop's header reads "Board open" while this beats (ticket 333).
+  useBoardBeat();
   return (
     <div className="flex h-screen min-h-0 flex-col bg-cream select-none" data-board data-board-state={content.kind}>
       {/* The same Edexia bar as the laptop and the iPad, so the projector reads as the same product (ticket 65). */}
-      <header className="flex h-14 shrink-0 items-center border-b border-line bg-paper/70 px-10 backdrop-blur" data-board-brand>
+      <header className="flex h-14 shrink-0 items-center justify-between border-b border-line bg-paper/70 px-10 backdrop-blur" data-board-brand>
         <Brand />
+        <FullscreenButton />
       </header>
       {content.kind === "diagnostic" ? <DiagnosticSlide content={content} /> : content.kind === "whole-class" ? <Slide content={content} /> : content.kind === "group" || content.kind === "holding" ? <Race content={content} /> : <Blank content={content} />}
     </div>

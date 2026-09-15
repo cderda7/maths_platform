@@ -377,6 +377,21 @@ body {
   }
 }
 
+/* The header's Present board pill (ticket 333): three accent rings, 800 ms each (PULSES and PULSE_MS in lib/boardPresence.ts), when the class reaches a moment the board is for and no board is open. Its own box-shadow, so nothing moves. Reduced motion holds a soft halo for the same time. */
+@keyframes board-cue {
+  0% { box-shadow: 0 0 0 0 rgb(from var(--color-accent) r g b / 0.5); }
+  70%, 100% { box-shadow: 0 0 0 10px rgb(from var(--color-accent) r g b / 0); }
+}
+.board-cue {
+  animation: board-cue 800ms ease-out 3;
+}
+@media (prefers-reduced-motion: reduce) {
+  .board-cue {
+    animation: none;
+    box-shadow: 0 0 0 4px rgb(from var(--color-accent) r g b / 0.25);
+  }
+}
+
 /* The Classroom's live card (ticket 186): its green status dot breathes a soft ring, slowly and without end, on its own box-shadow so nothing moves. Reduced motion keeps the dot still. */
 @keyframes live-dot {
   0% { box-shadow: 0 0 0 0 rgb(from var(--color-secure) r g b / 0.5); }

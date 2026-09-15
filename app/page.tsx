@@ -43,12 +43,12 @@ export default function DemoChooser() {
           </Link>
           <Link href="/board" className="group" data-board-link>
             <Card className="flex h-full flex-col p-7 transition-shadow group-hover:shadow-lift">
-              <Eyebrow>Smartboard</Eyebrow>
-              <div className="mt-3 font-display text-[30px] leading-tight text-ink">The projector</div>
+              <Eyebrow>Smartboard · Projector</Eyebrow>
+              <div className="mt-3 font-display text-[30px] leading-tight text-ink">The board</div>
               <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
-                Opened once at the start of the lesson and left up. Blank until class review, then the class's examples and the teacher's working; nothing on it to press.
+                In class the teacher opens it once from the laptop with Present board, and it stays up on the projector. It changes for group review, class review and a diagnostic.
               </p>
-              <div className="mt-auto pt-6 text-[14px] font-medium text-accent-deep group-hover:underline" data-card-open>Open the board →</div>
+              <div className="mt-auto pt-6 text-[14px] font-medium text-accent-deep group-hover:underline" data-card-open>Demo shortcut: open the board →</div>
             </Card>
           </Link>
         </div>

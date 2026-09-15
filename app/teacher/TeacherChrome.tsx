@@ -8,6 +8,7 @@ import { Avatar } from "@/components/ui";
 import ResetDemo from "@/components/ResetDemo";
 import TeacherSkipTo from "./TeacherSkipTo";
 import { LessonEnds } from "./EndLesson";
+import PresentBoard from "./PresentBoard";
 import { ASSIGNMENT } from "@/data/assignment";
 import { assignmentTabs, CLASS_GROUPS_HREF } from "@/lib/assignments";
 import { useOptionalAssignment } from "./AssignmentContext";
@@ -70,6 +71,8 @@ export default function TeacherChrome({ children, zoom = TEACHER_ZOOM, fill = fa
             </nav>
           </div>
           <div className="flex items-center gap-3 text-[13px] text-ink-soft">
+            {/* The board is the laptop's second display, opened from here (ticket 333). */}
+            <PresentBoard />
             <span>{ASSIGNMENT.teacher}</span>
             <Avatar initials="MO" />
           </div>
