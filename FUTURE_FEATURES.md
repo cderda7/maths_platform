@@ -1478,6 +1478,15 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **Skill words are a regex list.** "Coefficient in front of the x²", "leading coefficient" and "a isn't 1" now read as non-monic (`NONMONIC_SAID` in `lib/warmup.ts`); anything else a student might say ("the ones with a big number first") still reads as nothing. A model reading the answer, as the help chat already does, is the real fix.
 - **The follow-up is always the same problem.** Every skill's follow-up is one hand-written problem; a second visit to the same skill (the warm-up then the mid-set practice) shows the same pair. A small bank per skill, or generated follow-ups, would vary it.
 
+## Homework presenter shortcuts (ticket 295, 2026-09-15)
+
+- **A SKIP TO bar on the board.** The board has no presenter bar; homework's moments do not change it, so none was added. A presenter projecting alone might still want the jumps there.
+- **Rewinding an opened homework to the Future.** "send homework" after Problem Set 6's lesson has ended re-sends Homework 3 and it opens at once, as the real send would; a jump that also restarts the lesson would show the Future panel again. Deferred: it means rolling back a lesson the presenter ended.
+- **Sam's skips keeping a sent homework.** Sam's skips rebuild the demo from nothing and drop Homework 3 (only the +Homework mark survives), so after "working" the presenter presses "send homework" again. Carrying it would need a rule for a homework opened against a lesson that has started again.
+- **Marking "started creating homework" from the create screen itself.** Only the +Homework press marks it; reaching `/teacher/homework/create` by typing the address or after Reset demo on that page does not. Deferred: the ticket names the press.
+- **A landing for the teacher's own screen on "homework open".** It leaves the teacher where they are (as activity completed does); landing on the Classroom to show the card turn "open" is a one-line change if the presenter prefers.
+- **Grouping the presenter's buttons.** The teacher's strip now holds five jumps in one pill; a divider between the lesson's jumps and the homework's could help once more are added.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

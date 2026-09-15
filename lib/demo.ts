@@ -1,9 +1,10 @@
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
 import type { Pathway, ReviewStage } from "@/data/types";
 import { classroomReducer, GRACE_MS, INITIAL_CLASSROOM, lessonOver, pathwayOf, unsent, type AssignmentDraft, type ClassroomAction, type ClassroomState } from "./classroom";
-import { generatedDraft } from "./draft";
+import { generatedDraft, generatedHomeworkDraft } from "./draft";
 import { draftKey, type ReviewState } from "./review";
-import { RECOMMENDATIONS } from "@/data/review";
+import { HOMEWORK_RECOMMENDATIONS, RECOMMENDATIONS } from "@/data/review";
+import { homeworkSent } from "./create";
 import { currentClassStage, type ClassStageId } from "./classStage";
 import { DEFAULT_PATHWAY } from "./pathway";
 import { candidatesFor, problemsByStruggle, suggestExamples } from "./examples";
@@ -288,5 +289,59 @@ export function teacherSkip(target: TeacherSkipTarget, c: ClassroomState, sessio
     }
     case "completed":
       return completeLesson(c, session, now);
+  }
+}
+
+/**
+ * The presenter's homework jumps (ticket 295), shown in both skip lists (the teacher's strip and Sam's SKIP TO) only once the
+ * teacher has pressed +Homework in this demo (`homeworkSkipsShown`), so a fresh demo offers no homework shortcut. Each is a
+ * pure step from the demo as it stands, like the teacher's jumps, and lands on the state the real flow lands on:
+ *
+ * - `send homework`: +Homework's Create without walking it. Homework 3 as Generate fills it and Refine leaves it with every
+ *   recommendation accepted (`readyHomework`), due on the picker's default (Mon 14 Sep), sent now through the same pure step
+ *   as the real Create (`homeworkSent`); any homework sent before it goes first, so a second press is Homework 3 again, never
+ *   Homework 4. Nothing else moves: no lesson, Sam's session as it is. It waits in Sam's Future panel until Problem Set 6's
+ *   lesson ends, which is also true before Problem Set 6 is sent ("opens after Problem Set 6", ticket 292); sent after that
+ *   lesson has ended it opens at once, as a real send would.
+ * - `homework open`: Problem Set 6's lesson over as "activity completed" leaves it (`completeLesson`: the set sent first when
+ *   nothing is out, Sam's report sent), with Homework 3 sent first if nothing is (a homework the teacher sent stands, its ten
+ *   and due date as they chose). The store's write opens it (`openHomeworks`): the first card in Sam's To do, its cell a
+ *   press target, HW2's note "current HW". Sam's iPad goes to his Classroom to show it (`land`).
+ */
+export type HomeworkSkipTarget = "send homework" | "homework open";
+
+export const HOMEWORK_SKIP_TARGETS: HomeworkSkipTarget[] = ["send homework", "homework open"];
+
+/** Whether the skip lists offer the homework jumps: +Homework pressed in this demo (ticket 295). */
+export const homeworkSkipsShown = (c: ClassroomState | null | undefined): boolean => c?.homeworkStartedAt !== undefined;
+
+/** The +Homework mark carried onto a classroom rebuilt from nothing (Sam's skips, `skipFixture`): only Reset demo clears it. */
+export const keepHomeworkStarted = (from: ClassroomState, to: ClassroomState): ClassroomState =>
+  from.homeworkStartedAt === undefined || to.homeworkStartedAt !== undefined ? to : { ...to, homeworkStartedAt: from.homeworkStartedAt };
+
+/** +Homework's draft as the demo teacher leaves it on Refine: Generate's ten for the next homework, every recommendation accepted, the first addition shown. */
+export function readyHomework(c: ClassroomState, now: number): { draft: AssignmentDraft; review: ReviewState } {
+  const draft = generatedHomeworkDraft(c, now);
+  const answers = Object.fromEntries(HOMEWORK_RECOMMENDATIONS.map((r) => [r.id, "accept" as const]));
+  return { draft, review: { step: "recommendations", forDraft: draftKey(draft.questions), labels: {}, answers, addition: 0, pathway: null } };
+}
+
+/** Homework 3 sent now from the ready draft, replacing any homework sent before; the homework draft cleared as Create clears it. */
+function sendHomework(c: ClassroomState, now: number): ClassroomState {
+  const before: ClassroomState = { ...c };
+  delete before.homeworks;
+  const { draft, review } = readyHomework(before, now);
+  return homeworkSent({ ...before, homeworkDraft: draft, homeworkReview: review }, now);
+}
+
+/** A homework jump applied to the demo as it stands, and where Sam's iPad goes. Pure: the bars write the result through the stores. */
+export function homeworkSkip(target: HomeworkSkipTarget, c: ClassroomState, session: StudentSession | null, now: number): DemoState {
+  switch (target) {
+    case "send homework":
+      return { classroom: sendHomework(c, now), session: session ?? INITIAL_SESSION };
+    case "homework open": {
+      const withHomework = c.homeworks?.length ? c : sendHomework(c, now);
+      return completeLesson(withHomework, session, now);
+    }
   }
 }

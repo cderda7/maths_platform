@@ -4,7 +4,7 @@
 
 **Blocked by:** 292.
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -22,7 +22,7 @@ The user (2026-09-15): "yep great. but only have the skip to hw stuff show up if
 
 ## Acceptance
 
-- [ ] No homework shortcuts on a fresh demo; they appear after +Homework in any tab; Reset hides them
-- [ ] Each lands exactly where the real flow lands (Future panel; To do card, cells, HW2 note)
-- [ ] vitest, eslint, tsc, next build, check:laptop; click-through
-- [ ] Ticket docs, architecture note, ARCHITECTURE, decision log, future features
+- [x] No homework shortcuts on a fresh demo; they appear after +Homework in any tab; Reset hides them
+- [x] Each lands exactly where the real flow lands (Future panel; To do card, cells, HW2 note)
+- [x] vitest, eslint, tsc, next build, check:laptop; click-through
+- [x] Ticket docs, architecture note, ARCHITECTURE, decision log, future features

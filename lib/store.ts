@@ -94,6 +94,11 @@ export function setSession(next: StudentSession | null, announce = true) {
 export interface Lesson {
   classroom: ClassroomState;
   session: StudentSession;
+  /**
+   * Where Sam's iPad goes with the move, when the jump names it (ticket 295): "classroom" takes it to his Classroom from any
+   * student screen ("homework open" shows Homework 3 in his To do), instead of into the set a move with a set out opens.
+   */
+  land?: "classroom";
 }
 
 const lessonMoves = new Set<(l: Lesson) => void>();

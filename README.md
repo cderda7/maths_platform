@@ -55,7 +55,9 @@ student over the teacher with the board down the right, or side by side; drag th
 boundary to resize, double-click it to reset); the panes are the real routes and stay in step
 with each other and with any other tab. The dashed "Reset demo"
 pinned bottom-right on the chooser at `/` and every teacher page (and in the split view's toolbar)
-restarts everything in every tab; it is a presenter control, not part of the product.
+restarts everything in every tab; it is a presenter control, not part of the product. Once the teacher has pressed +Homework, the SKIP TO bars on the teacher's
+laptop and Sam's iPad also offer "send homework" (Homework 3 sent as generated and refined, due Mon 14 Sep, into Sam's
+Future panel) and "homework open" (Problem Set 6's lesson ended, Homework 3 first in Sam's To do, his iPad on his Classroom) (ticket 295).
 
 ## The demo, in order
 

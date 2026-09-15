@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import IpadStage from "@/components/IpadStage";
 import SkipTo from "@/components/SkipTo";
 import DiagnosticModal from "./screens/DiagnosticModal";
+import { useLessonLanding } from "./useLessonLanding";
 import { groupPlan } from "@/lib/group";
 import { closedMoment, currentProblem, currentVisit, isClosed, leaveAt, leaving, penHolder, turnScript, visitsOf } from "@/lib/groupReview";
 import { debriefEndsAt, PEER_DEBRIEF_MS, pendingDebrief } from "@/lib/debrief";
@@ -33,6 +34,7 @@ export default function StudentShell({ children }: { children: ReactNode }) {
   const classroom = useClassroom();
   const now = useNow();
   const advance = classroom.advance;
+  useLessonLanding();
   const counting = isPending(classroom, now);
   const due = isDue(classroom, now) && advance && !!session && !session.appliedAdvances.includes(advance.id);
   useEffect(() => {

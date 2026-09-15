@@ -208,6 +208,12 @@ export interface ClassroomState {
    * `wholeClass.status`. Absent until then; a new set sent (`assignment/create`) clears it.
    */
   lessonEndedAt?: number;
+  /**
+   * Simulation only (ticket 295): when the teacher first pressed +Homework in this demo. From then on the presenter's skip lists
+   * offer "send homework" and "homework open" (`homeworkSkipsShown` in `lib/demo.ts`); absent on a fresh demo, cleared by Reset
+   * demo, kept by everything else (a new lesson, "send assignment", Sam's skips).
+   */
+  homeworkStartedAt?: number;
 }
 
 /** The lesson's own state, which a newly sent set starts without (ticket 263): the gate, the whiteboard, the chains, class review, the end. */
@@ -238,6 +244,8 @@ export type ClassroomAction =
   | { type: "draft/set"; draft: AssignmentDraft | null; kind?: CreateKind }
   /** The review step's decisions; null clears them. `kind` as for `draft/set`. */
   | { type: "review/set"; review: ReviewState | null; kind?: CreateKind }
+  /** +Homework pressed (ticket 295, simulation only): the first press is stamped; later ones change nothing. */
+  | { type: "homework/start"; at: number }
   /** +Homework's Create (ticket 291): the homework joins the class's list. Idempotent by id; nothing else in the classroom changes. */
   | { type: "homework/send"; homework: SentHomework }
   /** A Groups page: move one student to a colour, in an assignment's own groups when `assignment` is set, else in the class defaults. */
@@ -342,6 +350,8 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
       return a.kind === "homework" ? { ...c, homeworkDraft: a.draft } : { ...c, draft: a.draft };
     case "review/set":
       return a.kind === "homework" ? { ...c, homeworkReview: a.review } : { ...c, review: a.review };
+    case "homework/start":
+      return c.homeworkStartedAt !== undefined ? c : { ...c, homeworkStartedAt: a.at };
     case "homework/send":
       return c.homeworks?.some((h) => h.id === a.homework.id) ? c : { ...c, homeworks: [...(c.homeworks ?? []), { ...a.homework, questions: a.homework.questions.map((q) => ({ ...q })) }] };
     case "assignment/create":

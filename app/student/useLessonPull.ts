@@ -22,7 +22,8 @@ export function useLessonPull(sent: boolean, frozen: boolean) {
   useEffect(
     () =>
       subscribeLessonMoves((l) => {
-        if (!l.classroom.assignment || opened.current) return;
+        // A jump that lands Sam on his Classroom ("homework open", ticket 295) opens no set: `StudentShell` takes him there.
+        if (!l.classroom.assignment || l.land === "classroom" || opened.current) return;
         opened.current = true;
         router.push(studentSetHref(LIVE_ASSIGNMENT_ID));
       }),

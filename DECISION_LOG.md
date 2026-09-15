@@ -5086,3 +5086,21 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Fourteen more hand-written problems to keep correct (the bank tests, the spacing and anchor tests and the pixel sweep cover them, and the sweep now takes about twice as long). Skill words stay a regex list, so other phrasings still read as nothing. The chat still asks about the kind the warm-up has dropped. A student who reads both kinds as trouble and names only one in the chat loses the other from the warm-up.
 
 **Defense.** "I told it my problem and it gave me a different one" breaks trust in the whole help route, and a rule that differs by skill reads as a bug. Both fixes are small, testable data and one pure function, and neither closes the door on sequences later: `followUp` is already the seam a run of items would extend.
+## 2026-09-15 · The homework jumps show after +Homework, are pure steps from the demo as it stands, and "homework open" names Sam's Classroom as where his iPad lands (ticket 295)
+
+**Decision.** Pressing +Homework stamps `homeworkStartedAt` on the shared classroom (first press only); the teacher's strip and Sam's SKIP TO add "send homework" and "homework open" while it is set. Reset demo clears it; every other change keeps it, including Sam's skips, which otherwise rebuild the classroom from nothing (`keepHomeworkStarted`). "send homework" runs +Homework's own pure Create (`homeworkSent`) on Generate's draft with every Refine recommendation accepted, replacing any homework already sent, and writes only the classroom. "homework open" sends Homework 3 when none is sent and ends Problem Set 6's lesson exactly as "activity completed" does (`completeLesson`), then writes the lesson with `land: "classroom"`, which Sam's iPad obeys from any student route.
+
+**Context.** The user wanted the homework shortcuts only once the teacher starts creating homework. Presenter jumps from the teacher's tab that leave a set out pull Sam's iPad into Problem Set 6 (ticket 272), but homework's moments are shown on Sam's Classroom (the Future panel, the To do card, the HW3 cell, HW2's note).
+
+**Alternatives considered.**
+- *Mark on arriving at `/teacher/homework/create`*: also catches a typed URL or a reload, but it is not what the user described, and Reset demo on that page would immediately re-mark it.
+- *Show the jumps once a homework is sent*: the teacher would have to walk Create first, which is what the shortcut saves.
+- *Per-tab state (sessionStorage) for the mark*: Sam's iPad and the teacher's laptop are different tabs; they must agree, and Reset demo must clear it everywhere.
+- *"send homework" rebuilds a moment (lesson not over) so Homework 3 always waits in the Future*: it would roll back a lesson the presenter just ended. As a step, a send after the lesson has ended opens at once, as the real send does.
+- *Append a new homework each press*: a second press would send Homework 4 due Mon 21 Sep, which no demo moment needs.
+- *"homework open" leaves Sam where the lesson's end leaves him (in Problem Set 6)*: the presenter would have to navigate to his Classroom to show what the jump is for.
+- *Let Sam's skips carry the sent homeworks too*: a homework opened against the old lesson would stay open over a lesson that starts again; Sam's skips keep their rebuild-from-nothing meaning, only the demo-control mark survives.
+
+**Tradeoffs.** A simulation-only field on the product's classroom state (as `lessonEndedAt` was for ticket 263). `Lesson` carries an optional landing, which only the homework jump sets. From the teacher's tab, "homework open" moves Sam's iPad from whatever screen it is on, including the live set.
+
+**Defense.** Both jumps reuse the real flow's pure steps (`homeworkSent`, `completeLesson`, the store's `openHomeworks`), and tests hold each jump equal to walking the real flow from every demo moment, so the shortcuts cannot drift from what the teacher's own presses produce.

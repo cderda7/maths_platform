@@ -10,7 +10,7 @@ import { forgetTilesScroll } from "./students/tilesScroll";
 import { HOLISTIC_HREF } from "@/lib/assignments";
 import { CLASS_SUBJECT, classroomCards, coveredSetsPhrase, homeworkCards, isHomeworkCard, pastWithHomework, type AssignmentCard, type HomeworkCard } from "@/lib/classroomCards";
 import { CREATE_ROUTES } from "@/lib/createPipeline";
-import { useClassroom } from "@/lib/classroom-store";
+import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { CLASS_SIZE } from "@/lib/readiness";
 import { useBatchedSession, useNow } from "@/lib/store";
 
@@ -84,7 +84,8 @@ export default function Classroom() {
                 Holistic Assessment
               </Link>
               <CreateButton href={CREATE_ROUTES.pset.questions} label="In-Class PSet" data-new-assignment />
-              <CreateButton href={CREATE_ROUTES.homework.questions} label="Homework" data-new-homework />
+              {/* The first press marks that the teacher started creating homework: the presenter's homework jumps show from then on (ticket 295). */}
+              <CreateButton href={CREATE_ROUTES.homework.questions} label="Homework" onClick={() => dispatchClassroom({ type: "homework/start", at: Date.now() })} data-new-homework />
             </div>
           </div>
 
@@ -109,10 +110,11 @@ export default function Classroom() {
 }
 
 /** A create button on the title row: "+In-Class PSet" (ticket 288) and "+Homework" (ticket 291), one look. */
-function CreateButton({ href, label, ...data }: { href: string; label: string } & Record<`data-${string}`, boolean>) {
+function CreateButton({ href, label, onClick, ...data }: { href: string; label: string; onClick?: () => void } & Record<`data-${string}`, boolean>) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       className="inline-flex shrink-0 items-center gap-2 rounded-full bg-ink py-2.5 pr-5 pl-4 text-[15px] font-medium text-white shadow-card transition-colors hover:bg-ink-soft focus-visible:ring-4 focus-visible:ring-accent/30 focus-visible:outline-none"
       {...data}
     >
