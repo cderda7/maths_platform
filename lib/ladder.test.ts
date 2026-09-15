@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import questionWorking from "../scripts/question-working.json";
 import { PROBLEM_MAP, PROBLEMS } from "@/data/assignment";
-import { PAIR_MAP, QUESTION_PAIRS } from "@/data/pairs";
+import { COMPLETIONS, PAIR_MAP, QUESTION_PAIRS } from "@/data/pairs";
 import { QUESTION_HELP } from "@/data/questionHelp";
 import type { LeafId } from "@/data/taxonomy";
 import { chatOn, findPractice, helpChatSystem, parseHelpChatRequest } from "./helpChat";
@@ -125,7 +125,7 @@ describe("Q** line by line", () => {
   });
 
   it("the demo script writes Sam's slip on the factors, marked with its misconception, then the right line", () => {
-    const script = completionScript(Q2SS, blanks);
+    const script = completionScript(asPractice(Q2SS, NONMONIC), blanks);
     expect(script).toEqual([S[1], S[2], S[3], "(2x + 3)(x - 5) = 0", S[4]]);
     let read: RevealedLine[] = [];
     for (let n = 1; n <= script.length; n++) read = [...read, nextLine(script, read, n * 4)!];
@@ -133,11 +133,12 @@ describe("Q** line by line", () => {
     expect(st.blanks[3].written.map((w) => w.mark)).toEqual([{ kind: "wrong", misconception: "pair-signs-swapped" }, { kind: "right" }]);
     expect(st.done).toBe(true);
     // A slip for a step that is not blank for the skill named does not show.
-    expect(completionScript(Q2SS, [5])).toEqual([S[5]]);
+    expect(completionScript(asPractice(Q2SS, NONMONIC), [5])).toEqual([S[5]]);
     // Every authored slip is wrong against its own step.
     for (const [id, slips] of Object.entries(LADDER_SLIPS)) {
-      const q = QUESTION_PAIRS.find((p) => p.completion.id === id)!.completion;
-      for (const [step, texs] of Object.entries(slips)) for (const t of texs) expect(markLine(q.solution[Number(step)], t).kind, t).toBe("wrong");
+      const steps = QUESTION_PAIRS.find((p) => p.completion.id === id)?.completion.solution ?? Object.values(COMPLETIONS).find((c) => c?.id === id)?.steps;
+      expect(steps, id).toBeDefined();
+      for (const [step, texs] of Object.entries(slips)) for (const t of texs) expect(markLine(steps![Number(step)], t).kind, t).toBe("wrong");
     }
   });
 });

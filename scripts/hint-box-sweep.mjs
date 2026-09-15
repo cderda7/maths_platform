@@ -6,11 +6,13 @@
  * every linked word hovered, in the question and in the working column), and the question itself back on it after
  * practice (its own hints, with its working written up to each point).
  *
- * For every warm-up in the bank and its follow-up (every leaf in scripts/warmup-leaves.json with both line counts, which a unit test
- * holds to data/practice.ts, ticked on the confidence screen so the warm-up strip offers them all): opens it, writes each line of the working
- * in turn (a scribble on the pad reveals the next scripted line), opens the hint offered at each
- * point and hovers every linked word. With each word lit it checks, in the problem and in every
- * read-as line:
+ * For every warm-up skill in the bank (every leaf in scripts/warmup-leaves.json with its three steps' line counts, which a unit
+ * test holds to data/practice.ts and data/pairs.ts, ticked on the confidence screen so the warm-up strip offers them all): since
+ * ticket 313 each skill runs its worked example (no hints), then its completion problem (each blank written in turn, the
+ * demo's slip included, the hint at each point opened and swept, in the question and the working column), then its
+ * follow-up alone (each line of the working written in turn: a scribble on the pad reveals the next scripted line, the
+ * hint offered at each point opened and every linked word hovered). With each word lit it checks, in the problem and in
+ * every line of working:
  *
  *   1. no lit box intersects any glyph or fraction bar outside it (the box never covers a
  *      neighbour: the x of 7x, the other factor, the bar above a denominator);
@@ -186,14 +188,13 @@ async function openTab(browser) {
       await evaluate(`(() => { const s = JSON.parse(localStorage.getItem(${JSON.stringify(SESSION_KEY)})); s.confidence = { level: "low-when", leaves: ${JSON.stringify(LEAVES)} }; localStorage.setItem(${JSON.stringify(SESSION_KEY)}, JSON.stringify(s)); })()`);
       await tab.goto(BASE + "/student/a/pset-6");
     },
-    /** From anywhere on a warm-up: its worked example, every step shown, then "Try one more" onto the follow-up. */
-    async openFollowUp(short, steps) {
-      await tab.clickButton("I need help");
-      await tab.click('[data-help-option="example"]');
+    /** A warm-up skill on its worked example: every step shown, then "Your turn" onto its completion problem (ticket 313). */
+    async openCompletion(short, steps) {
+      if (!(await evaluate(`!!document.querySelector('[data-warmup-step="worked"]')`))) throw new Error(`${short}: the skill did not open on its worked example`);
       for (let i = 0; i < steps; i++) await tab.clickButton(i === 0 ? "First step" : "Next step");
-      await tab.clickButton("Try one more");
+      await tab.click("[data-warmup-next]");
       await sleep(500);
-      if (!(await evaluate(`!!document.querySelector('[data-warmup="second"]')`))) throw new Error(`${short}: the follow-up did not open`);
+      if (!(await evaluate(`!!document.querySelector('[data-warmup-step="completion"]')`))) throw new Error(`${short}: the completion problem did not open`);
     },
     async goto(url, ready = "[data-run]") {
       await send("Page.navigate", { url });
@@ -381,11 +382,29 @@ async function main() {
       await tab.gotoEveryWarmup();
       await tab.click(`[data-sequence] button[data-leaf="${leaf}"]`);
       await sleep(500);
-      /** Lines in each working, the warm-up's then its follow-up's (ticket 300): the sweep reads every one of both, and fails rather than silently stopping short. */
-      const [firstSteps, followUpSteps] = LINES[leaf];
-      for (const [suffix, steps] of [["", firstSteps], ["-2", followUpSteps]]) {
-        const short = leaf.split(".").pop() + suffix;
-        if (suffix) await tab.openFollowUp(short, firstSteps);
+      /** Lines in each step's working, the worked example's, the completion problem's and the follow-up's (ticket 313): the sweep reads every blank of the one and every line of the other, and fails rather than silently stopping short. */
+      const [workedSteps, completionSteps, followUpSteps] = LINES[leaf];
+      const name = leaf.split(".").pop();
+      await tab.openCompletion(name, workedSteps);
+      for (let k = 0; k <= completionSteps; k++) {
+        if (await tab.evaluate(`!!document.querySelector("[data-working-done]")`)) break;
+        await tab.click("[data-ladder-completion] [data-need-help]");
+        await sleep(200);
+        const offered = await tab.evaluate(`!!document.querySelector('[data-help-option="hint"]:not([disabled])')`);
+        if (offered) await checkPoint(tab, `${name}-completion · ${k} written`, "[data-run]", () => tab.click('[data-help-option="hint"]'));
+        else await tab.evaluate(`document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }))`);
+        const before = await tab.evaluate(`document.querySelectorAll("[data-working] [data-mark]").length`);
+        await tab.scribble(k + 1);
+        const after = await tab.evaluate(`document.querySelectorAll("[data-working] [data-mark]").length`);
+        if (after === before) throw new Error(`${name}-completion: the pad read no line ${k + 1}`);
+      }
+      if (!(await tab.evaluate(`!!document.querySelector("[data-working-done]")`))) throw new Error(`${name}-completion: the working never finished`);
+      await tab.click("[data-warmup-next]");
+      await sleep(500);
+      if (!(await tab.evaluate(`!!document.querySelector('[data-warmup-step="alone"]')`))) throw new Error(`${name}: the problem alone did not open`);
+      {
+        const short = `${name}-2`;
+        const steps = followUpSteps;
         for (let k = 0; k <= steps; k++) {
           if (k > 0) {
             const before = await tab.evaluate(`document.querySelectorAll("[data-run] aside ol > li:has(.katex)").length`);

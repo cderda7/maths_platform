@@ -259,59 +259,17 @@ describe("the warm-up on the pad", () => {
     expect(s.warmup.ink["w-monic"]).toEqual([]);
   });
 
-  it("hints are picked per problem for where the lines have got, remembered as indices in the order shown, and stop when none fits", () => {
-    let s = sessionReducer(start, { type: "run/hint", run: "warmup" });
-    expect(s.warmup.hinted).toEqual({ "w-monic": [0] });
-    // The opening hint asks for a first line; until one is written it is stalled and a second ask gives nothing (the pad opens the chat on it instead).
-    expect(sessionReducer(s, { type: "run/hint", run: "warmup" })).toBe(s);
-    s = sessionReducer(s, { type: "run/reveal", run: "warmup", problem: "w-monic", line: { tex: PRACTICE.steps[0].tex, strokeCount: 3 } });
-    s = sessionReducer(s, { type: "run/hint", run: "warmup" });
-    expect(s.warmup.hinted).toEqual({ "w-monic": [0, 1] });
-    // A line the pad could not place still counts as moving on from the hint.
-    s = sessionReducer(s, { type: "run/reveal", run: "warmup", problem: "w-monic", line: { tex: "scribble", strokeCount: 6 } });
-    s = sessionReducer(s, { type: "run/hint", run: "warmup" });
-    expect(s.warmup.hinted).toEqual({ "w-monic": [0, 1, 2] });
-    expect(sessionReducer(s, { type: "run/hint", run: "warmup" })).toBe(s);
-    s = sessionReducer(s, { type: "run/example", run: "warmup" });
-    for (let i = 0; i < PRACTICE.steps.length; i++) s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
-    s = sessionReducer(s, { type: "run/next", run: "warmup" });
-    s = sessionReducer(s, { type: "run/hint", run: "warmup" });
-    expect(s.warmup.hinted).toEqual({ "w-monic": [0, 1, 2], "w-monic-2": [0] });
-    // The fractions warm-up: on a blank pad the "move the 6" hint; once the pad has read the first
-    // step, the next ask is the "write the 6 over 2" hint written for that point, not the third in the list.
-    let f = sessionAt("practice");
-    const p = warmupProblem(f);
-    expect(p.id).toBe("w-fractions");
-    f = sessionReducer(f, { type: "run/hint", run: "warmup" });
-    expect(f.warmup.hinted).toEqual({ "w-fractions": [0] });
-    f = sessionReducer(f, { type: "run/reveal", run: "warmup", problem: "w-fractions", line: { tex: p.steps[0].tex, strokeCount: 3 } });
-    f = sessionReducer(f, { type: "run/hint", run: "warmup" });
-    expect(f.warmup.hinted).toEqual({ "w-fractions": [0, 1] });
-    // Skipping ahead: with the fifth step (3x/4 = 21/2) read and nothing else asked, the hint is the one for that point.
-    let g = sessionAt("practice");
-    for (const st of p.steps.slice(0, 5)) g = sessionReducer(g, { type: "run/reveal", run: "warmup", problem: "w-fractions", line: { tex: st.tex, strokeCount: 1 } });
-    g = sessionReducer(g, { type: "run/hint", run: "warmup" });
-    expect(g.warmup.hinted).toEqual({ "w-fractions": [5] });
-    // Asking again without writing the line that hint asks for gives nothing (the pad opens the chat on it); once the line is written, the hint for the step after; then nothing fits.
-    expect(sessionReducer(g, { type: "run/hint", run: "warmup" })).toBe(g);
-    g = sessionReducer(g, { type: "run/reveal", run: "warmup", problem: "w-fractions", line: { tex: p.steps[5].tex, strokeCount: 5 } });
-    g = sessionReducer(g, { type: "run/hint", run: "warmup" });
-    expect(g.warmup.hinted).toEqual({ "w-fractions": [5, 6] });
-    expect(sessionReducer(g, { type: "run/hint", run: "warmup" })).toBe(g);
-  });
-
   it("the help chat is kept per problem, oldest first, blank lines dropped, and a reply lands on the problem it was asked on", () => {
     let s = sessionReducer(start, { type: "run/chat", run: "warmup", problem: "w-monic", message: { from: "student", text: "  where do I start?  " } });
     expect(s.warmup.chat).toEqual({ "w-monic": [{ from: "student", text: "where do I start?" }] });
     expect(sessionReducer(s, { type: "run/chat", run: "warmup", problem: "w-monic", message: { from: "student", text: "   " } })).toBe(s);
-    s = sessionReducer(s, { type: "run/example", run: "warmup" });
-    for (let i = 0; i < 4; i++) s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
-    s = sessionReducer(s, { type: "run/next", run: "warmup" });
-    // The reply to the first problem arrives after the move to the follow-up: it stays with the first.
+    for (let i = 0; i < PRACTICE.steps.length; i++) s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
+    s = sessionReducer(s, { type: "warmup/next" });
+    // The reply to the worked example arrives after the move to the completion problem: it stays with the example.
     s = sessionReducer(s, { type: "run/chat", run: "warmup", problem: "w-monic", message: { from: "tutor", text: "Two ways in…" } });
-    s = sessionReducer(s, { type: "run/chat", run: "warmup", problem: "w-monic-2", message: { from: "student", text: "same again?" } });
+    s = sessionReducer(s, { type: "run/chat", run: "warmup", problem: "w-monic-completion", message: { from: "student", text: "same again?" } });
     expect(s.warmup.chat["w-monic"].map((m) => m.from)).toEqual(["student", "tutor"]);
-    expect(s.warmup.chat["w-monic-2"]).toEqual([{ from: "student", text: "same again?" }]);
+    expect(s.warmup.chat["w-monic-completion"]).toEqual([{ from: "student", text: "same again?" }]);
     expect(s.lines).toEqual({});
   });
 
@@ -320,34 +278,6 @@ describe("the warm-up on the pad", () => {
     const old = hydrateSession({ ...start, warmup: without(start.warmup), overlayRun: without(start.overlayRun) });
     expect(old.warmup.chat).toEqual({});
     expect(old.overlayRun.chat).toEqual({});
-  });
-
-  it("the worked example reveals one step at a time, and only its completion unlocks the follow-up", () => {
-    expect(sessionReducer(start, { type: "run/next", run: "warmup" })).toBe(start);
-    let s = sessionReducer(start, { type: "run/example", run: "warmup" });
-    expect(s.warmup.example).toBe(true);
-    expect(sessionReducer(start, { type: "run/example-step", run: "warmup" })).toBe(start);
-    s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
-    s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
-    expect(s.warmup.exampleShown).toBe(2);
-    expect(s.warmup.exampled).toEqual([]);
-    expect(sessionReducer(s, { type: "run/next", run: "warmup" })).toBe(s);
-    const all = PRACTICE.steps.length;
-    expect(all).toBe(5);
-    for (let i = 2; i < all; i++) s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
-    expect(s.warmup.exampleShown).toBe(all);
-    expect(s.warmup.exampled).toEqual(["w-monic"]);
-    expect(sessionReducer(s, { type: "run/example-step", run: "warmup" }).warmup.exampleShown).toBe(all);
-    s = sessionReducer(s, { type: "run/next", run: "warmup" });
-    expect(s.warmup.problem).toBe("second");
-    expect(s.warmup.example).toBe(false);
-    expect(s.warmup.exampleShown).toBe(0);
-    expect(warmupProblem(s).id).toBe("w-monic-2");
-    expect(sessionReducer(s, { type: "run/next", run: "warmup" })).toBe(s);
-    s = sessionReducer(s, { type: "run/example", run: "warmup" });
-    for (let i = 0; i < PRACTICE.followUp!.steps.length; i++) s = sessionReducer(s, { type: "run/example-step", run: "warmup" });
-    expect(s.warmup.exampled).toEqual(["w-monic", "w-monic-2"]);
-    expect(sessionReducer(s, { type: "practice/finish" }).stage).toBe("working");
   });
 
   it("every warm-up problem and follow-up has a recognition script the pad can read line by line", () => {

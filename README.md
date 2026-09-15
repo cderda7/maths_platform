@@ -123,7 +123,7 @@ carries, its other leftovers and Problem Set 3's Q8 are duplicates; HW2's note s
 START opens a set; the Edexia mark returns:
 
 2. Overview (CONTINUE pulses until pressed), the teacher's goal in a speech bubble ("Before you get started, Ms
-   Okafor wants you to know…"; skipped when blank), then the check-in: confidence (a not-confident answer is offered the warm-up). Work Q1–Q10 on the pad; each burst of strokes is read as
+   Okafor wants you to know…"; skipped when blank), then the check-in: confidence (a not-confident answer is offered the warm-up; confident goes straight to Q1). The warm-up runs each ticked or named skill in three steps (ticket 313): a worked example with a chat beside it, a completion problem with the skill's lines to write, each marked (the demo writes the monic factors with minus signs, then right), then one alone with hint, chat and "see the example again"; the skill chips, Next skill and Skip to the set at every step. Work Q1–Q10 on the pad; each burst of strokes is read as
    one line and the ink is kept. Q1 slips on monic factorising and Q2 on non-monic (a two-minute
    practice on non-monic is offered on the second), Q3 misuses the null factor law, Q4–Q6 and Q8 hold, Q7
    multiplies only two of three terms by 3, Q9 skips the height (a compounded step, not a

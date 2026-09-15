@@ -17,6 +17,7 @@ import type { PracticeRun, RunKey, SessionAction } from "@/lib/session";
 import { warmupScript } from "@/lib/warmup";
 import HelpMenu, { StallNotice } from "@/components/HelpMenu";
 import { useEscape } from "@/components/useEscape";
+import { ExamplePeek } from "@/app/student/screens/PracticeSteps";
 
 /**
  * Practice on the pad, for the warm-up and the mid-set isolated practice alike: the working
@@ -27,6 +28,10 @@ import { useEscape } from "@/components/useEscape";
  * about a step?", since there is no read-back. `header` sits above the problem (the warm-up's chip
  * strip, the overlay's skill name); `footer` is the right column's buttons; `finished` is the
  * button after a worked example with no follow-up left.
+ *
+ * The warm-up's third step (ticket 313) is this pad on the skill's follow-up alone: `lead` sits above the title (the step
+ * line), and `exampleAgain` makes the menu's example "see the example again", the skill's worked example shown in the pad's
+ * place until "Back to your turn", as on a completion step.
  */
 export default function PracticePad({
   run,
@@ -35,6 +40,8 @@ export default function PracticePad({
   dispatch,
   title,
   header,
+  lead,
+  exampleAgain,
   footer,
   finished,
 }: {
@@ -44,6 +51,8 @@ export default function PracticePad({
   dispatch: (a: SessionAction) => void;
   title: string;
   header?: ReactNode;
+  lead?: ReactNode;
+  exampleAgain?: PracticeProblem;
   footer: ReactNode;
   finished: ReactNode;
 }) {
@@ -58,6 +67,9 @@ export default function PracticePad({
   const [chatOpen, setChatOpen] = useState(false);
   /** Every ask for the chat counts, so the chat puts the cursor in its box each time, open already or not (ticket 204). */
   const [chatAsks, setChatAsks] = useState(0);
+  /** "see the example again" (with `exampleAgain`): the worked example in the pad's place. A look, not saved. */
+  const [peek, setPeek] = useState(false);
+  useEscape(peek, () => setPeek(false));
   // Escape closes the chat like its "close" (ticket 247); focus goes back to "I need help", the chat's opener having gone with the menu.
   const helpRow = useRef<HTMLDivElement>(null);
   useEscape(chatOpen && !run.example, () => setChatOpen(false), () => helpRow.current?.querySelector("button") ?? null);
@@ -124,7 +136,8 @@ export default function PracticePad({
             </div>
           </div>
         )}
-        <div className="flex items-center justify-between">
+        {!second && lead}
+        <div className={`flex items-center justify-between ${lead && !second ? "mt-5" : ""}`}>
           <span className="font-display text-[26px] text-ink">{second ? "One more" : title}</span>
           <span className="text-[12px] uppercase tracking-wide text-ink-muted">not marked</span>
         </div>
@@ -180,6 +193,8 @@ export default function PracticePad({
             </div>
           )}
         </section>
+      ) : peek && exampleAgain ? (
+        <ExamplePeek worked={exampleAgain} onBack={() => setPeek(false)} />
       ) : (
         <PadSection strokes={strokes} onStrokesChange={addStroke} onBurstEnd={onBurstEnd} onPenDown={() => setRecognising(true)} onUndo={undo} onClear={clear} />
       )}
@@ -234,16 +249,25 @@ export default function PracticePad({
                     }
                   : undefined,
             },
-            {
-              key: "example",
-              title: "worked example",
-              onPick: exampled
-                ? undefined
-                : () => {
+            exampleAgain
+              ? {
+                  key: "example",
+                  title: "see the example again",
+                  onPick: () => {
                     setHelpOpen(false);
-                    dispatch({ type: "run/example", run: runKey });
+                    setPeek(true);
                   },
-            },
+                }
+              : {
+                  key: "example",
+                  title: "worked example",
+                  onPick: exampled
+                    ? undefined
+                    : () => {
+                        setHelpOpen(false);
+                        dispatch({ type: "run/example", run: runKey });
+                      },
+                },
             {
               key: "chat",
               title: "chat",

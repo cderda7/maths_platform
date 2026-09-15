@@ -1,6 +1,6 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { PROBLEM_MAP } from "@/data/assignment";
-import { QUESTION_PAIRS } from "@/data/pairs";
+import { COMPLETIONS, QUESTION_PAIRS } from "@/data/pairs";
 import { PRACTICES } from "@/data/practice";
 import { resolveLeaf, studentLeafName, type LeafId } from "@/data/taxonomy";
 import { asPractice, questionPractice } from "./ladder";
@@ -54,6 +54,8 @@ export function findPractice(id: string, leaf?: LeafId): PracticeProblem | null 
     if (p.id === id) return p;
     if (p.followUp?.id === id) return p.followUp;
   }
+  // The warm-up's completion problems (ticket 313).
+  for (const p of Object.values(COMPLETIONS)) if (p?.id === id) return p;
   if (!leaf) return null;
   for (const pair of QUESTION_PAIRS) {
     if (pair.worked.id === id) return asPractice(pair.worked, leaf);
@@ -63,11 +65,13 @@ export function findPractice(id: string, leaf?: LeafId): PracticeProblem | null 
   return q ? questionPractice(q, leaf) : null;
 }
 
-/** What the chat's problem is to the student (ticket 312): a practice problem, Q* (a question like theirs, worked), Q** (one like it they finish), or the set question itself. */
-export type ChatOn = "practice" | "worked" | "completion" | "question";
+/** What the chat's problem is to the student (ticket 312): a practice problem, Q* (a question like theirs, worked), Q** (one like it they finish), the set question itself, or the warm-up's completion problem (ticket 313). */
+export type ChatOn = "practice" | "worked" | "completion" | "question" | "warmup-completion";
 export function chatOn(id: string): ChatOn {
   if (QUESTION_PAIRS.some((p) => p.worked.id === id)) return "worked";
   if (QUESTION_PAIRS.some((p) => p.completion.id === id)) return "completion";
+  // The warm-up's completion problem (ticket 313): lines given, the student writes the rest, each marked.
+  if (Object.values(COMPLETIONS).some((p) => p?.id === id)) return "warmup-completion";
   return PROBLEM_MAP[id] ? "question" : "practice";
 }
 
@@ -135,6 +139,7 @@ export function helpChatSystem(p: PracticeProblem, lines: string[], messages: Ch
     practice: "is doing one short practice problem on one skill",
     worked: "asked for help on a question in their problem set and is being shown a whole question like it, worked. Talk about this worked question only, never the question from their set",
     completion: "asked for help on a question in their problem set, has seen a question like it worked, and is now finishing another question like it: some lines of its working are already written on screen and the student writes the missing ones, each marked right or wrong as they go. Talk about this question only, never the question from their set. \"What the student has written so far\" below is the working on their screen, the given lines and theirs",
+    "warmup-completion": "is warming up on one skill before their problem set, has seen a problem like this one worked, and is now finishing this one: some lines of its working are already written on screen and the student writes the missing ones, each marked right or wrong as they go. \"What the student has written so far\" below is the working on their screen, the given lines and theirs",
     question: "is back on a question from their problem set after practising a skill on questions like it, and is working it out on the pad; their lines on it are marked when they hand the set in, so never say whether a line of theirs is right",
   }[on];
   const working = example

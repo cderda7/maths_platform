@@ -3,7 +3,7 @@ import type { Classmate } from "@/data/classmates";
 import { CHAT_TURN_MS, CONFIDENCE_CHECK_MS, CONFIDENCE_SHARE, HELP_STEP_AT, HINT_AT, STREAM_PACES, WARM_UP_STEP_SHARES, type StreamPace } from "@/data/stream";
 import type { LeafId } from "@/data/taxonomy";
 import { BEFORE_HAND_IN_STAGES, type Problem } from "@/data/types";
-import { ladderEntry, warmupStep, type StudentSession } from "./session";
+import { ladderEntry, warmupPhase, warmupStep, type StudentSession } from "./session";
 import { scheduleFor, streamElapsed, streamOver, wallAt, type StreamSet } from "./stream";
 
 /**
@@ -38,7 +38,7 @@ export type Place =
 export interface StudentPlace {
   id: string;
   place: Place;
-  /** When the student reached this place and step (absolute ms), or null when it is not known (Sam's warm-up and plain question, until ticket 313; his practice steps are recorded since ticket 312). */
+  /** When the student reached this place and step (absolute ms), or null when it is not known (Sam's plain question; his practice steps are recorded since ticket 312, his warm-up steps since ticket 313). */
   since: number | null;
 }
 
@@ -71,7 +71,8 @@ export function placeKey(p: Place): string {
  * Sam's place from his session, as the session stands today: before the set (overview, goal) not started; the confidence
  * check (with the warm-up offer); the warm-up chat; the warm-up pad on the current skill; the question on screen, with the
  * practice's skill while it is open and "back on the question" after it until he moves to another question; handed in once
- * past working. The warm-up's first problem is step 1 and its follow-up step 3 (ticket 313 changes this). Practice from a
+ * past working. A warm-up skill's worked example is step 1, its completion problem step 2 and its problem alone step 3, each
+ * `since` the time the session recorded for it (ticket 313). Practice from a
  * question (ticket 312) is Q* worked (step 1), Q** being finished (step 2) and back on the question (step 3), each `since`
  * the time the session recorded for it; Q*'s worked example opened again from back on the question is a look, not a step,
  * so he stays at step 3. The older isolated practice (a question without Q* and Q**) reads its first problem as step 1 and
@@ -88,8 +89,12 @@ export function sessionPlace(session: StudentSession | null, problems: readonly 
       return { place: { kind: "confidence" }, since: null };
     case "warmup-chat":
       return { place: { kind: "warmup-chat" }, since: null };
-    case "practice":
-      return { place: { kind: "warmup", leaf: warmupStep(session).leaf, step: session.warmup.problem === "second" ? 3 : 1 }, since: null };
+    case "practice": {
+      // The skill's step and when it began, as the session recorded them (ticket 313).
+      const phase = warmupPhase(session);
+      const step: PlaceStep = phase === "worked" ? 1 : phase === "completion" ? 2 : 3;
+      return { place: { kind: "warmup", leaf: warmupStep(session).leaf, step }, since: session.warmup.phases[warmupStep(session).id]?.[phase] || null };
+    }
   }
   const index = Math.max(0, Math.min(session.problemIndex, problems.length - 1));
   const problem = problems[index];

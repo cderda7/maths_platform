@@ -28,7 +28,7 @@ export default function WarmupChatScreen({ session, dispatch }: { session: Stude
   const play = played.turn === turnIndex ? played.step : steps[0];
   useEffect(() => {
     const timers = steps.slice(1).map((st) => setTimeout(() => setPlayed({ turn: turnIndex, step: st }), st.at));
-    if (closing) timers.push(setTimeout(() => dispatch({ type: "warmup/begin" }), steps[steps.length - 1].at + CHAT_CLOSE_MS));
+    if (closing) timers.push(setTimeout(() => dispatch({ type: "warmup/begin", at: Date.now() }), steps[steps.length - 1].at + CHAT_CLOSE_MS));
     return () => timers.forEach(clearTimeout);
     // The playback restarts only when a new turn begins (the student answered); a reload replays the current turn.
     // eslint-disable-next-line react-hooks/exhaustive-deps

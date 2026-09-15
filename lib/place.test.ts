@@ -285,7 +285,10 @@ describe("Sam's place, from his session", () => {
     const pad = sessionAt("practice");
     const first = sessionPlace(pad, P).place;
     expect(first).toMatchObject({ kind: "warmup", step: 1, leaf: FRACTIONS });
-    expect(sessionPlace({ ...pad, warmup: { ...pad.warmup, problem: "second" } }, P).place).toMatchObject({ kind: "warmup", step: 3, leaf: FRACTIONS });
+    // A deep link has no times recorded: the step with no since (the column carries its own).
+    expect(sessionPlace(pad, P).since).toBeNull();
+    expect(sessionPlace({ ...pad, warmup: { ...pad.warmup, phases: { "w-fractions": { worked: T0, completion: T0 + 50 * S } } } }, P)).toEqual({ place: { kind: "warmup", step: 2, leaf: FRACTIONS }, since: T0 + 50 * S });
+    expect(sessionPlace({ ...pad, warmup: { ...pad.warmup, phases: { "w-fractions": { worked: T0, completion: T0 + 50 * S, alone: T0 + 90 * S } } } }, P)).toEqual({ place: { kind: "warmup", step: 3, leaf: FRACTIONS }, since: T0 + 90 * S });
     expect(sessionPlace({ ...pad, warmup: { ...INITIAL_WARMUP, messages: pad.warmup.messages, step: 1 } }, P).place).toMatchObject({ kind: "warmup", step: 1 });
   });
 

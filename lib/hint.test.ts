@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import katex from "katex";
+import { COMPLETIONS } from "@/data/pairs";
 import { PRACTICES } from "@/data/practice";
+import type { LeafId } from "@/data/taxonomy";
 import sweepLeaves from "../scripts/warmup-leaves.json";
 import type { PracticeProblem } from "@/data/types";
 import { findFragment, hintAnchor, hintSegments, hoistSpacing, locateFragment, pickHint, positionOf, stalledHint, termTex } from "./hint";
@@ -359,8 +361,8 @@ describe("every warm-up's hints (ticket 199)", () => {
     }
   });
 
-  it("the hint-box sweep's list is the whole bank with each working's line count and its follow-up's, so the sweep opens every warm-up and follow-up and reads every line", () => {
-    expect(sweepLeaves).toEqual(Object.fromEntries(Object.entries(PRACTICES).map(([leaf, q]) => [leaf, [q.steps.length, q.followUp!.steps.length]])));
+  it("the hint-box sweep's list is the whole bank with each warm-up step's line count (worked example, completion problem, follow-up alone; ticket 313), so the sweep opens every step and reads every line", () => {
+    expect(sweepLeaves).toEqual(Object.fromEntries(Object.entries(PRACTICES).map(([leaf, q]) => [leaf, [q.steps.length, COMPLETIONS[leaf as LeafId]!.steps.length, q.followUp!.steps.length]])));
   });
 
   it("walking a warm-up line by line, the hint pressed at each point is the one for it and then stalls until the next line", () => {

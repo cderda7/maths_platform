@@ -6,14 +6,14 @@ import { ASSIGNMENT } from "@/data/assignment";
 import { leavesTouched } from "./hierarchy";
 
 describe("the warm-up offer's lines", () => {
-  it("names the ticked skills in tick order and counts one short problem each", () => {
-    expect(offerLines({ level: "low-when", leaves: ["algebra.expand-factor.monic", "algebra.equations.discriminant"] })).toEqual({ question: "Warm up on factorising & the discriminant first?", size: "2 short problems, then the set" });
-    expect(offerLines({ level: "low-when", leaves: ["algebra.equations.discriminant", "algebra.expand-factor.monic", "algebra.number.fractions"] })).toEqual({ question: "Warm up on the discriminant, factorising, & fractions first?", size: "3 short problems, then the set" });
-    expect(offerLines({ level: "low-when", leaves: ["functions.zeros.nfl"] })).toEqual({ question: "Warm up on null factor law first?", size: "1 short problem, then the set" });
+  it("names the ticked skills in tick order and sizes it at three short steps a skill", () => {
+    expect(offerLines({ level: "low-when", leaves: ["algebra.expand-factor.monic", "algebra.equations.discriminant"] })).toEqual({ question: "Warm up on factorising & the discriminant first?", size: "2 skills, 3 short steps each, then the set" });
+    expect(offerLines({ level: "low-when", leaves: ["algebra.equations.discriminant", "algebra.expand-factor.monic", "algebra.number.fractions"] })).toEqual({ question: "Warm up on the discriminant, factorising, & fractions first?", size: "3 skills, 3 short steps each, then the set" });
+    expect(offerLines({ level: "low-when", leaves: ["functions.zeros.nfl"] })).toEqual({ question: "Warm up on null factor law first?", size: "3 short steps, then the set" });
   });
   it("asks the open question for a plain \"not confident\"", () => {
-    expect(offerLines({ level: "low" })).toEqual({ question: "Warm up before the set?", size: "a few short problems, then the set" });
-    expect(offerLines({ level: "low-when", leaves: [] })).toEqual({ question: "Warm up before the set?", size: "a few short problems, then the set" });
+    expect(offerLines({ level: "low" })).toEqual({ question: "Warm up before the set?", size: "3 short steps per skill, then the set" });
+    expect(offerLines({ level: "low-when", leaves: [] })).toEqual({ question: "Warm up before the set?", size: "3 short steps per skill, then the set" });
   });
 });
 

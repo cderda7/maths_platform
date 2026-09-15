@@ -5493,3 +5493,20 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** `completionState` runs the line check on every render of Q** (a handful of short lines; cheap). Hints for the ten set questions are more data to keep true (held by the same tests as Q**'s and swept). The back-on-question hint and chat exist only after practice on that question, so a student who never asks sees none. Sam's demo offer changes from monic to non-monic.
 
 **Defense.** The session holds only what the student did (the step, when, the lines); everything shown is a pure reading of it, testable without a screen and identical on a reload and in the teacher's tab. The one-place mark and rule tables are what let a later decision about other forms land without reshaping the screen.
+
+## 2026-09-15 · The warm-up's three steps: times per skill, one set of step screens (ticket 313)
+
+**Decision.** Each warm-up skill runs worked example → completion problem → problem alone on the same machinery as help on a set question. The session records, per skill (by its practice problem's id), when each step began (`warmup.phases`); the step a skill is on is the furthest recorded (`phaseOf`), and the steps only go forward (`warmup/next`: the example seen in full, then every blank in). The completion problem's progress is derived from its lines by ticket 312's `completionState`, marked by `markLine`. The step screens moved out of `HelpLadder.tsx` into `app/student/screens/PracticeSteps.tsx` (`WorkedStep`, `CompletionStep`, `ExamplePeek`, `StepLine`), which both routes call with their own head and footer; step 3 is `PracticePad` on the follow-up with "see the example again".
+
+**Context.** Ticket 313 (Carson, 2026-09-15): model first, with the same three steps as ticket 312, on the skill itself; every skill all three steps; a student can move on from any step; the session records each skill's step and start for the teacher's Where students are. 312 left the warm-up on the older problem-first `PracticePad` flow.
+
+**Alternatives considered.**
+- *A current-step field beside the times*: explicit, but two fields that must agree; with forward-only steps the times already say where a skill is.
+- *Reusing `overlayRun` and `ladder` for the warm-up*: one run for both, but the warm-up keeps several skills' progress at once (chips go back and forth) and runs before the set, where the overlay's closing paths (freeze, force submit) do not apply.
+- *A stage per step*: the stage machine would have to carry the skill and every chip jump.
+- *Copying Q*/Q**'s screens into the warm-up*: quickest, but two copies of the Working column, marks and help menu to keep in step.
+- *Step 3 marked line by line like step 2*: the ticket says "done alone", and a follow-up has no blanks; it stays the unmarked read-back.
+
+**Tradeoffs.** A snapshot saved before the ticket lands on its skill's worked example (no times). "see the example again" is screen state only, so a reload returns to the pad. `HelpLadder.tsx` is now a thin caller; a change to a step screen changes both routes at once, which is the point but needs both click-throughs.
+
+**Defense.** The student's actions (the steps reached and when, the lines) are all that is stored; everything shown is a pure reading of them, identical on a reload and on the teacher's laptop, and one set of step screens keeps help and the warm-up behaving alike, as Carson asked of practice.

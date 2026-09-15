@@ -2,7 +2,7 @@ import type { MisconceptionId } from "@/data/misconceptions";
 import { QUESTION_HELP } from "@/data/questionHelp";
 import type { LeafId } from "@/data/taxonomy";
 import type { Approach, CompletionQuestion, Hint, PracticeProblem, Problem, SolutionStep, WorkedQuestion } from "@/data/types";
-import { blankSteps, pairFor } from "./pairs";
+import { blankSteps, pairFor, warmupSteps } from "./pairs";
 import type { RevealedLine } from "./recognition";
 import { checkStep } from "./stepCheck";
 import { padScript, type ScriptSlips } from "./warmup";
@@ -12,6 +12,9 @@ import { padScript, type ScriptSlips } from "./warmup";
  * skill's lines blank for the student to write; then back on Q. Pure: the session records the step and when it began, the
  * screens draw what these functions say. The questions are ticket 310's (`data/pairs.ts`), the line check ticket 311's
  * (`lib/stepCheck.ts`). See DECISION_LOG.md, 2026-09-15 (help on a question runs Q*, Q**, back on Q).
+ *
+ * The warm-up runs the same three steps on each skill (ticket 313): its practice problem worked, its completion problem
+ * finished line by line through the same marks, then its follow-up alone (`warmupLadder`, `WarmupPhase`).
  */
 
 /** The three steps, in order: what the session records per question and the teacher's place model shows. */
@@ -130,19 +133,48 @@ export const completionWorking = (steps: readonly { tex: string }[], state: Comp
 // ── The demo ────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 /**
- * Wrong lines the demo pad writes into a Q** blank before its right line, by Q** and by the step of its working (a slip
- * shows only when that step is blank for the skill named). Sam's own slip on non-monic factorising: the right numbers with
- * their signs put into the wrong brackets (`data/story.ts`, his non-monic sets; his Problem Set 6 Q2 line (2x + 4)(x − 1)).
+ * Wrong lines the demo pad writes into a completion step's blank before its right line, by problem (a Q** or a warm-up
+ * completion problem) and by the step of its working (a slip shows only when that step is blank for the skill named).
+ * Simulation data, kept apart from the problems. Sam's own sign habit (`data/story.ts`): on Q2**'s non-monic factors the
+ * right numbers with their signs put into the wrong brackets (his Problem Set 6 Q2 line (2x + 4)(x − 1)); on the warm-up's
+ * monic completion (ticket 313) the pair written with minus signs, (x − 4)(x − 5), both marked "signs swapped in the pair".
  */
 export const LADDER_SLIPS: Readonly<Record<string, ScriptSlips>> = {
   "q2-star-star": { 4: ["(2x + 3)(x - 5) = 0"] },
+  "w-monic-completion": { 2: ["(x - 4)(x - 5) = 0"] },
 };
 
-/** What the demo pad reads on Q**, one line per burst: each blank's line in order, any slip for that step just before it (`padScript`, ticket 311). */
-export function completionScript(q: Pick<CompletionQuestion, "id" | "solution">, blanks: readonly number[], slips: Readonly<Record<string, ScriptSlips>> = LADDER_SLIPS): string[] {
+/** What the demo pad reads on a completion step (Q**, or the warm-up's completion problem), one line per burst: each blank's line in order, any slip for that step just before it (`padScript`, ticket 311). */
+export function completionScript(q: { id: string; steps: readonly { tex: string }[] }, blanks: readonly number[], slips: Readonly<Record<string, ScriptSlips>> = LADDER_SLIPS): string[] {
   const own = slips[q.id] ?? {};
   return padScript(
-    blanks.map((b) => q.solution[b]),
+    blanks.map((b) => q.steps[b]),
     Object.fromEntries(blanks.flatMap((b, k) => (own[b] ? [[k, own[b]]] : []))),
   );
+}
+
+// ── The warm-up, per skill (ticket 313) ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * The warm-up's three steps for each skill, the same shape as help on a question with the question itself replaced by a
+ * problem done alone (there is no Q yet): the skill's practice problem worked, its completion problem finished, then its
+ * follow-up alone. What the session records per skill and the teacher's place model shows as steps 1, 2 and 3.
+ */
+export type WarmupPhase = "worked" | "completion" | "alone";
+export const WARMUP_PHASES: readonly WarmupPhase[] = ["worked", "completion", "alone"];
+
+/** When each step a skill reached began (ms since epoch; 0 = unknown). The steps only go forward, so the step a skill is on is the furthest one set. */
+export type PhaseTimes = Partial<Record<WarmupPhase, number>>;
+
+/** The step a warm-up skill is on: the furthest its times reach, the worked example before any. */
+export const phaseOf = (times: PhaseTimes | undefined): WarmupPhase => [...WARMUP_PHASES].reverse().find((p) => times?.[p] !== undefined) ?? "worked";
+
+/** The step after `phase`, or null after the last. */
+export const nextPhase = (phase: WarmupPhase): WarmupPhase | null => WARMUP_PHASES[WARMUP_PHASES.indexOf(phase) + 1] ?? null;
+
+/** The warm-up's problems for a practice problem: itself worked, its completion problem with its blanks (ticket 310's rule, on the practice's own skill), its follow-up alone. Null for a practice without both. */
+export function warmupLadder(practice: PracticeProblem): { worked: PracticeProblem; completion: PracticeProblem; blanks: number[]; alone: PracticeProblem } | null {
+  const steps = warmupSteps(practice.leaf);
+  if (!steps || steps.worked.id !== practice.id) return null;
+  return { ...steps, blanks: blankSteps(steps.completion.steps, practice.leaf) };
 }

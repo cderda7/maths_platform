@@ -8,7 +8,7 @@ import { problemLeaves } from "./hierarchy";
 /**
  * The warm-up's brain, simulated: the concerns chat that follows the confidence answer (one
  * question per skill the student ticked), what a student's answer means, which skills the answer
- * and the answers add up to, and the order those skills are warmed up in, one short problem each,
+ * and the answers add up to, and the order those skills are warmed up in, three short steps each,
  * easiest first. Pure, so every rule is unit-tested and the screens only render.
  */
 
@@ -124,13 +124,13 @@ export const concernsAnswered = (seed: LeafId[], messages: WarmupMessage[]): boo
 
 /**
  * The warm-up offer's two lines, on the confidence screen after a not-confident answer: the tutor's
- * question naming the ticked skills in tick order, and a muted line sizing the warm-up at one short
- * problem per skill. A plain "not confident" (no skills) gets the open question and "a few".
+ * question naming the ticked skills in tick order, and a muted line sizing the warm-up: the skills, three short steps each
+ * (ticket 313: an example, one to finish, one alone). A plain "not confident" (no skills) gets the open question.
  */
 export function offerLines(confidence: Confidence): { question: string; size: string } {
   const w = confidence.level === "low-when" ? confidence.leaves.map(skillWord) : [];
-  if (w.length === 0) return { question: "Warm up before the set?", size: "a few short problems, then the set" };
-  return { question: `Warm up on ${amp(w)} first?`, size: `${w.length} short problem${w.length === 1 ? "" : "s"}, then the set` };
+  if (w.length === 0) return { question: "Warm up before the set?", size: "3 short steps per skill, then the set" };
+  return { question: `Warm up on ${amp(w)} first?`, size: w.length === 1 ? "3 short steps, then the set" : `${w.length} skills, 3 short steps each, then the set` };
 }
 
 /** How a student says non-monic without the word: a number in front of the x², the leading coefficient, a that isn't 1. */

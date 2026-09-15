@@ -13,7 +13,7 @@ import { evaluateLine } from "./evaluate";
 import { INITIAL_ESCALATION, practiceTaken, recordMistake, requestHelp, type EscalationState } from "./escalation";
 import { RECOGNITION, RECOGNITION_REWORK } from "@/data/recognition";
 import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
-import { asPractice, completionState, completionWorking, ladderFor, questionPractice, type LadderStep } from "./ladder";
+import { asPractice, completionState, completionWorking, ladderFor, nextPhase, phaseOf, questionPractice, warmupLadder, type LadderStep, type PhaseTimes, type WarmupPhase } from "./ladder";
 
 /**
  * The student's session: everything the closed loop needs to remember about one run. Pure data
@@ -80,9 +80,15 @@ export interface WarmupState extends PracticeRun {
   step: number;
   /** Ids of the warm-up problems the student has been through, in the order they left them: by "Next skill" or a tap on another chip, finished or not. */
   done: string[];
+  /**
+   * Each skill's three steps (ticket 313), by its practice problem's id: when the worked example, the completion problem
+   * and the problem alone began (ms since epoch; 0 = unknown). The step a skill is on is the furthest set (`phaseOf`), so a
+   * chip back to a skill reopens the step it was left on.
+   */
+  phases: Record<string, PhaseTimes>;
 }
 
-export const INITIAL_WARMUP: WarmupState = { ...INITIAL_RUN, messages: [], step: 0, done: [] };
+export const INITIAL_WARMUP: WarmupState = { ...INITIAL_RUN, messages: [], step: 0, done: [], phases: {} };
 
 export interface StudentSession {
   stage: Stage;
@@ -175,8 +181,10 @@ export type SessionAction =
   | { type: "practice/finish" }
   /** The concerns chat: answer the current question. Ignored once every question has its answer. */
   | { type: "warmup/say"; text: string }
-  /** After the closing bubble: on to the warm-up pad. Only once every question has its answer. */
-  | { type: "warmup/begin" }
+  /** After the closing bubble: on to the warm-up's first skill, its worked example. Only once every question has its answer. */
+  | { type: "warmup/begin"; at?: number }
+  /** The warm-up skill's next step (ticket 313): "Your turn" once its worked example has been seen in full, "On your own" once its completion problem is finished. */
+  | { type: "warmup/next"; at?: number }
   /** Practice on the pad, for either run: the warm-up or the mid-set overlay. */
   | { type: "run/reveal"; run: RunKey; problem: string; line: RevealedLine }
   | { type: "run/stroke"; run: RunKey; problem: string; stroke: Stroke }
@@ -198,9 +206,9 @@ export type SessionAction =
   /** The help menu's "chat": one line of it, the student's or the tutor's, on the problem it was said on (a reply can land after a move to the follow-up). */
   | { type: "run/chat"; run: RunKey; problem: string; message: ChatMessage }
   /** The current skill is finished: on to the next not yet done (wrapping round), or the set once every skill is. */
-  | { type: "warmup/skill-done" }
+  | { type: "warmup/skill-done"; at?: number }
   /** A tap on a skill chip: that step of the sequence, done or not. */
-  | { type: "warmup/goto"; step: number }
+  | { type: "warmup/goto"; step: number; at?: number }
   | { type: "problem/goto"; index: number }
   | { type: "line/reveal"; problem: string; line: RevealedLine }
   | { type: "ink/stroke"; problem: string; stroke: Stroke }
@@ -412,7 +420,18 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       return warm(s, { messages: [...s.warmup.messages, { from: "student", text }] });
     }
     case "warmup/begin":
-      return s.stage === "warmup-chat" && concernsAnswered(warmupSeed(s), s.warmup.messages) ? { ...s, stage: "practice" } : s;
+      return s.stage === "warmup-chat" && concernsAnswered(warmupSeed(s), s.warmup.messages) ? openSkill({ ...s, stage: "practice" }, {}, a.at) : s;
+    case "warmup/next": {
+      if (s.stage !== "practice") return s;
+      const ladder = warmupLadder(warmupStep(s));
+      const phase = warmupPhase(s);
+      const next = nextPhase(phase);
+      if (!ladder || !next) return s;
+      // The worked example seen in full before "Your turn"; the completion problem finished before "On your own".
+      if (phase === "worked" && !s.warmup.exampled.includes(ladder.worked.id)) return s;
+      if (phase === "completion" && !warmupCompletion(s)?.state.done) return s;
+      return warm(s, { example: false, exampleShown: 0, phases: stampPhase(s.warmup.phases, ladder.worked.id, next, a.at) });
+    }
     case "run/reveal":
     case "run/stroke":
     case "run/undo":
@@ -422,11 +441,15 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     case "run/example-step":
     case "run/next":
     case "run/chat": {
-      const run = runOf(s, a.run);
+      const base = runOf(s, a.run);
+      // A warm-up skill on its worked example is playing it, whatever an older or deep-linked snapshot says.
+      const run = a.run === "warmup" && !base.example && warmupPhase(s) === "worked" ? { ...base, example: true } : base;
       const first = runFirst(s, a.run);
       if (!first) return s;
-      // Q**'s hints are picked by the working on screen (the given lines and the blanks done), not by the lines written into it.
-      const working = a.run === "overlay" && s.ladder?.step === "completion" ? ladderWorking(s) : undefined;
+      // The warm-up's steps move by warmup/next alone (ticket 313): the older follow-up and the menu's example do not apply to it.
+      if (a.run === "warmup" && (a.type === "run/next" || a.type === "run/example")) return s;
+      // Q**'s hints (and the warm-up completion problem's) are picked by the working on screen (the given lines and the blanks done), not by the lines written into it.
+      const working = a.run === "overlay" && s.ladder?.step === "completion" ? ladderWorking(s) : a.run === "warmup" ? warmupWorking(s) : undefined;
       const next = runReducer(run, a, first, working);
       return next === run ? s : a.run === "warmup" ? { ...s, warmup: { ...s.warmup, ...next } } : a.run === "overlay" ? { ...s, overlayRun: next } : { ...s, questionRun: next };
     }
@@ -455,11 +478,11 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       // The next skill never opened, looking past the current one and wrapping round to any jumped over; the set once every skill has been.
       const next = seq.map((_, i) => (s.warmup.step + 1 + i) % seq.length).find((i) => !done.includes(seq[i].id));
       if (next === undefined) return { ...s, stage: "working", warmup: { ...s.warmup, done } };
-      return warm(s, { done, step: next, problem: "first", example: false, exampleShown: 0 });
+      return openSkill(s, { done, step: next }, a.at);
     }
     case "warmup/goto": {
       if (s.stage !== "practice" || a.step === s.warmup.step || a.step < 0 || a.step >= warmupSequence(warmupFocus(s)).length) return s;
-      return warm(s, { done: leaveSkill(s), step: a.step, problem: "first", example: false, exampleShown: 0 });
+      return openSkill(s, { done: leaveSkill(s), step: a.step }, a.at);
     }
     case "problem/goto":
       // A tile pressed under the open hand-in check is a way back too.
@@ -625,6 +648,39 @@ export function reworkNotice(s: StudentSession): string | null {
 
 const warm = (s: StudentSession, patch: Partial<WarmupState>): StudentSession => ({ ...s, warmup: { ...s.warmup, ...patch } });
 
+/**
+ * Opens the warm-up skill `patch.step` names (or the current one) on the step it was left on (ticket 313): a skill never
+ * opened starts on its worked example, playing from its first step, with that start recorded once.
+ */
+function openSkill(s: StudentSession, patch: Partial<WarmupState>, at: number | undefined): StudentSession {
+  const opened = warm(s, { ...patch, problem: "first", exampleShown: 0 });
+  const id = warmupStep(opened).id;
+  const phases = warmupLadder(warmupStep(opened)) ? stampPhase(opened.warmup.phases, id, "worked", at) : opened.warmup.phases;
+  return warm(opened, { phases, example: phaseOf(phases[id]) === "worked" });
+}
+
+/** A warm-up skill's step `phase` recorded as begun at `at`, once: a step already reached keeps its first time. */
+function stampPhase(phases: Record<string, PhaseTimes>, id: string, phase: WarmupPhase, at: number | undefined): Record<string, PhaseTimes> {
+  if (phases[id]?.[phase] !== undefined) return phases;
+  return { ...phases, [id]: { ...phases[id], [phase]: at ?? 0 } };
+}
+
+/** The step the warm-up's current skill is on (ticket 313). */
+export const warmupPhase = (s: Pick<StudentSession, "warmup" | "confidence">): WarmupPhase => phaseOf(s.warmup.phases[warmupStep(s).id]);
+
+/** The warm-up's completion problem as it stands, with its blanks: null unless the current skill is on it. */
+export function warmupCompletion(s: StudentSession) {
+  const ladder = warmupLadder(warmupStep(s));
+  if (!ladder || warmupPhase(s) !== "completion") return null;
+  return { ...ladder, state: completionState(ladder.completion.steps, ladder.blanks, s.warmup.lines[ladder.completion.id] ?? []) };
+}
+
+/** The warm-up completion problem's working as far as the blank being written, for the hint picker; undefined on the other steps. */
+const warmupWorking = (s: StudentSession): string[] | undefined => {
+  const c = warmupCompletion(s);
+  return c ? completionWorking(c.completion.steps, c.state) : undefined;
+};
+
 /** The warm-up's done list once the student leaves the skill on screen: leaving it counts, finished or not (ticket 205). */
 const leaveSkill = (s: StudentSession): string[] => {
   const cur = warmupStep(s).id;
@@ -640,7 +696,11 @@ export const runOf = (s: StudentSession, key: RunKey): PracticeRun => (key === "
  * question after practice, that question with its own hints (null before any).
  */
 export function runFirst(s: StudentSession, key: RunKey): PracticeProblem | null {
-  if (key === "warmup") return warmupStep(s);
+  if (key === "warmup") {
+    // The warm-up skill's step (ticket 313): its practice problem worked, its completion problem, its follow-up alone.
+    const ladder = warmupLadder(warmupStep(s));
+    return ladder ? ladder[warmupPhase(s)] : warmupStep(s);
+  }
   if (key === "question") {
     const entry = [...s.practices].reverse().find((p) => p.accepted && p.steps);
     const q = entry ? PROBLEM_MAP[entry.problem] : undefined;
@@ -744,21 +804,20 @@ function runReducer(r: PracticeRun, a: RunAction, first: PracticeProblem, workin
 }
 
 /** The skills the student ticked under "not confident with…": what the concerns chat asks about, in that order. Empty for an overall answer. */
-export const warmupSeed = (s: StudentSession): LeafId[] => (s.confidence?.level === "low-when" ? s.confidence.leaves : []);
+export const warmupSeed = (s: Pick<StudentSession, "confidence">): LeafId[] => (s.confidence?.level === "low-when" ? s.confidence.leaves : []);
 
 /** The leaves the warm-up is about so far: the ticked skills plus anything the answers named. */
-export const warmupFocus = (s: StudentSession): LeafId[] => focusLeaves(warmupSeed(s), s.warmup.messages);
+export const warmupFocus = (s: Pick<StudentSession, "confidence" | "warmup">): LeafId[] => focusLeaves(warmupSeed(s), s.warmup.messages);
 
-/** The current step's problem (the sequence's last once the warm-up is over). */
-export function warmupStep(s: StudentSession) {
+/** The current skill's practice problem (the sequence's last once the warm-up is over): the skill's worked example, and the id its steps are recorded under. */
+export function warmupStep(s: Pick<StudentSession, "warmup" | "confidence">) {
   const seq = warmupSequence(warmupFocus(s));
   return seq[Math.min(s.warmup.step, seq.length - 1)];
 }
 
-/** The warm-up problem the student is on: the current step's, or its follow-up. */
+/** The warm-up problem the student is on: the current skill's worked example, completion problem or follow-up, by its step (ticket 313). */
 export function warmupProblem(s: StudentSession) {
-  const first = warmupStep(s);
-  return s.warmup.problem === "second" && first.followUp ? first.followUp : first;
+  return runFirst(s, "warmup") ?? warmupStep(s);
 }
 
 /** Stored to a tenth of a pad pixel: indistinguishable on screen, a third of the bytes. */

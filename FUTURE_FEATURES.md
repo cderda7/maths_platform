@@ -1696,6 +1696,17 @@ Raised in a project checkpoint review; Carson asked for these on the list. Space
 - **The step line when the example is opened again.** The three-step line still marks "1 Example" while Sam looks at Q* again from back on Q2; it could mark 3 with the example as a look. Deferred: small, and the title says Example.
 - **Q* and Q** for a question in a set made through Create.** Such a question still opens the older isolated practice (`PracticeOverlay`); it needs generated pairs (ticket 310's entry) before it runs the three steps.
 
+## The warm-up starts each skill with a worked example (ticket 313, 2026-09-15)
+
+- **A shorter completion problem for the long warm-ups.** The blanks follow the skill's tags (ticket 310's rule), so the fractions completion problem has five of its seven lines to write, graphing features three of six. A cap (say the last two tagged lines) would keep step 2 short. Deferred: the brief said build it as the data says and record it; the rule is one function (`blankSteps`) if Carson wants it changed.
+- **The step line pressable to go back a step.** On the warm-up, "1 Example › 2 Your turn › 3 On your own" names the step but cannot be pressed; "see the example again" is the way back to the example. Deferred: steps only go forward in the session today.
+- **"see the example again" on the warm-up saved in the session, and shown to the teacher.** It is screen state, so a reload returns to the pad, and Sam's pill does not say he is looking. Deferred with ticket 312's same entries.
+- **The problem alone marked line by line.** Step 3 is the unmarked read-back, as the follow-up was. Marking it (as step 2 is) would tell the student before the set whether they have it. Deferred: "done alone" in the ticket; marks there are a product call.
+- **Authored slips on every warm-up completion problem.** The demo writes one wrong line (monic, (x − 4)(x − 5) = 0, Sam's sign habit). Each skill could carry a realistic slip. Deferred: the click-through route is monic.
+- **The warm-up's work on the teacher's student panel.** Pressing Sam's pill during the warm-up (ticket 316) shows no warm-up lines or marks. Deferred: warm-up work is unmarked practice; whether the teacher should see it is open.
+- **An older session's follow-up mapped to step 3.** A snapshot saved mid follow-up before this ticket opens the skill on its worked example. Deferred: demo sessions only.
+- **A time for a deep-linked warm-up.** The demo strip's "warm-up" skip records no step start, so the teacher's pill counts from when the laptop first sees it. Deferred: deep links are presenter shortcuts.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
