@@ -106,7 +106,7 @@ export default function CreateAssignment() {
 }
 
 /**
- * Blank until generated (ticket 188): "New assignment" opens `BlankStart`, whose one live control
+ * Blank until generated (ticket 188): "+In-Class PSet" opens `BlankStart`, whose one live control
  * stores the demo teacher's set as the draft (`generatedDraft`); the editor then opens over it, and
  * stays across reloads while the draft is flagged generated. Create and Reset demo clear the draft, so
  * the next visit is blank again. `fresh` is this mount's own Generate: the tiles fade in once.

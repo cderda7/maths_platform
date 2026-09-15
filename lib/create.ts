@@ -30,7 +30,7 @@ export function createAction(c: ClassroomState, at?: number): ClassroomAction | 
   };
 }
 
-/** The draft and its review once Create has sent them: both cleared, so the next New assignment starts blank. */
+/** The draft and its review once Create has sent them: both cleared, so the next +In-Class PSet starts blank. */
 export const CLEAR_DRAFT: ClassroomAction[] = [
   { type: "draft/set", draft: null },
   { type: "review/set", review: null },

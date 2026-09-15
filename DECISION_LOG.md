@@ -4878,3 +4878,21 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** A cold visitor lands on the chooser again, and can still pick the Student card first; the concern ticket 265 answered returns. `/demo` costs one redirect round trip.
 
 **Defense.** The site is a presenter's demo and `/` is where the presenter starts; one URL per page, with the old one kept working. A 307 (not 308) so `/demo` is never cached and can be reused.
+
+## 2026-09-15 · The create strip is a pipeline per kind of set, and Send is a 600 ms light on Create, not a page (ticket 288)
+
+**Decision.** The strip's steps live in `lib/createPipeline.ts` as data, `PIPELINES: Record<CreateKind, PipelineStep[]>` (today `pset`: Questions, Difficulty, Refine, Pathway, Send), and `Steps` renders whatever list it is given. Refine is only a new label: the step's id stays `assessment`, so the review state, the assessing run and every stored review are untouched. Send is the last label on every step; pressing Create (with a pathway chosen) marks it current for `SEND_LIGHT_MS` = 600 ms with the strip locked and Back and a second Create ignored, then sends exactly as Create did and lands on the set. At the send the page freezes the draft it sent on screen until the route changes, which also removes a one-frame "Untitled assignment · Nothing drafted yet" flash that Create has always shown between clearing the draft and the new page.
+
+**Context.** The user (2026-09-15) wanted "Pathway – Send" on the strip "for visual clarity of the pipeline", Assessment renamed Refine (a teacher reads "assessment" as a school assessment), and "+In-Class PSet" in place of "+ New assignment". Ticket 291 will add `+Homework`, whose pipeline is Questions, Difficulty, Refine, Send with no Pathway.
+
+**Alternatives considered.**
+- *Keep the fixed list in `Steps` and add a `homework` flag later*: the least code now, but each new kind adds a branch to the strip and to the current-step logic; a table per kind makes 291 one entry.
+- *Rename the internal id to `refine`*: consistent names, but touches the stored review, the strip's `data-step` attributes the click-throughs read and several comments for no user-visible gain; the ticket allowed the id to stay.
+- *Send as a real step/page*: explicitly rejected by the user.
+- *Send immediately and light Send on the next page*: the light would appear on a page with no strip.
+- *Dispatch first, light after*: clearing the draft empties the page under the light.
+- *Clear the draft on unmount instead of freezing the view*: leaves a created set with its draft still stored if navigation fails, so a second Create could send twice.
+
+**Tradeoffs.** Create now takes 600 ms longer to leave the page; a reload inside that window sends nothing (the draft is still there to press again). PATHWAY starts 32 px further left on screen (44 layout px) because REFINE is shorter than ASSESSMENT, and on the Classroom the shorter button moves Holistic Assessment 16 px right (the button's right edge stays put); everything else on the strip and both pages keeps its geometry, checked before/after at 1280×800 and 1440×900. The frozen view uses `flushSync` inside a timer callback.
+
+**Defense.** The pipeline is one table the next kind extends, the step logic is a pure tested function, and the send path is Create's own code run after a light, so what Create does and where it lands cannot drift.

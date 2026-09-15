@@ -25,7 +25,7 @@ export default function AssignmentProvider({ id, children }: { id: string; child
         <Card className="mt-8 p-6 text-[14px] text-ink-muted" data-assignment-missing={id}>
           This assignment has not been created yet.{" "}
           <Link href={NEW_ASSIGNMENT_HREF} className="font-medium text-accent-deep hover:underline" data-create-it>
-            New assignment
+            +In-Class PSet
           </Link>
         </Card>
       </TeacherChrome>

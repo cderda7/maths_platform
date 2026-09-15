@@ -12,19 +12,19 @@ import { useClassroom } from "@/lib/classroom-store";
 import { CLASS_SIZE } from "@/lib/readiness";
 import { useBatchedSession, useNow } from "@/lib/store";
 
-/** The create screen "+ New assignment" opens. */
+/** The create screen "+In-Class PSet" opens (ticket 288; "+ New assignment" before). */
 const CREATE_HREF = "/teacher/assignments/create";
 
 /**
  * Edexia Classroom (ticket 186), the teacher's home: every assignment the class has, as cards, the
  * live ones (the class still working, or in review, ticket 234) above the past ones (done), each
- * newest due first, and Holistic Assessment (ticket 252) and "+ New assignment" on the title row. The heading and the Live section are
+ * newest due first, and Holistic Assessment (ticket 252) and "+In-Class PSet" on the title row. The heading and the Live section are
  * pinned; only Past scrolls (ticket 216). A card is one link to the assignment's
  * landing (ticket 185: Class or Mistakes). The cards are `lib/classroomCards` over the classroom,
  * Sam's session in its 3 s batches and the clock, the inputs the assignment's own tabs read, so the
  * live card's counts move with the class. One class (ASSUMPTIONS.md, ONE CLASS).
  *
- * The page takes the chrome's full container, as the header and Class View do: "+ New assignment"
+ * The page takes the chrome's full container, as the header and Class View do: "+In-Class PSet"
  * ends where the header's avatar ends, and the cards span the same width.
  */
 export default function Classroom() {
@@ -70,7 +70,7 @@ export default function Classroom() {
           </div>
           <div className="mt-3 flex items-center justify-between gap-6">
             <H1>Edexia Classroom</H1>
-            {/* Holistic Assessment (ticket 252) beside "+ New assignment", one height with it, so the title row and the Live cards stay where they were. */}
+            {/* Holistic Assessment (ticket 252) beside "+In-Class PSet", one height with it, so the title row and the Live cards stay where they were. */}
             <div className="flex shrink-0 items-center gap-3">
               <Link
                 href={HOLISTIC_HREF}
@@ -88,7 +88,7 @@ export default function Classroom() {
                 <span aria-hidden className="grid h-5 w-5 place-items-center text-[20px] leading-none font-normal">
                   +
                 </span>
-                New assignment
+                In-Class PSet
               </Link>
             </div>
           </div>

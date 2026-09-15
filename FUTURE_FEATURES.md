@@ -1331,6 +1331,13 @@ uploaded problems) settled the following as later, each on purpose.
 - **A cold visitor's first impression.** Ticket 265's outside-review concern (the Student card first, so the student's report is what a newcomer sees) returns with `/` as the chooser; ordering the cards teacher first, or a short "start here" on the Teacher card, was not asked for.
 - **A way back to the chooser from inside a surface.** The teacher chrome's brand is a label (ticket 184) and the iPad has no link out, so returning to `/` means typing it; a presenter-only link beside Reset demo was not asked for.
 
+## Create strip: Refine and Send (ticket 288, 2026-09-15)
+
+- **The strip on the Questions page.** The strip still shows only on the review route (Difficulty, Refine, Pathway); the Questions page, whose name is its first label, has none. Adding it there moves the title's neighbours and ticket 289 is about to put a due-date picker beside the title, so it was left for the user to ask.
+- **Cancelling a send under the light.** Back and a second Create do nothing during Send's 600 ms; an explicit "undo" in that window was not asked for.
+- **Internal step id `assessment`.** Refine's id stays `assessment` (the ticket allowed it); renaming it to `refine` across the review state, `data-step` attributes and click-throughs is a cleanup for when those are next touched.
+- **A spaced glyph in "+In-Class PSet".** The button keeps its separate + glyph with the old gap, so it reads "+ In-Class PSet" on screen while its text is exactly "+In-Class PSet"; a tight "+In" was not asked for.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

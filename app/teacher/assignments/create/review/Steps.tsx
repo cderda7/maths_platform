@@ -1,26 +1,20 @@
 "use client";
 
 import Link from "next/link";
-
-export type StepName = "questions" | "difficulty" | "assessment" | "pathway";
-const ORDER: { id: StepName; label: string }[] = [
-  { id: "questions", label: "Questions" },
-  { id: "difficulty", label: "Difficulty" },
-  { id: "assessment", label: "Assessment" },
-  { id: "pathway", label: "Pathway" },
-];
+import type { PipelineStep, StepName } from "@/lib/createPipeline";
 
 /**
- * The quiet step line under the heading of a new assignment: the four steps in order, the
- * current one in ink, the ones behind it in soft ink and tappable (Questions is the create
- * screen; an earlier step here is Back), the ones ahead muted. `locked` while the assessment
- * runs: nothing is tappable then, that run has no Back.
+ * The quiet step line under the heading of a set being created: the kind's pipeline in order (`PIPELINES` in
+ * `lib/createPipeline`, ticket 288), the current step in ink, the ones behind it in soft ink and tappable
+ * (Questions is the create screen; an earlier step here is Back), the ones ahead muted. `locked` while the
+ * assessment runs, and while Send is lit after Create: nothing is tappable then. Send is never a page, so it is
+ * never tappable either.
  */
-export default function Steps({ current, locked = false, onBack }: { current: StepName; locked?: boolean; onBack?: (step: StepName) => void }) {
-  const at = ORDER.findIndex((s) => s.id === current);
+export default function Steps({ steps, current, locked = false, onBack }: { steps: readonly PipelineStep[]; current: StepName; locked?: boolean; onBack?: (step: StepName) => void }) {
+  const at = steps.findIndex((s) => s.id === current);
   return (
     <ol className="mt-5 flex items-center gap-3 text-[11.5px] font-semibold uppercase tracking-[0.12em]" data-steps data-step={current} data-locked={locked || undefined}>
-      {ORDER.map((s, i) => {
+      {steps.map((s, i) => {
         const done = i < at;
         // A button does not inherit the case from the list (the preflight resets it), so it is set again.
         const cls = `uppercase ${i === at ? "text-ink" : done ? "text-ink-soft hover:text-ink" : "text-ink-muted/60"}`;
@@ -32,7 +26,7 @@ export default function Steps({ current, locked = false, onBack }: { current: St
               <Link href="/teacher/assignments/create" className={cls}>
                 {s.label}
               </Link>
-            ) : back && onBack ? (
+            ) : back && onBack && s.id !== "send" ? (
               <button type="button" onClick={() => onBack(s.id)} className={cls}>
                 {s.label}
               </button>

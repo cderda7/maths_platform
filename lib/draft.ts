@@ -3,7 +3,7 @@ import type { AssignmentDraft, ClassroomState } from "./classroom";
 import { parseQuestion, stemText } from "./mathInput";
 
 /**
- * The create screen's start (ticket 188). "New assignment" opens it blank: a greyed title and goal,
+ * The create screen's start (ticket 188). "+In-Class PSet" opens it blank: a greyed title and goal,
  * one inert ghost tile, and a pulsing "Generate simulated assignment". Generating stores the demo
  * teacher's set (`data/draft-seed`: the title, the goal, Q1–Q10 as typed) as the draft, flagged
  * `generated`, and from then on the screen is the editor over that draft, across reloads, until

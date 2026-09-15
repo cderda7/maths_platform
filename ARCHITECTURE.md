@@ -160,7 +160,7 @@ two routes, the help chat's (`/api/help-chat`, ticket 69) and problem extraction
  lib/assignments.ts REGISTRY: pset-6 live, then pset-5 … pset-1
       │  assignmentBundle(id) { title, name, due, problems, newSkills, classmates, sam, groups }
       │
-      ├─► app/teacher/Classroom.tsx   pinned: heading, Holistic Assessment + New assignment, LIVE (Set 6); Past scrolls, newest due first
+      ├─► app/teacher/Classroom.tsx   pinned: heading, Holistic Assessment + "+In-Class PSet", LIVE (Set 6); Past scrolls, newest due first
       ├─► /teacher/a/<id>/class       ClassView ─► TeacherLive: rows, dots, due line; HierarchyDrill
       │        lib/hierarchy.ts hierarchyFor(ev, set): a set's New skills → "new", others → their home
       ├─► /teacher/a/<id>/mistakes, /groups, /report?student=
@@ -183,6 +183,7 @@ two routes, the help chat's (`/api/help-chat`, ticket 69) and problem extraction
       │                 └─► app/teacher/students/HolisticTiles.tsx   /teacher/students (Classroom's title-row entry)
       │                          tile ─► /teacher/students/<id> ; Back returns at the scroll left (tilesScroll.ts)
       └─► lib/newSkills.ts inferNewSkills(problems, recentSets("pset-6", 2) = PS5, PS4) ─► Create's review
+               strip: lib/createPipeline.ts PIPELINES[kind] QUESTIONS — DIFFICULTY — REFINE — PATHWAY — SEND (ticket 288)
 ```
 
 ## Tickets, in build order
@@ -466,6 +467,7 @@ two routes, the help chat's (`/api/help-chat`, ticket 69) and problem extraction
 | 281 | The class data follows the realistic group rules (`lib/reviewRule.ts`): a member brings every problem not right first time; a one-off slip is fixed on their own rework; the group solves the rest when a present member had it right first time and otherwise closes it on its own last try (never a member's first submission), with at most one declared exception a set (Set 6's Q9 at sky); Liam hands in five on every set (statuses unchanged where the sheet saw his work; Sets 3 and 5 now read results); one or two groups a set meet the hardest problem with nobody able to do it (violet Q10 on Set 1, mint's Q10 on Sets 2–6 and Q9 on Set 5); class review on Sets 1, 3 and 6 records the covered problems and one or two real wrong first submissions each (`ClassReview`, `classReviewFrom`); Sam's board drops Q4 and scripts Liam's Q5; review data and the sheet's reasons regenerated, held together by `reviewMismatches`, `classReviewMismatches`, `hardestUnsolved` | `architecture/281-class-data-group-rules.md` |
 | 282 | Both reports sort problems into five columns: Correct first try needs a finished first submission (`firstFinished`, `recordFinished` in `lib/setScore.ts`; Sam's unfinished Q9 left that column); a new grey **Covered in class review** (after group review, before Incorrect) holds a problem the student's group left unsolved that class review showed, from a finished set's record or, on the live set, the board once class review has ended (`WholeClassSession.reached`, `boardCovered`, `liveClassReview`, `reportPathway`), its working ending in a Class review pane of the board's examples, lettered, unmarked and anonymous (`components/ClassReviewExamples.tsx`); a not-attempted problem goes where its group's version puts it, its first pane reading *not attempted*, and each column names its not-attempted problems; the not-solved note and tag are gone; Sam's side column shows the same versions stacked; every teacher report fits 1280×800 again (the presenter strip at `TEACHER_ZOOM` on every page, the report's bottom padding 16 px via `TeacherChrome fill`) | `architecture/282-report-not-attempted-class-review.md` |
 | 286 | The site's front page is the presenter's chooser again: `app/page.tsx` renders the chooser (Student, Teacher and Smartboard cards, the one-tab split link, Reset demo), moved back from `app/demo/page.tsx`, which now redirects `/demo` to `/` (a static 307); reverses ticket 265's `/` → `/teacher`; README and the system diagram name `/` | `architecture/286-root-is-chooser.md` |
+| 288 | The create strip reads QUESTIONS — DIFFICULTY — REFINE — PATHWAY — SEND: the steps are data per kind of set (`PIPELINES` in `lib/createPipeline.ts`, `pset` only; ticket 291 adds homework without Pathway), `Steps` renders the list it is given, `currentStep` picks the lit step; Refine is the label of the internal `assessment` step; Send is never a page: Create lights it for `SEND_LIGHT_MS` (600 ms) with the strip locked and Back and a second Create ignored, then sends and lands on the set as before, the page keeping the sent draft on screen until the route changes (no "Nothing drafted yet" flash, which the old Create showed for a frame); the Classroom button reads "+In-Class PSet" (the not-created card's link too) and the review screens' eyebrow drops "new assignment" | `architecture/288-create-strip-refine-send.md` |
 
 ## Conventions
 

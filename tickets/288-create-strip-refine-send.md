@@ -4,7 +4,7 @@
 
 **Blocked by:** none (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -21,11 +21,19 @@ The user (2026-09-15), on the Pathway step screenshot: "add '... pathway - send'
 - The eyebrow drops "NEW ASSIGNMENT" (keeps the class part, e.g. "11 METHODS").
 - Only the label changes for Refine; internal step names may stay.
 
-## Acceptance
+## Solution
 
-- [ ] Strip reads QUESTIONS — DIFFICULTY — REFINE — PATHWAY — SEND on every create step
-- [ ] Pressing Create lights SEND, then lands where Create lands today; Create's disabled state unchanged
-- [ ] Teacher's Classroom shows `+In-Class PSet`; no "NEW ASSIGNMENT" in any create eyebrow
-- [ ] Nothing else on the strip or the page moves (geometry before/after)
-- [ ] vitest, eslint, tsc, next build, check:laptop; click-through at 1280×800 and 1440×900
-- [ ] Ticket docs, architecture note, ARCHITECTURE, decision log, future features
+- `lib/createPipeline.ts`: the strip's steps as data per kind of set (`PIPELINES.pset`: Questions, Difficulty, Refine, Pathway, Send), `currentStep` and `SEND_LIGHT_MS` (600). Refine keeps the internal id `assessment`. Ticket 291 adds a `homework` entry without Pathway.
+- `review/Steps.tsx`: renders the list it is given; Send is never tappable.
+- `review/ReviewAssignment.tsx`: Create lights Send and locks the strip (Back, the strip's earlier steps and a second Create do nothing), then after 600 ms sends and lands on the set as before. The page keeps the sent draft on screen until the route changes, so the old one-frame "Untitled assignment · Nothing drafted yet" flash on the way out is gone. The eyebrow reads "11 METHODS".
+- `app/teacher/Classroom.tsx`: the button reads "+In-Class PSet" (the + glyph as before); the not-created card's link (`AssignmentProvider`) reads the same.
+- The strip shows on the review route's steps (Difficulty, Refine, Pathway), as before; the Questions page still has no strip.
+
+
+
+- [x] Strip reads QUESTIONS — DIFFICULTY — REFINE — PATHWAY — SEND on every create step
+- [x] Pressing Create lights SEND, then lands where Create lands today; Create's disabled state unchanged
+- [x] Teacher's Classroom shows `+In-Class PSet`; no "NEW ASSIGNMENT" in any create eyebrow
+- [x] Nothing else on the strip or the page moves (geometry before/after)
+- [x] vitest, eslint, tsc, next build, check:laptop; click-through at 1280×800 and 1440×900
+- [x] Ticket docs, architecture note, ARCHITECTURE, decision log, future features
