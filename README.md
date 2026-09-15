@@ -41,14 +41,14 @@ says the chat isn't connected on this device, and the create screen says the upl
 matched by the file's hash; typed text through the shorthand parser) so it runs without a key.
 Everything else in the demo still runs offline.
 
-**/** opens the teacher's Edexia Classroom (it redirects to `/teacher`, ticket 265). The presenter's
-chooser is **/demo**: pick a side there. Use tabs of the same browser: the student iPad (`/student`, Sam's Classroom) in one,
+**/** opens the presenter's chooser (ticket 286; `/demo`, its address under ticket 265, redirects
+there): pick a side there. Use tabs of the same browser: the student iPad (`/student`, Sam's Classroom) in one,
 the teacher in another, the board (`/board`) in a third when projecting. Or open **/split** to see any one, two or all
 three of them in one tab, fitted to the window (toggles in the dashed toolbar; stacked, the
 student over the teacher with the board down the right, or side by side; drag the handle on any
 boundary to resize, double-click it to reset); the panes are the real routes and stay in step
 with each other and with any other tab. The dashed "Reset demo"
-pinned bottom-right on the chooser at `/demo` and every teacher page (and in the split view's toolbar)
+pinned bottom-right on the chooser at `/` and every teacher page (and in the split view's toolbar)
 restarts everything in every tab; it is a presenter control, not part of the product.
 
 ## The demo, in order
@@ -323,7 +323,7 @@ Useful starts: `/student?stage=working&pathway=wc` (hand in, wait for the board)
 
 ## Where things are
 
-- `app/page.tsx` redirects `/` to `/teacher`; `app/demo/` the presenter's chooser.
+- `app/page.tsx` the presenter's chooser at `/`; `app/demo/` redirects the old `/demo` to `/`.
 - `app/student/` the iPad: `layout.tsx` + `StudentShell` (the device and the lesson's clockwork), `page.tsx` Sam's
   Classroom, `a/[id]/page.tsx` + `StudentApp` the set (one screen per stage);
   `app/teacher/` the teacher pages, the creation screen with `PathwayMap`, whole-class setup and

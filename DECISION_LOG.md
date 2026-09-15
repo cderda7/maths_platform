@@ -4866,3 +4866,15 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** The strip is 20% smaller on the report than before (the same size as on every other teacher page). The report's What happened card sits 16 layout px above the strip rather than 48. On the live set the column is absent through class review itself; a teacher opening a report mid-review sees the pre-review columns. A class review ended without ever being projected covers nothing. The teacher's note floors are measured label widths in code (`LABEL_WIDTH`), checked by the click-through rather than measured at run time.
 
 **Defense.** Every rule is one pure function over data the app already keeps (`outcomeOf`, `boardCovered`, `reportPathway`), shared by both reports and tested directly; the live rule follows what happened on the board, and the moment the columns change is a single, named event (End). The fit fix touches only presenter chrome and blank padding, leaving every piece of content at its size.
+
+## 2026-09-15 · `/` is the presenter's chooser again; `/demo` redirects to `/` (ticket 286)
+
+**Decision.** The chooser moves back from `app/demo/page.tsx` to `app/page.tsx`, rendered at `/` with no redirect; `app/demo/page.tsx` becomes a server `redirect("/")`. Reverses ticket 265.
+
+**Context.** The user opens `localhost:3000` expecting to pick the student iPad, the teacher view, the board or the split view, and asked for it back. Ticket 265 had sent `/` to `/teacher` after an outside review found a cold visitor's first click was the Student card.
+
+**Alternatives considered.** *Keep the chooser at both `/` and `/demo`*: two addresses for one page. *Delete `/demo`*: links and bookmarks from tickets 265–285 would 404. *Put the Teacher card first on the chooser* (to answer the outside review): not asked for, and the cards' order is the demo's story (Sam's iPad, then the teacher, then the board).
+
+**Tradeoffs.** A cold visitor lands on the chooser again, and can still pick the Student card first; the concern ticket 265 answered returns. `/demo` costs one redirect round trip.
+
+**Defense.** The site is a presenter's demo and `/` is where the presenter starts; one URL per page, with the old one kept working. A 307 (not 308) so `/demo` is never cached and can be reused.

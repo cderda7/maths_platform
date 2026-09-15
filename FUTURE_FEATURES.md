@@ -1326,6 +1326,11 @@ uploaded problems) settled the following as later, each on purpose.
 - **An earlier set's report opened from history still scrolls at 1280×800.** The report shown inside a later set's Class View (`?report=…&student=…`, ticket 237) carries its pulsing Return button above the eyebrow, so with this ticket's fix it still scrolls 42–44 px (the fix here took about 44 px off it too). Fitting it means moving or shrinking that button, which ticket 237 placed; left for its own ticket.
 - **Escape on Sam's report from a script.** A synthetic `keydown` on `document` (no bubbling) does not close his working though it closes the teacher's; real key presses do (ticket 247). Not investigated further.
 
+## The chooser at `/` again (ticket 286, 2026-09-15)
+
+- **A cold visitor's first impression.** Ticket 265's outside-review concern (the Student card first, so the student's report is what a newcomer sees) returns with `/` as the chooser; ordering the cards teacher first, or a short "start here" on the Teacher card, was not asked for.
+- **A way back to the chooser from inside a surface.** The teacher chrome's brand is a label (ticket 184) and the iPad has no link out, so returning to `/` means typing it; a presenter-only link beside Reset demo was not asked for.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
