@@ -140,9 +140,9 @@ body {
 .math-lg .katex {
   font-size: 1.35em;
 }
-/* The Mistakes tab's split (ticket 315, StageSplit) sets its maths upright: KaTeX's italic letters take its roman face. The TeX is unchanged and nothing is spaced; the fit rules measure the maths as set. */
-.upright-maths .katex .mathnormal,
-.upright-maths .katex .mathit {
+/* Maths is upright everywhere (ticket 339; first on ticket 315's split): KaTeX's italic letters take its roman face. The TeX is unchanged and nothing is spaced; the fit rules measure the maths as set. */
+.katex .mathnormal,
+.katex .mathit {
   font-family: KaTeX_Main, "Times New Roman", serif;
   font-style: normal;
 }

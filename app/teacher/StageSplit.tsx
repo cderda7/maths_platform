@@ -11,11 +11,11 @@ const HEADER = "font-display text-[40px] leading-[1.05] text-ink";
  * the mistake cards on the right; the review modes (tickets 318–320) supply their own rows for the left and keep the right.
  *
  * `overlay` is drawn over the left column below its header (the live diagnostic's steps), covering the left content and
- * never the right. Everything inside sets its maths upright (`.upright-maths`): no italic maths on the split.
+ * never the right. Its maths is upright by the global rule in app/globals.css (ticket 339).
  */
 export default function StageSplit({ leftTitle, left, rightTitle, right, overlay, className = "" }: { leftTitle: ReactNode; left: ReactNode; rightTitle: ReactNode; right: ReactNode; overlay?: ReactNode; className?: string }) {
   return (
-    <div className={`upright-maths grid grid-cols-2 items-start gap-10 ${className}`} data-stage-split>
+    <div className={`grid grid-cols-2 items-start gap-10 ${className}`} data-stage-split>
       <section className="min-w-0" data-split-left>
         <h2 className={HEADER} data-split-header="left">
           {leftTitle}

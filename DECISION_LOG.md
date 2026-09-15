@@ -5578,3 +5578,22 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** The dot means nothing until read against the line's "● Q2 after practice" or hovered; the skill is only in the tooltip and the working. A classmate's marker appears when the stream reaches the practice, while their tile already shows the result from the record (as the report did before). Sam's warm-up skills are the sequence's, so an older snapshot with no recorded steps names no warm-up.
 
 **Defense.** Every piece of the report stays where it was for every student (measured against the report before the change for all twenty at both sizes), the words are there at a glance and in full one press away, and one pure module answers "what practice came before this" for both the session and the story, tested without a screen.
+
+## 2026-09-15 · Maths is upright everywhere, by one font rule over KaTeX's letters (ticket 339)
+
+**Decision.** Every typeset maths letter is upright on every surface: `.katex .mathnormal, .katex .mathit { font-family: KaTeX_Main, "Times New Roman", serif; font-style: normal }` in `app/globals.css`. Ticket 315's rule was the same declaration scoped to `.upright-maths` on the Mistakes split; the scope and the class go.
+
+**Context.** The checkpoint review (2026-09-15) found the same expression italic on one teacher tab and upright on the next. Carson chose a global rule over a teacher-only one.
+
+**Alternatives considered.**
+- *Teacher and board only*: keeps the textbook look on the student's iPad, but the board and the iPad share one examples component with the laptop, so one example would be set two ways, and the student would see a different face in class review than on the board.
+- *Italic everywhere, dropping 315's rule*: the mathematical convention (and QCAA papers'), but Carson asked for upright on 315 and again here.
+- *`\mathrm{}` in the TeX*: exact, but rewrites every TeX string shared with evaluation tables, hint fragments and the line check, and changes spacing around operators.
+
+**Tradeoffs.**
+- **Convention.** Students see upright letters where their textbooks and exams set italic ones.
+- **Italic correction.** KaTeX keeps each italic glyph's small right margin (0.11em after f, 0.04em after y) on the upright letter; no TeX in the app sets f today.
+- **Lowercase Greek.** KaTeX_Main has no lowercase Greek, so a typed `\pi` would fall to Times New Roman; no stored TeX uses one.
+- **Text maths.** Stems written as text ("y = x² + 4x + 5") stay in the sans face beside upright serif maths (FUTURE_FEATURES).
+
+**Defense.** One rule, one face, on every screen that shows the same object. The TeX, and so every evaluation key, hint fragment and measurement, is untouched; the hint-box sweep and the laptop fit check pass as before.
