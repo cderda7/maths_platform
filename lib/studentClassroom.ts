@@ -31,6 +31,8 @@ export const STUDENT_SECTION_EMPTY: Record<StudentSection, string> = { todo: "No
 /** Sam's Classroom on the iPad, and a set opened from it: the student app. */
 export const STUDENT_CLASSROOM_HREF = "/student";
 export const studentSetHref = (id: string): string => `/student/a/${id}`;
+/** His read-only report on a Completed set (ticket 287), the Completed card's press. */
+export const studentReportHref = (id: string): string => `/student/a/${id}/report`;
 
 /** The section a set is in for Sam, or null when it is not in his Classroom (Problem Set 6 before it is sent, an unknown id). */
 export function studentSection(id: string, c: ClassroomState | null | undefined, session: StudentSession | null, now: number): StudentSection | null {
@@ -53,9 +55,14 @@ export interface StudentSetCard {
   section: StudentSection;
   /**
    * The To do card's one action: `start` while his run is at its start, `continue` once he is in it; it
-   * opens the set (`studentSetHref`). Null on Missing and Completed cards, which open nothing.
+   * opens the set (`studentSetHref`). Null on Missing and Completed cards.
    */
   action: "start" | "continue" | null;
+  /**
+   * Where a press on the whole card goes (ticket 287): a Completed card opens his read-only report on the set
+   * (`studentReportHref`). Null on To do (its action button opens the set) and Missing (nothing handed in) cards.
+   */
+  href: string | null;
 }
 
 /** Every set in Sam's Classroom by section, each newest due first. */
@@ -65,7 +72,7 @@ export function studentClassroom(c: ClassroomState | null | undefined, session: 
     const section = studentSection(id, c, session, now);
     if (!b || !section) return [];
     const action = section !== "todo" ? null : !session || session.stage === "overview" ? "start" : "continue";
-    return [{ id, name: b.name, due: b.due, section, action }];
+    return [{ id, name: b.name, due: b.due, section, action, href: section === "completed" ? studentReportHref(id) : null }];
   });
   const sorted = [...cards].sort((a, b) => dueOrder(b.due) - dueOrder(a.due));
   return { todo: sorted.filter((k) => k.section === "todo"), missing: sorted.filter((k) => k.section === "missing"), completed: sorted.filter((k) => k.section === "completed") };

@@ -15,6 +15,9 @@ const TILE: Record<Outcome, string> = {
   wrong: "border-wrong-line bg-wrong-soft",
 };
 
+/** Between columns, px: the template's room for them (`outcomeTemplate`). */
+const GAP = 16;
+
 /** The narrowest each column may be: its label on two lines at most. */
 const FLOOR: Record<Outcome, number> = { first: 100, individual: 110, group: 90, covered: 80, wrong: 64 };
 
@@ -55,12 +58,16 @@ export default function OutcomeTiles({
   /** The note as the column label's second line, kept on one line, instead of under the tiles. */
   noteInLabel?: boolean;
 }) {
+  // A column's floor is its label's (and its note's); its tiles' one row it keeps while the card has room (`outcomeTemplate`).
+  const floors = columns.map((c) => Math.max(FLOOR[c.id], noteFloor && c.notAttempted.length > 0 ? noteFloor(c) : 0));
   const template = outcomeTemplate(
     columns.map((c) => c.problems.length),
-    columns.map((c) => Math.max(FLOOR[c.id], tilesWidth(c, starred), noteFloor && c.notAttempted.length > 0 ? noteFloor(c) : 0)),
+    floors,
+    columns.map((c, i) => Math.max(floors[i], tilesWidth(c, starred))),
+    GAP,
   );
   return (
-    <div className="mt-3 grid gap-4" style={{ gridTemplateColumns: template }}>
+    <div className="mt-3 grid" style={{ gridTemplateColumns: template, columnGap: GAP, rowGap: GAP }}>
       {columns.map((c) => {
         const note = notAttemptedNote(c);
         return (

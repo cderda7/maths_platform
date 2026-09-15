@@ -83,7 +83,7 @@ const q = (n: number) => `ps1-q${n}`;
 
 /**
  * Sam's Problem Set 1: confident and quick, and on the first set of the unit nothing slips. Every line written
- * out, all ten right.
+ * out, all ten right. His reflection says so (ticket 287: every sent report has one).
  */
 const SAM: Classmate = {
   id: DEMO_STUDENT.id,
@@ -94,6 +94,8 @@ const SAM: Classmate = {
   wrong: [],
   notes: [],
   attempts: {},
+  // What he sent with his report (ticket 287): his Completed card opens it, and the teacher reads it as "In their words".
+  clarification: "Everything came out this time. In Q3 and Q4 I simplified each root first, because you can only collect them once they're the same surd. I'll keep writing every line out even when I can see the answer.",
   groupStatus: "Group review done · explained Q3's like surds",
 };
 

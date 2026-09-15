@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import StudentChrome from "./StudentChrome";
+import { useLessonPull } from "./useLessonPull";
 import { Button, Eyebrow } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
 import { CLASS_SUBJECT } from "@/lib/classroomCards";
 import { useClassroom } from "@/lib/classroom-store";
-import { LIVE_ASSIGNMENT_ID } from "@/lib/assignments";
-import { subscribeLessonMoves, useNow, useStudentSession } from "@/lib/store";
+import { useNow, useStudentSession } from "@/lib/store";
 import { STUDENT_SECTION_EMPTY, STUDENT_SECTION_LABEL, STUDENT_SECTIONS, studentClassroom, studentSetHref, type StudentSection, type StudentSetCard } from "@/lib/studentClassroom";
 
 const noSubscribe = () => () => {};
@@ -16,11 +16,12 @@ const noSubscribe = () => () => {};
 /**
  * Sam's Classroom on the iPad (ticket 264), his landing: every set in his Classroom under To do, Missing and Completed
  * (`lib/studentClassroom`), each newest due first. A To do card's one action opens the set where his run is (its start
- * once sent); Missing and Completed cards open nothing. Live in every tab: the teacher's Create puts Problem Set 6 in
+ * once sent); a press anywhere on a Completed card opens his read-only report on the set (ticket 287); Missing cards open
+ * nothing. Live in every tab: the teacher's Create puts Problem Set 6 in
  * To do without a reload. When class review freezes the class, the iPad goes to the set, as every student screen does; so
  * does a presenter's jump from another tab that moves the lesson with a set out (the teacher's "students done" and
- * "activity completed", ticket 272), landing where the jump put Sam. A jump that leaves nothing out ("send assignment",
- * Reset demo) leaves him here.
+ * "activity completed", ticket 272), landing where the jump put Sam (`useLessonPull`). A jump that leaves nothing out
+ * ("send assignment", Reset demo) leaves him here.
  * No difficulty tags: this is the student's side.
  */
 export default function StudentClassroom() {
@@ -31,21 +32,7 @@ export default function StudentClassroom() {
   // The stores are the browser's: until the client has read them the sections would be a fresh demo's, so they wait.
   const client = useSyncExternalStore(noSubscribe, () => true, () => false);
   const sections = studentClassroom(classroom, session, now);
-  const sent = !!classroom.assignment;
-  const frozen = session.stage === "frozen";
-  useEffect(() => {
-    if (sent && frozen) router.replace(studentSetHref(LIVE_ASSIGNMENT_ID));
-  }, [sent, frozen, router]);
-  const opened = useRef(false);
-  useEffect(
-    () =>
-      subscribeLessonMoves((l) => {
-        if (!l.classroom.assignment || opened.current) return;
-        opened.current = true;
-        router.push(studentSetHref(LIVE_ASSIGNMENT_ID));
-      }),
-    [router],
-  );
+  useLessonPull(!!classroom.assignment, session.stage === "frozen");
   return (
     <StudentChrome>
       <div className="mx-auto flex max-w-[860px] flex-col px-10 pt-8 pb-6" data-student-classroom>
@@ -53,13 +40,13 @@ export default function StudentClassroom() {
           {ASSIGNMENT.classCode} · {CLASS_SUBJECT} · {ASSIGNMENT.teacher}
         </Eyebrow>
         <h1 className="font-display mt-1.5 text-[30px] leading-[1.1] text-ink">Edexia Classroom</h1>
-        {client && STUDENT_SECTIONS.map((s) => <Section key={s} section={s} cards={sections[s]} onOpen={(id) => router.push(studentSetHref(id))} />)}
+        {client && STUDENT_SECTIONS.map((s) => <Section key={s} section={s} cards={sections[s]} onOpen={(href) => router.push(href)} />)}
       </div>
     </StudentChrome>
   );
 }
 
-function Section({ section, cards, onOpen }: { section: StudentSection; cards: StudentSetCard[]; onOpen: (id: string) => void }) {
+function Section({ section, cards, onOpen }: { section: StudentSection; cards: StudentSetCard[]; onOpen: (href: string) => void }) {
   return (
     <section className="mt-7" aria-label={STUDENT_SECTION_LABEL[section]} data-student-section={section}>
       <Eyebrow>{STUDENT_SECTION_LABEL[section]}</Eyebrow>
@@ -78,23 +65,43 @@ function Section({ section, cards, onOpen }: { section: StudentSection; cards: S
   );
 }
 
-/** One set: its name, its due date, and on a To do card the one action. */
-function SetCard({ card, onOpen }: { card: StudentSetCard; onOpen: (id: string) => void }) {
+/**
+ * One set: its name, its due date, and on a To do card the one action. A Completed card is one press target (ticket 287),
+ * the whole card, with no button of its own: it lifts on hover and settles on press, and opens his report on the set.
+ */
+function SetCard({ card, onOpen }: { card: StudentSetCard; onOpen: (href: string) => void }) {
   const todo = card.section === "todo";
-  return (
-    <li
-      className={`flex h-14 items-center gap-6 rounded-2xl border px-6 ${todo ? "border-accent-line bg-paper shadow-card" : "border-line bg-paper/70"}`}
-      data-student-set={card.id}
-      data-section={card.section}
-    >
+  const body = (
+    <>
       <span className="min-w-0 flex-1 truncate font-display text-[19px] leading-tight text-ink" data-set-name>
         {card.name}
       </span>
       <span className="shrink-0 whitespace-nowrap text-[13.5px] text-ink-muted" data-due>
         due {card.due}
       </span>
+    </>
+  );
+  const shape = "flex h-14 items-center gap-6 rounded-2xl border px-6";
+  const { href } = card;
+  if (href)
+    return (
+      <li data-student-set={card.id} data-section={card.section}>
+        <button
+          type="button"
+          onClick={() => onOpen(href)}
+          aria-label={`${card.name}, your report`}
+          className={`${shape} w-full border-line bg-paper/70 text-left transition-[border-color,background-color,box-shadow] hover:border-line-strong hover:bg-paper hover:shadow-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent active:bg-cream-deep/60 active:shadow-none`}
+          data-open-report={card.id}
+        >
+          {body}
+        </button>
+      </li>
+    );
+  return (
+    <li className={`${shape} ${todo ? "border-accent-line bg-paper shadow-card" : "border-line bg-paper/70"}`} data-student-set={card.id} data-section={card.section}>
+      {body}
       {card.action && (
-        <Button variant="accent" hit className="uppercase tracking-[0.08em]" onClick={() => onOpen(card.id)} data-open-set={card.id}>
+        <Button variant="accent" hit className="uppercase tracking-[0.08em]" onClick={() => onOpen(studentSetHref(card.id))} data-open-set={card.id}>
           {card.action}
         </Button>
       )}

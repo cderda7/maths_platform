@@ -35,4 +35,8 @@ describe("outcomeTemplate", () => {
     expect(outcomeTemplate([5, 4, 0, 1], [100, 110, 90, 64])).toBe("minmax(100px, 5fr) minmax(110px, 4fr) minmax(90px, 1fr) minmax(64px, 1fr)");
     expect(outcomeTemplate([10, 0], [100, 64])).toBe("minmax(100px, 10fr) minmax(64px, 1fr)");
   });
+
+  it("keeps a column's tiles on one row only while the other columns' floors and the gaps leave room (ticket 287)", () => {
+    expect(outcomeTemplate([10, 0, 0], [100, 110, 64], [420, 110, 64], 16)).toBe("minmax(max(100px, min(420px, calc(100% - 206px))), 10fr) minmax(110px, 1fr) minmax(64px, 1fr)");
+  });
 });

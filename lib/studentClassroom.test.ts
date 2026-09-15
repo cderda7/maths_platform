@@ -3,7 +3,7 @@ import { ASSIGNMENT } from "@/data/assignment";
 import { classroomReducer, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
 import { skipFixture } from "./demo";
 import { INITIAL_SESSION, sessionAt, type StudentSession } from "./session";
-import { STUDENT_CLASSROOM_HREF, studentClassroom, studentSection, studentSetHref } from "./studentClassroom";
+import { STUDENT_CLASSROOM_HREF, studentClassroom, studentReportHref, studentSection, studentSetHref } from "./studentClassroom";
 
 const now = 1_700_000_000_000;
 const FINISHED = ["pset-5", "pset-4", "pset-3", "pset-2", "pset-1"];
@@ -29,9 +29,11 @@ describe("Sam's Classroom (ticket 264)", () => {
 
   it("once sent, Problem Set 6 is in To do with its start as the action", () => {
     const r = studentClassroom(SENT, INITIAL_SESSION, now);
-    expect(r.todo).toEqual([{ id: "pset-6", name: "Problem Set 6 — Roots of a quadratic", due: ASSIGNMENT.due, section: "todo", action: "start" }]);
+    expect(r.todo).toEqual([{ id: "pset-6", name: "Problem Set 6 — Roots of a quadratic", due: ASSIGNMENT.due, section: "todo", action: "start", href: null }]);
     expect(r.completed.map((k) => k.id)).toEqual(FINISHED);
     expect(r.completed.every((k) => k.action === null)).toBe(true);
+    // A Completed card opens his report on the set (ticket 287).
+    expect(r.completed.map((k) => k.href)).toEqual(FINISHED.map((id) => `/student/a/${id}/report`));
     // No session stored yet reads as the start.
     expect(studentClassroom(SENT, null, now).todo[0].action).toBe("start");
   });
@@ -49,6 +51,7 @@ describe("Sam's Classroom (ticket 264)", () => {
   it("after completion (the report sent with its reflection) it moves to Completed, newest due first", () => {
     const { classroom, session } = skipFixture("homework", now);
     expect(sections(classroom, session)).toEqual({ todo: [], missing: [], completed: ["pset-6", ...FINISHED] });
+    expect(studentClassroom(classroom, session, now).completed[0]).toMatchObject({ id: "pset-6", action: null, href: "/student/a/pset-6/report" });
     // Handed in and the lesson over but no reflection yet: still To do, the report waits for it.
     expect(studentSection("pset-6", ended(SENT), sessionAt("report"), now)).toBe("todo");
   });
@@ -56,7 +59,7 @@ describe("Sam's Classroom (ticket 264)", () => {
   it("completed without his hand-in, it is Missing and opens nothing", () => {
     for (const stage of ["overview", "confidence", "working"] as const) {
       const r = studentClassroom(ended(SENT), sessionAt(stage), now);
-      expect(r.missing).toEqual([{ id: "pset-6", name: "Problem Set 6 — Roots of a quadratic", due: ASSIGNMENT.due, section: "missing", action: null }]);
+      expect(r.missing).toEqual([{ id: "pset-6", name: "Problem Set 6 — Roots of a quadratic", due: ASSIGNMENT.due, section: "missing", action: null, href: null }]);
       expect(r.todo).toEqual([]);
     }
     // Still working while the lesson runs is not missing.
@@ -71,5 +74,6 @@ describe("Sam's Classroom (ticket 264)", () => {
     expect(studentSection("pset-9", SENT, INITIAL_SESSION, now)).toBeNull();
     expect(STUDENT_CLASSROOM_HREF).toBe("/student");
     expect(studentSetHref("pset-6")).toBe("/student/a/pset-6");
+    expect(studentReportHref("pset-3")).toBe("/student/a/pset-3/report");
   });
 });

@@ -312,6 +312,8 @@ nothing is sent yet and starts a fresh run at that stage (`overview`, `goal`, `p
 `&pathway=<p>` to create the demo assignment with that review pathway first: `none`, `indiv`,
 `group`, `wc`, `indiv,group`, `indiv,wc`, `group,wc`, `indiv,group,wc`. Plain `/student/a/pset-6`
 continues the stored run (back to the Classroom while the set is not sent); plain `/student` is the Classroom.
+`/student/a/<id>/report` is Sam's read-only report on a Completed set (`pset-1` … `pset-5` always, `pset-6` once his
+report is sent), what its card on the Classroom opens; any other set goes back to the Classroom.
 
 Useful starts: `/student?stage=working&pathway=wc` (hand in, wait for the board),
 `/student?stage=rework&pathway=indiv,wc` (rework Q4 to trip the guard, then project),
