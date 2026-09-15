@@ -13,7 +13,6 @@ import { PS4_SIMILAR_PROBLEMS } from "@/data/homework-similar-ps4";
 import { PS3_SIMILAR_PROBLEMS } from "@/data/homework-similar-ps3";
 import { PS5_PS6_PRIMARY_SKILL } from "@/data/problem-skills";
 import { STORY_SETS } from "@/data/story";
-import { MISSED_NOTE, MISSED_NOTE_CURRENT } from "./homeworks";
 import { primarySkill } from "./problemSkill";
 import { FINISHED_SETS } from "./finishedSets";
 import { classroomReducer, GRACE_MS, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
@@ -21,7 +20,7 @@ import { homeworkSent } from "./create";
 import { DEMO_PATHWAY, demoSend, teacherSkip } from "./demo";
 import { generatedHomeworkDraft } from "./draft";
 import { homeworkProblems, similarFor, texDiff, texShape } from "./homework";
-import { carryOver, everWrongOn, groupBySet, homeworkList, leftovers, missedBefore, missedNote, ownProblems, ownSets, type OwnProblem } from "./homeworkList";
+import { carryOver, everWrongOn, groupBySet, homeworkList, leftovers, missedBefore, ownProblems, ownSets, type OwnProblem } from "./homeworkList";
 import { openHomeworks } from "./homeworks";
 import { parseQuestion } from "./mathInput";
 import { draftKey, type ReviewState } from "./review";
@@ -290,18 +289,11 @@ describe("a missed homework's leftovers carry into the next (ticket 294)", () =>
     expect(carryOver(left, []).map((p) => p.problem.id)).toEqual(["b", "d", "e"]);
   });
 
-  it("HW2's note: next HW before Homework 3 opens; current HW once it opens with something carried; no note when every leftover was dropped", () => {
-    const live = homeworkSentAt(classroomReducer(INITIAL_CLASSROOM, demoSend(DEMO_PATHWAY, now)), now + 1_000);
-    expect(missedNote({ id: "hw-2" }, live, sessionAt("report"))).toBe(MISSED_NOTE);
-    const { c, session } = opened();
-    expect(missedNote({ id: "hw-2" }, c, session)).toBe(MISSED_NOTE_CURRENT);
+  it("every leftover dropped as a duplicate: Homework 3 lists Problem Sets 6 and 5 alone", () => {
     // Nothing handed in on Problem Set 6: every problem there ever wrong, Q1's monic and Q9's worded skills among them, so every leftover is a duplicate.
     const { c: blank } = opened(INITIAL_SESSION);
     expect(carryOver(leftovers(missedBefore("hw-3", blank)!, blank, INITIAL_SESSION).problems, ownProblems(ownSets("hw-3", blank), blank, INITIAL_SESSION))).toEqual([]);
-    expect(missedNote({ id: "hw-2" }, blank, INITIAL_SESSION)).toBeNull();
     expect(homeworkList("hw-3", blank, INITIAL_SESSION)!.own.map((g) => g.setId)).toEqual(["pset-6", "pset-5"]);
-    // Homework 2 finished late: missed, nothing left, no note at all.
-    expect(missedNote({ id: "hw-2" }, live, sessionAt("report"), { "hw-2": { finishedOn: "Wed 9 Sep" } })).toBeNull();
   });
 });
 

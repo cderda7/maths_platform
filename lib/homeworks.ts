@@ -55,18 +55,13 @@ export function homeworkStatus(homework: HomeworkDef, record: HomeworkRecord | u
   return dueOrder(today) > due ? "missed" : "open";
 }
 
-/** A missed homework's cell note: its own undone problems join the next homework (ticket 294; which note, if any: `missedNote` in `lib/homeworkList.ts`). */
-export const MISSED_NOTE = "problems added to next HW";
-/** The same note once that next homework has opened and is under way (ticket 292). */
-export const MISSED_NOTE_CURRENT = "problems added to current HW";
-
 /**
  * One piece of the Classroom's homework column (ticket 290), beside Sam's Completed cards: a homework's cell spanning the
  * rows of the Completed sets it covers, or the empty space beside a Completed set no homework covers yet. `row` is the
  * first covered card's index in the Completed list (newest first), `span` how many cards it runs down.
  */
 export type HomeworkColumnPiece =
-  | { kind: "homework"; id: string; n: number; name: string; due: string; status: HomeworkStatus; /** Opened to the students (ticket 292): the cell opens the homework; not yet, it waits in the Future panel. */ opened: boolean; row: number; span: number; setIds: string[] }
+  | { kind: "homework"; id: string; n: number; name: string; due: string; status: HomeworkStatus; /** The day the student finished all of it (ticket 307: the cell reads "submitted …"), null while any is undone. */ submitted: string | null; /** Opened to the students (ticket 292): the cell opens the homework; not yet, it waits in the Future panel. */ opened: boolean; row: number; span: number; setIds: string[] }
   | { kind: "empty"; row: number; span: 1; setIds: [string] };
 
 /**
@@ -88,7 +83,7 @@ export function homeworkColumn(
     else if (last?.kind === "homework" && last.id === hw.id) {
       last.span++;
       last.setIds.push(card.id);
-    } else pieces.push({ kind: "homework", id: hw.id, n: hw.n, name: hw.name, due: hw.due, status: homeworkStatus(hw, records[hw.id], today), opened: !!hw.setIds, row, span: 1, setIds: [card.id] });
+    } else pieces.push({ kind: "homework", id: hw.id, n: hw.n, name: hw.name, due: hw.due, status: homeworkStatus(hw, records[hw.id], today), submitted: records[hw.id]?.finishedOn ?? null, opened: !!hw.setIds, row, span: 1, setIds: [card.id] });
   });
   return pieces;
 }

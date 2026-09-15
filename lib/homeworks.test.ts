@@ -71,9 +71,16 @@ describe("the Classroom's homework column", () => {
     const { completed } = studentClassroom(INITIAL_CLASSROOM, INITIAL_SESSION, now);
     expect(homeworkColumn(completed)).toEqual([
       { kind: "empty", row: 0, span: 1, setIds: ["pset-5"] },
-      { kind: "homework", id: "hw-2", n: 2, name: "Homework 2", due: "Mon 7 Sep", status: "missed", opened: true, row: 1, span: 2, setIds: ["pset-4", "pset-3"] },
-      { kind: "homework", id: "hw-1", n: 1, name: "Homework 1", due: "Tue 1 Sep", status: "completed", opened: true, row: 3, span: 2, setIds: ["pset-2", "pset-1"] },
+      { kind: "homework", id: "hw-2", n: 2, name: "Homework 2", due: "Mon 7 Sep", status: "missed", submitted: null, opened: true, row: 1, span: 2, setIds: ["pset-4", "pset-3"] },
+      { kind: "homework", id: "hw-1", n: 1, name: "Homework 1", due: "Tue 1 Sep", status: "completed", submitted: "Mon 31 Aug", opened: true, row: 3, span: 2, setIds: ["pset-2", "pset-1"] },
     ]);
+  });
+
+  it("a cell carries the day it was handed in: a late one stays missed with its submitted date, never handed in reads null (ticket 307)", () => {
+    const { completed } = studentClassroom(INITIAL_CLASSROOM, INITIAL_SESSION, now);
+    const late = homeworkColumn(completed, HOMEWORKS, { "hw-1": { finishedOn: "Mon 31 Aug" }, "hw-2": { finishedOn: "Wed 9 Sep" } });
+    expect(late[1]).toMatchObject({ id: "hw-2", status: "missed", submitted: "Wed 9 Sep" });
+    expect(homeworkColumn(completed, HOMEWORKS, {})[2]).toMatchObject({ id: "hw-1", status: "missed", submitted: null });
   });
 
   it("with Problem Set 6 Completed it gets its own empty space too, and the cells move down a row", () => {

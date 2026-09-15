@@ -5207,3 +5207,17 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Cards lose 230 px of width at every size; the longest title (Problem Set 4) still fits on one line at 1280×800 with room to spare, and titles truncate with an ellipsis if a longer one comes. The count total is the records' student count, which must be kept at twenty with the class (tested against `STORY`). Homework 3's count is 0/20 until homework answering exists.
 
 **Defense.** One span rule serves both sides, the teacher sees which sets each homework covers at a glance with the one number a class view needs, nothing moves as homework is sent or opens, and the class data stays authored and testable beside Sam's.
+
+## 2026-09-15 · A homework cell on Sam's Classroom shows its dates, not what happens to its problems (ticket 307)
+
+**Decision.** The missed cell reads the caution triangle, "HW2 missing" and "due Mon 7 Sep"; the completed cell reads "HW1 completed", "due Tue 1 Sep" and "submitted Mon 31 Aug". A cell shows "submitted …" whenever the record has a finishing day, so a homework handed in late stays missing and shows both dates. The "problems added to next/current HW" note (tickets 292, 294) is removed with `missedNote`; the leftovers still carry into the next homework.
+
+**Context.** The user (2026-09-15): "take away the 'problems added to next HW' tag. just have the caution triangle & 'HW2 missing'. also add due date & submission date (or just due date if missing)"; asked, the user chose dates on both cells.
+
+**Alternatives considered.**
+- *Dates on the missed cell only*: offered; the user chose both, so the two cells read alike.
+- *Keep `missedNote` for a later screen*: nothing else reads it, and an unused rule about when a note shows is a trap for the next change; the carry-over rules it read (`leftovers`, `carryOver`) stay tested on their own.
+
+**Tradeoffs.** Sam no longer reads on the Classroom that his missed problems went into the next homework; he finds them in that homework's list under their sets.
+
+**Defense.** The cell states facts the student can check (when it was due, when he handed it in) in the words the user gave, and the carry-over is visible where it matters, in the homework itself.

@@ -7,7 +7,7 @@ import { assignmentBundle, LIVE_ASSIGNMENT_ID } from "./assignments";
 import type { ClassroomState } from "./classroom";
 import { dayLabel, DEMO_TODAY, dueOrder } from "./dueDate";
 import { everWrong, similarFor } from "./homework";
-import { classHomeworks, homeworkSets, homeworkStatus, MISSED_NOTE, MISSED_NOTE_CURRENT, openHomeworksFor } from "./homeworks";
+import { classHomeworks, homeworkSets, homeworkStatus, openHomeworksFor } from "./homeworks";
 import { primarySkill } from "./problemSkill";
 import { recordReviews, sessionReviews, type Reviews } from "./report";
 import type { StudentSession } from "./session";
@@ -180,23 +180,4 @@ export function homeworkList(homeworkId: string, c: ClassroomState | null | unde
   const questions = c?.homeworks?.find((h) => h.id === hw.id)?.questions ?? [];
   const everyone = questions.map((q): HomeworkItem => ({ key: `everyone-${q.id}`, n: n++, stem: q.stem, tex: q.tex, ...(q.figureUrl ? { figureUrl: q.figureUrl } : {}) }));
   return { id: hw.id, name: hw.name, due: hw.due, own, everyone };
-}
-
-/**
- * A missed homework's note in its Classroom cell (tickets 290, 292, 294; DECISION_LOG.md 2026-09-15), or null for no note: once
- * the homework after it is open for Sam, "problems added to current HW" only when at least one of its leftovers actually carried
- * (every one dropped as a duplicate leaves the cell with its caution triangle and name alone: a note saying they are covered would
- * read as more work without credit); before then, "problems added to next HW" when it has leftovers at all, since which carry is
- * settled only when the next homework opens with its own problems.
- */
-export function missedNote(homework: Pick<HomeworkDef, "id">, c: ClassroomState | null | undefined, session: StudentSession, records: Readonly<Record<string, HomeworkRecord>> = SAM_HOMEWORK_STORY, today: string = dayLabel(DEMO_TODAY)): string | null {
-  const list = classHomeworks(c);
-  const missed = list.find((h) => h.id === homework.id);
-  if (!missed) return null;
-  const after = list[list.indexOf(missed) + 1];
-  if (after && openHomeworksFor(c, records, today).some((h) => h.id === after.id)) {
-    const mine = ownProblems(ownSets(after.id, c), c, session);
-    return carryOver(leftovers(missed, c, session, records).problems, mine).length > 0 ? MISSED_NOTE_CURRENT : null;
-  }
-  return leftovers(missed, c, session, records).problems.length > 0 ? MISSED_NOTE : null;
 }

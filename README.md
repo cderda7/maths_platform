@@ -111,9 +111,9 @@ Teacher, before the lesson (Edexia Classroom at `/teacher`, +In-Class PSet → `
 
 Student (`/student`, a 1180×820 iPad in the browser, mouse or trackpad for the pen). It opens on Sam's Edexia
 Classroom (ticket 264): To do, Missing, Completed. Problem Set 1–5 are Completed, with a homework column to their right (ticket 290):
-"HW1 completed" beside Sets 1–2, a caution "HW2" (missed, its problems added to the next homework) beside Sets 3–4; Problem Set 6 shows in To do once
+"HW1 completed" (due Tue 1 Sep, submitted Mon 31 Aug) beside Sets 1–2, a caution "HW2 missing" (due Mon 7 Sep, in a dark red outline; its problems carry into the next homework) beside Sets 3–4; Problem Set 6 shows in To do once
 the teacher has pressed Create (or a SKIP TO or deep link sent it). A homework the teacher has sent waits greyed in a Future panel at the top right (ticket 292)
-until Problem Set 6's lesson ends; then Homework 3 is first in To do with OPEN, its HW3 cell opens it too, and HW2's note reads "current HW".
+until Problem Set 6's lesson ends; then Homework 3 is first in To do with OPEN, and its HW3 cell opens it too.
 Both open his Homework 3 (ticket 293): FROM YOUR MISTAKES, every problem he ever got wrong on Problem Sets 6 and 5 as a similar problem
 under its set's name (newest first), then EVERYONE, the teacher's ten; a read-only list, numbered in the order he does them.
 Missed Homework 2's own problems carry in under their sets (ticket 294), except any whose skill Homework 3 already holds: Sam's Problem Set 4 Q10

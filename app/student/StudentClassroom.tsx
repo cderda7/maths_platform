@@ -10,9 +10,7 @@ import { ASSIGNMENT } from "@/data/assignment";
 import { CLASS_SUBJECT } from "@/lib/classroomCards";
 import { useClassroom } from "@/lib/classroom-store";
 import { classHomeworks, futureHomeworks, homeworkColumn, type FutureHomework } from "@/lib/homeworks";
-import { missedNote } from "@/lib/homeworkList";
 import type { ClassroomState } from "@/lib/classroom";
-import type { StudentSession } from "@/lib/session";
 import { useNow, useStudentSession } from "@/lib/store";
 import { STUDENT_SECTION_EMPTY, STUDENT_SECTION_LABEL, STUDENT_SECTIONS, studentClassroom, studentHomeworkHref, studentSetHref, type StudentSection, type StudentSetCard } from "@/lib/studentClassroom";
 
@@ -44,13 +42,14 @@ export default function StudentClassroom() {
   useLessonPull(!!classroom.assignment, session.stage === "frozen");
   return (
     <StudentChrome>
-      <div className="relative mx-auto flex max-w-[1066px] flex-col px-10 pt-8 pb-6" data-student-classroom>
+      {/* The bottom padding lets the last Completed card and its homework cell scroll clear of the presenter's SKIP TO, as the homework screen's does. */}
+      <div className="relative mx-auto flex max-w-[1066px] flex-col px-10 pt-8 pb-20" data-student-classroom>
         <Eyebrow>
           {ASSIGNMENT.classCode} · {CLASS_SUBJECT} · {ASSIGNMENT.teacher}
         </Eyebrow>
         <h1 className="font-display mt-1.5 text-[30px] leading-[1.1] text-ink">Edexia Classroom</h1>
         {client && future.length > 0 && <FuturePanel homeworks={future} />}
-        {client && STUDENT_SECTIONS.map((s) => <Section key={s} section={s} cards={sections[s]} classroom={classroom} session={session} onOpen={(href) => router.push(href)} />)}
+        {client && STUDENT_SECTIONS.map((s) => <Section key={s} section={s} cards={sections[s]} classroom={classroom} onOpen={(href) => router.push(href)} />)}
       </div>
     </StudentChrome>
   );
@@ -82,7 +81,7 @@ function FuturePanel({ homeworks }: { homeworks: FutureHomework[] }) {
   );
 }
 
-function Section({ section, cards, classroom, session, onOpen }: { section: StudentSection; cards: StudentSetCard[]; classroom: ClassroomState; session: StudentSession; onOpen: (href: string) => void }) {
+function Section({ section, cards, classroom, onOpen }: { section: StudentSection; cards: StudentSetCard[]; classroom: ClassroomState; onOpen: (href: string) => void }) {
   return (
     <section className="mt-7" aria-label={STUDENT_SECTION_LABEL[section]} data-student-section={section}>
       <Eyebrow>{STUDENT_SECTION_LABEL[section]}</Eyebrow>
@@ -99,7 +98,7 @@ function Section({ section, cards, classroom, session, onOpen }: { section: Stud
               <SetCard key={`${card.kind}-${card.id}`} card={card} row={i + 1} onOpen={onOpen} />
             ))}
           </ul>
-          {section === "completed" && <HomeworkColumn cards={cards} classroom={classroom} session={session} onOpen={onOpen} />}
+          {section === "completed" && <HomeworkColumn cards={cards} classroom={classroom} onOpen={onOpen} />}
         </div>
       )}
     </section>
@@ -111,7 +110,7 @@ function Section({ section, cards, classroom, session, onOpen }: { section: Stud
  * covers; a set no homework covers yet keeps an empty space the column's width. Completed and missed cells are not pressable,
  * nor is a homework's cell while it waits in the Future panel; once it has opened the cell opens it, as its To do card does (ticket 292).
  */
-function HomeworkColumn({ cards, classroom, session, onOpen }: { cards: StudentSetCard[]; classroom: ClassroomState; session: StudentSession; onOpen: (href: string) => void }) {
+function HomeworkColumn({ cards, classroom, onOpen }: { cards: StudentSetCard[]; classroom: ClassroomState; onOpen: (href: string) => void }) {
   return (
     <div className="contents" data-hw-column>
       {homeworkColumn(cards, classHomeworks(classroom)).map((p) => {
@@ -119,6 +118,13 @@ function HomeworkColumn({ cards, classroom, session, onOpen }: { cards: StudentS
         const rows = p.setIds.join(" ");
         if (p.kind === "empty") return <div key={`empty-${rows}`} className="col-start-2" style={{ gridRow }} data-hw-empty={rows} aria-hidden />;
         const shape = "col-start-2 flex flex-col justify-center rounded-2xl border px-4 py-2 select-none";
+        // Its due date, then the day it was handed in when it was (ticket 307); a missed homework never handed in shows the due date alone.
+        const dates = (
+          <span className="mt-1.5 flex flex-col text-[12.5px] leading-[17px] whitespace-nowrap text-ink-muted" data-hw-dates>
+            <span data-hw-due>due {p.due}</span>
+            {p.submitted && <span data-hw-submitted>submitted {p.submitted}</span>}
+          </span>
+        );
         if (p.status === "completed")
           return (
             <div key={p.id} className={`${shape} border-secure-line bg-secure-soft/70`} style={{ gridRow }} data-hw-cell={p.id} data-hw-status={p.status} data-hw-rows={rows}>
@@ -126,26 +132,19 @@ function HomeworkColumn({ cards, classroom, session, onOpen }: { cards: StudentS
                 <CompletedMark />
                 <span className="whitespace-nowrap text-[15px] font-medium text-ink">HW{p.n} completed</span>
               </span>
+              {dates}
             </div>
           );
-        if (p.status === "missed") {
-          // No note when every leftover was dropped as a duplicate (ticket 294): the triangle and the name alone.
-          const note = missedNote(p, classroom, session);
+        if (p.status === "missed")
           return (
             <div key={p.id} className={`${shape} border-wrong-deep bg-paper/70`} style={{ gridRow }} data-hw-cell={p.id} data-hw-status={p.status} data-hw-rows={rows}>
               <span className="flex items-center gap-2.5">
                 <CautionTriangle />
-                <span className="text-[15px] font-medium text-ink">HW{p.n}</span>
+                <span className="whitespace-nowrap text-[15px] font-medium text-ink">HW{p.n} missing</span>
               </span>
-              {/* Balanced over two lines, so no word is left alone on the second; "current HW" once the next homework is open (ticket 292). */}
-              {note && (
-                <span className="mt-1.5 text-[12px] leading-[16px] text-balance text-ink-muted" data-hw-note>
-                  {note}
-                </span>
-              )}
+              {dates}
             </div>
           );
-        }
         const label = (
           <span className={`whitespace-nowrap text-[14px] ${p.opened ? "text-ink" : "text-ink-muted"}`}>
             HW{p.n} · due {p.due}
