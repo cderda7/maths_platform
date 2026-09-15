@@ -5862,3 +5862,43 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Q* and Q** exist only for Problem Set 6 (ticket 310), so class review on an older or created set runs the examples step alone until they are generated. Every student writing on Q** means a room where some finish in a minute and others do not; the teacher carries that judgement, with the counts on the laptop only. Removing `FollowMode` drops the stored mode from every class review session.
 
 **Defense.** The lesson now models a method and asks for it back at every stage: the warm-up, help inside the set, and the class review that closes the lesson. The teacher keeps the room's pace, the student keeps the pen, and the assessment window stays exactly as it was.
+
+## 346: the split's left column sticks; the fit rules stop reading the scroll region
+
+**Decision.** On the Mistakes tab the left column — the rows and their header — is `position: sticky` inside the teacher
+frame's scroll region, for individual working, individual review and group review. Its `top` is measured rather than
+fixed (`lib/stickyColumn.ts`): a column that fits the region rests `STICKY_TOP` (16 layout px) under its top edge, and a
+column taller than the region — or one with a longer overlay laid over it — takes a negative top, so it scrolls up with
+the page until its foot is `STICKY_FOOT` (12 px) above the region's and sticks from there. The fit rules that keep the
+column inside the region (ticket 315's folded question rows, ticket 318's shortened pills) now read `splitFoot`, which
+takes the split's place in the content off the right column — the one that never sticks — instead of measuring the table
+against the scroll region. Class review (tickets 320, 344) is named out in `TeacherMistakes` rather than left to the
+`split` flag, so it keeps the plain split while its rows are being settled.
+
+**Context.** The teacher reads a card against the rows beside it: which groups still have this question, who has it open,
+who is still to fix it. The cards run well past a screenful, so reading the fourth card meant remembering the rows. The
+user (2026-09-16): "want to continue seeing the group table as i scroll through the mistakes … same deal for ALL other
+settings -- indiv working, indiv review, group review. class review is still being adjusted".
+
+**Alternatives considered.**
+- *Give the left column its own scroll box*: two scrollbars on one screen, and the rows a teacher glances at would be
+  half-hidden behind one of them. The fit rules already exist to keep the column whole.
+- *A fixed `top: 0`*: the rows would sit on the region's edge, and a column taller than the region could never show its
+  last rows, because a stuck column does not move when the page scrolls.
+- *Turn stickiness off while a work panel is open*: the column would jump back to its static place under the teacher's
+  eye the moment they pressed a pill. Measuring the overlay with the column keeps the panel reachable instead.
+- *Leave the fit rules alone*: they read `(table.bottom − region.top) / zoom + scrollTop`, which climbs once the column
+  sticks, so a teacher scrolling the cards watched the question rows fold away and every pill lose its words. The old
+  reading is kept exactly, taken from a reference that does not move.
+- *Extend the sticky track with padding under the cards*: padding grows the page and the track by the same amount, so it
+  changes nothing; the budget has to come out of the column's height, which is what `splitFoot` preserves.
+
+**Tradeoffs.** The two column headers are level at rest but not once the page scrolls: the left header stays and the
+right one leaves with its cards, which is the point of the change. A column taller than the region still rides up to its
+foot before sticking, so its header is briefly clipped at the very bottom of a long page; this only happens when even the
+folded, shortened column cannot fit. `StageSplit` now measures on every render (a ResizeObserver on the region, the
+column and the overlay), which is one more layout read per tick on a page that already measures itself.
+
+**Defense.** The rows are the reason the tab was split in two (ticket 315); a card read without them is a list of names
+with no place attached. Sticking the column costs nothing at rest — the first still frame is identical — and the measured
+top means the rule degrades honestly instead of hiding rows when the class is at its busiest.
