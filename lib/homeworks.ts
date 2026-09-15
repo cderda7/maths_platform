@@ -1,6 +1,9 @@
 import { HOMEWORKS, SAM_HOMEWORK_STORY, type HomeworkDef, type HomeworkRecord } from "@/data/homeworks";
+import { storySet } from "@/data/story";
+import { activeAssignment } from "./assignment";
+import { assignmentBundle, assignmentIds, LIVE_ASSIGNMENT_ID } from "./assignments";
 import { addDays, dayLabel, DEMO_TODAY, DUE_DEFAULT, dueOrder, isIsoDay, laterOf, type IsoDay } from "./dueDate";
-import type { ClassroomState, SentHomework } from "./classroom";
+import { lessonOver, type ClassroomState, type SentHomework } from "./classroom";
 
 /**
  * Homework as a kind of assignment (ticket 290; DECISION_LOG.md 2026-09-15). A homework is weekly: the teacher's ten
@@ -26,9 +29,22 @@ export function homeworkForDue(due: string, homeworks: readonly HomeworkDef[] = 
   return oldestFirst(homeworks).find((h) => d < dueOrder(h.due));
 }
 
-/** The sets a homework covers, in the order given: those whose due date falls in its window (`homeworkForDue`). */
+/**
+ * The homework a set goes into (ticket 292): the one that froze it at opening; else the date rule's (`homeworkForDue`), passing
+ * over every homework that opened without it, so a set created after its homework opened goes to the next one. Undefined when
+ * no homework takes it yet (the next one is not created).
+ */
+export function homeworkForSet(set: { id: string; due: string }, homeworks: readonly HomeworkDef[] = HOMEWORKS): HomeworkDef | undefined {
+  const list = oldestFirst(homeworks);
+  const frozen = list.find((h) => h.setIds?.includes(set.id));
+  if (frozen) return frozen;
+  const byDate = homeworkForDue(set.due, list);
+  return byDate && list.slice(list.indexOf(byDate)).find((h) => !h.setIds);
+}
+
+/** The sets a homework covers, in the order given (`homeworkForSet`: frozen at opening, else by date). */
 export function coveredSetIds(homework: HomeworkDef, sets: readonly { id: string; due: string }[], homeworks: readonly HomeworkDef[] = HOMEWORKS): string[] {
-  return sets.filter((s) => homeworkForDue(s.due, homeworks)?.id === homework.id).map((s) => s.id);
+  return sets.filter((s) => homeworkForSet(s, homeworks)?.id === homework.id).map((s) => s.id);
 }
 
 /** A student's status on a homework on `today`. No record reads as nothing done. */
@@ -41,6 +57,8 @@ export function homeworkStatus(homework: HomeworkDef, record: HomeworkRecord | u
 
 /** A missed homework's cell note: its own undone problems join the next homework (ticket 294). */
 export const MISSED_NOTE = "problems added to next HW";
+/** The same note once that next homework has opened and is under way (ticket 292). */
+export const MISSED_NOTE_CURRENT = "problems added to current HW";
 
 /**
  * One piece of the Classroom's homework column (ticket 290), beside Sam's Completed cards: a homework's cell spanning the
@@ -48,7 +66,7 @@ export const MISSED_NOTE = "problems added to next HW";
  * first covered card's index in the Completed list (newest first), `span` how many cards it runs down.
  */
 export type HomeworkColumnPiece =
-  | { kind: "homework"; id: string; n: number; name: string; due: string; status: HomeworkStatus; row: number; span: number; setIds: string[] }
+  | { kind: "homework"; id: string; n: number; name: string; due: string; status: HomeworkStatus; /** Opened to the students (ticket 292): the cell opens the homework; not yet, it waits in the Future panel. */ opened: boolean; row: number; span: number; setIds: string[] }
   | { kind: "empty"; row: number; span: 1; setIds: [string] };
 
 /**
@@ -64,19 +82,19 @@ export function homeworkColumn(
 ): HomeworkColumnPiece[] {
   const pieces: HomeworkColumnPiece[] = [];
   completed.forEach((card, row) => {
-    const hw = homeworkForDue(card.due, homeworks);
+    const hw = homeworkForSet(card, homeworks);
     const last = pieces[pieces.length - 1];
     if (!hw) pieces.push({ kind: "empty", row, span: 1, setIds: [card.id] });
     else if (last?.kind === "homework" && last.id === hw.id) {
       last.span++;
       last.setIds.push(card.id);
-    } else pieces.push({ kind: "homework", id: hw.id, n: hw.n, name: hw.name, due: hw.due, status: homeworkStatus(hw, records[hw.id], today), row, span: 1, setIds: [card.id] });
+    } else pieces.push({ kind: "homework", id: hw.id, n: hw.n, name: hw.name, due: hw.due, status: homeworkStatus(hw, records[hw.id], today), opened: !!hw.setIds, row, span: 1, setIds: [card.id] });
   });
   return pieces;
 }
 
 /** A sent homework (ticket 291) read as the fixtures' homeworks are. */
-export const homeworkDefOf = (h: SentHomework): HomeworkDef => ({ kind: "homework", id: h.id, n: h.n, name: h.name, due: dayLabel(h.due), day: h.due });
+export const homeworkDefOf = (h: SentHomework): HomeworkDef => ({ kind: "homework", id: h.id, n: h.n, name: h.name, due: dayLabel(h.due), day: h.due, ...(h.openedAt !== undefined ? { setIds: [...(h.setIds ?? [])] } : {}) });
 
 /**
  * The class's homeworks, oldest due first (ticket 291): the fixtures' Homework 1 and 2, then every homework the teacher has
@@ -84,17 +102,109 @@ export const homeworkDefOf = (h: SentHomework): HomeworkDef => ({ kind: "homewor
  * `homeworkColumn`, `nextHomework`), so a sent Homework 3 covers Problem Sets 5 and 6 as the date rule says.
  */
 export function classHomeworks(c: ClassroomState | null | undefined): HomeworkDef[] {
-  const sent = (c?.homeworks ?? []).filter((h) => isIsoDay(h.due)).map(homeworkDefOf);
-  return oldestFirst([...HOMEWORKS, ...sent]);
+  return listOf(openHomeworks(c));
+}
+
+const listOf = (c: ClassroomState | null | undefined): HomeworkDef[] => oldestFirst([...HOMEWORKS, ...(c?.homeworks ?? []).filter((h) => isIsoDay(h.due)).map(homeworkDefOf)]);
+
+/**
+ * Whether a homework has opened to the students, its contents frozen (ticket 292, `openHomeworks`). The fixtures' Homework 1
+ * and 2 opened long ago; a sent homework opens when the last lesson among its sets ends.
+ */
+export function homeworkOpened(homework: Pick<HomeworkDef, "id">, c: ClassroomState | null | undefined): boolean {
+  return !!classHomeworks(c).find((h) => h.id === homework.id)?.setIds;
 }
 
 /**
- * Whether a homework has opened to the students, its contents frozen (ticket 292 opens a sent one and stamps `openedAt`).
- * The fixtures' Homework 1 and 2 opened long ago; a sent homework waits until it is stamped.
+ * A set a homework can cover (ticket 292): every set in the Classroom, and the live set (Problem Set 6) even before its Create,
+ * since it is the lesson the week already has in the timetable; with its due date (the teacher's pick once created), its short
+ * name, and whether its lesson is over: a finished set's always, the live set's once it is sent and its lesson has ended however
+ * it ended (the teacher's end lesson after its minute, the presenter's activity completed, class review ended: `lessonOver`).
  */
-export function homeworkOpened(homework: Pick<HomeworkDef, "id">, c: ClassroomState | null | undefined): boolean {
-  const sent = c?.homeworks?.find((h) => h.id === homework.id);
-  return sent ? sent.openedAt !== undefined : HOMEWORKS.some((h) => h.id === homework.id);
+export interface HomeworkSet {
+  id: string;
+  due: string;
+  /** "Problem Set 6". */
+  name: string;
+  lessonOver: boolean;
+}
+
+/** The sets homework rules read, oldest due first. */
+export function homeworkSets(c: ClassroomState | null | undefined): HomeworkSet[] {
+  const ids = assignmentIds(c);
+  const sets = [...(ids.includes(LIVE_ASSIGNMENT_ID) ? [] : [LIVE_ASSIGNMENT_ID]), ...ids].map((id): HomeworkSet => {
+    const live = id === LIVE_ASSIGNMENT_ID;
+    const name = (storySet(id)?.name ?? assignmentBundle(id, c)?.name ?? id).split(" — ")[0].trim();
+    return { id, due: live ? activeAssignment(c).due : (assignmentBundle(id, c)?.due ?? ""), name, lessonOver: live ? !!c?.assignment && lessonOver(c) : true };
+  });
+  return sets.sort((a, b) => dueOrder(a.due) - dueOrder(b.due));
+}
+
+const opened = new WeakMap<ClassroomState, ClassroomState>();
+
+/**
+ * The classroom with every sent homework that is due to open, opened (ticket 292; DECISION_LOG.md 2026-09-15). A homework
+ * opens when the last lesson among the sets it covers ends; if they had all ended when it was sent, it opens at once. Opening
+ * stamps `openedAt` (that lesson's `lessonEndedAt`, never before `sentAt`: a moment every tab computes alike) and freezes
+ * `setIds`, the sets it covers then; from that moment a set created in its window goes to the next homework (`homeworkForSet`).
+ *
+ * Pure and idempotent: the store writes it on every change (`setClassroom`), and every reader goes through it
+ * (`classHomeworks`), so a tab holding a state stored before the stamp reads the same. The same object back when nothing opens.
+ */
+export function openHomeworks<C extends ClassroomState | null | undefined>(c: C): C {
+  if (!c?.homeworks?.some((h) => h.openedAt === undefined)) return c;
+  const hit = opened.get(c);
+  if (hit) return hit as C;
+  let next: ClassroomState = c;
+  for (const h of c.homeworks) {
+    if (h.openedAt !== undefined || !isIsoDay(h.due)) continue;
+    const list = listOf(next);
+    const covered = homeworkSets(next).filter((s) => homeworkForSet(s, list)?.id === h.id);
+    if (!covered.every((s) => s.lessonOver)) continue;
+    const endedAt = covered.some((s) => s.id === LIVE_ASSIGNMENT_ID) ? next.lessonEndedAt : undefined;
+    const stamp: SentHomework = { ...h, openedAt: Math.max(h.sentAt, endedAt ?? h.sentAt), setIds: covered.map((s) => s.id) };
+    next = { ...next, homeworks: next.homeworks!.map((x) => (x.id === h.id ? stamp : x)) };
+  }
+  opened.set(c, next);
+  return next as C;
+}
+
+/** A homework waiting in Sam's Future panel (ticket 292): sent, not yet open. */
+export interface FutureHomework {
+  id: string;
+  name: string;
+  due: string;
+  /** The set whose lesson it waits on, the last among its sets not over ("Problem Set 6"); null if none is named. */
+  opensAfter: string | null;
+}
+
+/** Every sent homework not yet open, oldest due first. Empty when nothing is scheduled: the panel is hidden. */
+export function futureHomeworks(c: ClassroomState | null | undefined): FutureHomework[] {
+  const list = classHomeworks(c);
+  const sets = homeworkSets(openHomeworks(c));
+  return list
+    .filter((h) => !h.setIds)
+    .map((h) => {
+      const waiting = sets.filter((s) => !s.lessonOver && homeworkForSet(s, list)?.id === h.id);
+      return { id: h.id, name: h.name, due: h.due, opensAfter: waiting[waiting.length - 1]?.name ?? null };
+    });
+}
+
+/**
+ * The homeworks open for Sam to do (ticket 292), the first cards in his To do: opened, and neither completed nor missed on
+ * `today` (a missed one leaves To do, ticket 290's rule). Newest due first.
+ */
+export function openHomeworksFor(c: ClassroomState | null | undefined, records: Readonly<Record<string, HomeworkRecord>> = SAM_HOMEWORK_STORY, today: string = dayLabel(DEMO_TODAY)): HomeworkDef[] {
+  return classHomeworks(c)
+    .filter((h) => !!h.setIds && homeworkStatus(h, records[h.id], today) === "open")
+    .reverse();
+}
+
+/** A missed homework's note: "next HW" until the homework after it is open for Sam, then "current HW" (ticket 292). */
+export function missedNote(homework: Pick<HomeworkDef, "id">, c: ClassroomState | null | undefined, records: Readonly<Record<string, HomeworkRecord>> = SAM_HOMEWORK_STORY, today: string = dayLabel(DEMO_TODAY)): string {
+  const list = classHomeworks(c);
+  const after = list[list.findIndex((h) => h.id === homework.id) + 1];
+  return after && openHomeworksFor(c, records, today).some((h) => h.id === after.id) ? MISSED_NOTE_CURRENT : MISSED_NOTE;
 }
 
 /** The homework +Homework creates next: its number, the earliest due date the picker offers, and where the picker starts. */

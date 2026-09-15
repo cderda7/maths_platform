@@ -6,6 +6,7 @@ import { INITIAL_SESSION, hydrateSession, sessionAt, sessionReducer, type RunKin
 import { activeAssignment } from "./assignment";
 import { adoptClassroom, getClassroom, setClassroom } from "./classroom-store";
 import { INITIAL_CLASSROOM, pathwayOf, type ClassroomState } from "./classroom";
+import { openHomeworks } from "./homeworks";
 
 /**
  * The demo session store: one student session, shared between browser tabs on the same machine.
@@ -123,8 +124,10 @@ export function subscribeLessonMoves(cb: (l: Lesson) => void): () => void {
  * gave him). So both go out in one message and one storage write, read in one task by every other tab; the two stores'
  * own keys are written after it, for a tab opened later.
  */
-export function setLesson(next: Lesson) {
+export function setLesson(written: Lesson) {
   wire();
+  // The classroom as every tab will hold it: a homework the jump's lesson end opens is stamped before it is sent (ticket 292).
+  const next: Lesson = { ...written, classroom: openHomeworks(written.classroom) };
   try {
     localStorage.setItem(LESSON_KEY, JSON.stringify(next));
   } catch {

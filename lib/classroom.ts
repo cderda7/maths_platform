@@ -71,10 +71,13 @@ export interface SentHomework {
   questions: ReviewedQuestion[];
   sentAt: number;
   /**
-   * When it opened to the students and its contents froze (ticket 292 stamps it when the last lesson among its sets ends).
+   * When it opened to the students and its contents froze (ticket 292, `openHomeworks` in `lib/homeworks.ts`): the moment
+   * the last lesson among its sets ended (the lesson's `lessonEndedAt`, never before `sentAt`), so every tab stamps the same.
    * Absent while it waits in Sam's Future panel; a set due inside an open homework's window goes to the next one.
    */
   openedAt?: number;
+  /** The sets it covers, frozen with `openedAt`, oldest due first. */
+  setIds?: string[];
 }
 
 /**

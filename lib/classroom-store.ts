@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react";
 import { classroomReducer, INITIAL_CLASSROOM, migrateClassroom, type ClassroomAction, type ClassroomState } from "./classroom";
 import { activeAssignment, type ActiveAssignment } from "./assignment";
 import type { ChainAction } from "./diagnosticChain";
+import { openHomeworks } from "./homeworks";
 
 /**
  * The classroom store: teacher-owned state shared between every tab on this machine, same shape
@@ -65,8 +66,10 @@ export function subscribeClassroom(cb: () => void): () => void {
  * `announce` false leaves the other tabs to hear of it some other way: the demo's one-change move of the classroom and the
  * session together (`setLesson` in `lib/store.ts`, ticket 263). It is still written, for a tab opened later.
  */
-export function setClassroom(next: ClassroomState, announce = true) {
+export function setClassroom(written: ClassroomState, announce = true) {
   wire();
+  // A homework whose last lesson just ended opens with this change (ticket 292), stamped the same in whichever tab writes it.
+  const next = openHomeworks(written);
   current = next;
   try {
     localStorage.setItem(KEY, JSON.stringify(next));
@@ -80,7 +83,7 @@ export function setClassroom(next: ClassroomState, announce = true) {
 /** Another tab's classroom taken as it is, nothing written or announced (`setLesson`, ticket 263). */
 export function adoptClassroom(next: unknown) {
   wire();
-  current = migrateClassroom(next);
+  current = openHomeworks(migrateClassroom(next));
   emit();
 }
 

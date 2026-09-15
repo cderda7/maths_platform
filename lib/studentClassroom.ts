@@ -4,6 +4,7 @@ import { assignmentBundle, assignmentIds, LIVE_ASSIGNMENT_ID } from "./assignmen
 import type { ClassroomState } from "./classroom";
 import { currentClassStage } from "./classStage";
 import { dueOrder } from "./dueDate";
+import { openHomeworksFor } from "./homeworks";
 import type { StudentSession } from "./session";
 
 /**
@@ -16,6 +17,7 @@ import type { StudentSession } from "./session";
  *   presenter skip), the same test as the teacher's Classroom (`assignmentIds`). Sent, it is To do
  *   until his report goes with its reflection (Completed), or Missing when the lesson is over
  *   (every stage of the pathway over) without his hand-in.
+ * - An open homework (ticket 292: sent, and the last lesson among its sets over) is first in To do, until it is due.
  *
  * Pure: derived from the classroom, his session and the clock, so every tab agrees.
  */
@@ -33,6 +35,8 @@ export const STUDENT_CLASSROOM_HREF = "/student";
 export const studentSetHref = (id: string): string => `/student/a/${id}`;
 /** His read-only report on a Completed set (ticket 287), the Completed card's press. */
 export const studentReportHref = (id: string): string => `/student/a/${id}/report`;
+/** His homework screen (ticket 292 routes it, ticket 293 fills it): the open Homework card's OPEN and its HW cell's press. */
+export const studentHomeworkHref = (id: string): string => `/student/homework/${id}`;
 
 /** The section a set is in for Sam, or null when it is not in his Classroom (Problem Set 6 before it is sent, an unknown id). */
 export function studentSection(id: string, c: ClassroomState | null | undefined, session: StudentSession | null, now: number): StudentSection | null {
@@ -48,6 +52,8 @@ export function studentSection(id: string, c: ClassroomState | null | undefined,
 }
 
 export interface StudentSetCard {
+  /** An in-class set, or a homework open for him (ticket 292), which only To do lists, first. */
+  kind: "set" | "homework";
   id: string;
   /** As the teacher named the set: "Problem Set 6 — Roots of a quadratic". */
   name: string;
@@ -55,9 +61,9 @@ export interface StudentSetCard {
   section: StudentSection;
   /**
    * The To do card's one action: `start` while his run is at its start, `continue` once he is in it; it
-   * opens the set (`studentSetHref`). Null on Missing and Completed cards.
+   * opens the set (`studentSetHref`). A homework's is `open` (no count, ticket 274), to `studentHomeworkHref`. Null on Missing and Completed cards.
    */
-  action: "start" | "continue" | null;
+  action: "start" | "continue" | "open" | null;
   /**
    * Where a press on the whole card goes (ticket 287): a Completed card opens his read-only report on the set
    * (`studentReportHref`). Null on To do (its action button opens the set) and Missing (nothing handed in) cards.
@@ -72,8 +78,10 @@ export function studentClassroom(c: ClassroomState | null | undefined, session: 
     const section = studentSection(id, c, session, now);
     if (!b || !section) return [];
     const action = section !== "todo" ? null : !session || session.stage === "overview" ? "start" : "continue";
-    return [{ id, name: b.name, due: b.due, section, action, href: section === "completed" ? studentReportHref(id) : null }];
+    return [{ kind: "set", id, name: b.name, due: b.due, section, action, href: section === "completed" ? studentReportHref(id) : null }];
   });
   const sorted = [...cards].sort((a, b) => dueOrder(b.due) - dueOrder(a.due));
-  return { todo: sorted.filter((k) => k.section === "todo"), missing: sorted.filter((k) => k.section === "missing"), completed: sorted.filter((k) => k.section === "completed") };
+  // An open homework sits first in To do (ticket 292), whatever its due date: its one way in besides its HW cell.
+  const homework = openHomeworksFor(c).map((h): StudentSetCard => ({ kind: "homework", id: h.id, name: h.name, due: h.due, section: "todo", action: "open", href: null }));
+  return { todo: [...homework, ...sorted.filter((k) => k.section === "todo")], missing: sorted.filter((k) => k.section === "missing"), completed: sorted.filter((k) => k.section === "completed") };
 }

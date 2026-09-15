@@ -9,9 +9,10 @@ import { Button, Eyebrow } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
 import { CLASS_SUBJECT } from "@/lib/classroomCards";
 import { useClassroom } from "@/lib/classroom-store";
-import { homeworkColumn, MISSED_NOTE } from "@/lib/homeworks";
+import { classHomeworks, futureHomeworks, homeworkColumn, missedNote, type FutureHomework } from "@/lib/homeworks";
+import type { ClassroomState } from "@/lib/classroom";
 import { useNow, useStudentSession } from "@/lib/store";
-import { STUDENT_SECTION_EMPTY, STUDENT_SECTION_LABEL, STUDENT_SECTIONS, studentClassroom, studentSetHref, type StudentSection, type StudentSetCard } from "@/lib/studentClassroom";
+import { STUDENT_SECTION_EMPTY, STUDENT_SECTION_LABEL, STUDENT_SECTIONS, studentClassroom, studentHomeworkHref, studentSetHref, type StudentSection, type StudentSetCard } from "@/lib/studentClassroom";
 
 const noSubscribe = () => () => {};
 
@@ -19,7 +20,9 @@ const noSubscribe = () => () => {};
  * Sam's Classroom on the iPad (ticket 264), his landing: every set in his Classroom under To do, Missing and Completed
  * (`lib/studentClassroom`), each newest due first. A To do card's one action opens the set where his run is (its start
  * once sent); a press anywhere on a Completed card opens his read-only report on the set (ticket 287); Missing cards open
- * nothing. Beside Completed sits the homework column (ticket 290): each homework's cell spans the sets it covers, not pressable.
+ * nothing. Beside Completed sits the homework column (ticket 290): each homework's cell spans the sets it covers. A homework
+ * the teacher has sent waits greyed in the Future panel at the top right, not pressable (ticket 292), until the last lesson
+ * among its sets ends; then it is the first card in To do and its cell opens it too.
  * Live in every tab: the teacher's Create puts Problem Set 6 in
  * To do without a reload. When class review freezes the class, the iPad goes to the set, as every student screen does; so
  * does a presenter's jump from another tab that moves the lesson with a set out (the teacher's "students done" and
@@ -35,21 +38,49 @@ export default function StudentClassroom() {
   // The stores are the browser's: until the client has read them the sections would be a fresh demo's, so they wait.
   const client = useSyncExternalStore(noSubscribe, () => true, () => false);
   const sections = studentClassroom(classroom, session, now);
+  const future = futureHomeworks(classroom);
   useLessonPull(!!classroom.assignment, session.stage === "frozen");
   return (
     <StudentChrome>
-      <div className="mx-auto flex max-w-[1066px] flex-col px-10 pt-8 pb-6" data-student-classroom>
+      <div className="relative mx-auto flex max-w-[1066px] flex-col px-10 pt-8 pb-6" data-student-classroom>
         <Eyebrow>
           {ASSIGNMENT.classCode} · {CLASS_SUBJECT} · {ASSIGNMENT.teacher}
         </Eyebrow>
         <h1 className="font-display mt-1.5 text-[30px] leading-[1.1] text-ink">Edexia Classroom</h1>
-        {client && STUDENT_SECTIONS.map((s) => <Section key={s} section={s} cards={sections[s]} onOpen={(href) => router.push(href)} />)}
+        {client && future.length > 0 && <FuturePanel homeworks={future} />}
+        {client && STUDENT_SECTIONS.map((s) => <Section key={s} section={s} cards={sections[s]} classroom={classroom} onOpen={(href) => router.push(href)} />)}
       </div>
     </StudentChrome>
   );
 }
 
-function Section({ section, cards, onOpen }: { section: StudentSection; cards: StudentSetCard[]; onOpen: (href: string) => void }) {
+/**
+ * The Future panel (ticket 292): every homework sent and not yet open, greyed behind a dashed line, so it reads as off his list.
+ * Top right, level with the eyebrow and the title, over the homework column's width, out of the flow: nothing below it moves,
+ * and it ends beside To do's first row, where that column is empty. Nothing in it is pressable. Hidden when nothing is scheduled.
+ */
+function FuturePanel({ homeworks }: { homeworks: FutureHomework[] }) {
+  return (
+    <aside aria-label="Future" className="absolute top-8 right-10 w-[190px] rounded-2xl border border-dashed border-line-strong px-4 pt-3 pb-3.5 select-none" data-future-panel>
+      <Eyebrow>Future</Eyebrow>
+      {homeworks.map((h) => (
+        <div key={h.id} className="mt-2 flex flex-col" data-future-homework={h.id}>
+          <span className="font-display text-[17px] leading-[22px] text-ink-muted">{h.name}</span>
+          <span className="text-[13px] leading-[18px] text-ink-muted" data-due>
+            due {h.due}
+          </span>
+          {h.opensAfter && (
+            <span className="mt-1 text-[12px] leading-[16px] text-ink-muted/80" data-opens-after>
+              opens after {h.opensAfter}
+            </span>
+          )}
+        </div>
+      ))}
+    </aside>
+  );
+}
+
+function Section({ section, cards, classroom, onOpen }: { section: StudentSection; cards: StudentSetCard[]; classroom: ClassroomState; onOpen: (href: string) => void }) {
   return (
     <section className="mt-7" aria-label={STUDENT_SECTION_LABEL[section]} data-student-section={section}>
       <Eyebrow>{STUDENT_SECTION_LABEL[section]}</Eyebrow>
@@ -63,10 +94,10 @@ function Section({ section, cards, onOpen }: { section: StudentSection; cards: S
         <div className="mt-2.5 grid grid-cols-[minmax(0,1fr)_190px] gap-x-4 gap-y-2" data-card-grid>
           <ul className="contents">
             {cards.map((card, i) => (
-              <SetCard key={card.id} card={card} row={i + 1} onOpen={onOpen} />
+              <SetCard key={`${card.kind}-${card.id}`} card={card} row={i + 1} onOpen={onOpen} />
             ))}
           </ul>
-          {section === "completed" && <HomeworkColumn cards={cards} />}
+          {section === "completed" && <HomeworkColumn cards={cards} classroom={classroom} onOpen={onOpen} />}
         </div>
       )}
     </section>
@@ -75,12 +106,13 @@ function Section({ section, cards, onOpen }: { section: StudentSection; cards: S
 
 /**
  * The homework column beside Completed (ticket 290, `homeworkColumn`): a homework's cell spans the rows of the sets it
- * covers; a set no homework covers yet keeps an empty space the column's width. Nothing in it is pressable.
+ * covers; a set no homework covers yet keeps an empty space the column's width. Completed and missed cells are not pressable,
+ * nor is a homework's cell while it waits in the Future panel; once it has opened the cell opens it, as its To do card does (ticket 292).
  */
-function HomeworkColumn({ cards }: { cards: StudentSetCard[] }) {
+function HomeworkColumn({ cards, classroom, onOpen }: { cards: StudentSetCard[]; classroom: ClassroomState; onOpen: (href: string) => void }) {
   return (
     <div className="contents" data-hw-column>
-      {homeworkColumn(cards).map((p) => {
+      {homeworkColumn(cards, classHomeworks(classroom)).map((p) => {
         const gridRow = `${p.row + 1} / span ${p.span}`;
         const rows = p.setIds.join(" ");
         if (p.kind === "empty") return <div key={`empty-${rows}`} className="col-start-2" style={{ gridRow }} data-hw-empty={rows} aria-hidden />;
@@ -101,18 +133,39 @@ function HomeworkColumn({ cards }: { cards: StudentSetCard[] }) {
                 <CautionTriangle />
                 <span className="text-[15px] font-medium text-ink">HW{p.n}</span>
               </span>
-              {/* Balanced over two lines, so no word is left alone on the second (ticket 292's "current HW" is longer still). */}
+              {/* Balanced over two lines, so no word is left alone on the second; "current HW" once the next homework is open (ticket 292). */}
               <span className="mt-1.5 text-[12px] leading-[16px] text-balance text-ink-muted" data-hw-note>
-                {MISSED_NOTE}
+                {missedNote(p, classroom)}
               </span>
             </div>
           );
+        const label = (
+          <span className={`whitespace-nowrap text-[14px] ${p.opened ? "text-ink" : "text-ink-muted"}`}>
+            HW{p.n} · due {p.due}
+          </span>
+        );
+        if (!p.opened)
+          return (
+            <div key={p.id} className={`${shape} border-line bg-paper/40`} style={{ gridRow }} data-hw-cell={p.id} data-hw-status={p.status} data-hw-opened="false" data-hw-rows={rows}>
+              {label}
+            </div>
+          );
+        // Open: the whole cell is one press target, lifting and settling as a Completed card does, to the homework's screen.
         return (
-          <div key={p.id} className={`${shape} border-line bg-paper/40`} style={{ gridRow }} data-hw-cell={p.id} data-hw-status={p.status} data-hw-rows={rows}>
-            <span className="whitespace-nowrap text-[14px] text-ink-muted">
-              HW{p.n} · due {p.due}
-            </span>
-          </div>
+          <button
+            key={p.id}
+            type="button"
+            onClick={() => onOpen(studentHomeworkHref(p.id))}
+            aria-label={`${p.name}, open`}
+            className={`${shape} items-start border-line bg-paper/70 text-left transition-[border-color,background-color,box-shadow] hover:border-line-strong hover:bg-paper hover:shadow-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent active:bg-cream-deep/60 active:shadow-none`}
+            style={{ gridRow }}
+            data-hw-cell={p.id}
+            data-hw-status={p.status}
+            data-hw-opened="true"
+            data-hw-rows={rows}
+          >
+            {label}
+          </button>
         );
       })}
     </div>
@@ -149,7 +202,7 @@ function SetCard({ card, row, onOpen }: { card: StudentSetCard; /** Its row in t
   const { href } = card;
   if (href)
     return (
-      <li className="col-start-1" style={{ gridRow: row }} data-student-set={card.id} data-section={card.section}>
+      <li className="col-start-1" style={{ gridRow: row }} data-student-set={card.id} data-kind={card.kind} data-section={card.section}>
         <button
           type="button"
           onClick={() => onOpen(href)}
@@ -162,10 +215,10 @@ function SetCard({ card, row, onOpen }: { card: StudentSetCard; /** Its row in t
       </li>
     );
   return (
-    <li style={{ gridRow: row }} className={`col-start-1 ${shape} ${todo ? "border-accent-line bg-paper shadow-card" : "border-line bg-paper/70"}`} data-student-set={card.id} data-section={card.section}>
+    <li style={{ gridRow: row }} className={`col-start-1 ${shape} ${todo ? "border-accent-line bg-paper shadow-card" : "border-line bg-paper/70"}`} data-student-set={card.id} data-kind={card.kind} data-section={card.section}>
       {body}
       {card.action && (
-        <Button variant="accent" hit className="uppercase tracking-[0.08em]" onClick={() => onOpen(studentSetHref(card.id))} data-open-set={card.id}>
+        <Button variant="accent" hit className="uppercase tracking-[0.08em]" onClick={() => onOpen(card.kind === "homework" ? studentHomeworkHref(card.id) : studentSetHref(card.id))} {...(card.kind === "homework" ? { "data-open-homework": card.id } : { "data-open-set": card.id })}>
           {card.action}
         </Button>
       )}

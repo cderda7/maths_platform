@@ -29,7 +29,7 @@ describe("Sam's Classroom (ticket 264)", () => {
 
   it("once sent, Problem Set 6 is in To do with its start as the action", () => {
     const r = studentClassroom(SENT, INITIAL_SESSION, now);
-    expect(r.todo).toEqual([{ id: "pset-6", name: "Problem Set 6 — Roots of a quadratic", due: ASSIGNMENT.due, section: "todo", action: "start", href: null }]);
+    expect(r.todo).toEqual([{ kind: "set", id: "pset-6", name: "Problem Set 6 — Roots of a quadratic", due: ASSIGNMENT.due, section: "todo", action: "start", href: null }]);
     expect(r.completed.map((k) => k.id)).toEqual(FINISHED);
     expect(r.completed.every((k) => k.action === null)).toBe(true);
     // A Completed card opens his report on the set (ticket 287).
@@ -59,7 +59,7 @@ describe("Sam's Classroom (ticket 264)", () => {
   it("completed without his hand-in, it is Missing and opens nothing", () => {
     for (const stage of ["overview", "confidence", "working"] as const) {
       const r = studentClassroom(ended(SENT), sessionAt(stage), now);
-      expect(r.missing).toEqual([{ id: "pset-6", name: "Problem Set 6 — Roots of a quadratic", due: ASSIGNMENT.due, section: "missing", action: null, href: null }]);
+      expect(r.missing).toEqual([{ kind: "set", id: "pset-6", name: "Problem Set 6 — Roots of a quadratic", due: ASSIGNMENT.due, section: "missing", action: null, href: null }]);
       expect(r.todo).toEqual([]);
     }
     // Still working while the lesson runs is not missing.

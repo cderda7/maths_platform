@@ -1461,6 +1461,17 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **Homework's own assessment lines.** The assessing bar still reads "Checking coverage against Unit 1" for homework; homework's could name the week's sets and each student's own problems.
 - **Refine for homework that knows the own problems.** The scripted assessment is fixed; a real one would check the teacher's ten against what each student's own problems already cover (the removal's reason says so in words only).
 
+## Future panel and the homework gate (ticket 292, 2026-09-15)
+
+- **Timetabled sets, not just the demo's Problem Set 6.** A homework waits for the lesson of every set in its window, and the only set counted before its Create is the demo's live Problem Set 6. A real class would need the week's timetable (which lessons are planned before the homework's due date) to know what a homework waits on. Deferred: one live set in the demo.
+- **A homework whose sets never have a lesson.** If a covered set is created but its lesson is never ended, the homework waits in the Future indefinitely; a teacher control ("open now") or opening on the due date's eve could release it. Deferred by the ticket (opening is on the lesson's end only).
+- **Taking an opened homework back to Future.** Once open, a homework stays open; the presenter's "send assignment" re-sends Problem Set 6 but leaves Homework 3 open. Ticket 295's shortcuts may want a way to rewind it.
+- **A stamp moment for class review's End.** `wc/end` carries no time, so a homework opened by it is stamped at its `sentAt`; a timed `wc/end` would give the real moment for a "homework opened at" line.
+- **Several homeworks in the Future panel.** The panel lists every waiting homework, but under the no-overlap assumption there is at most one; a stack of them would push the panel past To do's first row, over the column beside it.
+- **Telling Sam when homework opens.** Homework 3 moves into To do silently; a toast or a pulse on OPEN when it arrives while he is on the Classroom could draw his eye.
+- **The homework screen.** `/student/homework/<id>` shows only its heading and the way back until ticket 293 lists his own problems and the teacher's ten.
+- **The teacher's Classroom's "opens after" line.** Sam's panel says what the homework waits on; the teacher's Homework 3 card still reads only "sent" until it opens.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

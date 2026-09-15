@@ -23,6 +23,9 @@ describe("homework coverage by date (ticket 290)", () => {
     const all = [...HOMEWORKS, HW3];
     expect(coveredSetIds(HOMEWORKS[0], SETS, all)).toEqual(["pset-1", "pset-2"]);
     expect(coveredSetIds(HOMEWORKS[1], SETS, all)).toEqual(["pset-3", "pset-4"]);
+    // The fixtures' frozen sets (ticket 292) are the date rule's.
+    const undated = all.map((h) => ({ ...h, setIds: undefined }));
+    expect(HOMEWORKS.map((h) => [...(h.setIds ?? [])])).toEqual(HOMEWORKS.map((h) => coveredSetIds(h, SETS, undated)));
     // Homework 3 (ticket 291) covers Problem Sets 5 and 6.
     expect(coveredSetIds(HW3, SETS, all)).toEqual(["pset-5", "pset-6"]);
   });
@@ -68,8 +71,8 @@ describe("the Classroom's homework column", () => {
     const { completed } = studentClassroom(INITIAL_CLASSROOM, INITIAL_SESSION, now);
     expect(homeworkColumn(completed)).toEqual([
       { kind: "empty", row: 0, span: 1, setIds: ["pset-5"] },
-      { kind: "homework", id: "hw-2", n: 2, name: "Homework 2", due: "Mon 7 Sep", status: "missed", row: 1, span: 2, setIds: ["pset-4", "pset-3"] },
-      { kind: "homework", id: "hw-1", n: 1, name: "Homework 1", due: "Tue 1 Sep", status: "completed", row: 3, span: 2, setIds: ["pset-2", "pset-1"] },
+      { kind: "homework", id: "hw-2", n: 2, name: "Homework 2", due: "Mon 7 Sep", status: "missed", opened: true, row: 1, span: 2, setIds: ["pset-4", "pset-3"] },
+      { kind: "homework", id: "hw-1", n: 1, name: "Homework 1", due: "Tue 1 Sep", status: "completed", opened: true, row: 3, span: 2, setIds: ["pset-2", "pset-1"] },
     ]);
   });
 
