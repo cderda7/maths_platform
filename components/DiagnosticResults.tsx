@@ -5,6 +5,7 @@ import FitStem from "@/components/FitStem";
 import FitText from "@/components/FitText";
 import M from "@/components/Math";
 import type { Diagnostic } from "@/data/diagnostic";
+import { misconceptionName } from "@/data/misconceptions";
 import type { Tally } from "@/lib/diagnostic";
 
 /**
@@ -81,8 +82,16 @@ export default function DiagnosticResults({
                 </div>
               )}
               {misconceptions && (
-                <div className={`mt-0.5 line-clamp-2 leading-snug ${panel ? "text-[14px]" : "text-[11.5px]"} ${correct ? "font-medium text-secure" : "text-ink-muted"}`} data-misconception>
-                  {correct ? "correct" : o.misconception ?? ""}
+                // The misconception's name (ticket 302), then what this option does, which tells apart two options sharing a misconception.
+                <div className={`mt-0.5 leading-snug ${panel ? "text-[14px]" : "text-[11.5px]"}`}>
+                  <div className={correct ? "font-medium text-secure" : "text-ink-soft"} data-misconception>
+                    {correct ? "correct" : o.misconception ? misconceptionName(o.misconception) : ""}
+                  </div>
+                  {!correct && o.detail && (
+                    <div className="text-ink-muted" data-misconception-detail>
+                      {o.detail}
+                    </div>
+                  )}
                 </div>
               )}
               {who && (

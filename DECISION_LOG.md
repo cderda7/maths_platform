@@ -5137,3 +5137,19 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Families are coarser than misconceptions: "Minus signs wrong" gathers eleven kinds of sign error, and the chip does not say which. The patterns column does, when a chip is lit. Sam's conjugate pattern stays outside his signature, because its line is a rationalising misconception in the taxonomy; the review's "all seven are one" is six-plus-one on the page. Because a tag's wordings are one family, every pattern on two or more sets reads under a signature, so a tile's category groups now hold one-set patterns only. Four authored tags that lumped different errors together were dropped or trimmed. Three families (Surds, Fraction parts, Roots) exist only so every taxonomy id is placed, and 302 or 304 adding ids must place them.
 
 **Defense.** One error vocabulary from line to profile, each link tested: line → misconception (299), pattern → misconception (checked against the lines), misconception → family (every id placed), family → signature (pure, from what the page shows). The signal the review called the demo is computed, not asserted, and it says what is wrong without guessing why.
+
+## 2026-09-15 · A diagnostic's distractors carry a misconception id and keep their own line (ticket 302)
+
+**Decision.** Every distractor of every live diagnostic step carries a misconception id, so a student's pick counts against the same misconception as a wrong line (`diagnosticSightings`, kept apart from work by `source`). A distractor that mirrors a real slip carries that line's own id, which a test enforces. Its old free text stays as `detail`, the exact thing this option does. On the teacher's laptop an option reads the misconception's name with the detail beneath; the board shows neither. Seven entries join the taxonomy for distractors no student wrote.
+
+**Context.** The user chose to switch diagnostics to the taxonomy (ticket 299). Mapping the 105 distractors put two or three wrong options under one misconception on 23 of 37 steps: Q4's a, b and c step would have read "a, b or c wrong" three times. Asked, the user chose name plus line, on the teacher's laptop only.
+
+**Alternatives considered.**
+- *Name only*: one label everywhere, but options sharing a misconception become indistinguishable, which defeats a diagnostic's purpose of telling the teacher which wrong idea the class holds.
+- *Line only, id behind it*: the options stay distinct, but the diagnostic would name mistakes differently from the Mistakes tab and class review.
+- *Split the taxonomy until no step has duplicates*: "signs dropped" and "b and c swapped" are different, but most duplicates are one misconception in two forms ("Δ < 0" and "Δ = 1" for one root). Splitting for the layout of one question would fragment the counts.
+- *Derive a slip-tied option's id from its line at build time*: one source, but it would pull the evaluator into the data layer. An authored id plus a test catches the same disagreement.
+
+**Tradeoffs.** Results cells on the laptop are one line taller. Details are now teacher-facing, so four were reworded and a test bans speculative words in them. The seven new entries (for example "wrong feature given") are broader than the ones real work produced. Diagnostic sightings on a step with no problem (the fallback check) carry an empty problem.
+
+**Defense.** The count is by id, which is what the taxonomy is for, and the screen keeps what a teacher needs in the moment: which option means what. The board, which students see, still shows only the question and the options.

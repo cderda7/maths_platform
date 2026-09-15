@@ -1508,6 +1508,13 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **A class-level signature view.** How many students share a family across sets, to plan a whole-class re-teach. Deferred: not asked for.
 - **Tile category groups hold one-set patterns only now.** The tiles' collapse-by-tag logic (`holisticTiles`) never meets a multi-set tag any more; it could be simplified to one tag per wording. Left in place: harmless, and it keeps working if the threshold ever rises above two.
 
+## Diagnostic misconceptions (ticket 302, 2026-09-15)
+
+- **Diagnostic sightings on a teacher screen.** `diagnosticSightings` exists and nothing shows it: a student's pick of the same misconception their own working showed (ticket 242's repeated slip) could read as a confirmed misconception in the student's report or a misconception view.
+- **Distractors designed from the taxonomy.** Distractors are authored per step. A generator could pick one distractor per likely misconception for the step's skill, so no two options share a misconception and every option's count means something distinct.
+- **Grain of the seven distractor-only entries.** "wrong feature given" covers intercepts, the turning point, the axis, the landing and coefficients; "value substituted wrong" covers a lost power and a lost coefficient. Real student work may show these deserve splitting before counts accumulate.
+- **Student-facing detail.** The detail is teacher-facing; a student-worded version after the reveal is ticket 304's `ifChosen`.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { FINISHED_SETS } from "@/lib/finishedSets";
+import { FALLBACK_STEP, PROBLEM_DIAGNOSTICS } from "./diagnostic";
 import { EVALUATION } from "./evaluation";
 import { isMisconceptionId, MISCONCEPTION_IDS, MISCONCEPTIONS, misconceptionName } from "./misconceptions";
 
@@ -15,6 +16,8 @@ describe("the misconception taxonomy (ticket 299)", () => {
       "divided-wrong-way", "denominator-dropped", "not-cancelled", "root-not-taken", "square-left-in-root", "roots-added", "rationalise-wrong-factor",
       "nfl-without-zero", "root-missing", "formula-2a", "minus-b-dropped", "square-not-balanced", "halving-wrong", "discriminant-root-count",
       "x-for-y", "vertex-y-wrong", "concavity-sign", "graph-signs", "context-not-checked", "question-not-answered",
+      // Ticket 302: the diagnostics' distractors.
+      "pair-product-wrong", "term-lost-rearranging", "wrong-inverse", "coefficients-wrong", "discriminant-formula", "wrong-feature", "substitution-wrong",
     ]));
     for (const id of MISCONCEPTION_IDS) expect(id, id).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
     expect(isMisconceptionId("pair-sum-wrong")).toBe(true);
@@ -32,7 +35,7 @@ describe("the misconception taxonomy (ticket 299)", () => {
     }
   });
 
-  it("is what the tables use: every wrong line of every set points at one, and every one is on a wrong line", () => {
+  it("is what the tables and diagnostics use: every wrong line of every set points at one, and every one is on a wrong line or a distractor (ticket 302)", () => {
     const used = new Set<string>();
     for (const table of TABLES)
       for (const [pid, lines] of Object.entries(table))
@@ -41,6 +44,7 @@ describe("the misconception taxonomy (ticket 299)", () => {
           expect(v.misconception && isMisconceptionId(v.misconception), `${pid} ${tex}`).toBe(true);
           used.add(v.misconception!);
         }
+    for (const s of [...PROBLEM_DIAGNOSTICS.flatMap((p) => p.steps), FALLBACK_STEP]) for (const o of s.options) if (o.misconception) used.add(o.misconception);
     expect(MISCONCEPTION_IDS.filter((id) => !used.has(id))).toEqual([]);
   });
 });

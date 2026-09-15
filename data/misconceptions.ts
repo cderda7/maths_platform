@@ -1,6 +1,7 @@
 /**
  * The misconception taxonomy (ticket 299): what a student believed or did when a line went wrong, named once and
- * counted everywhere. Every wrong line of every evaluation table points at one entry here (`LineVerdict.misconception`),
+ * counted everywhere. Every wrong line of every evaluation table points at one entry here (`LineVerdict.misconception`), and
+ * so does every diagnostic distractor (`DiagnosticOption.misconception`, ticket 302),
  * so the same misconception reads the same on every problem, every set and every class, and a count of it is a count of
  * one thing: "product right, sum wrong" on PS3 Q5 and on PS6 Q1 is one misconception, two times.
  *
@@ -26,6 +27,7 @@ export const MISCONCEPTIONS = {
   "pair-sum-wrong": m("product right, sum wrong", "A factor pair that multiplies to the constant but does not add to the middle coefficient."),
   "brackets-dont-expand": m("brackets don't expand back", "Brackets that expand to a different quadratic from the one given, with no expansion back in the working."),
   "check-wrong": m("expansion check wrong", "An expand-back check whose stated result is not what the brackets expand to."),
+  "pair-product-wrong": m("sum right, product wrong", "A factor pair that adds to the middle coefficient but does not multiply to the constant."),
   "pair-signs-swapped": m("signs swapped in the pair", "The right numbers in the brackets with their signs swapped or flipped, so the middle term comes out with the wrong sign."),
   "factor-missing": m("factor missing from answer", "An expression multiplied through, or a common factor taken out, and that factor missing from the final answer."),
   // Signs
@@ -34,6 +36,7 @@ export const MISCONCEPTIONS = {
   "product-sign": m("sign of a product wrong", "A product or power of signed terms given the wrong sign: 4 × (−7) as +28, (−3)² as −9."),
   "collecting-sign": m("sign lost collecting terms", "Like terms collected with a sign dropped: −3x + 2x as +x, 6√2 − 2√2 as 8√2."),
   "rearranging-sign": m("sign wrong rearranging", "A term rewritten or moved to the other side with the wrong sign."),
+  "term-lost-rearranging": m("term lost rearranging", "A term dropped moving an equation into standard form."),
   "solving-sign": m("sign lost solving for x", "A linear factor solved to the right size of answer with the wrong sign: 2x − 1 = 0 as x = −½."),
   // Distributing and powers
   "partial-distribution": m("applied to some terms only", "A multiplier, divisor or scale applied to some of the terms it acts on and not the rest."),
@@ -43,6 +46,7 @@ export const MISCONCEPTIONS = {
   "square-sign": m("perfect square sign wrong", "A perfect square written or expanded with the sign in its bracket or on its middle term wrong."),
   "square-vs-difference": m("square and difference mixed", "A perfect square and a difference of two squares taken for each other, either way round."),
   // Fractions and surds
+  "wrong-inverse": m("wrong operation to undo", "A step undone with the wrong inverse operation: subtracting or multiplying where it should divide."),
   "divided-wrong-way": m("divided the wrong way round", "A division or fraction turned over: a ÷ b written b/a, 2x = −1 solved as x = −2."),
   "denominator-dropped": m("part of the bottom dropped", "A denominator, or a factor of it, lost while simplifying or combining fractions."),
   "not-cancelled": m("answer not cancelled", "A fraction left with a common factor top and bottom."),
@@ -51,14 +55,18 @@ export const MISCONCEPTIONS = {
   "roots-added": m("roots added like numbers", "Roots joined or split over a sum: √12 + √27 as √39, √(72 + 72) as √72 + √72."),
   "rationalise-wrong-factor": m("wrong factor to rationalise", "A denominator multiplied by something that leaves the root in it, or the top rationalised instead of the bottom."),
   // Quadratics
+  "coefficients-wrong": m("a, b or c wrong", "The coefficients a, b and c taken from a quadratic with a sign dropped or two swapped."),
   "nfl-without-zero": m("null factor law without zero", "The null factor law applied to a product that equals something other than zero."),
   "root-missing": m("second root missing", "A quadratic answered with one of its two roots, the other missing."),
   "formula-2a": m("divided by a, not 2a", "The quadratic formula's denominator taken as a."),
   "minus-b-dropped": m("−b's minus dropped", "The minus in −b (in the formula or in x = −b/2a) lost or not applied to a negative b."),
   "square-not-balanced": m("square added, not taken away", "Completing the square by adding a number without taking the same number away."),
   "halving-wrong": m("halving step wrong", "The halving in completing the square or the axis of symmetry skipped, doubled or signed wrong."),
+  "discriminant-formula": m("discriminant formula wrong", "The discriminant b² − 4ac evaluated with part of its formula wrong: b not squared, 4ac taken as 2ac or ac."),
   "discriminant-root-count": m("wrong root count from Δ", "The discriminant's sign paired with the wrong number of roots."),
   // Graphs
+  "wrong-feature": m("wrong feature given", "One value of a graph or equation given for another: the y-intercept, turning point, axis, landing or a coefficient where a different one was asked."),
+  "substitution-wrong": m("value substituted wrong", "A value put into an expression with a power or coefficient lost: x² as x, 6x as 6, 3² as 6."),
   "x-for-y": m("x given where y asked", "A point's x-coordinate given as a height, value or minimum."),
   "vertex-y-wrong": m("y-value wrong at the vertex", "The turning point's height or minimum value given as a number that is not the function at its x."),
   "concavity-sign": m("concave up with negative a", "A negative leading coefficient read as a graph that opens upwards."),

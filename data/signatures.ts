@@ -28,12 +28,12 @@ export const FAMILIES = {
   "factor-pairs": {
     name: "Factor pairs wrong",
     gloss: "brackets that don't multiply back to the quadratic",
-    misconceptions: ["pair-sum-wrong", "brackets-dont-expand", "check-wrong"],
+    misconceptions: ["pair-sum-wrong", "brackets-dont-expand", "check-wrong", "pair-product-wrong"],
   },
   "not-undone": {
     name: "Not undone",
     gloss: "something added, multiplied or taken out isn't reversed",
-    misconceptions: ["factor-missing", "square-not-balanced"],
+    misconceptions: ["factor-missing", "square-not-balanced", "wrong-inverse"],
   },
   "squared-brackets": {
     name: "Squared brackets wrong",
@@ -43,7 +43,7 @@ export const FAMILIES = {
   "terms-missed": {
     name: "Terms missed",
     gloss: "a multiply, divide or power reaches only part of an expression",
-    misconceptions: ["partial-distribution", "power-on-part"],
+    misconceptions: ["partial-distribution", "power-on-part", "term-lost-rearranging", "substitution-wrong"],
   },
   "fractions-upside-down": {
     name: "Fractions upside down",
@@ -59,6 +59,12 @@ export const FAMILIES = {
     name: "Turning point height wrong",
     gloss: "the x given as the height, or the height from the wrong line",
     misconceptions: ["x-for-y", "vertex-y-wrong"],
+  },
+  // Ticket 302: a graph's or equation's value given for another, from the diagnostics' distractors.
+  "graph-features": {
+    name: "Graph features wrong",
+    gloss: "one feature of a graph given for another",
+    misconceptions: ["wrong-feature"],
   },
   "answer-sentence": {
     name: "Answer sentence wrong",
@@ -83,7 +89,7 @@ export const FAMILIES = {
   "roots-formula": {
     name: "Roots wrong",
     gloss: "a root missing, the formula's 2a, or the root count from Δ",
-    misconceptions: ["root-missing", "formula-2a", "discriminant-root-count"],
+    misconceptions: ["root-missing", "formula-2a", "discriminant-root-count", "coefficients-wrong", "discriminant-formula"],
   },
   steps: {
     name: "Steps missing",

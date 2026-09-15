@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DEMO_STUDENT, PROBLEMS } from "@/data/assignment";
 import { CLASSMATES } from "@/data/classmates";
+import { isMisconceptionId } from "@/data/misconceptions";
 import { DIAGNOSTIC_MAP, FALLBACK_STEP, PROBLEM_DIAGNOSTICS, type DiagnosticOption, type DiagnosticStep } from "@/data/diagnostic";
 import { boardContent } from "./board";
 import { classroomReducer, INITIAL_CLASSROOM, migrateClassroom, type ClassroomState } from "./classroom";
@@ -48,21 +49,37 @@ describe("step questions per problem (ticket 240)", () => {
     for (const p of PROBLEM_DIAGNOSTICS) expect(new Set(p.steps.map((s) => s.correct)).size, p.problemId).toBeGreaterThan(1);
   });
 
-  it("every distractor names its misconception in five words or fewer, never a student's name; the right option names none", () => {
+  it("every distractor carries a detail in five words or fewer, never a student's name nor a guess at what they did; the right option none", () => {
     const names = [...CLASSMATES.flatMap((c) => c.name.split(" ")), "Sam"].map((n) => n.toLowerCase());
     for (const s of [...ALL_STEPS, FALLBACK_STEP])
       for (const o of s.options) {
         if (o.id === s.correct) {
-          expect(o.misconception, `${s.id} ${o.id}`).toBeUndefined();
+          expect(o.detail, `${s.id} ${o.id}`).toBeUndefined();
           expect(o.slip, `${s.id} ${o.id}`).toBeUndefined();
         } else {
-          expect(o.misconception, `${s.id} ${o.id}`).toBeTruthy();
-          expect(o.misconception!.split(/\s+/).length, `${s.id} ${o.id}: ${o.misconception}`).toBeLessThanOrEqual(5);
-          for (const w of o.misconception!.toLowerCase().split(/[\s,]+/)) expect(names, `${s.id} ${o.id}`).not.toContain(w);
+          expect(o.detail, `${s.id} ${o.id}`).toBeTruthy();
+          expect(o.detail!.split(/\s+/).length, `${s.id} ${o.id}: ${o.detail}`).toBeLessThanOrEqual(5);
+          for (const w of o.detail!.toLowerCase().split(/[\s,]+/)) expect(names, `${s.id} ${o.id}`).not.toContain(w);
+          expect(o.detail, `${s.id} ${o.id}`).not.toMatch(/guess|rush|slip|careless|forg[eo]t|tried|trying|copied|misread|confus|mixed up/i);
         }
       }
   });
 
+
+  it("every distractor points at the misconception taxonomy (ticket 302), and one mirroring a real slip at that line's own misconception", () => {
+    for (const s of [...ALL_STEPS, FALLBACK_STEP])
+      for (const o of s.options) {
+        if (o.id === s.correct) {
+          expect(o.misconception, `${s.id} ${o.id}`).toBeUndefined();
+          continue;
+        }
+        expect(o.misconception && isMisconceptionId(o.misconception), `${s.id} ${o.id}`).toBe(true);
+        if (o.slip) {
+          const v = evaluateLine(s.problemId, o.slip);
+          expect(v.verdict === "wrong" && v.misconception, `${s.id} ${o.id}: ${o.slip}`).toBe(o.misconception);
+        }
+      }
+  });
   it("each step's 'given that' stem states the correct result of the step before it", () => {
     // Words and maths alike, with spacing, brackets and TeX spacing commands set aside.
     const norm = (tex: string) => tex.replace(/\$/g, "").replace(/\\text\{([^}]*)\}/g, "$1").replace(/\\Rightarrow|\\quad|\\[;,]/g, "").replace(/[\s(),{}]/g, "");
@@ -99,7 +116,7 @@ const coefficients = (tex: string) => {
   const c = f(0);
   return { a: (f(1) + f(-1)) / 2 - c, b: (f(1) - f(-1)) / 2, c };
 };
-const label = (o: DiagnosticOption, re: RegExp) => !!o.misconception && re.test(o.misconception);
+const label = (o: DiagnosticOption, re: RegExp) => !!o.detail && re.test(o.detail);
 
 function pairStep(s: DiagnosticStep, sum: number, product: number, read: (tex: string) => [number, number] = pairOf) {
   eachOption(s, (o, correct) => {
@@ -109,7 +126,7 @@ function pairStep(s: DiagnosticStep, sum: number, product: number, read: (tex: s
     if (label(o, /sum right, product wrong/)) expect(near(a + b, sum) && !near(a * b, product), `${s.id} ${o.id}`).toBe(true);
     if (label(o, /signs (flipped|swapped) in the pair/)) expect(near(a + b, -sum) && near(a * b, product), `${s.id} ${o.id}`).toBe(true);
     if (label(o, /sign of ac lost/)) expect(near(a * b, -product) && near(a + b, sum), `${s.id} ${o.id}`).toBe(true);
-    const m = o.misconception?.match(/multiplies to ([−+])(\d+)/);
+    const m = o.detail?.match(/multiplies to ([−+])(\d+)/);
     if (m) expect(a * b, `${s.id} ${o.id}`).toBe((m[1] === "−" ? -1 : 1) * Number(m[2]));
   });
 }
@@ -132,7 +149,7 @@ function rewriteStep(s: DiagnosticStep, target: string, roots: number[]) {
     if (label(o, /signs (flipped|swapped) in the pair/)) expect(near(c.c / c.a, t.c / t.a) && near(c.b / c.a, -t.b / t.a), `${s.id} ${o.id}`).toBe(true);
     if (label(o, /product right, sum wrong/)) expect(near(c.c / c.a, t.c / t.a) && !near(c.b / c.a, t.b / t.a), `${s.id} ${o.id}`).toBe(true);
     if (label(o, /sum right, product wrong/)) expect(near(c.b / c.a, t.b / t.a) && !near(c.c / c.a, t.c / t.a), `${s.id} ${o.id}`).toBe(true);
-    const m = o.misconception?.match(/multiplies to ([−+])(\d+)/);
+    const m = o.detail?.match(/multiplies to ([−+])(\d+)/);
     if (m) expect(c.c / c.a, `${s.id} ${o.id}`).toBe((m[1] === "−" ? -1 : 1) * Number(m[2]));
   });
 }
@@ -202,7 +219,7 @@ describe("the maths of every option, checked (ticket 240)", () => {
     ]);
     const roots = [(7 + Math.sqrt(73)) / 4, (7 - Math.sqrt(73)) / 4];
     rootsStep(step("d-q4-formula"), "2x^2 - 7x - 3", roots);
-    // The two class slips, as on the original: over a instead of 2a, and −b copied as b.
+    // The two class slips, as on the original: over a instead of 2a, and −b written as b.
     expect(sameValues(namedValues(step("d-q4-formula").options.find((o) => o.slip?.includes("{3}"))!.tex), roots.map((r) => r * 2))).toBe(true);
     expect(sameValues(namedValues(step("d-q4-formula").options.find((o) => o.slip?.includes("-5"))!.tex), roots.map((r) => -r))).toBe(true);
   });
@@ -758,7 +775,7 @@ describe("repeated slips (ticket 242)", () => {
   it("Q1's Factorise: Ethan and Sam on the signs-flipped option, Liam and Oliver on the product-right option, nobody else, nothing else", () => {
     const s = step("d-q1-factorise");
     const rows = rowsOf("q1");
-    const marked = everyone.flatMap((id) => s.options.filter((o) => repeatedSlip(s, id, o.id, rows)).map((o) => `${id}:${o.misconception}`));
+    const marked = everyone.flatMap((id) => s.options.filter((o) => repeatedSlip(s, id, o.id, rows)).map((o) => `${id}:${o.detail}`));
     expect(marked.sort()).toEqual(["ethan:signs flipped in the pair", "liam:product right, sum wrong", "oliver:product right, sum wrong", "sam:signs flipped in the pair"]);
   });
 
