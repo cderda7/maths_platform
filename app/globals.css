@@ -73,8 +73,8 @@
  */
 :root {
   --marker-pill-radius: 4px;
-  --marker-dot-radius: 50%;
-  --marker-half-angle: 90deg;
+  --marker-dot-radius: 32%;
+  --marker-half-angle: to bottom right;
   --marker-half-stripe: 50%;
 }
 /*
