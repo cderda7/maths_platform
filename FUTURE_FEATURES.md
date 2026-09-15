@@ -1615,7 +1615,7 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 
 ## Where students are beside the mistakes (ticket 315, 2026-09-15)
 
-- **Does the time on a step change colour past a limit?** The pills show the time in plain muted figures (since ticket 327 "40 s here", the time in the row; "took 6 min" once handed in). Whether it turns amber or red after some limit, and what the limit is (fixed, per step, or against the class), is Carson's call; the mockup coloured long times amber, the ticket left it plain.
+- **A check-in limit per question or against the class.** Since ticket 328 a pill's "N min here" turns dark purple from three minutes in a row, one limit for every row. A harder question (or the warm-up, three steps long) may deserve longer, or the limit could follow how long the class is taking on that question. Deferred: Carson gave one number.
 - **Time on a step without the diagnostic pause.** A pill's time is `now − since`, so a step that spanned a diagnostic chain reads the chain's minutes too; the stream's own clock (`streamElapsed`) could give working time instead.
 - **Sam's step times from his session.** Sam's time counts from when the teacher's tab first saw his place and restarts on a reload, until tickets 312 and 313 record step start times in the session.
 - **Pills that hold their slot when a student leaves a row.** The pills after a departed student shift left; a row that leaves a gap until the next arrival (or animates the close) would move even less.
@@ -1660,6 +1660,11 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **Demo copy on a student screen.** "FUTURE_FEATURES" is an internal file name shown to a student; it is for the presenter, and must be replaced by the real view (or removed) before any student sees the app. Deferred: demo only, as the user asked.
 - **A touch press state.** The iPad has no hover, so the cells' hover shadow never shows on a real device; a pressed-down tint on touch (as the Completed cards' `active:` state) is the only feedback before the message. Kept to the Completed cards' own hover and active pattern for now.
 - **The Future panel card.** It stays unpressable (ticket 292); if Sam's insight gains a "when it opens" view (item 3 of his entry), the panel card could open the same thing as the waiting cell.
+
+## Where students are: check-in signal (ticket 328, 2026-09-15)
+
+- **A teacher can mark a check-in done.** A dark purple "3 min here" stays purple until the student moves on, even after the teacher has been over; a press on the pill (ticket 316 opens the work panel) could note "checked in" and mute it for a few minutes. Deferred: not asked for, and the panel is in flight.
+- **The signal beyond the pill.** A count of students due a check-in on the eyebrow line, or the purple pills floating to the top of their row, would help once the class is large; deferred, rows never reorder (ticket 315) and nothing asked for it.
 
 ## Carson's notes
 

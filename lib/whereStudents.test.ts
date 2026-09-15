@@ -6,7 +6,7 @@ import { classroomReducer, INITIAL_CLASSROOM } from "./classroom";
 import { classmateTimeline, classPlaces, rowKey, type Place, type StudentPlace } from "./place";
 import { sessionAt } from "./session";
 import { scheduleFor, streamEndMs } from "./stream";
-import { carryPlaces, checkIns, classmatesEntered, duration, emptyQuestionRuns, placeDetail, placeTone, whereRows, type SeenPlace } from "./whereStudents";
+import { CHECK_IN_MS, carryPlaces, checkIns, classmatesEntered, duration, emptyQuestionRuns, placeDetail, placeTone, whereRows, type SeenPlace } from "./whereStudents";
 
 const P = ASSIGNMENT.problems;
 const T0 = 1_700_000_000_000;
@@ -25,15 +25,16 @@ const rowsAt = (ms: number) => {
   return whereRows(carryPlaces([], places, now, entered), P, LIVE.classmates, now, checkIns(LIVE, null, now));
 };
 
-describe("a span of time (ticket 315)", () => {
-  it("reads seconds under a minute and whole minutes from a minute, never negative", () => {
-    expect(duration(0)).toBe("0 s");
-    expect(duration(999)).toBe("0 s");
-    expect(duration(40 * S)).toBe("40 s");
-    expect(duration(59_999)).toBe("59 s");
+describe("a span of time (ticket 328)", () => {
+  it("reads whole minutes, \"<1 min\" under one, never negative", () => {
+    expect(duration(0)).toBe("<1 min");
+    expect(duration(40 * S)).toBe("<1 min");
+    expect(duration(59_999)).toBe("<1 min");
     expect(duration(60 * S)).toBe("1 min");
+    expect(duration(2 * 60 * S + 59 * S)).toBe("2 min");
+    expect(duration(3 * 60 * S)).toBe("3 min");
     expect(duration(6 * 60 * S + 59 * S)).toBe("6 min");
-    expect(duration(-5 * S)).toBe("0 s");
+    expect(duration(-5 * S)).toBe("<1 min");
   });
 });
 
@@ -81,12 +82,12 @@ describe("the rows", () => {
       expect(pill.step !== null, pill.id).toBe(pill.tone !== "plain" && pill.detail !== "chat");
       if (pill.id !== DEMO_STUDENT.id) {
         expect(pill.time?.kind, pill.id).toBe("here");
-        expect(pill.time?.span, pill.id).toMatch(/^\d+ (s|min)$/);
+        expect(pill.time?.span, pill.id).toMatch(/^(<1|\d+) min$/);
       }
     }
   });
 
-  it("Jordan's pill 40 s in: warm-up, non-monic factorising, its step, the seconds since he came into the warm-up row (ticket 327)", () => {
+  it("Jordan's pill 40 s in: warm-up, non-monic factorising, its step, the time since he came into the warm-up row (ticket 327)", () => {
     const timeline = classmateTimeline(LIVE.classmates.find((m) => m.id === "jordan")!, P);
     const seg = [...timeline].reverse().find((s) => s.at <= 40 * S)!;
     const row = timeline.find((s) => rowKey(s.place) === "warm-up")!.at;
@@ -94,7 +95,16 @@ describe("the rows", () => {
     expect(seg.at).toBeGreaterThan(row);
     const jordan = rowsAt(40 * S)[1].pills.find((p) => p.id === "jordan")!;
     expect(jordan).toMatchObject({ name: "Jordan Whitlock", initials: "JW", tone: "warmup", detail: "non-monic factorising" });
-    expect(jordan.time).toEqual({ kind: "here", span: `${Math.floor((40 * S - row) / S)} s` });
+    expect(jordan.time).toEqual({ kind: "here", span: "<1 min", checkIn: false });
+  });
+
+  it("a time here turns to a check-in at three minutes in the row, not a second before: Jordan on Q8 (ticket 328)", () => {
+    const timeline = classmateTimeline(LIVE.classmates.find((m) => m.id === "jordan")!, P);
+    const q8 = timeline.find((s) => rowKey(s.place) === "q8")!.at;
+    const jordan = (ms: number) => rowsAt(ms).find((r) => r.key === "q8")!.pills.find((p) => p.id === "jordan")!;
+    expect(jordan(q8 + CHECK_IN_MS - S).time).toEqual({ kind: "here", span: "2 min", checkIn: false });
+    expect(jordan(q8 + CHECK_IN_MS).time).toEqual({ kind: "here", span: "3 min", checkIn: true });
+    expect(jordan(q8 + 20 * 60 * S).time).toEqual({ kind: "here", span: "20 min", checkIn: true });
   });
 
   it("the time here runs from the row entry through a hint and practice steps, and a new row starts it again (ticket 327)", () => {
@@ -103,10 +113,10 @@ describe("the rows", () => {
     for (const seg of liam.filter((s) => rowKey(s.place) === "q1")) {
       const ms = seg.at + 2 * S;
       const pill = rowsAt(ms).find((r) => r.key === "q1")!.pills.find((p) => p.id === "liam")!;
-      expect(pill.time, `${ms}`).toEqual({ kind: "here", span: duration(ms - q1) });
+      expect(pill.time, `${ms}`).toEqual({ kind: "here", span: duration(ms - q1), checkIn: ms - q1 >= CHECK_IN_MS });
     }
     const q2 = liam.find((s) => rowKey(s.place) === "q2")!.at;
-    expect(rowsAt(q2 + 3 * S).find((r) => r.key === "q2")!.pills.find((p) => p.id === "liam")!.time).toEqual({ kind: "here", span: "3 s" });
+    expect(rowsAt(q2 + 3 * S).find((r) => r.key === "q2")!.pills.find((p) => p.id === "liam")!.time).toEqual({ kind: "here", span: "<1 min", checkIn: false });
   });
 
   it("a handed-in pill says how long the set took, check-in to hand-in, and holds as the clock runs on (ticket 327)", () => {
@@ -115,7 +125,7 @@ describe("the rows", () => {
       expect(done.length, `${ms}`).toBeGreaterThan(0);
       for (const pill of done) {
         const s = scheduleFor(LIVE.classmates.find((m) => m.id === pill.id)!, P);
-        expect(pill.time, `${pill.id} at ${ms}`).toEqual({ kind: "took", span: duration(s.submitAt!) });
+        expect(pill.time, `${pill.id} at ${ms}`).toEqual({ kind: "took", span: duration(s.submitAt!), checkIn: false });
       }
     }
   });
@@ -125,7 +135,7 @@ describe("the rows", () => {
     const handed = { ...sessionAt("feedback"), checkInAt: T0 + 20 * S, handedInAt: T0 + 2 * 60 * S };
     const rows = (session: typeof handed) => whereRows(carryPlaces([], classPlaces(LIVE, session, now, LIVE.absent), now), P, LIVE.classmates, now, checkIns(LIVE, session, now));
     const sam = (session: typeof handed) => rows(session).find((r) => r.key === "handed-in")!.pills.find((p) => p.id === DEMO_STUDENT.id)!;
-    expect(sam(handed).time).toEqual({ kind: "took", span: "1 min" });
+    expect(sam(handed).time).toEqual({ kind: "took", span: "1 min", checkIn: false });
     expect(sam({ ...handed, checkInAt: 0 }).time).toBeNull();
     expect(checkIns(LIVE, handed, now)[DEMO_STUDENT.id]).toBe(T0 + 20 * S);
   });

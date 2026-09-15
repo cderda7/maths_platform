@@ -26,9 +26,14 @@ export type PillTone = "warmup" | "practice" | "plain";
  */
 export interface PillTime {
   kind: "here" | "took";
-  /** "40 s", "6 min" (`duration`). */
+  /** "<1 min", "6 min" (`duration`). */
   span: string;
+  /** True once a student has been `CHECK_IN_MS` in their row (never on "took"): the teacher might go and check in (ticket 328). */
+  checkIn: boolean;
 }
+
+/** How long in a row before a pill's time turns dark purple, the sign the student could use a check-in (ticket 328). */
+export const CHECK_IN_MS = 3 * 60_000;
 
 export interface WherePill {
   id: string;
@@ -63,13 +68,12 @@ export interface SeenPlace extends StudentPlace {
 }
 
 /**
- * A span of time, one formatter for every pill: seconds under a minute ("40 s"), whole minutes from one minute ("6 min").
- * A row a whole set runs through in about seven minutes mostly lasts seconds, so minutes alone would read 0. Never negative
- * (a clock a tab behind another's).
+ * A span of time, one formatter for every pill, in whole minutes: "<1 min" under a minute, then "1 min", "2 min" (ticket
+ * 328: second counts ticking on every pill were too much to read). Never negative (a clock a tab behind another's).
  */
 export function duration(ms: number): string {
-  const s = Math.max(0, Math.floor(ms / 1000));
-  return s < 60 ? `${s} s` : `${Math.floor(s / 60)} min`;
+  const min = Math.floor(Math.max(0, ms) / 60_000);
+  return min < 1 ? "<1 min" : `${min} min`;
 }
 
 /** The muted words after a name: what the student is doing in their row; null where the row's label says it all. */
@@ -199,9 +203,9 @@ export function whereRows(places: readonly (StudentPlace & { entered?: number | 
   const { rows, absent } = placeRows(places, problems);
   const enteredOf = (sp: StudentPlace & { entered?: number | null }) => sp.entered ?? sp.since;
   const timeOf = (sp: StudentPlace & { entered?: number | null }): PillTime | null => {
-    if (sp.place.kind === "handed-in") return sp.since === null || checkedIn[sp.id] === undefined ? null : { kind: "took", span: duration(sp.since - checkedIn[sp.id]) };
+    if (sp.place.kind === "handed-in") return sp.since === null || checkedIn[sp.id] === undefined ? null : { kind: "took", span: duration(sp.since - checkedIn[sp.id]), checkIn: false };
     const entered = enteredOf(sp);
-    return entered === null ? null : { kind: "here", span: duration(now - entered) };
+    return entered === null ? null : { kind: "here", span: duration(now - entered), checkIn: now - entered >= CHECK_IN_MS };
   };
   return rows.map((r) => ({
     key: r.key,

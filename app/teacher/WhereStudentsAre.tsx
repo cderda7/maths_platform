@@ -46,11 +46,11 @@ function StepBar({ step, tone }: { step: 1 | 2 | 3; tone: WherePill["tone"] }) {
 
 /**
  * One student in a row: avatar, name, the detail in muted words, the step bar for warm-up and practice, and the time in
- * plain muted words (never coloured: whether it changes colour past a limit is still Carson's call). One line, never
- * wrapping. The time says which it is (ticket 327): "3 min here" in the row, ticking, its figures in a fixed slot so a tick
- * from "9 s" to "10 s" or "59 s" to "1 min" never changes the pill's width and never re-wraps its row; "took 7 min" once
- * handed in, fixed, so it needs no slot. A student who has just come into the row glows faintly and fades, as a name
- * landing in a mistake card does (`.arrive-ring`, a ring on a wrapper so the pill keeps its own tint).
+ * muted words. One line, never wrapping. The time says which it is (ticket 327): "3 min here" in the row, ticking by the
+ * minute ("<1 min" first, ticket 328), its figures in a fixed slot so a tick never changes the pill's width and never
+ * re-wraps its row, and dark purple from `CHECK_IN_MS` (ticket 328: the student could use a check-in); "took 7 min" once
+ * handed in, fixed and never coloured, so it needs no slot. A student who has just come into the row glows faintly and
+ * fades, as a name landing in a mistake card does (`.arrive-ring`, a ring on a wrapper so the pill keeps its own tint).
  *
  * `onPress` makes the pill a button (ticket 316 opens the student's work panel from it): it lifts a pixel with a soft shadow
  * on hover (a transform and a shadow, so nothing around it moves), shows a ring on keyboard focus, and while its panel is
@@ -72,7 +72,7 @@ export function StudentPill({ pill, now, onPress, open = false }: { pill: WhereP
       )}
       {pill.step && <StepBar step={pill.step} tone={pill.tone} />}
       {pill.time?.kind === "here" && (
-        <span className="flex shrink-0 gap-1 text-[13px] text-ink-muted" data-pill-time="here">
+        <span className={`flex shrink-0 gap-1 text-[13px] ${pill.time.checkIn ? "text-accent-dark" : "text-ink-muted"}`} data-pill-time="here" data-check-in={pill.time.checkIn || undefined}>
           <span className="w-[46px] text-right tabular-nums">{pill.time.span}</span>
           here
         </span>

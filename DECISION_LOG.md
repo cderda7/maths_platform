@@ -5441,3 +5441,20 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Internal demo copy now shows on a student screen too; it must go when either insight view is built. Sam's cells become focusable, adding up to three tab stops on his Classroom. For 2.5 s a cell's dates are hidden under the message.
 
 **Defense.** The press, focus and announcement are what his real insight view needs, the rule for which cells take it is a tested pure function, the working link is untouched, and nothing on the page moves: at rest every element sits exactly where it did before the change (compared with a build of main), and during and after each press.
+
+## 2026-09-15 · Pill times in whole minutes; three minutes in a row turns dark purple (ticket 328)
+
+**Decision.** Every time on Where students are reads in whole minutes ("<1 min", "1 min", "2 min" …), and a student three minutes or more in their row has "N min here" in dark purple (`accent-dark`). The rule is data (`PillTime.checkIn` against one constant, `CHECK_IN_MS`), and the pill only colours it. "Took" is never coloured.
+
+**Context.** Carson, 2026-09-15: the second counts ticking on every pill were overwhelming; organise by minutes, and at "3 min here" write the text in dark purple, a signal the student could use a check-in. This settles ticket 315's open question on colouring the time.
+
+**Alternatives considered.**
+- *Seconds under a minute (ticket 315)*: honest at the demo's pace, but nearly every pill ticked every second, which is what Carson found overwhelming.
+- *Round to the nearest minute*: "1 min" at 30 s would overstate a short stay, and "3 min" would turn purple at 2:30; floor keeps "3 min" meaning three full minutes.
+- *Colour in the pill, not the text (a tinted border or ground)*: louder, but the pill's ground already says warm-up or practice; Carson asked for the text.
+- *The accent (#5b4ae8) or accent-deep*: nearer the Live diagnostic button's purple, which means "press me"; accent-dark is the darkest of the family and reads as a note rather than a control.
+- *A limit per question or against the class*: fairer for a long question, but Carson gave one number; noted in FUTURE_FEATURES.
+
+**Tradeoffs.** Under a minute every pill reads the same "<1 min", so the order within a row carries who arrived first. At the demo's pace (a set in about seven minutes) few students reach three minutes in one row; Jordan, stuck on Q8, does. Dark purple on the accent-tinted warm-up pill is less contrasty than on white.
+
+**Defense.** A time that changes once a minute is readable at a glance, and one colour at one threshold turns the column from a clock into a to-do list the teacher can act on, with the threshold in one place to tune.
