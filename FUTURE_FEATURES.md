@@ -1613,6 +1613,19 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **Whether the insight opens as a page or beside the column.** A full page per homework matches the set cards' links; a flyout down and right from the cell keeps the Classroom in view. Undecided until the view is designed.
 - **Sam's cells opening their own read-back.** Sam's completed and missed cells stay unpressable; "Reading back a finished homework" (ticket 293) and "Pressing a completed or missed cell" (ticket 290) cover his side.
 
+## Where students are beside the mistakes (ticket 315, 2026-09-15)
+
+- **Does the time on a step change colour past a limit?** The pills show the time on a step in plain muted figures ("40 s", "6 min"). Whether it turns amber or red after some limit, and what the limit is (fixed, per step, or against the class), is Carson's call; the mockup coloured long times amber, the ticket left it plain.
+- **Time on a step without the diagnostic pause.** A pill's time is `now − since`, so a step that spanned a diagnostic chain reads the chain's minutes too; the stream's own clock (`streamElapsed`) could give working time instead.
+- **Sam's step times from his session.** Sam's time counts from when the teacher's tab first saw his place and restarts on a reload, until tickets 312 and 313 record step start times in the session.
+- **Pills that hold their slot when a student leaves a row.** The pills after a departed student shift left; a row that leaves a gap until the next arrival (or animates the close) would move even less.
+- **Folding rows with students in them.** Only empty question rows fold today; a class larger than twenty, or a narrower window, could need the mockup's "Q7–Q10" with each pill naming its question.
+- **The difficulty tag on the split's cards.** Left off at half width; a compact tag (an initial, or on hover) could come back.
+- **Italic maths across the teacher side.** The split sets maths upright; whether every teacher screen (the chain view, the Mistakes tab after working, the reports) should follow is open.
+- **A press on a pill.** Pills take an `onPress`; ticket 316 opens the student's work from it.
+- **The frame for the review stages.** `StageSplit` takes any left rows; tickets 318–320 fill it for individual, group and class review.
+- **Sort or filter the rows.** A teacher might want only students on help, or only those long on a step, highlighted; not asked for.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

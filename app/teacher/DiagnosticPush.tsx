@@ -1,9 +1,12 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import DiagnosticResults from "@/components/DiagnosticResults";
+import ProblemQuestion from "@/components/ProblemQuestion";
 import { Button, Card } from "@/components/ui";
 import { useEscape } from "@/components/useEscape";
 import type { DiagnosticStep } from "@/data/diagnostic";
+import type { Problem } from "@/data/types";
 import { liveDiagnostic, pickersAt, runFor, slippedAt, stepsFor, tally } from "@/lib/diagnostic";
 import { currentIndex, inSolutionOrder } from "@/lib/diagnosticChain";
 import type { MistakeRow } from "@/lib/mistakes";
@@ -75,12 +78,56 @@ function clampToViewport(el: HTMLDivElement | null) {
  * state (ticket 260), so the flyout stays as it was when the Mistakes tree is mounted again.
  */
 export default function DiagnosticPush({ problemId, rows, className = "" }: { problemId: string; rows: readonly MistakeRow[]; className?: string }) {
-  const classroom = useClassroom();
-  const now = useNow();
-  const { open, selected } = useFlyout(problemId);
+  const { open } = useFlyout(problemId);
   const setOpen = (o: boolean) => setFlyoutOpen(problemId, o);
   // Escape collapses the flyout (ticket 247), a way out for the keyboard and touch that the pointer's leave never gave; the chip is re-created on close, so focus goes to the new one.
   useEscape(open, () => setOpen(false), () => document.querySelector<HTMLElement>(`[data-diag-toggle="${CSS.escape(problemId)}"]`));
+
+  const chip = (
+    <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className={`${CHIP} relative transition-colors hover:bg-accent-deep`} data-diag-toggle={problemId}>
+      <ChipLabel open={open} />
+    </button>
+  );
+
+  const body = (
+    <>
+      <div className="flex items-center">{chip}</div>
+      <DiagnosticSteps problemId={problemId} rows={rows} />
+    </>
+  );
+
+  // Closed, the chip sits in flow. Open, its footprint holds that place (the row's layout never changes) and the chip is the
+  // card's own, in the flyout laid from the chip's corner over whatever is below and to the right: unshifted, the chip is
+  // exactly where it was; clamped to the viewport on a narrow window, it moves with its card. An open panel sits above the
+  // chips of the rows beneath it. The flyout is a descendant of this wrapper, so one mouseleave covers the chip's footprint
+  // and the whole panel: the pointer leaving either collapses it (ticket 144).
+  return (
+    <div className={`relative ${open ? "z-40" : ""} ${className}`} onMouseLeave={() => open && setOpen(false)} data-diagnostic-push={problemId} data-collapsed={open ? undefined : true}>
+      {/* A flex box, not a line box: an inline chip would sit a fraction lower on the text baseline than the card's flex row puts it. */}
+      <div className="flex" style={{ paddingTop: CHIP_TOP }}>
+        {open ? <DiagnosticFootprint data-diag-footprint /> : chip}
+      </div>
+      {open && (
+        <div ref={clampToViewport} className="absolute" style={{ top: CHIP_TOP - FRAME, left: -FRAME }} data-diag-flyout>
+          <Card className="w-[460px] p-6 shadow-lift">{body}</Card>
+          {/* Room under a tall flyout, so the page scrolls its last send button clear of the demo's corner controls; unhoverable, so the pointer over it has left. */}
+          <div className="pointer-events-none h-16" aria-hidden />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * A problem's step questions and the send (tickets 240, 241): the body of the live diagnostic's flyout, beside the card
+ * (`DiagnosticPush`) or over the split's left column (`DiagnosticOverlay`, ticket 315). A click on a step's card selects it
+ * (accent border, a tick), a second click clears it, nothing starts selected, and **send N to class** sends the selection
+ * in solution order. A step sent before keeps its latest result grid, and can be selected again.
+ */
+export function DiagnosticSteps({ problemId, rows }: { problemId: string; rows: readonly MistakeRow[] }) {
+  const classroom = useClassroom();
+  const now = useNow();
+  const { selected } = useFlyout(problemId);
   const steps = stepsFor(problemId);
   const live = liveDiagnostic(classroom);
   /** The live set's absent students (ticket 250): out of the answers and the count. */
@@ -89,12 +136,6 @@ export default function DiagnosticPush({ problemId, rows, className = "" }: { pr
     dispatchClassroom({ type: "diagnostic/push", steps: inSolutionOrder(selected) });
     sentFrom(problemId);
   };
-
-  const chip = (
-    <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className={`${CHIP} relative transition-colors hover:bg-accent-deep`} data-diag-toggle={problemId}>
-      <ChipLabel open={open} />
-    </button>
-  );
 
   const step = (q: DiagnosticStep, index: number) => {
     const inLive = live ? live.steps.indexOf(q.id) : -1;
@@ -131,9 +172,8 @@ export default function DiagnosticPush({ problemId, rows, className = "" }: { pr
     );
   };
 
-  const body = (
+  return (
     <>
-      <div className="flex items-center">{chip}</div>
       <div data-diag-steps>{steps.map(step)}</div>
       <div className="mt-4 flex justify-end">
         <Button variant="sky" disabled={selected.length === 0 || !!live} title={live ? "A diagnostic is out with the class" : undefined} onClick={send} data-push-chain={selected.length}>
@@ -142,25 +182,65 @@ export default function DiagnosticPush({ problemId, rows, className = "" }: { pr
       </div>
     </>
   );
+}
 
-  // Closed, the chip sits in flow. Open, its footprint holds that place (the row's layout never changes) and the chip is the
-  // card's own, in the flyout laid from the chip's corner over whatever is below and to the right: unshifted, the chip is
-  // exactly where it was; clamped to the viewport on a narrow window, it moves with its card. An open panel sits above the
-  // chips of the rows beneath it. The flyout is a descendant of this wrapper, so one mouseleave covers the chip's footprint
-  // and the whole panel: the pointer leaving either collapses it (ticket 144).
+/**
+ * The split's live diagnostic button (ticket 315): at the top left of a mistake card's header, it opens the problem's step
+ * flyout over the left column (`DiagnosticOverlay`) and, pressed again, closes it. The card's header opens the problem on a
+ * press; the button's press is its own.
+ */
+export function DiagnosticChip({ problemId, className = "" }: { problemId: string; className?: string }) {
+  const { open } = useFlyout(problemId);
   return (
-    <div className={`relative ${open ? "z-40" : ""} ${className}`} onMouseLeave={() => open && setOpen(false)} data-diagnostic-push={problemId} data-collapsed={open ? undefined : true}>
-      {/* A flex box, not a line box: an inline chip would sit a fraction lower on the text baseline than the card's flex row puts it. */}
-      <div className="flex" style={{ paddingTop: CHIP_TOP }}>
-        {open ? <DiagnosticFootprint data-diag-footprint /> : chip}
-      </div>
-      {open && (
-        <div ref={clampToViewport} className="absolute" style={{ top: CHIP_TOP - FRAME, left: -FRAME }} data-diag-flyout>
-          <Card className="w-[460px] p-6 shadow-lift">{body}</Card>
-          {/* Room under a tall flyout, so the page scrolls its last send button clear of the demo's corner controls; unhoverable, so the pointer over it has left. */}
-          <div className="pointer-events-none h-16" aria-hidden />
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        setFlyoutOpen(problemId, !open);
+      }}
+      aria-expanded={open}
+      className={`${CHIP} shrink-0 whitespace-nowrap transition-colors hover:bg-accent-deep ${className}`}
+      data-diag-toggle={problemId}
+    >
+      <ChipLabel open={open} />
+    </button>
+  );
+}
+
+/**
+ * The open flyout over the split's left column, below the headers (ticket 315): the problem named as its card names it
+ * ("Live diagnostic", the label, the whole question), then its steps and the send (`DiagnosticSteps`). Nothing while no
+ * flyout is open. It covers the rows, never the mistakes. Escape, a press anywhere outside it (other than a Live diagnostic
+ * button, whose own press opens or closes) and sending close it; the pointer leaving does not, since it has to cross from
+ * the card's button to reach it.
+ */
+export function DiagnosticOverlay({ problem, rows }: { problem: Pick<Problem, "id" | "label" | "stem" | "tex" | "figure">; rows: readonly MistakeRow[] }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const close = () => setFlyoutOpen(problem.id, false);
+  useEscape(true, close, () => document.querySelector<HTMLElement>(`[data-diag-toggle="${CSS.escape(problem.id)}"]`));
+  useEffect(() => {
+    const press = (e: PointerEvent) => {
+      const target = e.target instanceof Element ? e.target : null;
+      if (!target || ref.current?.contains(target) || target.closest("[data-diag-toggle]")) return;
+      setFlyoutOpen(problem.id, false);
+    };
+    document.addEventListener("pointerdown", press, true);
+    return () => document.removeEventListener("pointerdown", press, true);
+  }, [problem.id]);
+  return (
+    <div ref={ref} data-diag-flyout={problem.id} data-diag-overlay>
+      <Card className="p-6 shadow-lift">
+        <div className="flex items-baseline gap-3">
+          <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.12em] text-accent-deep">Live diagnostic</span>
+          <span className="shrink-0 font-display text-[24px] leading-none text-ink">{problem.label}</span>
+          <p className="min-w-0 text-[15px] leading-snug text-ink" data-overlay-question>
+            <ProblemQuestion problem={problem} />
+          </p>
         </div>
-      )}
+        <DiagnosticSteps problemId={problem.id} rows={rows} />
+      </Card>
+      {/* Room under a tall flyout, so the page scrolls its last send button clear of the presenter's strip; unhoverable. */}
+      <div className="pointer-events-none h-16" aria-hidden />
     </div>
   );
 }

@@ -17,7 +17,10 @@ import { useBatchedSession, useNow } from "@/lib/store";
 import { useClassroom } from "@/lib/classroom-store";
 import { liveDiagnostic, questionFor } from "@/lib/diagnostic";
 import DiagnosticFocus from "./DiagnosticFocus";
-import DiagnosticPush, { DiagnosticFootprint, PROBLEM_HEADER } from "./DiagnosticPush";
+import DiagnosticPush, { DiagnosticChip, DiagnosticFootprint, DiagnosticOverlay, PROBLEM_HEADER } from "./DiagnosticPush";
+import { useOpenFlyout } from "./diagnosticFlyout";
+import StageSplit from "./StageSplit";
+import { PlaceTable, useWhereRows } from "./WhereStudentsAre";
 
 // The same button as the class view's row actions ("see dot skills" / "close").
 const ACTION = "w-[96px] rounded-md px-2 py-[3px] text-[11px] font-medium leading-snug transition-colors";
@@ -310,13 +313,240 @@ export default function TeacherMistakes() {
   const focused = !!chain;
   useScrollAroundFocus(focused, assignment.kind !== "live" || now > 0);
   const chainProblemId = chain ? questionFor(chain.steps[0])?.problemId : undefined;
+  /** Individual working on the live set (ticket 315): the tab splits into Where students are and Where students went wrong. */
+  const split = assignment.kind === "live" && stage?.id === "working";
+  const places = useWhereRows(assignment, session, now);
+  const flyout = useOpenFlyout();
+  const flyoutProblem = split ? problems.find((p) => p.problem.id === flyout) : undefined;
+  const stagePills = stage && stage.done !== null && assignment.kind === "live" && (
+    <div className="flex items-center gap-3 text-[12.5px] leading-snug text-ink-muted" data-mistakes-stage={stage.id}>
+      <span className="rounded-lg bg-standout-soft px-3 py-1 font-display text-[16px] text-ink">{stage.word}</span>
+      <span data-stage-count>
+        <span className="tabular-nums">
+          {stage.done}/{stage.total}
+        </span>{" "}
+        done
+      </span>
+      <ForceSubmit stage={stage.id} session={session} inline />
+    </div>
+  );
+
+  const list = (
+    <div ref={listRef} className={`${split ? "" : "mt-10"} space-y-6`} data-problem-list>
+      {problems.map(({ problem, rows, right, wrong, pending }) => {
+        const isOpen = open.includes(problem.id);
+        const othersOpen = open.some((id) => id !== problem.id);
+        /** Neither correct, wrong nor still working on the set: stopped before the problem, or handed it in without an answer (tickets 143, 189). */
+        const skipped = size - right - wrong - pending;
+        const groups = groupBySlip(rows);
+        // One grid column per identical working (ticket 138); boxes and pills span columns.
+        const columns = groups.flatMap((g) => g.columns);
+        const boxes = groups.flatMap((g) => g.mistakes);
+        const boxOf = (i: number) => boxes.find((m) => i >= m.start && i < m.start + m.columns.length)!;
+        const ids = (c: WorkColumn) => c.rows.map((r) => r.id).join(",");
+        const column = (i: number) => (i === 0 ? "" : "border-l border-line");
+        // Hover shows "expand"; open shows "close" until pressed; just closed shows "close all" while others are open.
+        const action: { word: "expand" | "close" | "close all"; cls: string; visible: boolean } = isOpen
+          ? { word: "close", cls: ACTION_ACTIVE, visible: true }
+          : armed === problem.id && othersOpen
+            ? { word: "close all", cls: ACTION_ACTIVE, visible: true }
+            : { word: "expand", cls: ACTION_IDLE, visible: false };
+        const act = () => {
+          if (action.word === "close all") {
+            setOpen([]);
+            setArmed(null);
+          } else toggle(problem.id);
+        };
+        const counts = (
+          <>
+            <span className={COUNT} title={`${right} of ${size} got it correct · ${wrong} wrong · ${skipped} skipped${pending ? ` · ${pending} still working` : ""}`} data-right={`${problem.id}:${right}`}>
+              <span className="font-semibold text-ink">
+                {right}/{size}
+              </span>
+              <span className="text-ink-muted">correct</span>
+            </span>
+            <span className={COUNT} title="Stopped before this problem, or handed it in without an answer; a student still working on the set is not counted" data-skipped={`${problem.id}:${skipped}`}>
+              <span className="font-semibold text-ink">
+                {skipped}/{size}
+              </span>
+              <span className="text-ink-muted">skipped</span>
+            </span>
+          </>
+        );
+        return (
+          <div key={problem.id} className="flex items-start gap-4" data-problem-row={problem.id}>
+          {/* Escape closes the problem opened last first (ticket 247), without arming "close all" the way a press of close does. */}
+          <EscapeLayer active={isOpen && !focused} onEscape={() => setOpen((o) => o.filter((x) => x !== problem.id))} />
+          {/* The correct count level with the header row (the card's 1 px border, then the header), the skipped count 6 px under it; the two the same width. On the split the counts sit inside the card's header instead (ticket 315). */}
+          {!split && (
+            <div className="flex shrink-0 flex-col items-stretch gap-1.5" style={{ width: COUNT_COLUMN, paddingTop: (PROBLEM_HEADER + 2 - COUNT_H) / 2 }}>
+              {counts}
+            </div>
+          )}
+          <Card
+            className={`group/q min-w-0 flex-1 overflow-hidden ${split && flyout === problem.id ? "ring-2 ring-accent" : ""}`}
+            data-problem={problem.id}
+            data-open={isOpen || undefined}
+            onMouseLeave={() => armed === problem.id && setArmed(null)}
+          >
+            <div className="flex items-center gap-4 border-b border-line px-6 py-4" onClick={() => toggle(problem.id)} data-problem-header={problem.id}>
+              <div className={`flex min-w-0 items-center gap-4 ${split ? "flex-1" : ""}`}>
+                {/* On the split the live diagnostic is the card's own, at its top left (ticket 315). */}
+                {split && <DiagnosticChip problemId={problem.id} />}
+                <span className="shrink-0 font-display text-[24px] text-ink">{problem.label}</span>
+                <p className="min-w-0 text-[17px] leading-snug text-ink" data-problem-question={problem.id}>
+                  <ProblemQuestion problem={problem} mathClass="math-lg" />
+                </p>
+                {/* At half width the question takes the tag's room (ticket 315, as the agreed mockup has it). */}
+                {!split && <DifficultyTag d={problem.difficulty} />}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // A mouse click leaves focus on the button, which would keep it visible after the pointer leaves; keyboard activation (detail 0) keeps it.
+                    if (e.detail) e.currentTarget.blur();
+                    act();
+                  }}
+                  className={`${action.cls} ${action.visible ? "" : "invisible group-hover/q:visible group-focus-within/q:visible"}`}
+                  aria-expanded={isOpen}
+                  data-problem-action={problem.id}
+                >
+                  {action.word}
+                </button>
+              </div>
+              {split && (
+                <div className="flex shrink-0 flex-col items-stretch gap-1.5" style={{ width: COUNT_COLUMN }} data-header-counts>
+                  {counts}
+                </div>
+              )}
+            </div>
+            <div className="overflow-x-auto">
+              <FitGrid className="grid" columns={columns.length} data-students>
+                {boxes.map((m) => (
+                  // Over its names, what every student in the group wrote wrong (ticket 245): one label across the group's columns, both lines stacked when they got two wrong. A press opens the problem, like a name.
+                  <button
+                    key={m.key}
+                    type="button"
+                    onClick={() => toggle(problem.id)}
+                    aria-expanded={isOpen}
+                    className={`@container row-start-1 flex min-w-0 flex-col justify-start px-5 pt-4 text-left transition-colors hover:bg-cream-deep/40 ${column(m.start)} ${isOpen ? "bg-accent-soft/30" : ""}`}
+                    style={{ gridColumn: `${m.start + 1} / span ${m.columns.length}` }}
+                    data-label={`${problem.id}:${m.rows.map((r) => r.id).join(",")}`}
+                  >
+                    <div className={`${LABEL} flex flex-col gap-1.5`} data-label-box data-start={m.start} data-span={m.columns.length}>
+                      {m.wrongLines.map((tex) => (
+                        <div key={tex} data-label-line>
+                          <M tex={tex} />
+                        </div>
+                      ))}
+                    </div>
+                  </button>
+                ))}
+                {columns.map((c, i) => (
+                  // Every student who wrote this column's working, their names flowing across the column and wrapping as it narrows; the first name in every column on one line.
+                  // Keyed on the column's first student, who stays first as others join it (ticket 189), so a name mid-glow is never re-created.
+                  <button
+                    key={c.rows[0].id}
+                    type="button"
+                    onClick={() => toggle(problem.id)}
+                    aria-expanded={isOpen}
+                    className={`row-start-2 flex min-w-0 flex-wrap content-start items-center gap-x-5 gap-y-2 px-5 pt-3 pb-3.5 text-left transition-colors hover:bg-cream-deep/40 ${column(i)} ${isOpen ? "bg-accent-soft/30" : ""}`}
+                    style={{ gridColumn: i + 1 }}
+                    data-column={`${problem.id}:${ids(c)}`}
+                  >
+                    {c.rows.map((r) => (
+                      <ArrivingName key={r.id} arrivedAt={r.arrivedAt} now={now} className="flex max-w-full items-center gap-3 whitespace-nowrap" data-row={`${problem.id}:${r.id}`}>
+                        <Avatar initials={r.initials} />
+                        <span className="truncate font-medium text-ink">{r.name}</span>
+                      </ArrivingName>
+                    ))}
+                  </button>
+                ))}
+                {groups.map((g) => (
+                  <div
+                    key={g.misconceptions.join("|")}
+                    className={`row-start-3 flex min-w-0 flex-wrap items-start gap-1.5 pr-5 pb-4 pl-5 ${column(g.start)} ${isOpen ? "bg-accent-soft/30" : ""}`}
+                    style={{ gridColumn: `${g.start + 1} / span ${g.columns.length}` }}
+                    data-slip-group={g.rows.map((r) => r.id).join(",")}
+                    data-start={g.start}
+                    data-span={g.columns.length}
+                  >
+                    {/* Two misconceptions in one narrow column wrap chip by chip, never a word inside a chip (tickets 213, 299). */}
+                    {g.misconceptions.map((id) => (
+                      <SlipChip key={id} id={id} className="min-w-0 max-w-full flex-[1_1_auto] justify-start whitespace-nowrap" />
+                    ))}
+                  </div>
+                ))}
+                {/* The working row's ground: the divider under the pills and the cream behind the boxes, across every column. */}
+                {isOpen && <div className="row-start-4 border-t border-line bg-cream/60" style={{ gridColumn: "1 / -1" }} aria-hidden />}
+                {isOpen &&
+                  columns.map((c, i) => {
+                    // One box per exact mistake: every cell in it carries the top and bottom edge; the first the left edge and corners, the last the right; between cells a plain divider.
+                    const box = boxOf(i);
+                    const first = i === box.start;
+                    const last = i === box.start + box.columns.length - 1;
+                    const edges = `${first ? "ml-2.5 rounded-l-xl border-l border-wrong-deep" : "border-l border-line"} ${last ? "mr-2.5 rounded-r-xl border-r border-wrong-deep" : ""}`;
+                    // The grid cell is the container (its width is the column's, the same for every cell); the box edges sit on the div inside it.
+                    return (
+                      <div
+                        key={c.rows[0].id}
+                        className="@container row-start-4 min-w-0 py-4"
+                        style={{ gridColumn: i + 1 }}
+                        data-expanded={`${problem.id}:${ids(c)}`}
+                        data-mistake-group={box.rows.map((x) => x.id).join(",")}
+                        data-box-start={first || undefined}
+                        data-box-end={last || undefined}
+                      >
+                        <div className={`h-full border-y border-wrong-deep px-2.5 py-3 @max-[260px]:px-2 ${edges}`}>
+                          <ol className="space-y-2">
+                            {c.lines.map((l, j) => {
+                              const wrong = l.verdict.verdict === "wrong";
+                              return (
+                                <li
+                                  key={j}
+                                  className={`${LINE} ${wrong ? "border-wrong-line bg-wrong-soft" : "border-line bg-paper"}`}
+                                  data-line
+                                  data-wrong={wrong || undefined}
+                                >
+                                  <M tex={l.tex} />
+                                </li>
+                              );
+                            })}
+                          </ol>
+                          {c.live && (
+                            <div className="mt-3 flex items-center justify-between text-[12.5px] whitespace-nowrap text-ink-muted @max-[260px]:flex-col @max-[260px]:items-start @max-[260px]:gap-0.5 @max-[260px]:text-[11px]">
+                              <span>As handed in</span>
+                              <Link href="/teacher/compare" className="text-accent-deep hover:underline" data-compare-link>
+                                Original vs final →
+                              </Link>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </FitGrid>
+            </div>
+          </Card>
+          {/* The extra margin keeps the open flyout (laid 25 px left of the chip) clear of the card. A finished set has no live class to push to (ticket 187). */}
+          {assignment.kind === "live" && !split && <DiagnosticPush problemId={problem.id} rows={rows} className="ml-5 shrink-0" />}
+          </div>
+        );
+      })}
+      {problems.length === 0 && (assignment.kind !== "live" || now > 0) && <Card className="p-6 text-[14px] text-ink-muted">No slips yet</Card>}
+    </div>
+  );
 
   return (
     <TeacherChrome>
       <BackToClassroom />
-      <Eyebrow className="mt-3">
-        {assignment.className} · {assignment.title}
-      </Eyebrow>
+      {/* On the split (ticket 315) the stage pills share the eyebrow's line, at its right. */}
+      <div className={`mt-3 flex items-center justify-between gap-6 ${split ? "min-h-[30px]" : ""}`} data-eyebrow-row>
+        <Eyebrow>
+          {assignment.className} · {assignment.title}
+        </Eyebrow>
+        {split && !focused && stagePills}
+      </div>
       {chain && (
         <DiagnosticFocus
           run={chain}
@@ -327,213 +557,28 @@ export default function TeacherMistakes() {
       )}
       <div hidden={focused} data-mistakes-page>
       {/* Force submit for the stage the class is on (ticket 185), the same control as beside the Class view's current pathway pill. The stage group ends on the problem cards' right edge (ticket 195): the row mirrors a problem row, its diagnostic column held by the chip's unseen footprint. The countdown that replaces the button grows leftward, pushing the pill and count for its minute, rather than a reserved gap before the button the rest of the time. */}
+      {!split && (
       <div className="mt-3 flex items-center gap-4">
         <div className="flex min-w-0 flex-1 items-center justify-between gap-10">
           <H1>Where students went wrong</H1>
-          {stage && stage.done !== null && assignment.kind === "live" && (
-            <div className="flex items-center gap-3 text-[12.5px] leading-snug text-ink-muted" data-mistakes-stage={stage.id}>
-              <span className="rounded-lg bg-standout-soft px-3 py-1 font-display text-[16px] text-ink">{stage.word}</span>
-              <span data-stage-count>
-                <span className="tabular-nums">
-                  {stage.done}/{stage.total}
-                </span>{" "}
-                done
-              </span>
-              <ForceSubmit stage={stage.id} session={session} inline />
-            </div>
-          )}
+          {stagePills}
         </div>
         {assignment.kind === "live" && <DiagnosticFootprint className="ml-5 shrink-0" />}
       </div>
+      )}
 
-      <div ref={listRef} className="mt-10 space-y-6" data-problem-list>
-        {problems.map(({ problem, rows, right, wrong, pending }) => {
-          const isOpen = open.includes(problem.id);
-          const othersOpen = open.some((id) => id !== problem.id);
-          /** Neither correct, wrong nor still working on the set: stopped before the problem, or handed it in without an answer (tickets 143, 189). */
-          const skipped = size - right - wrong - pending;
-          const groups = groupBySlip(rows);
-          // One grid column per identical working (ticket 138); boxes and pills span columns.
-          const columns = groups.flatMap((g) => g.columns);
-          const boxes = groups.flatMap((g) => g.mistakes);
-          const boxOf = (i: number) => boxes.find((m) => i >= m.start && i < m.start + m.columns.length)!;
-          const ids = (c: WorkColumn) => c.rows.map((r) => r.id).join(",");
-          const column = (i: number) => (i === 0 ? "" : "border-l border-line");
-          // Hover shows "expand"; open shows "close" until pressed; just closed shows "close all" while others are open.
-          const action: { word: "expand" | "close" | "close all"; cls: string; visible: boolean } = isOpen
-            ? { word: "close", cls: ACTION_ACTIVE, visible: true }
-            : armed === problem.id && othersOpen
-              ? { word: "close all", cls: ACTION_ACTIVE, visible: true }
-              : { word: "expand", cls: ACTION_IDLE, visible: false };
-          const act = () => {
-            if (action.word === "close all") {
-              setOpen([]);
-              setArmed(null);
-            } else toggle(problem.id);
-          };
-          return (
-            <div key={problem.id} className="flex items-start gap-4" data-problem-row={problem.id}>
-            {/* Escape closes the problem opened last first (ticket 247), without arming "close all" the way a press of close does. */}
-            <EscapeLayer active={isOpen && !focused} onEscape={() => setOpen((o) => o.filter((x) => x !== problem.id))} />
-            {/* The correct count level with the header row (the card's 1 px border, then the header), the skipped count 6 px under it; the two the same width. */}
-            <div className="flex shrink-0 flex-col items-stretch gap-1.5" style={{ width: COUNT_COLUMN, paddingTop: (PROBLEM_HEADER + 2 - COUNT_H) / 2 }}>
-              <span className={COUNT} title={`${right} of ${size} got it correct · ${wrong} wrong · ${skipped} skipped${pending ? ` · ${pending} still working` : ""}`} data-right={`${problem.id}:${right}`}>
-                <span className="font-semibold text-ink">
-                  {right}/{size}
-                </span>
-                <span className="text-ink-muted">correct</span>
-              </span>
-              <span className={COUNT} title="Stopped before this problem, or handed it in without an answer; a student still working on the set is not counted" data-skipped={`${problem.id}:${skipped}`}>
-                <span className="font-semibold text-ink">
-                  {skipped}/{size}
-                </span>
-                <span className="text-ink-muted">skipped</span>
-              </span>
-            </div>
-            <Card
-              className="group/q min-w-0 flex-1 overflow-hidden"
-              data-problem={problem.id}
-              data-open={isOpen || undefined}
-              onMouseLeave={() => armed === problem.id && setArmed(null)}
-            >
-              <div className="flex items-center gap-4 border-b border-line px-6 py-4" onClick={() => toggle(problem.id)} data-problem-header={problem.id}>
-                <div className="flex min-w-0 items-center gap-4">
-                  <span className="shrink-0 font-display text-[24px] text-ink">{problem.label}</span>
-                  <p className="min-w-0 text-[17px] leading-snug text-ink" data-problem-question={problem.id}>
-                    <ProblemQuestion problem={problem} mathClass="math-lg" />
-                  </p>
-                  <DifficultyTag d={problem.difficulty} />
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // A mouse click leaves focus on the button, which would keep it visible after the pointer leaves; keyboard activation (detail 0) keeps it.
-                      if (e.detail) e.currentTarget.blur();
-                      act();
-                    }}
-                    className={`${action.cls} ${action.visible ? "" : "invisible group-hover/q:visible group-focus-within/q:visible"}`}
-                    aria-expanded={isOpen}
-                    data-problem-action={problem.id}
-                  >
-                    {action.word}
-                  </button>
-                </div>
-              </div>
-              <div className="overflow-x-auto">
-                <FitGrid className="grid" columns={columns.length} data-students>
-                  {boxes.map((m) => (
-                    // Over its names, what every student in the group wrote wrong (ticket 245): one label across the group's columns, both lines stacked when they got two wrong. A press opens the problem, like a name.
-                    <button
-                      key={m.key}
-                      type="button"
-                      onClick={() => toggle(problem.id)}
-                      aria-expanded={isOpen}
-                      className={`@container row-start-1 flex min-w-0 flex-col justify-start px-5 pt-4 text-left transition-colors hover:bg-cream-deep/40 ${column(m.start)} ${isOpen ? "bg-accent-soft/30" : ""}`}
-                      style={{ gridColumn: `${m.start + 1} / span ${m.columns.length}` }}
-                      data-label={`${problem.id}:${m.rows.map((r) => r.id).join(",")}`}
-                    >
-                      <div className={`${LABEL} flex flex-col gap-1.5`} data-label-box data-start={m.start} data-span={m.columns.length}>
-                        {m.wrongLines.map((tex) => (
-                          <div key={tex} data-label-line>
-                            <M tex={tex} />
-                          </div>
-                        ))}
-                      </div>
-                    </button>
-                  ))}
-                  {columns.map((c, i) => (
-                    // Every student who wrote this column's working, their names flowing across the column and wrapping as it narrows; the first name in every column on one line.
-                    // Keyed on the column's first student, who stays first as others join it (ticket 189), so a name mid-glow is never re-created.
-                    <button
-                      key={c.rows[0].id}
-                      type="button"
-                      onClick={() => toggle(problem.id)}
-                      aria-expanded={isOpen}
-                      className={`row-start-2 flex min-w-0 flex-wrap content-start items-center gap-x-5 gap-y-2 px-5 pt-3 pb-3.5 text-left transition-colors hover:bg-cream-deep/40 ${column(i)} ${isOpen ? "bg-accent-soft/30" : ""}`}
-                      style={{ gridColumn: i + 1 }}
-                      data-column={`${problem.id}:${ids(c)}`}
-                    >
-                      {c.rows.map((r) => (
-                        <ArrivingName key={r.id} arrivedAt={r.arrivedAt} now={now} className="flex max-w-full items-center gap-3 whitespace-nowrap" data-row={`${problem.id}:${r.id}`}>
-                          <Avatar initials={r.initials} />
-                          <span className="truncate font-medium text-ink">{r.name}</span>
-                        </ArrivingName>
-                      ))}
-                    </button>
-                  ))}
-                  {groups.map((g) => (
-                    <div
-                      key={g.misconceptions.join("|")}
-                      className={`row-start-3 flex min-w-0 flex-wrap items-start gap-1.5 pr-5 pb-4 pl-5 ${column(g.start)} ${isOpen ? "bg-accent-soft/30" : ""}`}
-                      style={{ gridColumn: `${g.start + 1} / span ${g.columns.length}` }}
-                      data-slip-group={g.rows.map((r) => r.id).join(",")}
-                      data-start={g.start}
-                      data-span={g.columns.length}
-                    >
-                      {/* Two misconceptions in one narrow column wrap chip by chip, never a word inside a chip (tickets 213, 299). */}
-                      {g.misconceptions.map((id) => (
-                        <SlipChip key={id} id={id} className="min-w-0 max-w-full flex-[1_1_auto] justify-start whitespace-nowrap" />
-                      ))}
-                    </div>
-                  ))}
-                  {/* The working row's ground: the divider under the pills and the cream behind the boxes, across every column. */}
-                  {isOpen && <div className="row-start-4 border-t border-line bg-cream/60" style={{ gridColumn: "1 / -1" }} aria-hidden />}
-                  {isOpen &&
-                    columns.map((c, i) => {
-                      // One box per exact mistake: every cell in it carries the top and bottom edge; the first the left edge and corners, the last the right; between cells a plain divider.
-                      const box = boxOf(i);
-                      const first = i === box.start;
-                      const last = i === box.start + box.columns.length - 1;
-                      const edges = `${first ? "ml-2.5 rounded-l-xl border-l border-wrong-deep" : "border-l border-line"} ${last ? "mr-2.5 rounded-r-xl border-r border-wrong-deep" : ""}`;
-                      // The grid cell is the container (its width is the column's, the same for every cell); the box edges sit on the div inside it.
-                      return (
-                        <div
-                          key={c.rows[0].id}
-                          className="@container row-start-4 min-w-0 py-4"
-                          style={{ gridColumn: i + 1 }}
-                          data-expanded={`${problem.id}:${ids(c)}`}
-                          data-mistake-group={box.rows.map((x) => x.id).join(",")}
-                          data-box-start={first || undefined}
-                          data-box-end={last || undefined}
-                        >
-                          <div className={`h-full border-y border-wrong-deep px-2.5 py-3 @max-[260px]:px-2 ${edges}`}>
-                            <ol className="space-y-2">
-                              {c.lines.map((l, j) => {
-                                const wrong = l.verdict.verdict === "wrong";
-                                return (
-                                  <li
-                                    key={j}
-                                    className={`${LINE} ${wrong ? "border-wrong-line bg-wrong-soft" : "border-line bg-paper"}`}
-                                    data-line
-                                    data-wrong={wrong || undefined}
-                                  >
-                                    <M tex={l.tex} />
-                                  </li>
-                                );
-                              })}
-                            </ol>
-                            {c.live && (
-                              <div className="mt-3 flex items-center justify-between text-[12.5px] whitespace-nowrap text-ink-muted @max-[260px]:flex-col @max-[260px]:items-start @max-[260px]:gap-0.5 @max-[260px]:text-[11px]">
-                                <span>As handed in</span>
-                                <Link href="/teacher/compare" className="text-accent-deep hover:underline" data-compare-link>
-                                  Original vs final →
-                                </Link>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                </FitGrid>
-              </div>
-            </Card>
-            {/* The extra margin keeps the open flyout (laid 25 px left of the chip) clear of the card. A finished set has no live class to push to (ticket 187). */}
-            {assignment.kind === "live" && <DiagnosticPush problemId={problem.id} rows={rows} className="ml-5 shrink-0" />}
-            </div>
-          );
-        })}
-        {problems.length === 0 && (assignment.kind !== "live" || now > 0) && <Card className="p-6 text-[14px] text-ink-muted">No slips yet</Card>}
-      </div>
+      {split ? (
+        <StageSplit
+          className="mt-4"
+          leftTitle="Where students are"
+          left={<PlaceTable rows={places} now={now} />}
+          rightTitle="Where students went wrong"
+          right={list}
+          overlay={flyoutProblem && <DiagnosticOverlay key={flyoutProblem.problem.id} problem={flyoutProblem.problem} rows={flyoutProblem.rows} />}
+        />
+      ) : (
+        list
+      )}
       </div>
     </TeacherChrome>
   );

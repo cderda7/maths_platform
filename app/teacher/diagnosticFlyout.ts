@@ -61,6 +61,11 @@ export function getFlyout(): FlyoutState {
   return state;
 }
 
+/** The problem whose flyout is open, or null: the split's left column draws that one flyout over its rows (ticket 315). */
+export function useOpenFlyout(): string | null {
+  return useSyncExternalStore(subscribe, getFlyout, () => SERVER).open;
+}
+
 /** One problem's flyout: open or not, and its selected step ids in the order they were clicked. */
 export function useFlyout(problemId: string): { open: boolean; selected: readonly string[] } {
   const s = useSyncExternalStore(subscribe, getFlyout, () => SERVER);

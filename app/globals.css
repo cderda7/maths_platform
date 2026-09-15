@@ -140,6 +140,12 @@ body {
 .math-lg .katex {
   font-size: 1.35em;
 }
+/* The Mistakes tab's split (ticket 315, StageSplit) sets its maths upright: KaTeX's italic letters take its roman face. The TeX is unchanged and nothing is spaced; the fit rules measure the maths as set. */
+.upright-maths .katex .mathnormal,
+.upright-maths .katex .mathit {
+  font-family: KaTeX_Main, "Times New Roman", serif;
+  font-style: normal;
+}
 
 /* A fragment of a problem linked from its hint (lib/hint.ts). Lit while its word is hovered. */
 .katex .hint-term {
@@ -393,6 +399,15 @@ body {
 .arrive {
   border-radius: 9999px;
   animation: arrive 8000ms ease-in both;
+}
+/* A student's pill that has just come into its row on Where students are (ticket 315): the same light blue and fade as .arrive, as a 3 px ring only, so the pill keeps its own tint and neighbouring pills' rings (8 px apart) never merge. */
+@keyframes arrive-ring {
+  0%, 25% { box-shadow: 0 0 0 3px var(--color-standout-line); }
+  100% { box-shadow: 0 0 0 3px rgb(from var(--color-standout-line) r g b / 0); }
+}
+.arrive-ring {
+  border-radius: 9999px;
+  animation: arrive-ring 8000ms ease-in both;
 }
 
 /* The setup page's Student screens options flash light blue, once, when Project is pressed with neither chosen (ticket 147; one beat since 149): the cue points at the choice. Colours only; the element keeps its own layout. */
