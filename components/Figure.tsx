@@ -2,13 +2,12 @@ import type { FigureId } from "@/data/types";
 
 /** Inline SVG figures a problem can show. Vector, so they read on the iPad and the board alike. */
 export default function Figure({ id, className = "" }: { id: FigureId; className?: string }) {
-  if (id === "q8-parabola") return <Parabola className={className} id={id} spec={Q8} />;
-  if (id === "q8-similar-parabola") return <Parabola className={className} id={id} spec={Q8_SIMILAR} />;
-  return null;
+  const spec = PARABOLAS[id];
+  return spec ? <Parabola className={className} id={id} spec={spec} /> : null;
 }
 
 /** One monic parabola y = x² + bx + c on its axes: the scale, the ticks and where the curve and the labels stop. */
-interface ParabolaSpec {
+export interface ParabolaSpec {
   b: number;
   c: number;
   roots: [number, number];
@@ -31,6 +30,20 @@ const Q8: ParabolaSpec = { b: -4, c: 3, roots: [1, 3], kx: 40, ky: 25, axisY: 13
 
 /** Q8's similar problem (ticket 256), y = x² − 6x + 5: intercepts at 1 and 5, turning point (3, −4), on the same 300 × 190 frame. */
 const Q8_SIMILAR: ParabolaSpec = { b: -6, c: 5, roots: [1, 5], kx: 30, ky: 17, axisY: 105, xAxisTo: 7.2, yAxis: [5.4, -4.6], xTicks: [1, 2, 3, 4, 5, 6], yTicks: [2, 4, -2, -4], curve: [0.1, 5.9], xLabelAt: 7, yLabelAt: 5.2, label: "Parabola crossing the x-axis at 1 and 5, turning point at (3, −4)" };
+
+/** Q8* (ticket 310), y = x² − 5x + 4: intercepts at 1 and 4, turning point (2.5, −2.25), on the same 300 × 190 frame. */
+const Q8_STAR: ParabolaSpec = { b: -5, c: 4, roots: [1, 4], kx: 38, ky: 22, axisY: 120, xAxisTo: 5.6, yAxis: [4.6, -2.8], xTicks: [1, 2, 3, 4, 5], yTicks: [2, 4, -2], curve: [-0.15, 5.15], xLabelAt: 5.4, yLabelAt: 4.4, label: "Parabola crossing the x-axis at 1 and 4, turning point at (2.5, −2.25)" };
+
+/** Q8** (ticket 310), y = x² − 8x + 15: intercepts at 3 and 5, turning point (4, −1), on the same 300 × 190 frame. */
+const Q8_STAR_STAR: ParabolaSpec = { b: -8, c: 15, roots: [3, 5], kx: 32, ky: 25, axisY: 130, xAxisTo: 6.8, yAxis: [4.2, -2], xTicks: [1, 2, 3, 4, 5, 6], yTicks: [1, 2, 3, -1], curve: [1.8, 6.2], xLabelAt: 6.6, yLabelAt: 4, label: "Parabola crossing the x-axis at 3 and 5, turning point at (4, −1)" };
+
+/** Every figure's parabola, by id (exported for the tests that hold each graph to its question). */
+export const PARABOLAS: Record<FigureId, ParabolaSpec> = {
+  "q8-parabola": Q8,
+  "q8-similar-parabola": Q8_SIMILAR,
+  "q8-star-parabola": Q8_STAR,
+  "q8-star-star-parabola": Q8_STAR_STAR,
+};
 
 function Parabola({ className, id, spec }: { className: string; id: FigureId; spec: ParabolaSpec }) {
   const { b, c, kx, ky, axisY } = spec;

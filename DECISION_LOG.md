@@ -5294,3 +5294,20 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** At the saved 1px an outline antialiases slightly differently from the border it replaced: the teacher's rounded corners differ by at most 6/255 and Sam's scaled iPad edges by at most 4/255, invisible but not byte-identical. The outline is also the focus ring's property: Sam's pressable cards show their 1px border under the focus ring instead of the tuned line, and the teacher's card turns its line accent on focus. Two token-named utilities replace plain `border` classes on these boxes.
 
 **Defense.** No width, style or zoom can move a box or a word, which is what makes live tuning and the Space comparison trustworthy; each kind moves alone, and every state keeps its meaning.
+
+## 2026-09-15 · The worked example-problem pair's data: whole questions as Problems, one blank-line rule by skill tags (ticket 310)
+
+**Decision.** Q* and Q** are written as `Problem`s (Q** adds `hints` and `approaches`), one `QuestionPair` per set question in `data/pairs.ts`, and the warm-up's completion problems are `PracticeProblem`s in `COMPLETIONS`, keyed as `PRACTICES`. Which lines the student writes is one pure function, `blankSteps(steps, leaf)` in `lib/pairs.ts`: the steps tagged with the named skill, and when every step or no step carries it, the last two (the last one of a two-step working). Q** carries a hint for every point in its working, not only the lines that can be blank. Every maths fact is held by `lib/pairs.test.ts` through `lib/texEval.ts`, and no question may repeat any problem in the app, compared both as written and as a function of x.
+
+**Context.** The user (2026-09-15) set help as Q → Q* → Q** → back to Q and the warm-up as worked example → completion → problem alone, and asked not to check the questions himself. Tickets 311 (the line check), 312 and 313 (the screens) read this data, built in parallel.
+
+**Alternatives considered.**
+- *A new question type for the pair's questions*: a narrower shape (no difficulty, no label), but every existing reader of a question (`ProblemQuestion`, `problemLeaves`, the hint helpers through `{ steps, hints }`) would need an adapter. As `Problem`s they work with what exists, and the tests hold difficulty and figure kind to Q's.
+- *Blank lines stored per pair and skill*: exact control per question, but 20 questions × up to 7 skills of hand-kept lists that drift from the tags. The rule reads the tags the set already carries, so a new question needs no list.
+- *The warm-up's blanks always the last two lines*: the ticket's parenthetical, and the classic faded example. Most warm-up problems carry other skills on their last lines (monic's are the expand-back check and the null factor law), so a student who named monic would never write a factorisation. The tag rule keeps "named skill = practised skill"; its cost is that fractions leaves five of seven lines blank.
+- *Hints only at the blank points*: less to write, but a change to the rule would leave blanks with no hint.
+- *Repeats checked by exact TeX only*: the homework tests' way, but `(x − 5)(x + 1) = 7` passed while being `x(x − 4) = 12` rearranged. Comparing as functions caught it.
+
+**Tradeoffs.** Two whole questions per set question to author (sets made through Create will need generation). A fraction warm-up's completion step is long. Q10's and the conclusions skill's blanks are sentences, which ticket 311 judges word for word. Exported figure specs make `components/Figure.tsx` a data source for a test.
+
+**Defense.** The screens get one obvious shape they already know how to draw and one rule for blanks written once, the questions are held by tests to Q's structure and to true maths rather than by anyone's reading, and nothing a student sees has changed until the screens use it.

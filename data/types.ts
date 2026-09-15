@@ -32,8 +32,11 @@ export interface SolutionStep {
 }
 
 /** Figures a problem can show beside its statement. */
-/** `q8-similar-parabola` is Q8's similar problem's graph, shown as the homework screen changes Q8 into it (ticket 256). */
-export type FigureId = "q8-parabola" | "q8-similar-parabola";
+/**
+ * `q8-similar-parabola` is Q8's similar problem's graph, shown as the homework screen changes Q8 into it (ticket 256);
+ * `q8-star-parabola` and `q8-star-star-parabola` are the graphs of Q8* and Q8**, the questions help on Q8 runs on (ticket 310).
+ */
+export type FigureId = "q8-parabola" | "q8-similar-parabola" | "q8-star-parabola" | "q8-star-star-parabola";
 
 export interface Problem {
   id: string;
@@ -190,4 +193,40 @@ export interface PracticeProblem {
   approaches?: Approach[];
   /** A fresh problem on the same leaf, offered once this one's worked example has been seen. */
   followUp?: PracticeProblem;
+}
+
+/*
+ * The worked example-problem pair (tickets 310–313). Help runs in three steps before the student carries on:
+ *
+ *   help on a set question Q:  Q* worked  →  Q** completed  →  back on Q
+ *   the warm-up, per skill:    worked example (the practice problem)  →  completion problem  →  the follow-up, done alone
+ *
+ * A completion step shows every line of its working except the blank ones, which the student writes. Which lines are
+ * blank is one rule, `blankSteps` in `lib/pairs.ts`: the steps tagged with the skill the student named; when every step
+ * (or no step) carries it, the last two steps, or the last one of a two-step working. The data lives in `data/pairs.ts`.
+ */
+
+/**
+ * Q* or Q** for one set question: a whole question like Q, a `Problem` in every field. Same stem (a number in the stem
+ * changes with the expression), same difficulty, same kind of figure, and the same deep structure: as many solution steps
+ * in the same order, each tagged with exactly Q's skills, step for step, with one or two surface things changed.
+ */
+export type WorkedQuestion = Problem;
+
+/**
+ * Q**: the question the student finishes. Its hints and approaches work as a practice problem's do, with `at` counting
+ * lines of `solution` (the hint helpers in `lib/hint.ts` take `{ steps: q.solution, hints: q.hints }`); a hint is written
+ * for every point in the working, so whichever lines are blank, each has one.
+ */
+export interface CompletionQuestion extends Problem {
+  hints: Hint[];
+  /** The ways in the help chat can offer; set where the question has a real choice (factorise or the formula), absent where there is one way. */
+  approaches?: Approach[];
+}
+
+/** The two questions help on set question `problemId` runs on: `worked` (Q*), then `completion` (Q**), then back on Q. */
+export interface QuestionPair {
+  problemId: string;
+  worked: WorkedQuestion;
+  completion: CompletionQuestion;
 }

@@ -1588,6 +1588,18 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **Border colours that follow `line`.** The two border colours start at `line`'s hex but don't move with it; the token file would need a way to say "follows".
 - **Shadow per kind.** Card shadows (`shadow-card`, `shadow-lift`) aren't tunable; a shadow strength beside the border would round out the box look.
 
+## Worked example-problem pair data (ticket 310, 2026-09-15)
+
+- **Generated Q* and Q** for sets made through Create.** Problem Set 6's twenty are hand-written and held by tests. A created set needs them generated with its problems (same stem, tags step for step, numbers changed, facts checked by `lib/texEval.ts`), maybe shown on Refine. Deferred: no generation pipeline for solutions yet.
+- **Pairs for Problem Sets 1–5.** Finished sets are only read, so help never runs on them. If a past set is ever reopened (homework on it, a replay), its questions need pairs too.
+- **A shorter fractions completion step.** The tag rule leaves five of the seven lines blank on the fractions warm-up (and three of five on monic). If that reads as a second problem rather than a completion, the rule could cap blanks at the last two tagged lines. Deferred: the ticket's rule, and it keeps the named skill the practised one.
+- **Per-question blank overrides.** A pair could name its own blank lines for a skill where the tag rule reads oddly (a given line after the blanks that shows their answer, as Q2**'s null factor law line shows the factors). Deferred: one rule written once is what the ticket asked for; 312 decides whether later lines stay hidden until the blanks are written.
+- **Authored slips for each blank.** Ticket 311's demo script can write a wrong line before a right one; a list of realistic wrong lines per Q** blank (with misconception ids) would let the demo and the tests show each blank marked. Deferred to ticket 312, which picks the blanks its click-through shows.
+- **Sentence blanks judged by meaning.** Q10** and the conclusions completion problem ask for "The graph never meets the x-axis" when the conclusions skill is named; other wordings read as wrong under ticket 311. An accepted-sentences list per step, or a model call. Deferred with 311's entry.
+- **Hints and chat on Q*.** Q* is read, not written, so it has no hints; the help chat beside it (ticket 312) answers about its lines from the steps and labels. If the chat needs more, a short "why" per step of Q* is the natural addition.
+- **Varying the context, not only the numbers.** Q9* and Q9** keep the ball; a different context (a stone, a jump) would test that the student sees the structure under new words. Deferred: the ticket asks for the same stem.
+- **A figure generated from the rule.** Each Q8-style graph is a hand-tuned `ParabolaSpec` (scale, ticks, curve range). A spec computed from b and c would make generated sets possible. Deferred: three graphs, all checked by a test against their questions.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

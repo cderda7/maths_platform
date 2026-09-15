@@ -369,6 +369,8 @@ Useful starts: `/student?stage=working&pathway=wc` (hand in, wait for the board)
   evaluation, escalation, statuses, groups, report facts, mistakes, peers, versions; the line
   check for a blank step (`stepCheck.ts`: right, wrong with its misconception, or unreadable, on
   the one TeX grammar in `texEval.ts`).
+- `lib/pairs.ts` and `data/pairs.ts`: the worked example-problem pair's questions (Q* and Q** for every Problem Set 6
+  question, a completion problem for every practice skill) and `blankSteps`, the one rule for which lines a student writes.
 - `specs/` the two specs; `tickets/` one file per ticket; `architecture/` one note per ticket;
   the running record is `../ARCHITECTURE.md`, decisions are in `../DECISION_LOG.md`, deferred
   ideas in `../FUTURE_FEATURES.md`. The copy rule every screen follows is in `specs/spec2.md`.
