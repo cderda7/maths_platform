@@ -1136,10 +1136,10 @@ uploaded problems) settled the following as later, each on purpose.
 ## Absent students (ticket 250, 2026-09-14)
 
 - **The student's own report and holistic page saying they were absent.** The teacher's student report for an absent student (`/teacher/a/<set>/report?student=chloe`) shows nothing about the absence; ticket 251's across-sets grid is where "absent" lands per set. Deferred: not in the ticket's list of screens.
-- **Marking a groupmate absent after group review has begun.** The live board's run keeps the members it began with (pens, progress); only the scripted groups regroup. Deferred: absences are marked at the start of the lesson (ticket 255's first decision), and changing a run's members mid-turn needs its own rules.
+- **Marking a groupmate absent after group review has begun.** The live board's run keeps the members it began with (pens, progress); only the scripted groups regroup. Deferred: absences are marked at the start of the lesson (a decision raised when due; see "Review control" below), and changing a run's members mid-turn needs its own rules.
 - **The student side's peer statistics** ("missed by n of 19", `lib/peers.ts`) still count every classmate. Deferred: a student screen, and the ticket scoped the counts to the set's teacher screens.
 - **An absence on a set's history pills and the Class View's history stack.** A pill for a set the student was absent from still reads the story's status (nothing, on PS1–PS5). Deferred: no earlier set has an absent student in the demo data.
-- **Marking absence from other screens** (the Groups tab's chips, the Mistakes view, a quick "who's here" roll call at the start). Deferred: the ticket put the toggle on the Class View roster; ticket 255 raises the decision at the start of the lesson.
+- **Marking absence from other screens** (the Groups tab's chips, the Mistakes view, a quick "who's here" roll call at the start). Deferred: the ticket put the toggle on the Class View roster; raising it as a decision at the start of the lesson is under "Review control" below.
 - **Absences affecting homework and the reflection** (an absent student gets the set as homework, or catch-up work). Deferred: the homework model comes after in-class work.
 
 ## Homework bank (ticket 256, 2026-09-14)
@@ -1706,6 +1706,19 @@ Raised in a project checkpoint review; Carson asked for these on the list. Space
 - **The warm-up's work on the teacher's student panel.** Pressing Sam's pill during the warm-up (ticket 316) shows no warm-up lines or marks. Deferred: warm-up work is unmarked practice; whether the teacher should see it is open.
 - **An older session's follow-up mapped to step 3.** A snapshot saved mid follow-up before this ticket opens the skill on its worked example. Deferred: demo sessions only.
 - **A time for a deep-linked warm-up.** The demo strip's "warm-up" skip records no step start, so the teacher's pill counts from when the laptop first sees it. Deferred: deep links are presenter shortcuts.
+
+## Review control: decisions when due, the pathway strip, group vs class review (tickets 332–338, planned 2026-09-15)
+
+- **The other lesson decisions raised when due** (from the deleted ticket 255): who is absent at the start of the lesson; a stuck student and whether to push a diagnostic; time nearly up and whether to hand in for everyone. Each would reuse ticket 335's card and dot. Deferred: Carson scoped today to "close to finishing" (335) and the group/class split (337). "Stuck" and "time nearly up" need definitions (no timer exists; the lesson is assumed 70 minutes).
+- **A teacher-set trigger.** The card comes at over half of the present class past the 70% question (335), and at half the class with corrections in (337). A teacher could set the share or the question before the lesson. Deferred: one rule, nothing to learn first.
+- **Signal-based triggers.** Raise the decision when a question clearly splits the class, or when progress stalls, rather than at a share of the class. Deferred: needs real classroom data to tune.
+- **Projections in the card.** "About 7 will reach Q10 by the time you stop" instead of counts so far. Deferred: Carson chose counts only; a projection can mislead.
+- **Changing the pathway from the strip at any time.** Ticket 336 changes it from the decision card only; the deleted ticket 254 had the stops switchable on the live view throughout. Deferred: the card is where the decision is raised; a second place to change it waits for a teacher asking.
+- **Several decisions queued.** Only one card exists at a time, and a newer decision replaces an unanswered one, carrying it (337). A queue or a history of decisions made in the lesson could come later. Deferred: one card is simpler to read.
+- **Per-group question choices.** Ticket 337 removes a question from every group's list at once. A teacher could keep a question for one group (say, a group with a helper) and move it to class review for another. Deferred: one press; groups with a helper already solve it quickly (ticket 332).
+- **Which questions go to which group, from group performance** (Carson's "REFINING REVIEW" note). Related to the entry above. Deferred with it.
+- **"correct" on the split card as right first time.** The card counts corrections (337); a toggle could show first-time counts. Deferred: Carson chose after corrections.
+- **A group that sits out doing something.** A group with nothing left goes straight to the stage after group review (332). It could extend a problem, help another group, or practise. Deferred: needs its own design; FUTURE_FEATURES already lists sending a student who got it right to a stuck group.
 
 ## Carson's notes
 

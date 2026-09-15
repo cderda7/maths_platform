@@ -5510,3 +5510,36 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** A snapshot saved before the ticket lands on its skill's worked example (no times). "see the example again" is screen state only, so a reload returns to the pad. `HelpLadder.tsx` is now a thin caller; a change to a step screen changes both routes at once, which is the point but needs both click-throughs.
 
 **Defense.** The student's actions (the steps reached and when, the lines) are all that is stored; everything shown is a pure reading of them, identical on a reload and on the teacher's laptop, and one set of step screens keeps help and the warm-up behaving alike, as Carson asked of practice.
+
+## 2026-09-15 · Review control: one decision card when due, the pathway on the header line, group review after corrections (tickets 332–338, planned)
+
+**Decision.**
+- **The decision card.** The live lesson raises the next decision on one card, mounted once so it follows the teacher across Class View, Mistakes and Edexia Classroom:
+  - "Most students are close to finishing" at over half the present class past the 70% question (335), where the teacher keeps or changes the pathway (336)
+  - as individual review is about to end, the suggestion to move the two least-correct questions from group review to class review (337)
+- **How the card behaves.** It never blocks the screen, tucks into a dot on the pathway strip ("Later"), and doing nothing keeps the plan.
+- **The pathway strip.** The pathway moves from Class View's right-column card onto the back button's line on both tabs, built from one stage pill with four states (334).
+- **Group review's questions.** A group works only what a present member still has wrong after individual review. A student who fixed a question in individual review counts as a helper, and a group with nothing left sits out (332; past sets 338).
+- **Retired tickets.** 254 and 255 are deleted; these tickets carry what they held.
+
+**Context.** Carson, 2026-09-15: teachers need control over review: some questions are better saved for class review ("only 5 students got to Q10"), without deciding twice, and with the program making the suggestion. The prompt should come "no matter where they are". The pathway should show on both tabs beside the back button. The CTO's feedback (2026-09-14) that the lesson's many permutations are hard to follow led to "the program raises each decision when it is due" (the 2026-09-14 entry above). Carson on the group rule: counting questions students fixed themselves "jeopardize[s] making indiv review seem pointless." The helper rule was settled in the 318/319 design session the same day.
+
+**Alternatives considered.**
+- *A blocking modal*: impossible to miss, but it interrupts a diagnostic or the Mistakes split mid-task.
+- *A change in the pill only*: quiet, but easy to miss at the moment it matters.
+- *A teacher-set threshold, or signal-based triggers*: more adaptive, but something to learn before the first lesson, and no data to tune a signal (FUTURE_FEATURES).
+- *Projections in the card* ("about 7 will get there"): these can mislead mid-stream; counts so far are honest.
+- *Any subset per group*: finer control, but a per-group decision is many presses. Every question in exactly one of group or class review keeps it one decision.
+- *Keep the pathway card and add a strip*: two pathways on one screen, and the controls in two places.
+- *Right first time as the group rule (ticket 278) and as "correct" on the card*: matches set score, but sends groups questions their members already fixed.
+- *Only right-first-time students can help*: a fixer might not explain it well, but they have just found the slip themselves; Carson chose fixers count.
+- *The gate into group review waiting on an unanswered card*: guarantees the decision is made, but moves a decision to the system's timing; ignoring the card keeps the plan, and the demo stretches its arrivals instead.
+
+**Tradeoffs.**
+- **Decision state.** The lesson gains a decision state in classroom state that every teacher screen reads.
+- **Demo data.** The group rule change regenerates all review data (live and past sets), a large data ticket, and changes the demo's outcomes.
+- **The gate.** The demo's gate arrivals get slower by design.
+- **One card.** A second decision replaces an unanswered first one rather than queueing it.
+- **Where the pathway changes.** Only from the card, not at any time from the strip.
+
+**Defense.** Each decision appears once, at the moment the evidence exists, with the suggestion already made. The teacher keeps every choice and loses no work by ignoring it. One strip and one pill component mean the pathway looks and behaves the same everywhere it appears. Taking group review's list after corrections is what gives individual review its purpose.
