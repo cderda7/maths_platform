@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { ASSIGNMENT } from "@/data/assignment";
-import type { MisconceptionId } from "@/data/misconceptions";
+import { tag } from "@/data/types";
+import { wrong } from "@/data/evaluation";
+import { misconceptionName, type MisconceptionId } from "@/data/misconceptions";
+import type { LeafId } from "@/data/taxonomy";
 import { assignmentBundle, type AssignmentBundle } from "./assignments";
 import { classroomReducer, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
-import { assignmentCard, classroomCards, dueOrder, mistakeCount, newestFirst, sectionCards, topGap } from "./classroomCards";
+import { assignmentCard, classroomCards, dueOrder, gapGroups, mistakeCount, newestFirst, sectionCards, TOP_GAPS, topGaps, type TopGap } from "./classroomCards";
 import { skipFixture } from "./demo";
 import { mistakesByProblem, type MistakeRow, type ProblemMistakes } from "./mistakes";
 import { CLASS_SIZE } from "./readiness";
@@ -14,6 +17,11 @@ const CREATED = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create",
 const GUESSED: MisconceptionId = "brackets-dont-expand";
 const SUM: MisconceptionId = "pair-sum-wrong";
 const ROOT: MisconceptionId = "root-not-taken";
+const SIGN: MisconceptionId = "product-sign";
+const HALF: MisconceptionId = "halving-wrong";
+const SURDS: LeafId = "algebra.number.surds";
+const EXPAND: LeafId = "algebra.expand-factor.expand";
+const ZERO: LeafId = "functions.zeros.zero-finding";
 
 const row = (id: string, misconceptions: MisconceptionId[]): MistakeRow => ({ id, name: id, initials: id.slice(0, 2).toUpperCase(), live: false, lines: [], misconceptions });
 const problem = (i: number, rows: MistakeRow[]): ProblemMistakes => ({ problem: ASSIGNMENT.problems[i], rows, right: 0, pending: 0 });
@@ -32,41 +40,61 @@ describe("mistakes so far", () => {
   });
 });
 
-describe("the top gap", () => {
-  it("is null when nobody slipped, and ignores rows with no recognised slip", () => {
-    expect(topGap([])).toBeNull();
-    expect(topGap([problem(0, [row("a", [])])])).toBeNull();
+describe("the top gaps", () => {
+  it("are empty when nobody slipped, and ignore rows with no recognised slip", () => {
+    expect(topGaps([], [])).toEqual([]);
+    expect(topGaps([problem(0, [row("a", [])])], [])).toEqual([]);
   });
 
-  it("is the cluster with the most different students across every problem, not the biggest on one problem", () => {
-    const gap = topGap([
-      problem(0, [row("a", [ROOT]), row("b", [ROOT]), row("c", [SUM])]),
-      problem(1, [row("c", [GUESSED]), row("d", [GUESSED])]),
-      problem(2, [row("e", [GUESSED]), row("a", [ROOT])]),
-    ]);
-    expect(gap).toEqual({ misconceptions: [GUESSED], name: "brackets don't expand back", students: 3 });
+  it("rank each misconception by how many different students slipped with it across every problem, and keep three", () => {
+    const gaps = topGaps(
+      [
+        problem(0, [row("a", [ROOT]), row("b", [ROOT]), row("c", [SUM]), row("f", [SIGN])]),
+        problem(1, [row("c", [GUESSED]), row("d", [GUESSED]), row("g", [HALF])]),
+        problem(2, [row("e", [GUESSED]), row("a", [ROOT]), row("h", [SUM])]),
+      ],
+      [],
+    );
+    expect(gaps.map((g) => [g.misconception, g.students])).toEqual([[GUESSED, 3], [ROOT, 2], [SUM, 2]]);
+    expect(gaps[0].name).toBe("brackets don't expand back");
+    expect(TOP_GAPS).toBe(3);
   });
 
-  it("counts a student once per cluster however many problems they slipped on", () => {
-    const gap = topGap([problem(0, [row("a", [ROOT]), row("b", [SUM])]), problem(1, [row("a", [ROOT]), row("c", [SUM])]), problem(2, [row("a", [ROOT])])]);
-    expect(gap?.misconceptions).toEqual([SUM]);
-    expect(gap?.students).toBe(2);
+  it("count a student once however many problems they slipped on, and a row's two misconceptions each", () => {
+    const gaps = topGaps([problem(0, [row("a", [ROOT, SUM, ROOT]), row("b", [SUM])]), problem(1, [row("a", [ROOT])])], []);
+    expect(gaps.map((g) => [g.misconception, g.students])).toEqual([[SUM, 2], [ROOT, 1]]);
   });
 
-  it("breaks a tie by problem order, then row order", () => {
-    expect(topGap([problem(0, [row("a", [SUM])]), problem(1, [row("b", [ROOT]), row("c", [SUM])]), problem(2, [row("d", [ROOT])])])?.misconceptions).toEqual([SUM]);
-    expect(topGap([problem(0, [row("a", [ROOT]), row("b", [SUM])])])?.misconceptions).toEqual([ROOT]);
+  it("break a tie by problem order, then row order", () => {
+    expect(topGaps([problem(0, [row("a", [SUM])]), problem(1, [row("b", [ROOT]), row("c", [SUM])]), problem(2, [row("d", [ROOT])])], []).map((g) => g.misconception)).toEqual([SUM, ROOT]);
+    expect(topGaps([problem(0, [row("a", [ROOT]), row("b", [SUM])])], []).map((g) => g.misconception)).toEqual([ROOT, SUM]);
   });
 
-  it("a student who slipped with two misconceptions in one problem is their own cluster, named by both", () => {
-    expect(topGap([problem(0, [row("a", [ROOT, SUM, ROOT])])])).toEqual({ misconceptions: [ROOT, SUM], name: "square out, root not taken + product right, sum wrong", students: 1 });
+  it("name the skill most of the gap's wrong lines are tagged with: the home category, or the skill itself when it is new on the set, never New skills", () => {
+    const tagged = (id: string, m: MisconceptionId, ...leaves: LeafId[]): MistakeRow => ({ ...row(id, [m]), lines: [{ tex: id, verdict: wrong(leaves.map((l) => tag(l)), "", "", "", m) }] });
+    const ps = [problem(0, [tagged("a", ROOT, SURDS), tagged("b", ROOT, SURDS, EXPAND), tagged("c", ROOT, EXPAND, ZERO), tagged("d", SUM, ZERO)])];
+    expect(topGaps(ps, []).map((g) => g.skill)).toEqual(["Algebra", "Functions"]);
+    expect(topGaps(ps, [SURDS]).map((g) => g.skill)).toEqual(["surds", "Functions"]);
+    expect(topGaps(ps, [SURDS, ZERO]).map((g) => g.skill)).toEqual(["surds", "zero-finding"]);
+    expect(topGaps([problem(0, [row("a", [ROOT])])], []).map((g) => g.skill)).toEqual([null]);
+    // Only the lines carrying the gap's own misconception count toward its skill.
+    const mixed: MistakeRow = { ...row("a", [ROOT, SUM]), lines: [{ tex: "1", verdict: wrong([tag(ZERO)], "", "", "", SUM) }, { tex: "2", verdict: wrong([tag(SURDS)], "", "", "", ROOT) }] };
+    expect(topGaps([problem(0, [mixed])], []).map((g) => [g.misconception, g.skill])).toEqual([[ROOT, "Algebra"], [SUM, "Functions"]]);
   });
 
-  it("is computed from the set's work: Problem Set 6's is the biggest cluster of its Mistakes tab", () => {
+  it("group by skill for the card: a shared skill's gaps side by side in rank order, groups in the order of their best gap", () => {
+    const gap = (misconception: MisconceptionId, skill: string | null): TopGap => ({ misconception, name: misconceptionName(misconception), students: 1, skill });
+    const [a, b, c] = [gap(ROOT, "Algebra"), gap(SUM, "Graphing"), gap(GUESSED, "Algebra")];
+    expect(gapGroups([a, b, c])).toEqual([{ skill: "Algebra", gaps: [a, c] }, { skill: "Graphing", gaps: [b] }]);
+    expect(gapGroups([gap(ROOT, null), gap(SUM, null)]).map((g) => g.gaps.length)).toEqual([1, 1]);
+  });
+
+  it("are computed from the set's work: every set's card names three, each under a skill, none under New skills", () => {
     const b = assignmentBundle("pset-6", CREATED)!;
-    const gap = topGap(mistakesByProblem(null, b))!;
-    expect(gap.students).toBeGreaterThan(1);
-    expect(gap.name.length).toBeGreaterThan(0);
+    const gaps = topGaps(mistakesByProblem(null, b), b.newSkills);
+    expect(gaps).toHaveLength(3);
+    for (const g of gaps) expect(g.skill).not.toBeNull();
+    expect(gaps.map((g) => g.skill)).not.toContain("New skills");
   });
 });
 
@@ -95,12 +123,12 @@ describe("the Classroom's cards", () => {
     expect(assignmentCard(assignmentBundle("pset-6", ended)!, ended, session, now)).toMatchObject({ section: "past", status: "done" });
   });
 
-  it("a finished set is past and done, everyone it counts handed in, with its top gap computed from its work", () => {
+  it("a finished set is past and done, everyone it counts handed in, with its top gaps computed from its work", () => {
     const card = assignmentCard(finished, CREATED, null, now);
     expect(card).toMatchObject({ id: "pset-5", name: "Problem Set 5 — Features of a parabola", href: "/teacher/a/pset-5", section: "past", status: "done", total: CLASS_SIZE, due: "Mon 7 Sep" });
     expect(card.submitted).toBe(CLASS_SIZE - 1); // Sam handed in; Chloe of this stand-in never started
-    expect(card.topGap).toEqual(topGap(mistakesByProblem(null, finished)));
-    expect(card.topGap).not.toBeNull();
+    expect(card.topGaps).toEqual(topGaps(mistakesByProblem(null, finished), finished.newSkills));
+    expect(card.topGaps).toHaveLength(3);
   });
 
   it("sections live above past, each newest first as given, for any mix including no live set", () => {

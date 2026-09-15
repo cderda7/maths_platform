@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import TeacherChrome from "./TeacherChrome";
 import { Eyebrow, H1 } from "@/components/ui";
+import { CategoryChip } from "@/components/Tag";
 import { ASSIGNMENT } from "@/data/assignment";
 import { forgetTilesScroll } from "./students/tilesScroll";
 import { HOLISTIC_HREF } from "@/lib/assignments";
-import { CLASS_SUBJECT, classroomCards, teacherHomeworkColumn, type AssignmentCard, type TeacherHomeworkPiece } from "@/lib/classroomCards";
+import { CLASS_SUBJECT, classroomCards, gapGroups, teacherHomeworkColumn, type AssignmentCard, type TeacherHomeworkPiece } from "@/lib/classroomCards";
 import { CREATE_ROUTES } from "@/lib/createPipeline";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { CLASS_SIZE } from "@/lib/readiness";
@@ -143,7 +144,11 @@ function Section({ label, id, className = "", column, children }: { label: strin
   );
 }
 
-const Dot = () => <span aria-hidden className="text-ink-muted/60">·</span>;
+const Dot = () => (
+  <span aria-hidden className="row-start-2 self-center text-ink-muted/60">
+    ·
+  </span>
+);
 
 /** One assignment: the whole card is the link, its title and status on the left, the due date and an arrow on the right. */
 function Card({ card, row }: { card: AssignmentCard; /** Its row in the section's grid, first column. */ row: number }) {
@@ -159,7 +164,12 @@ function Card({ card, row }: { card: AssignmentCard; /** Its row in the section'
           <h3 className="truncate font-display text-[31px] leading-tight text-ink" data-card-title>
             {card.name}
           </h3>
-          <p className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[17px] leading-7 text-ink-soft" data-status-line>
+          {/*
+            The status line is a grid (ticket 323): its 28 px row carries the words and pills, the 22 px row above carries the top
+            gaps' skill tags over their pills. The tag row is kept when no tag shows, so a live card is one height before and after
+            its first mistake and every card is one height.
+          */}
+          <p className="mt-2.5 grid grid-rows-[22px_28px] justify-start gap-x-3 gap-y-1.5 text-[17px] leading-7 whitespace-nowrap text-ink-soft" data-status-line>
             {card.status === "live" ? <LiveLine card={card} /> : <PastLine card={card} />}
           </p>
         </div>
@@ -229,21 +239,21 @@ function Count({ n, of }: { n: number; of?: number }) {
   );
 }
 
+/** An item on the status line's own row (ticket 323): the grid's second row, centred on its 28 px. */
+const ON_LINE = "row-start-2 self-center";
+
 function LiveLine({ card }: { card: AssignmentCard }) {
   return (
     <>
-      <span className="inline-flex items-center gap-2 font-medium text-secure" data-live>
+      <span className={`${ON_LINE} inline-flex items-center gap-2 font-medium text-secure`} data-live>
         <span aria-hidden className="live-dot h-2.5 w-2.5 rounded-full bg-secure" />
         live
       </span>
       <Dot />
-      <span data-submitted>
+      <span className={ON_LINE} data-submitted>
         <Count n={card.submitted} of={card.total} /> submitted
       </span>
-      <Dot />
-      <span data-mistakes>
-        <Count n={card.mistakes} /> {card.mistakes === 1 ? "mistake" : "mistakes"} so far
-      </span>
+      <TopGaps card={card} label="top gaps so far:" />
     </>
   );
 }
@@ -253,24 +263,51 @@ function PastLine({ card }: { card: AssignmentCard }) {
   return (
     <>
       {/* The chips overhang the 28 px line (-my-0.5) so a card is as tall in review as live: the Live card never grows when the class moves on (ticket 234). */}
-      <span className={`-my-0.5 rounded-full border px-3 py-0.5 text-[15px] leading-6 font-medium ${tone}`} data-past-status>
+      <span className={`${ON_LINE} -my-0.5 rounded-full border px-3 py-0.5 text-[15px] leading-6 font-medium ${tone}`} data-past-status>
         {card.status}
       </span>
       <Dot />
-      <span data-submitted>
+      <span className={ON_LINE} data-submitted>
         <Count n={card.submitted} of={card.total} /> submitted
       </span>
-      {card.topGap && (
-        <>
-          <Dot />
-          <span className="inline-flex items-center gap-2" data-top-gap>
-            top gap:
-            <span className="-my-0.5 rounded-full border border-wrong-line bg-wrong-soft px-3 py-0.5 text-[15px] leading-6 font-medium text-wrong-deep" data-top-gap-name>
-              {card.topGap.name}
-            </span>
-          </span>
-        </>
-      )}
+      <TopGaps card={card} label="top gaps:" />
+    </>
+  );
+}
+
+/**
+ * The card's top gaps (ticket 323): "top gaps:" and up to three red misconception pills on the status line, each under the
+ * blue tag of the skill it sits under (`CategoryChip`, the Class View's column head). Gaps sharing a skill sit side by side
+ * under one tag spanning both (`gapGroups`), so the tag reads as their header. Nothing when nobody has slipped.
+ */
+function TopGaps({ card, label }: { card: AssignmentCard; label: string }) {
+  if (card.topGaps.length === 0) return null;
+  const groups = gapGroups(card.topGaps);
+  // Each group's first column: after the status, a dot, submitted, a dot and the label, then the groups before it.
+  const starts = groups.map((_, i) => 6 + groups.slice(0, i).reduce((n, g) => n + g.gaps.length, 0));
+  return (
+    <>
+      <Dot />
+      <span className={ON_LINE} data-top-gaps>
+        {label}
+      </span>
+      {groups.map((group, g) => {
+        const start = starts[g];
+        return (
+          <Fragment key={group.gaps[0].misconception}>
+            {group.skill !== null && (
+              <CategoryChip className="row-start-1 self-end text-center" style={{ gridColumn: `${start} / span ${group.gaps.length}` }} data-gap-skill={group.skill} data-gap-span={group.gaps.length}>
+                {group.skill}
+              </CategoryChip>
+            )}
+            {group.gaps.map((gap, i) => (
+              <span key={gap.misconception} className={`${ON_LINE} -my-0.5 justify-self-start rounded-full border border-wrong-line bg-wrong-soft px-3 py-0.5 text-[15px] leading-6 font-medium whitespace-nowrap text-wrong-deep`} style={{ gridColumn: start + i }} data-top-gap={gap.misconception}>
+                {gap.name}
+              </span>
+            ))}
+          </Fragment>
+        );
+      })}
     </>
   );
 }

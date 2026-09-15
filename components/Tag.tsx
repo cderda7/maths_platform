@@ -21,12 +21,12 @@ export function DifficultyTag({ d, className = "" }: { d: Difficulty; className?
 
 /**
  * A category's column head: its short name, uppercase on a light blue chip (the Class View's roster, ticket 141; the
- * holistic page's grid, ticket 269). Open, the Class View's column with its drill showing, it turns accent. The type is
+ * holistic page's grid, ticket 269; the skill over a top gap on the Classroom's cards, ticket 323). Open, the Class View's column with its drill showing, it turns accent. The type is
  * set here rather than inherited, at the roster head's own 0.6 px tracking, so the chip is one size wherever it sits.
  */
-export function CategoryChip({ children, open = false, className = "" }: { children: React.ReactNode; open?: boolean; className?: string }) {
+export function CategoryChip({ children, open = false, className = "", ...rest }: { children: React.ReactNode; open?: boolean; className?: string } & React.HTMLAttributes<HTMLSpanElement>) {
   return (
-    <span className={`inline-block whitespace-nowrap rounded-md px-2.5 py-1 text-[11px] font-semibold uppercase leading-tight tracking-[0.6px] ${open ? "bg-accent text-white" : "bg-standout-soft text-standout"} ${className}`}>
+    <span className={`inline-block whitespace-nowrap rounded-md px-2.5 py-1 text-[11px] font-semibold uppercase leading-tight tracking-[0.6px] ${open ? "bg-accent text-white" : "bg-standout-soft text-standout"} ${className}`} {...rest}>
       {children}
     </span>
   );

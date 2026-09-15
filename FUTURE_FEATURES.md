@@ -1600,6 +1600,13 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **Varying the context, not only the numbers.** Q9* and Q9** keep the ball; a different context (a stone, a jump) would test that the student sees the structure under new words. Deferred: the ticket asks for the same stem.
 - **A figure generated from the rule.** Each Q8-style graph is a hand-tuned `ParabolaSpec` (scale, ticks, curve range). A spec computed from b and c would make generated sets possible. Deferred: three graphs, all checked by a test against their questions.
 
+## Classroom top gaps (ticket 323, 2026-09-15)
+
+- **A gap under more than one skill.** A misconception's tag is the skill most of its wrong lines carry; one spread across two (a sign lost in algebra and in graphing) could show both tags or split into two gaps. Deferred: one tag per pill keeps the row readable, and no set's top three is close to split today.
+- **Student counts on the gap pills.** The ranking is by students ("brackets don't expand back · 7"); the count was left off, since the user called the mistakes count useless and a count on a pill may read the same way.
+- **Pressing a gap.** A pill could open the set's Mistakes tab filtered to that misconception. Not built: the whole card is one link today.
+- **A fit rule for long names.** Three of the longest names beside "top gaps so far:" still clear the due date at 1280×800; a longer name or a fourth gap would need FitText or a second line.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

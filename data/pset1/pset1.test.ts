@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { PS1_CLASSMATES, PS1_SAM } from "./classmates";
 import { assignmentBundle } from "@/lib/assignments";
 import { INITIAL_CLASSROOM } from "@/lib/classroom";
-import { assignmentCard, topGap } from "@/lib/classroomCards";
+import { assignmentCard } from "@/lib/classroomCards";
 import { evaluateLine } from "@/lib/evaluate";
 import { groupBySlip, mistakesByProblem } from "@/lib/mistakes";
 
@@ -37,13 +37,14 @@ describe("Problem Set 1 — Surds (ticket 211)", () => {
     expect(names("finn")).toEqual(["divided-wrong-way", "divided-wrong-way"]);
   });
 
-  it("the Classroom's card: 20/20, 20 mistakes (15 before ticket 281), top gap a square out with its root not taken on three students, roots added like numbers tied on three but seen later (ticket 299)", () => {
+  it("the Classroom's card: 20/20, 20 mistakes (15 before ticket 281), top gaps a square out with its root not taken, roots added like numbers and a fraction turned over, three students each in the order first seen, the two surd slips under surds (tickets 299, 323)", () => {
     const card = assignmentCard(b, INITIAL_CLASSROOM, null, now);
     expect(card).toMatchObject({ submitted: 20, total: 20, mistakes: 20 });
-    expect(card.topGap).toEqual({ misconceptions: ["root-not-taken"], name: "square out, root not taken", students: 3 });
-    const ms = mistakesByProblem(null, b);
-    const rest = ms.map((m) => ({ ...m, rows: m.rows.filter((r) => !r.misconceptions.includes("root-not-taken")) }));
-    expect(topGap(rest)).toEqual({ misconceptions: ["roots-added"], name: "roots added like numbers", students: 3 });
+    expect(card.topGaps).toEqual([
+      { misconception: "root-not-taken", name: "square out, root not taken", students: 3, skill: "surds" },
+      { misconception: "roots-added", name: "roots added like numbers", students: 3, skill: "surds" },
+      { misconception: "divided-wrong-way", name: "divided the wrong way round", students: 3, skill: "Algebra" },
+    ]);
   });
 
   it("every problem's Mistakes row keeps to three columns of working or fewer (a sentence answer overflows five at 1280)", () => {

@@ -5311,3 +5311,22 @@ rule for pens is untouched and the exception is visible and named.
 **Tradeoffs.** Two whole questions per set question to author (sets made through Create will need generation). A fraction warm-up's completion step is long. Q10's and the conclusions skill's blanks are sentences, which ticket 311 judges word for word. Exported figure specs make `components/Figure.tsx` a data source for a test.
 
 **Defense.** The screens get one obvious shape they already know how to draw and one rule for blanks written once, the questions are held by tests to Q's structure and to true maths rather than by anyone's reading, and nothing a student sees has changed until the screens use it.
+
+## 2026-09-15 · A Classroom card's top gaps are three misconceptions, each under the skill it sits under (ticket 323)
+
+**Decision.** A card reads "top gaps:" ("top gaps so far:" while live) and the set's three most common misconceptions, ranked by how many different students slipped with each (ties by first seen). Over each red pill sits a blue skill tag, the Class View's `CategoryChip`. The tag names the skill most of that misconception's own wrong lines are tagged with: its home category's short name ("Algebra"), or, when that skill is one of the set's New skills, the skill itself ("surds", "binomial identity"). Gaps sharing a tag sit together under one tag spanning both. The groups are ordered by their best gap, so the top gap stays first. The live card no longer counts mistakes. `partial-distribution` is renamed "not multiplied into every term".
+
+**Context.** The user (2026-09-15) asked for the blue topic tag over each gap, never "New skills", three gaps on every card, one wide tag over gaps of the same skill, no "47 mistakes so far", and a precise name for "applied to some terms only".
+
+**Alternatives considered.**
+- *Keep ranking exact clusters (ticket 299's "A + B" pills)*: a cluster of two misconceptions can sit under two skills, so it has no one tag, and three clusters often repeat one misconception. Ranking single misconceptions gives three distinct gaps, each with one skill.
+- *Tag by the misconception alone*: misconceptions are independent of skills by design (a root sign wrong happens on zeros, turning points and intercepts), so the tag has to come from the lines the set's students actually wrote.
+- *Always the home category, even for a new skill*: the user asked that the tag specify the skill; the Class View's "New skills" column is a per-set bin, not a place a teacher can act on.
+- *Keep the gaps in strict rank order and repeat a tag*: a shared tag could then not span its pills; grouping moves at most one lower-ranked gap left.
+- *Collapse the empty tag row*: the Live card would grow 28 px under the pinned header when the first mistake arrives (ticket 234 keeps it one height).
+- *Splitting `partial-distribution`*: ids are permanent and splitting needs a grain review (already in FUTURE_FEATURES); the name and `about` now say what every line under it shares, a multiplier not reaching every term (dividing and taking out a factor are named in `about`).
+
+**Tradeoffs.** Every card is 28 px taller. A gap's tag is a majority of its lines, so a misconception spread across two skills shows only one. The top gap on PS6 once done includes Sam's live slips, so it can differ from the sheet's classmates-only row. Three long names fill the line at 1280×800 with the due date still clear; a longer name could crowd it.
+
+**Defense.** The teacher sees what went wrong and where it sits in the course in one glance, grouped the way the Class View's columns already teach, with a count that means something in place of one that doesn't.
+

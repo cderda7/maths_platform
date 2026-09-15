@@ -174,13 +174,13 @@ describe.each(FINISHED_SETS.map((s) => [s.fixture.id, s] as const))("finished se
     expect(earlierAssignmentIds(id)).toEqual(older);
   });
 
-  it("the Classroom's card: done, everyone but the missing handed in, the sheet's top gap", () => {
+  it("the Classroom's card: done, everyone but the missing handed in, the sheet's top gaps", () => {
     const missing = everyone.filter((c) => c.done === 0).length;
     expect(submittedCount(bundle, null, now)).toEqual({ submitted: CLASS_SIZE - missing, total: CLASS_SIZE });
     for (const c of everyone) expect(rosterProgress(bundle, null, now)[c.id], c.id).toEqual(c.done === 0 ? { kind: "not-started" } : { kind: "submitted" });
     const card = assignmentCard(bundle, INITIAL_CLASSROOM, null, now);
     expect(card).toMatchObject({ id, name: set.name, due: f.due, section: "past", status: "done", submitted: CLASS_SIZE - missing, total: CLASS_SIZE });
-    expect(card.topGap?.name).toBe(story.topGap);
+    expect(card.topGaps.map((g) => g.name)).toEqual(story.topGaps);
   });
 
   it("the Mistakes tab: every problem, right and wrong counts adding up to who reached it, every wrong row with a slip", () => {

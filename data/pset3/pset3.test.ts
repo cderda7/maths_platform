@@ -4,7 +4,7 @@ import { PS3_PROBLEMS } from "./assignment";
 import { PS3_CLASSMATES, PS3_SAM } from "./classmates";
 import { assignmentBundle } from "@/lib/assignments";
 import { INITIAL_CLASSROOM } from "@/lib/classroom";
-import { assignmentCard, topGap } from "@/lib/classroomCards";
+import { assignmentCard } from "@/lib/classroomCards";
 import { evaluateLine } from "@/lib/evaluate";
 import { groupBySlip, mistakesByProblem } from "@/lib/mistakes";
 
@@ -44,11 +44,13 @@ describe("Problem Set 3's Mistakes tab and card (ticket 213)", () => {
     for (const m of ms) expect(groupBySlip(m.rows).flatMap((g) => g.columns).length, m.problem.id).toBeLessThanOrEqual(m.problem.id === "ps3-q10" ? 5 : 4);
   });
 
-  it("has a clear top gap: a pair guessed and not expanded back on seven students, a square and a difference of squares mixed next on five (ticket 299)", () => {
+  it("has clear top gaps: a pair guessed and not expanded back on seven students, a square and a difference of squares mixed next on five (tickets 299, 323)", () => {
     const card = assignmentCard(b, INITIAL_CLASSROOM, null, now);
     expect(card).toMatchObject({ submitted: 20, total: 20 });
-    expect(card.topGap).toEqual({ misconceptions: ["brackets-dont-expand"], name: "brackets don't expand back", students: 7 });
-    const rest = ms.map((m) => ({ ...m, rows: m.rows.filter((r) => r.misconceptions.join() !== "brackets-dont-expand") }));
-    expect(topGap(rest)).toEqual({ misconceptions: ["square-vs-difference"], name: "square and difference mixed", students: 5 });
+    expect(card.topGaps).toEqual([
+      { misconception: "brackets-dont-expand", name: "brackets don't expand back", students: 7, skill: "Algebra" },
+      { misconception: "square-vs-difference", name: "square and difference mixed", students: 5, skill: "binomial identity" },
+      { misconception: "minus-not-distributed", name: "minus not carried through", students: 4, skill: "Algebra" },
+    ]);
   });
 });

@@ -200,14 +200,14 @@ export function renderClassStory(sets: readonly StorySet[]): string {
   out.push("");
   out.push("## The sets");
   out.push("");
-  out.push("| Set | Due | New skills | Pathway | Assesses | Absent | Missing | Did not finish | Top gap | Data |");
+  out.push("| Set | Due | New skills | Pathway | Assesses | Absent | Missing | Did not finish | Top gaps | Data |");
   out.push("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |");
   for (const s of sets) {
     const i = s.n - 1;
     const absent = Object.entries(STORY).filter(([, r]) => storyAbsent(r, i)).map(([id]) => id);
     const missing = Object.entries(STORY).filter(([, r]) => r.done[i] === 0 && !storyAbsent(r, i)).map(([id]) => id);
     const partial = Object.entries(STORY).filter(([, r]) => r.done[i] !== null && r.done[i]! > 0 && r.done[i]! < 10).map(([id, r]) => `${id} ${r.done[i]}`);
-    out.push(`| ${s.name} | ${s.due} | ${s.newSkills.map((l) => leafName(l).short).join(", ")} | ${s.pathway.join(" → ")} | ${s.categories.map((c) => categoryName(c).short).join(", ")} | ${absent.join(", ") || "nobody"} | ${missing.join(", ") || "nobody"} | ${partial.join(", ") || "nobody"} | ${s.topGap} | ${s.source} |`);
+    out.push(`| ${s.name} | ${s.due} | ${s.newSkills.map((l) => leafName(l).short).join(", ")} | ${s.pathway.join(" → ")} | ${s.categories.map((c) => categoryName(c).short).join(", ")} | ${absent.join(", ") || "nobody"} | ${missing.join(", ") || "nobody"} | ${partial.join(", ") || "nobody"} | ${s.topGaps.join("; ")} | ${s.source} |`);
   }
   out.push("");
   for (const s of sets) {

@@ -1,4 +1,6 @@
 import { misconceptionName, type MisconceptionId } from "@/data/misconceptions";
+import { categoryName, categoryOf, leafName, NEW_SKILLS, type LeafId } from "@/data/taxonomy";
+import { columnOf } from "./hierarchy";
 import { dayLabel, DEMO_TODAY, dueOrder } from "./dueDate";
 import { CLASS_HOMEWORK_STORY } from "@/data/homeworks";
 import { classHomeworks, futureHomeworks, homeworkColumn, homeworkDoneCount } from "./homeworks";
@@ -26,37 +28,75 @@ export const CLASS_SUBJECT = "Mathematical Methods";
  */
 export const mistakeCount = (problems: readonly ProblemMistakes[]): number => problems.reduce((n, p) => n + p.rows.length, 0);
 
-/** The set's most common mistake cluster: the misconceptions its students slipped with, named as on the Mistakes tab's chips (ticket 299). */
+/** How many gaps a card names (ticket 323). */
+export const TOP_GAPS = 3;
+
+/** One of a set's most common misconceptions (tickets 299, 323), named as on the Mistakes tab's chips, with the skill it sits under. */
 export interface TopGap {
-  misconceptions: MisconceptionId[];
-  /** The cluster's misconceptions by name, joined: "brackets don't expand back", "root or vertex sign wrong + halving step wrong". */
+  misconception: MisconceptionId;
+  /** The misconception's taxonomy name: "brackets don't expand back". */
   name: string;
-  /** How many different students are in the cluster on at least one problem. */
+  /** How many different students slipped with it on at least one problem. */
   students: number;
+  /**
+   * The skill its wrong lines are tagged with on this set: the home category's short name ("Algebra"), or, when the
+   * skill is one of the set's New skills, that skill's own short name ("surds"), never "New skills". Null when no
+   * wrong line carrying it has a tag.
+   */
+  skill: string | null;
+}
+
+/** A skill tag's label on a set (ticket 323): its home category's short name, or its own name when the set lists it as new. */
+const skillLabel = (leaf: LeafId, newSkills: readonly LeafId[]): string => (columnOf(leaf, newSkills) === NEW_SKILLS ? leafName(leaf).short : categoryName(categoryOf(leaf)).short);
+
+/**
+ * A set's top gaps (tickets 186, 299, 323): every misconception any student slipped with, gathered across every problem,
+ * ranked by how many different students slipped with it (a student counts once however many problems or lines), a tie
+ * going to the one seen first in problem order, then row order, then line order; the first `n`. Each gap's skill is the
+ * label most of its wrong lines' tags carry (`skillLabel`), a tie going to the one seen first. Empty when nobody slipped.
+ */
+export function topGaps(problems: readonly ProblemMistakes[], newSkills: readonly LeafId[], n: number = TOP_GAPS): TopGap[] {
+  const seen = new Map<MisconceptionId, { students: Set<string>; skills: Map<string, number> }>();
+  for (const p of problems) {
+    for (const r of p.rows) {
+      for (const m of r.misconceptions) {
+        const gap = seen.get(m) ?? { students: new Set<string>(), skills: new Map<string, number>() };
+        gap.students.add(r.id);
+        seen.set(m, gap);
+      }
+      for (const { verdict } of r.lines) {
+        if (verdict.verdict !== "wrong" || !verdict.misconception) continue;
+        const skills = seen.get(verdict.misconception)?.skills;
+        if (!skills) continue;
+        for (const label of new Set(verdict.tags.map((t) => skillLabel(t.leaf, newSkills)))) skills.set(label, (skills.get(label) ?? 0) + 1);
+      }
+    }
+  }
+  const mostTagged = (skills: Map<string, number>): string | null => [...skills].reduce<[string, number] | null>((best, s) => (!best || s[1] > best[1] ? s : best), null)?.[0] ?? null;
+  return [...seen]
+    .map(([misconception, g]) => ({ misconception, name: misconceptionName(misconception), students: g.students.size, skill: mostTagged(g.skills) }))
+    .sort((a, b) => b.students - a.students)
+    .slice(0, n);
+}
+
+/** Gaps under one skill, side by side under one wide skill tag (ticket 323). */
+export interface GapGroup {
+  skill: string | null;
+  gaps: TopGap[];
 }
 
 /**
- * The top gap across a set (tickets 186, 299): a cluster is the exact set of misconceptions a student slipped with
- * in one problem (the Mistakes tab's pill over a group of students, `groupBySlip`), gathered across
- * every problem; the cluster with the most different students wins, a tie going to the cluster seen
- * first in problem order (then row order within the problem). A row with no recognised slip joins
- * no cluster. Null when nobody has slipped.
+ * The card's gaps grouped by skill (ticket 323): gaps sharing a skill sit together under one tag, the groups in the
+ * order of their best-ranked gap and each group's gaps in rank order, so the first gap on the card is still the top one.
  */
-export function topGap(problems: readonly ProblemMistakes[]): TopGap | null {
-  const clusters = new Map<string, { misconceptions: MisconceptionId[]; students: Set<string> }>();
-  for (const p of problems) {
-    for (const r of p.rows) {
-      const misconceptions = [...new Set(r.misconceptions)];
-      if (misconceptions.length === 0) continue;
-      const key = misconceptions.join("|");
-      const cluster = clusters.get(key) ?? { misconceptions, students: new Set<string>() };
-      cluster.students.add(r.id);
-      clusters.set(key, cluster);
-    }
+export function gapGroups(gaps: readonly TopGap[]): GapGroup[] {
+  const groups: GapGroup[] = [];
+  for (const gap of gaps) {
+    const group = gap.skill === null ? undefined : groups.find((g) => g.skill === gap.skill);
+    if (group) group.gaps.push(gap);
+    else groups.push({ skill: gap.skill, gaps: [gap] });
   }
-  let best: { misconceptions: MisconceptionId[]; students: Set<string> } | null = null;
-  for (const c of clusters.values()) if (!best || c.students.size > best.students.size) best = c;
-  return best && { misconceptions: best.misconceptions, name: best.misconceptions.map(misconceptionName).join(" + "), students: best.students.size };
+  return groups;
 }
 
 export type CardSection = "live" | "past";
@@ -74,10 +114,10 @@ export interface AssignmentCard {
   status: CardStatus;
   submitted: number;
   total: number;
-  /** `mistakeCount` of the set: the live card's "7 mistakes so far". */
+  /** `mistakeCount` of the set: every row of its Mistakes tab. */
   mistakes: number;
-  /** The past card's insight; computed for every card, null when nobody has slipped. */
-  topGap: TopGap | null;
+  /** The card's insight (ticket 323): "top gaps" on a past card, "top gaps so far" on a live one; empty when nobody has slipped. */
+  topGaps: TopGap[];
 }
 
 export function assignmentCard(b: AssignmentBundle, c: ClassroomState | null | undefined, session: StudentSession | null, now: number): AssignmentCard {
@@ -87,7 +127,7 @@ export function assignmentCard(b: AssignmentBundle, c: ClassroomState | null | u
   const status: CardStatus = current === null ? "done" : current.id === "working" ? "live" : "in review";
   const mistakes = mistakesByProblem(session, b, now);
   const { submitted, total } = submittedCount(b, session, now);
-  return { id: b.id, name: b.name, due: b.due, href: assignmentHref(b.id), section, status, submitted, total, mistakes: mistakeCount(mistakes), topGap: topGap(mistakes) };
+  return { id: b.id, name: b.name, due: b.due, href: assignmentHref(b.id), section, status, submitted, total, mistakes: mistakeCount(mistakes), topGaps: topGaps(mistakes, b.newSkills) };
 }
 
 /** A due date's place in the year (`lib/dueDate.ts`), for sorting. */

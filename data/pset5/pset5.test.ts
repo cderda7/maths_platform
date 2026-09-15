@@ -14,7 +14,7 @@ import { INITIAL_CLASSROOM } from "@/lib/classroom";
 import { CLASS_SIZE } from "@/lib/readiness";
 import { sessionAt } from "@/lib/session";
 import { skipFixture } from "@/lib/demo";
-import { assignmentCard, topGap } from "@/lib/classroomCards";
+import { assignmentCard } from "@/lib/classroomCards";
 
 const now = 1_700_000_000_000;
 const everyone = [PS5_SAM, ...PS5_CLASSMATES];
@@ -101,13 +101,15 @@ describe("Problem Set 5 in the registry (ticket 187)", () => {
     expect(clusters[1].students).toBeLessThan(6);
   });
 
-  it("the Classroom's PAST card: done, 20/20 submitted, top gap a pair guessed and not expanded back on seven students, a root or vertex sign wrong next on five (ticket 299)", () => {
+  it("the Classroom's PAST card: done, 20/20 submitted, top gaps brackets not expanding back on seven students, then a root or vertex sign wrong on five and an x given where y was asked on four, the last two under Graphing (tickets 299, 323)", () => {
     const card = assignmentCard(b, INITIAL_CLASSROOM, null, now);
     expect(card).toMatchObject({ id: "pset-5", name: "Problem Set 5 — Features of a parabola", due: "Mon 7 Sep", section: "past", status: "done", submitted: 20, total: 20, mistakes: 49 });
-    // Ticket 299: clusters are misconceptions, so the turning points' signs and the intercepts' signs read off the brackets are one cluster, and the heights given as x another.
-    expect(card.topGap).toEqual({ misconceptions: ["brackets-dont-expand"], name: "brackets don't expand back", students: 7 });
-    const rest = mistakesByProblem(null, b).map((m) => ({ ...m, rows: m.rows.filter((r) => !r.misconceptions.includes("brackets-dont-expand")) }));
-    expect(topGap(rest)).toEqual({ misconceptions: ["root-vertex-sign"], name: "root or vertex sign wrong", students: 5 });
+    // Ticket 299: the turning points' signs and the intercepts' signs read off the brackets are one misconception, and the heights given as x another (both under Graphing, ticket 323).
+    expect(card.topGaps).toEqual([
+      { misconception: "brackets-dont-expand", name: "brackets don't expand back", students: 7, skill: "Algebra" },
+      { misconception: "root-vertex-sign", name: "root or vertex sign wrong", students: 5, skill: "Graphing" },
+      { misconception: "x-for-y", name: "x given where y asked", students: 4, skill: "Graphing" },
+    ]);
   });
 
   it("a name opens that student's own record: report link, commentary and words", () => {

@@ -3,7 +3,7 @@ import { PS2 } from ".";
 import { PS2_CLASSMATES, PS2_SAM } from "./classmates";
 import { assignmentBundle } from "@/lib/assignments";
 import { INITIAL_CLASSROOM } from "@/lib/classroom";
-import { assignmentCard, topGap } from "@/lib/classroomCards";
+import { assignmentCard } from "@/lib/classroomCards";
 import { evaluateLine } from "@/lib/evaluate";
 import { groupBySlip, mistakesByProblem } from "@/lib/mistakes";
 
@@ -41,12 +41,12 @@ describe("Problem Set 2's data (ticket 212)", () => {
     expect(everyone.filter((c) => c.done < 10).map((c) => [c.id, c.done])).toEqual([["tomas", 8], ["liam", 5], ["grace", 7]]);
   });
 
-  it("has a clear top gap: a multiplier applied to some terms only on six students, a product's sign next on three (ticket 299)", () => {
-    const ms = mistakesByProblem(null, b);
-    expect(topGap(ms)).toEqual({ misconceptions: ["partial-distribution"], name: "applied to some terms only", students: 6 });
-    const rest = ms.map((m) => ({ ...m, rows: m.rows.filter((r) => r.misconceptions.join() !== "partial-distribution") }));
-    expect(topGap(rest)).toEqual({ misconceptions: ["product-sign"], name: "sign of a product wrong", students: 3 });
-    expect(assignmentCard(b, INITIAL_CLASSROOM, null, now).topGap!.name).toBe("applied to some terms only");
+  it("has a clear top gap: a number not multiplied into every term on six students, then a square and difference mixed on four under the binomial identity, a product's sign on three (tickets 299, 323)", () => {
+    expect(assignmentCard(b, INITIAL_CLASSROOM, null, now).topGaps).toEqual([
+      { misconception: "partial-distribution", name: "not multiplied into every term", students: 6, skill: "Algebra" },
+      { misconception: "square-vs-difference", name: "square and difference mixed", students: 4, skill: "binomial identity" },
+      { misconception: "product-sign", name: "sign of a product wrong", students: 3, skill: "Algebra" },
+    ]);
   });
 
   it("keeps every problem to four columns of working or fewer, so no line overflows its box at 1280", () => {

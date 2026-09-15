@@ -64,8 +64,8 @@ export interface StorySet {
   categories: readonly StoryCategory[];
   /** Ten problems for a set still to be authored (their model solutions carry at least these leaves); null for an authored set. */
   outline: readonly OutlineProblem[] | null;
-  /** The Classroom card's top gap, as it reads: the misconceptions' names (ticket 299). */
-  topGap: string;
+  /** The Classroom card's top gaps, as they read, top first: the misconceptions' names (tickets 299, 323). */
+  topGaps: readonly string[];
   /** Where the set's data lives. */
   source: string;
 }
@@ -113,7 +113,7 @@ export const STORY_SETS: readonly StorySet[] = [
       q("Solve, leaving the answer exact: √3 x = √75 − √12.", SURDS, LIN, FRAC),
       q("A square tile has area 72 cm². Find its side length and its diagonal, exactly.", WORDED, SURDS, CONCL),
     ],
-    topGap: "square out, root not taken",
+    topGaps: ["square out, root not taken", "roots added like numbers", "divided the wrong way round"],
     source: "ticket 211, data/pset1/",
   },
   {
@@ -137,7 +137,7 @@ export const STORY_SETS: readonly StorySet[] = [
       q("Simplify 1/(2 + √3) + 1/(2 − √3).", BINOM, FRAC),
       q("A rectangle is (3 + √2) cm by (3 − √2) cm. Find its area and the length of its diagonal, exactly.", WORDED, BINOM, SURDS, CONCL),
     ],
-    topGap: "applied to some terms only",
+    topGaps: ["not multiplied into every term", "square and difference mixed", "sign of a product wrong"],
     source: "ticket 212, data/pset2/",
   },
   {
@@ -161,7 +161,7 @@ export const STORY_SETS: readonly StorySet[] = [
       q("Factorise 2x² + 7x + 3.", NONMONIC),
       q("Show that (x + 3)² − (x − 3)² = 12x.", FORMAL, BINOM, EXPAND),
     ],
-    topGap: "brackets don't expand back",
+    topGaps: ["brackets don't expand back", "square and difference mixed", "minus not carried through"],
     source: "ticket 213, data/pset3/",
   },
   {
@@ -185,7 +185,7 @@ export const STORY_SETS: readonly StorySet[] = [
       q("Find the minimum value of x² − 4x + 7 by completing the square.", BINOM, FEAT),
       q("A rectangle's length is 3 cm more than twice its width and its area is 35 cm². Find its width.", WORDED, QUAD, NONMONIC, NFL, CONCL),
     ],
-    topGap: "brackets don't expand back",
+    topGaps: ["brackets don't expand back", "root or vertex sign wrong", "square added, not taken away"],
     source: "ticket 214, data/pset4/",
   },
   {
@@ -198,7 +198,7 @@ export const STORY_SETS: readonly StorySet[] = [
     pathway: ["individual", "group"],
     categories: ALL,
     outline: null,
-    topGap: "brackets don't expand back",
+    topGaps: ["brackets don't expand back", "root or vertex sign wrong", "x given where y asked"],
     source: "data/pset5/ (ticket 187)",
   },
   {
@@ -211,7 +211,7 @@ export const STORY_SETS: readonly StorySet[] = [
     pathway: ["individual", "group", "whole-class"],
     categories: ALL,
     outline: null,
-    topGap: "applied to some terms only",
+    topGaps: ["not multiplied into every term", "product right, sum wrong", "brackets don't expand back"],
     source: "data/assignment.ts, data/classmates.ts (the live set; rows are the classmates' end state)",
   },
 ];

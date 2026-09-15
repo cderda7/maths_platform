@@ -63,7 +63,7 @@ describe("board examples", () => {
     expect(options[0].key).toBe(CORRECT);
     expect(options[0].name).toBe("correct");
     expect(options.slice(1).map((o) => [o.name, o.count])).toEqual([
-      ["applied to some terms only", 7], // six classmates and Sam scaled two of three terms
+      ["not multiplied into every term", 7], // six classmates and Sam scaled two of three terms
       ["factor missing from answer", 4], // tripled, the third never restored
       ["product right, sum wrong", 3], // Lucas, Ruby and (ticket 189) Jordan: a pair adding to nine
     ]);

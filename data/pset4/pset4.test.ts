@@ -3,7 +3,7 @@ import { PS4_ASSIGNMENT } from "./assignment";
 import { PS4_CLASSMATES, PS4_SAM } from "./classmates";
 import { assignmentBundle } from "@/lib/assignments";
 import { INITIAL_CLASSROOM } from "@/lib/classroom";
-import { assignmentCard, topGap } from "@/lib/classroomCards";
+import { assignmentCard } from "@/lib/classroomCards";
 import { evaluateLine } from "@/lib/evaluate";
 import { categoriesTouched } from "@/lib/hierarchy";
 import { groupBySlip, mistakesByProblem } from "@/lib/mistakes";
@@ -49,12 +49,14 @@ describe("Problem Set 4 in the registry (ticket 214)", () => {
   const b = assignmentBundle("pset-4", INITIAL_CLASSROOM)!;
   const ms = mistakesByProblem(null, b);
 
-  it("has a clear top gap: a pair guessed and not expanded back on eight students, a root or vertex sign wrong next on six (ticket 299)", () => {
+  it("has clear top gaps: a pair guessed and not expanded back on eight students, a root or vertex sign wrong next on six (tickets 299, 323)", () => {
     const card = assignmentCard(b, INITIAL_CLASSROOM, null, now);
     expect(card).toMatchObject({ id: "pset-4", due: "Fri 4 Sep", section: "past", status: "done", submitted: 20, total: 20, mistakes: 59 });
-    expect(card.topGap).toEqual({ misconceptions: ["brackets-dont-expand"], name: "brackets don't expand back", students: 8 });
-    const rest = ms.map((m) => ({ ...m, rows: m.rows.filter((r) => r.misconceptions.join() !== "brackets-dont-expand") }));
-    expect(topGap(rest)).toEqual({ misconceptions: ["root-vertex-sign"], name: "root or vertex sign wrong", students: 6 });
+    expect(card.topGaps).toEqual([
+      { misconception: "brackets-dont-expand", name: "brackets don't expand back", students: 8, skill: "Algebra" },
+      { misconception: "root-vertex-sign", name: "root or vertex sign wrong", students: 6, skill: "Graphing" },
+      { misconception: "square-not-balanced", name: "square added, not taken away", students: 4, skill: "binomial identity" },
+    ]);
   });
 
   it("keeps every problem's wrong workings to four columns or fewer, but for Q5's six short lines and five on Q4, Q7 and Q10 (Liam's Q4 since ticket 281, Sam's Q10 since ticket 294)", () => {

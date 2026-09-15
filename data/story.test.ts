@@ -17,7 +17,7 @@ import { FINISHED_SETS } from "@/lib/finishedSets";
 import { recordReviewProblems } from "@/lib/group";
 import { classmateLines } from "@/lib/hierarchy";
 import { reviewByRule, wrongOnOneLine } from "@/lib/reviewRule";
-import { topGap } from "@/lib/classroomCards";
+import { topGaps } from "@/lib/classroomCards";
 import { dueOrder } from "@/lib/dueDate";
 import { columnOf } from "@/lib/hierarchy";
 import { mistakesByProblem } from "@/lib/mistakes";
@@ -204,9 +204,9 @@ describe("the class story sheet (ticket 210)", () => {
     }
   });
 
-  it("Problem Set 6's top gap is the classmates' (Sam's live row aside)", () => {
+  it("Problem Set 6's top gaps are the classmates' (Sam's live row aside)", () => {
     const b = assignmentBundle(ASSIGNMENT.id, skipFixture("working", 0).classroom)!;
-    expect(topGap(mistakesByProblem(null, { ...b, startedAt: null }))!.name).toBe(STORY_SETS[5].topGap);
+    expect(topGaps(mistakesByProblem(null, { ...b, startedAt: null }), b.newSkills).map((g) => g.name)).toEqual(STORY_SETS[5].topGaps);
   });
 
   it("has a review part for every set: each student's cases in problem order, a known outcome and reasoning, none for Sam on the live set (ticket 244)", () => {

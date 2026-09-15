@@ -163,7 +163,7 @@ through it on a fixed script (`data/stream.ts`, read by `lib/stream.ts`), one pr
 submission ticks that problem's correct count on Mistakes and drops the student's name into its cluster with a faint
 glow that fades (a name arriving while the pointer rests on its card, or a card above the pointer, waits until the
 pointer moves on, so nothing moves under it); Class View's row reads "warming up" or "Q<n> in progress" and gets its
-dots when the student hands in; the Classroom card's "n/20 submitted · n mistakes so far" ticks. The first name
+dots when the student hands in; the Classroom card's "n/20 submitted" ticks and its "top gaps so far" follow the class (ticket 323). The first name
 lands about 8 s in (Ethan's Q1); Jordan, Tomas, Amelia, Mia and Oliver warm up first; most hand in four to six
 minutes in; Jordan answers Q1–Q7 and stays on Q8; Chloe never starts. The end state is 17/20 (Sam is the real
 student tab), still individual working. A reload continues from the stored start; Reset demo removes the set; a

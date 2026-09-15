@@ -15,14 +15,14 @@ The contract for the six sets in the Classroom (ticket 210). For every student a
 
 ## The sets
 
-| Set | Due | New skills | Pathway | Assesses | Absent | Missing | Did not finish | Top gap | Data |
+| Set | Due | New skills | Pathway | Assesses | Absent | Missing | Did not finish | Top gaps | Data |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Problem Set 1 — Surds | Tue 25 Aug | surds | individual → group → whole-class | Algebra, Communication, Reasoning, New skills | nobody | nobody | tomas 9, liam 5, grace 8 | square out, root not taken | ticket 211, data/pset1/ |
-| Problem Set 2 — Rationalising and expanding with surds | Fri 28 Aug | surds, binomial identity | individual → group | Algebra, Communication, Reasoning, New skills | nobody | nobody | tomas 8, liam 5, grace 7 | applied to some terms only | ticket 212, data/pset2/ |
-| Problem Set 3 — Expanding and factorising | Tue 1 Sep | binomial identity | individual → group → whole-class | Algebra, Communication, Reasoning, New skills | nobody | nobody | jordan 9, liam 5, grace 9, oliver 9 | brackets don't expand back | ticket 213, data/pset3/ |
-| Problem Set 4 — Non-monic factorising and completing the square | Fri 4 Sep | binomial identity, null factor law | individual → group | Algebra, Functions, Graphing, Communication, Reasoning, New skills | nobody | nobody | jordan 8, tomas 9, liam 5, grace 6, oliver 8 | brackets don't expand back | ticket 214, data/pset4/ |
-| Problem Set 5 — Features of a parabola | Mon 7 Sep | null factor law, binomial identity | individual → group | Algebra, Functions, Graphing, Communication, Reasoning, New skills | nobody | nobody | jordan 8, tomas 7, liam 5, grace 7, oliver 9 | brackets don't expand back | data/pset5/ (ticket 187) |
-| Problem Set 6 — Roots of a quadratic | Thu 10 Sep | discriminant, null factor law | individual → group → whole-class | Algebra, Functions, Graphing, Communication, Reasoning, New skills | chloe | nobody | jordan 7, tomas 7, liam 4, noah 9, ethan 8, grace 4, harper 6, oliver 7 | applied to some terms only | data/assignment.ts, data/classmates.ts (the live set; rows are the classmates' end state) |
+| Problem Set 1 — Surds | Tue 25 Aug | surds | individual → group → whole-class | Algebra, Communication, Reasoning, New skills | nobody | nobody | tomas 9, liam 5, grace 8 | square out, root not taken; roots added like numbers; divided the wrong way round | ticket 211, data/pset1/ |
+| Problem Set 2 — Rationalising and expanding with surds | Fri 28 Aug | surds, binomial identity | individual → group | Algebra, Communication, Reasoning, New skills | nobody | nobody | tomas 8, liam 5, grace 7 | not multiplied into every term; square and difference mixed; sign of a product wrong | ticket 212, data/pset2/ |
+| Problem Set 3 — Expanding and factorising | Tue 1 Sep | binomial identity | individual → group → whole-class | Algebra, Communication, Reasoning, New skills | nobody | nobody | jordan 9, liam 5, grace 9, oliver 9 | brackets don't expand back; square and difference mixed; minus not carried through | ticket 213, data/pset3/ |
+| Problem Set 4 — Non-monic factorising and completing the square | Fri 4 Sep | binomial identity, null factor law | individual → group | Algebra, Functions, Graphing, Communication, Reasoning, New skills | nobody | nobody | jordan 8, tomas 9, liam 5, grace 6, oliver 8 | brackets don't expand back; root or vertex sign wrong; square added, not taken away | ticket 214, data/pset4/ |
+| Problem Set 5 — Features of a parabola | Mon 7 Sep | null factor law, binomial identity | individual → group | Algebra, Functions, Graphing, Communication, Reasoning, New skills | nobody | nobody | jordan 8, tomas 7, liam 5, grace 7, oliver 9 | brackets don't expand back; root or vertex sign wrong; x given where y asked | data/pset5/ (ticket 187) |
+| Problem Set 6 — Roots of a quadratic | Thu 10 Sep | discriminant, null factor law | individual → group → whole-class | Algebra, Functions, Graphing, Communication, Reasoning, New skills | chloe | nobody | jordan 7, tomas 7, liam 4, noah 9, ethan 8, grace 4, harper 6, oliver 7 | not multiplied into every term; product right, sum wrong; brackets don't expand back | data/assignment.ts, data/classmates.ts (the live set; rows are the classmates' end state) |
 
 ### Problem Set 1 — Surds
 

@@ -39,7 +39,7 @@ export const MISCONCEPTIONS = {
   "term-lost-rearranging": m("term lost rearranging", "A term dropped moving an equation into standard form."),
   "solving-sign": m("sign lost solving for x", "A linear factor solved to the right size of answer with the wrong sign: 2x − 1 = 0 as x = −½."),
   // Distributing and powers
-  "partial-distribution": m("applied to some terms only", "A multiplier, divisor or scale applied to some of the terms it acts on and not the rest."),
+  "partial-distribution": m("not multiplied into every term", "A number, surd or bracket multiplied into some of the terms it acts on and not the rest, or divided or taken out of some of them: √3(2√3 − 1) as 6 − 1, (2 + √5)(3 − √5) as 6 − 5, a conjugate on the bottom only, 2 taken out of 2x² only."),
   "power-on-part": m("power on part, not all", "A power applied to one part of a product or quotient: (3x)² as 3x², (5/2)² as 25/2."),
   "squared-termwise": m("squared term by term", "A bracket squared by squaring each term, the middle term missing: (a + b)² as a² + b²."),
   "middle-not-doubled": m("middle term not doubled", "A perfect square expanded with one ab where there are two."),
