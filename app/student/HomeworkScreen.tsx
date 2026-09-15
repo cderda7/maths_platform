@@ -16,7 +16,8 @@ const noSubscribe = () => () => {};
 /**
  * Sam's homework screen (tickets 292, 293): where the open Homework card's OPEN and its HW cell go. Under the heading and the way
  * back ("← Classroom", or Escape), the homework as a read-only list (`homeworkList`): **From your mistakes**, every problem he
- * ever got wrong on the sets it covers as its similar problem, grouped under each set's name, newest set first; then
+ * ever got wrong on the sets it covers (and a missed homework's leftovers not already covered by skill, ticket 294) as its similar
+ * problem, grouped under each set's name, newest set first; then
  * **Everyone**, the teacher's ten. Each question is the whole question (stem, then expression, a figure as a small thumbnail),
  * numbered in the order he does them. Nothing to press but the way back: no answering, no done marks yet.
  * A homework that is not open for him (still in the Future panel, past its due date, a stale link, Reset demo in another tab)

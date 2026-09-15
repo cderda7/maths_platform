@@ -1515,6 +1515,16 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **Grain of the seven distractor-only entries.** "wrong feature given" covers intercepts, the turning point, the axis, the landing and coefficients; "value substituted wrong" covers a lost power and a lost coefficient. Real student work may show these deserve splitting before counts accumulate.
 - **Student-facing detail.** The detail is teacher-facing; a student-worded version after the reveal is ticket 304's `ifChosen`.
 
+## Missed homework carries over (ticket 294, 2026-09-15)
+
+- **The gap from a missed homework's teacher problems.** Only a missed homework's own problems carry; its teacher's ten are never done, so a student who missed Homework 2 never practises what the teacher set for that week. The user flagged this concern: the teacher (or the next homework's Generate) could see who missed which teacher problems and pick one or two of their skills back up, or the report could name the gap. Deferred by the user's call: carrying the ten too would double the load.
+- **Per-problem homework progress.** A homework record keeps only the day it was all done, so a partly done missed homework carries every own problem, done or not. Once answering exists, carry only the undone ones.
+- **Chains of missed homeworks.** Only the homework directly before carries; if Homework 1 and 2 were both missed, Homework 1's leftovers (which went into Homework 2) do not travel on into Homework 3. Deferred: the demo has one missed homework.
+- **Show the student what was dropped as covered.** A dropped leftover disappears silently (the user rejected a "covered in current HW" note); a teacher-side view of which leftovers were judged duplicates, and by which problem, could let the teacher override the judgement.
+- **One skill per problem, authored for every bank problem.** Problem Sets 1–4 read the outline's first leaf and 5–6 are tagged by hand; a teacher's typed question has no skill and never counts as a duplicate. A skill picker in the create flow (or inference from the model solution) would cover new problems.
+- **Dedupe by a finer type than the taxonomy leaf.** Completing the square to a turning point and completing the square alone share the binomial identity, so one drops the other; a problem-type level below the leaf would keep more variety. Deferred: the user defined duplicate as the same taxonomy skill.
+- **Teacher's view of a student's homework.** The teacher cannot see which leftovers carried into a student's homework; a preview on the report or the Class View would show it.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

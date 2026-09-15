@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { classroomReducer, GRACE_MS, INITIAL_CLASSROOM, type ClassroomState, type SentHomework } from "./classroom";
 import { DEMO_PATHWAY, demoSend, teacherSkip } from "./demo";
-import { classHomeworks, futureHomeworks, homeworkColumn, homeworkForSet, homeworkOpened, homeworkSets, MISSED_NOTE, MISSED_NOTE_CURRENT, missedNote, openHomeworks, openHomeworksFor, psetDueNote } from "./homeworks";
-import { INITIAL_SESSION } from "./session";
+import { classHomeworks, futureHomeworks, homeworkColumn, homeworkForSet, homeworkOpened, homeworkSets, MISSED_NOTE, MISSED_NOTE_CURRENT, openHomeworks, openHomeworksFor, psetDueNote } from "./homeworks";
+import { missedNote } from "./homeworkList";
+import { INITIAL_SESSION, sessionAt } from "./session";
 import { studentClassroom, studentHomeworkHref } from "./studentClassroom";
 
 const now = 1_700_000_000_000;
@@ -34,7 +35,7 @@ describe("the Future panel (ticket 292)", () => {
       expect(homeworkOpened({ id: "hw-3" }, c)).toBe(false);
       expect(futureHomeworks(c)).toEqual([{ id: "hw-3", name: "Homework 3", due: "Mon 14 Sep", opensAfter: "Problem Set 6" }]);
       expect(studentClassroom(c, INITIAL_SESSION, now).todo.filter((k) => k.kind === "homework")).toEqual([]);
-      expect(missedNote({ id: "hw-2" }, c)).toBe(MISSED_NOTE);
+      expect(missedNote({ id: "hw-2" }, c, INITIAL_SESSION)).toBe(MISSED_NOTE);
     }
   });
 
@@ -79,14 +80,14 @@ describe("opening (ticket 292)", () => {
     const todo = studentClassroom(c, INITIAL_SESSION, now).todo;
     expect(todo[0]).toEqual({ kind: "homework", id: "hw-3", name: "Homework 3", due: "Mon 14 Sep", section: "todo", action: "open", href: null });
     expect(studentHomeworkHref("hw-3")).toBe("/student/homework/hw-3");
-    expect(missedNote({ id: "hw-2" }, c)).toBe(MISSED_NOTE_CURRENT);
+    expect(missedNote({ id: "hw-2" }, c, sessionAt("report"))).toBe(MISSED_NOTE_CURRENT);
     expect(homeworkColumn([{ id: "pset-6", due: "Thu 10 Sep" }, { id: "pset-5", due: "Mon 7 Sep" }], classHomeworks(c))[0]).toMatchObject({ id: "hw-3", opened: true, row: 0, span: 2 });
   });
 
   it("past its due date it leaves To do (missed, ticket 290) and HW2's note goes back to next HW", () => {
     const c = endLesson(send(psetSent()));
     expect(openHomeworksFor(c, {}, "Tue 15 Sep")).toEqual([]);
-    expect(missedNote({ id: "hw-2" }, c, {}, "Tue 15 Sep")).toBe(MISSED_NOTE);
+    expect(missedNote({ id: "hw-2" }, c, sessionAt("report"), {}, "Tue 15 Sep")).toBe(MISSED_NOTE);
     expect(openHomeworksFor(c, { "hw-3": { finishedOn: "Sat 12 Sep" } }, "Sat 12 Sep")).toEqual([]);
   });
 });

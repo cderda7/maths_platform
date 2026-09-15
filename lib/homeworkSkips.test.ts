@@ -4,7 +4,8 @@ import { classroomReducer, INITIAL_CLASSROOM, lessonOver, type ClassroomState } 
 import { created, homeworkSent } from "./create";
 import { HOMEWORK_SKIP_TARGETS, homeworkSkip, homeworkSkipsShown, keepHomeworkStarted, readyHomework, skipFixture, SKIP_TARGETS, teacherSkip, type DemoState } from "./demo";
 import { generatedHomeworkDraft } from "./draft";
-import { classHomeworks, futureHomeworks, homeworkColumn, MISSED_NOTE, MISSED_NOTE_CURRENT, missedNote, openHomeworks } from "./homeworks";
+import { classHomeworks, futureHomeworks, homeworkColumn, MISSED_NOTE, MISSED_NOTE_CURRENT, openHomeworks } from "./homeworks";
+import { missedNote } from "./homeworkList";
 import { draftKey, type ReviewState } from "./review";
 import { INITIAL_SESSION } from "./session";
 import { studentClassroom, studentSection } from "./studentClassroom";
@@ -85,7 +86,7 @@ describe("send homework (ticket 295)", () => {
       const { classroom, session } = skip("send homework", s);
       expect(futureHomeworks(classroom)).toEqual([{ id: "hw-3", name: "Homework 3", due: "Mon 14 Sep", opensAfter: "Problem Set 6" }]);
       expect(studentClassroom(classroom, session, now).todo.filter((k) => k.kind === "homework")).toEqual([]);
-      expect(missedNote({ id: "hw-2" }, classroom)).toBe(MISSED_NOTE);
+      expect(missedNote({ id: "hw-2" }, classroom, session)).toBe(MISSED_NOTE);
       expect(homeworkColumn(studentClassroom(classroom, session, now).completed, classHomeworks(classroom))[0]).toMatchObject({ id: "hw-3", opened: false });
     }
   });
@@ -123,7 +124,7 @@ describe("homework open (ticket 295)", () => {
       expect(sections.todo[0], name).toMatchObject({ kind: "homework", id: "hw-3", action: "open" });
       expect(studentSection("pset-6", r.classroom, r.session, now), name).toBe("completed");
       expect(homeworkColumn(sections.completed, classHomeworks(r.classroom))[0], name).toMatchObject({ kind: "homework", id: "hw-3", opened: true, setIds: ["pset-6", "pset-5"] });
-      expect(missedNote({ id: "hw-2" }, r.classroom), name).toBe(MISSED_NOTE_CURRENT);
+      expect(missedNote({ id: "hw-2" }, r.classroom, r.session), name).toBe(MISSED_NOTE_CURRENT);
     }
   });
 

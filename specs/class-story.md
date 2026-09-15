@@ -392,11 +392,11 @@ The set's rows (each student's patterns are under their name below):
 | finn | 10/10 | developing | secure | solid | secure | secure | secure |
 | sofia | 10/10 | gap | secure | secure | secure | secure | solid |
 
-The set's review (individual → group): 25 fixed on the student's own rework, 44 solved in group review, 3 still wrong (each closed unsolved by the group).
+The set's review (individual → group): 25 fixed on the student's own rework, 45 solved in group review, 3 still wrong (each closed unsolved by the group).
 
 | Student | Own rework | Group review | Still wrong |
 | --- | --- | --- | --- |
-| sam | Q7, Q8 | Q1, Q2 | — |
+| sam | Q7, Q8 | Q1, Q2, Q10 | — |
 | jordan | — | Q1, Q2, Q4, Q9, Q10 | — |
 | amelia | Q6, Q7, Q10 | — | — |
 | tomas | — | Q3, Q5, Q6, Q7, Q9, Q10 | — |
@@ -416,15 +416,16 @@ The set's review (individual → group): 25 fixed on the student's own rework, 4
 | finn | Q8 | Q3, Q4 | — |
 | sofia | — | Q2, Q7 | — |
 
-- sam Q1 · group review: Repeated: right split, the signs put into the wrong brackets (Q1, Q2). Zara had Q1 right, and the group's rework holds.
-- sam Q2 · group review: Repeated: right split, the signs put into the wrong brackets (Q1, Q2). Zara had Q2 right, and the group's rework holds.
+- sam Q1 · group review: Repeated: right split, the signs put into the wrong brackets (Q1, Q2, Q10). Zara had Q1 right, and the group's rework holds.
+- sam Q2 · group review: Repeated: right split, the signs put into the wrong brackets (Q1, Q2, Q10). Zara had Q2 right, and the group's rework holds.
 - sam Q7 · own rework: One-off: half of b taken with the wrong sign completing the square, on Q7 alone. Found on the second submission.
 - sam Q8 · own rework: One-off: turning point read with the sign flipped, on Q8 alone. Found on the second submission.
+- sam Q10 · group review: Repeated: right split, the signs put into the wrong brackets (Q1, Q2, Q10). Zara had Q10 right, and the group's rework holds.
 - jordan Q1 · group review: Pattern: Algebra is a gap on the set (non-monic brackets wrong). Zara had Q1 right, and the group's rework holds.
 - jordan Q2 · group review: Pattern: Algebra is a gap on the set (non-monic brackets wrong). Zara had Q2 right, and the group's rework holds.
 - jordan Q4 · group review: Pattern: Algebra is a gap on the set (non-monic brackets wrong). Sam and Zara had Q4 right, and the group's rework holds.
 - jordan Q9 · group review: Not attempted. Sam had Q9 right, and the group's rework holds.
-- jordan Q10 · group review: Not attempted. Sam and Zara had Q10 right, and the group's rework holds.
+- jordan Q10 · group review: Not attempted. Zara had Q10 right, and the group's rework holds.
 - amelia Q6 · own rework: One-off: added 9 to complete the square, never took it away, on Q6 alone. Found on the second submission.
 - amelia Q7 · own rework: One-off: half of b squared as a whole number over 2, on Q7 alone. Found on the second submission.
 - amelia Q10 · own rework: One-off: the negative width kept in the answer sentence, on Q10 alone. Found on the second submission.
@@ -447,7 +448,7 @@ The set's review (individual → group): 25 fixed on the student's own rework, 4
 - liam Q7 · group review: Not attempted. Jordan had Q7 right, and the group's rework holds.
 - liam Q8 · group review: Not attempted. Jordan had Q8 right, and the group's rework holds.
 - liam Q9 · group review: Not attempted. Sam had Q9 right, and the group's rework holds.
-- liam Q10 · group review: Not attempted. Sam and Zara had Q10 right, and the group's rework holds.
+- liam Q10 · group review: Not attempted. Zara had Q10 right, and the group's rework holds.
 - aiden Q8 · own rework: One-off: the 2 taken out of 2x² only, on Q8 alone. Found on the second submission.
 - mia Q1 · group review: Pattern: Algebra is a gap on the set (non-monic brackets wrong). Noah, Chloe and Ethan had Q1 right, and the group's rework holds.
 - mia Q4 · group review: Pattern: Algebra is a gap on the set (non-monic brackets wrong). Noah and Chloe had Q4 right, and the group's rework holds.
@@ -758,7 +759,7 @@ Minus signs wrong on four sets: a minus dropped, flipped or moved to another ter
 
 - PS2 · Algebra · solid: a sign lost multiplying out a surd bracket (Q2)
 - PS3 · Algebra · solid: the signs of a factor pair swapped (Q8)
-- PS4 · Algebra · developing: right split, the signs put into the wrong brackets (Q1, Q2)
+- PS4 · Algebra · developing: right split, the signs put into the wrong brackets (Q1, Q2, Q10)
 - PS5 · Algebra · developing: right split, signs in the wrong brackets (Q4)
 - PS4 · Graphing · solid: turning point read with the sign flipped (Q8)
 - PS5 · Graphing · developing: turning point read with the sign flipped (Q6)

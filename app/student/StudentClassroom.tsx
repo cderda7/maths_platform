@@ -9,8 +9,10 @@ import { Button, Eyebrow } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
 import { CLASS_SUBJECT } from "@/lib/classroomCards";
 import { useClassroom } from "@/lib/classroom-store";
-import { classHomeworks, futureHomeworks, homeworkColumn, missedNote, type FutureHomework } from "@/lib/homeworks";
+import { classHomeworks, futureHomeworks, homeworkColumn, type FutureHomework } from "@/lib/homeworks";
+import { missedNote } from "@/lib/homeworkList";
 import type { ClassroomState } from "@/lib/classroom";
+import type { StudentSession } from "@/lib/session";
 import { useNow, useStudentSession } from "@/lib/store";
 import { STUDENT_SECTION_EMPTY, STUDENT_SECTION_LABEL, STUDENT_SECTIONS, studentClassroom, studentHomeworkHref, studentSetHref, type StudentSection, type StudentSetCard } from "@/lib/studentClassroom";
 
@@ -48,7 +50,7 @@ export default function StudentClassroom() {
         </Eyebrow>
         <h1 className="font-display mt-1.5 text-[30px] leading-[1.1] text-ink">Edexia Classroom</h1>
         {client && future.length > 0 && <FuturePanel homeworks={future} />}
-        {client && STUDENT_SECTIONS.map((s) => <Section key={s} section={s} cards={sections[s]} classroom={classroom} onOpen={(href) => router.push(href)} />)}
+        {client && STUDENT_SECTIONS.map((s) => <Section key={s} section={s} cards={sections[s]} classroom={classroom} session={session} onOpen={(href) => router.push(href)} />)}
       </div>
     </StudentChrome>
   );
@@ -80,7 +82,7 @@ function FuturePanel({ homeworks }: { homeworks: FutureHomework[] }) {
   );
 }
 
-function Section({ section, cards, classroom, onOpen }: { section: StudentSection; cards: StudentSetCard[]; classroom: ClassroomState; onOpen: (href: string) => void }) {
+function Section({ section, cards, classroom, session, onOpen }: { section: StudentSection; cards: StudentSetCard[]; classroom: ClassroomState; session: StudentSession; onOpen: (href: string) => void }) {
   return (
     <section className="mt-7" aria-label={STUDENT_SECTION_LABEL[section]} data-student-section={section}>
       <Eyebrow>{STUDENT_SECTION_LABEL[section]}</Eyebrow>
@@ -97,7 +99,7 @@ function Section({ section, cards, classroom, onOpen }: { section: StudentSectio
               <SetCard key={`${card.kind}-${card.id}`} card={card} row={i + 1} onOpen={onOpen} />
             ))}
           </ul>
-          {section === "completed" && <HomeworkColumn cards={cards} classroom={classroom} onOpen={onOpen} />}
+          {section === "completed" && <HomeworkColumn cards={cards} classroom={classroom} session={session} onOpen={onOpen} />}
         </div>
       )}
     </section>
@@ -109,7 +111,7 @@ function Section({ section, cards, classroom, onOpen }: { section: StudentSectio
  * covers; a set no homework covers yet keeps an empty space the column's width. Completed and missed cells are not pressable,
  * nor is a homework's cell while it waits in the Future panel; once it has opened the cell opens it, as its To do card does (ticket 292).
  */
-function HomeworkColumn({ cards, classroom, onOpen }: { cards: StudentSetCard[]; classroom: ClassroomState; onOpen: (href: string) => void }) {
+function HomeworkColumn({ cards, classroom, session, onOpen }: { cards: StudentSetCard[]; classroom: ClassroomState; session: StudentSession; onOpen: (href: string) => void }) {
   return (
     <div className="contents" data-hw-column>
       {homeworkColumn(cards, classHomeworks(classroom)).map((p) => {
@@ -126,7 +128,9 @@ function HomeworkColumn({ cards, classroom, onOpen }: { cards: StudentSetCard[];
               </span>
             </div>
           );
-        if (p.status === "missed")
+        if (p.status === "missed") {
+          // No note when every leftover was dropped as a duplicate (ticket 294): the triangle and the name alone.
+          const note = missedNote(p, classroom, session);
           return (
             <div key={p.id} className={`${shape} border-line bg-paper/70`} style={{ gridRow }} data-hw-cell={p.id} data-hw-status={p.status} data-hw-rows={rows}>
               <span className="flex items-center gap-2.5">
@@ -134,11 +138,14 @@ function HomeworkColumn({ cards, classroom, onOpen }: { cards: StudentSetCard[];
                 <span className="text-[15px] font-medium text-ink">HW{p.n}</span>
               </span>
               {/* Balanced over two lines, so no word is left alone on the second; "current HW" once the next homework is open (ticket 292). */}
-              <span className="mt-1.5 text-[12px] leading-[16px] text-balance text-ink-muted" data-hw-note>
-                {missedNote(p, classroom)}
-              </span>
+              {note && (
+                <span className="mt-1.5 text-[12px] leading-[16px] text-balance text-ink-muted" data-hw-note>
+                  {note}
+                </span>
+              )}
             </div>
           );
+        }
         const label = (
           <span className={`whitespace-nowrap text-[14px] ${p.opened ? "text-ink" : "text-ink-muted"}`}>
             HW{p.n} · due {p.due}

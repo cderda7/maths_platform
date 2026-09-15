@@ -1,5 +1,7 @@
 import { ASSIGNMENT } from "@/data/assignment";
 import { SIMILAR_MAP, type SimilarProblem } from "@/data/homework";
+import { PS3_SIMILAR_PROBLEMS } from "@/data/homework-similar-ps3";
+import { PS4_SIMILAR_PROBLEMS } from "@/data/homework-similar-ps4";
 import { PS5_SIMILAR_PROBLEMS } from "@/data/homework-similar-ps5";
 import type { Problem } from "@/data/types";
 import { holds, sessionReviews, type ProblemReview } from "./report";
@@ -26,8 +28,8 @@ export function homeworkProblems(session: StudentSession, problems: Problem[] = 
   return problems.filter((p) => everWrong(p.id, reviews[p.id]));
 }
 
-/** Every set's similar problems by problem id: Problem Set 6's (`data/homework.ts`) and Problem Set 5's (ticket 293). Ids never collide (`ps5-q4` beside `q4`). */
-const ALL_SIMILAR: Readonly<Record<string, SimilarProblem>> = { ...SIMILAR_MAP, ...Object.fromEntries(PS5_SIMILAR_PROBLEMS.map((s) => [s.problemId, s])) };
+/** Every set's similar problems by problem id: Problem Set 6's (`data/homework.ts`), Problem Set 5's (ticket 293), Problem Sets 4 and 3's (ticket 294). Ids never collide (`ps5-q4` beside `q4`). */
+const ALL_SIMILAR: Readonly<Record<string, SimilarProblem>> = { ...SIMILAR_MAP, ...Object.fromEntries([...PS5_SIMILAR_PROBLEMS, ...PS4_SIMILAR_PROBLEMS, ...PS3_SIMILAR_PROBLEMS].map((s) => [s.problemId, s])) };
 
 export const similarFor = (problemId: string): SimilarProblem | undefined => ALL_SIMILAR[problemId];
 

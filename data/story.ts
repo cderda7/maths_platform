@@ -248,7 +248,7 @@ export const STORY: Readonly<Record<string, StoryRow>> = {
     done: [10, 10, 10, 10, 10, null],
     arc: "Minus signs wrong on four sets: a minus dropped, flipped or moved to another term, in a surd bracket, factor pairs, turning points, concavity and completing the square. His other lines are right.",
     cells: {
-      algebra: [sec, sol(h("a sign lost multiplying out a surd bracket", "product-sign", 2)), sol(h("the signs of a factor pair swapped", "pair-signs-swapped", 8)), dev(h("right split, the signs put into the wrong brackets", "pair-signs-swapped", 1, 2)), dev(h("right split, signs in the wrong brackets", "pair-signs-swapped", 4)), live],
+      algebra: [sec, sol(h("a sign lost multiplying out a surd bracket", "product-sign", 2)), sol(h("the signs of a factor pair swapped", "pair-signs-swapped", 8)), dev(h("right split, the signs put into the wrong brackets", "pair-signs-swapped", 1, 2, 10)), dev(h("right split, signs in the wrong brackets", "pair-signs-swapped", 4)), live],
       functions: [na, na, na, sec, sec, live],
       graphing: [na, na, na, sol(h("turning point read with the sign flipped", "root-vertex-sign", 8)), dev(h("turning point read with the sign flipped", "root-vertex-sign", 6), h("negative a read as concave up", "concavity-sign", 9)), live],
       communication: [sec, sec, sec, sec, sec, live],
@@ -753,17 +753,18 @@ export const STORY_REVIEW: readonly StoryReview[] = [
   // Problem Set 4
   {
     sam: [
-      grp(1, "Repeated: right split, the signs put into the wrong brackets (Q1, Q2). Zara had Q1 right, and the group's rework holds."),
-      grp(2, "Repeated: right split, the signs put into the wrong brackets (Q1, Q2). Zara had Q2 right, and the group's rework holds."),
+      grp(1, "Repeated: right split, the signs put into the wrong brackets (Q1, Q2, Q10). Zara had Q1 right, and the group's rework holds."),
+      grp(2, "Repeated: right split, the signs put into the wrong brackets (Q1, Q2, Q10). Zara had Q2 right, and the group's rework holds."),
       own(7, "One-off: half of b taken with the wrong sign completing the square, on Q7 alone. Found on the second submission."),
       own(8, "One-off: turning point read with the sign flipped, on Q8 alone. Found on the second submission."),
+      grp(10, "Repeated: right split, the signs put into the wrong brackets (Q1, Q2, Q10). Zara had Q10 right, and the group's rework holds."),
     ],
     jordan: [
       grp(1, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Zara had Q1 right, and the group's rework holds."),
       grp(2, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Zara had Q2 right, and the group's rework holds."),
       grp(4, "Pattern: Algebra is a gap on the set (non-monic brackets wrong). Sam and Zara had Q4 right, and the group's rework holds."),
       grp(9, "Not attempted. Sam had Q9 right, and the group's rework holds."),
-      grp(10, "Not attempted. Sam and Zara had Q10 right, and the group's rework holds."),
+      grp(10, "Not attempted. Zara had Q10 right, and the group's rework holds."),
     ],
     amelia: [
       own(6, "One-off: added 9 to complete the square, never took it away, on Q6 alone. Found on the second submission."),
@@ -794,7 +795,7 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       grp(7, "Not attempted. Jordan had Q7 right, and the group's rework holds."),
       grp(8, "Not attempted. Jordan had Q8 right, and the group's rework holds."),
       grp(9, "Not attempted. Sam had Q9 right, and the group's rework holds."),
-      grp(10, "Not attempted. Sam and Zara had Q10 right, and the group's rework holds."),
+      grp(10, "Not attempted. Zara had Q10 right, and the group's rework holds."),
     ],
     aiden: [
       own(8, "One-off: the 2 taken out of 2x² only, on Q8 alone. Found on the second submission."),

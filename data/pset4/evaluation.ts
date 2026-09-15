@@ -406,6 +406,14 @@ export const PS4_EVALUATION: Record<string, Record<string, LineVerdict>> = {
       "Which of 3.5 and 10 is w?",
       "question-not-answered",
     )),
+    // Ticket 294: Sam's Q10, the right split with its signs in the wrong brackets (as on his Q1 and Q2), then solved faithfully.
+    "(2w + 7)(w - 5) = 0": wrong(
+      T(NONMONIC),
+      "Factorised",
+      "The split was right, but its signs went into the wrong brackets. Expanding back shows the middle term's sign at once.",
+      "Expand (2w + 7)(w − 5). Is the w term +3w or −3w?",
+      SIGNS_SWAPPED,
+    ),
     // Ticket 281: Harper's Q10, mint's table on the set's hardest problem.
     "2w^2 + 3w = 35": ok(T(QUAD), "Expanded"),
     "2w^2 - 3w - 35 = 0": wrong(

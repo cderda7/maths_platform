@@ -115,6 +115,8 @@ the teacher has pressed Create (or a SKIP TO or deep link sent it). A homework t
 until Problem Set 6's lesson ends; then Homework 3 is first in To do with OPEN, its HW3 cell opens it too, and HW2's note reads "current HW".
 Both open his Homework 3 (ticket 293): FROM YOUR MISTAKES, every problem he ever got wrong on Problem Sets 6 and 5 as a similar problem
 under its set's name (newest first), then EVERYONE, the teacher's ten; a read-only list, numbered in the order he does them.
+Missed Homework 2's own problems carry in under their sets (ticket 294), except any whose skill Homework 3 already holds: Sam's Problem Set 4 Q10
+carries, its other leftovers and Problem Set 3's Q8 are duplicates; HW2's note shows only when something carried.
 START opens a set; the Edexia mark returns:
 
 2. Overview (CONTINUE pulses until pressed), the teacher's goal in a speech bubble ("Before you get started, Ms

@@ -14,7 +14,7 @@ import { PS4_REVIEW } from "./review";
  * The patterns on the set, most of which Problem Sets 5 and 6 catch again:
  * - Guessed non-monic pairs, never expanded back (Q1, Q2, Q4): Jordan, Liam, Mia, Oliver, Chloe, Ethan,
  *   Sofia and Ruby (a pair that multiplies but doesn't add, as on her monic Q5); Sam finds the right split and
- *   puts its signs in the wrong brackets. The set's top gap, on nine students.
+ *   puts its signs in the wrong brackets (Q1, Q2 and Q10's area equation). The set's top gap, on nine students.
  * - A square added to complete it and never taken away (Q6, Q8, Q9): Amelia, Zara (on all three) and Noah;
  *   Mia takes the 9 away with the wrong sign.
  * - Half of b with the wrong sign, or halved wrongly (Q6, Q7): Sam, Tomas, Ethan, Sofia; Chloe and Tomas never
@@ -113,6 +113,9 @@ const Q10_NEGATIVE = [...solution(10).slice(0, 6), "\\text{The width is } -5 \\t
 /** Q10: the working right, the length given as the width. */
 const Q10_SWAPPED = [...solution(10).slice(0, 8), "\\text{The width is 10 cm}"];
 
+/** Q10 (Sam, ticket 294): the right split, its signs in the wrong brackets, then both widths and the sentence built on them. */
+const Q10_SWAPPED_BRACKETS = [...solution(10).slice(0, 4), "(2w + 7)(w - 5) = 0", "w = -\\tfrac{7}{2} \\;\\text{or}\\; w = 5", "w > 0 \\Rightarrow w = 5", "\\text{The width is 5 cm}"];
+
 /* ---------- right, but shorter or in one jump ---------- */
 const Q1_JUMP = ["2x^2 + 3x - 2 = (2x - 1)(x + 2)"];
 const Q2_JUMP = ["3x^2 + x - 10 = (3x - 5)(x + 2)"];
@@ -146,9 +149,10 @@ const Q10_SIGN_LOST = [solution(10)[0], solution(10)[1], "2w^2 + 3w = 35", "2w^2
 const q = (n: number) => `ps4-q${n}`;
 
 /**
- * Sam's Problem Set 4: mostly right, four sign slips, one pattern: the right split with its signs
- * in the wrong brackets twice, half of b with the wrong sign, a turning point's sign. On Problem Set 5 he
- * swaps the brackets' signs again.
+ * Sam's Problem Set 4: mostly right, five sign slips, one pattern: the right split with its signs
+ * in the wrong brackets three times (Q1, Q2 and the worded Q10, whose widths and sentence follow from those brackets),
+ * half of b with the wrong sign, a turning point's sign. On Problem Set 5 he swaps the brackets' signs again.
+ * Q10 was added in ticket 294, so a missed Homework 2 carries a problem whose skill his Homework 3 does not already hold.
  */
 const SAM: Classmate = {
   id: DEMO_STUDENT.id,
@@ -156,14 +160,14 @@ const SAM: Classmate = {
   initials: DEMO_STUDENT.initials,
   confidence: "confident",
   done: 10,
-  wrong: [q(1), q(2), q(7), q(8)],
+  wrong: [q(1), q(2), q(7), q(8), q(10)],
   notes: [
-    { text: "right split, the signs put into the wrong brackets", problems: [q(1), q(2)] },
+    { text: "right split, the signs put into the wrong brackets", problems: [q(1), q(2), q(10)] },
     { text: "half of b taken with the wrong sign completing the square", problems: [q(7)] },
     { text: "turning point read with the sign flipped", problems: [q(8)] },
   ],
-  attempts: { [q(1)]: Q1_SWAPPED, [q(2)]: Q2_SWAPPED, [q(4)]: Q4_SPLIT_ONLY, [q(7)]: Q7_HALF_B_SIGN, [q(8)]: Q8_TP_SIGN },
-  clarification: "I found the right numbers for the split in Q1 and Q2 and then put the minus in the wrong bracket both times. I didn't expand back because I was sure. In Q7 I wrote x + 5/2 without thinking about the minus, and in Q8 I read h straight off the bracket.",
+  attempts: { [q(1)]: Q1_SWAPPED, [q(2)]: Q2_SWAPPED, [q(4)]: Q4_SPLIT_ONLY, [q(7)]: Q7_HALF_B_SIGN, [q(8)]: Q8_TP_SIGN, [q(10)]: Q10_SWAPPED_BRACKETS },
+  clarification: "I found the right numbers for the split in Q1, Q2 and Q10 and then put the minus in the wrong bracket every time, so my width in Q10 came out as 5. I didn't expand back because I was sure. In Q7 I wrote x + 5/2 without thinking about the minus, and in Q8 I read h straight off the bracket.",
   groupStatus: "Group review done · expanding Q1 back",
 };
 

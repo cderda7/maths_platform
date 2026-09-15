@@ -7,13 +7,21 @@ import { HOMEWORK_PASTE_LINES } from "@/data/homework-draft-seed";
 import { PS5_SIMILAR_PROBLEMS } from "@/data/homework-similar-ps5";
 import { HOMEWORK_RECOMMENDATIONS } from "@/data/review";
 import { PS5_PROBLEMS } from "@/data/pset5/assignment";
+import { PS4_PROBLEMS } from "@/data/pset4/assignment";
+import { PS3_PROBLEMS } from "@/data/pset3/assignment";
+import { PS4_SIMILAR_PROBLEMS } from "@/data/homework-similar-ps4";
+import { PS3_SIMILAR_PROBLEMS } from "@/data/homework-similar-ps3";
+import { PS5_PS6_PRIMARY_SKILL } from "@/data/problem-skills";
+import { STORY_SETS } from "@/data/story";
+import { MISSED_NOTE, MISSED_NOTE_CURRENT } from "./homeworks";
+import { primarySkill } from "./problemSkill";
 import { FINISHED_SETS } from "./finishedSets";
 import { classroomReducer, GRACE_MS, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
 import { homeworkSent } from "./create";
 import { DEMO_PATHWAY, demoSend, teacherSkip } from "./demo";
 import { generatedHomeworkDraft } from "./draft";
 import { homeworkProblems, similarFor, texDiff, texShape } from "./homework";
-import { everWrongOn, groupBySet, homeworkList, ownProblems, ownSets } from "./homeworkList";
+import { carryOver, everWrongOn, groupBySet, homeworkList, leftovers, missedBefore, missedNote, ownProblems, ownSets, type OwnProblem } from "./homeworkList";
 import { openHomeworks } from "./homeworks";
 import { parseQuestion } from "./mathInput";
 import { draftKey, type ReviewState } from "./review";
@@ -40,19 +48,21 @@ function opened(session: StudentSession = sessionAt("report")): { c: ClassroomSt
 }
 
 describe("Sam's Homework 3 list (ticket 293)", () => {
-  it("his own problems first, Problem Set 6 then Problem Set 5, each as its similar problem; then the teacher's ten, numbered on", () => {
+  it("his own problems first, Problem Set 6, Problem Set 5, then Homework 2's Problem Set 4 (ticket 294), each as its similar problem; then the teacher's ten, numbered on", () => {
     const { c, session } = opened();
     const list = homeworkList("hw-3", c, session)!;
     expect(list).toMatchObject({ id: "hw-3", name: "Homework 3", due: "Mon 14 Sep" });
     expect(list.own.map((g) => [g.setId, g.name])).toEqual([
       ["pset-6", "Problem Set 6"],
       ["pset-5", "Problem Set 5"],
+      ["pset-4", "Problem Set 4"],
     ]);
     expect(list.own[0].items.map((i) => i.key)).toEqual(["own-q1", "own-q2", "own-q3", "own-q7", "own-q10"]);
     expect(list.own[1].items.map((i) => i.key)).toEqual(["own-ps5-q4", "own-ps5-q6", "own-ps5-q9"]);
+    expect(list.own[2].items.map((i) => i.key)).toEqual(["own-ps4-q10"]);
     const own = list.own.flatMap((g) => g.items);
-    expect(own.map((i) => i.n)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
-    expect(list.everyone.map((i) => i.n)).toEqual([9, 10, 11, 12, 13, 14, 15, 16, 17, 18]);
+    expect(own.map((i) => i.n)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    expect(list.everyone.map((i) => i.n)).toEqual([10, 11, 12, 13, 14, 15, 16, 17, 18, 19]);
     for (const i of own) {
       const id = i.key.replace(/^own-/, "");
       const s = similarFor(id)!;
@@ -62,7 +72,7 @@ describe("Sam's Homework 3 list (ticket 293)", () => {
 
   it("never an original: every own question differs from the problem it came from, in the same TeX shape", () => {
     const { c, session } = opened();
-    const originals = [...PROBLEMS, ...PS5_PROBLEMS];
+    const originals = [...PROBLEMS, ...PS5_PROBLEMS, ...PS4_PROBLEMS, ...PS3_PROBLEMS];
     for (const i of homeworkList("hw-3", c, session)!.own.flatMap((g) => g.items)) {
       const p = originals.find((o) => `own-${o.id}` === i.key)!;
       expect(compact(i.tex!), p.id).not.toBe(compact(p.tex));
@@ -78,10 +88,10 @@ describe("Sam's Homework 3 list (ticket 293)", () => {
     }
   });
 
-  it("a set with nothing ever wrong is left out: a run where every step held lists Problem Set 5 alone", () => {
+  it("a set with nothing ever wrong is left out: a run where every step held lists no Problem Set 6", () => {
     const s = sessionAt("report", "strong");
     const { c } = opened(s);
-    expect(homeworkList("hw-3", c, s)!.own.map((g) => g.setId)).toEqual(["pset-5"]);
+    expect(homeworkList("hw-3", c, s)!.own.map((g) => g.setId)).toEqual(["pset-5", "pset-4", "pset-3"]);
     expect(groupBySet([{ id: "a", name: "A", due: "Mon 7 Sep" }], [])).toEqual([]);
   });
 
@@ -207,5 +217,194 @@ describe("Problem Set 5's similar problems (ticket 293)", () => {
     expect(evalTex("-9 + 18 + 7")).toBe(evalTex(rhs("ps5-q9"), { x: 3 }));
     expect(evalTex(rhs("ps5-q9"), { x: 3 })).toBe(16);
     expect(st("ps5-q9", 5)).toContain("(3, 16)");
+  });
+});
+
+describe("a missed homework's leftovers carry into the next (ticket 294)", () => {
+  const skills = (ps: readonly OwnProblem[]) => ps.map((p) => p.skill);
+  const fake = (setId: string, id: string, skill: OwnProblem["skill"]): OwnProblem => ({ setId, problem: { id } as OwnProblem["problem"], similar: similarFor("q1")!, skill });
+
+  it("Homework 2 is the missed homework before Homework 3; Homework 1 was done, so nothing comes into Homework 2", () => {
+    const { c } = opened();
+    expect(missedBefore("hw-3", c)?.id).toBe("hw-2");
+    expect(missedBefore("hw-2", c)).toBeNull();
+    expect(missedBefore("hw-1", c)).toBeNull();
+    expect(missedBefore("hw-3", c, { "hw-2": { finishedOn: "Mon 7 Sep" } })).toBeNull();
+  });
+
+  it("the leftovers are Homework 2's own problems, every one Sam ever got wrong on Problem Sets 4 and 3, never a teacher's question", () => {
+    const { c, session } = opened();
+    const left = leftovers(missedBefore("hw-3", c)!, c, session);
+    expect(left.sets.map((s) => s.id)).toEqual(["pset-4", "pset-3"]);
+    expect(left.problems.map((p) => p.problem.id)).toEqual(["ps4-q1", "ps4-q2", "ps4-q7", "ps4-q8", "ps4-q10", "ps3-q8"]);
+    const story = [...FINISHED_SETS.find((s) => s.fixture.id === "pset-4")!.sam!.wrong, ...FINISHED_SETS.find((s) => s.fixture.id === "pset-3")!.sam!.wrong];
+    expect(left.problems.map((p) => p.problem.id)).toEqual(story);
+    // Finished late: missed, but nothing left undone.
+    expect(leftovers(missedBefore("hw-3", c)!, c, session, { "hw-2": { finishedOn: "Wed 9 Sep" } }).problems).toEqual([]);
+  });
+
+  it("a leftover whose skill his own problems here already have is dropped; the rest carry under their own set, then Everyone as sent", () => {
+    const { c, session } = opened();
+    const mine = ownProblems(ownSets("hw-3", c), c, session);
+    expect(skills(mine)).toEqual(["algebra.expand-factor.monic", "algebra.expand-factor.nonmonic", "algebra.equations.quadratic", "algebra.number.fractions", "algebra.equations.discriminant", "algebra.expand-factor.nonmonic", "algebra.expand-factor.binomial", "graphing.quadratics.sketch"]);
+    const left = leftovers(missedBefore("hw-3", c)!, c, session).problems;
+    expect(skills(left)).toEqual(["algebra.expand-factor.nonmonic", "algebra.expand-factor.nonmonic", "algebra.expand-factor.binomial", "algebra.expand-factor.binomial", "reasoning.interpret.worded", "algebra.expand-factor.monic"]);
+    expect(carryOver(left, mine).map((p) => p.problem.id)).toEqual(["ps4-q10"]);
+    const list = homeworkList("hw-3", c, session)!;
+    const own = list.own.flatMap((g) => g.items);
+    // Problem Set 5's Q4 and Problem Set 6's Q2 share non-monic factorising and both stay: this homework's own never knock each other out.
+    expect(own.map((i) => i.key)).toContain("own-ps5-q4");
+    expect(own.map((i) => i.key)).toContain("own-q2");
+    const sent = c.homeworks!.find((h) => h.id === "hw-3")!;
+    expect(list.everyone.map((i) => [i.stem, i.tex])).toEqual(sent.questions.map((q) => [q.stem, q.tex]));
+  });
+
+  it("no skill twice among the carried problems, nor between a carried problem and this homework's own", () => {
+    for (const s of [sessionAt("report"), sessionAt("report", "strong"), INITIAL_SESSION]) {
+      const { c } = opened(s);
+      const mine = ownProblems(ownSets("hw-3", c), c, s);
+      const carried = carryOver(leftovers(missedBefore("hw-3", c)!, c, s).problems, mine);
+      const carriedSkills = skills(carried);
+      expect(new Set(carriedSkills).size).toBe(carriedSkills.length);
+      for (const k of carriedSkills) expect(skills(mine)).not.toContain(k);
+    }
+  });
+
+  it("a run where every Problem Set 6 step held carries Problem Set 3 too: groups Problem Set 5, 4, 3, numbered straight through", () => {
+    const s = sessionAt("report", "strong");
+    const { c } = opened(s);
+    const list = homeworkList("hw-3", c, s)!;
+    expect(list.own.map((g) => [g.name, g.items.map((i) => i.key)])).toEqual([
+      ["Problem Set 5", ["own-ps5-q4", "own-ps5-q6", "own-ps5-q9"]],
+      ["Problem Set 4", ["own-ps4-q10"]],
+      ["Problem Set 3", ["own-ps3-q8"]],
+    ]);
+    expect([...list.own.flatMap((g) => g.items), ...list.everyone].map((i) => i.n)).toEqual(Array.from({ length: 15 }, (_, k) => k + 1));
+  });
+
+  it("carryOver: the newer leftover stays on a shared skill, a skill this homework holds drops, a leftover with no skill named stays", () => {
+    const mine = [fake("pset-6", "a", "algebra.expand-factor.monic")];
+    const left = [fake("pset-4", "b", "algebra.expand-factor.nonmonic"), fake("pset-3", "c", "algebra.expand-factor.nonmonic"), fake("pset-3", "d", "algebra.expand-factor.monic"), fake("pset-3", "e", undefined)];
+    expect(carryOver(left, mine).map((p) => p.problem.id)).toEqual(["b", "e"]);
+    expect(carryOver([], mine)).toEqual([]);
+    expect(carryOver(left, []).map((p) => p.problem.id)).toEqual(["b", "d", "e"]);
+  });
+
+  it("HW2's note: next HW before Homework 3 opens; current HW once it opens with something carried; no note when every leftover was dropped", () => {
+    const live = homeworkSentAt(classroomReducer(INITIAL_CLASSROOM, demoSend(DEMO_PATHWAY, now)), now + 1_000);
+    expect(missedNote({ id: "hw-2" }, live, sessionAt("report"))).toBe(MISSED_NOTE);
+    const { c, session } = opened();
+    expect(missedNote({ id: "hw-2" }, c, session)).toBe(MISSED_NOTE_CURRENT);
+    // Nothing handed in on Problem Set 6: every problem there ever wrong, Q1's monic and Q9's worded skills among them, so every leftover is a duplicate.
+    const { c: blank } = opened(INITIAL_SESSION);
+    expect(carryOver(leftovers(missedBefore("hw-3", blank)!, blank, INITIAL_SESSION).problems, ownProblems(ownSets("hw-3", blank), blank, INITIAL_SESSION))).toEqual([]);
+    expect(missedNote({ id: "hw-2" }, blank, INITIAL_SESSION)).toBeNull();
+    expect(homeworkList("hw-3", blank, INITIAL_SESSION)!.own.map((g) => g.setId)).toEqual(["pset-6", "pset-5"]);
+    // Homework 2 finished late: missed, nothing left, no note at all.
+    expect(missedNote({ id: "hw-2" }, live, sessionAt("report"), { "hw-2": { finishedOn: "Wed 9 Sep" } })).toBeNull();
+  });
+});
+
+describe("each problem's one skill (ticket 294)", () => {
+  const leavesOf = (p: { solution: { tags: { leaf: string }[] }[] }) => new Set(p.solution.flatMap((st) => st.tags.map((t) => t.leaf)));
+
+  it("every problem of every set has one, a leaf its model solution carries; Problem Sets 1–4's is their outline's first", () => {
+    for (const p of [...PROBLEMS, ...FINISHED_SETS.flatMap((f) => f.fixture.problems)]) {
+      const skill = primarySkill(p.id);
+      expect(skill, p.id).toBeDefined();
+      expect(leavesOf(p).has(skill!), `${p.id} ${skill}`).toBe(true);
+    }
+    for (const s of STORY_SETS.filter((x) => x.outline)) s.outline!.forEach((o, k) => expect(primarySkill(`ps${s.n}-q${k + 1}`)).toBe(o.leaves[0]));
+    expect(Object.keys(PS5_PS6_PRIMARY_SKILL).sort()).toEqual([...PROBLEMS, ...PS5_PROBLEMS].map((p) => p.id).sort());
+    expect(primarySkill("typed-question")).toBeUndefined();
+  });
+});
+
+describe("Problem Sets 4 and 3's similar problems (ticket 294)", () => {
+  const ORIGINALS = [...PS4_PROBLEMS, ...PS3_PROBLEMS];
+  const ALL = [...PS4_SIMILAR_PROBLEMS, ...PS3_SIMILAR_PROBLEMS];
+  const original = (id: string) => ORIGINALS.find((x) => x.id === id)!;
+
+  it("one for every problem Sam ever got wrong on the sets, carried or not, so none is silently left out", () => {
+    const { c, session } = opened();
+    expect(PS4_SIMILAR_PROBLEMS.map((s) => s.problemId)).toEqual(everWrongOn("pset-4", c, session).map((p) => p.id));
+    expect(PS3_SIMILAR_PROBLEMS.map((s) => s.problemId)).toEqual(everWrongOn("pset-3", c, session).map((p) => p.id));
+    for (const s of ALL) expect(similarFor(s.problemId), s.problemId).toBe(s);
+  });
+
+  it("every question and step typesets, the question keeps its shape with numbers only changed, the stem is the original's (its numbers alone changed)", () => {
+    for (const s of ALL) {
+      const p = original(s.problemId);
+      for (const tex of [s.tex, ...s.solution.map((st) => st.tex)]) expect(() => renders(tex), `${s.problemId}: ${tex}`).not.toThrow();
+      expect(compact(s.tex), s.problemId).not.toBe(compact(p.tex));
+      expect(texShape(s.tex), s.problemId).toBe(texShape(p.tex));
+      expect(texDiff(p.tex, s.tex).aligned, s.problemId).toBe(true);
+      expect(texShape(s.stem), s.problemId).toBe(texShape(p.stem));
+    }
+    expect(PS4_SIMILAR_PROBLEMS.filter((s) => s.stem !== original(s.problemId).stem).map((s) => s.problemId)).toEqual(["ps4-q10"]);
+  });
+
+  it("carries exactly its original's skills, step for step, and a named type", () => {
+    const leaves = (steps: { tags: { leaf: string }[] }[]) => steps.map((st) => st.tags.map((t) => t.leaf).join());
+    for (const s of ALL) {
+      const p = original(s.problemId);
+      expect(leaves(s.solution), s.problemId).toEqual(leaves(p.solution));
+      expect(s.type.trim().length, s.problemId).toBeGreaterThan(0);
+      expect(!!s.figure, s.problemId).toBe(!!p.figure);
+    }
+  });
+
+  it("repeats no set's problem, no other similar problem or diagnostic, and none of Homework 3's ten", () => {
+    const norm = (t: string) => compact(t).replace(/\^\{(\d)\}/g, "^$1").replace(/^[a-z]=/, "");
+    const taken = [
+      ...FINISHED_SETS.flatMap((f) => f.fixture.problems.map((p) => p.tex)),
+      ...PROBLEMS.map((p) => p.tex),
+      ...SIMILAR_PROBLEMS.map((s) => s.tex),
+      ...PS5_SIMILAR_PROBLEMS.map((s) => s.tex),
+      ...PROBLEM_DIAGNOSTICS.map((d) => d.similar),
+      ...HOMEWORK_PASTE_LINES.map((l) => parseQuestion(l).tex ?? ""),
+      ...HOMEWORK_RECOMMENDATIONS.flatMap((r) => (r.kind === "change" ? [r.to.tex] : r.kind === "add" ? r.options.map((o) => o.tex) : [])),
+    ].map(norm);
+    for (const s of ALL) expect(taken, s.problemId).not.toContain(norm(s.tex));
+    expect(new Set(ALL.map((s) => norm(s.tex))).size).toBe(ALL.length);
+  });
+
+  const S = (id: string) => similarFor(id)!;
+  const st = (id: string, i: number) => S(id).solution[i].tex.replace(/\\left|\\right/g, "");
+
+  it("PS3 Q8: x² − 10x + 21 = (x − 3)(x − 7), the pair −3 and −7, expanded back", () => {
+    expect(-3 * -7).toBe(21);
+    expect(-3 + -7).toBe(-10);
+    expect(sameFunction(st("ps3-q8", 1), S("ps3-q8").tex)).toBe(true);
+    expect(sameFunction(sides(st("ps3-q8", 2)).left, sides(st("ps3-q8", 2)).right)).toBe(true);
+    expect(sides(st("ps3-q8", 2)).right.trim()).toBe(S("ps3-q8").tex);
+  });
+
+  it("PS4 Q1 and Q2: each split, grouping and factorisation equals the question", () => {
+    expect([3 * -2, 6 * -1, 6 - 1]).toEqual([-6, -6, 5]);
+    expect([2 * -15, 6 * -5, 6 - 5]).toEqual([-30, -30, 1]);
+    for (const id of ["ps4-q1", "ps4-q2"]) for (const i of [1, 2, 3]) expect(sameFunction(st(id, i), S(id).tex), `${id} ${st(id, i)}`).toBe(true);
+  });
+
+  it("PS4 Q7: x² − 3x + 4 = (x − 3/2)² + 7/4", () => {
+    for (const i of [0, 1, 2]) expect(sameFunction(st("ps4-q7", i), S("ps4-q7").tex), st("ps4-q7", i)).toBe(true);
+  });
+
+  it("PS4 Q8: 3x² + 6x − 2 = 3(x + 1)² − 5, turning point (−1, −5)", () => {
+    for (const i of [0, 1, 2]) expect(sameFunction(st("ps4-q8", i), S("ps4-q8").tex), st("ps4-q8", i)).toBe(true);
+    expect(evalTex(S("ps4-q8").tex, { x: -1 })).toBe(-5);
+    expect(st("ps4-q8", 4)).toContain("(-1, -5)");
+  });
+
+  it("PS4 Q10: length 2w + 1, area 36: 2w² + w − 36 = (2w + 9)(w − 4), the width 4 cm and the length 9 cm", () => {
+    const area = (w: number) => w * (2 * w + 1);
+    expect(sameFunction("2w^2 + w - 36", "w(2w + 1) - 36", "w")).toBe(true);
+    expect(sameFunction(sides(st("ps4-q10", 4)).left, "2w^2 + w - 36", "w")).toBe(true);
+    expect([2 * -36, 9 * -8, 9 - 8]).toEqual([-72, -72, 1]);
+    const ws = st("ps4-q10", 5).split(/\\;\\text\{or\}\\;/).map((part) => evalTex(sides(part).right));
+    expect(ws.sort((a, b) => a - b)).toEqual([-4.5, 4]);
+    for (const w of ws) expect(area(w)).toBe(36);
+    expect([2 * 4 + 1, 4 * 9]).toEqual([9, 36]);
+    expect(S("ps4-q10").solution.at(-1)!.tex).toContain("4 cm");
   });
 });

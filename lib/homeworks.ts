@@ -55,7 +55,7 @@ export function homeworkStatus(homework: HomeworkDef, record: HomeworkRecord | u
   return dueOrder(today) > due ? "missed" : "open";
 }
 
-/** A missed homework's cell note: its own undone problems join the next homework (ticket 294). */
+/** A missed homework's cell note: its own undone problems join the next homework (ticket 294; which note, if any: `missedNote` in `lib/homeworkList.ts`). */
 export const MISSED_NOTE = "problems added to next HW";
 /** The same note once that next homework has opened and is under way (ticket 292). */
 export const MISSED_NOTE_CURRENT = "problems added to current HW";
@@ -198,13 +198,6 @@ export function openHomeworksFor(c: ClassroomState | null | undefined, records: 
   return classHomeworks(c)
     .filter((h) => !!h.setIds && homeworkStatus(h, records[h.id], today) === "open")
     .reverse();
-}
-
-/** A missed homework's note: "next HW" until the homework after it is open for Sam, then "current HW" (ticket 292). */
-export function missedNote(homework: Pick<HomeworkDef, "id">, c: ClassroomState | null | undefined, records: Readonly<Record<string, HomeworkRecord>> = SAM_HOMEWORK_STORY, today: string = dayLabel(DEMO_TODAY)): string {
-  const list = classHomeworks(c);
-  const after = list[list.findIndex((h) => h.id === homework.id) + 1];
-  return after && openHomeworksFor(c, records, today).some((h) => h.id === after.id) ? MISSED_NOTE_CURRENT : MISSED_NOTE;
 }
 
 /** The homework +Homework creates next: its number, the earliest due date the picker offers, and where the picker starts. */
