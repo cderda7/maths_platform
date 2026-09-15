@@ -224,12 +224,12 @@ export function setClassReview(b: Pick<AssignmentBundle, "id" | "kind">, c: Clas
 export const currentStageOf = (stages: readonly ClassStage[]): ClassStage | null => stages.find((s) => s.state === "current") ?? null;
 
 /**
- * Where opening a set lands (ticket 185): on Mistakes while the class is still working, and during individual review, when
- * the tab shows where each student is in their corrections (ticket 318); on Class once everyone has handed in the working,
- * in the later review stages, and on a finished set.
+ * Where opening a set lands (ticket 185): on Mistakes while the class is still working, during individual review, when
+ * the tab shows where each student is in their corrections (ticket 318), and during group review, when it shows where each
+ * group is (ticket 319); on Class once everyone has handed in the working, in class review, and on a finished set.
  */
 export function landingFor(everyoneSubmitted: boolean, stage: ClassStageId | null): Extract<AssignmentTab, "class" | "mistakes"> {
-  if (stage === "individual") return "mistakes";
+  if (stage === "individual" || stage === "group") return "mistakes";
   return everyoneSubmitted || stage !== "working" ? "class" : "mistakes";
 }
 

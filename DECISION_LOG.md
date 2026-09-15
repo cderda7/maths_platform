@@ -5817,3 +5817,29 @@ rule for pens is untouched and the exception is visible and named.
 - **Locks show from the 3-second batch.** A stop can look free for up to three seconds after Sam enters it; Done still resolves it correctly.
 
 **Defense.** One pure module decides what may change, from the same inputs as Where students are, the gate and the standings, so the card agrees with every other screen about who is where. Writing the pathway through the decision's answer keeps what the teacher chose and why in one stored record that every tab and a reload read. Routing already consulted the pathway at each transition, so a change reaches exactly the students who have not yet passed it. Taking Sam's table from the seating removes the last fixed group list, which is what "groups from seating" requires.
+
+## 2026-09-16 · Where groups are during group review: a grid over ticket 332's runs, cards counting groups (ticket 319)
+
+**Decision.**
+- **One read of the runs.** `lib/groupGrid.ts` builds the grid from `groupsAt` once per render: each group's `runTimeline` for the cells and `penOf` (split out of `pensAt`) for the ring. The grid, the Class tab's card and the board read the same runs, so they agree.
+- **Cell tones.** A question's status maps to a tone; a question on its return visit keeps its red under the ring, and a question just solved or closed unsolved keeps the ring (green, or dark red without its ✕ under the avatar) until the board moves on, 12–18 s later.
+- **"n/m".** Questions closed (solved, or unsolved after the return) over the union; a red question counts only once its return has closed it.
+- **Cards.** A card for every question some group has in its union, including one nobody got wrong on the first submission (only unfinished or not attempted). The card body keeps ticket 315's wrong-line labels and misconceptions, filtered to students in groups that have not solved it, with each working's names replaced by the chips of those students' groups; a group still to go with no wrong working on the card is a chip on a line "unfinished or not attempted". The chips name every group that has not solved it (still to go, left for now or unsolved), since the card stays while any group has it unsolved. Header counts leave out the parts at zero. A card every group that had it has solved is the thin "every group solved" line; a first-submission mistake that no group took on (everyone corrected it in individual review) is "fixed in individual review".
+- **Class review band.** `gridOf` takes `movedToClass`; ticket 337 will supply it, and the row turns grey across the groups with one "class review" label. Today it is always empty.
+- **Chip widths.** `FitGrid` measures a misconception chip by its text's own width plus padding and border (`pillNeeds`). A flex chip's `scrollWidth` leaves out its end padding when its words overflow, so the old measure left chips up to 14 px too narrow in narrow columns (the group chips made the columns narrower than names did).
+
+**Context.** Carson designed the grid in the 318/319 grilling (2026-09-15) and approved mockup v4: rows are questions, columns groups, light blue for already right, blank not reviewed, green solved, red left for now (after the third wrong check), dark red ✕ unsolved, a ring with the pen-holder, chips and "n/m" in the head, cards counting groups with group chips. Ticket 332 supplied every group's run.
+
+**Alternatives considered.**
+- *Call `timelinesAt` and `pensAt` separately.* Each replays every simulated board; three replays a second for one view. One `groupsAt` read and two pure derivations do it once.
+- *Cards as a tag and chips only, no working labels* (the mockup's simplified body). The wrong lines and misconceptions tell the teacher what to say at the table; ticket 318's cards keep them, and the same card across stages keeps one look.
+- *Chips only for groups still to go, not left or unsolved.* The card would stay on screen with no chip for the groups it stays for.
+- *Drop the ring once a question closes.* The board is still on it until the group moves on; the ring would jump ahead of the students' own screen.
+- *Show the ✕ under the pen avatar.* The two overlapped in the cell.
+
+**Tradeoffs.**
+- A card body can list a working whose groups are all solved on other workings only as long as a group still has it; the groups shown are always right, the workings are the class's.
+- The ring on a closed question for the move-on pause reads as "still here" for up to 18 s.
+- `pillNeeds` changes chip widths on every stage's cards (never narrower), so a card that fitted exactly may now scroll sideways a few pixels sooner.
+
+**Defense.** The grid is a pure read of the runs every other group view reads, so it cannot disagree with them, and the rules for tones and counts are a few lines tested against Problem Set 6's real outcomes over time. The cards reuse ticket 318's structure, changing only what Carson asked: groups instead of students.

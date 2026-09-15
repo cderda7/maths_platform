@@ -156,23 +156,25 @@ describe("the roster's progress and the landing", () => {
     expect(rosterProgress(b, sessionAt("feedback"), now)[DEMO_STUDENT.id]).toEqual({ kind: "submitted" });
   });
 
-  it("lands on Class once everyone is in or the class is past individual working, else on Mistakes", () => {
+  it("lands on Mistakes while the class works and through individual and group review; on Class once everyone is in during working, in class review and after", () => {
     expect(landingFor(false, "working")).toBe("mistakes");
     expect(landingFor(true, "working")).toBe("class");
     expect(landingFor(false, "individual")).toBe("mistakes");
     expect(landingFor(true, "individual")).toBe("mistakes");
-    expect(landingFor(false, "group")).toBe("class");
+    expect(landingFor(false, "group")).toBe("mistakes");
+    expect(landingFor(true, "group")).toBe("mistakes");
+    expect(landingFor(true, "whole-class")).toBe("class");
     expect(landingFor(false, null)).toBe("class");
   });
 
-  it("Problem Set 6 lands on Mistakes while the class works (Chloe has not submitted) and through individual review, on Class once the lesson ends", () => {
+  it("Problem Set 6 lands on Mistakes while the class works (Chloe has not submitted), through individual review and group review, on Class once the lesson ends", () => {
     const start = skipFixture("working", now);
     expect(landingTab(b, start.classroom, start.session, now)).toBe("mistakes");
     const handedIn = skipFixture("indiv review", now);
     expect(currentStageOf(assignmentStages(b, handedIn.classroom, handedIn.session, now))?.id).toBe("individual");
     expect(landingTab(b, handedIn.classroom, handedIn.session, now)).toBe("mistakes");
     const group = skipFixture("group review", now);
-    expect(landingTab(b, group.classroom, group.session, now)).toBe("class");
+    expect(landingTab(b, group.classroom, group.session, now)).toBe("mistakes");
     const ended: ClassroomState = { ...handedIn.classroom, wholeClass: { problems: [], examples: {}, slide: 0, view: "unmarked", status: "ended", modes: {}, ink: {} } };
     expect(landingTab(b, ended, handedIn.session, now)).toBe("class");
   });

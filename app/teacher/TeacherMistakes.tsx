@@ -24,6 +24,9 @@ import StudentWorkPanel from "./StudentWorkPanel";
 import { reviewWorkAt, studentWorkAt } from "@/lib/studentWork";
 import { reviewPlaces, reviewRows, stillToFix } from "@/lib/reviewPlaces";
 import { PlaceTable, ReviewTable, useWhereRows } from "./WhereStudentsAre";
+import { GroupChip, GroupGrid } from "./WhereGroupsAre";
+import { countParts, everyGroupSolved, gridAt, groupCounts, groupsNotSolved } from "@/lib/groupGrid";
+import type { GroupColour } from "@/data/groups";
 
 // The same button as the class view's row actions ("see dot skills" / "close").
 const ACTION = "w-[96px] rounded-md px-2 py-[3px] text-[11px] font-medium leading-snug transition-colors";
@@ -61,6 +64,18 @@ const contentWidth = (box: HTMLElement) => {
   const cs = getComputedStyle(box);
   return box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
 };
+/**
+ * The width a pill needs for its words on one line, layout px: its text's own width plus its padding and border. A flex
+ * pill's scrollWidth leaves out its end padding when the words overflow, so a misconception chip measured by it came out
+ * up to its right padding too narrow, its last word against the border (seen on ticket 319's narrower group-chip columns).
+ */
+const pillNeeds = (pill: HTMLElement) => {
+  const range = document.createRange();
+  range.selectNodeContents(pill);
+  const zoom = pill.getBoundingClientRect().width / pill.offsetWidth || 1;
+  const cs = getComputedStyle(pill);
+  return Math.ceil(range.getBoundingClientRect().width / zoom + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth));
+};
 /** The widest typeset line inside an element, layout px (offsetWidth rounds down). */
 const widestMaths = (el: HTMLElement) => Math.max(0, ...[...el.querySelectorAll<HTMLElement>(".katex")].map((k) => k.offsetWidth + 1));
 const template = (mins: number[]) => mins.map((m) => `minmax(${m}px, 1fr)`).join(" ");
@@ -94,7 +109,7 @@ function FitGrid({ columns, children, ...rest }: { columns: number } & React.HTM
       // What must fit on one row, with the cell it sits in: each label's maths in its box, each pill group's widest pill in its cell.
       const fits = [
         ...labels.map((box) => ({ box, cell: box.parentElement!, over: () => widestMaths(box) - contentWidth(box) })),
-        ...[...el.querySelectorAll<HTMLElement>("[data-slip-group]")].map((box) => ({ box, cell: box, over: () => Math.max(0, ...[...box.querySelectorAll<HTMLElement>("[data-slip]")].map((pill) => pill.scrollWidth + pill.offsetWidth - pill.clientWidth)) - contentWidth(box) })),
+        ...[...el.querySelectorAll<HTMLElement>("[data-slip-group]")].map((box) => ({ box, cell: box, over: () => Math.max(0, ...[...box.querySelectorAll<HTMLElement>("[data-slip]")].map(pillNeeds)) - contentWidth(box) })),
       ];
       // Widening one group's columns can take width from its neighbours' flexible share, so check again until everything fits (a few passes at most).
       for (let pass = 0; pass < 6; pass++) {
@@ -287,11 +302,29 @@ export default function TeacherMistakes() {
   /** Individual review on the live set (ticket 318): the split shows where each student is in their corrections, and the cards only what is still to fix. */
   const review = assignment.kind === "live" && now > 0 && stage?.id === "individual";
   const students = review ? reviewPlaces(assignment, classroom, session, now) : [];
+  /** Group review on the live set (ticket 319): the split shows where each group is on each question, and the cards count groups. */
+  const groupStage = assignment.kind === "live" && now > 0 && stage?.id === "group";
+  const grid = groupStage ? gridAt(classroom, session, now, assignment.problems) : [];
+  const countsOf = new Map(groupStage ? assignment.problems.map((p) => [p.id, groupCounts(grid, p.id)]) : []);
+  /** The group each student in group review sits in: a card names groups, never students. */
+  const groupOf = new Map<string, GroupColour>(grid.flatMap((g) => g.members.map((m) => [m, g.colour] as const)));
   // The live set's classmates stream in from its start (ticket 189): nothing to show until the clock has its first tick.
-  const found = assignment.kind === "live" && now === 0 ? [] : mistakesByProblem(session, assignment, now);
+  const firstFound = assignment.kind === "live" && now === 0 ? [] : mistakesByProblem(session, assignment, now);
+  // In group review a question some group has in its union has a card even with no wrong line on it (unfinished or not attempted), in set order.
+  const found = groupStage
+    ? assignment.problems.flatMap((problem) => {
+        const had = firstFound.find((f) => f.problem.id === problem.id);
+        return had ? [had] : (countsOf.get(problem.id)?.groups.length ?? 0) > 0 ? [{ problem, rows: [], right: 0, pending: 0 }] : [];
+      })
+    : firstFound;
   // In individual review a card keeps the students still to fix its problem; one everyone has fixed stays as a thin line (ticket 318).
   const fixedOf = new Map(found.map((p) => [p.problem.id, review ? p.rows.filter((r) => !stillToFix(students, r.id, p.problem.id)).length : 0]));
-  const latest = review ? found.map((p) => ({ ...p, rows: p.rows.filter((r) => stillToFix(students, r.id, p.problem.id)) })) : found;
+  const notSolvedOf = (problem: string) => groupsNotSolved(countsOf.get(problem) ?? { problem, groups: [], solved: 0, left: 0, unsolved: 0, toGo: 0 }).map((g) => g.colour);
+  const latest = review
+    ? found.map((p) => ({ ...p, rows: p.rows.filter((r) => stillToFix(students, r.id, p.problem.id)) }))
+    : groupStage
+      ? found.map((p) => ({ ...p, rows: p.rows.filter((r) => notSolvedOf(p.problem.id).includes(groupOf.get(r.id)!)) }))
+      : found;
   const listRef = useRef<HTMLDivElement>(null);
   const guarded = usePointerGuard(listRef);
   const [hold, setHold] = useState(EMPTY_HOLD);
@@ -323,7 +356,7 @@ export default function TeacherMistakes() {
   useScrollAroundFocus(focused, assignment.kind !== "live" || now > 0);
   const chainProblemId = chain ? questionFor(chain.steps[0])?.problemId : undefined;
   /** Individual working on the live set (ticket 315): the tab splits into Where students are and Where students went wrong. */
-  const split = assignment.kind === "live" && (stage?.id === "working" || review);
+  const split = assignment.kind === "live" && (stage?.id === "working" || review || groupStage);
   const working = useWhereRows(assignment, session, now);
   const inReview = review ? reviewRows(students, assignment.problems, assignment.classmates, now) : [];
   const places = review ? inReview : working;
@@ -341,13 +374,18 @@ export default function TeacherMistakes() {
         /** Neither correct, wrong nor still working on the set: stopped before the problem, or handed it in without an answer (tickets 143, 189). */
         const skipped = size - right - wrong - pending;
         // Individual review (ticket 318): a problem everyone has fixed stays in its place as one thin line.
-        if (review && rows.length === 0)
+        const counted = countsOf.get(problem.id);
+        // Group review (ticket 319): a problem every group that had it has solved stays in its place as one thin line.
+        const thin = review ? rows.length === 0 : groupStage && !!counted && everyGroupSolved(counted);
+        if (thin)
           return (
             <div key={problem.id} className="flex items-center gap-3 rounded-xl border border-line px-6 py-2" data-problem-row={problem.id} data-problem-fixed={problem.id}>
               <span className="font-display text-[20px] leading-none text-ink-soft">{problem.label}</span>
-              <span className="text-[14px] text-ink-muted">everyone fixed</span>
+              <span className="text-[14px] text-ink-muted">{review ? "everyone fixed" : counted!.groups.length > 0 ? "every group solved" : "fixed in individual review"}</span>
             </div>
           );
+        /** Groups still to go on the problem with nobody's wrong line left on the card: their members left it unfinished or never reached it. */
+        const unwritten = groupStage ? notSolvedOf(problem.id).filter((colour) => !rows.some((r) => groupOf.get(r.id) === colour)) : [];
         const groups = groupBySlip(rows);
         // One grid column per identical working (ticket 138); boxes and pills span columns.
         const columns = groups.flatMap((g) => g.columns);
@@ -389,6 +427,17 @@ export default function TeacherMistakes() {
             <span className="font-semibold text-ink">{fixed}</span> fixed · <span className="font-semibold text-ink">{rows.length}</span> still to fix
           </span>
         );
+        const groupWords = counted ? countParts(counted) : [];
+        const groupHeaderCounts = (
+          <span className="text-[14px] whitespace-nowrap text-ink-muted tabular-nums" data-group-counts={`${problem.id}:${groupWords.map((w) => `${w.n} ${w.words}`).join(" · ")}`}>
+            {groupWords.map((w, i) => (
+              <span key={w.words}>
+                {i > 0 && " · "}
+                <span className="font-semibold text-ink">{w.n}</span> {w.words}
+              </span>
+            ))}
+          </span>
+        );
         return (
           <div key={problem.id} className="flex items-start gap-4" data-problem-row={problem.id}>
           {/* Escape closes the problem opened last first (ticket 247), without arming "close all" the way a press of close does. */}
@@ -408,7 +457,7 @@ export default function TeacherMistakes() {
             <div className="flex items-center gap-4 border-b border-line px-6 py-4" onClick={() => toggle(problem.id)} data-problem-header={problem.id}>
               <div className={`flex min-w-0 items-center gap-4 ${split ? "flex-1" : ""}`}>
                 {/* On the split the live diagnostic is the card's own, at its top left (ticket 315). */}
-                {split && !review && <DiagnosticChip problemId={problem.id} />}
+                {split && !review && !groupStage && <DiagnosticChip problemId={problem.id} />}
                 <span className="shrink-0 font-display text-[24px] text-ink">{problem.label}</span>
                 <p className="min-w-0 text-[17px] leading-snug text-ink" data-problem-question={problem.id}>
                   <ProblemQuestion problem={problem} mathClass="math-lg" />
@@ -430,7 +479,7 @@ export default function TeacherMistakes() {
                   {action.word}
                 </button>
               </div>
-              {split && !review && (
+              {split && !review && !groupStage && (
                 <div className="flex shrink-0 flex-col items-stretch gap-1.5" style={{ width: COUNT_COLUMN }} data-header-counts>
                   {counts}
                 </div>
@@ -440,7 +489,13 @@ export default function TeacherMistakes() {
                   {reviewCounts}
                 </div>
               )}
+              {groupStage && (
+                <div className="shrink-0" data-header-counts>
+                  {groupHeaderCounts}
+                </div>
+              )}
             </div>
+            {columns.length > 0 && (
             <div className="overflow-x-auto">
               <FitGrid className="grid" columns={columns.length} data-students>
                 {boxes.map((m) => (
@@ -475,12 +530,21 @@ export default function TeacherMistakes() {
                     style={{ gridColumn: i + 1 }}
                     data-column={`${problem.id}:${ids(c)}`}
                   >
-                    {c.rows.map((r) => (
-                      <ArrivingName key={r.id} arrivedAt={r.arrivedAt} now={now} className="flex max-w-full items-center gap-3 whitespace-nowrap" data-row={`${problem.id}:${r.id}`}>
-                        <Avatar initials={r.initials} />
-                        <span className="truncate font-medium text-ink">{r.name}</span>
-                      </ArrivingName>
-                    ))}
+                    {groupStage
+                      ? // Group review (ticket 319): the column's groups, once each in seating order, never its students' names.
+                        grid
+                          .filter((g) => c.rows.some((r) => groupOf.get(r.id) === g.colour))
+                          .map((g) => (
+                            <span key={g.colour} className="flex" data-row={`${problem.id}:${g.colour}`}>
+                              <GroupChip colour={g.colour} />
+                            </span>
+                          ))
+                      : c.rows.map((r) => (
+                          <ArrivingName key={r.id} arrivedAt={r.arrivedAt} now={now} className="flex max-w-full items-center gap-3 whitespace-nowrap" data-row={`${problem.id}:${r.id}`}>
+                            <Avatar initials={r.initials} />
+                            <span className="truncate font-medium text-ink">{r.name}</span>
+                          </ArrivingName>
+                        ))}
                   </button>
                 ))}
                 {groups.map((g) => (
@@ -548,6 +612,15 @@ export default function TeacherMistakes() {
                   })}
               </FitGrid>
             </div>
+            )}
+            {unwritten.length > 0 && (
+              <div className={`flex flex-wrap items-center gap-2 px-5 py-3 ${columns.length > 0 ? "border-t border-line" : ""}`} data-unwritten={`${problem.id}:${unwritten.join(",")}`}>
+                {unwritten.map((colour) => (
+                  <GroupChip key={colour} colour={colour} />
+                ))}
+                <span className="text-[13px] text-ink-muted">unfinished or not attempted</span>
+              </div>
+            )}
           </Card>
           {/* The extra margin keeps the open flyout (laid 25 px left of the chip) clear of the card. A finished set has no live class to push to (ticket 187). */}
           {assignment.kind === "live" && !split && <DiagnosticPush problemId={problem.id} rows={rows} className="ml-5 shrink-0" />}
@@ -589,9 +662,17 @@ export default function TeacherMistakes() {
       {split ? (
         <StageSplit
           className="mt-4"
-          leftTitle="Where students are"
-          left={review ? <ReviewTable rows={inReview} now={now} onPress={pressPill} open={studentPill?.id ?? null} /> : <PlaceTable rows={working} now={now} onPress={pressPill} open={studentPill?.id ?? null} />}
-          rightTitle="Where students went wrong"
+          leftTitle={groupStage ? "Where groups are" : "Where students are"}
+          left={
+            groupStage ? (
+              <GroupGrid columns={grid} problems={assignment.problems} classmates={assignment.classmates} />
+            ) : review ? (
+              <ReviewTable rows={inReview} now={now} onPress={pressPill} open={studentPill?.id ?? null} />
+            ) : (
+              <PlaceTable rows={working} now={now} onPress={pressPill} open={studentPill?.id ?? null} />
+            )
+          }
+          rightTitle={groupStage ? "Where groups went wrong" : "Where students went wrong"}
           right={list}
           overlay={
             flyoutProblem ? (

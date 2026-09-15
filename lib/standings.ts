@@ -141,10 +141,13 @@ export const timelinesAt = (c: ClassroomState | null | undefined, session: Stude
 
 /** Who holds each listed group's pen at `now` (ticket 332): null before its run, once it is done, or between groups' boards. */
 export const pensAt = (c: ClassroomState | null | undefined, session: StudentSession | null, now: number): { colour: GroupColour; pen: string | null; problem: string | null }[] =>
-  groupsAt(c, session, now).map((g) => {
-    const working = !!g.run && !g.run.done && closedInOrder(g.run).length < g.run.problems.length;
-    return { colour: g.colour, pen: working ? (penHolder(g.run!) ?? null) : null, problem: working ? (currentProblem(g.run!) ?? null) : null };
-  });
+  groupsAt(c, session, now).map((g) => ({ colour: g.colour, ...penOf(g) }));
+
+/** Who holds one listed group's pen, and on which question: null before its run, once it is done (ticket 319 reads it with the group it already has). */
+export function penOf(g: GroupInReview): { pen: string | null; problem: string | null } {
+  const working = !!g.run && !g.run.done && closedInOrder(g.run).length < g.run.problems.length;
+  return { pen: working ? (penHolder(g.run!) ?? null) : null, problem: working ? (currentProblem(g.run!) ?? null) : null };
+}
 
 /** Every listed group's standing, in seating order. Without a run nothing has started: every bar at zero. */
 export function standingsAt(c: ClassroomState | null | undefined, session: StudentSession | null, now: number): GroupStanding[] {

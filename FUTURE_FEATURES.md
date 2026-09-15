@@ -1832,6 +1832,15 @@ Raised in a project checkpoint review; Carson asked for these on the list. Space
 - **Re-freezing groups on a changed seating.** Group review switched on mid-lesson uses the set's groups as Create froze them; a seating edit on the class defaults after Create is not picked up. Deferred: the set's Groups tab edits its copy.
 - **The Live diagnostic card moving down when class review is added.** Class View's side column gains the Class review card above it. Deferred: the card belongs to the stage, as on a set planned with class review.
 
+## Where groups are during group review (ticket 319, 2026-09-16)
+
+- **A group-grid cell opens that group's attempts.** Already listed under ticket 318; confirmed still deferred: the grid ships without a press.
+- **Moved to class review.** The grid's grey "class review" band is ready for the questions the teacher moves (ticket 337) but has no source yet. Deferred to 337.
+- **Wrong checks on the grid.** Carson chose no dots for wrong checks; a teacher might still want to see a group on its second wrong check before the hint. Deferred: rejected for now.
+- **A chip's state on the cards.** The cards' group chips do not say whether a group is still to go, left it for now or closed it unsolved; the header counts do. A small mark on the chip could say which. Deferred: not asked for.
+- **Cards for a regrouped class.** The cards map a student to their group in review; a student moved between groups mid-review would show under their new group. Deferred: seating does not change mid-review in the demo.
+- **Sideways scroll on half-width cards.** Q7's card (three workings) scrolls sideways at half width, as ticket 315's cards do. A narrower card body (stacking workings) could avoid it. Deferred.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,
