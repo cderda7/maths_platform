@@ -58,7 +58,7 @@ export default function HolisticTiles() {
 }
 
 function Tile({ tile }: { tile: HolisticTile }) {
-  const empty = tile.patterns.length === 0 && tile.strengths.length === 0;
+  const empty = tile.signatures.length === 0 && tile.patterns.length === 0 && tile.strengths.length === 0;
   return (
     <Link
       href={tile.href}
@@ -87,6 +87,17 @@ function Tile({ tile }: { tile: HolisticTile }) {
         </p>
       ) : (
         <div className="mt-5 space-y-3.5 border-t border-line pt-4">
+          {/* Error signatures first (ticket 303): one kind of error across sets, the patterns it covers not repeated below. */}
+          {tile.signatures.length > 0 && (
+            <div data-tile-signatures>
+              <Eyebrow>Across sets</Eyebrow>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {tile.signatures.map((t) => (
+                  <PatternTag key={t.label} tag={t} signature />
+                ))}
+              </div>
+            </div>
+          )}
           {tile.patterns.map((g) => (
             <div key={g.category} data-tile-patterns={g.category}>
               <Eyebrow>{g.name}</Eyebrow>
@@ -115,10 +126,16 @@ function Tile({ tile }: { tile: HolisticTile }) {
   );
 }
 
-/** "signs in the wrong brackets · 2 sets" (or "· 1 set", ticket 276): the pattern's tag and how many sets it shows on (which ones on hover). */
-function PatternTag({ tag }: { tag: TileTag }) {
+/** "signs in the wrong brackets · 2 sets" (or "· 1 set", ticket 276): the pattern's tag and how many sets it shows on (which ones on hover); a signature's tag (ticket 303) in the same colours, set in bold. */
+function PatternTag({ tag, signature = false }: { tag: TileTag; signature?: boolean }) {
   return (
-    <span className="max-w-full rounded-lg border border-wrong-line bg-wrong-soft px-2.5 py-1 text-[15.5px] leading-snug text-wrong-deep" title={tag.sets.join(", ")} data-tile-tag={tag.label} data-tile-sets={tag.sets.join(" ")}>
+    <span
+      className={`max-w-full rounded-lg border border-wrong-line bg-wrong-soft px-2.5 py-1 text-[15.5px] leading-snug text-wrong-deep ${signature ? "font-semibold" : ""}`}
+      title={tag.sets.join(", ")}
+      data-tile-tag={tag.label}
+      data-tile-sets={tag.sets.join(" ")}
+      data-tile-signature={signature || undefined}
+    >
       {tag.label}
       <span className="whitespace-nowrap text-wrong-deep/70"> · {tag.sets.length} {tag.sets.length === 1 ? "set" : "sets"}</span>
     </span>

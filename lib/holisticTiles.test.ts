@@ -17,6 +17,7 @@ const report = skipFixture("report", now);
 const over: HolisticNow = { classroom: report.classroom, session: report.session, now };
 const everyone = [DEMO_STUDENT.id, ...CLASSMATES.map((c) => c.id)];
 const tags = (id: string, at: HolisticNow = over) => Object.fromEntries(holisticTile(id, at)!.patterns.map((g) => [g.category, g.tags.map((t) => [t.label, t.sets.join(" ")])]));
+const signatures = (id: string, at: HolisticNow = over) => holisticTile(id, at)!.signatures.map((s) => [s.label, s.sets.join(" ")]);
 const strengths = (id: string, at: HolisticNow = over) => holisticTile(id, at)!.strengths.map((s) => s.category);
 
 describe("Holistic Assessment's tiles (ticket 252)", () => {
@@ -43,15 +44,15 @@ describe("Holistic Assessment's tiles (ticket 252)", () => {
     expect(holisticTile("priya", over)!.strengths.map((s) => s.name)).toEqual(["Algebra", "Functions", "Graphing", "Communication", "Reasoning", "New skills"]);
   });
 
-  it("Liam, who hands in about half: his recent patterns, one-set ones too, and communication a strength now every set saw his working (ticket 281)", () => {
-    // Guessed factor pairs on PS3–PS6, worded two ways, first; his PS1 slip (√50 written as 25√2) never came back, so it is gone (ticket 276).
+  it("Liam, who hands in about half: his signatures, his one-set patterns, and communication a strength now every set saw his working (ticket 281)", () => {
+    // Factor brackets on PS3–PS6 and squared brackets on PS2–PS3 read as signatures (ticket 303); his PS1 slip (√50 written as 25√2) never came back, so it is gone (ticket 276).
+    expect(signatures("liam")).toEqual([
+      ["Factor pairs wrong", "PS3 PS4 PS5 PS6"],
+      ["Squared brackets wrong", "PS2 PS3"],
+    ]);
     expect(tags("liam")).toEqual({
-      algebra: [
-        ["factor pairs never expanded back", "PS3 PS4 PS5 PS6"],
-        ["only two of the four terms expanded", "PS2"],
-      ],
+      algebra: [["only two of the four terms expanded", "PS2"]],
       new: [
-        ["a bracket squared term by term", "PS2 PS3"],
         ["intercepts read off the factors with the signs flipped", "PS5"],
         ["null factor law on a product that isn't 0", "PS6"],
       ],
@@ -59,13 +60,13 @@ describe("Holistic Assessment's tiles (ticket 252)", () => {
     // Communication secure on every set, now he hands working in on all six: his one strength.
     expect(strengths("liam")).toEqual(["communication"]);
     // Before Problem Set 6 the window is PS1–PS5, so PS1's slip is still recent.
+    expect(signatures("liam", fresh)).toEqual([
+      ["Factor pairs wrong", "PS3 PS4 PS5"],
+      ["Squared brackets wrong", "PS2 PS3"],
+    ]);
     expect(tags("liam", fresh)).toEqual({
-      algebra: [
-        ["factor pairs never expanded back", "PS3 PS4 PS5"],
-        ["only two of the four terms expanded", "PS2"],
-      ],
+      algebra: [["only two of the four terms expanded", "PS2"]],
       new: [
-        ["a bracket squared term by term", "PS2 PS3"],
         ["√50 written as 25√2", "PS1"],
         ["intercepts read off the factors with the signs flipped", "PS5"],
       ],
@@ -73,28 +74,11 @@ describe("Holistic Assessment's tiles (ticket 252)", () => {
     expect(strengths("liam", fresh)).toEqual(["communication"]);
   });
 
-  it("a repeated pattern collapses to one tag with its set count, however the sheet words it on each set", () => {
-    // The ticket's example: Sam's signs, worded two ways on PS4 and PS5; his one-set patterns after (ticket 276).
-    expect(tags("sam").algebra).toEqual([
-      ["signs in the wrong brackets", "PS4 PS5"],
-      ["a sign lost multiplying out a surd bracket", "PS2"],
-      ["the signs of a factor pair swapped, not expanded back", "PS3"],
-    ]);
-    // The same words on two sets need no label.
-    expect(tags("sam").graphing).toEqual([
-      ["turning point read with the sign flipped", "PS4 PS5"],
-      ["negative a read as concave up", "PS5"],
-    ]);
-    // Jordan's unchecked pairs, four wordings over four sets (two on PS6), one tag.
-    expect(tags("jordan").algebra).toEqual([
-      ["factor pairs not checked by expanding back", "PS3 PS4 PS5 PS6"],
-      ["a bracket expanded without checking the middle terms", "PS2"],
-    ]);
-    // Most sets first within a category.
-    expect(tags("lucas").algebra).toEqual([
-      ["a sign lost", "PS2 PS4 PS5"],
-      ["a pair that multiplies but doesn't add", "PS3 PS6"],
-    ]);
+  it("a pattern on two sets or more reads under its signature (ticket 303), so a category's tags are one-set patterns", () => {
+    // Sam's signs across algebra, graphing and New skills are one signature; his conjugate (a surds misconception) stays a tag.
+    expect(signatures("sam")).toEqual([["Minus signs wrong", "PS2 PS3 PS4 PS5"]]);
+    expect(tags("sam")).toEqual({ new: [["the conjugate's sign wrong", "PS2"]] });
+    for (const at of [fresh, over]) for (const t of holisticTiles(at)) for (const g of t.patterns) for (const x of g.tags) expect(x.sets, `${t.student.id} ${x.label}`).toHaveLength(1);
   });
 
   it("a tag is a pattern the student's page surfaces, one set or many, with every set the page shows it on (ticket 276)", () => {
@@ -105,10 +89,12 @@ describe("Holistic Assessment's tiles (ticket 252)", () => {
         const view = holisticView(id, at)!;
         const tile = holisticTile(id, at)!;
         const window = recentSets(view.sets);
-        // The tile's categories and tags are the page's, in the page's category order.
-        expect(tile.patterns.map((g) => g.category), id).toEqual(view.patterns.map((g) => g.category));
+        // The tile's categories and tags are the page's patterns no signature covers (ticket 303), in the page's category order.
+        const covered = new Set(view.signatures.flatMap((x) => x.patterns.map((p) => `${p.category}|${p.text}`)));
+        const open = view.patterns.map((g) => ({ ...g, patterns: g.patterns.filter((h) => !covered.has(`${g.category}|${h.text}`)) })).filter((g) => g.patterns.length > 0);
+        expect(tile.patterns.map((g) => g.category), id).toEqual(open.map((g) => g.category));
         for (const g of tile.patterns) {
-          const page = view.patterns.find((x) => x.category === g.category)!.patterns;
+          const page = open.find((x) => x.category === g.category)!.patterns;
           expect(g.tags.map((t) => t.label).sort(), `${id} ${g.category}`).toEqual([...new Set(page.map((h) => h.tag))].sort());
           for (const t of g.tags) {
             const onPage = page.filter((h) => h.tag === t.label).flatMap((h) => h.refs);
@@ -128,10 +114,8 @@ describe("Holistic Assessment's tiles (ticket 252)", () => {
   it("tiles take the live set as the student's page does: mid-stream a tag counts only the sets seen so far", () => {
     const working = skipFixture("working", now);
     const justLive = { classroom: { ...working.classroom, assignment: { ...working.classroom.assignment!, startedAt: now } }, session: working.session, now };
-    expect(tags("jordan", justLive).algebra).toEqual([
-      ["factor pairs not checked by expanding back", "PS3 PS4 PS5"],
-      ["a bracket expanded without checking the middle terms", "PS2"],
-    ]);
+    expect(signatures("jordan", justLive)).toEqual([["Factor pairs wrong", "PS3 PS4 PS5"]]);
+    expect(tags("jordan", justLive).algebra).toEqual([["a bracket's middle terms wrong expanding", "PS2"]]);
   });
 
   it("strengths: secure on every set that assessed the student in the category, and never beside a pattern of it", () => {
@@ -144,9 +128,12 @@ describe("Holistic Assessment's tiles (ticket 252)", () => {
     // The teacher marks her present on PS6: not seen on a set she sat, but the live set is still being handed in.
     const present = classroomReducer(over.classroom!, { type: "absence/set", assignment: ASSIGNMENT.id, student: "chloe", absent: false });
     expect(strengths("chloe", { ...over, classroom: present })).toEqual(["graphing", "communication", "reasoning"]);
-    // Tomas marked absent on PS4: his PS4 patterns leave the tiles too; graphing's turning point is PS5's alone.
+    // Tomas marked absent on PS4: his PS4 patterns leave the tiles too, signatures included (ticket 303).
     const away = classroomReducer(over.classroom!, { type: "absence/set", assignment: "pset-4", student: "tomas", absent: true });
-    expect(tags("tomas", { ...over, classroom: away }).graphing).toEqual([["the turning point's sign copied from the bracket", "PS5"]]);
+    expect(signatures("tomas", { ...over, classroom: away })).toEqual([
+      ["Fractions upside down", "PS1 PS2 PS5"],
+      ["Minus signs wrong", "PS3 PS5"],
+    ]);
     expect(tags("tomas", { ...over, classroom: away }).functions).toBeUndefined();
     for (const at of [fresh, over])
       for (const t of holisticTiles(at)) {

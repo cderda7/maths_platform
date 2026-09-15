@@ -9,6 +9,7 @@ import { DEFAULT_GROUPS, FROZEN_GROUPS } from "./groups";
 import { STORY, STORY_CATEGORIES, STORY_CLASS_REVIEW, STORY_RANK, STORY_REVIEW, STORY_SETS, storyAbsent, storyResults, type StoryCategory } from "./story";
 import { DEMO_ABSENCES } from "./absences";
 import { PATTERN_TAGS } from "./patternTags";
+import { familyOf } from "./signatures";
 import { CATEGORY_ORDER, isLeafId } from "./taxonomy";
 import { assignmentBundle } from "@/lib/assignments";
 import { classReviewMismatches, hardestUnsolved, missedProblems, recordStatus, renderClassStory, reviewMismatches } from "@/lib/classStory";
@@ -136,6 +137,37 @@ describe("the class story sheet (ticket 210)", () => {
       ...STORY_REVIEW.flatMap((set) => (set[id] ?? []).map((r) => [`${id} review Q${r.q}`, r.why])),
     ]);
     for (const [where, text] of texts) expect(text, where).not.toMatch(TRAIT);
+    // Ticket 303: what is wrong, never why the student is supposed to have gone wrong.
+    const WHY = /without checking|not checked|to check\b|expanded back|expanding back|copied|\btried\b|looks? close/i;
+    for (const [where, text] of texts) expect(text, where).not.toMatch(WHY);
+  });
+
+  it("names on every pattern the misconception the student's own wrong lines show (ticket 303); communication patterns none", () => {
+    const { classroom, session } = skipFixture("report", 1_000_000);
+    const off: string[] = [];
+    STORY_SETS.forEach((s, i) => {
+      const bundle = assignmentBundle(s.id, classroom)!;
+      const fixture = s.n === 6 ? ASSIGNMENT.problems : bundle.problems;
+      const rows = mistakesByProblem(session, bundle, 1_000_000);
+      const shown = (student: string, n: number) => rows.find((p) => p.problem.id === fixture[n - 1].id)?.rows.find((r) => r.id === student)?.misconceptions ?? [];
+      for (const id of students)
+        for (const c of STORY_CATEGORIES)
+          for (const p of STORY[id].cells[c][i].patterns) {
+            const where = `${id} ${c} ${s.id} "${p.text}"`;
+            if (c === "communication") {
+              if (p.misconception !== null) off.push(`${where}: a communication pattern names ${p.misconception}`);
+              continue;
+            }
+            if (p.misconception === null) {
+              off.push(`${where}: no misconception`);
+              continue;
+            }
+            // The id on one of its problems at least, and every problem showing a misconception of the same family.
+            if (!p.problems.some((n) => shown(id, n).includes(p.misconception!))) off.push(`${where}: ${p.misconception} on none of Q${p.problems.join(", Q")}`);
+            for (const n of p.problems) if (!shown(id, n).some((m) => familyOf(m) === familyOf(p.misconception))) off.push(`${where}: Q${n} shows ${shown(id, n).join("+") || "nothing"}`);
+          }
+    });
+    expect(off).toEqual([]);
   });
 
   it("never jumps: each student's neighbouring results in a category differ by at most one step", () => {

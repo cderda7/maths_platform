@@ -126,7 +126,7 @@ describe("the holistic view (ticket 251)", () => {
     const algebra = v.patterns[0];
     expect(algebra.name).toBe("Algebra");
     // PS1's wording of a pattern that came back on PS2, PS4 and PS5 (ticket 276: older occurrences stay).
-    expect(algebra.patterns[0]).toEqual({ text: "the fraction turned over dividing surds", tag: "fractions turned over", refs: [{ set: "pset-1", label: "PS1", status: "developing", problems: [{ id: "ps1-q7", label: "Q7" }] }] });
+    expect(algebra.patterns[0]).toEqual({ text: "the fraction turned over dividing surds", misconception: "divided-wrong-way", tag: "fractions turned over", refs: [{ set: "pset-1", label: "PS1", status: "developing", problems: [{ id: "ps1-q7", label: "Q7" }] }] });
     // Every pattern of the sheet on a result short of secure is on the page, once per set, when its tag has a set in PS2–PS6 (ticket 276).
     for (const id of everyone) {
       const page = holisticView(id, over)!.patterns.flatMap((g) => g.patterns.flatMap((h) => h.refs.map((ref) => `${g.category} ${ref.label} ${h.text} ${ref.problems.map((p) => p.label).join(",")}`)));
@@ -138,10 +138,11 @@ describe("the holistic view (ticket 251)", () => {
 
   it("a pattern worded the same on two sets is one pattern with a ref for each", () => {
     const jordan = holisticView("jordan", over)!.patterns.find((g) => g.category === "algebra")!;
-    const guessed = jordan.patterns.find((h) => h.text === "non-monic pairs not expanded back to check")!;
+    const guessed = jordan.patterns.find((h) => h.text === "non-monic brackets wrong")!;
     expect(guessed.refs.map((r) => [r.label, r.status, r.problems.map((p) => p.label)])).toEqual([
       ["PS4", "gap", ["Q1", "Q2", "Q4"]],
       ["PS5", "gap", ["Q4", "Q8"]],
+      ["PS6", "developing", ["Q2"]],
     ]);
   });
 

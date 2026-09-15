@@ -70,7 +70,7 @@ const Q5_SIGN_LOST = ["x^2 + 3x - 10 = 0", "(x + 5)(x - 2) = 0", "x + 5 = 0 \\;\
 const Q5_BEFORE_ZERO = ["x(x - 3) = 10", "x = 5"];
 /** Q5: the null factor law on a product that equals 10. */
 const Q5_NFL_TEN = ["x(x - 3) = 10", "x = 10 \\;\\text{or}\\; x - 3 = 10", "x = 10 \\;\\text{or}\\; x = 13"];
-/** Q5: a root's sign copied from its bracket. */
+/** Q5: a root's sign wrong. */
 const Q5_ROOT_SIGN = ["x^2 - 3x - 10 = 0", "(x - 5)(x + 2) = 0", "x = 5 \\;\\text{or}\\; x = 2"];
 /** Q5: a pair that multiplies to −10 but doesn't add to −3. */
 const Q5_PAIR = ["x^2 - 3x - 10 = 0", "(x - 10)(x + 1) = 0", "x - 10 = 0 \\;\\text{or}\\; x + 1 = 0", "x = 10 \\;\\text{or}\\; x = -1"];
@@ -186,7 +186,7 @@ const CLASSMATES: Classmate[] = [
     confidence: "confident",
     done: 8,
     wrong: [q(1), q(2), q(4)],
-    notes: [{ text: "non-monic pairs not expanded back to check", problems: [q(1), q(2), q(4)] }],
+    notes: [{ text: "non-monic brackets wrong", problems: [q(1), q(2), q(4)] }],
     attempts: { [q(1)]: Q1_GUESSED, [q(2)]: Q2_GUESSED, [q(4)]: Q4_GUESSED },
     clarification: "I looked for two numbers that multiply to the last number and wrote the brackets. I didn't multiply them out again, so I never saw the middle was wrong. I didn't get to Q9 or Q10.",
     groupStatus: "Group review done · the split on Q2",
@@ -217,7 +217,7 @@ const CLASSMATES: Classmate[] = [
     notes: [
       { text: "factors set to zero with their signs flipped", problems: [q(3)] },
       { text: "solved 2x + 1 = 0 as x = −2", problems: [q(3)] },
-      { text: "a root's sign copied from its bracket", problems: [q(5)] },
+      { text: "a root's sign wrong", problems: [q(5)] },
       { text: "half of b taken with the wrong sign", problems: [q(6)] },
       { text: "fractions lost in half of b", problems: [q(7)] },
       { text: "the minimum's x read with the sign flipped", problems: [q(9)] },
@@ -250,7 +250,7 @@ const CLASSMATES: Classmate[] = [
     done: 5,
     wrong: [q(1), q(2), q(3), q(4), q(5)],
     notes: [
-      { text: "non-monic pairs not expanded back to check", problems: [q(1), q(2)] },
+      { text: "non-monic brackets wrong", problems: [q(1), q(2)] },
       { text: "2x = −1 and 2x = 1 solved with the fraction turned over", problems: [q(3), q(4)] },
       { text: "one root found by trying, the equation never made zero", problems: [q(5)] },
     ],
@@ -278,7 +278,7 @@ const CLASSMATES: Classmate[] = [
     done: 10,
     wrong: [q(1), q(4), q(6)],
     notes: [
-      { text: "non-monic pairs not expanded back to check", problems: [q(1), q(4)] },
+      { text: "non-monic brackets wrong", problems: [q(1), q(4)] },
       { text: "solved 2x − 1 = 0 as x = −1/2", problems: [q(4)] },
       { text: "half of b squared without its sign", problems: [q(6)] },
     ],
@@ -306,7 +306,7 @@ const CLASSMATES: Classmate[] = [
     done: 10,
     wrong: [q(2), q(5), q(7)],
     notes: [
-      { text: "a non-monic pair not expanded back to check", problems: [q(2)] },
+      { text: "non-monic brackets wrong", problems: [q(2)] },
       { text: "a root's sign lost rearranging", problems: [q(5)] },
       { text: "halves lost completing the square", problems: [q(7)] },
     ],
@@ -322,7 +322,7 @@ const CLASSMATES: Classmate[] = [
     done: 10,
     wrong: [q(2), q(4), q(5), q(7), q(9)],
     notes: [
-      { text: "a non-monic pair not expanded back to check", problems: [q(2)] },
+      { text: "non-monic brackets wrong", problems: [q(2)] },
       { text: "a root's sign lost", problems: [q(4)] },
       { text: "factorised before making the equation equal zero", problems: [q(5)] },
       { text: "half of −5 taken as −5/4", problems: [q(7)] },
@@ -341,8 +341,8 @@ const CLASSMATES: Classmate[] = [
     done: 10,
     wrong: [q(5), q(8), q(10)],
     notes: [
-      { text: "x² − 3x = 10 rearranged with the 10's sign copied", problems: [q(5)] },
-      { text: "the turning point's sign copied from the bracket", problems: [q(8)] },
+      { text: "x² − 3x = 10 rearranged with the 10's sign wrong", problems: [q(5)] },
+      { text: "the turning point's sign wrong", problems: [q(8)] },
       { text: "the negative width given in the sentence", problems: [q(10)] },
     ],
     attempts: { [q(5)]: Q5_TEN_SIGN, [q(8)]: Q8_TP_SIGN, [q(10)]: Q10_NEGATIVE },
@@ -402,7 +402,7 @@ const CLASSMATES: Classmate[] = [
     done: 8,
     wrong: [q(1), q(2), q(5)],
     notes: [
-      { text: "non-monic pairs not expanded back to check", problems: [q(1), q(2)] },
+      { text: "non-monic brackets wrong", problems: [q(1), q(2)] },
       { text: "null factor law on x(x − 3) = 10, a product that isn't 0", problems: [q(5)] },
     ],
     attempts: { [q(1)]: Q1_GUESSED, [q(2)]: Q2_GUESSED, [q(4)]: Q4_BRACKETS, [q(5)]: Q5_NFL_TEN },
@@ -417,7 +417,7 @@ const CLASSMATES: Classmate[] = [
     done: 10,
     wrong: [q(4), q(5), q(9)],
     notes: [
-      { text: "a pair that multiplies but doesn't add, never expanded back", problems: [q(4), q(5)] },
+      { text: "a pair that multiplies but doesn't add", problems: [q(4), q(5)] },
       { text: "the minimum value given as the x of the turning point", problems: [q(9)] },
     ],
     attempts: { [q(4)]: Q4_GUESSED, [q(5)]: Q5_PAIR, [q(9)]: Q9_X_AS_MIN },
@@ -449,7 +449,7 @@ const CLASSMATES: Classmate[] = [
     notes: [
       { text: "halves lost completing the square", problems: [q(7)] },
       { text: "(5/2)² taken as 5/4 completing the square", problems: [q(7)] },
-      { text: "a non-monic pair not checked", problems: [q(2)] },
+      { text: "non-monic brackets wrong", problems: [q(2)] },
     ],
     attempts: { [q(2)]: Q2_GUESSED, [q(7)]: Q7_HALVES },
     clarification: "The halves in Q7 got away from me: I squared 5/2 wrong and then halved again. Q2 I guessed the pair and moved on.",

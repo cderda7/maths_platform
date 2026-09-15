@@ -247,7 +247,7 @@ const CLASSMATES: Classmate[] = [
     confidence: "confident",
     done: 10,
     wrong: [q(4)],
-    notes: [{ text: "a sign copied subtracting like surds", problems: [q(4)] }],
+    notes: [{ text: "a sign wrong subtracting like surds", problems: [q(4)] }],
     attempts: { [q(4)]: Q4_SIGN_REWRITING },
     clarification: "I simplified both surds right and wrote a plus between them without looking back at the question.",
     groupStatus: "Group review done · reading Q4 back",

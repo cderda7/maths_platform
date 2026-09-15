@@ -112,7 +112,7 @@ const SAM: Classmate = {
   wrong: [q(2), q(7)],
   notes: [
     { text: "√5 × (−√5) taken as +5", problems: [q(2)] },
-    { text: "the conjugate's sign copied from the denominator, then squared as a difference", problems: [q(7)] },
+    { text: "the conjugate's sign wrong, then squared as a difference", problems: [q(7)] },
   ],
   attempts: { [q(2)]: Q2_ROOT_SIGN, [q(7)]: Q7_SAME_BRACKET },
   clarification: "Q2 was a sign, root 5 times minus root 5 is minus 5. In Q7 I wrote the bottom again with the same minus, and then I wrote 5 − 1 because that's what it always comes to. It only does with the plus.",
@@ -276,7 +276,7 @@ const CLASSMATES: Classmate[] = [
     done: 10,
     wrong: [q(2), q(10)],
     notes: [
-      { text: "the product's sign copied from the bracket", problems: [q(2)] },
+      { text: "the product's sign wrong", problems: [q(2)] },
       { text: "the sentence gives the area where the diagonal was asked", problems: [q(10)] },
     ],
     attempts: { [q(2)]: Q2_BRACKET_SIGN, [q(10)]: Q10_SWAPPED },
@@ -334,7 +334,7 @@ const CLASSMATES: Classmate[] = [
     done: 10,
     wrong: [q(2), q(4)],
     notes: [
-      { text: "the middle term written without multiplying it out", problems: [q(2)] },
+      { text: "the middle term wrong expanding", problems: [q(2)] },
       { text: "(3 − √2)(3 + √2) taken as 9 + 2", problems: [q(4)] },
     ],
     attempts: { [q(2)]: Q2_MIDDLE_GUESSED, [q(4)]: Q4_ADDED },

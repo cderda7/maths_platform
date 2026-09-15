@@ -23,13 +23,7 @@ export const PATTERN_TAGS: Readonly<Record<string, Partial<Record<StoryCategory,
   },
   jordan: {
     algebra: [
-      tag(
-        "factor pairs not checked by expanding back",
-        "a factor pair that multiplies to the constant, not checked by expanding",
-        "non-monic pairs not expanded back to check",
-        "non-monic factors not checked by expanding",
-        "a pair that multiplies to 8 but adds to 9",
-      ),
+      tag("factor brackets wrong", "a factor pair that multiplies to the constant, the brackets wrong", "non-monic brackets wrong", "a pair that multiplies to 8 but adds to 9"),
     ],
   },
   amelia: {
@@ -48,12 +42,11 @@ export const PATTERN_TAGS: Readonly<Record<string, Partial<Record<StoryCategory,
   },
   tomas: {
     algebra: [tag("fractions turned over", "the fraction turned over dividing surds", "the fraction turned over rationalising", "solved 2x + 1 = 0 as x = −2", "solved 3x + 2 = 0 as −3/2")],
-    graphing: [tag("the turning point's sign copied from the bracket", "the minimum's x read with the sign flipped", "h read as +3 from (x + 3)", "axis of symmetry without the minus")],
+    graphing: [tag("the turning point's sign wrong", "the minimum's x read with the sign flipped", "h read as +3 from (x + 3)", "axis of symmetry without the minus")],
     new: [
       tag(
-        "the sign copied from the bracket",
-        "multiplied by the same bracket, not its conjugate",
-        "the middle term's sign copied from the bracket",
+        "signs wrong from a bracket",
+        "the middle term's sign wrong",
         "factors set to zero with their signs flipped",
         "intercepts read off the factors with the signs flipped",
       ),
@@ -64,7 +57,7 @@ export const PATTERN_TAGS: Readonly<Record<string, Partial<Record<StoryCategory,
     new: [tag("added to complete the square, never taken away", "added the square to complete it, never took it away", "added 16 to complete the square, never took it away")],
   },
   liam: {
-    algebra: [tag("factor pairs never expanded back", "non-monic pairs not expanded back to check", "a factor pair not expanded back to check")],
+    algebra: [tag("factor brackets wrong", "non-monic brackets wrong", "factor brackets wrong")],
     new: [tag("a bracket squared term by term", "(√7 + 2)² squared term by term", "(2x − 3)² squared term by term")],
   },
   aiden: {
@@ -81,20 +74,20 @@ export const PATTERN_TAGS: Readonly<Record<string, Partial<Record<StoryCategory,
     ],
   },
   mia: {
-    algebra: [tag("factor pairs never expanded back", "brackets tried in turn, none expanded back", "non-monic pairs not expanded back to check", "a factor pair never expanded back")],
+    algebra: [tag("factor brackets wrong", "factor brackets wrong", "non-monic brackets wrong")],
   },
   noah: {
     new: [tag("a bracket squared term by term", "(√7 + 2)² squared term by term", "(2x − 3)² squared term by term", "(x − 3)² squared term by term")],
   },
   chloe: {
     algebra: [
-      tag("factor pairs not checked", "a factor pair written without checking", "a non-monic pair not expanded back to check", "non-monic pair not expanded back to check"),
-      tag("halves lost", "halves lost completing the square", "sum of the intercepts never halved"),
+      tag("factor brackets wrong", "factor brackets wrong", "non-monic brackets wrong"),
+      tag("halves wrong", "halves lost completing the square", "sum of the intercepts never halved"),
     ],
     functions: [tag("a negative's sign lost", "a root's sign lost rearranging", "(−3)² taken as −9")],
   },
   ethan: {
-    algebra: [tag("factor pairs written without checking", "a factor pair written without checking the middle", "a non-monic pair not expanded back to check", "non-monic pair not expanded back to check")],
+    algebra: [tag("factor brackets wrong", "brackets with the wrong middle term", "non-monic brackets wrong")],
     functions: [tag("a negative's sign lost", "a root's sign lost", "(−3)² taken as −9, the axis not shown")],
     graphing: [tag("the axis given where the height is asked", "the minimum value given as the x, the working not shown", "axis given as the height, the working not shown", "axis given as the height, a step skipped")],
     communication: [
@@ -112,16 +105,16 @@ export const PATTERN_TAGS: Readonly<Record<string, Partial<Record<StoryCategory,
   isla: {
     algebra: [
       tag(
-        "a sign copied, not worked out",
-        "the product's sign copied from the bracket",
-        "signs in the second bracket copied, not multiplied",
+        "a sign wrong",
+        "the product's sign wrong",
+        "the second bracket's signs wrong multiplying",
         "the common factor's sign left behind",
-        "x² − 3x = 10 rearranged with the 10's sign copied",
+        "x² − 3x = 10 rearranged with the 10's sign wrong",
         "took −1 out and left the signs inside behind",
         "−b written as −5",
       ),
     ],
-    graphing: [tag("the turning point's sign copied from the bracket", "the turning point's sign copied from the bracket", "axis of symmetry without the minus")],
+    graphing: [tag("the turning point's sign wrong", "the turning point's sign wrong", "axis of symmetry without the minus")],
     reasoning: [
       tag(
         "the sentence says what the working doesn't",
@@ -145,7 +138,6 @@ export const PATTERN_TAGS: Readonly<Record<string, Partial<Record<StoryCategory,
         "the diagonal stated without saying which length it is",
         "width and length swapped in the sentence",
         "the landing given as the nozzle's zero",
-        "negative discriminant, two solutions",
       ),
     ],
   },
@@ -165,10 +157,9 @@ export const PATTERN_TAGS: Readonly<Record<string, Partial<Record<StoryCategory,
     algebra: [tag("a sign lost expanding or rearranging", "the minus not multiplied through the bracket", "a sign lost in the expansion", "the common factor's sign lost", "a sign lost rearranging x² − 3x = 10")],
     graphing: [tag("the height read from the wrong line", "the minimum value read off the wrong line", "axis given as the height, the working not shown", "turning point's height from the wrong line")],
     communication: [tag("steps written in one line", "the perfect square written in one line", "the square completed in one line", "the landing written straight down", "the height given in one line")],
-    new: [tag("a perfect square's middle term lost", "(√7 + 2)² with the middle term's 2 lost", "(2x − 3)²'s middle term sign lost")],
   },
   oliver: {
-    algebra: [tag("factor pairs never expanded back", "factor pairs written without expanding back", "non-monic pairs not expanded back to check", "factor pairs not expanded back")],
+    algebra: [tag("factor brackets wrong", "factor brackets wrong", "non-monic brackets wrong")],
     new: [
       tag("a bracket squared term by term", "(2x − 3)² squared term by term", "(x − 3)² squared term by term"),
       tag("null factor law on a product that isn't 0", "null factor law on x(x − 3) = 10, a product that isn't 0", "null factor law on a product that isn't 0"),
@@ -179,25 +170,18 @@ export const PATTERN_TAGS: Readonly<Record<string, Partial<Record<StoryCategory,
       tag(
         "a pair that multiplies but doesn't add",
         "a pair that multiplies to −15 but doesn't add to 2",
-        "a pair that multiplies but doesn't add, never expanded back",
+        "a pair that multiplies but doesn't add",
         "a pair that multiplies to −8 but doesn't add to −2",
         "a pair that multiplies to 8 but adds to 9",
       ),
     ],
-    graphing: [tag("the turning point's height misread", "the minimum value given as the x of the turning point", "axis given as the height", "turning point's height from the wrong line")],
+    graphing: [tag("the turning point's height wrong", "the minimum value given as the x of the turning point", "axis given as the height", "turning point's height from the wrong line")],
   },
   finn: {
     algebra: [
       tag("a fraction turned over solving", "divided the wrong way round solving for x", "the fraction turned over rationalising", "solved 2x + 1 = 0 as x = −2", "solved 3x + 2 = 0 as −3/2"),
       tag("a sign flipped", "a factor's sign flipped writing the pair", "sign lost solving 2x − 1 = 0"),
     ],
-  },
-  sofia: {
-    algebra: [
-      tag("a non-monic pair not checked", "a non-monic pair not checked", "non-monic pairs not expanded back to check"),
-      tag("fractions and halves lost or turned over", "the fraction left upside down dividing surds", "rationalised the top instead of the bottom", "halves lost completing the square", "denominator a, not 2a"),
-    ],
-    new: [tag("fractions not carried through", "the conjugate's fraction left unsimplified", "(5/2)² taken as 5/4 completing the square")],
   },
 };
 

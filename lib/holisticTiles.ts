@@ -5,7 +5,8 @@ import { holisticView, type HolisticNow, type HolisticView } from "./holistic";
 /**
  * Holistic Assessment's tiles (ticket 252): every student as a tile, built on the holistic page's view model
  * (`holisticView`, ticket 251), so a tile never says what the student's page does not. A tile carries the story
- * sheet's line, the student's patterns as tags under their category, and their strengths. Pure.
+ * sheet's line, the student's error signatures (ticket 303), the patterns no signature covers as tags under their
+ * category, and their strengths. Pure.
  *
  * - A tag is one pattern the page surfaces (`surfacing` in `lib/holistic.ts`, ticket 276: one of its sets among the
  *   class's five most recent), however many sets it shows on, one included. The sheet words a pattern for its set, so a
@@ -35,7 +36,9 @@ export interface HolisticTile {
   /** The student's page from Holistic Assessment: Back comes here. */
   href: string;
   summary: string;
-  /** Categories with a pattern that surfaces, in canonical order. */
+  /** The student's error signatures (ticket 303): a family's name and the sets it shows on, most sets first. */
+  signatures: TileTag[];
+  /** Categories with a pattern that surfaces and no signature covers, in canonical order. */
   patterns: TilePatterns[];
   /** Categories secure on every set that assessed the student in them, in canonical order. */
   strengths: { category: StoryCategory; name: string }[];
@@ -54,9 +57,14 @@ export function holisticTile(student: string, at: HolisticNow): HolisticTile | n
   if (!view) return null;
   const order = view.sets.map((c) => c.label);
 
+  // A pattern a signature covers is read there (ticket 303), so it is not listed under its category again.
+  const covered = new Set(view.signatures.flatMap((s) => s.patterns.map((p) => `${p.category}|${p.text}`)));
+  const signatures: TileTag[] = view.signatures.map((s) => ({ label: s.name, sets: s.sets.map((x) => x.label) }));
+
   const patterns: TilePatterns[] = view.patterns.flatMap((g) => {
     const byTag = new Map<string, Set<string>>();
     for (const p of g.patterns) {
+      if (covered.has(`${g.category}|${p.text}`)) continue;
       const sets = byTag.get(p.tag) ?? new Set<string>();
       for (const ref of p.refs) sets.add(ref.label);
       byTag.set(p.tag, sets);
@@ -72,5 +80,5 @@ export function holisticTile(student: string, at: HolisticNow): HolisticTile | n
     return results.length > 0 && results.every((cell) => cell === "secure") ? [{ category: r.category, name: r.name }] : [];
   });
 
-  return { student: view.student, href: holisticHref(student), summary: view.summary, patterns, strengths };
+  return { student: view.student, href: holisticHref(student), summary: view.summary, signatures, patterns, strengths };
 }

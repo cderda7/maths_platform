@@ -4,6 +4,8 @@ import { STORY, STORY_CATEGORIES, STORY_SETS, type StoryCategory } from "@/data/
 import { categoryName } from "@/data/taxonomy";
 import type { Problem, Status } from "@/data/types";
 import { patternTagLabel } from "@/data/patternTags";
+import type { MisconceptionId } from "@/data/misconceptions";
+import { signaturesOf, type Signature } from "./signatures";
 import { assignmentBundle, rosterEvidence, type AssignmentBundle } from "./assignments";
 import type { ClassroomState } from "./classroom";
 import { dueOrder } from "./dueDate";
@@ -66,6 +68,8 @@ export interface PatternRef {
  */
 export interface HolisticPattern {
   text: string;
+  /** The misconception its wrong lines show (`data/story.ts`, ticket 303); null for a communication pattern. */
+  misconception: MisconceptionId | null;
   /** The pattern this wording belongs to: its tag's label, or the wording itself (`patternTagLabel`). */
   tag: string;
   refs: PatternRef[];
@@ -87,6 +91,8 @@ export interface HolisticView {
   categories: HolisticCategory[];
   /** Categories with a pattern that surfaces (`surfacing`), in canonical order; none for a student secure everywhere. */
   patterns: PatternGroup[];
+  /** One family of errors on two sets or more, across categories (ticket 303, `lib/signatures.ts`); most sets first. */
+  signatures: Signature[];
 }
 
 /** The live world the live set is read from: the classroom, Sam's session, the clock. */
@@ -142,7 +148,7 @@ export function holisticView(student: string, { classroom, session, now }: Holis
         const cell = row.cells[c][i];
         // The sheet's absent is the demo's list; a set the teacher has marked them present on reads what they have (none).
         const status: HolisticStatus = cell.status === "live" || cell.status === "absent" ? "unseen" : cell.status;
-        return { status, patterns: cell.patterns.map((h) => ({ text: h.text, problems: h.problems.flatMap((n) => problemAt(bundle, n)) })) };
+        return { status, patterns: cell.patterns.map((h) => ({ text: h.text, misconception: h.misconception, problems: h.problems.flatMap((n) => problemAt(bundle, n)) })) };
       });
     }
     return liveCells(bundle, student, i, { classroom, session, now });
@@ -162,14 +168,18 @@ export function holisticView(student: string, { classroom, session, now }: Holis
         const ref: PatternRef = { set: sets[j].id, label: sets[j].label, status: status as Status, problems: p.problems };
         const same = all.find((x) => x.text === p.text);
         if (same) same.refs.push(ref);
-        else all.push({ text: p.text, tag: patternTagLabel(student, c, p.text), refs: [ref] });
+        else all.push({ text: p.text, misconception: p.misconception, tag: patternTagLabel(student, c, p.text), refs: [ref] });
       }
     });
     const out = surfacing(all, window);
     return out.length ? [{ category: c, name: categoryName(c).name, patterns: out }] : [];
   });
 
-  return { student: { id: student, name: who.name, initials: who.initials }, summary: row.arc, sets, categories, patterns };
+  const signatures = signaturesOf(
+    patterns.flatMap((g) => g.patterns.map((p) => ({ ...p, category: g.category }))),
+    sets,
+  );
+  return { student: { id: student, name: who.name, initials: who.initials }, summary: row.arc, sets, categories, patterns, signatures };
 }
 
 /** The work behind a student's row of results on one set (ticket 277): the set's skill hierarchy for them, their lines, the set's problems. */
@@ -204,7 +214,7 @@ function problemAt(bundle: Pick<AssignmentBundle, "problems">, n: number, fixtur
  * The live set's cells for a student, as its Class View reads them now: the status from the student's evidence (a
  * category the set's problems do not touch is "—"), and the sheet's patterns kept on the problems the teacher has seen.
  */
-function liveCells(bundle: AssignmentBundle, student: string, i: number, at: HolisticNow): { status: HolisticStatus; patterns: { text: string; problems: { id: string; label: string }[] }[] }[] {
+function liveCells(bundle: AssignmentBundle, student: string, i: number, at: HolisticNow): { status: HolisticStatus; patterns: { text: string; misconception: MisconceptionId | null; problems: { id: string; label: string }[] }[] }[] {
   const evidence = rosterEvidence(bundle, at.session, at.now)[student];
   const result = hierarchyFor(evidence, bundle);
   const touched = categoriesTouched(bundle);
@@ -213,7 +223,7 @@ function liveCells(bundle: AssignmentBundle, student: string, i: number, at: Hol
   return STORY_CATEGORIES.map((c) => {
     if (!touched.includes(c)) return { status: "none" as const, patterns: [] };
     const status: HolisticStatus = result.categories[c] ?? "unseen";
-    const patterns = STORY[student].cells[c][i].patterns.map((h) => ({ text: h.text, problems: h.problems.flatMap((n) => problemAt(bundle, n, fixture)).filter((p) => (evidence.lines[p.id]?.length ?? 0) > 0) }));
+    const patterns = STORY[student].cells[c][i].patterns.map((h) => ({ text: h.text, misconception: h.misconception, problems: h.problems.flatMap((n) => problemAt(bundle, n, fixture)).filter((p) => (evidence.lines[p.id]?.length ?? 0) > 0) }));
     return { status, patterns };
   });
 }

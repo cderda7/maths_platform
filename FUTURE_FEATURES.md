@@ -1499,6 +1499,15 @@ A phase-by-phase review of the student lesson, checked against the evidence each
 - **Other students' homework screens.** Only Sam has a student view; each classmate's list follows from their records, but nothing shows it (the teacher could preview a student's homework from the report).
 - **Lots of own problems.** A student who got most of two sets wrong gets a long list before the teacher's ten; a cap, or the dedupe of ticket 294 extended beyond missed homework, may be wanted.
 
+## Error signatures across sets (ticket 303, 2026-09-15)
+
+- **Detect a pattern's misconception from the lines, not author it.** 210 of 222 story patterns resolve from the student's wrong lines alone. The 12 ambiguous ones (a problem carrying two patterns' errors, or a line with two misconceptions) are why the id is authored and tested for now. A real class has no story sheet: patterns would have to be clustered from sightings (`lib/misconceptionCounts.ts`) directly. Deferred: the demo's patterns are authored.
+- **Say which kinds of sign error in a signature.** A lit "Minus signs wrong" marks its patterns, but the chip and flyout don't break it down (e.g. "turning point and root signs ×3, factor pair signs ×2"). Deferred: not asked for; the flyout has room for one more line.
+- **Practice aimed at the signature, not the topic.** "Minus signs wrong" across four topics suggests one short practice on the rule (a minus belongs to the term that follows it) in mixed contexts. Deferred: see FUTURE_FEATURES "build practice from the student's profile".
+- **Signatures on the Class View and the teacher's per-set report.** A student's signature could flag a new slip of the same family on the live set ("again: Minus signs wrong"). Deferred: holistic page and tiles only.
+- **A class-level signature view.** How many students share a family across sets, to plan a whole-class re-teach. Deferred: not asked for.
+- **Tile category groups hold one-set patterns only now.** The tiles' collapse-by-tag logic (`holisticTiles`) never meets a multi-set tag any more; it could be simplified to one tag per wording. Left in place: harmless, and it keeps working if the threshold ever rises above two.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

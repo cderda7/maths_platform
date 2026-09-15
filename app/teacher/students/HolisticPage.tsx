@@ -16,6 +16,8 @@ import type { Status } from "@/data/types";
 import { assignmentHref, assignmentReportHref, HOLISTIC_HREF, holisticHref } from "@/lib/assignments";
 import { useClassroom } from "@/lib/classroom-store";
 import { holisticView, holisticWork, type PatternRef, type HolisticNow, type HolisticSet, type HolisticStatus, type HolisticView } from "@/lib/holistic";
+import type { FamilyId } from "@/data/signatures";
+import type { Signature } from "@/lib/signatures";
 import { useBatchedSession, useNow } from "@/lib/store";
 
 /**
@@ -28,6 +30,10 @@ import { useBatchedSession, useNow } from "@/lib/store";
  * so a laptop sees every line without scrolling. A coloured cell opens its category's whole tree on that set as a
  * flyout (`HolisticDrill.tsx`); a skill picked there puts its problems in the side column in the patterns' place. A press
  * outside the flyout and the problems, or Escape (the problems first), closes them.
+ *
+ * Ticket 303: the student's error signatures (one family of errors on two sets or more, `lib/signatures.ts`) sit as a
+ * line of chips between the summary and the grid. Pressing a chip rings the grid cells that carry it, marks its patterns
+ * in the side column and says what its lines look like; the same chip again, Escape or a press anywhere else clears it.
  *
  * One page, two routes: `/teacher/students/<id>` (Back to Holistic Assessment's tiles, ticket 252) and
  * `/teacher/a/<set>/students/<id>` (`set`: Back to that set's Class View, under its tabs). Only Back differs.
@@ -78,6 +84,8 @@ type Open = { set: string; category: StoryCategory };
 function Body({ view, at, from }: { view: HolisticView; at: HolisticNow; from: string }) {
   const [open, setOpen] = useState<Open | null>(null);
   const [picked, setPicked] = useState<LeafId | null>(null);
+  const [family, setFamily] = useState<FamilyId | null>(null);
+  const lit = view.signatures.find((x) => x.family === family) ?? null;
   const sideRef = useRef<HTMLElement>(null);
   const openSet = open ? view.sets.find((s) => s.id === open.set) : undefined;
   const work = open && openSet ? holisticWork(view.student.id, open.set, at) : null;
@@ -89,6 +97,19 @@ function Body({ view, at, from }: { view: HolisticView; at: HolisticNow; from: s
   };
   useEscape(shown !== null, close);
   useEscape(shown !== null && picked !== null, () => setPicked(null));
+  useEscape(shown === null && lit !== null, () => setFamily(null));
+
+  // A lit signature clears on a press anywhere but its banner, the grid's results and the patterns it marks.
+  const isLit = lit !== null;
+  useEffect(() => {
+    if (!isLit) return;
+    const onDown = (e: PointerEvent) => {
+      if (e.target instanceof Element && e.target.closest("[data-signatures], [data-cell-pill], [data-holistic-drill], [data-holistic-work], [data-holistic-patterns]")) return;
+      setFamily(null);
+    };
+    document.addEventListener("pointerdown", onDown);
+    return () => document.removeEventListener("pointerdown", onDown);
+  }, [isLit]);
 
   // A press anywhere but the flyout, the problems or another cell closes both (a cell's own press toggles or moves them).
   const isShown = shown !== null;
@@ -114,12 +135,13 @@ function Body({ view, at, from }: { view: HolisticView; at: HolisticNow; from: s
     <div className="mt-3 flex items-start" style={{ gap: SIDE_GAP }}>
       <div className="min-w-0 flex-1" data-holistic-main>
         <Header view={view} />
-        <Grid view={view} from={from} open={open} onCell={toggle}>
+        {view.signatures.length > 0 && <Signatures signatures={view.signatures} lit={family} onPress={(f) => setFamily((x) => (x === f ? null : f))} />}
+        <Grid view={view} from={from} open={open} lit={lit} onCell={toggle}>
           {(wrapRef) => shown && <CellDrill work={shown.work} set={shown.set} category={shown.category} picked={picked} onPick={(l) => setPicked((p) => (p === l ? null : l))} wrapRef={wrapRef} />}
         </Grid>
       </div>
       <aside ref={sideRef} className="flex shrink-0 flex-col" style={{ width: SIDE_COL }} data-holistic-side={shown && picked ? "work" : "patterns"}>
-        {shown && picked ? <SkillWork work={shown.work} set={shown.set} category={shown.category} leaf={picked} onClose={() => setPicked(null)} /> : <Patterns view={view} from={from} />}
+        {shown && picked ? <SkillWork work={shown.work} set={shown.set} category={shown.category} leaf={picked} onClose={() => setPicked(null)} /> : <Patterns view={view} from={from} lit={lit} />}
       </aside>
     </div>
   );
@@ -162,6 +184,59 @@ function Header({ view }: { view: HolisticView }) {
   );
 }
 
+/**
+ * The error signatures (ticket 303): one line of chips between the summary and the grid, "ACROSS SETS" then a chip per
+ * signature, most sets first ("Minus signs wrong · 4 sets"), wrapping only when there are many. A chip is a toggle: lit,
+ * it rings its cells and marks its patterns, and what its lines look like, its sets and its patterns open under it as a
+ * flyout over the grid's head, so lighting one moves nothing (the page has no height to spare on a laptop).
+ */
+function Signatures({ signatures, lit, onPress }: { signatures: readonly Signature[]; lit: FamilyId | null; onPress: (f: FamilyId) => void }) {
+  const ref = useRef<HTMLElement>(null);
+  const shown = signatures.find((s) => s.family === lit) ?? null;
+  // The flyout hangs under the whole line (so it never covers a wrapped chip), its left edge at the lit chip's: a DOM write before paint.
+  useLayoutEffect(() => {
+    const root = ref.current;
+    const chip = root?.querySelector<HTMLElement>("[data-signature-lit]");
+    const fly = root?.querySelector<HTMLElement>("[data-signature-flyout]");
+    if (chip && fly) fly.style.left = `${chip.offsetLeft}px`;
+  }, [lit]);
+  return (
+    <section ref={ref} className="relative mt-3.5 flex flex-wrap items-center gap-x-1.5 gap-y-1.5" aria-label="Across sets" data-signatures>
+      <Eyebrow className="mr-1">Across sets</Eyebrow>
+      {signatures.map((s) => {
+        const on = lit === s.family;
+        return (
+          <div key={s.family}>
+            <button
+              type="button"
+              onClick={() => onPress(s.family)}
+              aria-pressed={on}
+              className={`cursor-pointer whitespace-nowrap rounded-full border px-3 py-[3px] text-[15px] leading-snug transition-colors hover:bg-accent-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${on ? "border-accent bg-accent-soft" : "border-accent-line bg-paper"}`}
+              data-signature={s.family}
+              data-signature-lit={on || undefined}
+              data-signature-sets={s.sets.map((x) => x.label).join(" ")}
+            >
+              <span className="font-semibold text-ink">{s.name}</span>
+              <span className="text-ink-muted">
+                {" "}
+                · {s.sets.length} sets
+              </span>
+            </button>
+          </div>
+        );
+      })}
+      {shown && (
+        <div className="pointer-events-none absolute top-full z-30 mt-2 w-max max-w-[560px] rounded-xl border border-line bg-paper px-4 py-2.5 shadow-lift" data-signature-flyout={shown.family}>
+          <p className="text-[16px] leading-snug text-ink">{shown.gloss}</p>
+          <p className="mt-0.5 text-[14.5px] text-ink-muted">
+            {shown.sets.map((x) => x.label).join(" · ")} · {shown.patterns.length} {shown.patterns.length === 1 ? "pattern" : "patterns"}
+          </p>
+        </div>
+      )}
+    </section>
+  );
+}
+
 /** The set column's width, layout px: "PS6 Thu 10 Sep" on one line and the longest topic in two. */
 const SET_COL = 256;
 /** An empty last column, layout px: the last result's 8 px pad plus this matches "PS6"'s 24 px from the card's left edge (ticket 283). */
@@ -174,11 +249,11 @@ const GUTTER = 16;
  * column ends the last result 24 px from the right edge too (ticket 283). The grid sits in a positioned box
  * the cell flyout lays over (the card clips its corners, so the flyout cannot live inside it).
  */
-function Grid({ view, from, open, onCell, children }: { view: HolisticView; from: string; open: Open | null; onCell: (set: string, category: StoryCategory) => void; children: (wrapRef: RefObject<HTMLDivElement | null>) => React.ReactNode }) {
+function Grid({ view, from, open, lit, onCell, children }: { view: HolisticView; from: string; open: Open | null; lit: Signature | null; onCell: (set: string, category: StoryCategory) => void; children: (wrapRef: RefObject<HTMLDivElement | null>) => React.ReactNode }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const rows = view.sets.map((set, j) => ({ set, j })).reverse();
   return (
-    <div ref={wrapRef} className="relative mt-7">
+    <div ref={wrapRef} className={`relative ${view.signatures.length > 0 ? "mt-4" : "mt-7"}`}>
       <Card className="overflow-clip" data-holistic-grid>
         <table className="w-full table-fixed border-collapse text-left">
           <colgroup>
@@ -212,7 +287,7 @@ function Grid({ view, from, open, onCell, children }: { view: HolisticView; from
                 </th>
                 {view.categories.map((c) => (
                   <td key={c.category} className="px-2 py-2" data-cell={`${c.category}:${set.id}`} data-cell-status={c.cells[j]}>
-                    <Cell status={c.cells[j]} set={set} category={c.category} open={open?.set === set.id && open.category === c.category} onOpen={() => onCell(set.id, c.category)} />
+                    <Cell status={c.cells[j]} set={set} category={c.category} open={open?.set === set.id && open.category === c.category} lit={!!lit?.cells.some((x) => x.set === set.id && x.category === c.category)} onOpen={() => onCell(set.id, c.category)} />
                   </td>
                 ))}
                 <td aria-hidden data-grid-gutter />
@@ -259,9 +334,9 @@ const OPENS: readonly HolisticStatus[] = ["secure", "solid", "developing", "gap"
 /**
  * A result as a word on its colour; not seen hollow; absent (ticket 250) grey on the cream the Class View greys a row
  * to; "—" bare where the set does not assess the category. A coloured result is a button that opens the skills behind
- * it (ticket 277), ringed in ink while they are open.
+ * it (ticket 277), ringed in ink while they are open, and in the accent while a signature it carries is lit (ticket 303).
  */
-function Cell({ status, set, category, open, onOpen }: { status: HolisticStatus; set: HolisticSet; category: StoryCategory; open: boolean; onOpen: () => void }) {
+function Cell({ status, set, category, open, lit, onOpen }: { status: HolisticStatus; set: HolisticSet; category: StoryCategory; open: boolean; lit: boolean; onOpen: () => void }) {
   const face = `grid h-9 w-full place-items-center rounded-lg text-[15px] font-semibold ${CELL_TONE[status]}`;
   if (!OPENS.includes(status)) return <span className={face}>{CELL_WORD[status]}</span>;
   return (
@@ -270,9 +345,10 @@ function Cell({ status, set, category, open, onOpen }: { status: HolisticStatus;
       onClick={onOpen}
       aria-expanded={open}
       aria-label={`${categoryName(category).name} on ${set.label}: ${CELL_WORD[status]}. Show the skills behind it`}
-      className={`${face} cursor-pointer transition-[filter,box-shadow] hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${open ? "ring-2 ring-ink ring-offset-2 ring-offset-paper" : ""}`}
+      className={`${face} cursor-pointer transition-[filter,box-shadow] hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${open ? "ring-2 ring-ink ring-offset-2 ring-offset-paper" : lit ? "ring-[3px] ring-accent ring-offset-2 ring-offset-paper" : ""}`}
       data-cell-pill
       data-open={open || undefined}
+      data-lit={lit || undefined}
     >
       {CELL_WORD[status]}
     </button>
@@ -283,7 +359,7 @@ function Cell({ status, set, category, open, onOpen }: { status: HolisticStatus;
 const REFS_COL = 176;
 
 /** The patterns down the side column, zoomed down to its height when there are more than fit (never scrolled); no header over them (ticket 276), the category names head them. */
-function Patterns({ view, from }: { view: HolisticView; from: string }) {
+function Patterns({ view, from, lit }: { view: HolisticView; from: string; lit: Signature | null }) {
   return (
     <section className="flex h-full min-h-0 flex-col" aria-label="Patterns" data-holistic-patterns>
       {view.patterns.length === 0 ? (
@@ -296,8 +372,10 @@ function Patterns({ view, from }: { view: HolisticView; from: string }) {
             <div key={g.category} className="mb-5 last:mb-0" data-pattern-group={g.category}>
               <h2 className="font-display text-[22px] leading-tight text-ink">{g.name}</h2>
               <ul className="mt-1">
-                {g.patterns.map((h) => (
-                  <li key={h.text} className="flex items-baseline gap-4 border-b border-line py-2 last:border-b-0" data-pattern={h.text} data-pattern-tag={h.tag}>
+                {g.patterns.map((h) => {
+                  const marked = !!lit?.patterns.some((p) => p.category === g.category && p.text === h.text);
+                  return (
+                  <li key={h.text} className={`-mx-2 flex items-baseline gap-4 border-b border-line px-2 py-2 transition-colors last:border-b-0 ${marked ? "bg-accent-soft" : ""}`} data-pattern={h.text} data-pattern-tag={h.tag} data-pattern-lit={marked || undefined}>
                     <span className="min-w-0 flex-1 text-[16px] leading-snug text-ink">{h.text}</span>
                     {/* The refs in a column of their own, so every row's first set starts on one line down the list. */}
                     <span className="flex shrink-0 flex-col gap-y-1" style={{ width: REFS_COL }}>
@@ -306,7 +384,8 @@ function Patterns({ view, from }: { view: HolisticView; from: string }) {
                       ))}
                     </span>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             </div>
           ))}
