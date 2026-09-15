@@ -13,8 +13,8 @@ import { useBatchedSession, useNow } from "@/lib/store";
 
 /**
  * Holistic Assessment (ticket 252), from Edexia Classroom: every student as a tile, in the class order. A tile
- * reads the story sheet's line for the student, their patterns as tags under their category (each with the
- * sets it shows on; only recent patterns surface, ticket 276), and their strengths; the whole tile opens the student's page (ticket 251), whose Back
+ * reads the story sheet's line for the student, their strengths (first, ticket 341), then their patterns as tags under their category (each with the
+ * sets it shows on; only recent patterns surface, ticket 276); the whole tile opens the student's page (ticket 251), whose Back
  * returns here at the scroll the teacher left (`tilesScroll.ts`).
  *
  * The tiles are `lib/holisticTiles` over the classroom, Sam's session in its 3 s batches and the clock, the
@@ -87,7 +87,20 @@ function Tile({ tile }: { tile: HolisticTile }) {
         </p>
       ) : (
         <div className="mt-5 space-y-3.5 border-t border-line pt-4">
-          {/* Error signatures first (ticket 303): one kind of error across sets, the patterns it covers not repeated below. */}
+          {/* Strengths first (ticket 341), then the issues. */}
+          {tile.strengths.length > 0 && (
+            <div data-tile-strengths>
+              <Eyebrow>Strengths</Eyebrow>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {tile.strengths.map((s) => (
+                  <span key={s.category} className="rounded-lg border border-secure-line bg-secure-soft px-2.5 py-1 text-[15.5px] leading-snug font-medium text-secure" data-tile-strength={s.category}>
+                    {s.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {/* Error signatures lead the issues (ticket 303): one kind of error across sets, the patterns it covers not repeated below. */}
           {tile.signatures.length > 0 && (
             <div data-tile-signatures>
               <Eyebrow>Across sets</Eyebrow>
@@ -108,18 +121,6 @@ function Tile({ tile }: { tile: HolisticTile }) {
               </div>
             </div>
           ))}
-          {tile.strengths.length > 0 && (
-            <div data-tile-strengths>
-              <Eyebrow>Strengths</Eyebrow>
-              <div className="mt-1.5 flex flex-wrap gap-1.5">
-                {tile.strengths.map((s) => (
-                  <span key={s.category} className="rounded-lg border border-secure-line bg-secure-soft px-2.5 py-1 text-[15.5px] leading-snug font-medium text-secure" data-tile-strength={s.category}>
-                    {s.name}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       )}
     </Link>
