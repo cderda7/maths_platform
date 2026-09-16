@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ASSIGNMENT } from "@/data/assignment";
 import type { Pathway } from "@/data/types";
-import { canTeacherSkip, DEMO_PATHWAY, deepLinkClassroom, readyDraft, skipFixture, SKIP_STARTED_AGO_MS, SKIP_TARGETS, TEACHER_SKIP_LABEL, TEACHER_SKIP_TARGETS, teacherSkip, type DemoState, type TeacherSkipTarget } from "./demo";
+import { canTeacherSkip, DEMO_PATHWAY, deepLinkClassroom, readyDraft, skipFixture, SKIP_STARTED_AGO_MS, SKIP_TARGETS, TEACHER_SKIP_LABEL, TEACHER_SKIP_TARGETS, teacherDoneAdvances, teacherSkip, type DemoState, type TeacherSkipTarget } from "./demo";
 import { boardCovered, classroomReducer, INITIAL_CLASSROOM, isDue, isPending, isProjecting, type ClassroomState } from "./classroom";
 import { currentClassStage } from "./classStage";
 import { classroomCards } from "./classroomCards";
@@ -207,6 +207,13 @@ describe("the teacher's presenter jumps (ticket 263)", () => {
     expect(steps.map((s) => card(s)?.status)).toEqual(["live", "in review", "in review", "in review", "done"]);
     expect(steps.map(section)).toEqual(["todo", "todo", "todo", "todo", "completed"]);
     expect(steps.map(board)).toEqual(["blank", "blank", "group", "whole-class", "blank"]);
+  });
+
+  it("done advances every stage but the last, and never before a set is sent (ticket 353, held ArrowRight)", () => {
+    expect(teacherDoneAdvances(fresh.classroom, fresh.session, now)).toBe(false);
+    expect(teacherDoneAdvances(ready.classroom, ready.session, now)).toBe(false);
+    for (const s of [working, indiv, group, classReview]) expect(teacherDoneAdvances(s.classroom, s.session, now)).toBe(true);
+    expect(teacherDoneAdvances(completed.classroom, completed.session, now)).toBe(false);
   });
 
   it("each done lands where Sam's own skip to that stage does: the same work, the same class", () => {
