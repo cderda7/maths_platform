@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { PathwayStop } from "@/components/PathwayStop";
 import ProblemQuestion from "@/components/ProblemQuestion";
 import { Button, Eyebrow } from "@/components/ui";
@@ -28,9 +28,13 @@ import { getSnapshot, useBatchedSession, useNow } from "@/lib/store";
  * submitted Q7"), the planned pathway as the strip's pills with what each stage does, and Keep and Later. It slides in once
  * from the bottom-right corner of the scroll region, the corner clear of the pathway strip (top right, on the back button's
  * line) and of the split's diagnostic flyout and work panel (the left column), with no backdrop, so every press elsewhere
- * lands where it would. It covers what is under it and nothing moves: it is laid over the page, never in its flow. At 400
- * layout px, 16 in from the region's edges (its right edge on Reset demo's below it), it stays clear of Class View's roster at
- * 1280 px and wider (the roster ends 437 layout px from the window's right edge there), so it never lies over a roster row.
+ * lands where it would. It covers what is under it and nothing moves: it is laid over the page, never in its flow. At 680
+ * layout px, 16 in from the region's edges (its right edge on Reset demo's below it) -- widened and given bigger type
+ * throughout for legibility (ticket 355, Carson: "make the whole thing bigger... like double in size approximately"). This
+ * gave up the card's original "never lies over a roster row" guarantee at 1280 px: Class View's roster ends 437 layout px
+ * from the window's right edge there, so anything wider than 421 layout px (16 px inset included) now covers its rightmost
+ * columns while the card is open -- a real, deliberate tradeoff against ticket 335's original constraint, not an oversight;
+ * see DECISION_LOG.md, 2026-09-16 (ticket 355).
  *
  * - **Keep** answers it: the card and the dot go, and it never comes back.
  * - **Later** tucks it into a dot on the strip's current pill (`BackLine`) and on the live set's Classroom card
@@ -158,34 +162,34 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
     <section
       role="region"
       aria-label={answered ? "Saved for class review" : "Most students are close to finishing"}
-      className={`pointer-events-auto w-[480px] rounded-2xl border border-line bg-paper p-6 shadow-lift ${slide ? "decision-in" : ""}`}
+      className={`pointer-events-auto w-[680px] rounded-[28px] border border-line bg-paper p-9 shadow-lift ${slide ? "decision-in" : ""}`}
       data-decision-card={view.kind}
       data-decision-slide={slide || undefined}
       data-decision-answered={answered || undefined}
     >
       {answered ? (
         <>
-          <h2 className="font-display text-[22px] leading-[1.25] text-ink" data-decision-headline>
+          <h2 className="font-display text-[30px] leading-[1.2] text-ink" data-decision-headline>
             Saved for class review.
           </h2>
-          <p className="mt-2 text-[14px] leading-snug text-ink-soft" data-decision-moved>
+          <p className="mt-3 text-[19px] leading-snug text-ink-soft" data-decision-moved>
             <span className="font-semibold text-ink">{listWords(moved.map((id) => PROBLEM_MAP[id]?.label ?? id))}</span> {moved.length === 1 ? "leaves" : "leave"} group review.{" "}
             {skipped ? "No group has anything left, so the class goes straight to class review." : "Every group works the rest."}
           </p>
           {!!answeredPathway && answeredPathway.includes("whole-class") && !skipped && (
-            <p className="mt-2 text-[13.5px] leading-snug text-ink-muted" data-decision-added>
+            <p className="mt-3 text-[18px] leading-snug text-ink-muted" data-decision-added>
               Class review added after group review.
             </p>
           )}
         </>
       ) : (
         <>
-          <h2 className="font-display text-[22px] leading-[1.25] text-ink" data-decision-headline>
+          <h2 className="font-display text-[30px] leading-[1.2] text-ink" data-decision-headline>
             Most students are close to finishing.
             <br />
             Let&rsquo;s discuss what&rsquo;s next.
           </h2>
-          <p className="mt-2 text-[14px] leading-snug text-ink-soft" data-decision-evidence>
+          <p className="mt-3 text-[19px] leading-snug text-ink-soft" data-decision-evidence>
             <span className="font-semibold text-ink tabular-nums">
               {view.kind === "split-review" ? `${view.split?.handedIn ?? 0} of ${view.split?.present ?? 0}` : `${submitted} of ${present}`}
             </span>{" "}
@@ -198,11 +202,13 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
         <>
           {changing ? (
             <>
-              <Eyebrow className="mt-5">Your pathway</Eyebrow>
+              <Eyebrow className="mt-6" style={{ fontSize: 14 }}>
+                Your pathway
+              </Eyebrow>
               <ChangePathway pathway={shown} locks={locks} onSwitch={(stage) => setChoice(switchStage(shown, stage, locks))} />
             </>
           ) : view.kind === "split-review" ? (
-            <p className="mt-4 text-[13px] leading-snug text-ink-soft" data-decision-pathway-line>
+            <p className="mt-5 text-[18px] leading-snug text-ink-soft" data-decision-pathway-line>
               <span className="font-semibold text-ink">Your pathway</span>{" "}
               {stages.map((st, i) => (
                 <span key={st.id}>
@@ -229,18 +235,21 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
             next.stage && (
               // Only the next stage (ticket 351): the current stage is already decided, and the full sequence is the strip's
               // job (top right), not this card's. A stage the pathway skips over is said plainly rather than left silent.
-              <p className="mt-5 text-[14px] leading-snug text-ink-soft" data-decision-next>
+              // The destination stage's name carries the same light-blue pill look as the strip's own pills (ticket 355), so
+              // it reads as the same stage rather than a plain word -- the skipped stage stays plain text, it isn't where
+              // the class is headed.
+              <p className="mt-6 text-[19px] leading-snug text-ink-soft" data-decision-next>
                 {next.skipBoth ? (
                   <>
-                    Skip indiv review and group review. Move straight to <span className="font-semibold text-ink">class review</span> — {STAGE_DESCRIPTION["whole-class"]}.
+                    Skip indiv review and group review. Move straight to <StageBadge>class review</StageBadge> — {STAGE_DESCRIPTION["whole-class"]}.
                   </>
                 ) : next.skipIndividual ? (
                   <>
-                    Skip indiv review. Move straight to <span className="font-semibold text-ink">group review</span> — {STAGE_DESCRIPTION.group}.
+                    Skip indiv review. Move straight to <StageBadge>group review</StageBadge> — {STAGE_DESCRIPTION.group}.
                   </>
                 ) : (
                   <>
-                    <span className="font-semibold text-ink">Next:</span> {CLASS_STAGE_WORD[next.stage]} — {WHAT_HAPPENS[next.stage]}.
+                    <span className="font-semibold text-ink">Next:</span> <StageBadge>{CLASS_STAGE_WORD[next.stage]}</StageBadge> — {WHAT_HAPPENS[next.stage]}.
                   </>
                 )}
               </p>
@@ -264,24 +273,24 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
         />
       )}
       {!answered && !changing && view.toClassReview && view.split && view.split.suggestion.suggested.length > 0 && (
-        <p className="mt-4 text-[13.5px] leading-snug text-ink-soft" data-decision-to-class-review>
+        <p className="mt-5 text-[18px] leading-snug text-ink-soft" data-decision-to-class-review>
           {listWords(view.split.suggestion.suggested.map((t) => t.label))} got the fewest right{view.split.afterCorrections ? "" : " so far"} — worth covering in class review.
         </p>
       )}
       {!answered && !changing && !showConfirm && split && ticked.length > 0 && (
-        <p className="mt-3 text-[13px] leading-snug text-ink-muted" data-decision-note>
+        <p className="mt-4 text-[17px] leading-snug text-ink-muted" data-decision-note>
           {emptyAfter ? "No group would have anything left to review." : addsClassReview ? "Adds class review after group review." : "Every group works the rest."}
         </p>
       )}
-      <div className="mt-6 flex items-center justify-end gap-3" data-decision-actions>
+      <div className="mt-8 flex items-center justify-end gap-4" data-decision-actions>
         {answered ? (
           <>
-            <Button variant="secondary" onClick={() => dispatchClassroom({ type: "decision/dismiss", due: view.due })} data-decision-close>
+            <Button variant="secondary" size="lg" onClick={() => dispatchClassroom({ type: "decision/dismiss", due: view.due })} data-decision-close>
               Close
             </Button>
             <Link
               href="/teacher/whole-class"
-              className="inline-flex items-center rounded-full bg-ink px-4 py-2 text-[13.5px] font-medium whitespace-nowrap text-white transition-colors hover:bg-ink-soft"
+              className="inline-flex items-center rounded-full bg-ink px-6 py-3 text-[18px] font-medium whitespace-nowrap text-white transition-colors hover:bg-ink-soft"
               onClick={() => dispatchClassroom({ type: "decision/dismiss", due: view.due })}
               data-decision-setup
             >
@@ -291,7 +300,7 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
         ) : (
           <>
             {!showConfirm && (
-              <Button variant="secondary" onClick={() => dispatchClassroom({ type: "decision/tuck", due: view.due })} data-decision-later>
+              <Button variant="secondary" size="lg" onClick={() => dispatchClassroom({ type: "decision/tuck", due: view.due })} data-decision-later>
                 Later
               </Button>
             )}
@@ -299,11 +308,11 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
               // Done (ticket 336): a card with a split to make keeps the choice and shows it, so the one press that
               // answers the decision carries the pathway and the move together (a decision is answered once).
               split || view.kind === "split-review" ? (
-                <Button variant="secondary" onClick={() => setChanging(false)} data-decision-done>
+                <Button variant="secondary" size="lg" onClick={() => setChanging(false)} data-decision-done>
                   Done
                 </Button>
               ) : (
-                <Button onClick={() => answer(shown, [])} data-decision-done>
+                <Button size="lg" onClick={() => answer(shown, [])} data-decision-done>
                   Done
                 </Button>
               )
@@ -311,10 +320,10 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
               // The confirm step (ticket 351): narrowed to just Back and the final press, same as Change's own Done -- a
               // decision this consequential gets one focused choice, not Later/Change sitting alongside it.
               <>
-                <Button variant="secondary" onClick={() => setConfirming(false)} data-decision-back>
+                <Button variant="secondary" size="lg" onClick={() => setConfirming(false)} data-decision-back>
                   Back
                 </Button>
-                <Button onClick={() => answer(shown, ticked)} data-decision-confirm-move>
+                <Button size="lg" onClick={() => answer(shown, ticked)} data-decision-confirm-move>
                   {emptyAfter ? "Confirm skip" : "Confirm move"}
                 </Button>
               </>
@@ -323,6 +332,7 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
                 {view.kind === "close-to-finishing" && (
                   <Button
                     variant="secondary"
+                    size="lg"
                     onClick={() => {
                       setChoice([...shown]);
                       setChanging(true);
@@ -333,6 +343,7 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
                   </Button>
                 )}
                 <Button
+                  size="lg"
                   onClick={() => (ticked.length === 0 ? answer(shown, ticked) : setConfirming(true))}
                   data-decision-keep={ticked.length === 0 || undefined}
                   data-decision-move={ticked.length > 0 || undefined}
@@ -346,6 +357,12 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
       </div>
     </section>
   );
+}
+
+/** A stage's name, called out in the strip's own light blue (ticket 355): the same `bg-standout-soft`/`text-ink` look as
+ * `StagePill`, so a stage named mid-sentence on the card reads as the same stage the strip shows, not a plain word. */
+function StageBadge({ children }: { children: ReactNode }) {
+  return <span className="inline-block rounded-lg bg-standout-soft px-2.5 py-1 font-display font-medium text-ink">{children}</span>;
 }
 
 /**
@@ -380,7 +397,7 @@ function SplitRows({
   const more = all.length - asked.length;
   return (
     <>
-      <p className="mt-4 text-[14px] leading-snug text-ink" data-split-ask>
+      <p className="mt-5 text-[19px] leading-snug text-ink" data-split-ask>
         {confirming ? (
           // The confirm heading (ticket 351): every consequence stated plainly, and always forward-looking -- "added" would
           // read as already decided, which is exactly what this step exists to not do. The rows below stay live underneath it.
@@ -407,16 +424,18 @@ function SplitRows({
           </>
         )}
       </p>
-      <div className="mt-3 max-h-[300px] overflow-y-auto" data-split-list>
-        <ul className="space-y-1.5">
+      <div className="mt-4 max-h-[440px] overflow-y-auto" data-split-list>
+        <ul className="space-y-2.5">
           {suggested.map((t) => (
             <SplitRow key={t.problem} tally={t} on={ticked.includes(t.problem)} onToggle={onToggle} />
           ))}
         </ul>
         {often.length > 0 && (
           <>
-            <Eyebrow className="mt-4">Also often wrong</Eyebrow>
-            <ul className="mt-2 space-y-1.5">
+            <Eyebrow className="mt-5" style={{ fontSize: 14 }}>
+              Also often wrong
+            </Eyebrow>
+            <ul className="mt-3 space-y-2.5">
               {often.map((t) => (
                 <SplitRow key={t.problem} tally={t} on={ticked.includes(t.problem)} onToggle={onToggle} />
               ))}
@@ -426,15 +445,17 @@ function SplitRows({
         {rest.length > 0 &&
           (allShown ? (
             <>
-              <Eyebrow className="mt-4">All questions</Eyebrow>
-              <ul className="mt-2 space-y-1.5">
+              <Eyebrow className="mt-5" style={{ fontSize: 14 }}>
+                All questions
+              </Eyebrow>
+              <ul className="mt-3 space-y-2.5">
                 {rest.map((t) => (
                   <SplitRow key={t.problem} tally={t} on={ticked.includes(t.problem)} onToggle={onToggle} />
                 ))}
               </ul>
             </>
           ) : (
-            <button type="button" className="mt-3 text-[13px] text-accent-deep hover:underline" onClick={onAll} data-split-all>
+            <button type="button" className="mt-4 text-[17px] text-accent-deep hover:underline" onClick={onAll} data-split-all>
               all questions
             </button>
           ))}
@@ -455,16 +476,16 @@ function SplitRow({ tally, on, onToggle }: { tally: QuestionTally; on: boolean; 
         onClick={() => onToggle(tally.problem)}
         data-split-row={tally.problem}
         data-on={on || undefined}
-        className={`flex w-full items-start gap-2.5 rounded-xl border px-2.5 py-2 text-left transition-colors ${on ? "border-line bg-standout-soft" : "border-dashed border-line-strong bg-transparent hover:border-ink-muted"}`}
+        className={`flex w-full items-start gap-3.5 rounded-2xl border px-4 py-3 text-left transition-colors ${on ? "border-line bg-standout-soft" : "border-dashed border-line-strong bg-transparent hover:border-ink-muted"}`}
       >
-        <span className={`mt-px grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full text-[10.5px] ${on ? "bg-ink text-white" : "border border-line-strong text-ink-muted"}`} aria-hidden>
+        <span className={`mt-px grid h-[26px] w-[26px] shrink-0 place-items-center rounded-full text-[15px] ${on ? "bg-ink text-white" : "border border-line-strong text-ink-muted"}`} aria-hidden>
           {on ? "✓" : "+"}
         </span>
-        <span className="w-[22px] shrink-0 text-[12.5px] font-medium text-ink">{tally.label}</span>
-        <span className="min-w-0 flex-1 text-[12.5px] leading-snug text-ink" data-split-question={tally.problem}>
-          {problem ? <ProblemQuestion problem={problem} mathClass="text-[13px]" figureWidth={40} /> : tally.label}
+        <span className="w-[32px] shrink-0 text-[17px] font-medium text-ink">{tally.label}</span>
+        <span className="min-w-0 flex-1 text-[17px] leading-snug text-ink" data-split-question={tally.problem}>
+          {problem ? <ProblemQuestion problem={problem} mathClass="text-[17px]" figureWidth={56} /> : tally.label}
         </span>
-        <span className="shrink-0 text-[12px] whitespace-nowrap text-ink-muted tabular-nums" data-split-count={tally.problem}>
+        <span className="shrink-0 text-[16px] whitespace-nowrap text-ink-muted tabular-nums" data-split-count={tally.problem}>
           {tally.correct}/{tally.present} correct
         </span>
       </button>
@@ -472,9 +493,9 @@ function SplitRow({ tally, on, onToggle }: { tally: QuestionTally; on: boolean; 
   );
 }
 
-/** A stop's fixed size on the card: the widest word with its ✓ ("✓ indiv review") and the strip's pill height. */
-const STOP_W = 136;
-const STOP_H = 32;
+/** A stop's fixed size on the card: the widest word with its ✓ ("✓ indiv review") and the strip's pill height, scaled up with the rest of the card (ticket 355). */
+const STOP_W = 190;
+const STOP_H = 44;
 
 /**
  * Change's pathway line (ticket 336): the working and the three reviews top to bottom, joined by the line's ink track with
@@ -485,8 +506,8 @@ function ChangePathway({ pathway, locks, onSwitch }: { pathway: Pathway; locks: 
   const ids: ClassStageId[] = ["working", ...REVIEW_ORDER];
   return (
     <>
-      <p className="mt-2 text-[13px] leading-snug text-ink-muted">Switch any review students haven&rsquo;t started.</p>
-      <ol className="mt-3 grid grid-cols-[max-content_minmax(0,1fr)] gap-x-4 gap-y-3" aria-label="Change your pathway" data-decision-change-line>
+      <p className="mt-3 text-[18px] leading-snug text-ink-muted">Switch any review students haven&rsquo;t started.</p>
+      <ol className="mt-4 grid grid-cols-[max-content_minmax(0,1fr)] gap-x-6 gap-y-4" aria-label="Change your pathway" data-decision-change-line>
         {ids.map((id, i) => {
           const stage = id === "working" ? null : id;
           const on = !stage || pathway.includes(stage);
@@ -495,24 +516,24 @@ function ChangePathway({ pathway, locks, onSwitch }: { pathway: Pathway; locks: 
           return (
             <li key={id} className="relative col-span-2 grid grid-cols-subgrid items-start" data-decision-change-stage={id} data-on={on || undefined} data-locked={locked || undefined}>
               {/* The track from this stop's middle to the next one's, behind the stops, and the arrowhead into this stop. */}
-              {!last && <span className="absolute w-0.5 bg-ink" style={{ left: STOP_W / 2 - 1, top: STOP_H / 2, height: "calc(100% + 12px)" }} aria-hidden data-track />}
+              {!last && <span className="absolute w-0.5 bg-ink" style={{ left: STOP_W / 2 - 1, top: STOP_H / 2, height: "calc(100% + 16px)" }} aria-hidden data-track />}
               {i > 0 && (
-                <svg width={10} height={7} viewBox="0 0 10 7" className="absolute text-ink" style={{ left: STOP_W / 2 - 5, top: -9 }} aria-hidden data-arrowhead>
+                <svg width={13} height={9} viewBox="0 0 10 7" className="absolute text-ink" style={{ left: STOP_W / 2 - 6.5, top: -12 }} aria-hidden data-arrowhead>
                   <path d="M1 1 L5 6 L9 1" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               )}
               <span className="relative">
                 {locked ? (
-                  <PathwayStop ink size="card" width={STOP_W} height={STOP_H} title={stage ? `Students have started ${STAGE_WORD[stage]}` : undefined} data-stop={id}>
+                  <PathwayStop ink size="card-lg" width={STOP_W} height={STOP_H} title={stage ? `Students have started ${STAGE_WORD[stage]}` : undefined} data-stop={id}>
                     {CLASS_STAGE_WORD[id]}
                   </PathwayStop>
                 ) : (
-                  <PathwayStop on={on} off={!on} size="card" width={STOP_W} height={STOP_H} onClick={() => onSwitch(stage!)} aria-pressed={on} data-stop={id}>
+                  <PathwayStop on={on} off={!on} size="card-lg" width={STOP_W} height={STOP_H} onClick={() => onSwitch(stage!)} aria-pressed={on} data-stop={id}>
                     {CLASS_STAGE_WORD[id]}
                   </PathwayStop>
                 )}
               </span>
-              <span className={`pt-[6px] text-[13.5px] leading-snug text-balance text-ink-soft transition-opacity ${on ? "" : "opacity-45"}`} data-stage-description={id}>
+              <span className={`pt-[9px] text-[18px] leading-snug text-balance text-ink-soft transition-opacity ${on ? "" : "opacity-45"}`} data-stage-description={id}>
                 {WHAT_HAPPENS[id]}
               </span>
             </li>

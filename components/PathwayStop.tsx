@@ -8,13 +8,14 @@
  * - `off`: switched off, dashed and faded
  * - none of these: a plain outlined stop, not yet decided
  *
- * With `onClick` it is a toggle button, otherwise a span. `size` is `line` (Create's line, 14 px) or `card` (the decision
- * card, 13.5 px, the strip's pill size). Width and height are fixed by the caller so a column of stops lines up and nothing
- * moves when a stop changes look: only colours and borders change.
+ * With `onClick` it is a toggle button, otherwise a span. `size` is `line` (Create's line, 14 px), `card` (the decision
+ * card, 13.5 px, the strip's pill size), or `card-lg` (the decision card's own Change line, ticket 355's scale-up, 18 px —
+ * only that one caller uses it). Width and height are fixed by the caller so a column of stops lines up and nothing moves
+ * when a stop changes look: only colours and borders change.
  */
-export type PathwayStopSize = "line" | "card";
+export type PathwayStopSize = "line" | "card" | "card-lg";
 
-const TEXT: Record<PathwayStopSize, string> = { line: "px-4 text-[14px]", card: "px-3 text-[13.5px]" };
+const TEXT: Record<PathwayStopSize, string> = { line: "px-4 text-[14px]", card: "px-3 text-[13.5px]", "card-lg": "px-4 text-[18px]" };
 
 export function PathwayStop({
   children,

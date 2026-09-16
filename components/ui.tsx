@@ -15,8 +15,12 @@ export function Card({
   );
 }
 
-export function Eyebrow({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`text-[11px] font-semibold tracking-[0.12em] uppercase text-ink-muted ${className}`}>{children}</div>;
+export function Eyebrow({ children, className = "", style }: { children: ReactNode; className?: string; style?: CSSProperties }) {
+  return (
+    <div className={`text-[11px] font-semibold tracking-[0.12em] uppercase text-ink-muted ${className}`} style={style}>
+      {children}
+    </div>
+  );
 }
 
 export function H1({ children, className = "" }: { children: ReactNode; className?: string }) {
