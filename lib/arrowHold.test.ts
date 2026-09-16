@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { HOLD_STEP_FLOOR_MS, HOLD_STEP_START_MS, holdStepDelayMs } from "./arrowHold";
 
-describe("holdStepDelayMs (ticket 353: held ArrowRight speeds the demo up)", () => {
+describe("holdStepDelayMs (ticket 354: held ArrowRight speeds the demo up)", () => {
   it("starts at the first-press delay and never climbs back up while held", () => {
     expect(holdStepDelayMs(0)).toBe(HOLD_STEP_START_MS);
     const delays = Array.from({ length: 12 }, (_, i) => holdStepDelayMs(i));

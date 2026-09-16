@@ -1,4 +1,4 @@
-# 353: Holding ArrowRight speeds up the demo simulation
+# 354: Holding ArrowRight speeds up the demo simulation
 
 Carson: "add funtionality where holding on right arrow key speeds up the demo simulation." No such control existed
 (confirmed by search); the closest thing is the presenter's click-driven "skip to" pill lists in `lib/demo.ts` /

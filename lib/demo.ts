@@ -283,7 +283,7 @@ export function teacherSkip(target: TeacherSkipTarget, c: ClassroomState, sessio
 }
 
 /**
- * Ticket 353: whether pressing "done" right now would move the lesson at all, so holding ArrowRight
+ * Ticket 354: whether pressing "done" right now would move the lesson at all, so holding ArrowRight
  * (`useArrowRightHold`) knows when to stop repeating it. `canTeacherSkip("done", c)` alone is not
  * enough: once the lesson is fully over, `teacherSkip("done", ...)` is idempotent and hands back the
  * exact classroom and session it was given (`completeLesson`'s early return), so reference equality

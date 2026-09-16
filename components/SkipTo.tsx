@@ -34,7 +34,7 @@ export default function SkipTo() {
     if (pathname !== href) router.push(href);
   };
   /**
-   * Ticket 353: ArrowRight, held or tapped, walks SKIP_TO's own pills left to right — the whole
+   * Ticket 354: ArrowRight, held or tapped, walks SKIP_TO's own pills left to right — the whole
    * lesson timeline in order (`SKIP_TARGETS`) — the same jump each pill's own click makes. Stops at
    * the last pill; never reaches into the homework jumps (`HOMEWORK_SKIP_TARGETS`), which only ever
    * appear after the teacher's own +Homework press, so a held key can't run ahead of the teacher.

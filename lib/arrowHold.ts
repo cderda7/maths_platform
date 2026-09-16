@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Ticket 353: press-and-hold ArrowRight to run a demo control forward. A single press advances one
+ * Ticket 354: press-and-hold ArrowRight to run a demo control forward. A single press advances one
  * step; holding the key keeps advancing on this schedule (never the OS's own fixed-rate key repeat,
  * which is skipped via `e.repeat`) so the demo visibly speeds up the longer it is held, until release,
  * a window blur, or `onStep` reporting there is nothing left to advance to.

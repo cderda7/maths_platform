@@ -6058,7 +6058,7 @@ top means the rule degrades honestly instead of hiding rows when the class is at
 
 **Defense.** The four controls that can move a student off unfinished work now behave identically from the student's side (grey until ready, ask before skipping ahead, same corner position and card style) and share one mechanism in the code, so a future fifth control gets the same guarantee for free rather than needing its own bespoke confirm state. Nothing about the underlying warm-up model changed — `force` is additive to `warmup/next`, every existing caller and test is unaffected, and the new capability is only reachable through an explicit, worded confirm.
 
-## 2026-09-16 · Holding ArrowRight fast-forwards the demo, but only "students done" on the teacher's side (ticket 353)
+## 2026-09-16 · Holding ArrowRight fast-forwards the demo, but only "students done" on the teacher's side (ticket 354)
 
 **Decision.** ArrowRight, tapped or held, now drives both presenter "skip to" controls: Sam's `SkipTo` walks its whole `SKIP_TARGETS` list forward one pill per step, but the teacher's `TeacherSkipTo` only repeats "students done with current stage" — "send assignment" and "activity completed" are left mouse-only. A global `keydown` listener defers to any element that already owns ArrowRight via `e.defaultPrevented`, rather than hardcoding knowledge of the specific components that use it today (`DuePicker`'s date grid, `useReorder`'s Alt+arrow tile move).
 

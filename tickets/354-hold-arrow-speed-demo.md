@@ -1,4 +1,4 @@
-# 353: Holding ArrowRight speeds up the demo simulation
+# 354: Holding ArrowRight speeds up the demo simulation
 
 **What to build:** ArrowRight, tapped or held, drives both presenter "skip to" controls forward — Sam's `SkipTo` and the teacher's `TeacherSkipTo` — the same jumps their own pills already make. Holding the key keeps advancing on an accelerating schedule instead of the OS's fixed key-repeat rate, so it visibly speeds up the longer it is held.
 
@@ -29,7 +29,7 @@ Scope settled while building, since the two pill lists don't have the same shape
 - [x] ArrowRight never interferes with `DuePicker`'s date-grid navigation or `useReorder`'s Alt+arrow tile move
 - [x] `holdStepDelayMs` (`lib/arrowHold.ts`) and `teacherDoneAdvances` (`lib/demo.ts`) are pure and unit-tested
 - [x] vitest (2282, all green), eslint (including `react-hooks/refs`), tsc, `next build`; a real production build driven over CDP with genuine keyboard events on both SkipTo and TeacherSkipTo (tap-by-tap and held), confirming the accelerating hold reaches every stage and stops cleanly on release
-- [x] Ticket docs: `architecture/353-hold-arrow-speed-demo.md`, ARCHITECTURE, DECISION_LOG, FUTURE_FEATURES
+- [x] Ticket docs: `architecture/354-hold-arrow-speed-demo.md`, ARCHITECTURE, DECISION_LOG, FUTURE_FEATURES
 
 ## Solution
 

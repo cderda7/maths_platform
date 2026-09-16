@@ -31,7 +31,7 @@ function jump(t: TeacherSkipTarget) {
 const BUTTON = "rounded-full px-2.5 py-1 text-[12px] whitespace-nowrap text-ink-muted transition-colors enabled:hover:bg-cream-deep enabled:hover:text-ink disabled:cursor-default disabled:opacity-40";
 
 /**
- * Ticket 353: ArrowRight, held or tapped, runs the class stage by stage ("students done with
+ * Ticket 354: ArrowRight, held or tapped, runs the class stage by stage ("students done with
  * current stage") the same way clicking the pill repeatedly would; it never touches "send assignment"
  * (that step waits on the real Create screen, ticket 272) or "activity completed" (a deliberate
  * full skip, not something a held key should reach on its own). It stops advancing once the lesson

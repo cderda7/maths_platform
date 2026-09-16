@@ -209,7 +209,7 @@ describe("the teacher's presenter jumps (ticket 263)", () => {
     expect(steps.map(board)).toEqual(["blank", "blank", "group", "whole-class", "blank"]);
   });
 
-  it("done advances every stage but the last, and never before a set is sent (ticket 353, held ArrowRight)", () => {
+  it("done advances every stage but the last, and never before a set is sent (ticket 354, held ArrowRight)", () => {
     expect(teacherDoneAdvances(fresh.classroom, fresh.session, now)).toBe(false);
     expect(teacherDoneAdvances(ready.classroom, ready.session, now)).toBe(false);
     for (const s of [working, indiv, group, classReview]) expect(teacherDoneAdvances(s.classroom, s.session, now)).toBe(true);
