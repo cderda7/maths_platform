@@ -1850,6 +1850,19 @@ Raised in a project checkpoint review; Carson asked for these on the list. Space
 - **The five-second countdown's length.** Matched to force submit's countdown; whether class review wants longer is open.
 - **Writing on the board during the worked example.** The teacher reveals Q*'s authored lines; writing their own line mid-example, or annotating a revealed line, is not built.
 
+## The split's sticky left column (ticket 346, 2026-09-16)
+
+- **A column the teacher can scroll on its own.** When even the folded, shortened column is taller than the scroll region
+  (the whole class in Starting at the first seconds), it rides up to its foot before sticking, so its header is clipped
+  while the teacher is at the bottom of a long card list. A column with its own scroll box, or rows that collapse to a
+  count while stuck, would keep the header whole. Deferred: two scrollbars on one screen is worse than a brief clip, and
+  the case is rare.
+- **The right column's header could stick too.** "Where students went wrong" leaves with its cards, so a teacher deep in
+  the list has no title over them. A thin stuck header, or the question number carried into the card that is under the
+  cursor, would say where they are. Deferred: the cards name their own questions, and a second stuck strip eats height.
+- **Remember where the teacher was.** Scrolling back to a card after opening a student's panel, or after the tab
+  re-renders on a stage change, starts at the top. Deferred until the stages settle.
+
 ## The table in the cell it is working on (ticket 348, 2026-09-16)
 
 - **Names under the avatars.** The cell draws initials only; at 1280 × 800 four avatars already fill the cell, so a name beside each is out of the question there. A wider laptop could afford first names. Deferred: the teacher knows the table, and the initials carry the seating order.

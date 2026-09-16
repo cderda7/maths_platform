@@ -357,6 +357,12 @@ export default function TeacherMistakes() {
   const chainProblemId = chain ? questionFor(chain.steps[0])?.problemId : undefined;
   /** Individual working on the live set (ticket 315): the tab splits into Where students are and Where students went wrong. */
   const split = assignment.kind === "live" && (stage?.id === "working" || review || groupStage);
+  /**
+   * The rows stay on screen while the cards scroll (ticket 346), on the three stages that have them: individual working,
+   * individual review and group review. Class review (tickets 320, 344) is named out rather than left to `split`, so its
+   * own rows keep the plain split until they are settled.
+   */
+  const stickyLeft = assignment.kind === "live" && (stage?.id === "working" || review || groupStage);
   const working = useWhereRows(assignment, session, now);
   const inReview = review ? reviewRows(students, assignment.problems, assignment.classmates, now) : [];
   const places = review ? inReview : working;
@@ -662,6 +668,7 @@ export default function TeacherMistakes() {
       {split ? (
         <StageSplit
           className="mt-4"
+          stickyLeft={stickyLeft}
           leftTitle={groupStage ? "Where groups are" : "Where students are"}
           left={
             groupStage ? (

@@ -7,6 +7,7 @@ import type { AssignmentBundle } from "@/lib/assignments";
 import { classPlaces } from "@/lib/place";
 import type { StudentSession } from "@/lib/session";
 import type { ReviewRow } from "@/lib/reviewPlaces";
+import { splitFoot } from "@/lib/stickyColumn";
 import { carryPlaces, checkIns, classmatesEntered, emptyQuestionRuns, whereRows, type SeenPlace, type WherePill, type WhereRow } from "@/lib/whereStudents";
 
 /** The row label's fixed cell, layout px: wide enough for "Handed in" and a range ("Q7–Q10") at the label's size. */
@@ -129,6 +130,8 @@ function RowLabel({ label, sub, width = LABEL_CELL }: { label: string; sub: stri
  * first seconds), each run of empty question rows folds into one range row ("Q2–Q10", blank). The fold is decided
  * before paint on the unfolded rows every render (and on a resize), written straight to the rows' `hidden`, so it holds no
  * state and cannot flip back and forth: only rows with nobody in them fold, so no pill ever leaves its question's row.
+ * The column's foot is read where the column comes to rest (`splitFoot`, ticket 346), not against the scroll region, so
+ * scrolling the cards past it never folds a row.
  */
 export function PlaceTable({ rows, now, onPress, open = null }: { rows: readonly WhereRow[]; now: number; onPress?: (id: string) => void; /** The student whose panel is open (ticket 316). */ open?: string | null }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -143,9 +146,7 @@ export function PlaceTable({ rows, now, onPress, open = null }: { rows: readonly
       for (const r of ranges) r.hidden = true;
       // Every row shown first, including one that was folded and is no longer in a run (React never touches `hidden` here).
       for (const m of table.querySelectorAll<HTMLElement>("[data-place-row]")) m.hidden = false;
-      const zoom = main.getBoundingClientRect().height / main.clientHeight || 1;
-      const foot = (table.getBoundingClientRect().bottom - main.getBoundingClientRect().top) / zoom + main.scrollTop;
-      const folded = ranges.length > 0 && foot > main.clientHeight - FOOT_ROOM;
+      const folded = ranges.length > 0 && splitFoot(table, main) > main.clientHeight - FOOT_ROOM;
       for (const r of ranges) r.hidden = !folded;
       for (const m of members) m.hidden = folded;
       table.dataset.folded = folded ? "true" : "false";
@@ -208,7 +209,8 @@ const REVIEW_FITS = ["whole", "time", "names", "avatars"] as const;
  *
  * When the column would not fit the scroll region, the pills drop "fixed n of m", then their time, then their names:
  * decided before paint on the whole pills every render (and on a resize), written to the table's `data-fit`, so it holds
- * no state and cannot flip back and forth.
+ * no state and cannot flip back and forth. The foot is read where the column comes to rest (`splitFoot`, ticket 346), so
+ * scrolling the cards never shortens a pill.
  */
 export function ReviewTable({ rows, now, onPress, open = null }: { rows: readonly ReviewRow[]; now: number; onPress?: (id: string) => void; open?: string | null }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -217,11 +219,9 @@ export function ReviewTable({ rows, now, onPress, open = null }: { rows: readonl
     const main = table?.closest<HTMLElement>("[data-teacher-scroll]");
     if (!table || !main) return;
     const fit = () => {
-      const zoom = main.getBoundingClientRect().height / main.clientHeight || 1;
       for (const f of REVIEW_FITS) {
         table.dataset.fit = f;
-        const foot = (table.getBoundingClientRect().bottom - main.getBoundingClientRect().top) / zoom + main.scrollTop;
-        if (foot <= main.clientHeight - FOOT_ROOM) break;
+        if (splitFoot(table, main) <= main.clientHeight - FOOT_ROOM) break;
       }
     };
     fit();
