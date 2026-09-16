@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import Figure from "@/components/Figure";
+import FitHeight from "@/components/FitHeight";
 import HelpChat from "@/components/HelpChat";
 import HelpMenu, { StallNotice } from "@/components/HelpMenu";
 import { HintCards, useHints } from "@/components/HintCards";
@@ -56,28 +57,35 @@ export function StepTitle({ title }: { title: string }) {
   );
 }
 
-/** The worked example once more, in the pad's place until "Back to your turn": a look, not a step, and not saved. Its question shows only when its working does not open on it. */
+/**
+ * The worked example once more, in the left column's lower half until "Back to your turn": a look, not a step, and not
+ * saved. The pad (and the working column) stay up beside it (ticket 349: the pair loses its effect if the student can't
+ * see the example and their own attempt at once), so it fits a narrow column, compact, and zooms down to its box's
+ * height (`FitHeight`, ticket 277) rather than scroll. Its question shows only when its working does not open on it.
+ */
 export function ExamplePeek({ worked, onBack }: { worked: PracticeProblem; onBack: () => void }) {
   return (
-    <section className="flex min-h-0 flex-col overflow-y-auto px-6 py-6" data-example data-peek>
-      <Eyebrow>Worked example</Eyebrow>
-      <div className="mt-3">
-        {/* The left column is the student's own problem: a first line that is the example's equation itself already says the example's question. */}
-        <PracticeCard practice={worked} shown={worked.steps.length} question={worked.steps[0]?.tex.replace(/\s+/g, "") !== worked.tex.replace(/\s+/g, "")} />
-      </div>
-      <div className="mt-6 flex justify-end">
-        <Button size="lg" onClick={onBack} data-peek-back>
+    <div className="flex min-h-0 flex-1 flex-col" data-peek>
+      <FitHeight className="min-h-0 flex-1" min={0.55}>
+        <Eyebrow>Worked example</Eyebrow>
+        <div className="mt-3">
+          <PracticeCard practice={worked} shown={worked.steps.length} question={worked.steps[0]?.tex.replace(/\s+/g, "") !== worked.tex.replace(/\s+/g, "")} compact />
+        </div>
+      </FitHeight>
+      <div className="mt-4 flex justify-end">
+        <Button onClick={onBack} data-peek-back>
           Back to your turn
         </Button>
       </div>
-    </section>
+    </div>
   );
 }
 
 /**
- * Step 1: the question on the left under the caller's head, its worked example step by step in the middle (every step at
- * once when opened again, or once seen), and the chat beside it, silent until the student writes. `next` ("Your turn")
- * shows once every step has been seen.
+ * Step 1: the caller's head alone on the left; the question, then its worked example step by step, in the middle
+ * (ticket 349: the question sits over the example it belongs to rather than beside it), every step at once when opened
+ * again or once seen; the chat beside it, silent until the student writes. `next` ("Your turn") shows once every step
+ * has been seen.
  */
 export function WorkedStep({
   head,
@@ -106,23 +114,23 @@ export function WorkedStep({
   const shown = again || seen ? p.steps.length : run.exampleShown;
   return (
     <div className="grid h-full min-h-0 grid-cols-[300px_1fr_320px]" data-run={runKey} data-ladder-worked>
-      <aside className="flex min-h-0 flex-col overflow-y-auto border-r border-line px-7 py-6">
-        {head}
-        <p className="mt-3 text-[14px] text-ink-soft"><StemWords stem={question.stem} /></p>
-        <div className="math-lg mt-3 text-ink">
-          <M tex={question.tex} display />
-        </div>
-        {question.figure && (
-          <div className="mt-3">
-            <Figure id={question.figure} />
-          </div>
-        )}
-      </aside>
+      <aside className="flex min-h-0 flex-col overflow-y-auto border-r border-line px-7 py-6">{head}</aside>
       <section className="relative flex min-h-0 flex-col" data-example>
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6 pb-24">
-          <Eyebrow>Worked example</Eyebrow>
-          <div className="mt-3">
-            <PracticeCard practice={p} shown={shown} question={false} onReveal={() => dispatch({ type: "run/example-step", run: runKey })} />
+          <p className="text-[14px] text-ink-soft"><StemWords stem={question.stem} /></p>
+          <div className="math-lg mt-3 text-ink">
+            <M tex={question.tex} display />
+          </div>
+          {question.figure && (
+            <div className="mt-3">
+              <Figure id={question.figure} />
+            </div>
+          )}
+          <div className="mt-6 border-t border-line pt-6">
+            <Eyebrow>Worked example</Eyebrow>
+            <div className="mt-3">
+              <PracticeCard practice={p} shown={shown} question={false} onReveal={() => dispatch({ type: "run/example-step", run: runKey })} />
+            </div>
           </div>
         </div>
         {/* Pinned to the corner, not below the last step: a long example that needs a scroll must never hide the way on. */}
@@ -143,7 +151,9 @@ export function WorkedStep({
  * and nothing after it (so no later line gives it away). Each line the pad reads is marked against the blank
  * (`completionState`): right moves on, wrong is red in place with its misconception chip where known, and after two wrong
  * lines the blank fills in. Nothing else happens on a wrong line: the chat opens only when the student presses it. `done`
- * shows under the working once every blank is in.
+ * shows under the working once every blank is in. "See the example again" (ticket 349) swaps the left column's lower
+ * half — the question, hints and "I need help" — for `ExamplePeek`; the pad and the working column carry on regardless,
+ * so the example and the student's own attempt are on screen together.
  */
 export function CompletionStep({
   head,
@@ -216,47 +226,49 @@ export function CompletionStep({
 
   return (
     <div className="grid h-full min-h-0 grid-cols-[300px_1fr_320px]" data-run={runKey} data-ladder-completion>
-      <aside className="flex min-h-0 flex-col overflow-y-auto border-r border-line px-7 py-6">
+      <aside className="flex min-h-0 flex-col border-r border-line px-7 py-6">
         {head}
-        <p className="mt-3 text-[14px] text-ink-soft"><StemWords stem={question.stem} /></p>
-        <div className="math-lg mt-3 text-ink">
-          <M tex={termTex(question.tex, h.termsAt(0), h.litAt(0))} display />
-        </div>
-        {question.figure && (
-          <div className="mt-3">
-            <Figure id={question.figure} />
-          </div>
-        )}
-        <p className="mt-3 text-[13px] leading-snug text-ink-soft">Some lines are written for you. Write the missing ones.</p>
-        <HintCards p={p} h={h} lineWord="line" onTalk={() => talkHint(TALK_OPENER)} />
-        <div className="mt-5">
-          <Button variant="deep" className="w-full" onClick={() => setMenu("menu")} data-need-help>
-            I need help
-          </Button>
-        </div>
-      </aside>
-
-      <div className="relative flex min-h-0 flex-col">
         {peek ? (
           <ExamplePeek worked={worked} onBack={() => setPeek(false)} />
         ) : (
-          <PadSection
-            strokes={strokes}
-            onStrokesChange={addStroke}
-            onBurstEnd={onBurstEnd}
-            onPenDown={() => setRecognising(true)}
-            onUndo={() => {
-              setRecognising(false);
-              dispatch({ type: "run/undo", run: runKey, problem: p.id });
-            }}
-            onClear={() => {
-              setRecognising(false);
-              dispatch({ type: "run/clear", run: runKey, problem: p.id });
-            }}
-          />
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+            <p className="mt-3 text-[14px] text-ink-soft"><StemWords stem={question.stem} /></p>
+            <div className="math-lg mt-3 text-ink">
+              <M tex={termTex(question.tex, h.termsAt(0), h.litAt(0))} display />
+            </div>
+            {question.figure && (
+              <div className="mt-3">
+                <Figure id={question.figure} />
+              </div>
+            )}
+            <p className="mt-3 text-[13px] leading-snug text-ink-soft">Some lines are written for you. Write the missing ones.</p>
+            <HintCards p={p} h={h} lineWord="line" onTalk={() => talkHint(TALK_OPENER)} />
+            <div className="mt-5">
+              <Button variant="deep" className="w-full" onClick={() => setMenu("menu")} data-need-help>
+                I need help
+              </Button>
+            </div>
+          </div>
         )}
+      </aside>
+
+      <div className="relative flex min-h-0 flex-col">
+        <PadSection
+          strokes={strokes}
+          onStrokesChange={addStroke}
+          onBurstEnd={onBurstEnd}
+          onPenDown={() => setRecognising(true)}
+          onUndo={() => {
+            setRecognising(false);
+            dispatch({ type: "run/undo", run: runKey, problem: p.id });
+          }}
+          onClear={() => {
+            setRecognising(false);
+            dispatch({ type: "run/clear", run: runKey, problem: p.id });
+          }}
+        />
         {/* Pinned to the corner once every blank is in, not at the end of the working list (which may need a scroll to reach). */}
-        {state.done && !peek && next && <div className="absolute bottom-4 right-4 z-10">{next}</div>}
+        {state.done && next && <div className="absolute bottom-4 right-4 z-10">{next}</div>}
       </div>
 
       <aside className="flex min-h-0 flex-col border-l border-line px-6 py-6">

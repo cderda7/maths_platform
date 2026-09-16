@@ -3,7 +3,6 @@
 import { useState } from "react";
 import M from "@/components/Math";
 import { Button, Card } from "@/components/ui";
-import { LeafChip } from "@/components/Tag";
 import { branchesOf } from "@/lib/branches";
 import type { PracticeProblem } from "@/data/types";
 import StemWords from "@/components/StemWords";
@@ -17,8 +16,9 @@ import StemWords from "@/components/StemWords";
  * practice); pass `shown` and `onReveal` to keep the count in the session (the warm-up's worked
  * example). `compact` is the size for a narrow column. A two-case step ("x = 4 or x = -2") is
  * two boxes side by side, as the read-back shows it. `question={false}` (ticket 312) leaves out the stem and the
- * expression, for a card beside a column that already shows the question (the worked example in place of the pad, Q*):
- * the skill chip stays at the top right and the working starts straight under it.
+ * expression, for a card beside or under a column that already shows the question (the worked example beside the pad,
+ * Q*): the working starts straight at the top of the card. No skill pill (ticket 349): the column the card sits in
+ * already names the skill.
  */
 export default function PracticeCard({
   practice,
@@ -50,19 +50,18 @@ export default function PracticeCard({
   const row = compact ? "mt-4 border-t border-line pt-4" : "mt-6 border-t border-line pt-6";
   return (
     <Card className={`math-left ${compact ? "p-5" : "p-7"}`}>
-      <div className={`flex items-center gap-3 ${question ? "justify-between" : "justify-end"}`}>
-        {question && <span className="text-[14px] text-ink-soft"><StemWords stem={practice.stem} /></span>}
-        <LeafChip student id={practice.leaf} />
-      </div>
       {question && (
-        <div className={`${size} ${compact ? "mt-2" : "mt-3"} text-ink`}>
-          <M tex={practice.tex} display />
-        </div>
+        <>
+          <span className="text-[14px] text-ink-soft"><StemWords stem={practice.stem} /></span>
+          <div className={`${size} ${compact ? "mt-2" : "mt-3"} text-ink`}>
+            <M tex={practice.tex} display />
+          </div>
+        </>
       )}
       <ol>
         {practice.steps.slice(0, shown).map((st, i) => {
           const branches = branchesOf(st.tex);
-          // With no question above, the first line opens the working under the chip: no rule above it.
+          // With no question above, the first line opens the working at the top of the card: no rule above it.
           const lead = !question && i === 0 ? (compact ? "mt-2" : "mt-3") : row;
           return (
             <li key={i} className={`${lead} ${size} text-ink`} data-step={i + 1}>

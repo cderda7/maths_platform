@@ -31,8 +31,9 @@ import StemWords from "@/components/StemWords";
  * button after a worked example with no follow-up left.
  *
  * The warm-up's third step (ticket 313) is this pad on the skill's follow-up alone: `lead` sits above the title (the step
- * line), and `exampleAgain` makes the menu's example "see the example again", the skill's worked example shown in the pad's
- * place until "Back to your turn", as on a completion step.
+ * line), and `exampleAgain` makes the menu's example "see the example again", the skill's worked example shown in the
+ * left column's lower half until "Back to your turn" (ticket 349), the pad itself carrying on beside it, as on a
+ * completion step.
  */
 export default function PracticePad({
   run,
@@ -128,7 +129,7 @@ export default function PracticePad({
 
   return (
     <div className={`grid h-full min-h-0 ${second ? "grid-cols-[400px_1fr_300px]" : "grid-cols-[300px_1fr_320px]"}`} data-run={runKey} data-warmup={run.problem}>
-      <aside className="flex min-h-0 flex-col overflow-y-auto border-r border-line px-7 py-6">
+      <aside className="flex min-h-0 flex-col border-r border-line px-7 py-6">
         {second && (
           <div className="mb-6 border-b border-line pb-6" data-worked-example>
             <Eyebrow>Worked example</Eyebrow>
@@ -143,35 +144,41 @@ export default function PracticePad({
           <span className="text-[12px] uppercase tracking-wide text-ink-muted">not marked</span>
         </div>
         {!second && header}
-        <p className="mt-3 text-[14px] text-ink-soft"><StemWords stem={p.stem} /></p>
-        <div className="math-lg mt-3 text-ink">
-          <M tex={termTex(p.tex, termsAt(0), litAt(0))} display />
-        </div>
-        {second && (
-          <div className="mt-4 flex flex-wrap justify-center gap-1.5">
-            <LeafChip student id={p.leaf} />
-          </div>
-        )}
-        {hints.map((h, i) => (
-          <HintCard
-            key={shown[i]}
-            hint={h}
-            label={p.hints.length > 1 ? `Hint ${i + 1}` : "Hint"}
-            note={anchors[i] > 0 ? `your line ${anchors[i]}` : undefined}
-            lit={litTerm ?? null}
-            onLit={setLit}
-            collapsed={i < hints.length - 1 && !reopened.includes(shown[i])}
-            onToggle={i < hints.length - 1 ? () => toggle(shown[i]) : undefined}
-            onTalk={i === hints.length - 1 && !run.example ? () => talkHint(TALK_OPENER) : undefined}
-            className={i === 0 ? "mt-5" : "mt-2"}
-          />
-        ))}
-        {/* While the worked example plays the help is on screen already, so the button goes, not greys. */}
-        {!run.example && (
-          <div ref={helpRow} className="mt-5">
-            <Button variant="deep" className="w-full" onClick={() => setHelpOpen(true)}>
-              I need help
-            </Button>
+        {peek && exampleAgain ? (
+          <ExamplePeek worked={exampleAgain} onBack={() => setPeek(false)} />
+        ) : (
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+            <p className="mt-3 text-[14px] text-ink-soft"><StemWords stem={p.stem} /></p>
+            <div className="math-lg mt-3 text-ink">
+              <M tex={termTex(p.tex, termsAt(0), litAt(0))} display />
+            </div>
+            {second && (
+              <div className="mt-4 flex flex-wrap justify-center gap-1.5">
+                <LeafChip student id={p.leaf} />
+              </div>
+            )}
+            {hints.map((h, i) => (
+              <HintCard
+                key={shown[i]}
+                hint={h}
+                label={p.hints.length > 1 ? `Hint ${i + 1}` : "Hint"}
+                note={anchors[i] > 0 ? `your line ${anchors[i]}` : undefined}
+                lit={litTerm ?? null}
+                onLit={setLit}
+                collapsed={i < hints.length - 1 && !reopened.includes(shown[i])}
+                onToggle={i < hints.length - 1 ? () => toggle(shown[i]) : undefined}
+                onTalk={i === hints.length - 1 && !run.example ? () => talkHint(TALK_OPENER) : undefined}
+                className={i === 0 ? "mt-5" : "mt-2"}
+              />
+            ))}
+            {/* While the worked example plays the help is on screen already, so the button goes, not greys. */}
+            {!run.example && (
+              <div ref={helpRow} className="mt-5">
+                <Button variant="deep" className="w-full" onClick={() => setHelpOpen(true)}>
+                  I need help
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </aside>
@@ -194,8 +201,6 @@ export default function PracticePad({
             </div>
           )}
         </section>
-      ) : peek && exampleAgain ? (
-        <ExamplePeek worked={exampleAgain} onBack={() => setPeek(false)} />
       ) : (
         <PadSection strokes={strokes} onStrokesChange={addStroke} onBurstEnd={onBurstEnd} onPenDown={() => setRecognising(true)} onUndo={undo} onClear={clear} />
       )}
