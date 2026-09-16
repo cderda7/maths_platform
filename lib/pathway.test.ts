@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { allPathways, DEFAULT_PATHWAY, isValidPathway, nextStage, parsePathway, pathwayChip, STAGE_DESCRIPTION, togglePathway } from "./pathway";
+import { allPathways, DEFAULT_PATHWAY, isValidPathway, nextStage, nextStageOnCard, parsePathway, pathwayChip, STAGE_DESCRIPTION, togglePathway } from "./pathway";
 
 describe("pathway rules", () => {
   it("eight pathways exist, including submit-only, and every one is valid", () => {
@@ -49,6 +49,26 @@ describe("next stage under a pathway", () => {
     expect(nextStage(["individual", "group"], "group-done")).toBe("report");
     expect(nextStage(["group", "whole-class"], "group-done")).toBe("waiting");
     expect(nextStage(["individual", "group", "whole-class"], "group-done")).toBe("waiting");
+  });
+});
+
+describe("the decision card's next-stage line (ticket 350)", () => {
+  it("names the next stage plainly when nothing is skipped", () => {
+    expect(nextStageOnCard(["individual", "group", "whole-class"])).toEqual({ stage: "individual", skipIndividual: false, skipBoth: false });
+    expect(nextStageOnCard(["individual", "whole-class"])).toEqual({ stage: "individual", skipIndividual: false, skipBoth: false });
+  });
+
+  it("says individual review is skipped when it's off but group review is still ahead", () => {
+    expect(nextStageOnCard(["group", "whole-class"])).toEqual({ stage: "group", skipIndividual: true, skipBoth: false });
+    expect(nextStageOnCard(["group"])).toEqual({ stage: "group", skipIndividual: true, skipBoth: false });
+  });
+
+  it("says both review stages are skipped when only class review is on the pathway", () => {
+    expect(nextStageOnCard(["whole-class"])).toEqual({ stage: "whole-class", skipIndividual: true, skipBoth: true });
+  });
+
+  it("has nothing to say once there is no review stage left at all", () => {
+    expect(nextStageOnCard([])).toEqual({ stage: null, skipIndividual: true, skipBoth: true });
   });
 });
 

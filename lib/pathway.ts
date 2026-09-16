@@ -52,6 +52,25 @@ export function nextStage(pathway: readonly ReviewStage[], from: Transition): St
   return next ? ENTRY[next] : "report";
 }
 
+/**
+ * What the decision card's next-stage line says (ticket 350): the stage after working, and whether the pathway skips over
+ * one or both of the earlier review stages to reach it. Pure: read straight off the pathway, no rendering. A skip is said
+ * plainly rather than left silent, since it is a real consequence of an earlier choice the teacher might not have in mind
+ * at this exact moment; a pathway with nothing left to review at all (`stage: null`) has nothing for the card to say.
+ */
+export interface NextStageOnCard {
+  stage: ReviewStage | null;
+  /** Individual review is not on the pathway. */
+  skipIndividual: boolean;
+  /** Neither individual nor group review is on the pathway: the skip is of both, straight to `stage`. */
+  skipBoth: boolean;
+}
+
+export function nextStageOnCard(pathway: readonly ReviewStage[]): NextStageOnCard {
+  const skipIndividual = !pathway.includes("individual");
+  return { stage: pathway[0] ?? null, skipIndividual, skipBoth: skipIndividual && !pathway.includes("group") };
+}
+
 export const STAGE_WORD: Record<ReviewStage, string> = { individual: "individual review", group: "group review", "whole-class": "class review" };
 /** The grey line under a stop on the creation line (tickets 239, 246). */
 export const STAGE_DESCRIPTION: Record<ReviewStage, string> = {

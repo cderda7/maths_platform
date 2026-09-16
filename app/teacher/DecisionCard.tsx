@@ -4,18 +4,17 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PathwayStop } from "@/components/PathwayStop";
 import ProblemQuestion from "@/components/ProblemQuestion";
-import { StagePill } from "@/components/StagePill";
 import { Button, Eyebrow } from "@/components/ui";
 import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
 import type { Pathway, ReviewStage } from "@/data/types";
 import { assignmentBundle, assignmentStages } from "@/lib/assignments";
 import { pathwayOf } from "@/lib/classroom";
 import { dispatchClassroom, getClassroom, useClassroom } from "@/lib/classroom-store";
-import { CLASS_STAGE_WORD, stagePillState, type ClassStageId } from "@/lib/classStage";
+import { CLASS_STAGE_WORD, type ClassStageId } from "@/lib/classStage";
 import { lessonDecision, type DecisionView } from "@/lib/decision";
 import { answerMoved, answerPathway } from "@/lib/decisionState";
-import { everyGroupEmpty, moveAnswer, SUGGESTED, type QuestionTally, type SplitEvidence } from "@/lib/splitReview";
-import { REVIEW_ORDER, STAGE_DESCRIPTION, STAGE_WORD } from "@/lib/pathway";
+import { everyGroupEmpty, listWords, moveAnswer, moveConfirmSentence, SUGGESTED, type QuestionTally, type SplitEvidence } from "@/lib/splitReview";
+import { nextStageOnCard, REVIEW_ORDER, STAGE_DESCRIPTION, STAGE_WORD } from "@/lib/pathway";
 import { changedPathway, liveLocks, switchStage, type PathwayLocks } from "@/lib/pathwayChange";
 import type { StudentSession } from "@/lib/session";
 import { getSnapshot, useBatchedSession, useNow } from "@/lib/store";
@@ -116,6 +115,9 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
   // The split's ticks (ticket 337): the suggestion until the teacher ticks otherwise; and whether every question is listed.
   const [ticks, setTicks] = useState<string[] | null>(null);
   const [allShown, setAllShown] = useState(false);
+  // The move's confirm step (ticket 350): "Move to class review" opens it in place, live over the same ticks; Back returns
+  // without losing them. Empty once every tick is removed, so unticking mid-confirm falls back to the ask.
+  const [confirming, setConfirming] = useState(false);
   const set = assignmentBundle(ASSIGNMENT.id, classroom);
   const planned = set ? assignmentStages(set, classroom, session, now) : [];
   const current = pathwayOf(classroom);
@@ -149,11 +151,14 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
   const skipped = (!!answeredPathway && !answeredPathway.includes("group")) || (moved.length > 0 && everyGroupEmpty(classroom, session, moved));
   const emptyAfter = !!split && ticked.length > 0 && everyGroupEmpty(classroom, session, ticked);
   const addsClassReview = !!split && ticked.length > 0 && !shown.includes("whole-class");
+  // The confirm step only holds while there is still something ticked to move; unticking everything mid-confirm falls back to the ask.
+  const showConfirm = confirming && ticked.length > 0;
+  const next = nextStageOnCard(shown);
   return (
     <section
       role="region"
       aria-label={answered ? "Saved for class review" : "Most students are close to finishing"}
-      className={`pointer-events-auto w-[400px] rounded-2xl border border-line bg-paper p-6 shadow-lift ${slide ? "decision-in" : ""}`}
+      className={`pointer-events-auto w-[480px] rounded-2xl border border-line bg-paper p-6 shadow-lift ${slide ? "decision-in" : ""}`}
       data-decision-card={view.kind}
       data-decision-slide={slide || undefined}
       data-decision-answered={answered || undefined}
@@ -221,23 +226,31 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
               </button>
             </p>
           ) : (
-            <>
-              <Eyebrow className="mt-5">Your pathway</Eyebrow>
-              <ol className="mt-3 grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-4 gap-y-2" aria-label="Your pathway" data-decision-pathway>
-                {stages.map((st) => (
-                  <li key={st.id} className="col-span-2 grid grid-cols-subgrid items-center" data-decision-stage={st.id}>
-                    <span>
-                      <StagePill stage={st.id} state={stagePillState(st)} size="laptop" />
-                    </span>
-                    <span className="text-[13.5px] leading-snug text-balance text-ink-soft">{WHAT_HAPPENS[st.id]}</span>
-                  </li>
-                ))}
-              </ol>
-            </>
+            next.stage && (
+              // Only the next stage (ticket 350): the current stage is already decided, and the full sequence is the strip's
+              // job (top right), not this card's. A stage the pathway skips over is said plainly rather than left silent.
+              <p className="mt-5 text-[14px] leading-snug text-ink-soft" data-decision-next>
+                {next.skipBoth ? (
+                  <>
+                    Skip indiv review and group review. Move straight to <span className="font-semibold text-ink">class review</span> — {STAGE_DESCRIPTION["whole-class"]}.
+                  </>
+                ) : next.skipIndividual ? (
+                  <>
+                    Skip indiv review. Move straight to <span className="font-semibold text-ink">group review</span> — {STAGE_DESCRIPTION.group}.
+                  </>
+                ) : (
+                  <>
+                    <span className="font-semibold text-ink">Next:</span> {CLASS_STAGE_WORD[next.stage]} — {WHAT_HAPPENS[next.stage]}.
+                  </>
+                )}
+              </p>
+            )
           )}
         </>
       )}
-      {/* The split itself (ticket 337): the questions fewest have right, pre-ticked, with every other one behind its own line. */}
+      {/* The split itself (ticket 337): the questions fewest have right, pre-ticked, with every other one behind its own line.
+          "Move to class review" opens the confirm step in place (ticket 350): the same live rows, a forward-looking heading
+          naming every consequence, never a past-tense one -- nothing is decided until Confirm move is actually pressed. */}
       {!answered && !changing && split && !view.toClassReview && (
         <SplitRows
           split={split}
@@ -245,15 +258,17 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
           allShown={allShown}
           onToggle={(id) => setTicks(ticked.includes(id) ? ticked.filter((x) => x !== id) : [...ticked, id])}
           onAll={() => setAllShown(true)}
+          confirming={showConfirm}
+          emptyAfter={emptyAfter}
+          addsClassReview={addsClassReview}
         />
       )}
-      {!answered && !changing && view.toClassReview && view.split && (
+      {!answered && !changing && view.toClassReview && view.split && view.split.suggestion.suggested.length > 0 && (
         <p className="mt-4 text-[13.5px] leading-snug text-ink-soft" data-decision-to-class-review>
-          Without group review, the questions the class got wrong go to class review
-          {view.split.suggestion.suggested.length > 0 ? `: ${view.split.suggestion.suggested.map((t) => `${t.label} (${t.correct}/${t.present} right so far)`).join(", ")}` : "."}
+          {listWords(view.split.suggestion.suggested.map((t) => t.label))} got the fewest right{view.split.afterCorrections ? "" : " so far"} — worth covering in class review.
         </p>
       )}
-      {!answered && !changing && split && ticked.length > 0 && (
+      {!answered && !changing && !showConfirm && split && ticked.length > 0 && (
         <p className="mt-3 text-[13px] leading-snug text-ink-muted" data-decision-note>
           {emptyAfter ? "No group would have anything left to review." : addsClassReview ? "Adds class review after group review." : "Every group works the rest."}
         </p>
@@ -275,9 +290,11 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
           </>
         ) : (
           <>
-            <Button variant="secondary" onClick={() => dispatchClassroom({ type: "decision/tuck", due: view.due })} data-decision-later>
-              Later
-            </Button>
+            {!showConfirm && (
+              <Button variant="secondary" onClick={() => dispatchClassroom({ type: "decision/tuck", due: view.due })} data-decision-later>
+                Later
+              </Button>
+            )}
             {changing ? (
               // Done (ticket 336): a card with a split to make keeps the choice and shows it, so the one press that
               // answers the decision carries the pathway and the move together (a decision is answered once).
@@ -290,6 +307,17 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
                   Done
                 </Button>
               )
+            ) : showConfirm ? (
+              // The confirm step (ticket 350): narrowed to just Back and the final press, same as Change's own Done -- a
+              // decision this consequential gets one focused choice, not Later/Change sitting alongside it.
+              <>
+                <Button variant="secondary" onClick={() => setConfirming(false)} data-decision-back>
+                  Back
+                </Button>
+                <Button onClick={() => answer(shown, ticked)} data-decision-confirm-move>
+                  {emptyAfter ? "Confirm skip" : "Confirm move"}
+                </Button>
+              </>
             ) : (
               <>
                 {view.kind === "close-to-finishing" && (
@@ -304,7 +332,11 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
                     Change
                   </Button>
                 )}
-                <Button onClick={() => answer(shown, ticked)} data-decision-keep={ticked.length === 0 || undefined} data-decision-move={ticked.length > 0 || undefined}>
+                <Button
+                  onClick={() => (ticked.length === 0 ? answer(shown, ticked) : setConfirming(true))}
+                  data-decision-keep={ticked.length === 0 || undefined}
+                  data-decision-move={ticked.length > 0 || undefined}
+                >
                   {ticked.length === 0 ? "Keep" : emptyAfter ? "Skip to class review" : "Move to class review"}
                 </Button>
               </>
@@ -316,16 +348,31 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
   );
 }
 
-/** "Q7", "Q7 and Q10", "Q7, Q10 and Q3". */
-const listWords = (words: readonly string[]): string => (words.length <= 1 ? (words[0] ?? "") : `${words.slice(0, -1).join(", ")} and ${words[words.length - 1]}`);
-
 /**
  * The split's question rows (ticket 337): the two the fewest have right, pre-ticked and named in the question, then every
  * other question fewer than half have right under "also often wrong", then the rest behind "all questions". Every row shows
  * the whole question (`ProblemQuestion`, the whole-question rule) and how many of the room have it right. The list scrolls
  * inside the card, so opening "all questions" never pushes the buttons off the corner.
  */
-function SplitRows({ split, ticked, allShown, onToggle, onAll }: { split: SplitEvidence; ticked: readonly string[]; allShown: boolean; onToggle: (id: string) => void; onAll: () => void }) {
+function SplitRows({
+  split,
+  ticked,
+  allShown,
+  onToggle,
+  onAll,
+  confirming = false,
+  emptyAfter = false,
+  addsClassReview = false,
+}: {
+  split: SplitEvidence;
+  ticked: readonly string[];
+  allShown: boolean;
+  onToggle: (id: string) => void;
+  onAll: () => void;
+  confirming?: boolean;
+  emptyAfter?: boolean;
+  addsClassReview?: boolean;
+}) {
   const { suggested, often, rest } = split.suggestion;
   // The ask names the two fewest the class has right and counts the rest, so a card with everything ticked stays a sentence.
   const all = ticked.map((id) => split.tallies.find((t) => t.problem === id)!).sort((a, b) => a.correct - b.correct);
@@ -334,7 +381,11 @@ function SplitRows({ split, ticked, allShown, onToggle, onAll }: { split: SplitE
   return (
     <>
       <p className="mt-4 text-[14px] leading-snug text-ink" data-split-ask>
-        {asked.length === 0 ? (
+        {confirming ? (
+          // The confirm heading (ticket 350): every consequence stated plainly, and always forward-looking -- "added" would
+          // read as already decided, which is exactly what this step exists to not do. The rows below stay live underneath it.
+          moveConfirmSentence(all.map((t) => t.label), emptyAfter, addsClassReview)
+        ) : asked.length === 0 ? (
           "Every question stays in group review."
         ) : (
           <>

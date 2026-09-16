@@ -14,7 +14,7 @@ import { REVIEW_ORDER } from "./pathway";
 import { liveLocks, type PathwayLocks } from "./pathwayChange";
 import { outcomeOf, recordReviews } from "./report";
 import { reworkedSession, type StudentSession } from "./session";
-import { belowHalf, dueSplit, everyGroupEmpty, halfOrMore, moveAnswer, movedInSetOrder, splitEvidence, splitSuggestion, talliesAfterCorrections, talliesSoFar, type QuestionTally } from "./splitReview";
+import { belowHalf, dueSplit, everyGroupEmpty, halfOrMore, listWords, moveAnswer, moveConfirmSentence, movedInSetOrder, splitEvidence, splitSuggestion, talliesAfterCorrections, talliesSoFar, type QuestionTally } from "./splitReview";
 import { groupsAt, sittingOut, standingsAt } from "./standings";
 
 const now = 1_700_000_000_000;
@@ -297,5 +297,36 @@ describe("the pathway strip at the gate without individual review (ticket 337)",
     expect(stageDone("working", c, gate, at(20_000), set)!).toBeGreaterThan(1);
     expect(stageDone("working", c, gate, at(20_000), set)!).toBeLessThan(19);
     expect(liveLocks(c, set, gate, at(20_000)).group).toBe(true);
+  });
+});
+
+describe("naming a list of moved questions", () => {
+  it("reads one, two or three as a sentence would", () => {
+    expect(listWords(["Q7"])).toBe("Q7");
+    expect(listWords(["Q7", "Q10"])).toBe("Q7 and Q10");
+    expect(listWords(["Q7", "Q10", "Q3"])).toBe("Q7, Q10 and Q3");
+    expect(listWords([])).toBe("");
+  });
+});
+
+describe("the move's confirm sentence (ticket 350)", () => {
+  it("states the move plainly, forward-looking, when other groups still have work", () => {
+    expect(moveConfirmSentence(["Q7", "Q10"], false, false)).toBe("Move Q7 and Q10 out of group review and into class review?");
+  });
+
+  it("names adding class review to the pathway in the same sentence, not as a separate note", () => {
+    expect(moveConfirmSentence(["Q7"], false, true)).toBe("Move Q7 out of group review and into class review, and add class review to the pathway?");
+  });
+
+  it("never says a question was already added: the skip case stays a live question, not a stated fact", () => {
+    const sentence = moveConfirmSentence(["Q7", "Q10"], true, false);
+    expect(sentence).toBe("Skip group review — nothing would be left there. Q7 and Q10 got the fewest right — add any others before confirming?");
+    expect(sentence).not.toMatch(/added|have been moved/i);
+  });
+
+  it("folds the class-review addition into the skip sentence too", () => {
+    expect(moveConfirmSentence(["Q7", "Q10"], true, true)).toBe(
+      "Skip group review — nothing would be left there; this adds class review to the pathway. Q7 and Q10 got the fewest right — add any others before confirming?",
+    );
   });
 });

@@ -178,3 +178,25 @@ export const movedInSetOrder = (c: ClassroomState | null | undefined, problems: 
   const moved = movedToClassReview(c);
   return problems.map((p) => p.id).filter((id) => moved.includes(id));
 };
+
+/** "Q7", "Q7 and Q10", "Q7, Q10 and Q3". */
+export const listWords = (words: readonly string[]): string => (words.length <= 1 ? (words[0] ?? "") : `${words.slice(0, -1).join(", ")} and ${words[words.length - 1]}`);
+
+/**
+ * The confirm step's heading (ticket 350): every consequence of the press named plainly, and always forward-looking, never
+ * a past-tense "added" — that reads as already decided, which is exactly what this step exists to not do. Nothing here is
+ * settled until the press after it. `labels` are the ticked questions, fewest-correct first, as the rows above list them.
+ *
+ * The `emptyAfter` case (ticking these leaves every group with nothing left) states the stage-skip as a plain mechanical
+ * fact — that part is not being decided in this sentence, the ticks already decided it — but keeps the question selection
+ * itself open ("add any others"), since a bigger structural call like this one deserves more than a pre-filled yes.
+ */
+export function moveConfirmSentence(labels: readonly string[], emptyAfter: boolean, addsClassReview: boolean): string {
+  const moved = listWords(labels);
+  if (emptyAfter) {
+    const also = addsClassReview ? "; this adds class review to the pathway" : "";
+    return `Skip group review — nothing would be left there${also}. ${moved} got the fewest right — add any others before confirming?`;
+  }
+  const also = addsClassReview ? ", and add class review to the pathway" : "";
+  return `Move ${moved} out of group review and into class review${also}?`;
+}
