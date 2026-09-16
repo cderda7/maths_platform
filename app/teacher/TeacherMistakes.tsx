@@ -26,6 +26,7 @@ import { reviewPlaces, reviewRows, stillToFix } from "@/lib/reviewPlaces";
 import { PlaceTable, ReviewTable, useWhereRows } from "./WhereStudentsAre";
 import { GroupChip, GroupGrid } from "./WhereGroupsAre";
 import { countParts, everyGroupSolved, gridAt, groupCounts, groupsNotSolved } from "@/lib/groupGrid";
+import { movedInSetOrder } from "@/lib/splitReview";
 import type { GroupColour } from "@/data/groups";
 
 // The same button as the class view's row actions ("see dot skills" / "close").
@@ -304,7 +305,9 @@ export default function TeacherMistakes() {
   const students = review ? reviewPlaces(assignment, classroom, session, now) : [];
   /** Group review on the live set (ticket 319): the split shows where each group is on each question, and the cards count groups. */
   const groupStage = assignment.kind === "live" && now > 0 && stage?.id === "group";
-  const grid = groupStage ? gridAt(classroom, session, now, assignment.problems) : [];
+  // The questions the teacher moved to class review (ticket 337) are a grey band across the grid: no group works them.
+  const movedToClass = movedInSetOrder(classroom, assignment.problems);
+  const grid = groupStage ? gridAt(classroom, session, now, assignment.problems, movedToClass) : [];
   const countsOf = new Map(groupStage ? assignment.problems.map((p) => [p.id, groupCounts(grid, p.id)]) : []);
   /** The group each student in group review sits in: a card names groups, never students. */
   const groupOf = new Map<string, GroupColour>(grid.flatMap((g) => g.members.map((m) => [m, g.colour] as const)));

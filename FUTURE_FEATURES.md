@@ -1870,6 +1870,18 @@ Raised in a project checkpoint review; Carson asked for these on the list. Space
 - **A member who leaves the table mid-review.** The cell draws the group's present members as ticket 332 gives them, fixed for the stage; a student moving group or leaving the room mid-review is not modelled. Deferred: the demo's seating does not change mid-review.
 - **The avatars at the floor.** Below about 90 px of cell the avatars stop at 16 px and a sixth member would be cut off; group sizes are four in the demo, and five columns of four fit. A cell that cannot hold its table (a class in six or seven groups) would need the table stacked, or the pen alone. Deferred until a class is seated that way.
 
+## The split of group review and class review (ticket 337, 2026-09-16)
+
+- **Per-group splits.** A question moved out of group review leaves every group's list; a table that could have worked it loses it too. Deferred: one decision for the class was the review-control ruling; a per-group pick is many presses.
+- **Moving a question back.** The answer is final, as every decision is: nothing takes a question back into group review once it has been moved. Deferred: the card is one decision, and group review starts within the minute.
+- **A second split later in the lesson.** One split decision per lesson; a question that turns out badly in group review cannot be handed to class review from the grid. Deferred: ticket 319's grid is where that would live.
+- **Counts on the card after it has been up a while.** They are frozen at the moment the card came due, so a tucked-away card reopened later shows the counts of a minute ago. Deferred: freezing keeps the ticks still; the decision's life is about half a minute.
+- **The gate waiting for the card.** The gate opens the moment everyone is in, whether or not the card is answered. Deferred: the review-control entry settled this; the demo stretches the arrivals instead.
+- **"Also often wrong" is empty in the demo.** Only Q7 and Q10 are below half of nineteen, so the middle section never shows on Problem Set 6. Deferred: it is data, and made-up classes cover it in the tests.
+- **A moved question on the board.** Class review's setup ticks and locks it, but the board does not say which of its problems came from group review. Deferred: the setup page is where the teacher sees it, and the board is the students' screen.
+- **Saying which groups a move empties.** The card says "No group would have anything left to review" only when every group would sit out; it does not name the one table a move leaves with nothing. Deferred: naming tables on the card needs the group chips and more room.
+- **The strip's count at the gate without individual review.** The stream hands every classmate in at Sam's hand-in while the gate's arrivals take a minute, so the count drops and climbs again. Deferred: the arrival timing is demo data anchored to Sam's own arrival.
+
 ## Carson's notes
 
 Hand-written by Carson. Agents: append new sections *above* this heading and never edit,

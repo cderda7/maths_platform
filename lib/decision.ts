@@ -2,8 +2,10 @@ import { DEMO_STUDENT } from "@/data/assignment";
 import { BEFORE_HAND_IN_STAGES, type Problem } from "@/data/types";
 import type { ClassroomState } from "./classroom";
 import { currentClassStage, type ClassStageId } from "./classStage";
-import { storedDecision, type DecisionDue, type DecisionKind, type DecisionStatus, type LessonDecision } from "./decisionState";
+import { answerMoved, storedDecision, type DecisionDue, type DecisionKind, type DecisionStatus, type LessonDecision } from "./decisionState";
 import type { StudentSession } from "./session";
+import { pathwayOf } from "./classroom";
+import { dueSplit, splitEvidence, splitOnCard, toClassReview, type SplitEvidence } from "./splitReview";
 import { classmatesAt, type StreamSet } from "./stream";
 
 /**
@@ -88,30 +90,88 @@ export interface DecisionView {
   due: DecisionDue;
   /** The counts on the card as they are now. */
   evidence: CloseEvidence;
+  /**
+   * The split of group review and class review (ticket 337), as the card shows it: on the `split-review` card, and on the
+   * close-to-finishing card of a pathway without individual review, which carries the split itself. Read at the moment the
+   * decision came due, so the ticks and the counts under the teacher's cursor never move. Null when there is no split to offer.
+   */
+  split: SplitEvidence | null;
+  /** The card says plainly that the questions most got wrong go to class review: a pathway with class review and no group review. */
+  toClassReview: boolean;
+  /** The split card carries "your pathway … · change" (ticket 337): the close-to-finishing card went unanswered before it came due. */
+  carriesPathway: boolean;
+  /** An answered card left up with its moved questions and "Set up class review →", until Close. */
+  dismissed: boolean;
 }
 
 /**
  * The lesson's decision at `now`: the stored one while the class is still in the stage it came due in (open, tucked or
  * answered), a derived open one when the trigger has fired and no tab has stored it yet, a lapsed one once the class has
- * moved on, and null when nothing has come due. One decision at a time: ticket 337's replaces this one when it comes due.
+ * moved on, and null when nothing has come due. One decision at a time: ticket 337's split replaces this one the moment it
+ * comes due, whether this one was answered, tucked away or never touched.
  */
 export function lessonDecision(c: ClassroomState | null | undefined, set: StreamSet & { absent: readonly string[] }, session: StudentSession | null, now: number): DecisionView | null {
   if (!c?.assignment) return null;
-  const kind: DecisionKind = "close-to-finishing";
-  const stored = storedDecision(c.decisions, kind);
-  const evidence = closeEvidence(c, set, session, now);
+  const split = splitView(c, set, session, now);
+  if (split && !split.lapsed) return split;
+  const close = closeView(c, set, session, now);
+  if (close && !close.lapsed) return close;
+  return split ?? close;
+}
+
+/** The close-to-finishing decision (ticket 335), carrying the split itself on a pathway without individual review (ticket 337). */
+function closeView(c: ClassroomState, set: StreamSet & { absent: readonly string[] }, session: StudentSession | null, now: number): DecisionView | null {
+  const stored = storedDecision(c.decisions, "close-to-finishing");
+  // The split itself on a pathway without individual review, or, without group review, the counts behind "these go to class review".
+  const splitAt = (at: number) => (splitOnCard(c) || toClassReview(c) ? splitEvidence(c, set, session, at) : null);
   if (stored) {
     const lapsed = currentClassStage(c, session, now) !== stored.stage;
-    return view(stored, true, lapsed, evidence);
+    return view(stored, true, lapsed, closeEvidence(c, set, session, now), { split: splitAt(stored.dueAt), toClassReview: toClassReview(c), carriesPathway: false });
   }
   const due = dueDecision(c, set, session, now);
   if (!due) return null;
-  return view({ kind: due.kind, stage: due.stage, dueAt: now, status: "open" }, false, false, due.evidence);
+  return view({ kind: due.kind, stage: due.stage, dueAt: now, status: "open" }, false, false, due.evidence, { split: splitAt(now), toClassReview: toClassReview(c), carriesPathway: false });
 }
 
-function view(d: LessonDecision, stored: boolean, lapsed: boolean, evidence: CloseEvidence): DecisionView {
-  const shown: DecisionShown = lapsed ? null : d.status === "open" ? "card" : d.status === "tucked" ? "dot" : null;
-  return { kind: d.kind, stage: d.stage, dueAt: d.dueAt, status: d.status, answer: d.answer ?? null, lapsed, stored, shown, due: { kind: d.kind, stage: d.stage, at: d.dueAt }, evidence };
+/**
+ * The split decision (ticket 337): raised during individual review, once half the room has handed its corrections in. It
+ * replaces an unanswered close-to-finishing card and carries that card's pathway line, so the teacher can still change the
+ * pathway from it. It lapses when the class leaves individual review (the gate opens), and with it group review switched off.
+ */
+function splitView(c: ClassroomState, set: StreamSet & { absent: readonly string[] }, session: StudentSession | null, now: number): DecisionView | null {
+  const stored = storedDecision(c.decisions, "split-review");
+  const evidence = closeEvidence(c, set, session, now);
+  const carries = (dueAt: number) => {
+    const close = storedDecision(c.decisions, "close-to-finishing");
+    return !(close?.status === "answered" && (close.answeredAt ?? 0) <= dueAt);
+  };
+  if (stored) {
+    const lapsed = currentClassStage(c, session, now) !== stored.stage || !pathwayOf(c).includes("group");
+    return view(stored, true, lapsed, evidence, { split: splitEvidence(c, set, session, stored.dueAt), toClassReview: false, carriesPathway: carries(stored.dueAt) });
+  }
+  const due = dueSplit(c, set, session, now);
+  if (!due) return null;
+  return view({ kind: due.kind, stage: due.stage, dueAt: now, status: "open" }, false, false, evidence, { split: due.evidence, toClassReview: false, carriesPathway: carries(now) });
+}
+
+function view(d: LessonDecision, stored: boolean, lapsed: boolean, evidence: CloseEvidence, extra: { split: SplitEvidence | null; toClassReview: boolean; carriesPathway: boolean }): DecisionView {
+  // An answer that moved questions leaves the card up with "Set up class review →" until Close (ticket 337).
+  const answered = d.status === "answered" && !!d.answer && answerMoved(d.answer).length > 0 && !d.dismissed;
+  const shown: DecisionShown = lapsed ? null : d.status === "open" ? "card" : d.status === "tucked" ? "dot" : answered ? "card" : null;
+  return {
+    kind: d.kind,
+    stage: d.stage,
+    dueAt: d.dueAt,
+    status: d.status,
+    answer: d.answer ?? null,
+    lapsed,
+    stored,
+    shown,
+    due: { kind: d.kind, stage: d.stage, at: d.dueAt },
+    evidence,
+    dismissed: !!d.dismissed,
+    ...extra,
+  };
 }
 
 /** The teacher screens that show the decision (ticket 335): Edexia Classroom and the live set's Class View and Mistakes. */

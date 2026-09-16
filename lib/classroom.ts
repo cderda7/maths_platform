@@ -13,7 +13,7 @@ import { chainReducer, latestRun, liveRun, migrateRun, type ChainAction, type Di
 import { absentOf, liveAbsent, withAbsence } from "./absence";
 import type { IsoDay } from "./dueDate";
 import type { CreateKind } from "./createPipeline";
-import { answerPathway, decisionsReducer, type DecisionAction, type LessonDecision } from "./decisionState";
+import { answerMoved, answerPathway, decisionsReducer, type DecisionAction, type LessonDecision } from "./decisionState";
 
 export type { DiagnosticRun } from "./diagnosticChain";
 
@@ -296,7 +296,10 @@ export type ClassroomAction =
   | { type: "absence/set"; assignment: string; student: string; absent: boolean }
   /** The live diagnostic chain (ticket 241): push, answer, force submit and cancel, next question, done, withdraw. */
   | ChainAction
-  /** The decision card (ticket 335): raised, tucked into its dot, opened again, answered; an answer with a pathway changes the assignment's (ticket 336). */
+  /**
+   * The decision card (ticket 335): raised, tucked into its dot, opened again, answered, closed; an answer with a pathway
+   * changes the assignment's (ticket 336), and one with moved questions takes them out of every group's list (ticket 337).
+   */
   | DecisionAction
   | { type: "reset" };
 
@@ -468,7 +471,11 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
     case "decision/raise":
     case "decision/tuck":
     case "decision/reopen":
-    case "decision/answer": {
+    case "decision/answer":
+    case "decision/dismiss": {
+      // A move reaches every group's list (ticket 337), so it is only an answer while no board has opened: once the run
+      // exists its questions are fixed, and the teacher's press comes too late to change what the groups are working.
+      if (a.type === "decision/answer" && answerMoved(a.answer).length > 0 && c.group) return c;
       const next = decisionsReducer(c.decisions, a);
       if (next === c.decisions) return c;
       // The answer that settles the decision writes its pathway in the same step (ticket 336): the strips, the cards and every

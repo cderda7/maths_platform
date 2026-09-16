@@ -181,6 +181,8 @@ export interface ProblemReview {
   second: string[];
   group?: { lines: string[]; solved: boolean };
   classReview?: string[][];
+  /** The teacher moved this question from group review to class review (ticket 337): no group worked it, and class review covered it. */
+  movedToClass?: boolean;
 }
 export type Reviews = Record<string, ProblemReview>;
 
@@ -190,19 +192,20 @@ const coveredExamples = (classReview: ClassReviewShown | null | undefined, probl
 };
 
 /** A live session's versions of one problem: its lines, its rework, the group run's version once the run closed it, and class review's examples. */
-function sessionReview(session: StudentSession, run: GroupRun | null | undefined, problem: string, classReview?: ClassReviewShown | null): ProblemReview {
+function sessionReview(session: StudentSession, run: GroupRun | null | undefined, problem: string, classReview?: ClassReviewShown | null, moved: readonly string[] = []): ProblemReview {
   const closed = run?.resolved.includes(problem) ? true : run?.unsolved?.includes(problem) ? false : null;
   return {
     first: (session.lines[problem] ?? []).map((l) => l.tex),
     finished: firstFinished(session, problem),
     second: (session.rework[problem] ?? []).map((l) => l.tex),
     ...(run && closed !== null ? { group: { lines: groupVersion(run, problem), solved: closed } } : {}),
+    ...(moved.includes(problem) ? { movedToClass: true } : {}),
     ...coveredExamples(classReview, problem),
   };
 }
 
-export const sessionReviews = (session: StudentSession, run: GroupRun | null | undefined, problems: Problem[] = ASSIGNMENT.problems, classReview: ClassReviewShown | null = null): Reviews =>
-  Object.fromEntries(problems.map((p) => [p.id, sessionReview(session, run, p.id, classReview)]));
+export const sessionReviews = (session: StudentSession, run: GroupRun | null | undefined, problems: Problem[] = ASSIGNMENT.problems, classReview: ClassReviewShown | null = null, moved: readonly string[] = []): Reviews =>
+  Object.fromEntries(problems.map((p) => [p.id, sessionReview(session, run, p.id, classReview, moved)]));
 
 /** Every review stage: a finished set's records show all they hold. */
 export const ALL_REVIEW_STAGES: readonly ReviewStage[] = ["individual", "group", "whole-class"];
@@ -214,13 +217,14 @@ export const ALL_REVIEW_STAGES: readonly ReviewStage[] = ["individual", "group",
  * fixes later sits in Incorrect until then, the columns never moving (rule 9a). A finished set passes every stage.
  * `classReview` (ticket 282) is what class review covered, null until it has happened.
  */
-export function recordReviews(record: Classmate, problems: Problem[] = ASSIGNMENT.problems, over: readonly ReviewStage[] = ALL_REVIEW_STAGES, classReview: ClassReviewShown | null = null): Reviews {
+export function recordReviews(record: Classmate, problems: Problem[] = ASSIGNMENT.problems, over: readonly ReviewStage[] = ALL_REVIEW_STAGES, classReview: ClassReviewShown | null = null, moved: readonly string[] = []): Reviews {
   const reviews: Reviews = {};
   problems.forEach((p, i) => {
     const later = record.review?.[p.id];
     const second = over.includes("individual") ? later?.second : undefined;
-    const group = over.includes("group") ? later?.group : undefined;
-    reviews[p.id] = { first: classmateLines(record, p, i) ?? [], finished: recordFinished(record, i), second: second ?? [], ...(group ? { group } : {}), ...coveredExamples(classReview, p.id) };
+    // A question the teacher moved to class review (ticket 337) reached no group, so its recorded group version is not what happened.
+    const group = over.includes("group") && !moved.includes(p.id) ? later?.group : undefined;
+    reviews[p.id] = { first: classmateLines(record, p, i) ?? [], finished: recordFinished(record, i), second: second ?? [], ...(group ? { group } : {}), ...(moved.includes(p.id) ? { movedToClass: true } : {}), ...coveredExamples(classReview, p.id) };
   });
   return reviews;
 }
@@ -239,13 +243,14 @@ const NO_REVIEW: ProblemReview = { first: [], finished: false, second: [] };
  * Where one problem ended up. Right first time needs the first submission finished with no wrong line (ticket 282: an
  * unfinished one with nothing wrong in it yet is not right). Covered in class review needs class review in the pathway and
  * its examples on the problem, and, when the pathway has group review, the student's group to have closed it unsolved:
- * a problem the group never took on (an absent student's) stays Incorrect.
+ * a problem the group never took on (an absent student's) stays Incorrect. A question the teacher moved out of group review
+ * (ticket 337) never reached a group, so class review's examples alone cover it.
  */
 export function outcomeOf(problem: string, review: ProblemReview = NO_REVIEW, pathway: readonly ReviewStage[]): Outcome {
   if (review.finished && holds(problem, review.first)) return "first";
   if (pathway.includes("individual") && holds(problem, review.second)) return "individual";
   if (pathway.includes("group") && review.group?.solved) return "group";
-  if (pathway.includes("whole-class") && review.classReview && (!pathway.includes("group") || review.group?.solved === false)) return "covered";
+  if (pathway.includes("whole-class") && review.classReview && (!pathway.includes("group") || review.movedToClass || review.group?.solved === false)) return "covered";
   return "wrong";
 }
 

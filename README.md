@@ -264,7 +264,9 @@ on the laptop and every student's screen.
   everyone as it stands: the set handed in, the corrections handed in and group review begun, or group review over). The
   stack is laid over the space above the strip, so nothing on the page moves when it appears or its countdown runs. Beside
   the current stage, **end lesson** on a last stage that is not class review (its countdown, `● ending lesson · 4 not done
-  · 0:59 · Cancel`, takes its place). Class review has no stack and no button. A finished set shows no strip.
+  · 0:59 · Cancel`, takes its place). Class review has no stack and no button. A finished set shows no strip. On a pathway
+  without individual review the class waits at the gate into group review with **indiv working** still current, counting
+  the students in at the gate, and its force submit opens the gate for the rest (ticket 337).
 - **The decision card** (ticket 335, Edexia Classroom and the live set's Class View and Mistakes): once more than half of
   the students in the room (Sam included, the absent out) have submitted the question 70% of the way through the set
   (Q7 of 10), a card slides in once from the bottom-right corner, wherever the teacher is: "Most students are close to
@@ -281,7 +283,23 @@ on the laptop and every student's screen.
   class review once someone is at its wait); Later and **Done**. Done changes the set's pathway for the rest of the
   lesson: both strips follow at once, and each student goes where the new pathway says at their next transition (hand-in,
   corrections handed in, group review done). Group review switched on mid-lesson makes its groups from the set's seating,
-  the absent left out, on the same after-corrections rule. The group/class split (ticket 337) builds on it.
+  the absent left out, on the same after-corrections rule.
+- **The split of group review and class review** (ticket 337): during individual review, once half or more of the room
+  have handed their corrections in, the card comes again with the same headline, "10 of 19 here have handed in their
+  corrections" and, when the close-to-finishing card went unanswered, "your pathway … · change" inside it. It asks
+  "Only 5/19 students got Q7 correct and 8/19 got Q10. Remove from group review & save for class review?", with those
+  two questions pre-ticked, every other question fewer than half the room have right under **also often wrong**, and the
+  rest behind **all questions**; every row shows the whole question (a figure as a thumbnail) and "n/19 correct".
+  "Correct" counts corrections: a question right after individual review is right. One press on **Move to class review**
+  takes the ticked questions out of every group's list, so the boards, the race, the progress card, the stage's count and
+  the Mistakes grid (a grey **class review** row) follow at once, and adds class review to the pathway when it was not
+  planned ("Adds class review after group review."); with nothing ticked the button reads **Keep**, and when no group
+  would have anything left, **Skip to class review** (every group sits out and its iPads go on). The card then reads
+  "Saved for class review." with **Close** and **Set up class review →**, where the moved questions are ticked and
+  locked. **Later** tucks it into the strip's dot as before, and ignoring it until the gate opens leaves group review
+  running on every question. On a pathway without individual review the split rides on the close-to-finishing card with
+  the counts worded "so far"; on one without group review that card says plainly that the questions most got wrong go to
+  class review. Sam's iPad shows none of it.
 - **Mistakes** (`/teacher/a/pset-6/mistakes`; the old `/teacher/mistakes` redirects there): While the live set is on individual working the tab splits in two (ticket 315): **Where students are** on the left, a row per place in lesson order (Starting, Warm-up, Q1 … Q10, Handed in), each student a pill with their detail (the warm-up's skill, a hint, practice, back on the question), the step bar for warm-up and practice and the time in the row in whole minutes ("<1 min here", "2 min here"; dark purple from "3 min here", a student who could use a check-in, ticket 328), or once handed in the time the set took from the check-in ("took 7 min"), an empty row blank (ticket 327); pressing a pill opens that student's work so far over the column (ticket 316: their confidence answer, every question they have moved past with their marked lines, the question they are on "in progress"; Escape or a press outside closes it); **Where students went wrong** on the right, the cards below at half width with the counts in the header and the Live diagnostic at its top left, whose steps open over the left column. During individual review the tab keeps the split, and opening the set lands there (ticket 318): **Where students are** becomes Not started, Q1 … Q10 and Done reviewing, each question with a count of everyone still to fix it ("12 need to fix", blank at none) and each student once, at the problem they have open ("fixed 1 of 3", "2 min here"), Priya (nothing to fix) done from the start and the class joining Done reviewing as they reach the gate; when the column would not fit the pills drop their words, then their names; a pill opens the student's problems to fix with the first submission and the correction so far; the cards name only the students still to fix ("2 fixed · 3 still to fix"), and a card everyone has fixed shrinks to a thin "Q6 · everyone fixed" line. During group review the tab keeps the split and lands there too (ticket 319): **Where groups are** is a grid, a row per question and a column per group in review, each head the group's chip (filled once it has closed every question) and "n/m", each cell light blue (not in the group's queue), blank, green (solved), red (left for now) or dark red with ✕ (unsolved), the question on the board carrying that group's whole table, every present member's avatar in seating order with the ring in the group's colour around whoever holds the pen, sized to the cell (ticket 348); **Where groups went wrong** counts groups ("2 solved · 1 left for now · 1 still to go"), names group chips instead of students, and shrinks a card every group has solved to "every group solved". On all three stages the left column stays on screen while the cards scroll (ticket 346): it sticks inside the scroll region, a column taller than the region riding up to its foot first so every row can still be reached, and the rows fold or the pills shorten exactly as they did at rest. After individual review the title stands alone; problems first, the students who slipped on each under
   one pill per slip, expand for their working; inside a pill the students on the exact same
   wrong line sit together and, open, one box in the pill's red surrounds their working (a

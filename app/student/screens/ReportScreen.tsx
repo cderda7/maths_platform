@@ -5,6 +5,7 @@ import { Button, Eyebrow } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
 import { pathwayOf } from "@/lib/classroom";
 import { liveClassReview, reportPathway, sessionReviews, columnsOf } from "@/lib/report";
+import { movedToClassReview } from "@/lib/decisionState";
 import { isMastery } from "@/lib/peers";
 import { useAssignment, useClassroom } from "@/lib/classroom-store";
 import { sessionEvidence, sessionHierarchy } from "@/lib/hierarchy";
@@ -30,7 +31,7 @@ export default function ReportScreen({ session, dispatch }: { session: StudentSe
   // The teacher's report's columns and versions (ticket 282): class review's column once the board's End has covered problems.
   const classReview = liveClassReview(classroom, session);
   const pathway = reportPathway(pathwayOf(classroom), classReview);
-  const reviews = sessionReviews(session, classroom.group, problems, classReview);
+  const reviews = sessionReviews(session, classroom.group, problems, classReview, movedToClassReview(classroom));
   const columns = columnsOf(reviews, pathway, problems);
   const n = sentences(session.reflection);
   const written = session.reflection.trim() !== "";

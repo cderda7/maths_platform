@@ -3,6 +3,7 @@ import { assignmentBundle, LIVE_ASSIGNMENT_ID, setClassReview, type AssignmentBu
 import type { ClassroomState } from "./classroom";
 import { classmateEvidence, hierarchyFor, sessionEvidence, type HierarchyResult } from "./hierarchy";
 import { columnsOf, recordReviews, reportPathway, sessionReviews, type OutcomeColumn, type Reviews } from "./report";
+import { movedToClassReview } from "./decisionState";
 import type { StudentSession } from "./session";
 import { studentSection } from "./studentClassroom";
 
@@ -42,7 +43,7 @@ export function studentReport(id: string, c: ClassroomState | null | undefined, 
   if (id === LIVE_ASSIGNMENT_ID) {
     if (!session) return null;
     const evidence = sessionEvidence(session);
-    const reviews = sessionReviews(session, c?.group, problems, classReview);
+    const reviews = sessionReviews(session, c?.group, problems, classReview, movedToClassReview(c));
     return { set, problems, hierarchy: hierarchyFor(evidence, set), lines: evidence.lines, pathway, reviews, columns: columnsOf(reviews, pathway, problems), reflection: session.reflection.trim() };
   }
   const record = set.sam;

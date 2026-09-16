@@ -14,6 +14,7 @@ import { FOLLOW_MODE_WORD, type FollowMode } from "@/lib/classroom";
 import { candidatesFor, MAX_EXAMPLES, optionOf, optionsFor, problemsByStruggle, suggestExamples, type ExampleRef, type PickerContext } from "@/lib/examples";
 import ExamplePicker from "./ExamplePicker";
 import { moveItem } from "@/lib/reorder";
+import { movedInSetOrder } from "@/lib/splitReview";
 import { useBatchedSession } from "@/lib/store";
 
 const PRECHECK = 3;
@@ -25,6 +26,8 @@ const PRECHECK = 3;
  * their counts. Names and correctness show here and nowhere near the projector. What the students' screens do
  * (frozen or write with me) starts unchosen: both options empty, Project faded until one is picked;
  * pressing it anyway turns its label to "select one" and flashes the two options light blue once.
+ * A question the teacher moved out of group review during the lesson (ticket 337) is ticked and cannot be unticked, marked
+ * "from group review" in the place of its struggled count: it has to be covered here, since no group worked it.
  * The problem list ranks by how many struggled, for choosing; the example cards on the right
  * stand in the order the class will see, the assignment's by default, and a press held on a
  * card drags it to another place in that order (ticket 150, `useReorder`).
@@ -34,18 +37,24 @@ export default function WholeClassSetup() {
   const { session } = useBatchedSession(3000);
   const assignment = useAssignmentBundle();
   const { problems, newSkills } = assignment;
-  const ctx: PickerContext = { newSkills, group: useClassroom().group ?? null };
+  const classroomState = useClassroom();
+  const ctx: PickerContext = { newSkills, group: classroomState.group ?? null };
   /** The set's absent students (ticket 250): out of the struggled counts and the examples on offer. */
   const absent = assignment.absent;
   const ranked = problemsByStruggle(session, absent).filter((r) => problems.some((p) => p.id === r.problem.id));
   const [chosen, setChosen] = useState<string[] | null>(null);
+  /** Moved here from group review during the lesson (ticket 337): ticked, and the teacher cannot untick them — no group works them. */
+  const moved = movedInSetOrder(classroomState, ASSIGNMENT.problems);
   const [overrides, setOverrides] = useState<Record<string, ExampleRef[]>>({});
   /** What the students' screens do: no default (ticket 146), the teacher picks one before Project comes on. */
   const [mode, setMode] = useState<FollowMode | null>(null);
   /** How many times Project was pressed with no mode chosen: the button reads "select one" and the options flash (each press restarts the flash). */
   const [nudge, setNudge] = useState(0);
-  const chosenIds = chosen ?? ranked.slice(0, PRECHECK).map((r) => r.problem.id);
-  const toggle = (id: string) => setChosen(chosenIds.includes(id) ? chosenIds.filter((x) => x !== id) : [...chosenIds, id]);
+  const chosenIds = [...new Set([...(chosen ?? ranked.slice(0, PRECHECK).map((r) => r.problem.id)), ...moved])];
+  const toggle = (id: string) => {
+    if (moved.includes(id)) return;
+    setChosen(chosenIds.includes(id) ? chosenIds.filter((x) => x !== id) : [...chosenIds, id]);
+  };
   const examplesFor = (pid: string) => overrides[pid] ?? suggestExamples(candidatesFor(pid, session, absent), MAX_EXAMPLES, ctx);
   /** Every problem in the order the class will see them: the assignment's until the teacher drags a card. An unticked problem keeps its place for when it is ticked again. */
   const [order, setOrder] = useState<string[]>(() => ASSIGNMENT.problems.map((p) => p.id));
@@ -55,10 +64,10 @@ export default function WholeClassSetup() {
     name: (i) => PROBLEM_MAP[ordered[i]]?.label ?? `Problem ${i + 1}`,
     onMove: (from, to) => {
       // The chosen cards move among themselves; the unticked keep their slots in the full order.
-      const moved = moveItem(ordered, from, to);
+      const reordered = moveItem(ordered, from, to);
       setOrder((o) => {
         let k = 0;
-        return o.map((id) => (chosenIds.includes(id) ? moved[k++] : id));
+        return o.map((id) => (chosenIds.includes(id) ? reordered[k++] : id));
       });
     },
   });
@@ -90,23 +99,33 @@ export default function WholeClassSetup() {
           <ul className="mt-3 space-y-1.5">
             {ranked.map(({ problem: p, struggled, handedIn }) => {
               const on = chosenIds.includes(p.id);
+              const locked = moved.includes(p.id);
               return (
                 <li key={p.id}>
                   <button
                     type="button"
                     onClick={() => toggle(p.id)}
                     aria-pressed={on}
+                    aria-disabled={locked || undefined}
+                    title={locked ? "Moved here from group review" : undefined}
                     data-wc-problem={p.id}
-                    className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left transition-colors ${on ? "border-line bg-paper" : "border-dashed border-line-strong bg-transparent opacity-60"}`}
+                    data-wc-locked={locked || undefined}
+                    className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left transition-colors ${on ? "border-line bg-paper" : "border-dashed border-line-strong bg-transparent opacity-60"} ${locked ? "cursor-default" : ""}`}
                   >
                     <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] ${on ? "bg-ink text-white" : "border border-line-strong text-ink-muted"}`}>{on ? "✓" : "+"}</span>
                     <span className="w-7 text-[13px] font-medium text-ink">{p.label}</span>
                     <span className="min-w-0 flex-1 text-[12.5px] leading-snug text-ink" data-wc-question={p.id}>
                       <ProblemQuestion problem={p} mathClass="text-[13.5px]" />
                     </span>
-                    <span className="shrink-0 text-[12.5px] text-ink-muted" data-struggled>
-                      {struggled}/{handedIn} struggled
-                    </span>
+                    {locked ? (
+                      <span className="shrink-0 rounded-full bg-standout-soft px-2 py-0.5 text-[11.5px] font-medium whitespace-nowrap text-accent-deep" data-wc-from-group>
+                        from group review
+                      </span>
+                    ) : (
+                      <span className="shrink-0 text-[12.5px] text-ink-muted" data-struggled>
+                        {struggled}/{handedIn} struggled
+                      </span>
+                    )}
                   </button>
                 </li>
               );

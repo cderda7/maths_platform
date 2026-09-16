@@ -1,7 +1,7 @@
 "use client";
 
 import { GRACE_MS, isPending } from "@/lib/classroom";
-import { canForce, FORCE_KIND, FORCE_PENDING_WORD, otherAdvancePending, type ClassStageId } from "@/lib/classStage";
+import { canForce, forceKind, FORCE_PENDING_WORD, otherAdvancePending, type ClassStageId } from "@/lib/classStage";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import type { StudentSession } from "@/lib/session";
 import { useNow } from "@/lib/store";
@@ -34,14 +34,16 @@ const STACK_PENDING = "gap-1.5 whitespace-nowrap text-[13.5px] leading-tight tex
  * until ticket 334 put one strip on the back button's line of both tabs, beside the current pill until ticket 345 stood it
  * over that pill): one press starts the one-minute grace shown on every student's screen, after which the stage ends for
  * everyone as it stands (the set handed in; the corrections handed in and the gate into group review opened; group review
- * over). While the grace runs the button gives way to the pending word and the countdown with Cancel, on one line, in a slot
- * of the button's own height so the count above it does not move. No confirmation step: the minute with Cancel is the undo.
- * Disabled once the live student is past the stage, while the teacher projects, or while "end lesson"'s minute runs (ticket 273).
+ * over; on a pathway without individual review, the gate opened for the students still to arrive, ticket 337). While the
+ * grace runs the button gives way to the pending word and the countdown with Cancel, on one line, in a slot of the button's
+ * own height so the count above it does not move. No confirmation step: the minute with Cancel is the undo. Disabled once
+ * the live student is past the stage, while the teacher projects, or while "end lesson"'s minute runs (ticket 273).
  */
 export default function ForceSubmit({ stage, session }: { stage: ClassStageId; session: StudentSession | null }) {
   const classroom = useClassroom();
   const now = useNow();
-  const kind = FORCE_KIND[stage];
+  // The working's own advance, unless the class waits at the gate into group review with no individual review (ticket 337).
+  const kind = forceKind(stage, classroom, session, now);
   if (!kind) return null;
   const advance = classroom.advance;
   const pending = isPending(classroom, now) && advance?.kind === kind;
@@ -60,7 +62,7 @@ export default function ForceSubmit({ stage, session }: { stage: ClassStageId; s
     <button
       type="button"
       className={`${STACK_PILL_SIZE} ${FORCE_PILL}`}
-      disabled={!canForce(stage, classroom, session) || otherAdvancePending(classroom, now, kind)}
+      disabled={!canForce(stage, classroom, session, now) || otherAdvancePending(classroom, now, kind)}
       onClick={() => dispatchClassroom({ type: "advance/start", kind })}
       data-force={stage}
     >

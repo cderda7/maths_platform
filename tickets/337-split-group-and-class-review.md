@@ -4,7 +4,7 @@
 
 **Blocked by:** 332 (the group lists this changes), 335 (the card), 336 (adding class review to the pathway).
 
-**Status:** open
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -41,8 +41,8 @@ Agreed:
 
 ## Acceptance
 
-- [ ] Unit: the suggestion on the demo's data and on made-up classes (ties, fewer than two questions below half, everyone right); the union without moved questions; a group left empty sits out; every group empty; class review added to a pathway without it; locked pre-ticks; the pathway variants; this card replacing ticket 335's
-- [ ] Click-through against a production build at 1280×800 and 1440×900 with Sam's iPad and the teacher tab:
+- [x] Unit: the suggestion on the demo's data and on made-up classes (ties, fewer than two questions below half, everyone right); the union without moved questions; a group left empty sits out; every group empty; class review added to a pathway without it; locked pre-ticks; the pathway variants; this card replacing ticket 335's
+- [x] Click-through against a production build at 1280×800 and 1440×900 with Sam's iPad and the teacher tab:
   - the card comes when half the class has handed in corrections, with two questions pre-ticked and their whole questions and counts
   - accept in one press, then Sam's group board skips the moved questions and the progress card's fractions follow
   - "Set up class review →" shows them ticked and locked
@@ -51,5 +51,5 @@ Agreed:
   - Later and the dot
   - ignore it and group review runs as planned
   - no row moves, no sideways scroll, KaTeX on one line, no difficulty tag; screenshots checked
-- [ ] vitest, eslint, tsc, next build, check:laptop
-- [ ] Ticket docs: `architecture/337.md`, ARCHITECTURE, DECISION_LOG, FUTURE_FEATURES, README
+- [x] vitest, eslint, tsc, next build, check:laptop
+- [x] Ticket docs: `architecture/337.md`, ARCHITECTURE, DECISION_LOG, FUTURE_FEATURES, README

@@ -2,7 +2,8 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
-import { assignmentHref, assignmentStages, setClassReview, studentRecord } from "@/lib/assignments";
+import { assignmentHref, assignmentStages, setClassReview, studentRecord, LIVE_ASSIGNMENT_ID } from "@/lib/assignments";
+import { movedToClassReview } from "@/lib/decisionState";
 import TeacherChrome, { TEACHER_ZOOM } from "../TeacherChrome";
 import { WorkLines, WorkPanel } from "@/components/HierarchyDrill";
 import ProblemQuestion from "@/components/ProblemQuestion";
@@ -82,7 +83,9 @@ export function ReportBody({ student, back, work: initialWork = null, from = nul
   // What class review covered (ticket 282): a finished set's record, the live set's board once class review is over; its column shows only then.
   const classReview = setClassReview(assignment, classroom, session);
   const pathway = reportPathway(assignment.pathway, classReview);
-  const reviews: Reviews = classmate ? recordReviews(classmate, problems, over, classReview) : session ? sessionReviews(session, classroom.group, problems, classReview) : {};
+  // The questions the teacher moved to class review (ticket 337) are the live set's own: no group worked them, and class review covered them.
+  const moved = assignment.id === LIVE_ASSIGNMENT_ID ? movedToClassReview(classroom) : [];
+  const reviews: Reviews = classmate ? recordReviews(classmate, problems, over, classReview, moved) : session ? sessionReviews(session, classroom.group, problems, classReview, moved) : {};
   const columns = columnsOf(reviews, pathway, problems);
   const openProblem = work?.kind === "problem" ? problems.find((p) => p.id === work.id) : undefined;
   // Practice the student took on the live set (ticket 317): a marker on each question it came before, and the warm-up named once.

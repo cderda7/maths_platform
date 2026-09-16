@@ -53,6 +53,25 @@ const WORKING_STAGES = BEFORE_HAND_IN_STAGES;
 /** The advance "force submit" starts for a stage; class review has none (the teacher ends the session from its card). */
 export const FORCE_KIND: Record<ClassStageId, AdvanceKind | null> = { working: "force-submit", individual: "force-review", group: "force-group", "whole-class": null };
 
+/**
+ * Whether the class is waiting at the gate into group review with no individual review on the pathway (ticket 337): the
+ * live student has handed the set in and stands at the gate, and the gate has not opened. The working is still the current
+ * stage then — the class is handing the set in, one student at a time, as it is during individual review on the pathway
+ * that has it — so its count is the gate's (`stageDone`) and its force submit is the one that opens the gate.
+ */
+export function atGateWithoutReview(c: ClassroomState | null | undefined, session: StudentSession | null, now: number): boolean {
+  const pathway = pathwayOf(c);
+  return !pathway.includes("individual") && pathway.includes("group") && session?.stage === "class-wait" && !c?.group && !classReadiness(c, now).started;
+}
+
+/**
+ * The advance a stage's force submit starts, as the class stands (ticket 337): the working's is "hand the set in", unless
+ * the class is already at the gate into group review with no individual review to end, where it is the one that opens the
+ * gate for the students still to arrive.
+ */
+export const forceKind = (id: ClassStageId, c: ClassroomState | null | undefined, session: StudentSession | null, now: number): AdvanceKind | null =>
+  id === "working" && atGateWithoutReview(c, session, now) ? "force-review" : FORCE_KIND[id];
+
 /** The word beside the pulsing dot while a stage's force submit counts down. */
 export const FORCE_PENDING_WORD: Record<ClassStageId, string> = { working: "handing in", individual: "handing in", group: "ending", "whole-class": "" };
 
@@ -61,11 +80,12 @@ export const FORCE_PENDING_WORD: Record<ClassStageId, string> = { working: "hand
  * hand-in; correcting or waiting at the gate; on the board) and the teacher is not projecting.
  * Without a session the class is on the working and everyone is still on the set.
  */
-export function canForce(id: ClassStageId, c: ClassroomState | null | undefined, session: StudentSession | null): boolean {
+export function canForce(id: ClassStageId, c: ClassroomState | null | undefined, session: StudentSession | null, now = 0): boolean {
   if (FORCE_KIND[id] === null || c?.wholeClass?.status === "active") return false;
   switch (id) {
     case "working":
-      return !session || WORKING_STAGES.includes(session.stage);
+      // At the gate with no individual review (ticket 337) the press opens the gate for the students still to arrive.
+      return !session || WORKING_STAGES.includes(session.stage) || atGateWithoutReview(c, session, now);
     case "individual":
       return !!session && (session.stage === "feedback" || session.stage === "class-wait");
     case "group":
@@ -112,6 +132,9 @@ const FIXTURE_SET: StreamSet = { problems: ASSIGNMENT.problems, classmates: CLAS
 export function stageDone(id: ClassStageId, c: ClassroomState | null | undefined, session: StudentSession | null, now: number, set: StreamSet = FIXTURE_SET): number | null {
   switch (id) {
     case "working":
+      // Waiting at the gate with no individual review on the pathway (ticket 337): handed in means in at the gate, as
+      // "done reviewing" does on the pathway that has individual review, so the count climbs as the class arrives.
+      if (atGateWithoutReview(c, session, now)) return Math.min(presentCount(set.classmates, liveAbsent(c)), Math.max(1, classReadiness(c, now).handedIn));
       // The set handed in: the live student past working, a classmate in the room who submitted.
       return (liveHandedIn(session) ? 1 : 0) + classmatesAt(set, session, now).filter((m) => m.state.submitted && !liveAbsent(c).includes(m.record.id)).length;
     case "individual":

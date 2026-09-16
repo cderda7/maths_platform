@@ -3,6 +3,7 @@ import { CLASSMATE_MAP } from "@/data/classmates";
 import { GROUP_COLOURS, type GroupColour } from "@/data/groups";
 import { SIMULATED_BOARDS, SIMULATED_PACE } from "@/data/group-scripts";
 import { pathwayOf, type ClassroomState } from "./classroom";
+import { movedToClassReview } from "./decisionState";
 import { exceptionAt, explainableAt, recordReviewProblems, reviewProblemsOf, tableSlips } from "./group";
 import { closedInOrder, closedMoment, currentProblem, DEMO_SEED, groupProgress, penHolder, runStartedAt, stuckProblems, type GroupRun } from "./groupReview";
 import { boardScripts, runTimeline, simulatedRunAt, type Pace, type QuestionTimeline, type SimulatedBoard } from "./groupSim";
@@ -67,14 +68,17 @@ export const firstName = (id: string): string => (id === DEMO_STUDENT.id ? DEMO_
 /** Whether the union is taken after individual review: the pathway has it (ticket 332). */
 export const afterIndividualOn = (c: ClassroomState | null | undefined): boolean => pathwayOf(c).includes("individual");
 
-/** A member's questions for the union (ticket 332): the demo student's from the session, a classmate's from the fixture. */
-export function wrongOf(id: string, session: StudentSession | null, afterIndividual: boolean): string[] {
-  if (id === DEMO_STUDENT.id) return session ? reviewProblemsOf(session, afterIndividual) : [];
-  const m = CLASSMATE_MAP[id];
-  return m ? recordReviewProblems(m, afterIndividual) : [];
+/**
+ * A member's questions for the union (ticket 332): the demo student's from the session, a classmate's from the fixture,
+ * less the questions the teacher moved to class review (ticket 337), which reach no group.
+ */
+export function wrongOf(id: string, session: StudentSession | null, afterIndividual: boolean, moved: readonly string[] = []): string[] {
+  const mine = id === DEMO_STUDENT.id ? (session ? reviewProblemsOf(session, afterIndividual) : []) : CLASSMATE_MAP[id] ? recordReviewProblems(CLASSMATE_MAP[id], afterIndividual) : [];
+  return moved.length === 0 ? mine : mine.filter((p) => !moved.includes(p));
 }
 
-export const wrongSetsOf = (members: string[], session: StudentSession | null, afterIndividual: boolean): Record<string, string[]> => Object.fromEntries(members.map((id) => [id, wrongOf(id, session, afterIndividual)]));
+export const wrongSetsOf = (members: string[], session: StudentSession | null, afterIndividual: boolean, moved: readonly string[] = []): Record<string, string[]> =>
+  Object.fromEntries(members.map((id) => [id, wrongOf(id, session, afterIndividual, moved)]));
 
 /** The union of the members' questions, in assignment order. */
 export const unionOf = (wrongSets: Record<string, string[]>): string[] => unionOfMembers(ASSIGNMENT.problems, Object.values(wrongSets));
@@ -86,8 +90,8 @@ const paceOf = (colour: GroupColour): Pace => SIMULATED_PACE[colour] ?? { tryS: 
 const seedOf = (colour: GroupColour): number => DEMO_SEED + 101 * (GROUP_COLOURS.indexOf(colour) + 1);
 
 /** A simulated group's board (ticket 332): its members, its union, and the tries the rule gives this table (authored where they fit). */
-export function simulatedBoardOf(colour: GroupColour, members: string[], session: StudentSession | null, afterIndividual: boolean): SimulatedBoard {
-  const problems = unionOf(wrongSetsOf(members, session, afterIndividual));
+export function simulatedBoardOf(colour: GroupColour, members: string[], session: StudentSession | null, afterIndividual: boolean, moved: readonly string[] = []): SimulatedBoard {
+  const problems = unionOf(wrongSetsOf(members, session, afterIndividual, moved));
     const scripts = boardScripts(problems, SIMULATED_BOARDS[colour], (p) => explainableAt(members, session, afterIndividual, p), (p) => tableSlips(members, session, p), exceptionAt(members));
   return { members, problems, scripts, seed: seedOf(colour) };
 }
@@ -108,7 +112,7 @@ export interface GroupInReview {
  * other group's simulated board on the same clock (from the live run's opening; held where it was once the teacher ended
  * it). A group with nothing to review sits out and is not listed. The accessor a per-group view reads.
  */
-export function groupsAt(c: ClassroomState | null | undefined, session: StudentSession | null, now: number): GroupInReview[] {
+export function groupsAt(c: ClassroomState | null | undefined, session: StudentSession | null, now: number, moved: readonly string[] = movedToClassReview(c)): GroupInReview[] {
   // Group review runs on the live assignment's own groups (ticket 185), not the class defaults, less its absent students (ticket 250): a four with one away is a three.
   const seating = presentGroups(assignmentGroupsOf(c, ASSIGNMENT.id), liveAbsent(c));
   const after = afterIndividualOn(c);
@@ -121,18 +125,18 @@ export function groupsAt(c: ClassroomState | null | undefined, session: StudentS
     const seated = seating[colour];
     const live = !!run && run.members.includes(DEMO_STUDENT.id) && seated.includes(DEMO_STUDENT.id);
     if (live) return run!.problems.length === 0 ? [] : [{ colour, members: run!.members, union: run!.problems, live, run }];
-    const board = simulatedBoardOf(colour, seated, session, after);
+    const board = simulatedBoardOf(colour, seated, session, after, moved);
     if (board.problems.length === 0) return [];
     return [{ colour, members: seated, union: board.problems, live, run: run ? simulatedRunAt(board, paceOf(colour), startedAt, at) : null }];
   });
 }
 
 /** The groups sitting out group review (ticket 332): present members, and nothing left for any of them to review. */
-export function sittingOut(c: ClassroomState | null | undefined, session: StudentSession | null): { colour: GroupColour; members: string[] }[] {
+export function sittingOut(c: ClassroomState | null | undefined, session: StudentSession | null, moved: readonly string[] = movedToClassReview(c)): { colour: GroupColour; members: string[] }[] {
   const seating = presentGroups(assignmentGroupsOf(c, ASSIGNMENT.id), liveAbsent(c));
   const after = afterIndividualOn(c);
-  const listed = groupsAt(c, session, 0).map((g) => g.colour);
-  return GROUP_COLOURS.filter((colour) => seating[colour].length > 0 && !listed.includes(colour) && unionOf(wrongSetsOf(seating[colour], session, after)).length === 0).map((colour) => ({ colour, members: seating[colour] }));
+  const listed = groupsAt(c, session, 0, moved).map((g) => g.colour);
+  return GROUP_COLOURS.filter((colour) => seating[colour].length > 0 && !listed.includes(colour) && unionOf(wrongSetsOf(seating[colour], session, after, moved)).length === 0).map((colour) => ({ colour, members: seating[colour] }));
 }
 
 /** A question-by-question timeline of every listed group's run at `now` (ticket 332): checks with their moments, left for now, solved on the return, closed unsolved. */
@@ -152,8 +156,9 @@ export function penOf(g: GroupInReview): { pen: string | null; problem: string |
 /** Every listed group's standing, in seating order. Without a run nothing has started: every bar at zero. */
 export function standingsAt(c: ClassroomState | null | undefined, session: StudentSession | null, now: number): GroupStanding[] {
   const after = afterIndividualOn(c);
-  return groupsAt(c, session, now).map((g) => {
-    const wrongSets = wrongSetsOf(g.members, session, after);
+  const moved = movedToClassReview(c);
+  return groupsAt(c, session, now, moved).map((g) => {
+    const wrongSets = wrongSetsOf(g.members, session, after, moved);
     const base = { colour: g.colour, members: g.members, names: g.members.map(firstName), union: g.union, live: g.live };
     if (!g.run) {
       const total = Object.values(wrongSets).reduce((n, w) => n + w.filter((p) => g.union.includes(p)).length, 0);

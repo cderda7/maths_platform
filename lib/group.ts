@@ -4,6 +4,7 @@ import { DEFAULT_GROUPS, type SeatingGroups } from "@/data/groups";
 import type { Problem } from "@/data/types";
 import { liveAbsent } from "./absence";
 import { pathwayOf, type ClassroomState } from "./classroom";
+import { movedToClassReview } from "./decisionState";
 import { assignmentGroupsOf, groupOfStudent } from "./seating";
 import { SET6_REVIEW } from "@/data/classmates-review";
 import { GROUP_SCRIPTS } from "@/data/group-scripts";
@@ -18,7 +19,8 @@ import type { StudentSession } from "./session";
  * A member's set (ticket 332, settled with Carson 2026-09-15, replacing ticket 278's first-submission rule): every
  * question they still have wrong, left incomplete or did not attempt once individual review is over (`lib/reviewUnion.ts`);
  * on a pathway without individual review, every question not right first time.
- * An absent member is not in the group at all (ticket 250).
+ * An absent member is not in the group at all (ticket 250). `moved` is the questions the teacher moved from group review to
+ * class review (ticket 337): they leave every member's set, so a table can end with nothing and sit out.
  * The discussion view model carries one shared count and nothing per member or per problem,
  * so no correctness leaks into that phase. Pure, with tests.
  */
@@ -99,11 +101,11 @@ export const exceptionAt = (members: readonly string[]): string | null => (SET6_
  * froze them, ticket 185; the default seating when not given), less any marked absent on the live set (`liveAbsent`, ticket
  * 250). `afterIndividual`: the pathway has individual review, so the union is taken once corrections are in (ticket 332).
  */
-export function groupPlan(session: StudentSession, absent: readonly string[], afterIndividual: boolean, seating: SeatingGroups = DEFAULT_GROUPS): GroupPlan {
+export function groupPlan(session: StudentSession, absent: readonly string[], afterIndividual: boolean, seating: SeatingGroups = DEFAULT_GROUPS, moved: readonly string[] = []): GroupPlan {
   const mine = reviewProblemsOf(session, afterIndividual);
   const colour = groupOfStudent(seating, DEMO_STUDENT.id);
   const mates = (colour ? seating[colour] : []).filter((id) => id !== DEMO_STUDENT.id && !absent.includes(id) && CLASSMATE_MAP[id]).map((id) => CLASSMATE_MAP[id]);
-  const wrongSets = [mine, ...mates.map((m) => recordReviewProblems(m, afterIndividual))];
+  const wrongSets = [mine, ...mates.map((m) => recordReviewProblems(m, afterIndividual))].map((set) => (moved.length === 0 ? set : set.filter((p) => !moved.includes(p))));
   const ids = ASSIGNMENT.problems.map((p) => p.id);
   const { quickPass, discussion, totalWrong } = computePhases(ids, wrongSets);
   const byId = (id: string) => ASSIGNMENT.problems.find((p) => p.id === id)!;
@@ -118,8 +120,10 @@ export function groupPlan(session: StudentSession, absent: readonly string[], af
 }
 
 /**
- * The demo student's group on the live set as the classroom has it now: the set's own seating, its absences, and the rule for
+ * The demo student's group on the live set as the classroom has it now: the set's own seating, its absences, the rule for
  * its pathway as it is (ticket 336: group review switched on during the lesson makes its groups from the seating, the absent
- * left out, on the same rule as a planned one).
+ * left out, on the same rule as a planned one), and the questions the teacher moved to class review (ticket 337), which
+ * leave every member's list, so a table left with nothing sits out.
  */
-export const liveGroupPlan = (c: ClassroomState | null | undefined, session: StudentSession): GroupPlan => groupPlan(session, liveAbsent(c), pathwayOf(c).includes("individual"), assignmentGroupsOf(c, ASSIGNMENT.id));
+export const liveGroupPlan = (c: ClassroomState | null | undefined, session: StudentSession): GroupPlan =>
+  groupPlan(session, liveAbsent(c), pathwayOf(c).includes("individual"), assignmentGroupsOf(c, ASSIGNMENT.id), movedToClassReview(c));

@@ -1,18 +1,22 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PathwayStop } from "@/components/PathwayStop";
+import ProblemQuestion from "@/components/ProblemQuestion";
 import { StagePill } from "@/components/StagePill";
 import { Button, Eyebrow } from "@/components/ui";
-import { ASSIGNMENT } from "@/data/assignment";
+import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
 import type { Pathway, ReviewStage } from "@/data/types";
 import { assignmentBundle, assignmentStages } from "@/lib/assignments";
 import { pathwayOf } from "@/lib/classroom";
 import { dispatchClassroom, getClassroom, useClassroom } from "@/lib/classroom-store";
 import { CLASS_STAGE_WORD, stagePillState, type ClassStageId } from "@/lib/classStage";
 import { lessonDecision, type DecisionView } from "@/lib/decision";
+import { answerMoved, answerPathway } from "@/lib/decisionState";
+import { everyGroupEmpty, moveAnswer, SUGGESTED, type QuestionTally, type SplitEvidence } from "@/lib/splitReview";
 import { REVIEW_ORDER, STAGE_DESCRIPTION, STAGE_WORD } from "@/lib/pathway";
-import { changedPathway, liveLocks, samePathway, switchStage, type PathwayLocks } from "@/lib/pathwayChange";
+import { changedPathway, liveLocks, switchStage, type PathwayLocks } from "@/lib/pathwayChange";
 import type { StudentSession } from "@/lib/session";
 import { getSnapshot, useBatchedSession, useNow } from "@/lib/store";
 
@@ -104,78 +108,316 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
   useEffect(() => {
     slid.add(key);
   }, [key]);
-  // Change's choice while it is open (ticket 336): the pathway as the toggles have it; null while the card shows the plan.
+  // Change's choice (ticket 336): the pathway as the toggles have it, null while the card shows the plan; `changing` is
+  // whether the line is open. On a card with a split to make (ticket 337) Done closes the line and keeps the choice, so
+  // one press answers the pathway and the move together.
   const [choice, setChoice] = useState<Pathway | null>(null);
+  const [changing, setChanging] = useState(false);
+  // The split's ticks (ticket 337): the suggestion until the teacher ticks otherwise; and whether every question is listed.
+  const [ticks, setTicks] = useState<string[] | null>(null);
+  const [allShown, setAllShown] = useState(false);
   const set = assignmentBundle(ASSIGNMENT.id, classroom);
-  const stages = set ? assignmentStages(set, classroom, session, now) : [];
+  const planned = set ? assignmentStages(set, classroom, session, now) : [];
   const current = pathwayOf(classroom);
   const locks: PathwayLocks = set ? liveLocks(classroom, set, session, now) : { individual: true, group: true, "whole-class": true };
   // What the toggles show: a locked stage as the pathway has it now, every other as chosen.
   const shown = choice ? changedPathway(current, choice, locks) : current;
-  const done = () => {
+  /** The pathway the card shows: the plan, or the choice waiting for the press that writes it (a stage switched on is ahead). */
+  const stages = (["working", ...shown] as ClassStageId[]).map((id) => planned.find((st) => st.id === id) ?? { id, word: CLASS_STAGE_WORD[id], state: "ahead" as const, done: null, total: 0 });
+  // The split's rows while group review is still on the pathway the card would leave: with it off there is nothing to move.
+  const split = view.split && shown.includes("group") ? view.split : null;
+  const ticked = (ticks ?? split?.suggestion.suggested.map((t) => t.problem) ?? []).filter((id) => !!split?.tallies.some((t) => t.problem === id));
+  const answer = (pathway: Pathway | null, moved: readonly string[]) => {
     // Resolved against the class as it is at the press, not the last 3-second batch: a review someone entered since stays as it was.
     const c = getClassroom();
     const at = Date.now();
     const b = assignmentBundle(ASSIGNMENT.id, c);
     const planned = pathwayOf(c);
-    const pathway = b ? changedPathway(planned, choice ?? planned, liveLocks(c, b, getSnapshot(), at)) : planned;
-    dispatchClassroom({ type: "decision/answer", due: view.due, answer: samePathway(pathway, planned) ? { kind: "keep" } : { kind: "change", pathway }, at });
+    const live = b ? liveLocks(c, b, getSnapshot(), at) : { individual: true, group: true, "whole-class": true };
+    // Every group would sit out: the press skips group review too, where no student has entered it yet (ticket 337).
+    const requested = pathway ?? planned;
+    const skip = moved.length > 0 && everyGroupEmpty(c, getSnapshot(), moved) ? requested.filter((st) => st !== "group") : requested;
+    // In set order, however they were ticked: the card, the setup page and the grid read them in the order the class sees them.
+    const inOrder = (view.split?.tallies ?? []).map((t) => t.problem).filter((id) => moved.includes(id));
+    dispatchClassroom({ type: "decision/answer", due: view.due, answer: moveAnswer(planned, skip, inOrder.length === moved.length ? inOrder : moved, live), at });
   };
   const { submitted, present, question } = view.evidence;
+  const answered = view.status === "answered";
+  const moved = answered && view.answer ? answerMoved(view.answer) : [];
+  const answeredPathway = answered && view.answer ? answerPathway(view.answer) : null;
+  // Nothing left for any group: either group review was switched off with the move, or every group sits out (ticket 332).
+  const skipped = (!!answeredPathway && !answeredPathway.includes("group")) || (moved.length > 0 && everyGroupEmpty(classroom, session, moved));
+  const emptyAfter = !!split && ticked.length > 0 && everyGroupEmpty(classroom, session, ticked);
+  const addsClassReview = !!split && ticked.length > 0 && !shown.includes("whole-class");
   return (
     <section
       role="region"
-      aria-label="Most students are close to finishing"
+      aria-label={answered ? "Saved for class review" : "Most students are close to finishing"}
       className={`pointer-events-auto w-[400px] rounded-2xl border border-line bg-paper p-6 shadow-lift ${slide ? "decision-in" : ""}`}
       data-decision-card={view.kind}
       data-decision-slide={slide || undefined}
+      data-decision-answered={answered || undefined}
     >
-      <h2 className="font-display text-[22px] leading-[1.25] text-ink" data-decision-headline>
-        Most students are close to finishing.
-        <br />
-        Let&rsquo;s discuss what&rsquo;s next.
-      </h2>
-      <p className="mt-2 text-[14px] leading-snug text-ink-soft" data-decision-evidence>
-        <span className="font-semibold text-ink tabular-nums">
-          {submitted} of {present}
-        </span>{" "}
-        here have submitted {question}
-      </p>
-      <Eyebrow className="mt-5">Your pathway</Eyebrow>
-      {choice ? (
-        <ChangePathway pathway={shown} locks={locks} onSwitch={(stage) => setChoice(switchStage(shown, stage, locks))} />
+      {answered ? (
+        <>
+          <h2 className="font-display text-[22px] leading-[1.25] text-ink" data-decision-headline>
+            Saved for class review.
+          </h2>
+          <p className="mt-2 text-[14px] leading-snug text-ink-soft" data-decision-moved>
+            <span className="font-semibold text-ink">{listWords(moved.map((id) => PROBLEM_MAP[id]?.label ?? id))}</span> {moved.length === 1 ? "leaves" : "leave"} group review.{" "}
+            {skipped ? "No group has anything left, so the class goes straight to class review." : "Every group works the rest."}
+          </p>
+          {!!answeredPathway && answeredPathway.includes("whole-class") && !skipped && (
+            <p className="mt-2 text-[13.5px] leading-snug text-ink-muted" data-decision-added>
+              Class review added after group review.
+            </p>
+          )}
+        </>
       ) : (
-        <ol className="mt-3 grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-4 gap-y-2" aria-label="Your pathway" data-decision-pathway>
-          {stages.map((s) => (
-            <li key={s.id} className="col-span-2 grid grid-cols-subgrid items-center" data-decision-stage={s.id}>
-              <span>
-                <StagePill stage={s.id} state={stagePillState(s)} size="laptop" />
-              </span>
-              <span className="text-[13.5px] leading-snug text-balance text-ink-soft">{WHAT_HAPPENS[s.id]}</span>
-            </li>
-          ))}
-        </ol>
+        <>
+          <h2 className="font-display text-[22px] leading-[1.25] text-ink" data-decision-headline>
+            Most students are close to finishing.
+            <br />
+            Let&rsquo;s discuss what&rsquo;s next.
+          </h2>
+          <p className="mt-2 text-[14px] leading-snug text-ink-soft" data-decision-evidence>
+            <span className="font-semibold text-ink tabular-nums">
+              {view.kind === "split-review" ? `${view.split?.handedIn ?? 0} of ${view.split?.present ?? 0}` : `${submitted} of ${present}`}
+            </span>{" "}
+            {view.kind === "split-review" ? "here have handed in their corrections" : `here have submitted ${question}`}
+          </p>
+        </>
       )}
-      <div className="mt-6 flex items-center justify-end gap-3">
-        <Button variant="secondary" onClick={() => dispatchClassroom({ type: "decision/tuck", due: view.due })} data-decision-later>
-          Later
-        </Button>
-        {choice ? (
-          <Button onClick={done} data-decision-done>
-            Done
-          </Button>
+      {/* The pathway: the split card carries the close-to-finishing card's own line when that card went unanswered (ticket 337). */}
+      {!answered && (view.kind === "close-to-finishing" || view.carriesPathway) && (
+        <>
+          {changing ? (
+            <>
+              <Eyebrow className="mt-5">Your pathway</Eyebrow>
+              <ChangePathway pathway={shown} locks={locks} onSwitch={(stage) => setChoice(switchStage(shown, stage, locks))} />
+            </>
+          ) : view.kind === "split-review" ? (
+            <p className="mt-4 text-[13px] leading-snug text-ink-soft" data-decision-pathway-line>
+              <span className="font-semibold text-ink">Your pathway</span>{" "}
+              {stages.map((st, i) => (
+                <span key={st.id}>
+                  {i > 0 && (
+                    <span aria-hidden> → </span>
+                  )}
+                  <span className="whitespace-nowrap">{CLASS_STAGE_WORD[st.id]}</span>
+                </span>
+              ))}{" "}
+              <span aria-hidden>·</span>{" "}
+              <button
+                type="button"
+                className="text-accent-deep hover:underline"
+                onClick={() => {
+                  setChoice([...shown]);
+                  setChanging(true);
+                }}
+                data-decision-change
+              >
+                change
+              </button>
+            </p>
+          ) : (
+            <>
+              <Eyebrow className="mt-5">Your pathway</Eyebrow>
+              <ol className="mt-3 grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-4 gap-y-2" aria-label="Your pathway" data-decision-pathway>
+                {stages.map((st) => (
+                  <li key={st.id} className="col-span-2 grid grid-cols-subgrid items-center" data-decision-stage={st.id}>
+                    <span>
+                      <StagePill stage={st.id} state={stagePillState(st)} size="laptop" />
+                    </span>
+                    <span className="text-[13.5px] leading-snug text-balance text-ink-soft">{WHAT_HAPPENS[st.id]}</span>
+                  </li>
+                ))}
+              </ol>
+            </>
+          )}
+        </>
+      )}
+      {/* The split itself (ticket 337): the questions fewest have right, pre-ticked, with every other one behind its own line. */}
+      {!answered && !changing && split && !view.toClassReview && (
+        <SplitRows
+          split={split}
+          ticked={ticked}
+          allShown={allShown}
+          onToggle={(id) => setTicks(ticked.includes(id) ? ticked.filter((x) => x !== id) : [...ticked, id])}
+          onAll={() => setAllShown(true)}
+        />
+      )}
+      {!answered && !changing && view.toClassReview && view.split && (
+        <p className="mt-4 text-[13.5px] leading-snug text-ink-soft" data-decision-to-class-review>
+          Without group review, the questions the class got wrong go to class review
+          {view.split.suggestion.suggested.length > 0 ? `: ${view.split.suggestion.suggested.map((t) => `${t.label} (${t.correct}/${t.present} right so far)`).join(", ")}` : "."}
+        </p>
+      )}
+      {!answered && !changing && split && ticked.length > 0 && (
+        <p className="mt-3 text-[13px] leading-snug text-ink-muted" data-decision-note>
+          {emptyAfter ? "No group would have anything left to review." : addsClassReview ? "Adds class review after group review." : "Every group works the rest."}
+        </p>
+      )}
+      <div className="mt-6 flex items-center justify-end gap-3" data-decision-actions>
+        {answered ? (
+          <>
+            <Button variant="secondary" onClick={() => dispatchClassroom({ type: "decision/dismiss", due: view.due })} data-decision-close>
+              Close
+            </Button>
+            <Link
+              href="/teacher/whole-class"
+              className="inline-flex items-center rounded-full bg-ink px-4 py-2 text-[13.5px] font-medium whitespace-nowrap text-white transition-colors hover:bg-ink-soft"
+              onClick={() => dispatchClassroom({ type: "decision/dismiss", due: view.due })}
+              data-decision-setup
+            >
+              Set up class review →
+            </Link>
+          </>
         ) : (
           <>
-            <Button variant="secondary" onClick={() => setChoice([...current])} data-decision-change>
-              Change
+            <Button variant="secondary" onClick={() => dispatchClassroom({ type: "decision/tuck", due: view.due })} data-decision-later>
+              Later
             </Button>
-            <Button onClick={() => dispatchClassroom({ type: "decision/answer", due: view.due, answer: { kind: "keep" }, at: Date.now() })} data-decision-keep>
-              Keep
-            </Button>
+            {changing ? (
+              // Done (ticket 336): a card with a split to make keeps the choice and shows it, so the one press that
+              // answers the decision carries the pathway and the move together (a decision is answered once).
+              split || view.kind === "split-review" ? (
+                <Button variant="secondary" onClick={() => setChanging(false)} data-decision-done>
+                  Done
+                </Button>
+              ) : (
+                <Button onClick={() => answer(shown, [])} data-decision-done>
+                  Done
+                </Button>
+              )
+            ) : (
+              <>
+                {view.kind === "close-to-finishing" && (
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setChoice([...shown]);
+                      setChanging(true);
+                    }}
+                    data-decision-change
+                  >
+                    Change
+                  </Button>
+                )}
+                <Button onClick={() => answer(shown, ticked)} data-decision-keep={ticked.length === 0 || undefined} data-decision-move={ticked.length > 0 || undefined}>
+                  {ticked.length === 0 ? "Keep" : emptyAfter ? "Skip to class review" : "Move to class review"}
+                </Button>
+              </>
+            )}
           </>
         )}
       </div>
     </section>
+  );
+}
+
+/** "Q7", "Q7 and Q10", "Q7, Q10 and Q3". */
+const listWords = (words: readonly string[]): string => (words.length <= 1 ? (words[0] ?? "") : `${words.slice(0, -1).join(", ")} and ${words[words.length - 1]}`);
+
+/**
+ * The split's question rows (ticket 337): the two the fewest have right, pre-ticked and named in the question, then every
+ * other question fewer than half have right under "also often wrong", then the rest behind "all questions". Every row shows
+ * the whole question (`ProblemQuestion`, the whole-question rule) and how many of the room have it right. The list scrolls
+ * inside the card, so opening "all questions" never pushes the buttons off the corner.
+ */
+function SplitRows({ split, ticked, allShown, onToggle, onAll }: { split: SplitEvidence; ticked: readonly string[]; allShown: boolean; onToggle: (id: string) => void; onAll: () => void }) {
+  const { suggested, often, rest } = split.suggestion;
+  // The ask names the two fewest the class has right and counts the rest, so a card with everything ticked stays a sentence.
+  const all = ticked.map((id) => split.tallies.find((t) => t.problem === id)!).sort((a, b) => a.correct - b.correct);
+  const asked = all.slice(0, SUGGESTED);
+  const more = all.length - asked.length;
+  return (
+    <>
+      <p className="mt-4 text-[14px] leading-snug text-ink" data-split-ask>
+        {asked.length === 0 ? (
+          "Every question stays in group review."
+        ) : (
+          <>
+            Only{" "}
+            {asked.map((t, i) => (
+              <span key={t.problem}>
+                {i > 0 && (i === asked.length - 1 ? " and " : ", ")}
+                <span className="font-semibold tabular-nums">
+                  {t.correct}/{t.present}
+                </span>{" "}
+                {i === 0 ? "students got " : "got "}
+                {t.label}
+                {i === 0 ? " correct" : ""}
+              </span>
+            ))}
+            {more > 0 ? `, with ${more} more ticked` : ""}
+            {split.afterCorrections ? ". " : " so far. "}
+            Remove from group review &amp; save for class review?
+          </>
+        )}
+      </p>
+      <div className="mt-3 max-h-[300px] overflow-y-auto" data-split-list>
+        <ul className="space-y-1.5">
+          {suggested.map((t) => (
+            <SplitRow key={t.problem} tally={t} on={ticked.includes(t.problem)} onToggle={onToggle} />
+          ))}
+        </ul>
+        {often.length > 0 && (
+          <>
+            <Eyebrow className="mt-4">Also often wrong</Eyebrow>
+            <ul className="mt-2 space-y-1.5">
+              {often.map((t) => (
+                <SplitRow key={t.problem} tally={t} on={ticked.includes(t.problem)} onToggle={onToggle} />
+              ))}
+            </ul>
+          </>
+        )}
+        {rest.length > 0 &&
+          (allShown ? (
+            <>
+              <Eyebrow className="mt-4">All questions</Eyebrow>
+              <ul className="mt-2 space-y-1.5">
+                {rest.map((t) => (
+                  <SplitRow key={t.problem} tally={t} on={ticked.includes(t.problem)} onToggle={onToggle} />
+                ))}
+              </ul>
+            </>
+          ) : (
+            <button type="button" className="mt-3 text-[13px] text-accent-deep hover:underline" onClick={onAll} data-split-all>
+              all questions
+            </button>
+          ))}
+      </div>
+    </>
+  );
+}
+
+/** One question the teacher may move: a tick, its label, the whole question, and how many of the room have it right. */
+function SplitRow({ tally, on, onToggle }: { tally: QuestionTally; on: boolean; onToggle: (id: string) => void }) {
+  const problem = PROBLEM_MAP[tally.problem];
+  return (
+    <li>
+      <button
+        type="button"
+        role="checkbox"
+        aria-checked={on}
+        onClick={() => onToggle(tally.problem)}
+        data-split-row={tally.problem}
+        data-on={on || undefined}
+        className={`flex w-full items-start gap-2.5 rounded-xl border px-2.5 py-2 text-left transition-colors ${on ? "border-line bg-standout-soft" : "border-dashed border-line-strong bg-transparent hover:border-ink-muted"}`}
+      >
+        <span className={`mt-px grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full text-[10.5px] ${on ? "bg-ink text-white" : "border border-line-strong text-ink-muted"}`} aria-hidden>
+          {on ? "✓" : "+"}
+        </span>
+        <span className="w-[22px] shrink-0 text-[12.5px] font-medium text-ink">{tally.label}</span>
+        <span className="min-w-0 flex-1 text-[12.5px] leading-snug text-ink" data-split-question={tally.problem}>
+          {problem ? <ProblemQuestion problem={problem} mathClass="text-[13px]" figureWidth={40} /> : tally.label}
+        </span>
+        <span className="shrink-0 text-[12px] whitespace-nowrap text-ink-muted tabular-nums" data-split-count={tally.problem}>
+          {tally.correct}/{tally.present} correct
+        </span>
+      </button>
+    </li>
   );
 }
 

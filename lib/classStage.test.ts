@@ -143,7 +143,11 @@ describe("the stage pill's four states (ticket 334)", () => {
         { point: { label: "working", classroom: sent, session: sessionAt("working") }, strip: expected(pathway, "working") },
       ];
       // Everyone handed in: individual review starts on the hand-in; any other next stage waits for the gate, the projection or the teacher.
-      points.push({ point: { label: "everyone handed in", classroom: sent, session: handedIn }, strip: pathway.includes("individual") ? expected(pathway, "individual") : expected(pathway, "working", true) });
+      // Without individual review the class waits at the gate into group review, and the working is still current there (ticket 337).
+      points.push({
+        point: { label: "everyone handed in", classroom: sent, session: handedIn },
+        strip: pathway.includes("individual") ? expected(pathway, "individual") : pathway.includes("group") ? expected(pathway, "working") : expected(pathway, "working", true),
+      });
       if (pathway.includes("individual")) {
         const arrived = classroomReducer(sent, { type: "class/arrive", student: DEMO_STUDENT.id, at: now });
         const gate = sessionAt("class-wait");
