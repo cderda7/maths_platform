@@ -60,7 +60,7 @@ export function useLessonDecision(session: StudentSession | null, ready: boolean
 const WHAT_HAPPENS: Record<ClassStageId, string> = { working: "students finish the set and hand it in", ...STAGE_DESCRIPTION };
 
 /**
- * The dot a tucked decision leaves (ticket 335): the accent on a ring of paper, laid over the corner of the strip's current
+ * The dot a tucked decision leaves (ticket 335): the accent on a ring of paper, laid over the bottom corner of the strip's current
  * pill or the live Classroom card without taking room. Its press area reaches 8 px past the dot. `size` is its diameter in
  * layout px.
  */

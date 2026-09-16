@@ -5903,6 +5903,21 @@ column and the overlay), which is one more layout read per tick on a page that a
 with no place attached. Sticking the column costs nothing at rest — the first still frame is identical — and the measured
 top means the rule degrades honestly instead of hiding rows when the class is at its busiest.
 
+## 2026-09-16 · Force submit and the count stand over the current pill, laid out of flow (ticket 345)
+
+**Decision.** On the teacher's pathway strip, force submit and "n/total done" move from beside the current stage pill to a two-line stack standing over it — the count on top, force submit under it, both centred on the pill. The stack is `position: absolute; bottom: 100%` inside a `relative` wrapper around the pill, so it takes no layout room: it draws into the 48 px of padding `TeacherChrome` already puts above the back line, and every pill, the back button, the eyebrow, the title and every card below keep the exact rect they had before. End lesson keeps its place beside the pill.
+
+**Context.** Carson asked for force submit above the current stage and the count above force submit. The strip (ticket 334) put force submit, the count and end lesson in a row beside the pill, which made a four-stage strip run 504 px wide and read force submit — the teacher's one press — as one more item in a list. Carson chose the overlay over growing the strip's row height, so the back line, the eyebrow and every card below it stay pinned to the pixel they are on a finished set (no strip at all) and on a live one (the stack up).
+
+**Alternatives considered.**
+- *Push the page down*: simplest CSS (no absolute positioning), but the teacher's 1280×800 pages lose ~45 px of content height on a live set, and the page shifts every time the stack appears, disappears, or gives way to force submit's countdown. Carson: hang it into the gap instead.
+- *Stack end lesson into the same column*: fewer things beside the pill, but end lesson only shows on a pathway's last stage (not class review) and read confusingly stacked with a control that fires only near the lesson's end; Carson: it stays beside the pill, unchanged.
+- *Grow the strip's row to fit the stack in normal flow*: avoids `position: absolute` entirely, but the strip's `<li>` height would change per stage (two-line over the current pill, one line over the others), so the arrows and pills would not sit on one baseline; the back button's own line (`items-start`, ticket 268) would need to grow with it too.
+
+**Tradeoffs.** The stack's 42 px height is a fixed budget against the 48 px of padding above the back line; any future line above the back line (a banner, a second strip) would have to share or grow that space, and the decision dot (ticket 335) had to move from the pill's top-right corner to its bottom-right so the two don't collide. Force submit is narrower now (13.5 px, in from 15 px) to sit closer to the width of the pill it stands over; it still reads as its own pill against the stage words' width, which varies stage to stage.
+
+**Defense.** The overlay keeps every measurement ticket 334 and 335 already assert (the back button's top, the strip's height, the eyebrow, the finished-set no-strip case) true without touching any of them, so a large batch of existing geometry checks and screenshots stayed valid unchanged; only the stack's own rect and the badge's new corner needed new assertions.
+
 ## 2026-09-16 · The whole table in the cell it is working on (ticket 348)
 
 **Decision.**

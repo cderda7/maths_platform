@@ -12,7 +12,8 @@ import { CLASS_STAGE_WORD, type ClassStageId, type StagePillState } from "@/lib/
  *
  * The ring is a shadow, so nothing moves when it arrives or goes. Two sizes: `ipad`, the student's header strip (ticket
  * 151, 15 px), and `laptop`, the teacher's strip on the back button's line (13.5 px, the back button's size and line, so
- * the pill is the button's height). `badge` is laid over the pill's top right corner without taking room (ticket 335's dot).
+ * the pill is the button's height). `badge` is laid over the pill's bottom right corner without taking room (ticket 335's dot);
+ * it took the top corner until ticket 345 stood force submit there, where the dot's ring cut into the button's rounded end.
  */
 export type StagePillSize = "ipad" | "laptop";
 
@@ -36,7 +37,7 @@ export function StagePill({ stage, state, size = "ipad", badge }: { stage: Class
       data-stage-pill={state}
     >
       {CLASS_STAGE_WORD[stage]}
-      {badge && <span className="absolute -right-1.5 -top-1.5 leading-none" data-stage-pill-badge>{badge}</span>}
+      {badge && <span className="absolute -bottom-1.5 -right-1.5 leading-none" data-stage-pill-badge>{badge}</span>}
     </span>
   );
 }
@@ -51,10 +52,18 @@ export function StageArrow() {
 }
 
 /**
- * A pathway laid out horizontally: its stages in order, the working first, a thin arrow between each. `beside` sits right
- * after the current (or finished) pill, before the next arrow: the teacher's force submit and count. `badge` goes on that pill.
+ * A pathway laid out horizontally: its stages in order, the working first, a thin arrow between each. `above` stands over the
+ * current (or finished) pill, centred on it: the teacher's count and force submit, the count on top (ticket 345). `beside` sits
+ * right after that pill, before the next arrow: end lesson. `badge` goes on the pill itself.
+ *
+ * `above` is laid over the pill and takes no room, so a strip that gains or loses it moves nothing — not the pills, not the back
+ * button beside them, not a line of the page below. It draws into the 48 px of padding above the teacher's back line, which is
+ * the whole budget: `main` is the scroll region, so anything above that padding is clipped by it. The stack measures 42 px
+ * (`STACK_ABOVE`), leaving 6 px clear of the top bar's border.
  */
-export function PathwayPills({ stages, size = "ipad", beside, badge }: { stages: readonly { id: ClassStageId; state: StagePillState }[]; size?: StagePillSize; beside?: ReactNode; badge?: ReactNode }) {
+const STACK_ABOVE = "absolute bottom-full left-1/2 flex -translate-x-1/2 flex-col items-center gap-[2px] pb-[3px]";
+
+export function PathwayPills({ stages, size = "ipad", beside, above, badge }: { stages: readonly { id: ClassStageId; state: StagePillState }[]; size?: StagePillSize; beside?: ReactNode; above?: ReactNode; badge?: ReactNode }) {
   return (
     <ol className="flex shrink-0 items-center" aria-label="Review pathway" data-pathway-strip={size}>
       {stages.map((stage, i) => {
@@ -62,7 +71,14 @@ export function PathwayPills({ stages, size = "ipad", beside, badge }: { stages:
         return (
           <li key={stage.id} className="flex items-center" data-stage={stage.id} data-stage-state={stage.state}>
             {i > 0 && <StageArrow />}
-            <StagePill stage={stage.id} state={stage.state} size={size} badge={here ? badge : undefined} />
+            <span className="relative flex items-center">
+              <StagePill stage={stage.id} state={stage.state} size={size} badge={here ? badge : undefined} />
+              {here && above && (
+                <span className={STACK_ABOVE} data-stage-above>
+                  {above}
+                </span>
+              )}
+            </span>
             {/* 12 px from the pill, and 12 px to the next arrow (its own 6 px and 6 px here), none after the last stage so the strip ends on its pill or note. */}
             {here && beside && <span className={`ml-3 flex items-center ${i < stages.length - 1 ? "mr-1.5" : ""}`}>{beside}</span>}
           </li>
