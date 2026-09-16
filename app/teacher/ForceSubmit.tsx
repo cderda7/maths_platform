@@ -18,26 +18,27 @@ export const FORCE_PILL_SIZE = "px-3.5 py-1 text-[15px]";
 /** A countdown in that pill's place: the same text size, on one line. */
 export const PENDING_LINE = "flex items-center gap-1.5 whitespace-nowrap text-[15px] leading-tight text-ink";
 /**
- * Force submit above the current pill (ticket 345): the stage pills' 13.5 px, so the pill and the button read as one
- * stack, and shallow enough that the two lines and their gaps fit the 48 px above the back line (`STACK_SLOT`). Its side
- * padding is a step under the pills' own 12 px: "force submit" in the body face is wider than "indiv working" in the display
- * face, and at 12 px it stood 2 px proud of the narrowest pill on each side, which read as a miss rather than a size.
+ * Force submit under the current pill (ticket 345, above it until ticket 358 moved the stack below): the stage pills'
+ * 13.5 px, so the pill and the button read as one stack. Its side padding is a step under the pills' own 12 px: "force
+ * submit" in the body face is wider than "indiv working" in the display face, and at 12 px it stood 2 px proud of the
+ * narrowest pill on each side, which read as a miss rather than a size.
  */
 const STACK_PILL_SIZE = "px-2.5 py-0.5 text-[13.5px]";
-/** The line's own height, so the countdown taking the button's place never moves the count above it. */
+/** The line's own height, so the countdown taking the button's place never moves the count under it, and never changes the row's own height. */
 const STACK_SLOT = "flex h-[23px] items-center";
 /** The countdown in the stacked button's place: the same 13.5 px, on one line. */
 const STACK_PENDING = "gap-1.5 whitespace-nowrap text-[13.5px] leading-tight text-ink";
 
 /**
- * "force submit" above the current stage on the pathway strip (ticket 145; on the Pathway card and the Mistakes title row
+ * "force submit" under the current stage on the pathway strip (ticket 145; on the Pathway card and the Mistakes title row
  * until ticket 334 put one strip on the back button's line of both tabs, beside the current pill until ticket 345 stood it
- * over that pill): one press starts the one-minute grace shown on every student's screen, after which the stage ends for
- * everyone as it stands (the set handed in; the corrections handed in and the gate into group review opened; group review
- * over; on a pathway without individual review, the gate opened for the students still to arrive, ticket 337). While the
- * grace runs the button gives way to the pending word and the countdown with Cancel, on one line, in a slot of the button's
- * own height so the count above it does not move. No confirmation step: the minute with Cancel is the undo. Disabled once
- * the live student is past the stage, while the teacher projects, or while "end lesson"'s minute runs (ticket 273).
+ * over that pill, under it since ticket 358): one press starts the one-minute grace shown on every student's screen, after
+ * which the stage ends for everyone as it stands (the set handed in; the corrections handed in and the gate into group
+ * review opened; group review over; on a pathway without individual review, the gate opened for the students still to
+ * arrive, ticket 337). While the grace runs the button gives way to the pending word and the countdown with Cancel, on one
+ * line, in a slot of the button's own height so the count under it does not move. No confirmation step: the minute with
+ * Cancel is the undo. Disabled once the live student is past the stage, while the teacher projects, or while "end lesson"'s
+ * minute runs (ticket 273).
  */
 export default function ForceSubmit({ stage, session }: { stage: ClassStageId; session: StudentSession | null }) {
   const classroom = useClassroom();

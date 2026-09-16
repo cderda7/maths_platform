@@ -13,7 +13,8 @@ import { CLASS_STAGE_WORD, type ClassStageId, type StagePillState } from "@/lib/
  * The ring is a shadow, so nothing moves when it arrives or goes. Two sizes: `ipad`, the student's header strip (ticket
  * 151, 15 px), and `laptop`, the teacher's strip on the back button's line (13.5 px, the back button's size and line, so
  * the pill is the button's height). `badge` is laid over the pill's bottom right corner without taking room (ticket 335's dot);
- * it took the top corner until ticket 345 stood force submit there, where the dot's ring cut into the button's rounded end.
+ * it took the top corner until ticket 345 stood force submit there, and stayed at the bottom corner once 358 moved that
+ * stack below the pill instead — nothing stands over the top corner any more, but there was no call to move it back.
  */
 export type StagePillSize = "ipad" | "laptop";
 
@@ -52,35 +53,45 @@ export function StageArrow() {
 }
 
 /**
- * A pathway laid out horizontally: its stages in order, the working first, a thin arrow between each. `above` stands over the
- * current (or finished) pill, centred on it: the teacher's count and force submit, the count on top (ticket 345). `beside` sits
- * right after that pill, before the next arrow: end lesson. `badge` goes on the pill itself.
+ * A pathway laid out horizontally: its stages in order, the working first, a thin arrow between each. `below` stands under the
+ * current (or finished) pill, centred on it: force submit right under the pill, the teacher's count under that (ticket 358;
+ * stood over the pill, count on top, until then — ticket 345). `beside` sits right after that pill, before the next arrow: end
+ * lesson. `badge` goes on the pill itself.
  *
- * `above` is laid over the pill and takes no room, so a strip that gains or loses it moves nothing — not the pills, not the back
- * button beside them, not a line of the page below. It draws into the 48 px of padding above the teacher's back line, which is
- * the whole budget: `main` is the scroll region, so anything above that padding is clipped by it. The stack measures 42 px
- * (`STACK_ABOVE`), leaving 6 px clear of the top bar's border.
+ * `below`'s own text is centred on the pill by `absolute`, the same trick the `above` it replaced used, just hung off
+ * `top-full` instead of `bottom-full` — not because it should take no room (it should: unlike `above`, that room is the
+ * whole point) but because its width isn't fixed: force submit's pending countdown ("handing in · 0:47 · Cancel") is wider
+ * than the plain button, and if that width could grow the `<li>` itself, pressing force submit would shove every pill after
+ * it sideways. Centring it on the pill by absolute position keeps it immune to that. The real room comes from the empty,
+ * width-less `data-stage-below-spacer` sibling in flow after it, whose fixed height (`BELOW_HEIGHT`, matching the stack's
+ * own — button and pending are both height-matched, ticket 345) is what actually grows the `<li>`, the strip, and the back
+ * line under it. `ol` aligns every `<li>` to `items-start` (rather than centring them) so that growth never moves any other
+ * pill's top edge or the arrows around it.
  */
-const STACK_ABOVE = "absolute bottom-full left-1/2 flex -translate-x-1/2 flex-col items-center gap-[2px] pb-[3px]";
+const BELOW_HEIGHT = 42;
+const STACK_BELOW = "absolute top-full left-1/2 flex -translate-x-1/2 flex-col items-center gap-[2px] pt-1";
 
-export function PathwayPills({ stages, size = "ipad", beside, above, badge }: { stages: readonly { id: ClassStageId; state: StagePillState }[]; size?: StagePillSize; beside?: ReactNode; above?: ReactNode; badge?: ReactNode }) {
+export function PathwayPills({ stages, size = "ipad", beside, below, badge }: { stages: readonly { id: ClassStageId; state: StagePillState }[]; size?: StagePillSize; beside?: ReactNode; below?: ReactNode; badge?: ReactNode }) {
   return (
-    <ol className="flex shrink-0 items-center" aria-label="Review pathway" data-pathway-strip={size}>
+    <ol className="flex shrink-0 items-start" aria-label="Review pathway" data-pathway-strip={size}>
       {stages.map((stage, i) => {
         const here = stage.state === "current" || stage.state === "finished";
         return (
-          <li key={stage.id} className="flex items-center" data-stage={stage.id} data-stage-state={stage.state}>
-            {i > 0 && <StageArrow />}
-            <span className="relative flex items-center">
-              <StagePill stage={stage.id} state={stage.state} size={size} badge={here ? badge : undefined} />
-              {here && above && (
-                <span className={STACK_ABOVE} data-stage-above>
-                  {above}
-                </span>
-              )}
+          <li key={stage.id} className="flex flex-col items-center" data-stage={stage.id} data-stage-state={stage.state}>
+            <span className="flex items-center">
+              {i > 0 && <StageArrow />}
+              <span className="relative flex items-center">
+                <StagePill stage={stage.id} state={stage.state} size={size} badge={here ? badge : undefined} />
+                {here && below && (
+                  <span className={STACK_BELOW} data-stage-below>
+                    {below}
+                  </span>
+                )}
+              </span>
+              {/* 12 px from the pill, and 12 px to the next arrow (its own 6 px and 6 px here), none after the last stage so the strip ends on its pill or note. */}
+              {here && beside && <span className={`ml-3 flex items-center ${i < stages.length - 1 ? "mr-1.5" : ""}`}>{beside}</span>}
             </span>
-            {/* 12 px from the pill, and 12 px to the next arrow (its own 6 px and 6 px here), none after the last stage so the strip ends on its pill or note. */}
-            {here && beside && <span className={`ml-3 flex items-center ${i < stages.length - 1 ? "mr-1.5" : ""}`}>{beside}</span>}
+            {here && below && <span className="w-0" style={{ height: BELOW_HEIGHT }} aria-hidden data-stage-below-spacer />}
           </li>
         );
       })}

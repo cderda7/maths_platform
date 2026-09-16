@@ -18,13 +18,14 @@ import { useBatchedSession, useNow } from "@/lib/store";
  * the lesson's pathway at its right, ending on the page column's right edge. Both tabs render this one line first in the
  * same frame, so every pill, arrow, force submit and count has the same rect from the window on either tab.
  *
- * The strip is the stages in order as `StagePill`s at the back button's 13.5 px, with the thin arrows between. Over the current
- * stage stand its two notes (ticket 345, beside the pill until then): "n/total done" on top, force submit under it, the pill
- * under that, all three centred on one another. The stack is laid over the padding above this line, so it takes no room and a
- * strip that gains or loses it moves nothing on the page. End lesson stays beside the pill, on a last stage that is not class
- * review; while its minute runs, its countdown takes the place of the stack. Class review has no count and no force submit, so
- * its pill stands alone; once the lesson is over every pill is over and nothing stands over or beside them. A finished set shows
- * no strip (its stages are all over, as the Pathway card was hidden on one, ticket 191).
+ * The strip is the stages in order as `StagePill`s at the back button's 13.5 px, with the thin arrows between. Under the current
+ * stage hang its two notes (over the pill, count on top, until ticket 358): the pill on top, force submit under it, "n/total
+ * done" under that, all three centred on one another. Unlike the stack it replaced, this one takes real room — the strip and
+ * this whole line grow by its height, and `--backline-h` (below) carries that growth to whatever is stuck under this row. End
+ * lesson stays beside the pill, on a last stage that is not class review; while its minute runs, its countdown takes the place
+ * of the stack. Class review has no count and no force submit, so its pill stands alone; once the lesson is over every pill is
+ * over and nothing stands under or beside them. A finished set shows no strip (its stages are all over, as the Pathway card was
+ * hidden on one, ticket 191).
  *
  * The row is the back button's own line: `items-start` keeps the button's top where it always was (ticket 268), and the strip
  * stretches to the row less the button's 4 px bottom margin, so it is centred on the button. `badge` is laid on the current
@@ -54,15 +55,15 @@ export default function BackLine({ session, badge }: { session: StudentSession |
   const { updatedAt } = useBatchedSession(3000);
   const decision = useLessonDecision(session, live && updatedAt !== null);
   const dot = decision?.shown === "dot" ? <DecisionDot view={decision} onPress={() => dispatchClassroom({ type: "decision/reopen", due: decision.due })} /> : undefined;
-  const above = current && current.done !== null && !ending && (
+  const below = current && current.done !== null && !ending && (
     <>
+      <ForceSubmit stage={current.id} session={session} />
       <span className="text-[13px] leading-none text-ink-muted" data-stage-count>
         <span className="tabular-nums">
           {current.done}/{current.total}
         </span>{" "}
         done
       </span>
-      <ForceSubmit stage={current.id} session={session} />
     </>
   );
   const beside = current && current.done !== null && endsLesson(current.id, classroom) && (
@@ -93,7 +94,7 @@ export default function BackLine({ session, badge }: { session: StudentSession |
         <BackToClassroom />
         {live && (
           <div className="flex items-center self-stretch pb-1" data-teacher-pathway>
-            <PathwayPills stages={stages.map((s) => ({ id: s.id, state: stagePillState(s) }))} size="laptop" above={above} beside={beside} badge={badge ?? dot} />
+            <PathwayPills stages={stages.map((s) => ({ id: s.id, state: stagePillState(s) }))} size="laptop" below={below} beside={beside} badge={badge ?? dot} />
           </div>
         )}
       </div>
