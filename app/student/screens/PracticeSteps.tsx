@@ -118,12 +118,15 @@ export function WorkedStep({
           </div>
         )}
       </aside>
-      <section className="flex min-h-0 flex-col overflow-y-auto px-6 py-6" data-example>
-        <Eyebrow>Worked example</Eyebrow>
-        <div className="mt-3">
-          <PracticeCard practice={p} shown={shown} question={false} onReveal={() => dispatch({ type: "run/example-step", run: runKey })} />
+      <section className="relative flex min-h-0 flex-col" data-example>
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6 pb-24">
+          <Eyebrow>Worked example</Eyebrow>
+          <div className="mt-3">
+            <PracticeCard practice={p} shown={shown} question={false} onReveal={() => dispatch({ type: "run/example-step", run: runKey })} />
+          </div>
         </div>
-        {seen && !again && <div className="mt-6 flex justify-end">{next}</div>}
+        {/* Pinned to the corner, not below the last step: a long example that needs a scroll must never hide the way on. */}
+        {seen && !again && <div className="absolute bottom-4 right-4 z-10">{next}</div>}
       </section>
       <aside className="flex min-h-0 flex-col border-l border-line px-6 py-6">
         {/* Beside the worked example the column is the chat, headed "Question about a step?"; the tutor says nothing until the student writes. */}
@@ -153,6 +156,7 @@ export function CompletionStep({
   dispatch,
   footer,
   done,
+  next,
 }: {
   head: ReactNode;
   question: StepQuestion;
@@ -165,7 +169,10 @@ export function CompletionStep({
   runKey: RunKey;
   dispatch: (a: SessionAction) => void;
   footer: ReactNode;
+  /** The message shown once every blank is in; no button (the way on, if any, is `next`). */
   done: ReactNode;
+  /** The way on once every blank is in, pinned to the pad's corner rather than the end of the working list. Omitted where the way on is only the footer's "Back to Qn" (the help ladder). */
+  next?: ReactNode;
 }) {
   const p = practice;
   const lines = run.lines[p.id] ?? [];
@@ -229,24 +236,28 @@ export function CompletionStep({
         </div>
       </aside>
 
-      {peek ? (
-        <ExamplePeek worked={worked} onBack={() => setPeek(false)} />
-      ) : (
-        <PadSection
-          strokes={strokes}
-          onStrokesChange={addStroke}
-          onBurstEnd={onBurstEnd}
-          onPenDown={() => setRecognising(true)}
-          onUndo={() => {
-            setRecognising(false);
-            dispatch({ type: "run/undo", run: runKey, problem: p.id });
-          }}
-          onClear={() => {
-            setRecognising(false);
-            dispatch({ type: "run/clear", run: runKey, problem: p.id });
-          }}
-        />
-      )}
+      <div className="relative flex min-h-0 flex-col">
+        {peek ? (
+          <ExamplePeek worked={worked} onBack={() => setPeek(false)} />
+        ) : (
+          <PadSection
+            strokes={strokes}
+            onStrokesChange={addStroke}
+            onBurstEnd={onBurstEnd}
+            onPenDown={() => setRecognising(true)}
+            onUndo={() => {
+              setRecognising(false);
+              dispatch({ type: "run/undo", run: runKey, problem: p.id });
+            }}
+            onClear={() => {
+              setRecognising(false);
+              dispatch({ type: "run/clear", run: runKey, problem: p.id });
+            }}
+          />
+        )}
+        {/* Pinned to the corner once every blank is in, not at the end of the working list (which may need a scroll to reach). */}
+        {state.done && !peek && next && <div className="absolute bottom-4 right-4 z-10">{next}</div>}
+      </div>
 
       <aside className="flex min-h-0 flex-col border-l border-line px-6 py-6">
         <Eyebrow>Working</Eyebrow>

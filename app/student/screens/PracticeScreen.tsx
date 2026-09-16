@@ -1,11 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import PracticePad from "@/components/PracticePad";
 import { Button, Eyebrow } from "@/components/ui";
+import { useEscape } from "@/components/useEscape";
 import { studentLeafName } from "@/data/taxonomy";
 import { warmupLadder } from "@/lib/ladder";
+import { scriptDone } from "@/lib/recognition";
 import { warmupFocus, warmupPhase, warmupStep, type SessionAction, type StudentSession } from "@/lib/session";
-import { warmupSequence } from "@/lib/warmup";
+import { warmupScript, warmupSequence } from "@/lib/warmup";
 import { CompletionStep, StepLine, StepTitle, WorkedStep } from "./PracticeSteps";
 
 /** The warm-up's three steps, as the step line names them. */
@@ -31,6 +34,16 @@ export default function PracticeScreen({ session, dispatch }: { session: Student
   const done = () => dispatch({ type: "warmup/skill-done", at: Date.now() });
   const next = () => dispatch({ type: "warmup/next", at: Date.now() });
   const doneLabel = remaining === 0 ? "On to the set" : "Next skill →";
+  /** The skill's own follow-up, alone: the third of its three steps (or its only step, for a practice with no ladder). Every scripted line in is the whole warm-up done. */
+  const aloneProblem = ladder ? ladder.alone : skill;
+  const onAlone = !ladder || phase === "alone";
+  const complete = onAlone && scriptDone(warmupScript(aloneProblem), w.lines[aloneProblem.id] ?? []);
+  const key = `${skill.id}:${phase}`;
+  /** The skill/phase the "not finished" confirm was raised for, so switching away (a chip, "Skip to the set") drops any stale confirm left open for the one before it, with no effect needed. `!complete` also drops it if the student finishes writing while it's still up: nothing left to confirm. */
+  const [confirmFor, setConfirmFor] = useState<string | null>(null);
+  const confirmLeave = confirmFor === key && !complete;
+  const requestDone = () => (complete ? done() : setConfirmFor(key));
+  useEscape(confirmLeave, () => setConfirmFor(null));
 
   const chips = (
     <div className="mt-3 flex flex-wrap gap-1.5" data-sequence>
@@ -60,7 +73,8 @@ export default function PracticeScreen({ session, dispatch }: { session: Student
           Skip to the set
         </Button>
       )}
-      <Button variant="accent" onClick={done} data-done className="whitespace-nowrap">
+      {/* Greyed out (not disabled: a press while the warm-up isn't finished asks first, rather than doing nothing) until the skill's own follow-up is done. */}
+      <Button variant="accent" onClick={requestDone} aria-disabled={!complete} data-done className={`whitespace-nowrap ${complete ? "" : "opacity-40"}`}>
         {doneLabel}
       </Button>
     </>
@@ -78,60 +92,82 @@ export default function PracticeScreen({ session, dispatch }: { session: Student
       {chips}
     </>
   );
-  const key = `${skill.id}:${phase}`;
+  const skillName = studentLeafName(skill.leaf).name.toLowerCase();
+  const confirm = confirmLeave && (
+    <div role="dialog" aria-label="Leave the warm-up" data-leave-warmup-check className="absolute right-4 bottom-4 z-20 w-[340px] rounded-2xl border border-line bg-paper p-5 shadow-lift">
+      <h2 className="font-display text-[20px] leading-tight text-ink">
+        Are you sure you&rsquo;d like to move on from {skillName}? You haven&rsquo;t finished the whole warm-up.
+      </h2>
+      <div className="mt-4 flex justify-end gap-2">
+        <Button variant="secondary" onClick={() => setConfirmFor(null)} data-stay>
+          Keep going
+        </Button>
+        <Button
+          variant="accent"
+          onClick={() => {
+            setConfirmFor(null);
+            done();
+          }}
+          data-confirm-leave
+        >
+          {doneLabel}
+        </Button>
+      </div>
+    </div>
+  );
 
   // Every practice problem in the bank has its completion problem and follow-up (a test holds it); a practice without them would be the pad alone.
-  if (!ladder) return <PracticePad key={key} run={w} runKey="warmup" first={skill} dispatch={dispatch} title="Warm-up" header={chips} footer={footer} finished={null} />;
-  if (phase === "worked")
-    return (
-      <div className="h-full" data-warmup-step="worked">
-        <WorkedStep
-          key={key}
-          head={head(1, "Example")}
-          question={ladder.worked}
-          practice={ladder.worked}
-          run={w}
-          runKey="warmup"
-          dispatch={dispatch}
-          footer={footer}
-          next={
-            <Button size="lg" onClick={next} data-warmup-next>
-              Your turn →
-            </Button>
-          }
-        />
-      </div>
-    );
-  if (phase === "completion")
-    return (
-      <div className="h-full" data-warmup-step="completion">
-        <CompletionStep
-          key={key}
-          head={head(2, "Your turn")}
-          question={ladder.completion}
-          practice={ladder.completion}
-          blanks={ladder.blanks}
-          worked={ladder.worked}
-          run={w}
-          runKey="warmup"
-          dispatch={dispatch}
-          footer={footer}
-          done={
-            <>
-              That&rsquo;s every line. Now one on your own.
-              <span className="mt-3 flex justify-end">
-                <Button size="lg" onClick={next} data-warmup-next>
-                  On your own →
-                </Button>
-              </span>
-            </>
-          }
-        />
-      </div>
-    );
-  return (
+  const body = !ladder ? (
+    <PracticePad key={key} run={w} runKey="warmup" first={skill} dispatch={dispatch} title="Warm-up" header={chips} footer={footer} finished={null} />
+  ) : phase === "worked" ? (
+    <div className="h-full" data-warmup-step="worked">
+      <WorkedStep
+        key={key}
+        head={head(1, "Example")}
+        question={ladder.worked}
+        practice={ladder.worked}
+        run={w}
+        runKey="warmup"
+        dispatch={dispatch}
+        footer={footer}
+        next={
+          <Button size="lg" onClick={next} data-warmup-next>
+            Your turn →
+          </Button>
+        }
+      />
+    </div>
+  ) : phase === "completion" ? (
+    <div className="h-full" data-warmup-step="completion">
+      <CompletionStep
+        key={key}
+        head={head(2, "Your turn")}
+        question={ladder.completion}
+        practice={ladder.completion}
+        blanks={ladder.blanks}
+        worked={ladder.worked}
+        run={w}
+        runKey="warmup"
+        dispatch={dispatch}
+        footer={footer}
+        done="That’s every line. Now one on your own."
+        next={
+          <Button size="lg" onClick={next} data-warmup-next>
+            On your own →
+          </Button>
+        }
+      />
+    </div>
+  ) : (
     <div className="h-full" data-warmup-step="alone">
       <PracticePad key={key} run={w} runKey="warmup" first={ladder.alone} dispatch={dispatch} title="On your own" lead={lead(3)} header={chips} exampleAgain={ladder.worked} footer={footer} finished={null} />
+    </div>
+  );
+
+  return (
+    <div className="relative h-full">
+      {body}
+      {confirm}
     </div>
   );
 }
