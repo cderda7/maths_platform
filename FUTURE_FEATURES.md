@@ -1953,3 +1953,6 @@ reformat or move anything below it.
 -**ASSIGNMENT CREATION** tiles moveable --rn deleteable, but can't reorder.
 
 -**DIAGNOSTIC QUESTIONS** add to teacher mistakes panel.
+
+-**add "restore Q4 first"** -- gaming it by messing with correct problems & getting the message
+  "this isn't where your mistake was".
