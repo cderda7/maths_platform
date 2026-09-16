@@ -1935,3 +1935,5 @@ reformat or move anything below it.
 
 -**add "restore Q4 first"** -- gaming it by messing with correct problems & getting the message
   "this isn't where your mistake was".
+
+-**Show results live during "Students' turn" in class review.** The teacher's screen just says "The class is writing" while every student writes a fully marked answer on their iPad. That's the moment the teacher most needs to know how many got it right and where the others went wrong. Without it, "Next question" is a guess.
