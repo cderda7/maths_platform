@@ -315,9 +315,9 @@ describe("the teacher's presenter jumps (ticket 263)", () => {
   });
 
   it("a class review the teacher has set up is the one projected; a group run under way is finished", () => {
-    const setup = classroomReducer(group.classroom, { type: "wc/setup", problems: ["q5"], examples: { q5: [] }, mode: "write-with-me" });
+    const setup = classroomReducer(group.classroom, { type: "wc/setup", problems: ["q5"], examples: { q5: [] } });
     const r = apply("done", { classroom: setup, session: group.session });
-    expect(r.classroom.wholeClass).toMatchObject({ problems: ["q5"], status: "active", modes: { q5: "write-with-me" } });
+    expect(r.classroom.wholeClass).toMatchObject({ problems: ["q5"], status: "active", step: "examples", reveal: 0 });
     expect(r.classroom.group?.done).toBe(true);
     expect(r.session.stage).toBe("frozen");
   });

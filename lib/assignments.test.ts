@@ -175,7 +175,7 @@ describe("the roster's progress and the landing", () => {
     expect(landingTab(b, handedIn.classroom, handedIn.session, now)).toBe("mistakes");
     const group = skipFixture("group review", now);
     expect(landingTab(b, group.classroom, group.session, now)).toBe("mistakes");
-    const ended: ClassroomState = { ...handedIn.classroom, wholeClass: { problems: [], examples: {}, slide: 0, view: "unmarked", status: "ended", modes: {}, ink: {} } };
+    const ended: ClassroomState = { ...handedIn.classroom, wholeClass: { problems: [], examples: {}, slide: 0, view: "unmarked", status: "ended", step: "examples", reveal: 0, ink: {} } };
     expect(landingTab(b, ended, handedIn.session, now)).toBe("class");
   });
 });

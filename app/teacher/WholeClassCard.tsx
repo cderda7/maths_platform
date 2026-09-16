@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Card, Eyebrow } from "@/components/ui";
 import { PROBLEM_MAP } from "@/data/assignment";
 import { boardCovered, currentSlide, isPending, lessonOver, pathwayOf } from "@/lib/classroom";
+import { CLASS_STEP_WORD } from "@/lib/classReview";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { useNow } from "@/lib/store";
 
@@ -33,7 +34,7 @@ export default function WholeClassCard() {
         <div className="mt-3 text-[14px]">
           <span className="flex items-center gap-2 whitespace-nowrap text-ink" data-wc-status>
             <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-accent" aria-hidden />
-            {starting && classroom.advance ? `Starting · ${mmss(classroom.advance.deadline - now)}` : `Students frozen · problem ${slide.index + 1} of ${slide.total}`}
+            {starting && classroom.advance ? `Starting · ${mmss(classroom.advance.deadline - now)}` : `${CLASS_STEP_WORD[slide.step]} · problem ${slide.index + 1} of ${slide.total}`}
           </span>
           <div className="mt-3 flex items-center gap-2">
             <Link href="/teacher/board" className="inline-flex items-center rounded-full border border-line-strong bg-paper px-3.5 py-1.5 text-[13px] font-medium text-ink hover:border-ink-muted" data-wc-controls>

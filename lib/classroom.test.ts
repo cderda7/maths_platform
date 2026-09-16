@@ -121,27 +121,27 @@ describe("whole-class session", () => {
     expect(currentSlide(c)).toBeNull();
     c = classroomReducer(c, { type: "wc/project", at: 500 });
     expect(isProjecting(c)).toBe(true);
-    expect(currentSlide(c)).toEqual({ problemId: "q3", view: "unmarked", index: 0, total: 3, mode: "frozen", teacherInk: [], markup: [], inkCount: 0 });
+    expect(currentSlide(c)).toEqual({ problemId: "q3", view: "unmarked", index: 0, total: 3, step: "examples", reveal: 0, last: false, teacherInk: [], markup: [], inkCount: 0 });
     // projecting and the grace start in the same state, so no tab can freeze before the countdown
     expect(c.advance).toMatchObject({ kind: "whole-class-start", deadline: 500 + 60_000 });
   });
 
-  it("show marks flips the view; next opens the next problem unmarked; previous steps back one view", () => {
+  it("show marks flips the view; the countdown opens the next problem on its examples, unmarked; previous steps back one beat", () => {
     let c = classroomReducer(setup(), { type: "wc/project" });
     c = classroomReducer(c, { type: "wc/marks", on: true });
     expect(c.wholeClass).toMatchObject({ slide: 0, view: "marked" });
-    c = classroomReducer(c, { type: "wc/next" });
-    expect(c.wholeClass).toMatchObject({ slide: 1, view: "unmarked" });
+    c = classroomReducer(c, { type: "wc/advance", id: "a" });
+    expect(c.wholeClass).toMatchObject({ slide: 1, view: "unmarked", step: "examples", reveal: 0 });
     c = classroomReducer(c, { type: "wc/prev" });
     expect(c.wholeClass).toMatchObject({ slide: 0, view: "marked" });
     c = classroomReducer(c, { type: "wc/prev" });
     expect(c.wholeClass).toMatchObject({ slide: 0, view: "unmarked" });
     c = classroomReducer(c, { type: "wc/prev" });
     expect(c.wholeClass).toMatchObject({ slide: 0, view: "unmarked" });
-    c = classroomReducer(c, { type: "wc/next" });
-    c = classroomReducer(c, { type: "wc/next" });
-    c = classroomReducer(c, { type: "wc/next" });
-    expect(c.wholeClass).toMatchObject({ slide: 2, view: "unmarked" });
+    c = classroomReducer(c, { type: "wc/advance", id: "b" });
+    c = classroomReducer(c, { type: "wc/advance", id: "c" });
+    c = classroomReducer(c, { type: "wc/advance", id: "d" });
+    expect(c.wholeClass).toMatchObject({ slide: 2, view: "unmarked", status: "ended" });
   });
 
   it("ending keeps the record but stops projecting, and clears any pending advance", async () => {
@@ -166,35 +166,29 @@ describe("whole-class session", () => {
     expect(boardCovered(c)).toBeNull();
     // Ended on the first slide: only the first problem was on the board.
     expect(boardCovered(classroomReducer(c, { type: "wc/end" }))).toEqual(["q3"]);
-    // Next, back and forward again: the furthest slide counts, a step back never uncovers one.
-    c = classroomReducer(c, { type: "wc/next" });
+    // On to the next, back and forward again: the furthest slide counts, a step back never uncovers one.
+    c = classroomReducer(c, { type: "wc/advance", id: "a" });
     c = classroomReducer(c, { type: "wc/prev" });
     c = classroomReducer(c, { type: "wc/prev" });
     expect(c.wholeClass).toMatchObject({ slide: 0, reached: 1 });
     expect(boardCovered(classroomReducer(c, { type: "wc/end" }))).toEqual(["q3", "q2"]);
-    c = classroomReducer(classroomReducer(c, { type: "wc/next" }), { type: "wc/next" });
+    c = classroomReducer(classroomReducer(c, { type: "wc/advance", id: "b" }), { type: "wc/advance", id: "c" });
     expect(boardCovered(classroomReducer(c, { type: "wc/end" }))).toEqual(["q3", "q2", "q1"]);
     // Ended without ever being projected: nothing was on the board.
     expect(boardCovered(classroomReducer(setup(), { type: "wc/end" }))).toBeNull();
   });
 });
 
-describe("whole-class follow modes and the teacher's pad", () => {
-  const setup = (mode?: "frozen" | "write-with-me") => {
-    const c = classroomReducer(INITIAL_CLASSROOM, { type: "wc/setup", problems: ["q1", "q2"], examples: { q1: [], q2: [] }, mode });
+describe("class review's steps and the teacher's pad", () => {
+  const setup = () => {
+    const c = classroomReducer(INITIAL_CLASSROOM, { type: "wc/setup", problems: ["q1", "q2"], examples: { q1: [], q2: [] } });
     return classroomReducer(c, { type: "wc/project", at: 0 });
   };
-  it("seeds every projected problem with the setup choice, frozen by default", async () => {
+  it("every question starts on its examples with nothing of Q* revealed (ticket 344)", async () => {
     const { currentSlide } = await import("./classroom");
-    expect(currentSlide(setup())?.mode).toBe("frozen");
-    expect(setup("write-with-me").wholeClass?.modes).toEqual({ q1: "write-with-me", q2: "write-with-me" });
-  });
-  it("the board changes one problem's mode at a time", async () => {
-    const { currentSlide } = await import("./classroom");
-    let c = classroomReducer(setup(), { type: "wc/mode", problem: "q1", mode: "write-with-me" });
-    expect(currentSlide(c)?.mode).toBe("write-with-me");
-    c = classroomReducer(c, { type: "wc/next" });
-    expect(currentSlide(c)?.mode).toBe("frozen");
+    expect(currentSlide(setup())?.step).toBe("examples");
+    expect(currentSlide(setup())?.reveal).toBe(0);
+    expect(setup().wholeClass?.step).toBe("examples");
   });
   it("the teacher's strokes are kept per problem, with undo and clear, and reach the slide", async () => {
     const { currentSlide } = await import("./classroom");
@@ -226,7 +220,7 @@ describe("whole-class follow modes and the teacher's pad", () => {
     expect(currentSlide(c)?.markup).toEqual([mark]);
     expect(currentSlide(c)?.teacherInk).toHaveLength(1);
     // Each problem keeps its own.
-    c = classroomReducer(c, { type: "wc/next" });
+    c = classroomReducer(c, { type: "wc/advance", id: "a" });
     expect(currentSlide(c)?.markup).toEqual([]);
     expect(currentSlide(c)?.inkCount).toBe(0);
     c = classroomReducer(c, { type: "wc/prev" });
@@ -235,10 +229,11 @@ describe("whole-class follow modes and the teacher's pad", () => {
     expect(currentSlide(c)?.inkCount).toBe(0);
     expect(currentSlide(c)?.teacherInk).toEqual([]);
   });
-  it("a stored session from before modes existed reads as frozen with nothing written", async () => {
+  it("a stored session from before the three steps existed reads as the examples with nothing written", async () => {
     const { currentSlide } = await import("./classroom");
     const old = { ...setup(), wholeClass: { problems: ["q1"], examples: { q1: [] }, slide: 0, view: "unmarked" as const, status: "active" as const } } as unknown as Parameters<typeof currentSlide>[0];
-    expect(currentSlide(old)?.mode).toBe("frozen");
+    expect(currentSlide(old)?.step).toBe("examples");
+    expect(currentSlide(old)?.reveal).toBe(0);
     expect(currentSlide(old)?.teacherInk).toEqual([]);
     expect(currentSlide(old)?.markup).toEqual([]);
   });

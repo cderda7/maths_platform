@@ -11,7 +11,8 @@ import { debriefEndsAt, PEER_DEBRIEF_MS, pendingDebrief } from "@/lib/debrief";
 import { DEMO_PENS } from "@/data/group-scripts";
 import { dispatch, useLiveSession, useNow } from "@/lib/store";
 import { dispatchClassroom, getClassroom, useClassroom } from "@/lib/classroom-store";
-import { endLessonAwaited, GRACE_MS, isDue, isPending, isProjecting, liveDiagnostic, pathwayOf } from "@/lib/classroom";
+import { endLessonAwaited, graceFor, isDue, isPending, isProjecting, liveDiagnostic, pathwayOf } from "@/lib/classroom";
+import { useClassAdvance } from "@/components/useClassAdvance";
 import { classReadiness } from "@/lib/readiness";
 import { boardOpensFor } from "@/lib/groupIntro";
 import { DEMO_STUDENT } from "@/data/assignment";
@@ -35,6 +36,8 @@ export default function StudentShell({ children }: { children: ReactNode }) {
   const now = useNow();
   const advance = classroom.advance;
   useLessonLanding();
+  // Class review's five-second countdown (ticket 344) moves the class on from whichever tab's clock gets there first.
+  useClassAdvance();
   const counting = isPending(classroom, now);
   const due = isDue(classroom, now) && advance && !!session && !session.appliedAdvances.includes(advance.id);
   useEffect(() => {
@@ -141,7 +144,8 @@ export default function StudentShell({ children }: { children: ReactNode }) {
         <div className="pointer-events-none absolute inset-x-0 top-[33px] z-20 flex justify-center px-8" data-countdown>
           <div className="flex items-center gap-3 rounded-full border border-accent-line bg-accent-soft px-4 py-1.5 text-[13.5px] text-ink shadow-card">
             <span className="h-2 w-2 animate-pulse rounded-full bg-accent" aria-hidden />
-            {countdownWords} {mmss(Math.min(GRACE_MS, advance.deadline - now))}
+            {/* Each kind's own grace (ticket 344: class review's is five seconds), so a fresh countdown never claims more than it has. */}
+            {countdownWords} {mmss(Math.min(graceFor(advance.kind), advance.deadline - now))}
           </div>
         </div>
       )}

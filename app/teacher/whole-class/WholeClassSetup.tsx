@@ -10,7 +10,6 @@ import { useReorder } from "@/components/useReorder";
 import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { useAssignmentBundle } from "../AssignmentContext";
-import { FOLLOW_MODE_WORD, type FollowMode } from "@/lib/classroom";
 import { candidatesFor, MAX_EXAMPLES, optionOf, optionsFor, problemsByStruggle, suggestExamples, type ExampleRef, type PickerContext } from "@/lib/examples";
 import ExamplePicker from "./ExamplePicker";
 import { moveItem } from "@/lib/reorder";
@@ -23,9 +22,9 @@ const PRECHECK = 3;
  * The private setup for whole-class review: which problems, and which 2–3 examples per problem.
  * An example is chosen by mistake, not by name (ticket 148): the suggestion is the correct working
  * then the most common exact mistakes, and each slot's menu lists the problem's mistakes with
- * their counts. Names and correctness show here and nowhere near the projector. What the students' screens do
- * (frozen or write with me) starts unchosen: both options empty, Project faded until one is picked;
- * pressing it anyway turns its label to "select one" and flashes the two options light blue once.
+ * their counts. Names and correctness show here and nowhere near the projector. Nothing else is
+ * chosen: since ticket 344 every question runs the same three steps (its examples, a worked example,
+ * then a similar question every student does), so Project needs only the questions and their examples.
  * A question the teacher moved out of group review during the lesson (ticket 337) is ticked and cannot be unticked, marked
  * "from group review" in the place of its struggled count: it has to be covered here, since no group worked it.
  * The problem list ranks by how many struggled, for choosing; the example cards on the right
@@ -46,10 +45,6 @@ export default function WholeClassSetup() {
   /** Moved here from group review during the lesson (ticket 337): ticked, and the teacher cannot untick them — no group works them. */
   const moved = movedInSetOrder(classroomState, ASSIGNMENT.problems);
   const [overrides, setOverrides] = useState<Record<string, ExampleRef[]>>({});
-  /** What the students' screens do: no default (ticket 146), the teacher picks one before Project comes on. */
-  const [mode, setMode] = useState<FollowMode | null>(null);
-  /** How many times Project was pressed with no mode chosen: the button reads "select one" and the options flash (each press restarts the flash). */
-  const [nudge, setNudge] = useState(0);
   const chosenIds = [...new Set([...(chosen ?? ranked.slice(0, PRECHECK).map((r) => r.problem.id)), ...moved])];
   const toggle = (id: string) => {
     if (moved.includes(id)) return;
@@ -79,9 +74,8 @@ export default function WholeClassSetup() {
   };
 
   const project = () => {
-    if (!mode) return;
     const examples = Object.fromEntries(ordered.map((id) => [id, examplesFor(id)]));
-    dispatchClassroom({ type: "wc/setup", problems: ordered, examples, mode });
+    dispatchClassroom({ type: "wc/setup", problems: ordered, examples });
     dispatchClassroom({ type: "wc/project" });
     router.push("/teacher/board");
   };
@@ -131,48 +125,12 @@ export default function WholeClassSetup() {
               );
             })}
           </ul>
-          <Eyebrow className="mt-6">Student screens</Eyebrow>
-          <div className="mt-2 space-y-1.5" data-mode-choice>
-            {(
-              [
-                { m: "frozen", detail: "their pad mirrors what you write on the board" },
-                { m: "write-with-me", detail: "their pad is live; they copy your working" },
-              ] as { m: FollowMode; detail: string }[]
-            ).map(({ m, detail }) => {
-              const on = mode === m;
-              const flash = !mode && nudge > 0;
-              return (
-                <button
-                  key={`${m}:${nudge}`}
-                  type="button"
-                  onClick={() => setMode(m)}
-                  aria-pressed={on}
-                  data-mode={m}
-                  data-flash={flash || undefined}
-                  className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left transition-colors ${on ? "border-ink bg-paper" : "border-line bg-paper hover:border-ink-muted"} ${flash ? "choose-flash" : ""}`}
-                >
-                  <span className={`grid h-4 w-4 shrink-0 place-items-center rounded-full border ${on ? "border-ink" : "border-line-strong"}`} aria-hidden>
-                    {on && <span className="h-2 w-2 rounded-full bg-ink" />}
-                  </span>
-                  <span className="text-[13.5px] font-medium text-ink">{FOLLOW_MODE_WORD[m]}</span>
-                  <span className="min-w-0 flex-1 text-[12px] text-ink-muted">{detail}</span>
-                </button>
-              );
-            })}
-          </div>
-          <p className="mt-2 text-[12px] text-ink-muted">{mode ? "You can change this per problem from the board." : "Choose one to project."}</p>
+          <p className="mt-6 text-[12px] leading-snug text-ink-muted" data-wc-runs>
+            Each question runs its examples, then a worked example, then a similar question every student does on their own iPad.
+          </p>
           <div className="mt-5 flex justify-end">
-            {/* With no mode chosen the button looks off but still takes the press: it answers "select one" and the options flash. Truly off only with no problem checked. */}
-            <Button
-              size="lg"
-              disabled={ordered.length === 0}
-              aria-disabled={!mode || undefined}
-              className={mode ? "" : "opacity-40"}
-              onClick={() => (mode ? project() : setNudge((n) => n + 1))}
-              data-project
-              data-nudged={(!mode && nudge > 0) || undefined}
-            >
-              {!mode && nudge > 0 ? "select one" : "Project"}
+            <Button size="lg" disabled={ordered.length === 0} onClick={project} data-project>
+              Project
             </Button>
           </div>
         </Card>

@@ -1,8 +1,10 @@
 import { ASSIGNMENT, PROBLEM_MAP } from "@/data/assignment";
 import type { Diagnostic } from "@/data/diagnostic";
-import type { Problem, Stage, Stroke } from "@/data/types";
+import type { Problem, QuestionPair, Stage, Stroke } from "@/data/types";
 import { activeAssignment } from "./assignment";
-import { currentSlide, lessonOver, pathwayOf, type BoardView, type ClassroomState, type FollowMode } from "./classroom";
+import { currentSlide, lessonOver, pathwayOf, type BoardView, type ClassroomState } from "./classroom";
+import type { ClassStep } from "./classReview";
+import { pairFor } from "./pairs";
 import { liveDiagnostic, questionFor, tally, type Tally } from "./diagnostic";
 import { chainPosition, currentIndex, isLastStep, type DiagnosticRun } from "./diagnosticChain";
 import { liveAbsent } from "./absence";
@@ -16,7 +18,8 @@ import { leaderboardAt, type RankedStanding } from "./standings";
  * What the smartboard shows. The board is the third surface: opened once at the start of the
  * lesson and left on the projector. It reads the classroom state and the pathway and decides per
  * stage; nothing on it names a student. Its only controls are in whole-class review, where the
- * teacher is standing at it: the working pad and the frozen / write-with-me toggle.
+ * teacher is standing at it: the working pad on the examples, and the one control that moves the class
+ * through the question's three steps (ticket 344).
  *
  *  - `blank` while students work and through individual review: the class and the assignment
  *    title, so a projector that is on doesn't read as broken, and nothing else. Also after
@@ -25,9 +28,10 @@ import { leaderboardAt, type RankedStanding } from "./standings";
  *    race, five standings ranked with medals for the first three to finish.
  *  - `holding` once group review is over and the teacher has not advanced: the same standings,
  *    final, held on the wall until the teacher projects or ends.
- *  - `whole-class` while the teacher is projecting: the current problem, its anonymous examples
- *    with "n/m students" (marks only in the marked view), the teacher's working (a pad the
- *    teacher writes on at the board, or a mirror of the laptop's) and the students' mode.
+ *  - `whole-class` while the teacher is projecting: the current question at the step it is on
+ *    (ticket 344) — its anonymous examples beside the teacher's working (a pad the teacher writes on
+ *    at the board, or a mirror of the laptop's), then Q* revealed a line at a time, then Q** while
+ *    the class writes it. Never a count of students (ticket 202).
  *  - `diagnostic` over any of those while a live diagnostic chain is out (ticket 241): the board
  *    takes over at the push and shows the current step, "1st of 3" on a longer chain and how many
  *    have answered, the right option green only once the step has closed (all in, or force
@@ -70,8 +74,12 @@ export type BoardContent =
       /** The teacher's marks over the slide (ticket 330), and how many strokes the problem has in all (pad and slide) for Undo / Clear. */
       markup: Markup[];
       inkCount: number;
-      /** What the students' screens are doing: mirroring `teacherInk`, or writing along. */
-      mode: FollowMode;
+      /** Which of the question's three steps the board is on (ticket 344), and the last question, whose move on is "Finish". */
+      step: ClassStep;
+      last: boolean;
+      /** Q* and Q** for this question, and how many lines of Q* are on screen; null on a question with no pair, which runs its examples alone. */
+      pair: QuestionPair | null;
+      reveal: number;
     } & Lesson);
 
 /** Stages a student can only be in once their group review is behind them (or the whole lesson is). */
@@ -96,7 +104,7 @@ export function boardContent(c: ClassroomState | null | undefined, session: Stud
   if (slide) {
     const problem = PROBLEM_MAP[slide.problemId];
     const refs = c?.wholeClass?.examples[slide.problemId] ?? [];
-    return { kind: "whole-class", ...lesson, problem, index: slide.index, total: slide.total, view: slide.view, examples: boardExamples(refs, slide.problemId, session), teacherInk: slide.teacherInk, markup: slide.markup, inkCount: slide.inkCount, mode: slide.mode };
+    return { kind: "whole-class", ...lesson, problem, index: slide.index, total: slide.total, view: slide.view, examples: boardExamples(refs, slide.problemId, session), teacherInk: slide.teacherInk, markup: slide.markup, inkCount: slide.inkCount, step: slide.step, last: slide.last, pair: pairFor(slide.problemId), reveal: slide.reveal };
   }
   if (lessonOver(c)) return { kind: "blank", ...lesson };
   if (c?.group && !c.group.done) return { kind: "group", ...lesson, standings: leaderboardAt(c, session, now) };

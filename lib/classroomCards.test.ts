@@ -119,7 +119,7 @@ describe("the Classroom's cards", () => {
       expect(assignmentCard(assignmentBundle("pset-6", classroom)!, classroom, session, now), skip).toMatchObject({ section: "live", status: "in review" });
     }
     const { classroom, session } = skipFixture("class review", now);
-    const ended: ClassroomState = { ...classroom, wholeClass: { problems: [], examples: {}, slide: 0, view: "unmarked", status: "ended", modes: {}, ink: {} } };
+    const ended: ClassroomState = { ...classroom, wholeClass: { problems: [], examples: {}, slide: 0, view: "unmarked", status: "ended", step: "examples", reveal: 0, ink: {} } };
     expect(assignmentCard(assignmentBundle("pset-6", ended)!, ended, session, now)).toMatchObject({ section: "past", status: "done" });
   });
 

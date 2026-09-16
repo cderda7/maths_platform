@@ -156,12 +156,15 @@ START opens a set; the Edexia mark returns:
    gets it wrong first, the attempt shown at the top of the column up to the first mistake, and the
    debrief after the group's rework asks Sam to describe his own mistake.
 6. **Class review**: the teacher projects; a one-minute countdown shows on every student
-   screen; then the iPad freezes on what the board shows: the problem and the same two or three
-   examples in the same columns, beside a mirror of the teacher's pad (or the student's own pad in
-   "write with me"). No counts on the iPad: a light blue "your approach" tag sits on the
-   example that was the student's own first hand-in. When the teacher shows marks on the board,
-   the same lines show red and blue on the iPad, and whatever the teacher draws over the problem or
-   the examples shows over the same maths, in both modes. End releases everyone to the report.
+   screen; then the iPad freezes on the board's question, at whichever of its three steps the
+   board is on (ticket 344). Examples: the same two or three workings in the same columns beside a
+   mirror of the teacher's pad, a light blue "your approach" tag on the example that was the
+   student's own first hand-in, and, once the teacher shows marks, the same lines red and blue on
+   the iPad; whatever the teacher draws over the problem or the examples shows over the same maths.
+   Worked example: a similar question (Q\*) revealed a line at a time, on the board and every iPad
+   alike. Students' turn: a second similar question (Q\*\*), the whole thing, on the student's own
+   canvas, each line marked as they write it, no count anywhere. The teacher moves the class on
+   with a five-second countdown; End releases everyone to the report.
 7. **Report** in the teacher's colours (each category's pill carrying its name in white on its
    status colour, the groups beneath), a 2–3 sentence reflection in a 320 px panel, send.
 
@@ -226,13 +229,16 @@ for hints. Sam's place comes from his session.
   then the problem's most common exact mistakes, each slot headed by the mistake's name and
   count (green for correct, red for a mistake) with the skill chip, **unit focus** and
   **fixed in group review** badges, the names under the working (private); a menu on the
-  header lists the problem's mistakes with counts to swap the working; **Student screens** (screens frozen / write with me) starts with neither chosen and
-  **Project** sits faded until you pick one (press it anyway and it reads **select one** while the
-  two options flash light blue). **Project** puts the first problem on the board and starts the grace (the header's Present board pulses if no board is open).
-- **Board controls** (`/teacher/board`): which problem is up, the board's A/B/C examples beside the
-  teacher's pad (mirrored to frozen students and to the board); the pen works anywhere over the
-  question and the examples too, and each mark shows over the same maths on the board and every
-  iPad; Previous · screens frozen / write with me · Show marks · End · Next.
+  header lists the problem's mistakes with counts to swap the working; **Project** needs only the
+  ordered questions checked (ticket 344: each one runs the same three steps, so there is no mode to
+  choose). **Project** puts the first problem on the board and starts the grace (the header's Present board pulses if no board is open).
+- **Board controls** (`/teacher/board`): which problem is up and which of its three steps
+  (ticket 344): the board's A/B/C examples beside the teacher's pad (mirrored to frozen students
+  and to the board, the pen working anywhere over the question and the examples too, each mark
+  showing over the same maths on the board and every iPad), then a similar question worked a line
+  at a time, then the class writing a second similar question on their own iPads with no count
+  shown; Previous · Show marks (examples only) · End · the one control that steps the question on,
+  then moves the class to the next one after its five-second countdown.
 
 Present board (ticket 333): the teacher header, just before the teacher's name on every teacher page, carries
 **Present board**. In Chrome and Edge a press (the first asks to manage windows; if that prompt used up the press

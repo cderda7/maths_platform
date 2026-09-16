@@ -38,14 +38,14 @@ const everyoneIn = (c: ClassroomState, now: number) => classroomReducer(c, { typ
 /** How many problems the whole-class jump projects: the two the class struggled with most. */
 const PROJECTED = 2;
 
-/** Class review as the teacher's setup would suggest it from `session`: the most-struggled problems in set order, suggested examples, screens frozen. */
+/** Class review as the teacher's setup would suggest it from `session`: the most-struggled problems in set order, with suggested examples. */
 function suggestedSetup(session: StudentSession, absent: readonly string[]): ClassroomAction {
   const problems = problemsByStruggle(session, absent)
     .slice(0, PROJECTED)
     .map((r) => r.problem.id);
   const ordered = ASSIGNMENT.problems.map((p) => p.id).filter((id) => problems.includes(id));
   const examples = Object.fromEntries(ordered.map((id) => [id, suggestExamples(candidatesFor(id, session, absent))]));
-  return { type: "wc/setup", problems: ordered, examples, mode: "frozen" };
+  return { type: "wc/setup", problems: ordered, examples };
 }
 
 /**
@@ -258,7 +258,8 @@ function completeLesson(c: ClassroomState, session: StudentSession | null, now: 
     // so the report's "Covered in class review" reads every projected problem. A class review already ended stands.
     if (!next.wholeClass) next = classroomReducer(next, suggestedSetup(sam, liveAbsent(next)));
     if (next.wholeClass?.status === "setup") next = classroomReducer(next, { type: "wc/project", at: now - GRACE_MS - 1000 });
-    while (next.wholeClass?.status === "active" && next.wholeClass.slide < next.wholeClass.problems.length - 1) next = classroomReducer(next, { type: "wc/next" });
+    // Every question moved on as the five-second countdown does (ticket 344), each move its own id so none is taken for a repeat.
+    while (next.wholeClass?.status === "active" && next.wholeClass.slide < next.wholeClass.problems.length - 1) next = classroomReducer(next, { type: "wc/advance", id: `complete@${next.wholeClass.slide}` });
     if (next.wholeClass?.status === "active") next = classroomReducer(next, { type: "wc/end" });
   }
   return { classroom: next, session: sam };

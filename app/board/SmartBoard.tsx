@@ -11,12 +11,14 @@ import { Eyebrow } from "@/components/ui";
 import { ASSIGNMENT } from "@/data/assignment";
 import type { Stroke } from "@/data/types";
 import { boardContent, type BoardContent } from "@/lib/board";
-import { FOLLOW_MODE_WORD, type FollowMode } from "@/lib/classroom";
 import { dispatchClassroom, useClassroom } from "@/lib/classroom-store";
 import { lineMarks } from "@/lib/examples";
 import { ANCHOR } from "@/lib/markup";
 import { useLiveSession, useNow } from "@/lib/store";
 import { useBoardBeat } from "@/lib/boardPresence-store";
+import { useClassAdvance } from "@/components/useClassAdvance";
+import ClassStepControl from "@/components/ClassStepControl";
+import WorkedLines from "@/components/WorkedLines";
 import FullscreenButton from "./FullscreenButton";
 import Leaderboard from "./Leaderboard";
 import StemWords from "@/components/StemWords";
@@ -24,8 +26,8 @@ import StemWords from "@/components/StemWords";
 /**
  * The smartboard: opened once at the start of the lesson from the laptop's Present board (ticket 333) and left on the projector. Display
  * only, except in whole-class review, where the teacher stands at the board: the working pad
- * takes the pen there (mirrored to frozen students and to the laptop) and a toggle switches the
- * students' screens between frozen and write with me. What it shows per stage is `boardContent`;
+ * takes the pen there (mirrored to the students and to the laptop) and the one control at the top
+ * right moves the class through the question's three steps (ticket 344). What it shows per stage is `boardContent`;
  * this file only draws it. Nothing here names a student or shows a difficulty. A live diagnostic
  * chain (ticket 241) takes the whole board from the push until done, with the teacher's one control.
  */
@@ -133,77 +135,107 @@ function Race({ content }: { content: Extract<BoardContent, { kind: "group" | "h
 }
 
 /**
- * One projected problem: the statement, 2–3 anonymous examples, and the teacher's working. The
- * pad is live: the teacher writes on the smartboard and every frozen student's pad shows the same
- * strokes (`wc/stroke`, the same action the laptop sends). The toggle in the header sets the
- * students' mode for this problem. The pen works anywhere else on the slide too (ticket 330): a mark over the problem or
- * an example is pinned to the maths under it and shows over the same maths on the laptop and every student's screen.
- * Undo and Clear beside the toggle act on the pad and the marks alike, as the pad's own do.
+ * One projected question, at the step the class is on (ticket 344).
+ *
+ *  - `examples`: the statement, 2–3 anonymous examples, and the teacher's working. The pad is live: the teacher writes on
+ *    the smartboard and every student's pad shows the same strokes (`wc/stroke`, the same action the laptop sends). The pen
+ *    works anywhere else on the slide too (ticket 330): a mark over the problem or an example is pinned to the maths under
+ *    it and shows over the same maths on the laptop and every student's screen. Undo and Clear act on the pad and the marks
+ *    alike, as the pad's own do.
+ *  - `worked`: Q* for this question, revealed a line at a time, the same lines on every iPad.
+ *  - `turn`: Q** while the class writes it on their own iPads. The question, and nothing about who has how much done —
+ *    the board has shown no count of students since ticket 202; the counts are the teacher's, on the laptop (ticket 320).
+ *
+ * The one control at the top right moves the class on: through the steps, then, with the five-second countdown in its
+ * place, to the next question.
  */
 function Slide({ content }: { content: Extract<BoardContent, { kind: "whole-class" }> }) {
-  const { problem: p, examples, view, teacherInk, markup, inkCount, mode, index } = content;
+  const { problem: p, examples, view, teacherInk, markup, inkCount, index, step, pair, reveal } = content;
   const pid = p.id;
+  useClassAdvance();
   const addStroke = (next: Stroke[]) => dispatchClassroom({ type: "wc/stroke", problem: pid, stroke: next[next.length - 1] });
   const undo = () => dispatchClassroom({ type: "wc/ink-undo", problem: pid });
   const clear = () => dispatchClassroom({ type: "wc/ink-clear", problem: pid });
-  return (
-    <SlideInk marks={markup} onMark={(mark) => dispatchClassroom({ type: "wc/stroke", problem: pid, stroke: mark })} className="flex min-h-0 flex-1 flex-col">
-      <header className="flex items-center justify-between px-10 py-6" data-slide={index} data-view={view}>
-        <div className="flex items-center gap-5">
-          <span className="font-display text-[34px] text-ink" data-ink-anchor={ANCHOR.label}>
-            {p.label}
+  // Each step shows its own question: the set's, then Q*, then Q**.
+  const shown = step === "worked" && pair ? pair.worked : step === "turn" && pair ? pair.completion : p;
+  const anchored = step === "examples";
+  const head = (
+    <>
+      <header className="flex items-center justify-between px-10 py-6" data-slide={index} data-view={view} data-step={step}>
+        <div className="flex min-w-0 items-center gap-5">
+          <span className="shrink-0 font-display text-[34px] text-ink" data-ink-anchor={anchored ? ANCHOR.label : undefined}>
+            {shown.label}
           </span>
-          <span className="math-lg text-[30px] text-ink" data-ink-anchor={ANCHOR.tex}>
-            <M tex={p.tex} />
+          <span className="math-lg overflow-x-auto text-[30px] text-ink" data-ink-anchor={anchored ? ANCHOR.tex : undefined}>
+            <M tex={shown.tex} />
           </span>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1" data-board-ink-tools>
-            <button type="button" onClick={undo} disabled={inkCount === 0} className="rounded-full px-4 py-2 text-[16px] text-ink-soft hover:text-ink disabled:opacity-30" data-board-undo>
-              Undo
-            </button>
-            <button type="button" onClick={clear} disabled={inkCount === 0} className="rounded-full px-4 py-2 text-[16px] text-ink-soft hover:text-ink disabled:opacity-30" data-board-clear>
-              Clear
-            </button>
-          </div>
-          <div className="flex items-center rounded-full border border-line bg-paper p-1" role="group" aria-label="Student screens" data-mode-toggle>
-            {(["frozen", "write-with-me"] as FollowMode[]).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => dispatchClassroom({ type: "wc/mode", problem: pid, mode: m })}
-                aria-pressed={mode === m}
-                data-mode={m}
-                className={`rounded-full px-5 py-2 text-[16px] transition-colors ${mode === m ? "bg-ink text-white" : "text-ink-soft hover:text-ink"}`}
-              >
-                {FOLLOW_MODE_WORD[m]}
+        <div className="flex shrink-0 items-center gap-4">
+          {anchored && (
+            <div className="flex items-center gap-1" data-board-ink-tools>
+              <button type="button" onClick={undo} disabled={inkCount === 0} className="rounded-full px-4 py-2 text-[16px] text-ink-soft hover:text-ink disabled:opacity-30" data-board-undo>
+                Undo
               </button>
-            ))}
-          </div>
+              <button type="button" onClick={clear} disabled={inkCount === 0} className="rounded-full px-4 py-2 text-[16px] text-ink-soft hover:text-ink disabled:opacity-30" data-board-clear>
+                Clear
+              </button>
+            </div>
+          )}
+          <ClassStepControl step={step} reveal={reveal} lines={pair?.worked.solution.length ?? 0} last={content.last} hasPair={!!pair} size="board" />
         </div>
       </header>
       <p className="px-10 text-[20px] text-ink-soft">
-        <span data-ink-anchor={ANCHOR.stem}>
-          <StemWords stem={p.stem} />
+        <span data-ink-anchor={anchored ? ANCHOR.stem : undefined}>
+          <StemWords stem={shown.stem} />
         </span>
       </p>
+    </>
+  );
 
-      {/* The pad is 380 wide (its title and toolbar on one line) and the example cards fitted (ticket 161) so the widest line of any example stands on one line at the board's 1440 width. */}
-      <main className="mt-6 mb-8 grid min-h-0 flex-1 grid-cols-[1fr_380px] gap-4 px-10">
-        <ExampleColumns
-          size="board"
-          examples={examples.map((e) => {
-            const marks = view === "marked" ? lineMarks(p.id, e.lines) : [];
-            return {
-              letter: e.letter,
-              lines: e.lines.map((tex, i) => ({ tex, mark: marks[i] ?? null })),
-            };
-          })}
-        />
-        <section className="flex min-h-0 flex-col rounded-3xl border border-line bg-paper shadow-card" data-teacher-pad data-mode={mode}>
-          <PadSection title={`${ASSIGNMENT.teacher}'s working`} strokes={teacherInk} onStrokesChange={addStroke} onBurstEnd={() => undefined} onPenDown={() => undefined} onUndo={undo} onClear={clear} inkCount={inkCount} />
-        </section>
-      </main>
-    </SlideInk>
+  if (step === "examples")
+    return (
+      <SlideInk marks={markup} onMark={(mark) => dispatchClassroom({ type: "wc/stroke", problem: pid, stroke: mark })} className="flex min-h-0 flex-1 flex-col">
+        {head}
+        {/* The pad is 380 wide (its title and toolbar on one line) and the example cards fitted (ticket 161) so the widest line of any example stands on one line at the board's 1440 width. */}
+        <main className="mt-6 mb-8 grid min-h-0 flex-1 grid-cols-[1fr_380px] gap-4 px-10">
+          <ExampleColumns
+            size="board"
+            examples={examples.map((e) => {
+              const marks = view === "marked" ? lineMarks(p.id, e.lines) : [];
+              return {
+                letter: e.letter,
+                lines: e.lines.map((tex, i) => ({ tex, mark: marks[i] ?? null })),
+              };
+            })}
+          />
+          <section className="flex min-h-0 flex-col rounded-3xl border border-line bg-paper shadow-card" data-teacher-pad>
+            <PadSection title={`${ASSIGNMENT.teacher}'s working`} strokes={teacherInk} onStrokesChange={addStroke} onBurstEnd={() => undefined} onPenDown={() => undefined} onUndo={undo} onClear={clear} inkCount={inkCount} />
+          </section>
+        </main>
+      </SlideInk>
+    );
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      {head}
+      {step === "worked" && pair ? (
+        // The lines open under the stem, on the page's own left edge, so the question and its working read as one column.
+        <main className="mt-6 mb-8 min-h-0 flex-1 overflow-y-auto px-10" data-board-step={step}>
+          <div className="w-full max-w-[900px]">
+            <WorkedLines steps={pair.worked.solution} shown={reveal} size="board" />
+          </div>
+        </main>
+      ) : (
+        // The class is writing: the board holds one calm panel, centred, and says nothing about who has how much done.
+        <main className="mt-6 mb-8 grid min-h-0 flex-1 place-items-center px-10" data-board-step={step}>
+          {/* Wide enough that neither line wraps at the board's 1280 (its widest sentence is 43 characters of the display face at 34px). */}
+          <div className="max-w-[920px] rounded-3xl border border-dashed border-line-strong px-12 py-12 text-center" data-board-turn>
+            <p className="font-display text-[34px] leading-snug text-ink">Everyone writes this one on their own iPad.</p>
+            <p className="mt-4 text-[22px] leading-snug text-ink-soft">Write the whole working. Each line is marked as you write it.</p>
+          </div>
+        </main>
+      )}
+    </div>
   );
 }
+

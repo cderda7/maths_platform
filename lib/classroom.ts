@@ -14,6 +14,7 @@ import { absentOf, liveAbsent, withAbsence } from "./absence";
 import type { IsoDay } from "./dueDate";
 import type { CreateKind } from "./createPipeline";
 import { answerMoved, answerPathway, decisionsReducer, type DecisionAction, type LessonDecision } from "./decisionState";
+import { lastStep, workedLines, type ClassStep } from "./classReview";
 
 export type { DiagnosticRun } from "./diagnosticChain";
 
@@ -91,7 +92,7 @@ export interface SentHomework {
  * `end-lesson` is the card's "end lesson" on a last stage that is not class review (ticket 273): every student still in
  * the lesson lands on their report with their work as it stands, and the lesson ends (`lesson/end`).
  */
-export type AdvanceKind = "force-submit" | "force-review" | "force-group" | "whole-class-start" | "end-lesson";
+export type AdvanceKind = "force-submit" | "force-review" | "force-group" | "whole-class-start" | "end-lesson" | "class-review-next";
 export interface PendingAdvance {
   id: string;
   kind: AdvanceKind;
@@ -101,22 +102,35 @@ export interface PendingAdvance {
 
 /** The universal grace between a teacher advance and its effect. */
 export const GRACE_MS = 60_000;
+/** Class review's move to the next question (ticket 344): five seconds, long enough to finish the line in hand, short enough to keep the class together. */
+export const CLASS_REVIEW_GRACE_MS = 5_000;
+/** How long an advance of this kind counts down for; every countdown on every screen reads it, so a tab never shows a grace the reducer did not give. */
+export const graceFor = (kind: AdvanceKind): number => (kind === "class-review-next" ? CLASS_REVIEW_GRACE_MS : GRACE_MS);
 /** An advance whose deadline passed longer ago than this is ignored by a tab that never saw it. */
 export const STALE_MS = 60_000;
 
 /** The whole-class review session: chosen problems, chosen examples, and where the board is. */
 export type BoardView = "unmarked" | "marked";
-/** What a student's pad does during whole-class review: mirror the teacher's writing, or take the student's own. */
-export type FollowMode = "frozen" | "write-with-me";
-export const FOLLOW_MODE_WORD: Record<FollowMode, string> = { frozen: "screens frozen", "write-with-me": "write with me" };
 export interface WholeClassSession {
   problems: string[];
   examples: Record<string, ExampleRef[]>;
   slide: number;
   view: BoardView;
   status: "setup" | "active" | "ended";
-  /** The mode per projected problem, seeded from the setup choice; the board can change one at a time. */
-  modes: Record<string, FollowMode>;
+  /**
+   * Which of the question's three steps the board is on (ticket 344): its examples, Q* revealed line by line, then the
+   * class writing Q**. A question with no pair has the examples alone. Absent in sessions stored before 344, which read
+   * as the examples, the one step they had.
+   */
+  step?: ClassStep;
+  /** How many lines of Q* are on screen during the worked step; 0 until the teacher reveals the first. Back to 0 on every step change. */
+  reveal?: number;
+  /**
+   * The id of the advance that last moved the class on (ticket 344). The five-second countdown is applied by whichever
+   * tabs are open — the board, the laptop, every iPad — so the move is recorded here and every later application of the
+   * same advance changes nothing.
+   */
+  movedBy?: string;
   /** The teacher's writing per problem in drawing order: pad strokes, mirrored onto frozen students' pads, and marks pinned over the slide (ticket 330), shown on every student's. */
   ink: Record<string, WholeClassInk[]>;
   /**
@@ -279,18 +293,20 @@ export type ClassroomAction =
    * that applies it stamps the same moment) and a group run still going ended where it stands. Idempotent: an ended lesson keeps its moment.
    */
   | { type: "lesson/end"; at: number }
-  | { type: "wc/setup"; problems: string[]; examples: Record<string, ExampleRef[]>; mode?: FollowMode }
-  /** Switch one projected problem's mode from the board. */
-  | { type: "wc/mode"; problem: string; mode: FollowMode }
+  | { type: "wc/setup"; problems: string[]; examples: Record<string, ExampleRef[]> }
   /** The teacher's pad on the board. */
   | { type: "wc/stroke"; problem: string; stroke: WholeClassInk }
   | { type: "wc/ink-undo"; problem: string }
   | { type: "wc/ink-clear"; problem: string }
   /** Activates the session and starts the whole-class-start grace in one step, so no tab can see one without the other. */
   | { type: "wc/project"; at?: number }
+  /** One beat forward inside the question (ticket 344): examples → Q*, a line of Q* revealed, Q* whole → the students' turn. Nothing on the last step, which the countdown ends. */
   | { type: "wc/next" }
+  /** One beat back: the students' turn → Q* whole, a line of Q* taken back, Q* → the examples with their marks, the marks off, then the question before. */
   | { type: "wc/prev" }
   | { type: "wc/marks"; on: boolean }
+  /** The five-second countdown ran out (ticket 344): on to the next question's examples, or class review over on the last. Applied once, by `id`, however many tabs apply it. */
+  | { type: "wc/advance"; id: string }
   | { type: "wc/end" }
   /** The Class View roster's toggle (ticket 250): a student marked absent on an assignment, or back in the room. Idempotent. */
   | { type: "absence/set"; assignment: string; student: string; absent: boolean }
@@ -362,7 +378,7 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
       return { ...newLesson(c), assignmentGroups: { ...(c.assignmentGroups ?? {}), [a.id ?? ASSIGNMENT.id]: a.groups ?? seatingOf(c.groups) }, assignment: { title: a.title, problemIds: [...a.problemIds], pathway: [...a.pathway], ...(a.newSkills ? { newSkills: [...a.newSkills] } : {}), createdAt: a.at ?? 0, startedAt: a.startedAt ?? a.at ?? 0, ...(a.goal !== undefined ? { goal: a.goal } : {}), ...(a.questions ? { questions: a.questions.map((q) => ({ ...q })) } : {}), ...(a.due !== undefined ? { due: a.due } : {}) } };
     case "advance/start": {
       const at = a.at ?? 0;
-      return { ...c, advance: { id: `${a.kind}@${at}`, kind: a.kind, deadline: at + GRACE_MS } };
+      return { ...c, advance: { id: `${a.kind}@${at}`, kind: a.kind, deadline: at + graceFor(a.kind) } };
     }
     case "advance/clear":
       return { ...c, advance: null };
@@ -410,12 +426,8 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
         e.kind === "stroke" ? groupReducer(g, { type: "group/stroke", stroke: e.stroke }) : e.kind === "line" ? groupReducer(g, { type: "group/line", tex: e.tex }) : e.kind === "clear" ? groupReducer(g, { type: "group/clear" }) : groupReducer(g, { type: "group/check", at: a.at });
       return { ...c, group: { ...applied, scriptDone: g.scriptDone + 1 } };
     }
-    case "wc/setup": {
-      const mode = a.mode ?? "frozen";
-      return { ...c, wholeClass: { problems: [...a.problems], examples: a.examples, slide: 0, view: "unmarked", status: "setup", modes: Object.fromEntries(a.problems.map((id) => [id, mode])), ink: {} } };
-    }
-    case "wc/mode":
-      return c.wholeClass ? { ...c, wholeClass: { ...c.wholeClass, modes: { ...(c.wholeClass.modes ?? {}), [a.problem]: a.mode } } } : c;
+    case "wc/setup":
+      return { ...c, wholeClass: { problems: [...a.problems], examples: a.examples, slide: 0, view: "unmarked", status: "setup", step: "examples", reveal: 0, ink: {} } };
     case "wc/stroke": {
       const w = c.wholeClass;
       if (!w) return c;
@@ -431,20 +443,45 @@ export function classroomReducer(c: ClassroomState, a: ClassroomAction): Classro
     case "wc/project": {
       if (!c.wholeClass) return c;
       const at = a.at ?? 0;
-      return { ...c, wholeClass: { ...c.wholeClass, status: "active", slide: 0, view: "unmarked", reached: Math.max(c.wholeClass.reached ?? 0, 0) }, advance: { id: `whole-class-start@${at}`, kind: "whole-class-start", deadline: at + GRACE_MS } };
+      return { ...c, wholeClass: { ...c.wholeClass, status: "active", slide: 0, view: "unmarked", step: "examples", reveal: 0, reached: Math.max(c.wholeClass.reached ?? 0, 0) }, advance: { id: `whole-class-start@${at}`, kind: "whole-class-start", deadline: at + GRACE_MS } };
     }
     case "wc/next": {
       const w = c.wholeClass;
       if (!w) return c;
-      if (w.slide >= w.problems.length - 1) return c;
-      return { ...c, wholeClass: { ...w, slide: w.slide + 1, view: "unmarked", reached: Math.max(w.reached ?? w.slide, w.slide + 1) } };
+      const pid = w.problems[w.slide];
+      if (!pid) return c;
+      const step = w.step ?? "examples";
+      // The last step is the teacher's "Next question" (the countdown), not a beat inside the question.
+      if (step === lastStep(pid)) return c;
+      if (step === "examples") return { ...c, wholeClass: { ...w, step: "worked", reveal: 0, view: "unmarked" } };
+      const reveal = w.reveal ?? 0;
+      if (reveal < workedLines(pid)) return { ...c, wholeClass: { ...w, reveal: reveal + 1 } };
+      return { ...c, wholeClass: { ...w, step: "turn", reveal } };
     }
     case "wc/prev": {
       const w = c.wholeClass;
       if (!w) return c;
+      const pid = w.problems[w.slide];
+      if (!pid) return c;
+      const step = w.step ?? "examples";
+      // Q* comes back whole, then a line at a time, then the examples with their marks: the walk forward, backwards.
+      if (step === "turn") return { ...c, wholeClass: { ...w, step: "worked", reveal: workedLines(pid) } };
+      if (step === "worked") {
+        const reveal = w.reveal ?? 0;
+        return reveal > 0 ? { ...c, wholeClass: { ...w, reveal: reveal - 1 } } : { ...c, wholeClass: { ...w, step: "examples", reveal: 0, view: "marked" } };
+      }
       if (w.view === "marked") return { ...c, wholeClass: { ...w, view: "unmarked" } };
       if (w.slide === 0) return c;
-      return { ...c, wholeClass: { ...w, slide: w.slide - 1, view: "marked" } };
+      // Back past the start of a question is a look at the one before, at its examples with their marks, as it was before ticket 344.
+      return { ...c, wholeClass: { ...w, slide: w.slide - 1, step: "examples", reveal: 0, view: "marked" } };
+    }
+    case "wc/advance": {
+      const w = c.wholeClass;
+      if (!w || w.movedBy === a.id) return c;
+      const moved = { ...w, movedBy: a.id, step: "examples" as ClassStep, reveal: 0, view: "unmarked" as BoardView };
+      // The last question's "Finish" ends class review, as End does; every other moves the class on to the next question's examples.
+      if (w.slide >= w.problems.length - 1) return { ...c, wholeClass: { ...moved, status: "ended" }, advance: null };
+      return { ...c, wholeClass: { ...moved, slide: w.slide + 1, reached: Math.max(w.reached ?? w.slide, w.slide + 1) }, advance: null };
     }
     case "wc/marks":
       return c.wholeClass ? { ...c, wholeClass: { ...c.wholeClass, view: a.on ? "marked" : "unmarked" } } : c;
@@ -517,15 +554,18 @@ export function boardCovered(c: ClassroomState | null | undefined): string[] | n
   return w.problems.slice(0, w.reached + 1);
 }
 
-/** The problem id on the board right now, if projecting. */
-export function currentSlide(c: ClassroomState | null | undefined): { problemId: string; view: BoardView; index: number; total: number; mode: FollowMode; teacherInk: Stroke[]; markup: Markup[]; inkCount: number } | null {
+/** The problem id on the board right now, which of its three steps it is on (ticket 344), and how much of Q* is revealed; null unless projecting. */
+export function currentSlide(c: ClassroomState | null | undefined): { problemId: string; view: BoardView; index: number; total: number; step: ClassStep; reveal: number; last: boolean; teacherInk: Stroke[]; markup: Markup[]; inkCount: number } | null {
   const w = c?.wholeClass;
   if (!w || w.status !== "active") return null;
   const problemId = w.problems[w.slide];
   if (!problemId) return null;
-  // Older stored sessions have no modes or ink: frozen, nothing written.
+  // Older stored sessions have no step, reveal or ink: the examples, nothing revealed, nothing written.
   const { pad, marks, count } = splitInk(w.ink?.[problemId] ?? NO_INK);
-  return { problemId, view: w.view, index: w.slide, total: w.problems.length, mode: w.modes?.[problemId] ?? "frozen", teacherInk: pad, markup: marks, inkCount: count };
+  const lines = workedLines(problemId);
+  // A question with no Q*/Q** has only its examples, whatever a stored session says.
+  const step: ClassStep = lines === 0 ? "examples" : (w.step ?? "examples");
+  return { problemId, view: w.view, index: w.slide, total: w.problems.length, step, reveal: Math.min(w.reveal ?? 0, lines), last: w.slide >= w.problems.length - 1, teacherInk: pad, markup: marks, inkCount: count };
 }
 
 const NO_INK: WholeClassInk[] = [];

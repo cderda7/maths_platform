@@ -55,7 +55,9 @@ describe("what the board shows per stage", () => {
     expect(first.total).toBe(2);
     expect(first.view).toBe("unmarked");
     expect(first.teacherInk).toEqual([]);
-    expect(first.mode).toBe("frozen");
+    expect(first.step).toBe("examples");
+    expect(first.reveal).toBe(0);
+    expect(first.last).toBe(false);
     expect(first.examples.length).toBeGreaterThanOrEqual(2);
     for (const e of first.examples) {
       expect(e.letter).toMatch(/^[ABC]$/);
@@ -76,16 +78,25 @@ describe("what the board shows per stage", () => {
     expect(withMark.markup).toEqual([{ anchor: "A/0", points: [{ x: 1, y: 0.5 }] }]);
     expect(withMark.inkCount).toBe(2);
 
-    // The board's toggle: the same action the laptop sends, per problem.
-    classroom = classroomReducer(classroom, { type: "wc/mode", problem: first.problem.id, mode: "write-with-me" });
-    const writing = boardContent(classroom, session);
-    if (writing.kind !== "whole-class") throw new Error("expected the board");
-    expect(writing.mode).toBe("write-with-me");
-
+    // The board's one control: on through the question's steps, Q* a line at a time (ticket 344).
     classroom = classroomReducer(classroom, { type: "wc/next" });
+    const worked = boardContent(classroom, session);
+    if (worked.kind !== "whole-class") throw new Error("expected the board");
+    expect(worked.step).toBe("worked");
+    expect(worked.reveal).toBe(0);
+    expect(worked.pair?.worked.id).toBe(`${first.problem.id}-star`);
+    classroom = classroomReducer(classroom, { type: "wc/next" });
+    const revealed = boardContent(classroom, session);
+    if (revealed.kind !== "whole-class") throw new Error("expected the board");
+    expect(revealed.reveal).toBe(1);
+
+    // The countdown's move: the next question, back on its examples.
+    classroom = classroomReducer(classroom, { type: "wc/advance", id: "a" });
     const second = boardContent(classroom, session);
     if (second.kind !== "whole-class") throw new Error("expected the board");
-    expect(second.mode).toBe("frozen");
+    expect(second.step).toBe("examples");
+    expect(second.reveal).toBe(0);
+    expect(second.last).toBe(true);
     expect(second.index).toBe(1);
     expect(second.problem.id).toBe(classroom.wholeClass!.problems[1]);
     expect(second.view).toBe("unmarked");

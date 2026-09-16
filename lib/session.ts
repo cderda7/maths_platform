@@ -69,6 +69,21 @@ export interface PracticeRun {
 
 export const INITIAL_RUN: PracticeRun = { problem: "first", example: false, exampleShown: 0, hinted: {}, exampled: [], lines: {}, ink: {}, chat: {} };
 
+/**
+ * What one student wrote on one class review question's Q** (ticket 344): the lines the pad read, in order, and the ink
+ * behind them. Kept apart from the set's marked `lines`/`ink`, like a practice run's, so nothing written in class review
+ * is evaluated into a version, counted or scored; the marks the student sees are derived (`turnFor` in `lib/classReview.ts`).
+ */
+export interface ClassReviewWork {
+  lines: RevealedLine[];
+  ink: Stroke[];
+}
+
+const NO_CLASS_WORK: ClassReviewWork = { lines: [], ink: [] };
+
+/** What this student has written on class review question `problemId`; empty before they write. */
+export const classWorkOf = (s: Pick<StudentSession, "classReview">, problemId: string): ClassReviewWork => s.classReview?.[problemId] ?? NO_CLASS_WORK;
+
 /** Which run an action is about: the warm-up before the set, the practice over it (Q* and Q** since ticket 312), or the hints and chat on a set question once back on it after practice. */
 export type RunKey = "warmup" | "overlay" | "question";
 
@@ -157,8 +172,12 @@ export interface StudentSession {
    * null before, and again after the set is handed in.
    */
   handInCheck: "open" | "returning" | null;
-  /** What the student wrote along with the teacher during whole-class review, per problem. Never marked, never a version. */
-  followInk: Record<string, Stroke[]>;
+  /**
+   * What the student wrote on each class review question's Q** (ticket 344), by the set question the board was on. The
+   * lines are marked as they are read (`turnFor` in `lib/classReview.ts`, which any live view of the class calls per
+   * student) but never become a version, and nothing here reaches the report or the set score.
+   */
+  classReview: Record<string, ClassReviewWork>;
   /** The debrief after each group rework: whether the student has moved on (Next). */
   debrief: Record<string, DebriefNote>;
   /** Ids of teacher advances this session has already applied, so tabs and reloads converge. */
@@ -237,10 +256,11 @@ export type SessionAction =
   /** Refused while the guard is tripped on any problem, unless `force` (a teacher advance). */
   | { type: "rework/done"; at?: number; force?: boolean }
   | { type: "notice/dismiss" }
-  /** Whole-class review, "write with me": the student's own pad. */
-  | { type: "follow/stroke"; problem: string; stroke: Stroke }
-  | { type: "follow/undo"; problem: string }
-  | { type: "follow/clear"; problem: string }
+  /** Class review's students' turn (ticket 344): the student's own pad on Q**, by the set question the board is on. */
+  | { type: "class-review/reveal"; problem: string; line: RevealedLine }
+  | { type: "class-review/stroke"; problem: string; stroke: Stroke }
+  | { type: "class-review/undo"; problem: string; strokeCount?: number }
+  | { type: "class-review/clear"; problem: string }
   /** Whole-class review: everyone is frozen on the board's problem; released to the report when it ends. */
   | { type: "freeze" }
   | { type: "release" }
@@ -297,7 +317,7 @@ export const INITIAL_SESSION: StudentSession = {
   notice: null,
   notAttempted: [],
   handInCheck: null,
-  followInk: {},
+  classReview: {},
   debrief: {},
   appliedAdvances: [],
 };
@@ -565,12 +585,21 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
     }
     case "notice/dismiss":
       return { ...s, notice: null };
-    case "follow/stroke":
-      return { ...s, followInk: { ...s.followInk, [a.problem]: [...(s.followInk[a.problem] ?? []), roundStroke(a.stroke)] } };
-    case "follow/undo":
-      return { ...s, followInk: { ...s.followInk, [a.problem]: (s.followInk[a.problem] ?? []).slice(0, -1) } };
-    case "follow/clear":
-      return { ...s, followInk: { ...s.followInk, [a.problem]: [] } };
+    case "class-review/reveal": {
+      const w = classWorkOf(s, a.problem);
+      return { ...s, classReview: { ...s.classReview, [a.problem]: { ...w, lines: [...w.lines, a.line] } } };
+    }
+    case "class-review/stroke": {
+      const w = classWorkOf(s, a.problem);
+      return { ...s, classReview: { ...s.classReview, [a.problem]: { ...w, ink: [...w.ink, roundStroke(a.stroke)] } } };
+    }
+    case "class-review/undo": {
+      const w = classWorkOf(s, a.problem);
+      const count = a.strokeCount ?? Math.max(0, w.ink.length - 1);
+      return { ...s, classReview: { ...s.classReview, [a.problem]: { ink: w.ink.slice(0, count), lines: afterUndo(w.lines, count) } } };
+    }
+    case "class-review/clear":
+      return { ...s, classReview: { ...s.classReview, [a.problem]: NO_CLASS_WORK } };
     case "freeze":
       return s.stage === "frozen" ? s : { ...s, stage: "frozen", prompt: null, overlay: null, ladder: null };
     case "release":

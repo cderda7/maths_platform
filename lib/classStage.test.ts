@@ -104,7 +104,7 @@ describe("the class's stage on the pathway", () => {
   it("skips stages the pathway lacks", () => {
     let c = classroomReducer(INITIAL_CLASSROOM, { type: "assignment/create", title: "t", problemIds: ASSIGNMENT.problems.map((p) => p.id), pathway: ["whole-class"], at: now });
     expect(classStages(c, sessionAt("waiting"), now).map((s) => `${s.id}:${s.state}`)).toEqual(["working:current", "whole-class:ahead"]);
-    c = classroomReducer(c, { type: "wc/setup", problems: [ASSIGNMENT.problems[0].id], examples: {}, mode: "frozen" });
+    c = classroomReducer(c, { type: "wc/setup", problems: [ASSIGNMENT.problems[0].id], examples: {} });
     c = classroomReducer(c, { type: "wc/project", at: now });
     expect(classStages(c, sessionAt("frozen"), now).map((s) => `${s.id}:${s.state}`)).toEqual(["working:over", "whole-class:current"]);
     expect(DEMO_PATHWAY).toEqual(["individual", "group", "whole-class"]);

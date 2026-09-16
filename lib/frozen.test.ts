@@ -24,7 +24,7 @@ describe("the frozen student's view", () => {
     expect(v.examples.map((e) => e.letter)).toEqual(board.map((e) => e.letter));
     expect(v.examples.map((e) => e.lines.map((l) => l.tex))).toEqual(board.map((e) => e.lines));
     expect(v.examples.flatMap((e) => e.lines.map((l) => l.mark)).every((m) => m === null)).toBe(true);
-    classroom = classroomReducer(classroom, { type: "wc/next" });
+    classroom = classroomReducer(classroom, { type: "wc/advance", id: "a" });
     v = frozenView(session, classroom)!;
     expect(v.problem.id).toBe(w.problems[1]);
     expect(v.index).toBe(1);
@@ -70,25 +70,51 @@ describe("the frozen student's view", () => {
 });
 
 describe("the pad beside the examples", () => {
-  it("carries the board's mode and the teacher's ink", () => {
-    let c = classroomReducer(INITIAL_CLASSROOM, { type: "wc/setup", problems: ["q2"], examples: { q2: [] }, mode: "write-with-me" });
+  it("carries the board's step and the teacher's ink", () => {
+    let c = classroomReducer(INITIAL_CLASSROOM, { type: "wc/setup", problems: ["q2"], examples: { q2: [] } });
     c = classroomReducer(c, { type: "wc/project", at: 0 });
     c = classroomReducer(c, { type: "wc/stroke", problem: "q2", stroke: [{ x: 3, y: 4 }] });
     const v = frozenView(sessionAt("frozen"), c)!;
-    expect(v.mode).toBe("write-with-me");
+    expect(v.step).toBe("examples");
     expect(v.teacherInk).toEqual([[{ x: 3, y: 4 }]]);
     expect(v.markup).toEqual([]);
     expect(v.examples).toEqual([]);
   });
 
-  it("carries the teacher's marks over the slide in both modes (ticket 330)", () => {
+  it("carries the teacher's marks over the slide (ticket 330)", () => {
     const mark = { anchor: "B/0", points: [{ x: 1, y: 1 }] };
-    let c = classroomReducer(INITIAL_CLASSROOM, { type: "wc/setup", problems: ["q2"], examples: { q2: [] }, mode: "frozen" });
+    let c = classroomReducer(INITIAL_CLASSROOM, { type: "wc/setup", problems: ["q2"], examples: { q2: [] } });
     c = classroomReducer(c, { type: "wc/project", at: 0 });
     c = classroomReducer(c, { type: "wc/stroke", problem: "q2", stroke: mark });
     expect(frozenView(sessionAt("frozen"), c)!.markup).toEqual([mark]);
     expect(frozenView(sessionAt("frozen"), c)!.teacherInk).toEqual([]);
-    c = classroomReducer(c, { type: "wc/mode", problem: "q2", mode: "write-with-me" });
-    expect(frozenView(sessionAt("frozen"), c)!.markup).toEqual([mark]);
+  });
+
+  it("follows the board through the three steps, with Q* and Q** and the lines revealed (ticket 344)", () => {
+    let c = classroomReducer(INITIAL_CLASSROOM, { type: "wc/setup", problems: ["q2"], examples: { q2: [] } });
+    c = classroomReducer(c, { type: "wc/project", at: 0 });
+    const at = () => frozenView(sessionAt("frozen"), c)!;
+    expect(at().pair?.worked.id).toBe("q2-star");
+    expect(at().pair?.completion.id).toBe("q2-star-star");
+    c = classroomReducer(c, { type: "wc/next" });
+    expect(at().step).toBe("worked");
+    expect(at().reveal).toBe(0);
+    c = classroomReducer(c, { type: "wc/next" });
+    expect(at().reveal).toBe(1);
+    // Every line of Q*, then the students' turn.
+    const lines = at().pair!.worked.solution.length;
+    for (let i = 1; i < lines; i++) c = classroomReducer(c, { type: "wc/next" });
+    expect(at().reveal).toBe(lines);
+    c = classroomReducer(c, { type: "wc/next" });
+    expect(at().step).toBe("turn");
+    // Back walks the same beats: Q* whole, then a line at a time, then the examples with their marks.
+    c = classroomReducer(c, { type: "wc/prev" });
+    expect(at().step).toBe("worked");
+    expect(at().reveal).toBe(lines);
+    for (let i = 0; i < lines; i++) c = classroomReducer(c, { type: "wc/prev" });
+    expect(at().reveal).toBe(0);
+    c = classroomReducer(c, { type: "wc/prev" });
+    expect(at().step).toBe("examples");
+    expect(at().view).toBe("marked");
   });
 });

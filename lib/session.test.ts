@@ -698,18 +698,25 @@ describe("teacher force submit", () => {
   });
 });
 
-describe("writing along with the teacher", () => {
-  it("keeps the student's follow-along ink per problem, apart from every version, with undo and clear", () => {
+describe("the students' turn in class review (ticket 344)", () => {
+  it("keeps the student's own lines and ink per question, apart from every version, with undo and clear", () => {
     let s = sessionAt("frozen");
-    s = sessionReducer(s, { type: "follow/stroke", problem: "q2", stroke: [{ x: 1.26, y: 2 }] });
-    s = sessionReducer(s, { type: "follow/stroke", problem: "q2", stroke: [{ x: 3, y: 4 }] });
-    expect(s.followInk.q2).toEqual([[{ x: 1.3, y: 2 }], [{ x: 3, y: 4 }]]);
+    s = sessionReducer(s, { type: "class-review/stroke", problem: "q2", stroke: [{ x: 1.26, y: 2 }] });
+    s = sessionReducer(s, { type: "class-review/reveal", problem: "q2", line: { tex: "2x^2 + 9x - 5 = 0", strokeCount: 1 } });
+    s = sessionReducer(s, { type: "class-review/stroke", problem: "q2", stroke: [{ x: 3, y: 4 }] });
+    s = sessionReducer(s, { type: "class-review/reveal", problem: "q2", line: { tex: "(2x - 1)(x + 5) = 0", strokeCount: 2 } });
+    expect(s.classReview.q2.ink).toEqual([[{ x: 1.3, y: 2 }], [{ x: 3, y: 4 }]]);
+    expect(s.classReview.q2.lines).toHaveLength(2);
+    // Nothing of it reaches the set's own working or the corrections.
     expect(s.ink.q2).toEqual(sessionAt("frozen").ink.q2);
+    expect(s.lines.q2).toEqual(sessionAt("frozen").lines.q2);
     expect(s.reworkInk.q2).toEqual(sessionAt("frozen").reworkInk.q2);
-    s = sessionReducer(s, { type: "follow/undo", problem: "q2" });
-    expect(s.followInk.q2).toHaveLength(1);
-    s = sessionReducer(s, { type: "follow/clear", problem: "q2" });
-    expect(s.followInk.q2).toEqual([]);
+    // Undo takes the last stroke and the line it revealed; clear takes both.
+    s = sessionReducer(s, { type: "class-review/undo", problem: "q2" });
+    expect(s.classReview.q2.ink).toHaveLength(1);
+    expect(s.classReview.q2.lines).toHaveLength(1);
+    s = sessionReducer(s, { type: "class-review/clear", problem: "q2" });
+    expect(s.classReview.q2).toEqual({ ink: [], lines: [] });
   });
 });
 
