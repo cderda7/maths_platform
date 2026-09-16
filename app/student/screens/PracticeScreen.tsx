@@ -113,8 +113,8 @@ export default function PracticeScreen({ session, dispatch }: { session: Student
   const skillName = studentLeafName(skill.leaf).name.toLowerCase();
   /** What each control's ask says, read only while `asking` names it; plain strings, so nothing here holds a closure over `dispatch`. */
   const askMessage: Record<Gate, string> = {
-    worked: "Are you sure you’d like to move on to your turn? You haven’t seen the whole example yet.",
-    completion: "Are you sure you’d like to move on to your own turn? You haven’t finished every line yet.",
+    worked: "Are you sure you’d like to move on? You haven’t seen the whole example yet.",
+    completion: "Are you sure you’d like to move on? You haven’t finished every line yet.",
     done: `Are you sure you’d like to move on from ${skillName}? You haven’t finished the whole warm-up.`,
     skip: "Are you sure you’d like to skip the rest of the warm-up and go to the set?",
   };
