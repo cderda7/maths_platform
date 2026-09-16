@@ -283,19 +283,6 @@ export function teacherSkip(target: TeacherSkipTarget, c: ClassroomState, sessio
 }
 
 /**
- * Ticket 354: whether pressing "done" right now would move the lesson at all, so holding ArrowRight
- * (`useArrowRightHold`) knows when to stop repeating it. `canTeacherSkip("done", c)` alone is not
- * enough: once the lesson is fully over, `teacherSkip("done", ...)` is idempotent and hands back the
- * exact classroom and session it was given (`completeLesson`'s early return), so reference equality
- * catches the case a deep comparison would otherwise need.
- */
-export function teacherDoneAdvances(c: ClassroomState, session: StudentSession | null, now: number): boolean {
-  if (!canTeacherSkip("done", c)) return false;
-  const result = teacherSkip("done", c, session, now);
-  return result.classroom !== c || result.session !== session;
-}
-
-/**
  * The presenter's homework jumps (ticket 295), shown in both skip lists (the teacher's strip and Sam's SKIP TO) only once the
  * teacher has pressed +Homework in this demo (`homeworkSkipsShown`), so a fresh demo offers no homework shortcut. Each is a
  * pure step from the demo as it stands, like the teacher's jumps, and lands on the state the real flow lands on:

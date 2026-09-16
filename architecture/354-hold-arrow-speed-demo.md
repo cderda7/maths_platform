@@ -1,5 +1,9 @@
 # 354: Holding ArrowRight speeds up the demo simulation
 
+**Superseded by ticket 357** — Carson wanted the hold to speed up time *within* the active stage, not jump between
+stages. `lib/arrowHold.ts`, `components/SkipTo.tsx` and `app/teacher/TeacherSkipTo.tsx` no longer work the way this
+note describes; see `architecture/357-hold-arrow-fast-forward-time.md`. Kept below as the historical record.
+
 Carson: "add funtionality where holding on right arrow key speeds up the demo simulation." No such control existed
 (confirmed by search); the closest thing is the presenter's click-driven "skip to" pill lists in `lib/demo.ts` /
 `components/SkipTo.tsx` (Sam's) / `app/teacher/TeacherSkipTo.tsx` (the teacher's). ArrowRight now drives both: a tap

@@ -1,13 +1,12 @@
 "use client";
 
-import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { canTeacherSkip, HOMEWORK_SKIP_TARGETS, homeworkSkipsShown, TEACHER_SKIP_LABEL, TEACHER_SKIP_TARGETS, teacherDoneAdvances, teacherSkip, type TeacherSkipTarget } from "@/lib/demo";
+import { canTeacherSkip, HOMEWORK_SKIP_TARGETS, homeworkSkipsShown, TEACHER_SKIP_LABEL, TEACHER_SKIP_TARGETS, teacherSkip, type TeacherSkipTarget } from "@/lib/demo";
 import { CLASSROOM_HREF, REVIEW_ASSIGNMENT_HREF } from "@/lib/assignments";
 import { getClassroom, useClassroom } from "@/lib/classroom-store";
 import { getSnapshot, refreshBatchedSession, setLesson } from "@/lib/store";
 import { homeworkJump } from "@/components/homeworkJump";
-import { useArrowRightHold } from "@/lib/arrowHold";
+import { useDemoFastForward } from "@/lib/arrowHold";
 
 /**
  * The teacher's presenter jumps (ticket 263): send assignment, students done with the current stage, activity completed.
@@ -30,28 +29,10 @@ function jump(t: TeacherSkipTarget) {
 
 const BUTTON = "rounded-full px-2.5 py-1 text-[12px] whitespace-nowrap text-ink-muted transition-colors enabled:hover:bg-cream-deep enabled:hover:text-ink disabled:cursor-default disabled:opacity-40";
 
-/**
- * Ticket 354: ArrowRight, held or tapped, runs the class stage by stage ("students done with
- * current stage") the same way clicking the pill repeatedly would; it never touches "send assignment"
- * (that step waits on the real Create screen, ticket 272) or "activity completed" (a deliberate
- * full skip, not something a held key should reach on its own). It stops advancing once the lesson
- * is over so a held key never spins uselessly (`teacherDoneAdvances`).
- */
-function useHoldToAdvanceStage(classroom: ReturnType<typeof useClassroom>) {
-  const step = useCallback((): boolean => {
-    const c = getClassroom();
-    const session = getSnapshot();
-    if (!teacherDoneAdvances(c, session, Date.now())) return false;
-    jump("done");
-    return true;
-  }, []);
-  useArrowRightHold(step, canTeacherSkip("done", classroom));
-}
-
 export default function TeacherSkipTo() {
   const router = useRouter();
   const classroom = useClassroom();
-  useHoldToAdvanceStage(classroom);
+  useDemoFastForward();
   return (
     <div className="flex min-w-0 items-center gap-1.5 rounded-full border border-dashed border-line-strong bg-paper/80 px-2 py-1 backdrop-blur" data-teacher-skip-to>
       <span className="pl-1.5 text-[11px] uppercase tracking-wide text-ink-muted">skip to</span>

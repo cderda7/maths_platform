@@ -4,7 +4,7 @@
 
 **Blocked by:** none.
 
-**Status:** done
+**Status:** superseded by ticket 357 — Carson: "this has the unit of jumping ahead be stages. i really want functionality within a stage." The stage-jump-on-hold behaviour described below no longer exists; `lib/arrowHold.ts`, `components/SkipTo.tsx` and `app/teacher/TeacherSkipTo.tsx` now do what ticket 357 describes instead. Left below as the historical record of what this ticket actually built and why, per DECISION_LOG.md.
 
 **Triage:** `ready-for-agent`
 

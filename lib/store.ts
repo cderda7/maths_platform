@@ -7,6 +7,7 @@ import { activeAssignment } from "./assignment";
 import { adoptClassroom, getClassroom, setClassroom } from "./classroom-store";
 import { INITIAL_CLASSROOM, pathwayOf, type ClassroomState } from "./classroom";
 import { openHomeworks } from "./homeworks";
+import { demoClockNow, tickDemoClock, type DemoClock } from "./demoClock";
 
 /**
  * The demo session store: one student session, shared between browser tabs on the same machine.
@@ -155,6 +156,10 @@ export function dispatch(action: SessionAction) {
 
 /** Back to the start in every tab: a fresh session and an empty classroom, so deep-linked tabs move too. */
 export function resetSession() {
+  // Ticket 357: a lingering fast-forward offset would make the freshly reset fixtures read as already
+  // ahead of themselves (arrivals or a countdown appearing to have run before the reset even happened).
+  timeScale = 1;
+  demoClock = { realMs: Date.now(), offsetMs: 0 };
   setLesson({ classroom: INITIAL_CLASSROOM, session: INITIAL_SESSION });
 }
 
@@ -243,12 +248,34 @@ export function useBatchedSession(everyMs = 3000): Batch & { everyMs: number } {
   return { ...b, everyMs };
 }
 
+/**
+ * Ticket 357: the demo's shared clock can run faster than real time (`setDemoTimeScale`, driven by holding
+ * ArrowRight in `lib/arrowHold.ts`), so whatever is happening within the current stage — classmates
+ * arriving, the group board's simulated run, a countdown — speeds up in place, never jumping between
+ * stages. `demoNow()` reads real time and folds it into `demoClock` at whatever `timeScale` is in force
+ * (`tickDemoClock`, pure, in `lib/demoClock.ts`); the once-a-second clock and the every-frame clock below
+ * both call it, so they stay on the same virtual timeline without either needing to poll faster than it
+ * already does.
+ */
+let timeScale = 1;
+let demoClock: DemoClock = { realMs: Date.now(), offsetMs: 0 };
+function demoNow(): number {
+  demoClock = tickDemoClock(demoClock, Date.now(), timeScale);
+  return demoClockNow(demoClock);
+}
+/** Ticket 357: `scale` of 1 is real time; above 1 runs the demo clock that much faster until set back. */
+export function setDemoTimeScale(scale: number) {
+  demoNow(); // flush time already accrued at the old scale before changing it
+  timeScale = scale;
+  if (clockListeners.size > 0) clockTick();
+}
+
 /** A clock that ticks every second, for "updated 4s ago" labels. 0 on the server and before the first tick. */
 let clock = 0;
 const clockListeners = new Set<() => void>();
 let clockTimer: ReturnType<typeof setInterval> | null = null;
 function clockTick() {
-  clock = Date.now();
+  clock = demoNow();
   for (const l of clockListeners) l();
 }
 function subscribeClock(cb: () => void) {
@@ -274,7 +301,7 @@ let frameClock = 0;
 const frameListeners = new Set<() => void>();
 let frameId: number | null = null;
 function frameTick() {
-  frameClock = Date.now();
+  frameClock = demoNow();
   for (const l of frameListeners) l();
   frameId = frameListeners.size > 0 ? requestAnimationFrame(frameTick) : null;
 }
