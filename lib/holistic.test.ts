@@ -59,11 +59,19 @@ describe("the holistic view (ticket 251)", () => {
     }
   });
 
-  it("Priya: secure wherever a set assesses the category, no patterns", () => {
+  it("Priya: secure wherever a set assesses the category, save graphing on Set 6 (ticket 347: one slip, still solid)", () => {
     for (const at of [fresh, over]) {
       const v = holisticView("priya", at)!;
-      for (const r of v.categories) for (const [i, cell] of r.cells.entries()) expect(cell, `${r.category} PS${i + 1}`).toBe(STORY_SETS[i].categories.includes(r.category) ? "secure" : "none");
-      expect(v.patterns).toEqual([]);
+      for (const r of v.categories)
+        for (const [i, cell] of r.cells.entries()) {
+          if (r.category === "graphing" && i === 5) {
+            expect(cell, `${r.category} PS${i + 1}`).toBe("solid");
+            continue;
+          }
+          expect(cell, `${r.category} PS${i + 1}`).toBe(STORY_SETS[i].categories.includes(r.category) ? "secure" : "none");
+        }
+      // Set 6 does not exist yet for `fresh` (its bundle is not created), so no pattern surfaces there; `over` has it.
+      expect(v.patterns.map((p) => p.category)).toEqual(at === fresh ? [] : ["graphing"]);
     }
   });
 

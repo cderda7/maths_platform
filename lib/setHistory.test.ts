@@ -155,7 +155,9 @@ describe("history over the Classroom's registry (tickets 215, 237)", () => {
             if (stepsApart(chain[i - 1].status, chain[i].status) <= 1) continue;
             jumps.push(`${record.id} ${cat}: ${chain[i - 1].from} ${chain[i - 1].status} → ${chain[i].from} ${chain[i].status}`);
           }
-          if (record.id === "priya") expect(chain.every((p) => p.status === "secure"), `${id} ${cat}`).toBe(true);
+          // Ticket 347: Set 6's graphing reads solid for Priya now (one slip, Q8), still one step from secure; every other set/category stays secure throughout.
+          if (record.id === "priya" && !(id === "pset-6" && cat === "graphing")) expect(chain.every((p) => p.status === "secure"), `${id} ${cat}`).toBe(true);
+          if (record.id === "priya" && id === "pset-6" && cat === "graphing") expect(chain.every((p) => p.status === "secure" || p.status === "solid"), `${id} ${cat}`).toBe(true);
         }
       }
     }

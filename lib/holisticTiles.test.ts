@@ -36,12 +36,12 @@ describe("Holistic Assessment's tiles (ticket 252)", () => {
     expect(holisticTile("nobody", over)).toBeNull();
   });
 
-  it("Priya: strengths only, every category", () => {
-    for (const at of [fresh, over]) {
-      expect(holisticTile("priya", at)!.patterns).toEqual([]);
-      expect(strengths("priya", at)).toEqual([...STORY_CATEGORIES]);
-    }
-    expect(holisticTile("priya", over)!.strengths.map((s) => s.name)).toEqual(["Algebra", "Functions", "Graphing", "Communication", "Reasoning", "New skills"]);
+  it("Priya: strengths only, every category, save graphing once Set 6's Q8 (ticket 347) is in", () => {
+    expect(holisticTile("priya", fresh)!.patterns).toEqual([]);
+    expect(strengths("priya", fresh)).toEqual([...STORY_CATEGORIES]);
+    expect(tags("priya", over)).toEqual({ graphing: [["gave the graph's intercepts with their signs flipped", "PS6"]] });
+    expect(strengths("priya", over)).toEqual(STORY_CATEGORIES.filter((c) => c !== "graphing"));
+    expect(holisticTile("priya", over)!.strengths.map((s) => s.name)).toEqual(["Algebra", "Functions", "Communication", "Reasoning", "New skills"]);
   });
 
   it("Liam, who hands in about half: his signatures, his one-set patterns, and communication a strength now every set saw his working (ticket 281)", () => {

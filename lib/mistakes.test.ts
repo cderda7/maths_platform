@@ -11,7 +11,7 @@ describe("teacher mistake view", () => {
     // Problems in set order, the live student first on each row, then classmates in fixture order; a problem nobody slipped on is absent.
     const wrongBy = (pid: string) => CLASSMATES.filter((c) => c.wrong.includes(pid)).map((c) => c.id);
     const samWrong = ["q1", "q2", "q3", "q7", "q10"];
-    expect(m.map((p) => p.problem.id)).toEqual(["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q9", "q10"]);
+    expect(m.map((p) => p.problem.id)).toEqual(["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"]);
     for (const p of m) expect(p.rows.map((r) => r.id)).toEqual([...(samWrong.includes(p.problem.id) ? ["sam"] : []), ...wrongBy(p.problem.id)]);
     expect(m[1].rows[0].live).toBe(true);
     expect(m[1].rows[1].live).toBe(false);
@@ -34,8 +34,8 @@ describe("teacher mistake view", () => {
       expect(p.right + p.rows.length, p.problem.id).toBeLessThanOrEqual(CLASS_SIZE);
     }
     expect(live.find((p) => p.problem.id === "q4")!.right).toBe(14); // Jordan reaches Q7 since ticket 189; Liam hands Q4 in right since ticket 281
-    // Q8, absent from the view because nobody slipped, is still countable: everyone who reached it.
-    expect(rightCount(ASSIGNMENT.problems[7], 7, sessionAt("feedback"))).toBe(1 + CLASSMATES.filter((c) => c.done > 7).length);
+    // Q8 (ticket 347): Priya, Amelia and Aiden reached it and slipped, so rightCount agrees with the general rule above.
+    expect(rightCount(ASSIGNMENT.problems[7], 7, sessionAt("feedback"))).toBe(classmatesRight("q8", 7) + 1);
   });
 
   it("every row's working contains at least one step that didn't hold, and the fixture lines are all known", () => {
@@ -101,10 +101,10 @@ describe("teacher mistake view", () => {
     expect(q9.map((s) => s.mistakes.map((m) => m.rows.length))).toEqual([[4], [1]]);
   });
 
-  it("the shape of the class's slips (ticket 130): Q7 has thirteen classmates across three strategies, Q6 one, Q8 none, 47 wrongs in all (Jordan's Q7 since ticket 189, Liam's Q5 since ticket 281)", () => {
+  it("the shape of the class's slips (ticket 130): Q7 has thirteen classmates across three strategies, Q6 one, Q8 three (all the same mirrored read, ticket 347), 50 wrongs in all (Jordan's Q7 since ticket 189, Liam's Q5 since ticket 281, Priya's/Amelia's/Aiden's Q8 since ticket 347)", () => {
     const m = mistakesByProblem(null);
     const rows = (pid: string) => m.find((p) => p.problem.id === pid)?.rows ?? [];
-    expect(CLASSMATES.reduce((n, c) => n + c.wrong.length, 0)).toBe(47);
+    expect(CLASSMATES.reduce((n, c) => n + c.wrong.length, 0)).toBe(50);
     expect(rows("q7")).toHaveLength(13);
     expect(rows("q7").map((r) => r.id)).not.toContain("noah");
     // The wrong line is the mistake's identity: three different ones on Q7, six / four / three.
@@ -113,15 +113,17 @@ describe("teacher mistake view", () => {
     for (const r of rows("q7")) byLine.set(wrongLine(r), (byLine.get(wrongLine(r)) ?? 0) + 1);
     expect([...byLine.values()].sort((a, b) => b - a)).toEqual([6, 4, 3]);
     expect(rows("q6").map((r) => r.id)).toEqual(["amelia"]);
-    expect(rows("q8")).toHaveLength(0);
+    // Ticket 347: Priya, Amelia and Aiden (coral) all read Q8's graph mirrored, the class's only recognised slip on it.
+    expect(rows("q8").map((r) => r.id)).toEqual(["priya", "amelia", "aiden"]);
+    expect(new Set(rows("q8").map(wrongLine)).size).toBe(1);
     // Two different wrong lines on Q1 and Q4, each its own misconception (one skill held both before ticket 299); two misconceptions on Q2, Q3, Q9 and Q10.
     const lines = (pid: string) => new Set(rows(pid).map(wrongLine)).size;
     const leaves = (pid: string) => groupBySlip(rows(pid)).length; // pills: misconceptions since ticket 299
     expect([lines("q1"), leaves("q1")]).toEqual([2, 2]);
     expect([lines("q4"), leaves("q4")]).toEqual([2, 2]);
     for (const pid of ["q2", "q3", "q9", "q10"]) expect(leaves(pid), pid).toBe(2);
-    // Priya, Chloe and Grace untouched; every wrong problem has a teacher note about it.
-    for (const id of ["priya", "chloe", "grace"]) expect(CLASSMATES.find((c) => c.id === id)!.wrong).toEqual([]);
+    // Chloe and Grace untouched; every wrong problem has a teacher note about it.
+    for (const id of ["chloe", "grace"]) expect(CLASSMATES.find((c) => c.id === id)!.wrong).toEqual([]);
     for (const c of CLASSMATES) for (const pid of c.wrong) expect(c.notes.some((n) => n.problems.includes(pid)), `${c.id} ${pid}`).toBe(true);
   });
 
@@ -175,7 +177,7 @@ describe("teacher mistake view", () => {
 
   it("without a live session only the classmates appear", () => {
     const m = mistakesByProblem(null);
-    expect(m.map((p) => p.problem.id)).toEqual(["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q9", "q10"]); // ethan and oliver slip on Q1 now
+    expect(m.map((p) => p.problem.id)).toEqual(["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"]); // ethan and oliver slip on Q1 now
     expect(m.flatMap((p) => p.rows.map((r) => r.id))).not.toContain("sam");
   });
 

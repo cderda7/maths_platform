@@ -128,7 +128,7 @@ describe("Problem Set 6's groups after individual review (ticket 332)", () => {
 
   it("the outcomes: sky's Q9 left for now then solved on the return; Q7 left for now then unsolved at mint, sky and violet; mint's Q10 too; everything else solved in one or two tries", () => {
     const outcomes = (colour: string) => Object.fromEntries(timelines[colour].map((q) => [q.problem, `${q.status}${q.solvedOnReturn ? " on return" : ""}${q.visits.length > 1 ? ` after ${q.visits[0].checks.length} + ${q.visits[1].checks.length}` : ` in ${q.visits[0]?.checks.length}`}`]));
-    expect(outcomes("coral")).toEqual({ q4: "solved in 2", q5: "solved in 2", q7: "solved in 2", q8: "solved in 1", q9: "solved in 1", q10: "solved in 2" });
+    expect(outcomes("coral")).toEqual({ q4: "solved in 2", q5: "solved in 2", q7: "solved in 2", q8: "unsolved after 3 + 1", q9: "solved in 1", q10: "solved in 2" });
     expect(outcomes("amber")).toEqual({ q2: "solved in 2", q7: "solved in 2", q9: "solved in 2", q10: "solved in 1" });
     expect(outcomes("mint")).toEqual({ q3: "solved in 2", q5: "solved in 1", q6: "solved in 1", q7: "unsolved after 3 + 1", q8: "solved in 1", q9: "solved in 2", q10: "unsolved after 3 + 1" });
     expect(outcomes("violet")).toEqual({ q1: "solved in 2", q2: "solved in 2", q4: "solved in 2", q7: "unsolved after 3 + 1", q8: "solved in 1", q9: "solved in 1", q10: "solved in 1" });
@@ -139,15 +139,14 @@ describe("Problem Set 6's groups after individual review (ticket 332)", () => {
     expect([sky.q7.status, sky.q7.visits.map((v) => v.checks.length)]).toEqual(["unsolved", [3, 1]]);
   });
 
-  it("each group with a question nobody at the table can explain has it: mint Q7 and Q10, sky Q7 and Q9, violet Q7; coral and amber cannot have one (Priya had all ten right; Noah and Mia between them had every question right)", () => {
+  it("each group with a question nobody at the table can explain has it: mint Q7 and Q10, sky Q7 and Q9, violet Q7, coral Q8 (ticket 347); amber cannot have one (Noah and Mia between them had every question right)", () => {
     const nobody = Object.fromEntries(end.map((g) => [g.colour, g.union.filter((p) => !explainableAt(g.members, session, true, p))]));
-    expect(nobody).toEqual({ coral: [], amber: [], mint: ["q7", "q10"], sky: ["q7", "q9"], violet: ["q7"] });
-    expect(CLASSMATE_MAP.priya.done === 10 && CLASSMATE_MAP.priya.wrong.length === 0).toBe(true);
+    expect(nobody).toEqual({ coral: ["q8"], amber: [], mint: ["q7", "q10"], sky: ["q7", "q9"], violet: ["q7"] });
     expect(ASSIGNMENT.problems.every((p, i) => ["mia", "noah"].some((m) => i < CLASSMATE_MAP[m].done && !CLASSMATE_MAP[m].wrong.includes(p.id)))).toBe(true);
   });
 
   it("set scores are unchanged by review: first submissions only", () => {
-    expect(Object.fromEntries(CLASSMATES.map((m) => [m.id, recordScore(m, ASSIGNMENT.problems)]))).toEqual({ priya: 10, jordan: 5, amelia: 7, tomas: 3, zara: 7, liam: 1, aiden: 9, mia: 7, noah: 8, chloe: 0, ethan: 5, isla: 7, lucas: 8, grace: 4, harper: 4, oliver: 3, ruby: 7, finn: 6, sofia: 7 });
+    expect(Object.fromEntries(CLASSMATES.map((m) => [m.id, recordScore(m, ASSIGNMENT.problems)]))).toEqual({ priya: 9, jordan: 5, amelia: 6, tomas: 3, zara: 7, liam: 1, aiden: 8, mia: 7, noah: 8, chloe: 0, ethan: 5, isla: 7, lucas: 8, grace: 4, harper: 4, oliver: 3, ruby: 7, finn: 6, sofia: 7 });
     expect(sessionScore(session, ASSIGNMENT.problems)).toBe(4);
   });
 
@@ -197,11 +196,12 @@ describe("a group with nothing left to review sits out (ticket 332)", () => {
     expect([forced.stage, forced.notice]).toEqual(["waiting", NOTHING_TO_REVIEW_TEXT]);
   });
 
-  it("a simulated group whose members all fixed everything sits out too: coral with only Priya and Aiden in the room", () => {
+  it("since ticket 347 every classmate has something to fix, so coral no longer sits out with only Priya and Aiden in the room: the two of them work Q8 alone instead, with nobody there to explain it", () => {
     const { classroom, session } = skipFixture("group review", now);
     let c = classroom;
     for (const id of ["amelia", "tomas"]) c = classroomReducer(c, { type: "absence/set", assignment: ASSIGNMENT.id, student: id, absent: true });
-    expect(standingsAt(c, session, now).map((s) => s.colour)).toEqual(["amber", "mint", "sky", "violet"]);
-    expect(sittingOut(c, session)).toEqual([{ colour: "coral", members: ["priya", "aiden"] }]);
+    expect(standingsAt(c, session, now).map((s) => s.colour)).toEqual(["coral", "amber", "mint", "sky", "violet"]);
+    expect(sittingOut(c, session)).toEqual([]);
+    expect(standingsAt(c, session, now).find((s) => s.colour === "coral")!.union).toEqual(["q8"]);
   });
 });

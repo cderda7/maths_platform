@@ -83,6 +83,7 @@ const Q6_TWICE = "36 - 4k > 0";
 const Q7_TWO_TERMS = "x^2 + 6x + \\tfrac{8}{3}";
 const Q7_LOST_THIRD = "x^2 + 6x + 8";
 const Q7_PAIR = "1 \\times 8 = 8,\\quad 1 + 8 = 9";
+const Q8_MIRROR = "x = -1 \\;\\text{or}\\; x = -3";
 const Q9_HEIGHT = "h = 6";
 const Q9_SIGN = "-x(x + 6) = 0";
 const Q10_FORMAL = "\\Delta < 0 \\Rightarrow \\text{two real solutions}";
@@ -455,13 +456,15 @@ export const PROBLEM_DIAGNOSTICS: ProblemDiagnostic[] = [
       stem: "Which are the x-intercepts of the graph of",
       tex: "y = x^2 - 6x + 8",
       options: [
-        { id: "a", tex: `x = -2${OR}x = -4`, detail: "mirrored in the y-axis", misconception: "graph-signs", ifChosen: "flipped the signs of both intercepts" },
+        { id: "a", tex: `x = -2${OR}x = -4`, detail: "mirrored in the y-axis", misconception: "graph-signs", ifChosen: "flipped the signs of both intercepts", slip: Q8_MIRROR },
         { id: "b", tex: "x = 8", detail: "y-intercept read off", misconception: "wrong-feature", ifChosen: "gave the $y$-intercept" },
         { id: "c", tex: `x = 2${OR}x = 4` },
         { id: "d", tex: "x = 3", detail: "turning point read off", misconception: "wrong-feature", ifChosen: "gave the axis of symmetry" },
       ],
       correct: "c",
-      picks: { a: ["tomas"], d: ["grace"] },
+      // Ticket 347: option "a" now ties a real slip (Priya, Amelia and Aiden all made it), so it is picked by the
+      // `mirrored` branch instead; Tomas, who never reached Q8, is left to the correct answer rather than a plausible guess.
+      picks: { d: ["grace"] },
     },
     {
       key: "check",

@@ -9,7 +9,7 @@ The contract for the six sets in the Classroom (ticket 210). For every student a
 - **Statuses**: gap (red), developing (orange), solid (light green), secure (dark green). *not seen*: the set assesses the category but the student has nothing on it (missing, or never reached those problems). *absent*: the student was away for the set (ticket 250), out of its counts. *—*: the set does not assess the category. *live*: Sam on Set 6.
 - **One step**: in each category, a student's neighbouring results (skipping *—*, *not seen* and *absent*) differ by at most one step, gap ↔ developing ↔ solid ↔ secure. Variation, never a jump.
 - **How a status comes out** (`lib/hierarchy.ts`): a leaf is held lines ÷ attempted lines tagged with it (1 secure, ≥ 0.8 solid, ≥ 0.6 developing, else gap); a group and a category take their worst leaf. So one slip on a leaf the student wrote on five or more times reads solid, on three or four times developing, on one or two a gap. Communication is the share of lines that skip no step. A set's New skills count under New skills on that set, not under their home.
-- **Priya** is secure in every category on every set. **Sam** is the demo student.
+- **Priya** is secure in every category on every set, save graphing on Set 6 (ticket 347: one slip, on Q8 alone, still solid). **Sam** is the demo student.
 - **Review** (tickets 244, 278, 281, 332, 338; settled with the user 2026-09-14 and 2026-09-15): a student has from their first submission every problem they did not get right first time (a mistake, a problem left incomplete, one not attempted; a student away has nothing). A *one-off* slip (that mistake on one problem of the set, the pattern naming only it, no gap in its category) is rewritten in individual review and fixed there when the rewrite holds. A *repeated* slip, a *pattern* (a gap in the slip's category on the set), a problem left incomplete or not attempted is never rewritten alone. A group works only the questions a present member still has once individual review is over (a one-off whose rewrite slipped again included); a question every member has right after their corrections never reaches it, and a group with nothing left sits out. The group solves a question when a member at the table can explain it, right first time or fixed in individual review, a pattern included; a question nobody at the table can explain stays unsolved (left for now after three wrong checks, closed on its return), and the group's last try is its own working, still wrong, never a member's first submission. At most once a set, the *exception*: a question nobody could explain that the group solves because one member's first submission went wrong on a single line and the hint after the second wrong check named it. On every set one or two groups meet the set's hardest problem with nobody at the table able to do it. The demo group's Set 6 versions are its scripted run (`data/group-scripts.ts`). `lib/reviewRule.ts` applies the rules; each set's review below lists every case with its reasoning.
 - **Class review** (ticket 281): on Sets 1, 3 and 6 only. It covers every problem a group left unsolved, each with one or two examples of the class's real wrong working, shown unnamed: the most common slip first, from a table that left it unsolved when one made it.
 
@@ -620,13 +620,13 @@ The set's rows (each student's patterns are under their name below):
 | Student | Handed in | Algebra | Functions | Graphing | Communication | Reasoning | New skills |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | sam | live | live | live | live | live | live | live |
-| priya | 10/10 | secure | secure | secure | secure | secure | secure |
+| priya | 10/10 | secure | secure | solid | secure | secure | secure |
 | jordan | 7/10 | developing | secure | secure | secure | not seen | secure |
-| amelia | 10/10 | developing | secure | secure | secure | gap | developing |
+| amelia | 10/10 | developing | secure | solid | secure | gap | developing |
 | tomas | 7/10 | gap | secure | secure | secure | not seen | developing |
 | zara | 10/10 | developing | secure | solid | secure | secure | solid |
 | liam | 4/10 | gap | not seen | not seen | secure | not seen | gap |
-| aiden | 10/10 | developing | secure | secure | secure | secure | secure |
+| aiden | 10/10 | developing | secure | solid | secure | secure | secure |
 | mia | 10/10 | gap | secure | secure | secure | secure | secure |
 | noah | 9/10 | secure | secure | secure | secure | secure | solid |
 | chloe | absent | absent | absent | absent | absent | absent | absent |
@@ -640,17 +640,18 @@ The set's rows (each student's patterns are under their name below):
 | finn | 10/10 | gap | secure | solid | secure | secure | secure |
 | sofia | 10/10 | gap | secure | secure | secure | secure | secure |
 
-The set's review (individual → group → whole-class): 16 fixed on the student's own rework, 41 solved in group review, 15 still wrong (each closed unsolved by the group).
+The set's review (individual → group → whole-class): 16 fixed on the student's own rework, 40 solved in group review, 19 still wrong (each closed unsolved by the group).
 
 | Student | Own rework | Group review | Still wrong |
 | --- | --- | --- | --- |
 | sam | live | live | live |
+| priya | — | — | Q8 |
 | jordan | Q2 | Q8, Q9, Q10 | Q7 |
-| amelia | Q6, Q7 | Q10 | — |
-| tomas | Q3 | Q4, Q5, Q7, Q8, Q9, Q10 | — |
+| amelia | Q6, Q7 | Q10 | Q8 |
+| tomas | Q3 | Q4, Q5, Q7, Q9, Q10 | Q8 |
 | zara | Q3 | Q9 | Q7 |
 | liam | — | Q1, Q2, Q3, Q5, Q6, Q8, Q9, Q10 | Q7 |
-| aiden | Q7 | — | — |
+| aiden | Q7 | — | Q8 |
 | mia | — | Q2, Q7, Q9 | — |
 | noah | Q3 | Q10 | — |
 | ethan | Q1, Q4, Q7, Q9 | Q10 | — |
@@ -668,14 +669,16 @@ The set's review (individual → group → whole-class): 16 fixed on the student
 - jordan Q8 · group review: Not attempted. Sam and Zara had Q8 right, and the group's rework holds (the demo group's scripted run).
 - jordan Q9 · group review: Not attempted. Nobody at the table could explain Q9 after individual review; Zara's first submission went wrong on one line, the hint after the group's second wrong check named it, the group left it for now and its try on the return holds (the one exception on the set).
 - jordan Q10 · group review: Not attempted. Zara had Q10 right and Sam fixed it in individual review, and the group's rework holds (the demo group's scripted run).
+- priya Q8 · still wrong: One-off: gave the graph's intercepts with their signs flipped, on Q8 alone. The second submission slipped again (the same mirrored read). Nobody at the table could explain Q8 after individual review, so the group left it for now and its last try on the return is still wrong.
 - amelia Q6 · own rework: One-off: read “touches once” as discriminant > 0, on Q6 alone. Found on the second submission.
 - amelia Q7 · own rework: One-off: multiplied through by 3 and never took it back out, on Q7 alone. Found on the second submission.
+- amelia Q8 · still wrong: One-off: gave the graph's intercepts with their signs flipped, on Q8 alone. The second submission slipped again (the same mirrored read). Nobody at the table could explain Q8 after individual review, so the group left it for now and its last try on the return is still wrong.
 - amelia Q10 · group review: Pattern: Reasoning is a gap on the set (said the graph crosses twice). Priya and Aiden had Q10 right, and the group's rework holds.
 - tomas Q3 · own rework: One-off: null factor law on a product that isn't 0, on Q3 alone. Found on the second submission.
 - tomas Q4 · group review: Pattern: Algebra is a gap on the set (divided by a, not 2a). Priya, Amelia and Aiden had Q4 right, and the group's rework holds.
 - tomas Q5 · group review: Pattern: Algebra is a gap on the set (roots read off the factors with the signs flipped). Priya, Amelia and Aiden had Q5 right, and the group's rework holds.
 - tomas Q7 · group review: Pattern: Algebra is a gap on the set (scaled two of three terms). Priya had Q7 right and Amelia and Aiden fixed it in individual review, and the group's rework holds.
-- tomas Q8 · group review: Not attempted. Priya, Amelia and Aiden had Q8 right, and the group's rework holds.
+- tomas Q8 · still wrong: Not attempted. Nobody at the table could explain Q8 after individual review (Priya's, Amelia's and Aiden's rewrites all slipped again), so the group left it for now and its last try on the return is still wrong.
 - tomas Q9 · group review: Not attempted. Priya, Amelia and Aiden had Q9 right, and the group's rework holds.
 - tomas Q10 · group review: Not attempted. Priya and Aiden had Q10 right, and the group's rework holds.
 - zara Q3 · own rework: One-off: null factor law on a product that isn't 0, on Q3 alone. Found on the second submission.
@@ -691,6 +694,7 @@ The set's review (individual → group → whole-class): 16 fixed on the student
 - liam Q9 · group review: Not attempted. Nobody at the table could explain Q9 after individual review; Zara's first submission went wrong on one line, the hint after the group's second wrong check named it, the group left it for now and its try on the return holds (the one exception on the set).
 - liam Q10 · group review: Not attempted. Zara had Q10 right and Sam fixed it in individual review, and the group's rework holds (the demo group's scripted run).
 - aiden Q7 · own rework: One-off: scaled two of three terms, on Q7 alone. Found on the second submission.
+- aiden Q8 · still wrong: One-off: gave the graph's intercepts with their signs flipped, on Q8 alone. The second submission slipped again (the same mirrored read). Nobody at the table could explain Q8 after individual review, so the group left it for now and its last try on the return is still wrong.
 - mia Q2 · group review: Pattern: Algebra is a gap on the set (factor brackets wrong). Noah and Ethan had Q2 right, and the group's rework holds.
 - mia Q7 · group review: Pattern: Algebra is a gap on the set (the third off by a third). Noah had Q7 right and Ethan fixed it in individual review, and the group's rework holds.
 - mia Q9 · group review: Pattern: Algebra is a gap on the set (took −x out and left the sign behind). Noah had Q9 right and Ethan fixed it in individual review, and the group's rework holds.
@@ -736,9 +740,10 @@ The set's review (individual → group → whole-class): 16 fixed on the student
 - sofia Q4 · group review: Pattern: Algebra is a gap on the set (denominator a, not 2a). Oliver and Ruby had Q4 right, and the group's rework holds.
 - sofia Q7 · still wrong: Pattern: Algebra is a gap on the set (scaled two of three terms). Nobody at the table could explain Q7 after individual review, so the group left it for now and its last try on the return is still wrong.
 
-Class review covered Q7, Q10:
+Class review covered Q7, Q8, Q10:
 
 - Q7 · shown: isla, zara. Mint, Sky and Violet left Q7 unsolved. The board shows Isla's working (scaled two of three terms, 6 in the class) and Zara's working (tripled, third never restored, 4 in the class), unnamed.
+- Q8 · shown: priya, amelia. Coral left Q8 unsolved. The board shows Priya's working (the graph's intercepts read with the signs flipped, 3 in the class) and Amelia's working (the same misread, 3 in the class), unnamed.
 - Q10 · shown: isla, lucas. Mint left Q10 unsolved. The board shows Isla's working (said the graph crosses twice, 2 in the class) and Lucas's working (negative Δ read as two, 1 in the class), unnamed.
 
 ## The students
@@ -769,17 +774,19 @@ Minus signs wrong on four sets: a minus dropped, flipped or moved to another ter
 
 ### Priya Raman (`priya`)
 
-Secure in every category on every set.
+Secure in every category on every set save one: the graph's intercepts given with their signs flipped, on Set 6 alone.
 
 | Category | PS1 | PS2 | PS3 | PS4 | PS5 | PS6 |
 | --- | --- | --- | --- | --- | --- | --- |
 | handed in | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 |
 | Algebra | secure | secure | secure | secure | secure | secure |
 | Functions | — | — | — | secure | secure | secure |
-| Graphing | — | — | — | secure | secure | secure |
+| Graphing | — | — | — | secure | secure | solid |
 | Communication | secure | secure | secure | secure | secure | secure |
 | Reasoning | secure | secure | secure | secure | secure | secure |
 | New skills | secure | secure | secure | secure | secure | secure |
+
+- PS6 · Graphing · solid: gave the graph's intercepts with their signs flipped (Q8)
 
 ### Jordan Whitlock (`jordan`)
 
@@ -813,7 +820,7 @@ Something added or cleared is not taken back (the square's constant, the third),
 | handed in | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 |
 | Algebra | developing | developing | solid | solid | solid | developing |
 | Functions | — | — | — | secure | secure | secure |
-| Graphing | — | — | — | secure | secure | secure |
+| Graphing | — | — | — | secure | secure | solid |
 | Communication | secure | secure | secure | secure | secure | secure |
 | Reasoning | secure | solid | developing | developing | gap | gap |
 | New skills | solid | developing | developing | developing | developing | developing |
@@ -824,6 +831,7 @@ Something added or cleared is not taken back (the square's constant, the third),
 - PS4 · Algebra · solid: half of b squared as a whole number over 2 (Q7)
 - PS5 · Algebra · solid: sum of the intercepts never halved (Q8)
 - PS6 · Algebra · developing: multiplied through by 3 and never took it back out (Q7)
+- PS6 · Graphing · solid: gave the graph's intercepts with their signs flipped (Q8)
 - PS2 · Reasoning · solid: the area found, the sentence about the diagonal left out (Q10)
 - PS3 · Reasoning · developing: the last line doesn't say what was shown (Q10)
 - PS4 · Reasoning · developing: the negative width kept in the answer sentence (Q10)
@@ -933,7 +941,7 @@ Right almost everywhere; scales part of an expression and leaves the rest, on ev
 | handed in | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 |
 | Algebra | developing | developing | developing | developing | developing | developing |
 | Functions | — | — | — | secure | secure | secure |
-| Graphing | — | — | — | secure | secure | secure |
+| Graphing | — | — | — | secure | secure | solid |
 | Communication | secure | secure | secure | secure | secure | secure |
 | Reasoning | secure | secure | secure | secure | secure | secure |
 | New skills | secure | secure | secure | secure | secure | secure |
@@ -944,6 +952,7 @@ Right almost everywhere; scales part of an expression and leaves the rest, on ev
 - PS4 · Algebra · developing: the 2 taken out of 2x² only (Q8)
 - PS5 · Algebra · developing: the 2 multiplied x² and nothing else (Q7)
 - PS6 · Algebra · developing: scaled two of three terms (Q7)
+- PS6 · Graphing · solid: gave the graph's intercepts with their signs flipped (Q8)
 
 ### Mia Nguyen (`mia`)
 

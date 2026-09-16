@@ -102,8 +102,10 @@ describe("classmates through the same evidence path", () => {
     const tomas = classmateHierarchy(CLASSMATES.find((c) => c.id === "tomas")!);
     expect(tomas.leaves["algebra.number.fractions"]).toBe("gap");
     expect(tomas.half.categories.length).toBeGreaterThan(0); // stopped at Q7
+    // Ticket 347: Priya's one slip (Q8, graphing) is still frequent enough among her graphing lines to read solid, not a gap.
     const priya = classmateHierarchy(CLASSMATES.find((c) => c.id === "priya")!);
-    expect(Object.values(priya.categories).every((s) => s === "secure")).toBe(true);
+    expect(priya.categories.graphing).toBe("solid");
+    expect(Object.entries(priya.categories).every(([c, s]) => c === "graphing" || s === "secure")).toBe(true);
     expect(priya.half.leaves).toEqual([]);
     const liam = classmateHierarchy(CLASSMATES.find((c) => c.id === "liam")!);
     expect(liam.categories.algebra).toBe("gap");

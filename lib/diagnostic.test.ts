@@ -422,7 +422,7 @@ describe("wrong options mirror the class's real slips (ticket 240)", () => {
       q5: [0, 2, 0, 3], // Tomas's intercepts and Liam's (ticket 281); Harper, Ruby and Finn's height
       q6: [0, 1, 0], // Amelia
       q7: [11, 3, 0], // seven constants not scaled and four thirds lost; three wrong pairs
-      q8: [0, 0], // nobody slipped on Q8
+      q8: [3, 0], // Priya, Amelia and Aiden all mirrored the graph (ticket 347)
       q9: [1, 0, 0, 4], // Mia's bracket; four axes given as heights
       q10: [0, 2, 2], // Lucas and Sam's two solutions; Amelia and Isla's two crossings
     });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ASSIGNMENT, DEMO_STUDENT } from "@/data/assignment";
-import { CLASSMATE_MAP, CLASSMATES } from "@/data/classmates";
+import { CLASSMATE_MAP, CLASSMATES, type Classmate as ClassmateType } from "@/data/classmates";
 import { assignmentBundle } from "./assignments";
 import { classroomReducer, INITIAL_CLASSROOM, type ClassroomState } from "./classroom";
 import { stageDone } from "./classStage";
@@ -35,7 +35,8 @@ describe("a correction that holds (ticket 318)", () => {
 
 describe("what each student has to fix", () => {
   it("a classmate: every problem not right first time, in set order", () => {
-    expect(recordToFix(CLASSMATE_MAP.priya, P)).toEqual([]);
+    expect(recordToFix(CLASSMATE_MAP.priya, P)).toEqual(["q8"]); // ticket 347
+    expect(recordToFix(CLASSMATE_MAP.aiden, P)).toEqual(["q7", "q8"]);
     expect(recordToFix(CLASSMATE_MAP.tomas, P)).toEqual(["q3", "q4", "q5", "q7", "q8", "q9", "q10"]);
     expect(recordToFix(CLASSMATE_MAP.grace, P)).toEqual(["q5", "q6", "q7", "q8", "q9", "q10"]);
   });
@@ -84,11 +85,16 @@ describe("where the class is in individual review", () => {
     expect(list.filter((s) => s.place.kind !== "absent").every((s) => s.place.kind === "not-started")).toBe(true);
   });
 
-  it("at the start: Priya, with nothing to fix, is done; everyone else reads; Chloe is absent", () => {
+  it("at the start: since ticket 347 every classmate has something to fix (Priya's Q8 among them), so all read not-started; Chloe is absent", () => {
     const list = at(S);
-    expect(of(list, "priya").place.kind).toBe("done");
     expect(of(list, "chloe").place.kind).toBe("absent");
-    expect(list.filter((s) => !["priya", "chloe"].includes(s.id)).every((s) => s.place.kind === "not-started")).toBe(true);
+    expect(list.filter((s) => s.id !== "chloe").every((s) => s.place.kind === "not-started")).toBe(true);
+  });
+
+  it("a classmate with nothing to fix reads done from the start", () => {
+    const nothingToFix: ClassmateType = { ...CLASSMATE_MAP.priya, wrong: [] };
+    const list = reviewPlaces({ ...LIVE, classmates: LIVE.classmates.map((m) => (m.id === "priya" ? nothingToFix : m)) }, CREATED, SAM, T0 + S);
+    expect(of(list, "priya").place.kind).toBe("done");
   });
 
   it("partway, a classmate is on one of their own problems, came into it before now, and has fixed only right ones", () => {
@@ -181,8 +187,8 @@ describe("the rows", () => {
     const A = T0 + 3 * MIN;
     const c = arrived(A);
     const done = act(SAM, { type: "rework/done", at: A });
-    // Before Sam reaches the gate only Priya, who had nothing to fix, is done.
-    expect(stageDone("individual", CREATED, SAM, T0 + S, LIVE)).toBe(1);
+    // Before Sam reaches the gate nobody with something to fix is done yet (Priya has Q8 to fix too, ticket 347).
+    expect(stageDone("individual", CREATED, SAM, T0 + S, LIVE)).toBe(0);
     for (const ms of [S, 3 * MIN + 5 * S, 3 * MIN + 12 * S, 6 * MIN]) {
       const list = at(ms, c, ms >= 3 * MIN ? done : SAM);
       const r = reviewRows(list, P, LIVE.classmates, T0 + ms);

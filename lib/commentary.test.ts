@@ -11,7 +11,8 @@ describe("commentary for the individual view", () => {
   });
 
   it("has nothing for a classmate without notes, and no clarification", () => {
-    expect(commentaryFor("priya", null)).toEqual({ ideas: [], clarification: null });
+    // Priya has Q8 since ticket 347: Chloe, who sent nothing in on Problem Set 6, is the one with no notes here.
+    expect(commentaryFor("chloe", null)).toEqual({ ideas: [], clarification: null });
     expect(commentaryFor("nobody", null)).toEqual({ ideas: [], clarification: null });
   });
 

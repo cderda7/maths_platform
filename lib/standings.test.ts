@@ -43,7 +43,7 @@ describe("the simulated race (ticket 332)", () => {
 
   it("each other group's union and total come from Problem Set 6's seating and every question a member still has after individual review", () => {
     expect(fixture("coral").union).toEqual(["q4", "q5", "q7", "q8", "q9", "q10"]);
-    expect(fixture("coral").total).toBe(7);
+    expect(fixture("coral").total).toBe(10);
     expect(fixture("amber").union).toEqual(["q2", "q7", "q9", "q10"]);
     expect(fixture("amber").total).toBe(5);
     expect(fixture("mint").union).toEqual(["q3", "q5", "q6", "q7", "q8", "q9", "q10"]);
@@ -79,13 +79,17 @@ describe("the simulated race (ticket 332)", () => {
     return ms / 1000;
   };
 
-  it("two groups finish before the demo group's quickest board and two after it has had four minutes' slack (ten minutes or more), all inside twelve; without individual review on the pathway every group is still home inside the report jump's fifteen", () => {
+  it("amber finishes before the demo group's quickest board, coral (with an unsolved question of its own, ticket 347) shortly after it, and two after it has had four minutes' slack (ten minutes or more), all inside twelve; without individual review on the pathway every group is still home inside the report jump's fifteen", () => {
     const { opens, groups } = finished();
     const finishes = groups.filter((g) => !g.live).map((g) => ({ colour: g.colour, s: Math.max(...closedInOrder(g.run!).map((p) => closedMoment(g.run!, p))) / 1000 - opens / 1000 }));
     const sky = skyQuickestSeconds();
     expect(sky).toBeGreaterThan(5 * 60);
     expect(sky + 4 * 60).toBeLessThan(10 * 60);
-    expect(finishes.filter((f) => f.s < sky).map((f) => f.colour)).toEqual(["coral", "amber"]);
+    expect(finishes.filter((f) => f.s < sky).map((f) => f.colour)).toEqual(["amber"]);
+    // Coral's own unsolved question (Q8) now costs it three wrong checks, the pause and a return, so it lands just after sky's quickest board rather than before it.
+    const coral = finishes.find((f) => f.colour === "coral")!;
+    expect(coral.s).toBeGreaterThan(sky);
+    expect(coral.s - sky).toBeLessThan(30);
     expect(finishes.filter((f) => f.s >= 10 * 60).map((f) => f.colour)).toEqual(["mint", "violet"]);
     for (const f of finishes) expect(f.s, f.colour).toBeLessThanOrEqual(12 * 60);
     for (const g of groups) if (!g.live) expect(g.run!.done, g.colour).toBe(true);
@@ -218,7 +222,7 @@ describe("the leaderboard", () => {
     expect(ranked.find((r) => r.live)!.pen).toBeNull();
     // The teacher's card names what each group could not get (ticket 223; every group since ticket 332).
     const stuck = Object.fromEntries(ranked.map((r) => [r.colour, r.stuck]));
-    expect(stuck).toEqual({ coral: [], amber: [], sky: [{ problem: "q7", tries: 4, status: "unsolved" }], mint: [{ problem: "q7", tries: 4, status: "unsolved" }, { problem: "q10", tries: 4, status: "unsolved" }], violet: [{ problem: "q7", tries: 4, status: "unsolved" }] });
+    expect(stuck).toEqual({ coral: [{ problem: "q8", tries: 4, status: "unsolved" }], amber: [], sky: [{ problem: "q7", tries: 4, status: "unsolved" }], mint: [{ problem: "q7", tries: 4, status: "unsolved" }, { problem: "q10", tries: 4, status: "unsolved" }], violet: [{ problem: "q7", tries: 4, status: "unsolved" }] });
   });
 });
 

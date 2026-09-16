@@ -258,8 +258,8 @@ export const STORY: Readonly<Record<string, StoryRow>> = {
   },
   priya: {
     done: [10, 10, 10, 10, 10, 10],
-    arc: "Secure in every category on every set.",
-    cells: { algebra: S6, functions: LATE_SECURE, graphing: LATE_SECURE, communication: S6, reasoning: S6, new: S6 },
+    arc: "Secure in every category on every set save one: the graph's intercepts given with their signs flipped, on Set 6 alone.",
+    cells: { algebra: S6, functions: LATE_SECURE, graphing: [na, na, na, sec, sec, sol(h("gave the graph's intercepts with their signs flipped", "graph-signs", 8))], communication: S6, reasoning: S6, new: S6 },
   },
   jordan: {
     done: [10, 10, 9, 8, 8, 7],
@@ -279,7 +279,7 @@ export const STORY: Readonly<Record<string, StoryRow>> = {
     cells: {
       algebra: [dev(h("cancelled the numbers but not the surds when dividing", "denominator-dropped", 7)), dev(h("a denominator dropped adding the two fractions", "denominator-dropped", 9)), sol(h("a common factor taken out and not put back in the answer", "factor-missing", 7)), sol(h("half of b squared as a whole number over 2", "power-on-part", 7)), sol(h("sum of the intercepts never halved", "halving-wrong", 8)), dev(h("multiplied through by 3 and never took it back out", "factor-missing", 7))],
       functions: LATE_SECURE,
-      graphing: LATE_SECURE,
+      graphing: [na, na, na, sec, sec, sol(h("gave the graph's intercepts with their signs flipped", "graph-signs", 8))],
       communication: S6,
       reasoning: [sec, sol(h("the area found, the sentence about the diagonal left out", "question-not-answered", 10)), dev(h("the last line doesn't say what was shown", "question-not-answered", 10)), dev(h("the negative width kept in the answer sentence", "context-not-checked", 10)), gap(h("the landing given as the nozzle's zero", "context-not-checked", 10)), gap(h("said the graph crosses twice", "context-not-checked", 10))],
       new: [sol(h("√12 + √27 collected before simplifying", "roots-added", 3)), dev(h("multiplied only the denominator by the conjugate", "partial-distribution", 7, 8)), dev(h("(2x − 3)² expanded without the middle term", "square-vs-difference", 2)), dev(h("added 9 to complete the square, never took it away", "square-not-balanced", 6)), dev(h("added 16 to complete the square, never took it away", "square-not-balanced", 6)), dev(h("read “touches once” as discriminant > 0", "discriminant-root-count", 6))],
@@ -327,7 +327,7 @@ export const STORY: Readonly<Record<string, StoryRow>> = {
     cells: {
       algebra: [dev(h("√2 multiplied into the first term only", "partial-distribution", 8)), dev(h("√3 multiplied into the first term only", "partial-distribution", 1)), dev(h("the common factor divided out of the first two terms only", "partial-distribution", 7)), dev(h("the 2 taken out of 2x² only", "partial-distribution", 8)), dev(h("the 2 multiplied x² and nothing else", "partial-distribution", 7)), dev(h("scaled two of three terms", "partial-distribution", 7))],
       functions: LATE_SECURE,
-      graphing: LATE_SECURE,
+      graphing: [na, na, na, sec, sec, sol(h("gave the graph's intercepts with their signs flipped", "graph-signs", 8))],
       communication: S6,
       reasoning: S6,
       new: S6,
@@ -982,9 +982,13 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       grp(9, "Not attempted. Nobody at the table could explain Q9 after individual review; Zara's first submission went wrong on one line, the hint after the group's second wrong check named it, the group left it for now and its try on the return holds (the one exception on the set)."),
       grp(10, "Not attempted. Zara had Q10 right and Sam fixed it in individual review, and the group's rework holds (the demo group's scripted run)."),
     ],
+    priya: [
+      kept(8, "One-off: gave the graph's intercepts with their signs flipped, on Q8 alone. The second submission slipped again (the same mirrored read). Nobody at the table could explain Q8 after individual review, so the group left it for now and its last try on the return is still wrong."),
+    ],
     amelia: [
       own(6, "One-off: read “touches once” as discriminant > 0, on Q6 alone. Found on the second submission."),
       own(7, "One-off: multiplied through by 3 and never took it back out, on Q7 alone. Found on the second submission."),
+      kept(8, "One-off: gave the graph's intercepts with their signs flipped, on Q8 alone. The second submission slipped again (the same mirrored read). Nobody at the table could explain Q8 after individual review, so the group left it for now and its last try on the return is still wrong."),
       grp(10, "Pattern: Reasoning is a gap on the set (said the graph crosses twice). Priya and Aiden had Q10 right, and the group's rework holds."),
     ],
     tomas: [
@@ -992,7 +996,7 @@ export const STORY_REVIEW: readonly StoryReview[] = [
       grp(4, "Pattern: Algebra is a gap on the set (divided by a, not 2a). Priya, Amelia and Aiden had Q4 right, and the group's rework holds."),
       grp(5, "Pattern: Algebra is a gap on the set (roots read off the factors with the signs flipped). Priya, Amelia and Aiden had Q5 right, and the group's rework holds."),
       grp(7, "Pattern: Algebra is a gap on the set (scaled two of three terms). Priya had Q7 right and Amelia and Aiden fixed it in individual review, and the group's rework holds."),
-      grp(8, "Not attempted. Priya, Amelia and Aiden had Q8 right, and the group's rework holds."),
+      kept(8, "Not attempted. Nobody at the table could explain Q8 after individual review (Priya's, Amelia's and Aiden's rewrites all slipped again), so the group left it for now and its last try on the return is still wrong."),
       grp(9, "Not attempted. Priya, Amelia and Aiden had Q9 right, and the group's rework holds."),
       grp(10, "Not attempted. Priya and Aiden had Q10 right, and the group's rework holds."),
     ],
@@ -1014,6 +1018,7 @@ export const STORY_REVIEW: readonly StoryReview[] = [
     ],
     aiden: [
       own(7, "One-off: scaled two of three terms, on Q7 alone. Found on the second submission."),
+      kept(8, "One-off: gave the graph's intercepts with their signs flipped, on Q8 alone. The second submission slipped again (the same mirrored read). Nobody at the table could explain Q8 after individual review, so the group left it for now and its last try on the return is still wrong."),
     ],
     mia: [
       grp(2, "Pattern: Algebra is a gap on the set (factor brackets wrong). Noah and Ethan had Q2 right, and the group's rework holds."),
@@ -1103,7 +1108,7 @@ export const STORY_CLASS_REVIEW: readonly (readonly StoryCovered[] | null)[] = [
   [{ q: 10, examples: ["isla", "lucas"], why: "Mint left Q10 unsolved. The board shows Isla's working (last line solves for x, 2 in the class) and Lucas's working (one sign left unchanged, 1 in the class), unnamed." }],
   null,
   null,
-  [{ q: 7, examples: ["isla", "zara"], why: "Mint, Sky and Violet left Q7 unsolved. The board shows Isla's working (scaled two of three terms, 6 in the class) and Zara's working (tripled, third never restored, 4 in the class), unnamed." }, { q: 10, examples: ["isla", "lucas"], why: "Mint left Q10 unsolved. The board shows Isla's working (said the graph crosses twice, 2 in the class) and Lucas's working (negative Δ read as two, 1 in the class), unnamed." }],
+  [{ q: 7, examples: ["isla", "zara"], why: "Mint, Sky and Violet left Q7 unsolved. The board shows Isla's working (scaled two of three terms, 6 in the class) and Zara's working (tripled, third never restored, 4 in the class), unnamed." }, { q: 8, examples: ["priya", "amelia"], why: "Coral left Q8 unsolved. The board shows Priya's working (the graph's intercepts read with the signs flipped, 3 in the class) and Amelia's working (the same misread, 3 in the class), unnamed." }, { q: 10, examples: ["isla", "lucas"], why: "Mint left Q10 unsolved. The board shows Isla's working (said the graph crosses twice, 2 in the class) and Lucas's working (negative Δ read as two, 1 in the class), unnamed." }],
 ];
 
 /** The one-step rule's ladder. */

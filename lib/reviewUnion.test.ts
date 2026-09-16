@@ -57,8 +57,8 @@ describe("a member's questions after individual review (ticket 332)", () => {
     expect(recordReviewProblems(CLASSMATE_MAP.jordan, true)).toEqual(["q7", "q8", "q9", "q10"]);
     expect(recordReviewProblems(CLASSMATE_MAP.zara, true)).toEqual(["q7", "q9"]);
     expect(recordReviewProblems(CLASSMATE_MAP.liam, true)).toEqual(["q1", "q2", "q3", "q5", "q6", "q7", "q8", "q9", "q10"]);
-    expect(recordReviewProblems(CLASSMATE_MAP.priya, true)).toEqual([]);
-    expect(recordReviewProblems(CLASSMATE_MAP.aiden, true)).toEqual([]);
+    expect(recordReviewProblems(CLASSMATE_MAP.priya, true)).toEqual(["q8"]); // ticket 347: Priya's one slip, its rework slipped again
+    expect(recordReviewProblems(CLASSMATE_MAP.aiden, true)).toEqual(["q8"]); // Q7 fixed in individual review; Q8 did not
   });
 
   it("an absent member brings nothing: the group's union is the present members' alone", () => {

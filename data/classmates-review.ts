@@ -1,6 +1,7 @@
 import { ASSIGNMENT } from "./assignment";
 import { RECOGNITION_REWORK } from "./recognition";
 import type { ClassReviewPicks, GroupVersion, SetReview } from "./recordReview";
+import { Q8_MIRROR } from "./slips";
 
 /**
  * What review made of the classmates' Problem Set 6 problems (tickets 244, 281, 332): the second submissions written in
@@ -11,10 +12,12 @@ import type { ClassReviewPicks, GroupVersion, SetReview } from "./recordReview";
  * class story sheet's Set 6 review part (`STORY_REVIEW` in `data/story.ts`). On the live set a classmate's outcome shows only
  * once the class has reached that stage (`recordReviews`, `lib/report.ts`).
  *
- * The second submissions: every one-off slip is rewritten (ticket 281). Most hold. Seven do not (ticket 332, for the demo
- * outcomes Carson asked for): Q7, the class's hardest fraction question, slipped again a different way for Jordan and Zara
- * (sky), Isla and Lucas (mint), and Oliver and Ruby (violet), as Sam's own rework of it does; and Zara gave the axis as
- * the height again on Q9. So nobody at sky, mint or violet can explain Q7, and nobody at sky can explain Q9.
+ * The second submissions: every one-off slip is rewritten (ticket 281). Most hold. Ten do not (seven from ticket 332, for
+ * the demo outcomes Carson asked for, three from ticket 347 for coral's): Q7, the class's hardest fraction question,
+ * slipped again a different way for Jordan and Zara (sky), Isla and Lucas (mint), and Oliver and Ruby (violet), as Sam's
+ * own rework of it does; Zara gave the axis as the height again on Q9; and Priya, Amelia and Aiden all gave Q8's
+ * intercepts with their signs flipped again, the class's only recognised slip on it (`Q8_MIRROR`). So nobody at sky, mint
+ * or violet can explain Q7, nobody at sky can explain Q9, and nobody at coral can explain Q8.
  *
  * Every group's versions are its simulated board's last tries (`SIMULATED_BOARDS` and, for sky, the demo student's
  * scripted board, `GROUP_SCRIPTS`, both in `data/group-scripts.ts`): the rework that checks, or the last try on a question
@@ -37,6 +40,12 @@ export const MINT_Q10_LAST = ["b^2 - 4ac = 16 - 20 = -4", "\\Delta < 0 \\Rightar
 export const VIOLET_Q7_LAST = ["x^2 + 6x + 8", "1 \\times 8 = 8,\\quad 1 + 8 = 9", "\\tfrac{1}{3}(x + 1)(x + 8)"];
 /** Sky's last try on Q7 (the demo student's scripted return): the third taken out and the pair right, the brackets' signs flipped. */
 export const SKY_Q7_LAST = ["\\tfrac{1}{3}(x^2 + 6x + 8)", "2 \\times 4 = 8,\\quad 2 + 4 = 6", "\\tfrac{1}{3}(x - 2)(x - 4)"];
+/**
+ * Coral's last try on Q8 (ticket 347): the class's only recognised slip on it (Q8 has one step, so no other line is
+ * available to build up to it differently, unlike Q7's or Q9's several-step working). Written twice, by two different
+ * turns at the board, so the group's version is never byte-for-byte a single member's own one-line submission.
+ */
+export const CORAL_Q8_LAST = [Q8_MIRROR[0], Q8_MIRROR[0]];
 
 /** Q7 rewritten in individual review and wrong again (ticket 332): tripled throughout and the third never put back. */
 const Q7_AGAIN_LOST_THIRD = ["x^2 + 6x + 8", "2 \\times 4 = 8,\\quad 2 + 4 = 6", "(x + 2)(x + 4)"];
@@ -49,11 +58,12 @@ const Q9_AGAIN_AXIS = ["-x(x - 6) = 0", "x = 0 \\;\\text{or}\\; x = 6", "\\text{
 
 export const SET6_REVIEW: SetReview = {
   second: {
+    priya: { q8: Q8_MIRROR },
     jordan: { q2: solution("q2"), q7: Q7_AGAIN_LOST_THIRD },
-    amelia: { q6: solution("q6"), q7: solution("q7") },
+    amelia: { q6: solution("q6"), q7: solution("q7"), q8: Q8_MIRROR },
     tomas: { q3: solution("q3") },
     zara: { q3: solution("q3"), q7: Q7_AGAIN_PAIR, q9: Q9_AGAIN_AXIS },
-    aiden: { q7: solution("q7") },
+    aiden: { q7: solution("q7"), q8: Q8_MIRROR },
     noah: { q3: solution("q3") },
     ethan: { q1: solution("q1"), q4: solution("q4"), q7: solution("q7"), q9: solution("q9") },
     isla: { q4: solution("q4"), q7: Q7_AGAIN_PAIR },
@@ -63,7 +73,7 @@ export const SET6_REVIEW: SetReview = {
     finn: { q5: solution("q5") },
   },
   groups: {
-    coral: { q4: rework("q4"), q5: rework("q5"), q7: rework("q7"), q8: rework("q8"), q9: rework("q9"), q10: rework("q10") },
+    coral: { q4: rework("q4"), q5: rework("q5"), q7: rework("q7"), q8: lastTry(CORAL_Q8_LAST), q9: rework("q9"), q10: rework("q10") },
     amber: { q2: rework("q2"), q7: rework("q7"), q9: rework("q9"), q10: rework("q10") },
     mint: { q3: rework("q3"), q5: rework("q5"), q6: rework("q6"), q7: lastTry(MINT_Q7_LAST), q8: rework("q8"), q9: rework("q9"), q10: lastTry(MINT_Q10_LAST) },
     sky: {
@@ -84,8 +94,9 @@ export const SET6_REVIEW: SetReview = {
 
 /**
  * What class review covered among the classmates (ticket 281): every problem a group left unsolved (Q7 at mint, sky and
- * violet; Q10 at mint), each with the students whose real wrong first submission went on the board, unnamed: the class's
- * most common slip on it first, from a table that left it unsolved. `data/classmates.ts` reads their working off the
- * records. On the live lesson, what the teacher actually projects is the classroom's own (ticket 282 reads both).
+ * violet; Q10 at mint; Q8 at coral, ticket 347), each with the students whose real wrong first submission went on the
+ * board, unnamed: the class's most common slip on it first, from a table that left it unsolved. `data/classmates.ts` reads
+ * their working off the records. On the live lesson, what the teacher actually projects is the classroom's own (ticket 282
+ * reads both).
  */
-export const SET6_CLASS_REVIEW_PICKS: ClassReviewPicks = { q7: ["isla", "zara"], q10: ["isla", "lucas"] };
+export const SET6_CLASS_REVIEW_PICKS: ClassReviewPicks = { q7: ["isla", "zara"], q8: ["priya", "amelia"], q10: ["isla", "lucas"] };

@@ -1,5 +1,5 @@
 import { ASSIGNMENT } from "./assignment";
-import { MINT_Q10_LAST, MINT_Q7_LAST, SKY_Q7_LAST, VIOLET_Q7_LAST } from "./classmates-review";
+import { CORAL_Q8_LAST, MINT_Q10_LAST, MINT_Q7_LAST, SKY_Q7_LAST, VIOLET_Q7_LAST } from "./classmates-review";
 import type { GroupColour } from "./groups";
 import { RECOGNITION, RECOGNITION_REWORK } from "./recognition";
 import { Q10_FORMAL, Q10_TWICE, Q1_PAIR, Q2_GUESSED, Q2_SIGN, Q3_EXPAND, Q4_OVER_A, Q5_ROOTS_FLIPPED, Q5_SIGNS, Q7_LOST_THIRD, Q7_PAIR, Q7_TWO_TERMS, Q9_RUSHED, Q9_SIGN, SLIPS } from "./slips";
@@ -78,8 +78,10 @@ export const GROUP_SCRIPTS: Record<string, TurnScript> = {
  * (pens by the product's shuffle, wrong checks, the hint, left for now, the return) and a per-group view can show them.
  * `lib/groupSim.ts` plays them on the classroom's clock. Every group version in `SET6_REVIEW` is its board's last try.
  *
- * - Coral (Priya, Amelia, Tomas, Aiden; Q4, Q5, Q7–Q10): Priya had every question right, so each holds in one or two
- *   tries, the first wrong go a slip Tomas, Aiden or Amelia really wrote. Nothing is left for now.
+ * - Coral (Priya, Amelia, Tomas, Aiden; Q4, Q5, Q7–Q10): Q8 nobody can explain (ticket 347: Priya's, Amelia's and Aiden's
+ *   rewrites all slipped again, the class's only recognised slip on it); it takes three wrong checks, is left for now, and
+ *   closes unsolved on its return. The rest hold in one or two tries, the first wrong go a slip Tomas, Aiden or Amelia
+ *   really wrote.
  * - Amber (Mia, Noah, Ethan, Chloe away; Q2, Q7, Q9, Q10): Noah can explain Q2, Q7 and Q9, Mia Q10. Nothing is left for now.
  * - Mint (Isla, Lucas, Grace, Harper; Q3, Q5–Q10): Q7 and Q10 nobody can explain (Isla's and Lucas's Q7 rewrites slipped
  *   again; nobody had Q10 right). Each takes three wrong checks, is left for now, and closes unsolved on its return with
@@ -92,7 +94,7 @@ export const SIMULATED_BOARDS: Partial<Record<GroupColour, Readonly<Record<strin
     q4: [Q4_OVER_A, solution("q4")],
     q5: [Q5_SIGNS, solution("q5")],
     q7: [Q7_TWO_TERMS, solution("q7")],
-    q8: [solution("q8")],
+    q8: [SLIPS.q8, SLIPS.q8, SLIPS.q8, CORAL_Q8_LAST],
     q9: [solution("q9")],
     q10: [Q10_TWICE, solution("q10")],
   },
@@ -124,9 +126,11 @@ export const SIMULATED_BOARDS: Partial<Record<GroupColour, Readonly<Record<strin
 
 /**
  * How fast each simulated group works (ticket 332, simulation only), in seconds: `tryS` from the start of a try to its check
- * (writing, talking it through, checking), `nextS` from a close to the next visit (reading the marks). Set so two groups
- * finish before the demo group's quickest board (amber and coral) and two a good while after it (mint and violet), all
- * inside twelve minutes, and no bar jumps: every close at least half a minute after the one before.
+ * (writing, talking it through, checking), `nextS` from a close to the next visit (reading the marks). Set so amber finishes
+ * before the demo group's quickest board and mint and violet a good while after it, all inside twelve minutes, and no bar
+ * jumps: every close at least half a minute after the one before. Coral was the other group home before the demo group's
+ * board until ticket 347 gave it an unsolved question of its own (Q8): the three wrong checks, the pause and the return
+ * push it just past the demo group's quickest board instead, still well inside the twelve minutes.
  */
 export const SIMULATED_PACE: Partial<Record<GroupColour, { tryS: number; nextS: number }>> = {
   amber: { tryS: 26, nextS: 16 },

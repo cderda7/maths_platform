@@ -181,11 +181,17 @@ describe("the class story sheet (ticket 210)", () => {
     expect(jumps).toEqual([]);
   });
 
-  it("Priya is secure in every category on every set and hands everything in", () => {
+  it("Priya is secure in every category on every set, save graphing on Set 6 (ticket 347: one slip, still solid), and hands everything in", () => {
     const priya = STORY.priya;
     expect(priya.done).toEqual([10, 10, 10, 10, 10, 10]);
     STORY_SETS.forEach((s, i) => {
-      for (const c of STORY_CATEGORIES) expect(priya.cells[c][i].status, `${c} ${s.id}`).toBe(s.categories.includes(c) ? "secure" : "none");
+      for (const c of STORY_CATEGORIES) {
+        if (c === "graphing" && s.n === 6) {
+          expect(priya.cells[c][i].status, `${c} ${s.id}`).toBe("solid");
+          continue;
+        }
+        expect(priya.cells[c][i].status, `${c} ${s.id}`).toBe(s.categories.includes(c) ? "secure" : "none");
+      }
     });
   });
 
@@ -323,11 +329,11 @@ describe("the class story sheet (ticket 210)", () => {
     expect(STORY_CLASS_REVIEW.map((c) => c !== null)).toEqual([true, false, true, false, false, true]);
     const sky = Object.fromEntries(Object.entries(GROUP_SCRIPTS).map(([pid, s]) => [pid, checkBoard(pid, s.attempts.at(-1)!).correct]));
     expect(classReviewMismatches(SET6_CLASS_REVIEW, STORY_SETS[5].pathway, CLASSMATES, ASSIGNMENT, 6, FROZEN_GROUPS[ASSIGNMENT.id], { absent: DEMO_ABSENCES[ASSIGNMENT.id], fixed: { sky } })).toEqual([]);
-    expect(SET6_CLASS_REVIEW.map((c) => [c.problem, c.examples.map((e) => e.student)])).toEqual([["q7", ["isla", "zara"]], ["q10", ["isla", "lucas"]]]);
+    expect(SET6_CLASS_REVIEW.map((c) => [c.problem, c.examples.map((e) => e.student)])).toEqual([["q7", ["isla", "zara"]], ["q8", ["priya", "amelia"]], ["q10", ["isla", "lucas"]]]);
     // The check bites: a covered problem dropped, an example that is not the student's working.
-    expect(classReviewMismatches(SET6_CLASS_REVIEW.slice(0, 1), STORY_SETS[5].pathway, CLASSMATES, ASSIGNMENT, 6, FROZEN_GROUPS[ASSIGNMENT.id], { absent: DEMO_ABSENCES[ASSIGNMENT.id], fixed: { sky } })).toEqual(["class review covers Q7, the groups left Q7, Q10 unsolved", "the sheet's class review covers Q7, Q10, the record Q7"]);
+    expect(classReviewMismatches(SET6_CLASS_REVIEW.slice(0, 1), STORY_SETS[5].pathway, CLASSMATES, ASSIGNMENT, 6, FROZEN_GROUPS[ASSIGNMENT.id], { absent: DEMO_ABSENCES[ASSIGNMENT.id], fixed: { sky } })).toEqual(["class review covers Q7, the groups left Q7, Q8, Q10 unsolved", "the sheet's class review covers Q7, Q8, Q10, the record Q7"]);
     const swapped = [{ problem: "q10", examples: [{ student: "isla", lines: ASSIGNMENT.problems[9].solution.map((st) => st.tex) }] }];
-    expect(classReviewMismatches([SET6_CLASS_REVIEW[0], ...swapped], STORY_SETS[5].pathway, CLASSMATES, ASSIGNMENT, 6, FROZEN_GROUPS[ASSIGNMENT.id], { absent: DEMO_ABSENCES[ASSIGNMENT.id], fixed: { sky } })).toEqual(["Q10: isla's example is not their first submission on it", "Q10: the sheet shows isla, lucas, the record isla"]);
+    expect(classReviewMismatches([SET6_CLASS_REVIEW[0], SET6_CLASS_REVIEW[1], ...swapped], STORY_SETS[5].pathway, CLASSMATES, ASSIGNMENT, 6, FROZEN_GROUPS[ASSIGNMENT.id], { absent: DEMO_ABSENCES[ASSIGNMENT.id], fixed: { sky } })).toEqual(["Q10: isla's example is not their first submission on it", "Q10: the sheet shows isla, lucas, the record isla"]);
     expect(classReviewMismatches(undefined, ["individual", "group"], CLASSMATES, ASSIGNMENT, 6, FROZEN_GROUPS[ASSIGNMENT.id])).toEqual(["the sheet has a class review part for a set without it"]);
   });
 

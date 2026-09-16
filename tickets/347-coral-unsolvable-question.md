@@ -4,7 +4,7 @@
 
 **Blocked by:** 337 (it changes the same group lists; land it first).
 
-**Status:** open
+**Status:** done
 
 **Triage:** `ready-for-agent`
 
@@ -31,8 +31,8 @@ Carson, 2026-09-16, asked for exactly one of the two to be fixed: "change a firs
 
 ## Acceptance
 
-- [ ] Unit: no present member of coral has the chosen question right first time or after individual review; coral's run leaves it for now and closes it unsolved; every other group's outcomes are unchanged; the changed students' set scores match the new first submissions and every other score is unchanged
-- [ ] The architecture note lists every count that moved (set scores, per-question correct counts, struggled counts, outcome totals per set) with its old and new value
-- [ ] Click-through against a production build at 1280×800 and 1440×900 with Sam's iPad and the teacher tab: the changed student's report and the teacher report show the new first submission and its misconception; the Mistakes tab's counts follow; coral's board leaves the question and ends unsolved; the teacher's group grid (ticket 319) shows it; the race still finishes in order; screenshots checked
-- [ ] vitest, eslint, tsc, next build, check:laptop
-- [ ] Ticket docs: `architecture/347.md`, ARCHITECTURE, DECISION_LOG, FUTURE_FEATURES, README
+- [x] Unit: no present member of coral has the chosen question right first time or after individual review; coral's run leaves it for now and closes it unsolved; every other group's outcomes are unchanged; the changed students' set scores match the new first submissions and every other score is unchanged
+- [x] The architecture note lists every count that moved (set scores, per-question correct counts, struggled counts, outcome totals per set) with its old and new value
+- [x] Click-through against a production build at 1280×800 and 1440×900 with Sam's iPad and the teacher tab: the changed student's report and the teacher report show the new first submission and its misconception; the Mistakes tab's counts follow; coral's board leaves the question and ends unsolved; the teacher's group grid (ticket 319) shows it; the race still finishes in order; screenshots checked
+- [x] vitest, eslint, tsc, next build, check:laptop
+- [x] Ticket docs: `architecture/347.md`, ARCHITECTURE, DECISION_LOG, FUTURE_FEATURES, README

@@ -19,12 +19,14 @@ export { Q5_ROOTS_FLIPPED, Q7_LOST_THIRD, Q7_PAIR, SLIPS } from "./slips";
  * student's group, with wrong sets chosen so the all-correct intersection and the union of
  * wrongs are both non-empty and different.
  *
- * The shape of the wrongs (ticket 130; Jordan's Q7 since ticket 189, Liam's started Q5 since ticket 281): 47 wrong student-problem entries. Q7 has thirteen
+ * The shape of the wrongs (ticket 130; Jordan's Q7 since ticket 189, Liam's started Q5 since ticket 281; Priya's, Amelia's
+ * and Aiden's Q8 since ticket 347): 50 wrong student-problem entries. Q7 has thirteen
  * classmates wrong across three strategies (six cleared the fraction from two terms, four
  * multiplied through and lost the third, three took the third out and then the wrong pair);
- * Q6 has Amelia alone; nobody slips on Q8. Q1 and Q4 each hold two different slips under one
- * skill; Q2, Q3, Q9 and Q10 each hold two slips under different skills. Priya (all right),
- * Chloe (nothing handed in) and Grace (right, steps skipped) are untouched. Every slip has a
+ * Q6 has Amelia alone; Q8 has Priya, Amelia and Aiden, all the same slip (the graph's evaluation
+ * table holds only the one, so coral's table has nobody to explain it, ticket 347). Q1 and Q4 each
+ * hold two different slips under one skill; Q2, Q3, Q9 and Q10 each hold two slips under different
+ * skills. Chloe (nothing handed in) and Grace (right, steps skipped) are untouched. Every slip has a
  * teacher note, and the student's clarification covers it.
  */
 export interface Classmate {
@@ -59,16 +61,18 @@ function light(id: string, name: string, initials: string, confidence: Classmate
 }
 
 const RECORDS: Classmate[] = [
-  { id: "priya", name: "Priya Raman", initials: "PR", confidence: "confident", done: 10, wrong: [], notes: [], attempts: {}, groupStatus: "Quick pass done · nothing to discuss" },
+  // Ticket 347: Q8 alone, the graph's intercepts given with their signs flipped. Found on the second submission (kept below).
+  { id: "priya", name: "Priya Raman", initials: "PR", confidence: "confident", done: 10, wrong: ["q8"], notes: [{ text: "gave the graph's intercepts with their signs flipped", problems: ["q8"] }], attempts: { q8: Q8_MIRROR }, clarification: "I read the crossings off the wrong side of the axis. I'll check each one against the picture next time.", groupStatus: "Quick pass done · comparing Q8" },
   // Ticket 189: low on non-monic factorising, answers Q1–Q7 in the live stream and stalls on Q8 (never hands in on his own); Q4–Q6 right (the model solution), Q7 the same unchecked pair as Q2.
   { id: "jordan", name: "Jordan Whitlock", initials: "JW", confidence: "low: non-monic factorising", done: 7, wrong: ["q2", "q7"], notes: [{ text: "non-monic brackets wrong", problems: ["q2"] }, { text: "a pair that multiplies to 8 but adds to 9", problems: ["q7"] }], attempts: { q2: Q2_GUESSED, q7: Q7_PAIR }, clarification: "I had the factor pair from the constant and didn't check the middle term. In Q7 I did the same thing: 1 and 8 multiply to 8 so I wrote them down. I'll expand back next time before I write the roots.", groupStatus: "Discussing Q2 · expanding back" },
-  { id: "amelia", name: "Amelia Chen", initials: "AC", confidence: "low", done: 10, wrong: ["q6", "q7", "q10"], notes: [{ text: "read “touches once” as discriminant > 0", problems: ["q6"] }, { text: "multiplied through by 3 and never took it back out", problems: ["q7"] }, { text: "said the graph crosses twice", problems: ["q10"] }], attempts: { q6: Q6_TWICE, q7: Q7_LOST_THIRD, q10: Q10_TWICE }, clarification: "I mixed up which sign of the discriminant means one solution. I think I was picturing the graph the wrong way round. In Q7 I cleared the fractions and forgot the third had to come back at the end.", groupStatus: "Quick pass done · comparing Q4 methods" },
+  { id: "amelia", name: "Amelia Chen", initials: "AC", confidence: "low", done: 10, wrong: ["q6", "q7", "q8", "q10"], notes: [{ text: "read “touches once” as discriminant > 0", problems: ["q6"] }, { text: "multiplied through by 3 and never took it back out", problems: ["q7"] }, { text: "gave the graph's intercepts with their signs flipped", problems: ["q8"] }, { text: "said the graph crosses twice", problems: ["q10"] }], attempts: { q6: Q6_TWICE, q7: Q7_LOST_THIRD, q8: Q8_MIRROR, q10: Q10_TWICE }, clarification: "I mixed up which sign of the discriminant means one solution. I think I was picturing the graph the wrong way round. In Q7 I cleared the fractions and forgot the third had to come back at the end. In Q8 I read the crossings off the wrong side of the axis.", groupStatus: "Quick pass done · comparing Q4 methods" },
   { id: "tomas", name: "Tomas Reyes", initials: "TR", confidence: "low: fractions", done: 7, wrong: ["q3", "q4", "q5", "q7"], notes: [{ text: "null factor law on a product that isn’t 0", problems: ["q3"] }, { text: "divided by a, not 2a", problems: ["q4"] }, { text: "roots read off the factors with the signs flipped", problems: ["q5"] }, { text: "scaled two of three terms", problems: ["q7"] }], attempts: { q3: Q3_NFL, q4: Q4_OVER_A, q5: Q5_SIGNS, q7: Q7_TWO_TERMS }, clarification: "The formula I remembered had a on the bottom, not 2a. In Q7 I thought I only had to scale the terms with x.", groupStatus: "Discussing Q4 · the 2a" },
   { id: "zara", name: "Zara Haddad", initials: "ZH", confidence: "confident", done: 10, wrong: ["q3", "q7", "q9"], notes: [{ text: "null factor law on a product that isn’t 0", problems: ["q3"] }, { text: "multiplied through by 3 and never took it back out", problems: ["q7"] }, { text: "axis given as the height", problems: ["q9"] }], attempts: { q3: Q3_NFL, q7: Q7_LOST_THIRD, q9: Q9_HEIGHT }, clarification: "I set each bracket equal to 6 because that's what was on the other side. In Q7 I multiplied by 3 to get rid of the fractions and then factorised that. And in Q9 I wrote the axis down and thought that was the height.", groupStatus: "Discussing Q3 · when the null factor law applies" },
   // Ticket 281: Q1–Q4 answered (Q4's formula right) and Q5 started, the roots read off the brackets with their signs flipped.
   { id: "liam", name: "Liam O'Connell", initials: "LO", confidence: "confident", done: 4, wrong: ["q1", "q2", "q3", "q5"], notes: [{ text: "factor brackets wrong", problems: ["q1", "q2", "q3"] }, { text: "roots read off the factors with the signs flipped", problems: ["q5"] }], attempts: { q1: Q1_PAIR, q2: Q2_GUESSED, q3: Q3_NFL, q5: Q5_ROOTS_FLIPPED }, clarification: "I ran out of time so I guessed the brackets. I know expanding back would have shown me. The formula one was fine. I started Q5 and wrote the roots with the brackets' signs.", groupStatus: "Discussing Q2 · listening" },
   // The lightweight thirteen (ticket 36). A full version of each is a candidate for a later run; see FUTURE_FEATURES.
-  light("aiden", "Aiden Park", "AP", "confident", 10, ["q7"], [{ text: "scaled two of three terms", problems: ["q7"] }], {}, "I divided the x terms by 3 and forgot the constant was part of it too."),
+  // Ticket 347: Q8 too, the graph's intercepts given with their signs flipped.
+  light("aiden", "Aiden Park", "AP", "confident", 10, ["q7", "q8"], [{ text: "scaled two of three terms", problems: ["q7"] }, { text: "gave the graph's intercepts with their signs flipped", problems: ["q8"] }], {}, "I divided the x terms by 3 and forgot the constant was part of it too. In Q8 I read the crossings off the wrong side of the axis."),
   light("mia", "Mia Nguyen", "MN", "low: fractions, non-monic factorising", 10, ["q2", "q7", "q9"], [{ text: "factor brackets wrong", problems: ["q2"] }, { text: "the third off by a third", problems: ["q7"] }, { text: "took −x out and left the sign behind", problems: ["q9"] }], { q9: Q9_SIGN }, "I keep guessing the brackets instead of checking. With the fractions I lost track of which terms I had scaled. In Q9 I took the x out and didn't notice the sign inside the bracket had to change."),
   light("noah", "Noah Fitzgerald", "NF", "confident", 9, ["q3"], [{ text: "null factor law on a product that isn't 0", problems: ["q3"] }], {}, "I didn't move the 6 across first. I treated it like it was already equal to zero."),
   // Nothing handed in: the class view shows her row as missing (ticket 46).
@@ -102,6 +106,3 @@ export const OTHER_GROUPS: string[][] = [
   ["noah", "chloe", "ethan", "finn"],
   ["isla", "lucas", "grace", "harper", "ruby"],
 ];
-
-/** Q8's mirrored read, kept for the evaluation table (no classmate makes it in the fixture). */
-export const Q8_MIRROR_LINES = Q8_MIRROR;

@@ -38,7 +38,7 @@ describe("the suggestion", () => {
     const { c, s } = correcting();
     const tallies = talliesAfterCorrections(bundle(c), c, s, at(30_000));
     expect(tallies.every((t) => t.present === 19)).toBe(true);
-    expect(Object.fromEntries(tallies.map((t) => [t.label, t.correct]))).toEqual({ Q1: 17, Q2: 14, Q3: 17, Q4: 16, Q5: 15, Q6: 17, Q7: 5, Q8: 13, Q9: 10, Q10: 8 });
+    expect(Object.fromEntries(tallies.map((t) => [t.label, t.correct]))).toEqual({ Q1: 17, Q2: 14, Q3: 17, Q4: 16, Q5: 15, Q6: 17, Q7: 5, Q8: 10, Q9: 10, Q10: 8 });
     const suggestion = splitSuggestion(tallies);
     expect(suggestion.suggested.map((t) => t.label)).toEqual(["Q7", "Q10"]);
     // Nothing else is below half of nineteen (Q9's ten is not), so everything else sits behind "all questions".
@@ -96,8 +96,8 @@ describe("when the split comes due", () => {
     expect(halfOrMore(10, 20)).toBe(true);
     expect(halfOrMore(0, 0)).toBe(false);
     const { c, s } = correcting();
-    // The demo class: two done at Sam's own arrival, ten of nineteen thirty seconds later, everyone in at the gate.
-    expect(splitEvidence(c, bundle(c), s, now).handedIn).toBe(2);
+    // The demo class: Sam alone done at his own arrival (ticket 347: Priya now has Q8 to fix too), ten of nineteen thirty seconds later, everyone in at the gate.
+    expect(splitEvidence(c, bundle(c), s, now).handedIn).toBe(1);
     expect(dueSplit(c, bundle(c), s, now)).toBeNull();
     expect(dueSplit(c, bundle(c), s, at(25_000))).toBeNull();
     const due = dueSplit(c, bundle(c), s, at(30_000));

@@ -105,8 +105,8 @@ describe("the rule on the demo class", () => {
       const f = skipFixture(target, now);
       return locksAt(f.classroom, f.session, now + 1000);
     };
-    // Priya has nothing to fix, so she is done reviewing from Sam's hand-in (Where students are, ticket 318): at the gate already.
-    expect(at("indiv review")).toEqual({ individual: true, group: true, "whole-class": false });
+    // Ticket 347: every classmate now has something to fix (Priya's Q8 among them), so nobody is done reviewing from Sam's hand-in alone.
+    expect(at("indiv review")).toEqual({ individual: true, group: false, "whole-class": false });
     const f = skipFixture("indiv review", now);
     const noPriya = classroomReducer(f.classroom, { type: "absence/set", assignment: ASSIGNMENT.id, student: "priya", absent: true });
     expect(locksAt(noPriya, f.session, now + 1000)).toEqual({ individual: true, group: false, "whole-class": false });
@@ -127,10 +127,12 @@ describe("the rule on the demo class", () => {
     const places = presentPlaces(f.classroom, bundle(f.classroom), f.session, now + 1000);
     expect(places.length).toBe(19);
     expect(Math.max(...places)).toBe(2);
-    // Priya had all ten right; with the rest of coral away her group has nothing to review and she goes on to class review's wait.
+    // Ticket 347: Priya now has Q8 to review, so alone at her table (the rest of coral away) she works it solo; nobody there
+    // to explain it, so her lone board plays through the ladder and closes it unsolved, then she goes on to class review's wait.
     const away = ["amelia", "tomas", "aiden"].reduce((c, student) => classroomReducer(c, { type: "absence/set", assignment: ASSIGNMENT.id, student, absent: true }), f.classroom);
-    expect(Math.max(...presentPlaces(away, bundle(away), f.session, now + 1000))).toBe(3);
-    expect(locksAt(away, f.session, now + 1000)["whole-class"]).toBe(true);
+    expect(Math.max(...presentPlaces(away, bundle(away), f.session, now + 1000))).toBe(2);
+    expect(Math.max(...presentPlaces(away, bundle(away), f.session, now + 130_000))).toBe(3);
+    expect(locksAt(away, f.session, now + 130_000)["whole-class"]).toBe(true);
   });
 });
 

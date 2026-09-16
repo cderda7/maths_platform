@@ -1794,7 +1794,7 @@ Raised in a project checkpoint review; Carson asked for these on the list. Space
 
 ## Group review after corrections (ticket 332, 2026-09-15)
 
-- **Coral and amber with a question nobody can explain.** Carson asked for one per group. Coral cannot have one (Priya had all ten right) and neither can amber (Noah and Mia had every question right between them) without changing first submissions and so set scores. Deferred: would need new Problem Set 6 records for those students, which ticket 332 kept fixed.
+- **Amber with a question nobody can explain.** Carson asked for one per group; coral got one (ticket 347). Amber cannot, without changing first submissions and so a set score there too — Carson's explicit "keep amber" (2026-09-16) defers it. Deferred: would need the same treatment ticket 347 gave coral, on Noah's, Mia's or Ethan's first submissions.
 - **The group intro's copy after individual review.** "Each problem you're about to go through, at least one of you made a mistake on or didn't finish" is still true, but after corrections "still has wrong" is the rule. Deferred: copy is Carson's; the sentence is not wrong.
 - **Live group membership from seating.** The live board's members are Sam and `GROUPMATE_IDS`, not his seated group, so a teacher who moves Jordan out of sky still sees Jordan on Sam's board while the card lists the seated group. Deferred: predates this ticket; the simulated groups already read seating.
 - **Memoising the simulated boards.** Every standings call replays four boards from their start. Deferred: cheap at ten questions a group.
@@ -1881,6 +1881,12 @@ Raised in a project checkpoint review; Carson asked for these on the list. Space
 - **A moved question on the board.** Class review's setup ticks and locks it, but the board does not say which of its problems came from group review. Deferred: the setup page is where the teacher sees it, and the board is the students' screen.
 - **Saying which groups a move empties.** The card says "No group would have anything left to review" only when every group would sit out; it does not name the one table a move leaves with nothing. Deferred: naming tables on the card needs the group chips and more room.
 - **The strip's count at the gate without individual review.** The stream hands every classmate in at Sam's hand-in while the gate's arrivals take a minute, so the count drops and climbs again. Deferred: the arrival timing is demo data anchored to Sam's own arrival.
+
+## Coral's unsolvable question (ticket 347, 2026-09-16)
+
+- **Amber still has no question nobody can explain.** Carson's explicit "keep amber" decision. Extending the same treatment there (a real first-submission change on Noah's, Mia's or Ethan's Q2/Q7/Q9/Q10) would need the same kind of check this ticket did (which candidate collides with nothing else) before picking one. Deferred: not asked for.
+- **Q8's unsolved board has only one recognised wrong line to draw from.** Every other unsolved question (Q7, Q9, Q10) shows a distinct, escalating disagreement across its wrong tries because the evaluation table recognises several ways to go wrong on it; Q8 has exactly one, so coral's board (and class review's two Q8 examples) shows the same mirrored read twice rather than genuine variety. A second recognised wrong line for Q8 (a different, real slip on that problem) would need the evaluation table extended — deferred: inventing one now would be exactly the "slip nobody makes" this ticket avoided elsewhere.
+- **Coral's race position moved from just before the demo group's board to just after it.** A close margin (352s vs. sky's ~344s) rather than the wide "well after" gap mint and violet have. Retuning coral's pace to restore its old slot was considered and rejected (see DECISION_LOG.md, 2026-09-16): it would hide a real, minor consequence of Q8's ladder rather than report it. Deferred: revisit only if the close margin ever reads as a visual tie on the teacher's progress card.
 
 ## Carson's notes
 

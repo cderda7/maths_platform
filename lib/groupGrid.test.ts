@@ -28,10 +28,12 @@ describe("the group grid during group review (ticket 319)", () => {
     expect(grid.map((g) => `${g.closed}/${g.total}`)).toEqual(["0/6", "0/4", "0/7", "0/9", "0/7"]);
   });
 
-  it("at the end: coral and amber all green; mint Q7 and Q10, violet Q7 unsolved; nothing red left; every simulated group done with a full count", () => {
+  it("at the end: coral Q8 and amber all green save that; mint Q7 and Q10, violet Q7 unsolved; nothing red left; every simulated group done with a full count", () => {
     const grid = gridAt(classroom, session, opens + 60 * MIN, P);
     const inUnion = (g: GridColumn) => g.cells.filter((c) => c.tone !== "not-in-queue");
-    expect(inUnion(col(grid, "coral")).every((c) => c.tone === "solved")).toBe(true);
+    // Ticket 347: coral's Q8 is nobody's to explain, so it closes unsolved like mint's and violet's questions.
+    expect(Object.entries(tones(col(grid, "coral"))).filter(([, t]) => t === "unsolved").map(([p]) => p)).toEqual(["q8"]);
+    expect(inUnion(col(grid, "coral")).filter((c) => c.problem !== "q8").every((c) => c.tone === "solved")).toBe(true);
     expect(inUnion(col(grid, "amber")).every((c) => c.tone === "solved")).toBe(true);
     expect(Object.entries(tones(col(grid, "mint"))).filter(([, t]) => t === "unsolved").map(([p]) => p)).toEqual(["q7", "q10"]);
     expect(Object.entries(tones(col(grid, "violet"))).filter(([, t]) => t === "unsolved").map(([p]) => p)).toEqual(["q7"]);
@@ -42,23 +44,27 @@ describe("the group grid during group review (ticket 319)", () => {
     }
   });
 
-  it("coral and amber never show red; mint's Q10 goes red once left for now, stays out of the count while red, then turns unsolved and counts", () => {
-    let redAt: number | null = null;
-    let unsolvedAt: number | null = null;
+  it("amber never shows red; coral's Q8 and mint's Q10 go red once left for now, stay out of the count while red, then turn unsolved and count", () => {
+    const redAt: Record<string, number | null> = { coral: null, mint: null };
+    const unsolvedAt: Record<string, number | null> = { coral: null, mint: null };
     for (const t of moments) {
       const grid = gridAt(classroom, session, t, P);
-      for (const colour of ["coral", "amber"]) expect(col(grid, colour).cells.some((c) => c.tone === "left" || c.tone === "unsolved"), `${colour} ${t - opens}`).toBe(false);
-      const mint = col(grid, "mint");
-      const q10 = mint.cells.find((c) => c.problem === "q10")!;
-      const closedTimeline = timelinesAt(classroom, session, t).find((x) => x.colour === "mint")!.questions.filter((q) => q.status === "solved" || q.status === "unsolved").length;
-      expect(mint.closed).toBe(closedTimeline);
-      if (q10.tone === "left" && redAt === null) redAt = t;
-      if (q10.tone === "unsolved" && unsolvedAt === null) unsolvedAt = t;
-      if (redAt !== null && unsolvedAt === null) expect(mint.closed, `${t - opens}`).toBeLessThan(mint.total);
+      expect(col(grid, "amber").cells.some((c) => c.tone === "left" || c.tone === "unsolved"), `amber ${t - opens}`).toBe(false);
+      for (const colour of ["coral", "mint"]) {
+        const g = col(grid, colour);
+        const cell = g.cells.find((c) => c.problem === (colour === "coral" ? "q8" : "q10"))!;
+        const closedTimeline = timelinesAt(classroom, session, t).find((x) => x.colour === colour)!.questions.filter((q) => q.status === "solved" || q.status === "unsolved").length;
+        expect(g.closed, colour).toBe(closedTimeline);
+        if (cell.tone === "left" && redAt[colour] === null) redAt[colour] = t;
+        if (cell.tone === "unsolved" && unsolvedAt[colour] === null) unsolvedAt[colour] = t;
+        if (redAt[colour] !== null && unsolvedAt[colour] === null) expect(g.closed, `${colour} ${t - opens}`).toBeLessThan(g.total);
+      }
     }
-    expect(redAt).not.toBeNull();
-    expect(unsolvedAt).not.toBeNull();
-    expect(unsolvedAt!).toBeGreaterThan(redAt!);
+    for (const colour of ["coral", "mint"]) {
+      expect(redAt[colour], colour).not.toBeNull();
+      expect(unsolvedAt[colour], colour).not.toBeNull();
+      expect(unsolvedAt[colour]!, colour).toBeGreaterThan(redAt[colour]!);
+    }
   });
 
   it("the current cell is the pen's question, one per working group, and the pen is that group's member", () => {
