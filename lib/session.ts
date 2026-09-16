@@ -207,8 +207,8 @@ export type SessionAction =
   | { type: "warmup/say"; text: string }
   /** After the closing bubble: on to the warm-up's first skill, its worked example. Only once every question has its answer. */
   | { type: "warmup/begin"; at?: number }
-  /** The warm-up skill's next step (ticket 313): "Your turn" once its worked example has been seen in full, "On your own" once its completion problem is finished. */
-  | { type: "warmup/next"; at?: number }
+  /** The warm-up skill's next step (ticket 313): "Your turn" once its worked example has been seen in full, "On your own" once its completion problem is finished. `force` (ticket 353) skips that readiness check, for a student who confirmed moving on before the step was done. */
+  | { type: "warmup/next"; at?: number; force?: boolean }
   /** Practice on the pad, for either run: the warm-up or the mid-set overlay. */
   | { type: "run/reveal"; run: RunKey; problem: string; line: RevealedLine }
   | { type: "run/stroke"; run: RunKey; problem: string; stroke: Stroke }
@@ -454,9 +454,11 @@ export function sessionReducer(s: StudentSession, a: SessionAction, env: Session
       const phase = warmupPhase(s);
       const next = nextPhase(phase);
       if (!ladder || !next) return s;
-      // The worked example seen in full before "Your turn"; the completion problem finished before "On your own".
-      if (phase === "worked" && !s.warmup.exampled.includes(ladder.worked.id)) return s;
-      if (phase === "completion" && !warmupCompletion(s)?.state.done) return s;
+      // The worked example seen in full before "Your turn"; the completion problem finished before "On your own" — unless the student confirmed moving on early.
+      if (!a.force) {
+        if (phase === "worked" && !s.warmup.exampled.includes(ladder.worked.id)) return s;
+        if (phase === "completion" && !warmupCompletion(s)?.state.done) return s;
+      }
       return warm(s, { example: false, exampleShown: 0, phases: stampPhase(s.warmup.phases, ladder.worked.id, next, a.at) });
     }
     case "run/reveal":

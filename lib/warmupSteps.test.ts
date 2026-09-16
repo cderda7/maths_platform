@@ -116,6 +116,20 @@ describe("the session: a warm-up skill in three steps", () => {
     expect(sessionPlace(s, PROBLEMS)).toEqual({ place: { kind: "warmup", leaf: MONIC, step: 2 }, since: T + 40_000 });
   });
 
+  it("force (ticket 353, a confirmed 'Your turn' or 'On your own' before the step is done) skips the readiness check, but not once there is no next phase", () => {
+    let s = warmingUp();
+    // Not a single step of the example shown yet: force still moves on.
+    s = sessionReducer(s, { type: "warmup/next", at: T + 1, force: true });
+    expect(warmupPhase(s)).toBe("completion");
+    expect(s.warmup.phases["w-monic"]).toEqual({ worked: T, completion: T + 1 });
+    // The completion problem untouched: force still moves on.
+    s = sessionReducer(s, { type: "warmup/next", at: T + 2, force: true });
+    expect(warmupPhase(s)).toBe("alone");
+    expect(s.warmup.phases["w-monic"]).toEqual({ worked: T, completion: T + 1, alone: T + 2 });
+    // Nothing further within the skill, forced or not.
+    expect(sessionReducer(s, { type: "warmup/next", at: T + 3, force: true })).toBe(s);
+  });
+
   it("the completion problem: a wrong line marked with its misconception and the blank still open, then the right line; On your own waits until every blank is in", () => {
     let s = sessionReducer(seeExample(warmingUp()), { type: "warmup/next", at: T + 1 });
     const C = COMPLETIONS[MONIC]!.steps.map((x) => x.tex);

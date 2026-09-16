@@ -84,8 +84,8 @@ export function ExamplePeek({ worked, onBack }: { worked: PracticeProblem; onBac
 /**
  * Step 1: the caller's head alone on the left; the question, then its worked example step by step, in the middle
  * (ticket 350: the question sits over the example it belongs to rather than beside it), every step at once when opened
- * again or once seen; the chat beside it, silent until the student writes. `next` ("Your turn") shows once every step
- * has been seen.
+ * again or once seen; the chat beside it, silent until the student writes. `next` ("Your turn") is pinned to the
+ * corner for the whole step (ticket 353); the caller decides whether it's ready and what a press does otherwise.
  */
 export function WorkedStep({
   head,
@@ -133,8 +133,8 @@ export function WorkedStep({
             </div>
           </div>
         </div>
-        {/* Pinned to the corner, not below the last step: a long example that needs a scroll must never hide the way on. */}
-        {seen && !again && <div className="absolute bottom-4 right-4 z-10">{next}</div>}
+        {/* Pinned to the corner for the whole step, not just once seen: a long example that needs a scroll must never hide the way on, and the caller greys it out until it's ready. */}
+        {!again && <div className="absolute bottom-4 right-4 z-10">{next}</div>}
       </section>
       <aside className="flex min-h-0 flex-col border-l border-line px-6 py-6">
         {/* Beside the worked example the column is the chat, headed "Question about a step?"; the tutor says nothing until the student writes. */}
@@ -183,7 +183,7 @@ export function CompletionStep({
   footer: ReactNode;
   /** The message shown once every blank is in; no button (the way on, if any, is `next`). */
   done: ReactNode;
-  /** The way on once every blank is in, pinned to the pad's corner rather than the end of the working list. Omitted where the way on is only the footer's "Back to Qn" (the help ladder). */
+  /** The way on, pinned to the pad's corner (ticket 353) for the whole step rather than the end of the working list; the caller decides whether it's ready and what a press does otherwise. Omitted where the way on is only the footer's "Back to Qn" (the help ladder). */
   next?: ReactNode;
 }) {
   const p = practice;
@@ -282,8 +282,8 @@ export function CompletionStep({
             dispatch({ type: "run/clear", run: runKey, problem: p.id });
           }}
         />
-        {/* Pinned to the corner once every blank is in, not at the end of the working list (which may need a scroll to reach). */}
-        {state.done && next && <div className="absolute bottom-4 right-4 z-10">{next}</div>}
+        {/* Pinned to the corner for the whole step, not just once every blank is in, and never at the end of the working list (which may need a scroll to reach); the caller greys it out until it's ready. */}
+        {next && <div className="absolute bottom-4 right-4 z-10">{next}</div>}
       </div>
 
       <aside className="flex min-h-0 flex-col border-l border-line px-6 py-6">

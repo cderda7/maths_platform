@@ -7,7 +7,7 @@ import { useEscape } from "@/components/useEscape";
 import { studentLeafName } from "@/data/taxonomy";
 import { warmupLadder } from "@/lib/ladder";
 import { scriptDone } from "@/lib/recognition";
-import { warmupFocus, warmupPhase, warmupStep, type SessionAction, type StudentSession } from "@/lib/session";
+import { warmupCompletion, warmupFocus, warmupPhase, warmupStep, type SessionAction, type StudentSession } from "@/lib/session";
 import { warmupScript, warmupSequence } from "@/lib/warmup";
 import { CompletionStep, StepLine, StepTitle, WorkedStep } from "./PracticeSteps";
 
@@ -32,18 +32,36 @@ export default function PracticeScreen({ session, dispatch }: { session: Student
   const skip = () => dispatch({ type: "practice/finish" });
   /** Leaves this skill: the next one never opened, or the set once every skill has been. */
   const done = () => dispatch({ type: "warmup/skill-done", at: Date.now() });
-  const next = () => dispatch({ type: "warmup/next", at: Date.now() });
+  /** "Your turn" / "On your own": onto the skill's next of its three steps, once it's ready. */
+  const advance = () => dispatch({ type: "warmup/next", at: Date.now() });
+  /** The same, confirmed past a step the student hasn't finished (ticket 353): `force` skips the readiness check. */
+  const advanceForced = () => dispatch({ type: "warmup/next", at: Date.now(), force: true });
   const doneLabel = remaining === 0 ? "On to the set" : "Next skill →";
   /** The skill's own follow-up, alone: the third of its three steps (or its only step, for a practice with no ladder). Every scripted line in is the whole warm-up done. */
   const aloneProblem = ladder ? ladder.alone : skill;
   const onAlone = !ladder || phase === "alone";
   const complete = onAlone && scriptDone(warmupScript(aloneProblem), w.lines[aloneProblem.id] ?? []);
+  /** Every step's own "ready" flag: the worked example seen in full, the completion problem's every blank in, the alone problem's every line written. Each gates its own step's way on. */
+  const workedReady = !!ladder && w.exampled.includes(ladder.worked.id);
+  const completionReady = warmupCompletion(session)?.state.done ?? false;
   const key = `${skill.id}:${phase}`;
-  /** The skill/phase the "not finished" confirm was raised for, so switching away (a chip, "Skip to the set") drops any stale confirm left open for the one before it, with no effect needed. `!complete` also drops it if the student finishes writing while it's still up: nothing left to confirm. */
-  const [confirmFor, setConfirmFor] = useState<string | null>(null);
-  const confirmLeave = confirmFor === key && !complete;
-  const requestDone = () => (complete ? done() : setConfirmFor(key));
-  useEscape(confirmLeave, () => setConfirmFor(null));
+
+  /**
+   * The four controls that can move a student off a step they haven't finished — "Your turn", "On your own", "Next
+   * skill" and "Skip to the set" — all ask first rather than doing nothing (`aria-disabled`, not a true `disabled`) or
+   * moving on silently. `pending` names which one is asked and the skill/phase it was asked on, so switching skill or
+   * phase (a chip) drops a stale ask with no effect needed, and finishing the step while it's still up closes it too,
+   * since `ready` is read fresh each render rather than captured at the moment it was raised.
+   */
+  type Gate = "worked" | "completion" | "done" | "skip";
+  const [pending, setPending] = useState<{ gate: Gate; forKey: string } | null>(null);
+  const ready: Record<Gate, boolean> = { worked: workedReady, completion: completionReady, done: complete, skip: false };
+  const asking = pending?.forKey === key && !ready[pending.gate] ? pending.gate : null;
+  const press = (gate: Gate, act: () => void) => {
+    if (ready[gate]) act();
+    else setPending({ gate, forKey: key });
+  };
+  useEscape(asking !== null, () => setPending(null));
 
   const chips = (
     <div className="mt-3 flex flex-wrap gap-1.5" data-sequence>
@@ -69,12 +87,12 @@ export default function PracticeScreen({ session, dispatch }: { session: Student
   const footer = (
     <>
       {remaining > 0 && (
-        <Button variant="ghost" onClick={skip} className="whitespace-nowrap">
+        <Button variant="ghost" onClick={() => press("skip", skip)} className="whitespace-nowrap">
           Skip to the set
         </Button>
       )}
       {/* Greyed out (not disabled: a press while the warm-up isn't finished asks first, rather than doing nothing) until the skill's own follow-up is done. */}
-      <Button variant="accent" onClick={requestDone} aria-disabled={!complete} data-done className={`whitespace-nowrap ${complete ? "" : "opacity-40"}`}>
+      <Button variant="accent" onClick={() => press("done", done)} aria-disabled={!complete} data-done className={`whitespace-nowrap ${complete ? "" : "opacity-40"}`}>
         {doneLabel}
       </Button>
     </>
@@ -93,24 +111,32 @@ export default function PracticeScreen({ session, dispatch }: { session: Student
     </>
   );
   const skillName = studentLeafName(skill.leaf).name.toLowerCase();
-  const confirm = confirmLeave && (
-    <div role="dialog" aria-label="Leave the warm-up" data-leave-warmup-check className="absolute right-4 bottom-4 z-20 w-[340px] rounded-2xl border border-line bg-paper p-5 shadow-lift">
-      <h2 className="font-display text-[20px] leading-tight text-ink">
-        Are you sure you&rsquo;d like to move on from {skillName}? You haven&rsquo;t finished the whole warm-up.
-      </h2>
+  /** What each control's ask says, read only while `asking` names it; plain strings, so nothing here holds a closure over `dispatch`. */
+  const askMessage: Record<Gate, string> = {
+    worked: "Are you sure you’d like to move on to your turn? You haven’t seen the whole example yet.",
+    completion: "Are you sure you’d like to move on to your own turn? You haven’t finished every line yet.",
+    done: `Are you sure you’d like to move on from ${skillName}? You haven’t finished the whole warm-up.`,
+    skip: "Are you sure you’d like to skip the rest of the warm-up and go to the set?",
+  };
+  const askLabel: Record<Gate, string> = { worked: "Your turn →", completion: "On your own →", done: doneLabel, skip: "Skip to the set" };
+  const confirm = asking && (
+    <div role="dialog" aria-label="Confirm moving on" data-confirm-gate={asking} className="absolute right-4 bottom-4 z-20 w-[340px] rounded-2xl border border-line bg-paper p-5 shadow-lift">
+      <h2 className="font-display text-[20px] leading-tight text-ink">{askMessage[asking]}</h2>
       <div className="mt-4 flex justify-end gap-2">
-        <Button variant="secondary" onClick={() => setConfirmFor(null)} data-stay>
+        <Button variant="secondary" onClick={() => setPending(null)} data-stay>
           Keep going
         </Button>
         <Button
           variant="accent"
           onClick={() => {
-            setConfirmFor(null);
-            done();
+            setPending(null);
+            if (asking === "worked" || asking === "completion") advanceForced();
+            else if (asking === "skip") skip();
+            else done();
           }}
           data-confirm-leave
         >
-          {doneLabel}
+          {askLabel[asking]}
         </Button>
       </div>
     </div>
@@ -131,7 +157,7 @@ export default function PracticeScreen({ session, dispatch }: { session: Student
         dispatch={dispatch}
         footer={footer}
         next={
-          <Button size="lg" onClick={next} data-warmup-next>
+          <Button size="lg" onClick={() => press("worked", advance)} aria-disabled={!workedReady} data-warmup-next className={workedReady ? "" : "opacity-40"}>
             Your turn →
           </Button>
         }
@@ -152,7 +178,7 @@ export default function PracticeScreen({ session, dispatch }: { session: Student
         footer={footer}
         done="That’s every line. Now one on your own."
         next={
-          <Button size="lg" onClick={next} data-warmup-next>
+          <Button size="lg" onClick={() => press("completion", advance)} aria-disabled={!completionReady} data-warmup-next className={completionReady ? "" : "opacity-40"}>
             On your own →
           </Button>
         }
