@@ -1,4 +1,4 @@
-# 350: The decision card confirms one stage, not the whole pathway
+# 351: The decision card confirms one stage, not the whole pathway
 
 **What to build:** the teacher's decision card (ticket 335/337) shows only the next stage, not every stage with its description; moving questions out of group review gets a second, forward-looking confirm step before it commits; two pathway shapes that skip a review stage say so plainly.
 
@@ -40,7 +40,7 @@ Known gap, not fixed by this ticket (see `FUTURE_FEATURES.md`): the skip-group-r
 - [x] The `emptyAfter` heading never states the move as already done
 - [x] `nextStageOnCard` (`lib/pathway.ts`) and `moveConfirmSentence` (`lib/splitReview.ts`) are pure and unit-tested
 - [x] vitest, eslint, tsc, next build, check:laptop; a real production build driven headlessly across all three pathway shapes (normal, skip-individual, skip-both), screenshotted
-- [x] Ticket docs: `architecture/350-next-stage-confirm.md`, ARCHITECTURE, DECISION_LOG, FUTURE_FEATURES
+- [x] Ticket docs: `architecture/351-next-stage-confirm.md`, ARCHITECTURE, DECISION_LOG, FUTURE_FEATURES
 
 ## Solution
 

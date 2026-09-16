@@ -53,7 +53,7 @@ export function nextStage(pathway: readonly ReviewStage[], from: Transition): St
 }
 
 /**
- * What the decision card's next-stage line says (ticket 350): the stage after working, and whether the pathway skips over
+ * What the decision card's next-stage line says (ticket 351): the stage after working, and whether the pathway skips over
  * one or both of the earlier review stages to reach it. Pure: read straight off the pathway, no rendering. A skip is said
  * plainly rather than left silent, since it is a real consequence of an earlier choice the teacher might not have in mind
  * at this exact moment; a pathway with nothing left to review at all (`stage: null`) has nothing for the card to say.

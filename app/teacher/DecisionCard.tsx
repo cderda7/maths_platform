@@ -115,7 +115,7 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
   // The split's ticks (ticket 337): the suggestion until the teacher ticks otherwise; and whether every question is listed.
   const [ticks, setTicks] = useState<string[] | null>(null);
   const [allShown, setAllShown] = useState(false);
-  // The move's confirm step (ticket 350): "Move to class review" opens it in place, live over the same ticks; Back returns
+  // The move's confirm step (ticket 351): "Move to class review" opens it in place, live over the same ticks; Back returns
   // without losing them. Empty once every tick is removed, so unticking mid-confirm falls back to the ask.
   const [confirming, setConfirming] = useState(false);
   const set = assignmentBundle(ASSIGNMENT.id, classroom);
@@ -227,7 +227,7 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
             </p>
           ) : (
             next.stage && (
-              // Only the next stage (ticket 350): the current stage is already decided, and the full sequence is the strip's
+              // Only the next stage (ticket 351): the current stage is already decided, and the full sequence is the strip's
               // job (top right), not this card's. A stage the pathway skips over is said plainly rather than left silent.
               <p className="mt-5 text-[14px] leading-snug text-ink-soft" data-decision-next>
                 {next.skipBoth ? (
@@ -249,7 +249,7 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
         </>
       )}
       {/* The split itself (ticket 337): the questions fewest have right, pre-ticked, with every other one behind its own line.
-          "Move to class review" opens the confirm step in place (ticket 350): the same live rows, a forward-looking heading
+          "Move to class review" opens the confirm step in place (ticket 351): the same live rows, a forward-looking heading
           naming every consequence, never a past-tense one -- nothing is decided until Confirm move is actually pressed. */}
       {!answered && !changing && split && !view.toClassReview && (
         <SplitRows
@@ -308,7 +308,7 @@ function DecisionCard({ view, session }: { view: DecisionView; session: StudentS
                 </Button>
               )
             ) : showConfirm ? (
-              // The confirm step (ticket 350): narrowed to just Back and the final press, same as Change's own Done -- a
+              // The confirm step (ticket 351): narrowed to just Back and the final press, same as Change's own Done -- a
               // decision this consequential gets one focused choice, not Later/Change sitting alongside it.
               <>
                 <Button variant="secondary" onClick={() => setConfirming(false)} data-decision-back>
@@ -382,7 +382,7 @@ function SplitRows({
     <>
       <p className="mt-4 text-[14px] leading-snug text-ink" data-split-ask>
         {confirming ? (
-          // The confirm heading (ticket 350): every consequence stated plainly, and always forward-looking -- "added" would
+          // The confirm heading (ticket 351): every consequence stated plainly, and always forward-looking -- "added" would
           // read as already decided, which is exactly what this step exists to not do. The rows below stay live underneath it.
           moveConfirmSentence(all.map((t) => t.label), emptyAfter, addsClassReview)
         ) : asked.length === 0 ? (

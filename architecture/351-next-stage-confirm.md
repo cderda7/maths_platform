@@ -1,4 +1,4 @@
-# 350: The decision card confirms one stage, not the whole pathway
+# 351: The decision card confirms one stage, not the whole pathway
 
 Ticket 335's card showed every stage of the pathway, each with its own description, including the current one — a
 fixed decision the teacher has no lever on. Carson: "so overwhelming. just want teacher to confirm the NEXT stage."

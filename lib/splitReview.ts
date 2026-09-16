@@ -183,7 +183,7 @@ export const movedInSetOrder = (c: ClassroomState | null | undefined, problems: 
 export const listWords = (words: readonly string[]): string => (words.length <= 1 ? (words[0] ?? "") : `${words.slice(0, -1).join(", ")} and ${words[words.length - 1]}`);
 
 /**
- * The confirm step's heading (ticket 350): every consequence of the press named plainly, and always forward-looking, never
+ * The confirm step's heading (ticket 351): every consequence of the press named plainly, and always forward-looking, never
  * a past-tense "added" — that reads as already decided, which is exactly what this step exists to not do. Nothing here is
  * settled until the press after it. `labels` are the ticked questions, fewest-correct first, as the rows above list them.
  *

@@ -309,7 +309,7 @@ describe("naming a list of moved questions", () => {
   });
 });
 
-describe("the move's confirm sentence (ticket 350)", () => {
+describe("the move's confirm sentence (ticket 351)", () => {
   it("states the move plainly, forward-looking, when other groups still have work", () => {
     expect(moveConfirmSentence(["Q7", "Q10"], false, false)).toBe("Move Q7 and Q10 out of group review and into class review?");
   });

@@ -52,7 +52,7 @@ describe("next stage under a pathway", () => {
   });
 });
 
-describe("the decision card's next-stage line (ticket 350)", () => {
+describe("the decision card's next-stage line (ticket 351)", () => {
   it("names the next stage plainly when nothing is skipped", () => {
     expect(nextStageOnCard(["individual", "group", "whole-class"])).toEqual({ stage: "individual", skipIndividual: false, skipBoth: false });
     expect(nextStageOnCard(["individual", "whole-class"])).toEqual({ stage: "individual", skipIndividual: false, skipBoth: false });
