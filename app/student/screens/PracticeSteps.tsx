@@ -153,7 +153,9 @@ export function WorkedStep({
  * lines the blank fills in. Nothing else happens on a wrong line: the chat opens only when the student presses it. `done`
  * shows under the working once every blank is in. "See the example again" (ticket 350) swaps the left column's lower
  * half — the question, hints and "I need help" — for `ExamplePeek`; the pad and the working column carry on regardless,
- * so the example and the student's own attempt are on screen together.
+ * so the example and the student's own attempt are on screen together. With the question off the left column while
+ * peeking, it moves to the top of the middle one instead (ticket 352), above "Your working" — otherwise the student
+ * can no longer see what they're solving, only the pad and the working column's scaffolded lines.
  */
 export function CompletionStep({
   head,
@@ -253,6 +255,19 @@ export function CompletionStep({
       </aside>
 
       <div className="relative flex min-h-0 flex-col">
+        {peek && (
+          <div className="shrink-0 border-b border-line px-6 pb-4 pt-6" data-current-question>
+            <p className="text-[14px] text-ink-soft"><StemWords stem={question.stem} /></p>
+            <div className="math-lg mt-3 text-ink">
+              <M tex={termTex(question.tex, h.termsAt(0), h.litAt(0))} display />
+            </div>
+            {question.figure && (
+              <div className="mt-3">
+                <Figure id={question.figure} />
+              </div>
+            )}
+          </div>
+        )}
         <PadSection
           strokes={strokes}
           onStrokesChange={addStroke}

@@ -33,7 +33,7 @@ import StemWords from "@/components/StemWords";
  * The warm-up's third step (ticket 313) is this pad on the skill's follow-up alone: `lead` sits above the title (the step
  * line), and `exampleAgain` makes the menu's example "see the example again", the skill's worked example shown in the
  * left column's lower half until "Back to your turn" (ticket 350), the pad itself carrying on beside it, as on a
- * completion step.
+ * completion step; the problem it's on shows above the pad while peeking, since the left column no longer does (ticket 352).
  */
 export default function PracticePad({
   run,
@@ -202,7 +202,17 @@ export default function PracticePad({
           )}
         </section>
       ) : (
-        <PadSection strokes={strokes} onStrokesChange={addStroke} onBurstEnd={onBurstEnd} onPenDown={() => setRecognising(true)} onUndo={undo} onClear={clear} />
+        <div className="flex min-h-0 flex-col">
+          {peek && exampleAgain && (
+            <div className="shrink-0 border-b border-line px-6 pb-4 pt-6" data-current-question>
+              <p className="text-[14px] text-ink-soft"><StemWords stem={p.stem} /></p>
+              <div className="math-lg mt-3 text-ink">
+                <M tex={termTex(p.tex, termsAt(0), litAt(0))} display />
+              </div>
+            </div>
+          )}
+          <PadSection strokes={strokes} onStrokesChange={addStroke} onBurstEnd={onBurstEnd} onPenDown={() => setRecognising(true)} onUndo={undo} onClear={clear} />
+        </div>
       )}
 
       <aside className="flex min-h-0 flex-col border-l border-line px-6 py-6">
