@@ -32,7 +32,7 @@ import StemWords from "@/components/StemWords";
  *
  * The warm-up's third step (ticket 313) is this pad on the skill's follow-up alone: `lead` sits above the title (the step
  * line), and `exampleAgain` makes the menu's example "see the example again", the skill's worked example shown in the
- * left column's lower half until "Back to your turn" (ticket 349), the pad itself carrying on beside it, as on a
+ * left column's lower half until "Back to your turn" (ticket 350), the pad itself carrying on beside it, as on a
  * completion step.
  */
 export default function PracticePad({

@@ -59,7 +59,7 @@ export function StepTitle({ title }: { title: string }) {
 
 /**
  * The worked example once more, in the left column's lower half until "Back to your turn": a look, not a step, and not
- * saved. The pad (and the working column) stay up beside it (ticket 349: the pair loses its effect if the student can't
+ * saved. The pad (and the working column) stay up beside it (ticket 350: the pair loses its effect if the student can't
  * see the example and their own attempt at once), so it fits a narrow column, compact, and zooms down to its box's
  * height (`FitHeight`, ticket 277) rather than scroll. Its question shows only when its working does not open on it.
  */
@@ -83,7 +83,7 @@ export function ExamplePeek({ worked, onBack }: { worked: PracticeProblem; onBac
 
 /**
  * Step 1: the caller's head alone on the left; the question, then its worked example step by step, in the middle
- * (ticket 349: the question sits over the example it belongs to rather than beside it), every step at once when opened
+ * (ticket 350: the question sits over the example it belongs to rather than beside it), every step at once when opened
  * again or once seen; the chat beside it, silent until the student writes. `next` ("Your turn") shows once every step
  * has been seen.
  */
@@ -151,7 +151,7 @@ export function WorkedStep({
  * and nothing after it (so no later line gives it away). Each line the pad reads is marked against the blank
  * (`completionState`): right moves on, wrong is red in place with its misconception chip where known, and after two wrong
  * lines the blank fills in. Nothing else happens on a wrong line: the chat opens only when the student presses it. `done`
- * shows under the working once every blank is in. "See the example again" (ticket 349) swaps the left column's lower
+ * shows under the working once every blank is in. "See the example again" (ticket 350) swaps the left column's lower
  * half — the question, hints and "I need help" — for `ExamplePeek`; the pad and the working column carry on regardless,
  * so the example and the student's own attempt are on screen together.
  */

@@ -17,7 +17,7 @@ import StemWords from "@/components/StemWords";
  * example). `compact` is the size for a narrow column. A two-case step ("x = 4 or x = -2") is
  * two boxes side by side, as the read-back shows it. `question={false}` (ticket 312) leaves out the stem and the
  * expression, for a card beside or under a column that already shows the question (the worked example beside the pad,
- * Q*): the working starts straight at the top of the card. No skill pill (ticket 349): the column the card sits in
+ * Q*): the working starts straight at the top of the card. No skill pill (ticket 350): the column the card sits in
  * already names the skill.
  */
 export default function PracticeCard({
