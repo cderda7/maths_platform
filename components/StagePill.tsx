@@ -67,9 +67,14 @@ export function StageArrow() {
  * own — button and pending are both height-matched, ticket 345) is what actually grows the `<li>`, the strip, and the back
  * line under it. `ol` aligns every `<li>` to `items-start` (rather than centring them) so that growth never moves any other
  * pill's top edge or the arrows around it.
+ *
+ * The pill-to-button and button-to-count gaps (`pt-2`, `gap-1.5`) were doubled and tripled from their ticket 345 values
+ * (`pt-1`, `gap-[2px]`) once the stack stood below the pill, in the clear: bunched that close together read fine layered
+ * over the pill, less fine sitting in a teacher's actual eyeline (ticket 359). `BELOW_HEIGHT` grows by exactly the same
+ * amount so the spacer still matches the stack's real rendered height.
  */
-const BELOW_HEIGHT = 42;
-const STACK_BELOW = "absolute top-full left-1/2 flex -translate-x-1/2 flex-col items-center gap-[2px] pt-1";
+const BELOW_HEIGHT = 50;
+const STACK_BELOW = "absolute top-full left-1/2 flex -translate-x-1/2 flex-col items-center gap-1.5 pt-2";
 
 export function PathwayPills({ stages, size = "ipad", beside, below, badge }: { stages: readonly { id: ClassStageId; state: StagePillState }[]; size?: StagePillSize; beside?: ReactNode; below?: ReactNode; badge?: ReactNode }) {
   return (

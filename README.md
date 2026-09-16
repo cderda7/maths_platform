@@ -265,15 +265,16 @@ on the laptop and every student's screen.
   indiv review → group review → class review, only the set's), at the back button's 13.5 px. Stages over are the lit
   skill button's blue with white text, the current one light blue ringed in purple, stages ahead light blue, and a
   current stage everyone in the room is done with (every group finished before class review, say) blue ringed in
-  purple. Under the current stage, centred on its pill (ticket 358, over it until then — ticket 345): **force submit**
-  first (one press starts a one-minute grace on every student's screen, `● handing in 0:59 · Cancel` in its place, then
-  the stage ends for everyone as it stands: the set handed in, the corrections handed in and group review begun, or group
-  review over), then `n/19 done` under that. Unlike ticket 345's version, this stack takes real room: the strip and the
-  back line grow while it shows, and the page below (the roster head included) moves down to match. Beside the current
-  stage, **end lesson** on a last stage that is not class review (its countdown, `● ending lesson · 4 not done · 0:59 ·
-  Cancel`, takes its place). Class review has no stack and no button. A finished set shows no strip. On a pathway without
-  individual review the class waits at the gate into group review with **indiv working** still current, counting the
-  students in at the gate, and its force submit opens the gate for the rest (ticket 337).
+  purple. Under the current stage, centred on its pill and given room to breathe (ticket 359, tighter until then — ticket
+  358, over it until 358 — ticket 345): **force submit**, a purple border of its own, first (one press starts a one-minute
+  grace on every student's screen, `● handing in 0:59 · Cancel` in its place, then the stage ends for everyone as it
+  stands: the set handed in, the corrections handed in and group review begun, or group review over), then `n/19 done`
+  under that. Unlike ticket 345's version, this stack takes real room: the strip and the back line grow while it shows,
+  and the page below (the roster head included) moves down to match. Beside the current stage, **end lesson** on a last
+  stage that is not class review, its own light-blue border unchanged (its countdown, `● ending lesson · 4 not done ·
+  0:59 · Cancel`, takes its place). Class review has no stack and no button. A finished set shows no strip. On a pathway
+  without individual review the class waits at the gate into group review with **indiv working** still current, counting
+  the students in at the gate, and its force submit opens the gate for the rest (ticket 337).
 - **The decision card** (ticket 335, Edexia Classroom and the live set's Class View and Mistakes): once more than half of
   the students in the room (Sam included, the absent out) have submitted the question 70% of the way through the set
   (Q7 of 10), a card slides in once from the bottom-right corner, wherever the teacher is: "Most students are close to

@@ -39,7 +39,7 @@ export default function EndLesson({ stage, session, notDone }: { stage: ClassSta
       </button>
     </span>
   ) : (
-    <button type="button" className={`${FORCE_PILL_SIZE} ${FORCE_PILL}`} disabled={!canEndLesson(stage, classroom, session, now)} onClick={() => dispatchClassroom({ type: "advance/start", kind: "end-lesson" })} data-end-lesson={stage}>
+    <button type="button" className={`${FORCE_PILL_SIZE} ${FORCE_PILL} border-standout-line`} disabled={!canEndLesson(stage, classroom, session, now)} onClick={() => dispatchClassroom({ type: "advance/start", kind: "end-lesson" })} data-end-lesson={stage}>
       end lesson
     </button>
   );
