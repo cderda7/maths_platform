@@ -39,6 +39,6 @@ This is the same shared component tree behind "help on a set question" (`HelpLad
 - [x] On your own (stage 3): the same "see the example again" fix, verified the same way.
 - [x] Help-on-a-question overlay (`HelpLadder`) gets the same behaviour on its Example and Your turn steps (shared components; spot-checked on Q1 — `data-overlay` opens on the example step with the question over the card and no pill, and its completion step's peek renders in the left aside with the pad still up).
 - [x] No `PracticeCard` anywhere shows a skill pill; every other place `LeafChip` is used stand-alone (`FeedbackScreen.tsx`, `HelpLadder.tsx`'s own head, `PracticePad.tsx`'s "second" stem, `ProblemCard.tsx`) is untouched (grepped, unchanged).
-- [x] vitest 2269, eslint, tsc, next build, check:laptop 76/76
+- [x] vitest 2270, eslint, tsc, next build, check:laptop 76/76
 - [x] Click-through against a production build at 1280×800 and 1440×900: Example step's layout, Your turn's peek (drawpad visibly still usable, no scrollbar on the peeked example, back button works), stage 3's peek, the help-on-a-question overlay's Example/Your turn; no clipped or wrapped maths; screenshots checked
 - [x] Ticket docs: `architecture/350-see-both-at-once.md`, ARCHITECTURE, DECISION_LOG (the stage-3 mirroring judgment call), README
