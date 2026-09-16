@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { BackToClassroom, useAssignmentBundle } from "./AssignmentContext";
 import { DecisionDot, useLessonDecision } from "./DecisionCard";
 import EndLesson from "./EndLesson";
@@ -30,6 +30,18 @@ import { useBatchedSession, useNow } from "@/lib/store";
  * stretches to the row less the button's 4 px bottom margin, so it is centred on the button. `badge` is laid on the current
  * pill without moving anything. Unless the page passes its own, it is the lesson's decision tucked away by Later (ticket 335):
  * a dot whose press opens the card again.
+ *
+ * Pinned to the top of the chrome's scroll region (ticket 356), the same way Classroom's own heading is (`Classroom.tsx`,
+ * ticket 216): "← Edexia Classroom" is the one constant across every stage and every tab (Class, Mistakes; Groups pins its
+ * own bare button the same way), so a teacher scrolling a long roster or mistakes list never loses it. The wrapper bleeds
+ * over the chrome's top and side padding and paints it back in (`-mx-6 -mt-12 bg-cream px-6 pt-12`) so nothing scrolling
+ * under it shows through at the edges, then gives back nothing extra below: the row's own spacing to whatever follows is
+ * unchanged, so scroll 0 looks exactly as it did before this stuck.
+ *
+ * Class View's roster head is its own `sticky top-0` (ticket 167): left alone, it would freeze at the same spot this
+ * row does. A `ResizeObserver` publishes this row's own rendered height, undone by the frame's zoom (`getComputedStyle`'s
+ * `zoom`, since `offsetHeight` already comes back scaled), as `--backline-h` on `[data-teacher-root]`; the roster head
+ * reads it back for its own `top` so it stacks below this row instead of fighting it for the same pixels.
  */
 export default function BackLine({ session, badge }: { session: StudentSession | null; badge?: ReactNode }) {
   const assignment = useAssignmentBundle();
@@ -58,14 +70,33 @@ export default function BackLine({ session, badge }: { session: StudentSession |
       <EndLesson stage={current.id} session={session} notDone={Math.max(0, current.total - current.done)} />
     </span>
   );
+  const pinnedRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = pinnedRef.current;
+    const scope = el?.closest<HTMLElement>("[data-teacher-root]");
+    if (!el || !scope) return;
+    const sync = () => {
+      const zoom = Number(getComputedStyle(scope).zoom) || 1;
+      scope.style.setProperty("--backline-h", `${el.offsetHeight / zoom}px`);
+    };
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      scope.style.removeProperty("--backline-h");
+    };
+  }, []);
   return (
-    <div className="flex items-start justify-between gap-6" data-back-line>
-      <BackToClassroom />
-      {live && (
-        <div className="flex items-center self-stretch pb-1" data-teacher-pathway>
-          <PathwayPills stages={stages.map((s) => ({ id: s.id, state: stagePillState(s) }))} size="laptop" above={above} beside={beside} badge={badge ?? dot} />
-        </div>
-      )}
+    <div ref={pinnedRef} className="sticky top-0 z-10 -mx-6 -mt-12 bg-cream px-6 pt-12" data-back-line-pinned>
+      <div className="flex items-start justify-between gap-6" data-back-line>
+        <BackToClassroom />
+        {live && (
+          <div className="flex items-center self-stretch pb-1" data-teacher-pathway>
+            <PathwayPills stages={stages.map((s) => ({ id: s.id, state: stagePillState(s) }))} size="laptop" above={above} beside={beside} badge={badge ?? dot} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

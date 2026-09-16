@@ -57,8 +57,10 @@ const LABEL = "pointer-events-none absolute top-1/2 -translate-y-1/2 whitespace-
  * a sub-header of the bar while the teacher scrolls to later students. Paper behind it so the rows pass
  * under, above the rows' own positioned marks (`z-20`); its bottom line is an inset shadow rather than the
  * row's collapsed border, which would stay behind with the table when the cells stick.
+ * Its `top` is `--backline-h` (`BackLine.tsx`, ticket 356), not 0: `BackLine` pins to that same scroll region's
+ * top now, so without the offset the two would freeze over each other instead of stacking.
  */
-const HEAD = "sticky top-0 z-20 bg-paper shadow-[inset_0_-1px_0_var(--color-line)]";
+const HEAD = "sticky top-[var(--backline-h,0px)] z-20 bg-paper shadow-[inset_0_-1px_0_var(--color-line)]";
 
 /** The stacked pair of small buttons beside a student's name and over a column header: light blue, dark indigo text, one width. */
 const STACK_BUTTON = "w-[96px] rounded-md px-2 py-[3px] text-[11px] font-medium leading-snug transition-colors";

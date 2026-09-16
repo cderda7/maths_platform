@@ -34,7 +34,10 @@ export default function TeacherGroups() {
   const move = (student: string, to: GroupColour) => dispatchClassroom(assignment ? { type: "groups/move", student, to, assignment: assignment.id } : { type: "groups/move", student, to });
   return (
     <TeacherChrome>
-      <BackToClassroom />
+      {/* Pinned the same way BackLine's is (ticket 356): "← Edexia Classroom" stays on screen while the board below scrolls. */}
+      <div className="sticky top-0 z-10 -mx-6 -mt-12 bg-cream px-6 pt-12" data-back-line-pinned>
+        <BackToClassroom />
+      </div>
       <Eyebrow className="mt-3">
         {ASSIGNMENT.className} · {assignment ? assignment.title : "Edexia Classroom"}
       </Eyebrow>
