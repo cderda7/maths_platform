@@ -6005,7 +6005,7 @@ top means the rule degrades honestly instead of hiding rows when the class is at
 
 **Defense.** The two changes are independent in the code (pinning is pure layout; the gate is `PracticeScreen`'s own state) but read as one ticket because they're the same screen's two rough edges: a way on that could hide, and a way off that never asked. Matching `HandInCheck`'s existing corner-card convention for the new confirm means no new dialog pattern entered the codebase for one ticket.
 
-## 2026-09-16 · "See the example again" moves to the left column on stage 3 too, not only stage 2 (ticket 349)
+## 2026-09-16 · "See the example again" moves to the left column on stage 3 too, not only stage 2 (ticket 350)
 
 **Decision.** Carson's ask named the warm-up's "Your turn" step (stage 2): "see worked example" should open in the left column, fit to size, with the drawpad still up. `ExamplePeek` (`app/student/screens/PracticeSteps.tsx`) is one shared component with exactly one other call site — `PracticePad.tsx`'s `exampleAgain` path, the warm-up's stage 3 ("On your own"). Rather than give stage 2 the fix and leave stage 3 on the old behaviour (the example swapping out the whole middle column, hiding the pad), both call sites got the same treatment in this ticket.
 

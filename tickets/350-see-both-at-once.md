@@ -1,4 +1,4 @@
-# 349: The worked example never hides the student's own pad
+# 350: The worked example never hides the student's own pad
 
 **What to build:** on the Example step, the question moves out of the left column to the top of the middle column, above the worked-example steps. On Your turn (and its stage-3 sibling), "see the example again" no longer swaps the drawpad out from under the student — the worked example plays in the left column instead, sized to fit without a scroll, so the pair (example, own working) is on screen together. The worked-example card's own skill pill ("fractions") goes; it duplicates the left column's tags and crowds the box.
 
@@ -41,4 +41,4 @@ This is the same shared component tree behind "help on a set question" (`HelpLad
 - [x] No `PracticeCard` anywhere shows a skill pill; every other place `LeafChip` is used stand-alone (`FeedbackScreen.tsx`, `HelpLadder.tsx`'s own head, `PracticePad.tsx`'s "second" stem, `ProblemCard.tsx`) is untouched (grepped, unchanged).
 - [x] vitest 2269, eslint, tsc, next build, check:laptop 76/76
 - [x] Click-through against a production build at 1280×800 and 1440×900: Example step's layout, Your turn's peek (drawpad visibly still usable, no scrollbar on the peeked example, back button works), stage 3's peek, the help-on-a-question overlay's Example/Your turn; no clipped or wrapped maths; screenshots checked
-- [x] Ticket docs: `architecture/349-see-both-at-once.md`, ARCHITECTURE, DECISION_LOG (the stage-3 mirroring judgment call), README
+- [x] Ticket docs: `architecture/350-see-both-at-once.md`, ARCHITECTURE, DECISION_LOG (the stage-3 mirroring judgment call), README

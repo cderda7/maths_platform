@@ -1,4 +1,4 @@
-# 349: The worked example never hides the student's own pad
+# 350: The worked example never hides the student's own pad
 
 ## Files touched
 
@@ -7,7 +7,7 @@
 | `components/PracticeCard.tsx` | The shared "worked example" box drops its top-right `LeafChip` (the "fractions" pill); the stem/expression render alone when `question` is true, no wrapping row. |
 | `app/student/screens/PracticeSteps.tsx` | `WorkedStep` (the Example step): the left `<aside>` now holds only the caller's `head`; the stem, expression and figure move to the top of the middle `[data-example]` column, above the `Worked example` eyebrow and card. `ExamplePeek`: rebuilt for a narrow column — `compact`, wrapped in `FitHeight` so it zooms to fit rather than scroll. `CompletionStep` (Your turn): `peek` now swaps only the left column's lower half (question, hint cards, "I need help") for `ExamplePeek`; the pad and the working column render unconditionally, regardless of `peek`. |
 | `components/PracticePad.tsx` | The warm-up's stage 3 ("On your own") gets the identical treatment: `peek && exampleAgain` renders `ExamplePeek` inside the left `<aside>` (below the title/header, above where the question used to sit) instead of swapping the middle column; the middle column is `PadSection` whenever `run.example` is false, `peek` or not. |
-| `tickets/349-…`, `ARCHITECTURE.md`, `DECISION_LOG.md`, `README.md` | Docs. |
+| `tickets/350-…`, `ARCHITECTURE.md`, `DECISION_LOG.md`, `README.md` | Docs. |
 
 ## How it connects
 
@@ -25,7 +25,7 @@
    │ │  head    │ │ Solve.  x/4 + x/2 − 6 = 9/2     │ │ Question about   │ │
    │ │ (eyebrow,│ │ ── WORKED EXAMPLE ──            │ │ a step?          │ │
    │ │ steps,   │ │ <PracticeCard question={false}  │ │                  │ │
-   │ │ title,   │ │   — no pill (ticket 349)>        │ │                  │ │
+   │ │ title,   │ │   — no pill (ticket 350)>        │ │                  │ │
    │ │ chips)   │ │                                  │ │                  │ │
    │ └──────────┘ └─────────────────────────────────┘ └──────────────────┘ │
    └─────────────────────────────────────────────────────────────────────┘
